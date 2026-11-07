@@ -252,6 +252,32 @@ scenario(
 )
 
 scenario(
+  "read through a symlink that leaves the project",
+  {
+    config: {
+      permissions: [
+        ...HIDDEN_TOOLS.map((action) => ({ action, resource: "*", effect: "deny" })),
+        { action: "external_directory", resource: "*", effect: "ask" },
+      ],
+    },
+    files: { "local.txt": "local\n" },
+    turns: reads({ path: "local.txt" }, { path: "shared/notes.txt" }, { path: "shared/other.txt" }),
+  },
+  async (ctx) => {
+    // A link inside the project to a directory outside it: reads through it meet the external directory rules.
+    const outside = path.join(path.dirname(ctx.project), "linked-outside")
+    mkdirSync(outside, { recursive: true })
+    writeFileSync(path.join(outside, "notes.txt"), "outside notes\n")
+    writeFileSync(path.join(outside, "other.txt"), "other notes\n")
+    symlinkSync(outside, path.join(ctx.project, "shared"))
+    const id = await drive(ctx, "Read the shared notes", ["once", "once"])
+    await ctx.http("GET", `/api/session/${id}/message`)
+    // The final project snapshot follows links; the outside files are not part of the project.
+    unlinkSync(path.join(ctx.project, "shared"))
+  },
+)
+
+scenario(
   "read absolute and home paths",
   {
     files: { "src/main.ts": "console.log('main')\n" },

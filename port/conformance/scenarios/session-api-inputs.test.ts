@@ -447,7 +447,8 @@ scenario("an inline attachment over the size limit", {}, async (ctx) => {
 scenario("attachments the model cannot read", { turns: [say("I can only see the text.")] }, async (ctx) => {
   const session = await ctx.session({ title: "unsupported media" })
   const pdf = Buffer.from("%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n").toString("base64")
-  // MP4-family containers: the major brand tells audio (M4A) from video. Unrecognized binary data is left out.
+  // MP4-family containers: the major brand tells audio (M4A), HEIC images and video apart. Unrecognized binary data is
+  // an attachment of unknown kind.
   const box = (brand: string) =>
     Buffer.concat([Buffer.from([0, 0, 0, 20]), Buffer.from(`ftyp${brand}`), Buffer.alloc(4), Buffer.from("isom")])
   const unknown = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(16)]).toString("base64")
@@ -457,6 +458,7 @@ scenario("attachments the model cannot read", { turns: [say("I can only see the 
       { uri: `data:audio/mp4;base64,${box("M4A ").toString("base64")}`, name: "voice.m4a" },
       { uri: `data:video/mp4;base64,${box("isom").toString("base64")}` },
       { uri: `data:audio/mpeg;base64,${unknown}` },
+      { uri: `data:image/heic;base64,${box("heic").toString("base64")}`, name: "photo.heic" },
     ],
   })
   await messages(ctx, session)

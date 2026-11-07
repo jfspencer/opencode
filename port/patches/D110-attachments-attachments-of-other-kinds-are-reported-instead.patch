@@ -1,0 +1,147 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:34:22 -0700
+Subject: [PATCH] D110 attachments: attachments of other kinds are reported
+ instead of dropped
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: besides text, directories, PDFs and PNG, JPEG, GIF and WebP images, a prompt's attachments were left out of the model request: other images (HEIC, AVIF, BMP when it cannot be converted) and files of unknown kind. The model never learned of them and the user was not told. D105 does this for audio and video.
+Fixed: every attachment is forwarded as media, and the check that replaces unreadable media with "ERROR: Cannot read … Inform the user." also covers image types providers do not decode (`image/heic`) and files of unknown kind (`application/octet-stream`), whatever the model's capabilities.
+Scenarios: session-api-inputs.test.ts "attachments the model cannot read" (a HEIC photo added; the unknown file is now reported); agent-loop-agents.test.ts "binary attachment of an unsupported type is reported to the model" (renamed from "…is dropped")
+Upstream tests: test/session-runner-message.test.ts and test/session-model-request.test.ts (new tests)
+
+diff --git a/packages/core/src/session/model-request.ts b/packages/core/src/session/model-request.ts
+index 5fc93d8032..56347b44da 100644
+--- a/packages/core/src/session/model-request.ts
++++ b/packages/core/src/session/model-request.ts
+@@ -134,7 +134,9 @@ const mimeToModality = (mime: string) => {
+   if (mime === "application/pdf") return "pdf"
+ }
+ 
+-// xAI rejects any other image type (e.g. GIF) with invalid_image, and the stored image would fail every later turn.
++// Providers reject other image types (BMP, HEIC, AVIF…), and the stored image would fail every later turn. xAI also
++// rejects GIF with invalid_image.
++const IMAGE_MIMES = new Set(["image/png", "image/jpeg", "image/gif", "image/webp"])
+ const XAI_IMAGE_MIMES = new Set(["image/png", "image/jpeg", "image/webp"])
+ 
+ const unsupportedMedia = (
+@@ -144,14 +146,16 @@ const unsupportedMedia = (
+   provider: string | undefined,
+ ) => {
+   const modality = mimeToModality(mime)
+-  if (!modality) return
+-  const unsupported = !capabilities.input.some((item) => item.startsWith(modality))
+-    ? modality
+-    : provider === "xai" && modality === "image" && !XAI_IMAGE_MIMES.has(mime.toLowerCase())
+-      ? mime
+-      : undefined
++  // No model reads a file of unknown kind.
++  const unsupported = !modality
++    ? mime
++    : !capabilities.input.some((item) => item.startsWith(modality))
++      ? modality
++      : modality === "image" && !(provider === "xai" ? XAI_IMAGE_MIMES : IMAGE_MIMES).has(mime.toLowerCase())
++        ? mime
++        : undefined
+   if (!unsupported) return
+-  return `ERROR: Cannot read ${name ? `"${name}"` : modality} (this model does not support ${unsupported} input). Inform the user.`
++  return `ERROR: Cannot read ${name ? `"${name}"` : (modality ?? "file")} (this model does not support ${unsupported} input). Inform the user.`
+ }
+ 
+ // The inline budget counts base64 characters, which are ASCII, so a string's length is its size without scanning it.
+diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
+index d0313f1652..2ab92babde 100644
+--- a/packages/core/src/session/runner/to-llm-message.ts
++++ b/packages/core/src/session/runner/to-llm-message.ts
+@@ -63,18 +63,10 @@ const directoryAttachment = (file: FileAttachment): TextPart => ({
+ const attachmentContent = (file: FileAttachment): Array<TextPart | MediaPart> => {
+   if (file.mime === "text/plain") return [textAttachment(file)]
+   if (file.mime === "application/x-directory") return [directoryAttachment(file)]
+-  // Audio and video are forwarded like images and PDFs, so a model that cannot read them reports it instead of the
+-  // attachment disappearing.
+-  if (
+-    imageMimes.has(file.mime) ||
+-    file.mime === "application/pdf" ||
+-    file.mime.startsWith("audio/") ||
+-    file.mime.startsWith("video/")
+-  ) {
+-    const location = attachmentLocation(file)
+-    return [...(location === undefined ? [] : [Message.text(`\n\nAttached file: ${location}`)]), media(file)]
+-  }
+-  return []
++  // Every other attachment is forwarded as media, so a model that cannot read it reports it instead of the attachment
++  // disappearing.
++  const location = attachmentLocation(file)
++  return [...(location === undefined ? [] : [Message.text(`\n\nAttached file: ${location}`)]), media(file)]
+ }
+ 
+ const userAttachmentContent = (files: readonly FileAttachment[]) => {
+diff --git a/packages/core/test/session-model-request.test.ts b/packages/core/test/session-model-request.test.ts
+index 00c104140c..542da972cb 100644
+--- a/packages/core/test/session-model-request.test.ts
++++ b/packages/core/test/session-model-request.test.ts
+@@ -104,6 +104,27 @@ describe("SessionModelRequest.unsupportedParts", () => {
+     expect(unsupportedParts(messages, capabilities(["text", "image"]), "openai")).toEqual(messages)
+   })
+ 
++  test("replaces image types providers cannot decode and files of unknown kind", () => {
++    const messages = unsupportedParts(
++      [
++        Message.user([
++          Message.text("Open these"),
++          { type: "media", media: Media.base64("AAAA", "image/heic"), filename: "a.heic" },
++          { type: "media", media: Media.base64("AAAA", "application/octet-stream") },
++        ]),
++      ],
++      capabilities(["text", "image"]),
++    )
++
++    expect(messages[0]?.content).toEqual([
++      Message.text("Open these"),
++      Message.text('\n\nERROR: Cannot read "a.heic" (this model does not support image/heic input). Inform the user.'),
++      Message.text(
++        "\n\nERROR: Cannot read file (this model does not support application/octet-stream input). Inform the user.",
++      ),
++    ])
++  })
++
+   test("preserves supported media", () => {
+     const message = Message.user({ type: "media", media: Media.base64("aGVsbG8=", "image/png") })
+     expect(unsupportedParts([message], capabilities(["text", "image"]))[0]?.content).toEqual(message.content)
+diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
+index 5b03b90b75..46f64b857f 100644
+--- a/packages/core/test/session-runner-message.test.ts
++++ b/packages/core/test/session-runner-message.test.ts
+@@ -553,6 +553,30 @@ Earlier work
+     ])
+   })
+ 
++  test("forwards attachments of other kinds as provider media", () => {
++    const messages = toLLMMessages(
++      [
++        SessionMessage.User.make({
++          id: id("user-other-kinds"),
++          type: "user",
++          text: "Open these",
++          files: [
++            FileAttachment.make({ data: Base64.make("AAAA"), mime: "image/heic", source: { type: "inline" }, name: "a.heic" }),
++            FileAttachment.make({ data: Base64.make("AAAA"), mime: "application/octet-stream", source: { type: "inline" } }),
++          ],
++          time: { created },
++        }),
++      ],
++      model,
++    )
++
++    expect(messages[0]?.content).toEqual([
++      { type: "text", text: "Open these" },
++      { type: "media", media: Media.base64("AAAA", "image/heic"), filename: "a.heic" },
++      { type: "media", media: Media.base64("AAAA", "application/octet-stream"), filename: undefined },
++    ])
++  })
++
+   test("exposes admitted local image source paths before provider media", () => {
+     const data = Base64.make("AAECAw==")
+     const location = path.resolve("/project/IMG_3480.JPG")

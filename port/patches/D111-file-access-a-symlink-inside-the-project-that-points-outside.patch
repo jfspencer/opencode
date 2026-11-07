@@ -1,0 +1,245 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:37:27 -0700
+Subject: [PATCH] D111 file access: a symlink inside the project that points
+ outside meets the external directory rules
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: whether a path is outside the project was decided on the path as written, so a symlink inside the project to an outside directory (`shared -> ../elsewhere`) let the read, edit, write and patch tools, a shell `cd` and session moves reach outside without an `external_directory` check, even under a deny rule. The docs describe the external resource as the "canonical absolute external path" and say "Explicit external paths are canonicalized before matching"; the code compared lexical paths.
+Fixed: a target is internal only if both its path and its real path (symlinks followed through the part that exists) are inside the Location or worktree. An external target's resource and approval directory use the real path (`<root>/elsewhere/*`). Workspace-placed Locations keep lexical paths, as FileSystem does.
+Design note: this reverses a deliberate upstream choice. Before cc7827fe08 the code said "Symlinks reached through an internal path intentionally retain internal permission semantics", and six upstream tests asserted it (one under an external_directory deny rule). Drop this patch if that choice should stand. The HTTP file API (FileSystem) already confines reads to the Location's real path.
+Scenarios: tools-read.test.ts "read through a symlink that leaves the project" (new)
+Upstream tests: test/file-access-path.test.ts ("resolves a prospective target below an external symlink lexically" now expects an external target), test/tool-shell.test.ts ("a numeric symlink operand still reaches outside…" now expects the deny), test/tool-write.test.ts, test/tool-edit.test.ts, test/tool-patch.test.ts and test/tool-search.test.ts (asserted that a symlink's outside target needed only in-location permission; they now expect the external_directory approval first)
+
+diff --git a/packages/core/src/file-access.ts b/packages/core/src/file-access.ts
+index b9bd1c2eca..a2f54e8f20 100644
+--- a/packages/core/src/file-access.ts
++++ b/packages/core/src/file-access.ts
+@@ -85,16 +85,33 @@ const layer = Layer.effect(
+   Effect.gen(function* () {
+     const { files } = yield* Environment.Service
+     const exists = (file: string) => Environment.exists(files, file)
++    const fs = yield* FSUtil.Service
+     const location = yield* Location.Service
+     const permission = yield* Permission.Service
+ 
++    // Follows symlinks through the part of the path that exists, so a link inside the project that points outside it
++    // meets the external directory rules. Workspace-placed Locations keep lexical paths, as FileSystem does.
++    const realPath = (target: string): Effect.Effect<string> =>
++      location.workspaceID
++        ? Effect.succeed(target)
++        : fs.realPath(target).pipe(
++            Effect.catch(() => {
++              const parent = path.dirname(target)
++              if (parent === target) return Effect.succeed(target)
++              return realPath(parent).pipe(Effect.map((real) => path.join(real, path.basename(target))))
++            }),
++          )
++    const worktree = path.resolve(location.project.directory)
++    // Resolved on first use: building the Location's services does no filesystem work.
++    const roots = yield* Effect.cached(
++      Effect.all({ directory: realPath(location.directory), worktree: realPath(worktree) }),
++    )
++
+     const resolve = Effect.fn("FileAccess.resolve")(function* (input: ResolveInput) {
+       const absolute = AbsolutePath.make(resolvePath(location.directory, input.path))
+-      const worktree = path.resolve(location.project.directory)
+-      const internal =
+-        FSUtil.contains(location.directory, absolute) ||
+-        (worktree !== path.parse(worktree).root && FSUtil.contains(worktree, absolute))
+-      if (internal) {
++      const canonical = AbsolutePath.make(yield* realPath(absolute))
++      const real = yield* roots
++      if (inside(absolute, location.directory, worktree) && inside(canonical, real.directory, real.worktree)) {
+         return {
+           absolute,
+           resource: slash(path.relative(location.directory, absolute) || "."),
+@@ -105,10 +122,10 @@ const layer = Layer.effect(
+         (yield* Environment.typeFollowing(files, absolute).pipe(
+           Effect.catchTag("Environment.NotFound", () => Effect.undefined),
+         ))
+-      const directory = AbsolutePath.make(type === "directory" ? absolute : path.dirname(absolute))
++      const directory = AbsolutePath.make(type === "directory" ? canonical : path.dirname(canonical))
+       return {
+         absolute,
+-        resource: slash(absolute),
++        resource: slash(canonical),
+         externalDirectory: {
+           action: "external_directory",
+           directory,
+@@ -161,8 +178,11 @@ const layer = Layer.effect(
+   }),
+ )
+ 
++const inside = (target: string, directory: string, worktree: string) =>
++  FSUtil.contains(directory, target) || (worktree !== path.parse(worktree).root && FSUtil.contains(worktree, target))
++
+ export const node = makeLocationNode({
+   service: Service,
+   layer,
+-  deps: [Environment.node, Location.node, Permission.node],
++  deps: [Environment.node, FSUtil.node, Location.node, Permission.node],
+ })
+diff --git a/packages/core/test/file-access-path.test.ts b/packages/core/test/file-access-path.test.ts
+index ee3c1dc45f..211e55e175 100644
+--- a/packages/core/test/file-access-path.test.ts
++++ b/packages/core/test/file-access-path.test.ts
+@@ -121,19 +121,20 @@ describe("FileAccess.resolve", () => {
+     ),
+   )
+ 
+-  it.live("resolves a prospective target below an external symlink lexically", () =>
++  it.live("treats a prospective target below a symlink to an outside directory as external", () =>
+     withTempDir(({ path: directory }) =>
+       Effect.gen(function* () {
+         if (process.platform === "win32") return
+         const outside = yield* tmpdirScoped()
+         yield* Effect.promise(() => fs.symlink(outside.path, path.join(directory, "escape")))
++        const real = yield* Effect.promise(() => fs.realpath(outside.path))
+         const access = yield* FileAccess.Service
+         const target = yield* access.resolve({ path: path.join("escape", "new.txt") })
+         expect(target).toMatchObject({
+           absolute: path.join(directory, "escape", "new.txt"),
+-          resource: "escape/new.txt",
++          resource: path.join(real, "new.txt"),
++          externalDirectory: { directory: real, resource: path.join(real, "*") },
+         })
+-        expect(target.externalDirectory).toBeUndefined()
+       }).pipe(provide(directory)),
+     ),
+   )
+diff --git a/packages/core/test/tool-edit.test.ts b/packages/core/test/tool-edit.test.ts
+index 94df3fb25a..7ac55101a0 100644
+--- a/packages/core/test/tool-edit.test.ts
++++ b/packages/core/test/tool-edit.test.ts
+@@ -1,4 +1,5 @@
+ import fs from "fs/promises"
++import { realpathSync } from "fs"
+ import path from "path"
+ import { describe, expect } from "bun:test"
+ import { Effect, Layer } from "effect"
+@@ -232,7 +233,7 @@ describe("EditTool", () => {
+     }),
+   )
+ 
+-  it.live("edits an external symlink target with only its in-location permission", () =>
++  it.live("approves the outside directory of a symlink's target before edit", () =>
+     Effect.acquireUseRelease(
+       Effect.promise(() => Promise.all([tmpdir(), tmpdir()])),
+       ([active, outside]) => {
+@@ -252,8 +253,8 @@ describe("EditTool", () => {
+           Effect.andThen((result) =>
+             Effect.sync(() => {
+               expect(result.status).toBe("completed")
+-              expect(edit.assertions.map((input) => input.action)).toEqual(["edit"])
+-              expect(edit.assertions[0]?.resources).toEqual(["link.txt"])
++              expect(edit.assertions.map((input) => input.action)).toEqual(["external_directory", "edit"])
++              expect(edit.assertions[1]?.resources).toEqual([realpathSync(target).replaceAll("\\", "/")])
+             }),
+           ),
+           Effect.andThen(Effect.promise(() => fs.readFile(target, "utf8"))),
+diff --git a/packages/core/test/tool-patch.test.ts b/packages/core/test/tool-patch.test.ts
+index 3a571d2de2..ceba9d80ef 100644
+--- a/packages/core/test/tool-patch.test.ts
++++ b/packages/core/test/tool-patch.test.ts
+@@ -1021,7 +1021,7 @@ describe("PatchTool", () => {
+     }),
+   )
+ 
+-  it.live("follows an internal symlink to an external file without external permission", () =>
++  it.live("approves the outside directory of an internal symlink's target", () =>
+     Effect.acquireUseRelease(
+       Effect.promise(() => Promise.all([tmpdir(), tmpdir()])),
+       ([active, outside]) => {
+@@ -1040,7 +1040,7 @@ describe("PatchTool", () => {
+                     call("*** Begin Patch\n*** Update File: link.txt\n@@\n-before\n+after\n*** End Patch"),
+                   ),
+                 ).toMatchObject({ status: "completed" })
+-                expect(assertions.map((input) => input.action)).toEqual(["edit"])
++                expect(assertions.map((input) => input.action)).toEqual(["external_directory", "edit"])
+                 expect(yield* Effect.promise(() => fs.readFile(target, "utf8"))).toBe("after\n")
+               }),
+             ),
+diff --git a/packages/core/test/tool-search.test.ts b/packages/core/test/tool-search.test.ts
+index e871525a33..49b7bbe633 100644
+--- a/packages/core/test/tool-search.test.ts
++++ b/packages/core/test/tool-search.test.ts
+@@ -341,7 +341,7 @@ describe("search tools", () => {
+     ),
+   )
+ 
+-  it.live("globs through an in-location external symlink without external approval", () =>
++  it.live("approves the outside directory before globbing through a symlink", () =>
+     Effect.acquireUseRelease(
+       Effect.promise(() => Promise.all([tmpdir(), tmpdir()])),
+       ([active, outside]) => {
+@@ -361,7 +361,7 @@ describe("search tools", () => {
+           Effect.tap((result) =>
+             Effect.sync(() => {
+               expect(result.status).toBe("completed")
+-              expect(assertions.map((input) => input.action)).toEqual(["glob"])
++              expect(assertions.map((input) => input.action)).toEqual(["external_directory", "glob"])
+               expect(result).toMatchObject({
+                 output: [{ path: path.join("linked", "outside.txt"), type: "file" }],
+                 content: [{ type: "text", text: path.join(active.path, "linked", "outside.txt") }],
+diff --git a/packages/core/test/tool-shell.test.ts b/packages/core/test/tool-shell.test.ts
+index e4879804c5..7fe069cdb6 100644
+--- a/packages/core/test/tool-shell.test.ts
++++ b/packages/core/test/tool-shell.test.ts
+@@ -439,7 +439,7 @@ describe("ShellTool scanner permissions", () => {
+       }),
+     ))
+ 
+-  test("a numeric symlink operand still reaches outside without an external-directory prompt", () =>
++  test("a numeric symlink operand that reaches outside meets the external-directory deny", () =>
+     withScanner((registry, fixture) =>
+       Effect.gen(function* () {
+         yield* Effect.promise(() => fs.symlink(fixture.outside, path.join(fixture.active, "123")))
+@@ -463,12 +463,11 @@ describe("ShellTool scanner permissions", () => {
+         expect(result.exit).toMatchObject({
+           _tag: "Success",
+           value: {
+-            status: "completed",
+-            metadata: { exit: 0 },
+-            content: [{ type: "text", text: `${fixture.outside}\n` }],
++            status: "error",
++            error: { message: expect.stringContaining("Permission denied: external_directory") },
+           },
+         })
+-        expect(yield* Effect.promise(() => Bun.file(marker).text())).toBe("reached")
++        expect(yield* Effect.promise(() => Bun.file(marker).exists())).toBe(false)
+       }),
+     ))
+ 
+diff --git a/packages/core/test/tool-write.test.ts b/packages/core/test/tool-write.test.ts
+index 279c26c74d..542d5e752b 100644
+--- a/packages/core/test/tool-write.test.ts
++++ b/packages/core/test/tool-write.test.ts
+@@ -1,4 +1,5 @@
+ import fs from "fs/promises"
++import { realpathSync } from "fs"
+ import path from "path"
+ import { describe, expect } from "bun:test"
+ import { Effect, Exit, Layer, Tracer } from "effect"
+@@ -258,7 +259,7 @@ describe("WriteTool", () => {
+     }),
+   )
+ 
+-  it.live("writes an external symlink target with only its in-location permission", () =>
++  it.live("approves the outside directory of a symlink's target before edit", () =>
+     Effect.acquireUseRelease(
+       Effect.promise(() => Promise.all([tmpdir(), tmpdir()])),
+       ([active, outside]) => {
+@@ -278,8 +279,8 @@ describe("WriteTool", () => {
+           Effect.andThen((result) =>
+             Effect.sync(() => {
+               expect(result.status).toBe("completed")
+-              expect(fixture.assertions.map((input) => input.action)).toEqual(["edit"])
+-              expect(fixture.assertions[0]?.resources).toEqual(["link.txt"])
++              expect(fixture.assertions.map((input) => input.action)).toEqual(["external_directory", "edit"])
++              expect(fixture.assertions[1]?.resources).toEqual([realpathSync(target).replaceAll("\\", "/")])
+             }),
+           ),
+           Effect.andThen(Effect.promise(() => fs.readFile(target, "utf8"))),

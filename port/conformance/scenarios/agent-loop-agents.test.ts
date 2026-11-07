@@ -556,7 +556,7 @@ scenario(
 )
 
 scenario(
-  "binary attachment of an unsupported type is dropped",
+  "binary attachment of an unsupported type is reported to the model",
   { turns: [say("Nothing readable attached.")] },
   async (ctx) => {
     const zip = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x21, 0x00, 0xff, 0xfe]).toString("base64")
