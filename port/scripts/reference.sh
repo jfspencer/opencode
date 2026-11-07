@@ -24,6 +24,9 @@ export GIT_AUTHOR_NAME=opencode-port GIT_AUTHOR_EMAIL=port@localhost GIT_COMMITT
 g() { git -C "$ref" "$@"; }
 base_file() { echo "$(g rev-parse --absolute-git-dir)/port-base"; }
 base() { cat "$(base_file)"; }
+# What the reference last exported (build/save/amend/export). Commits that differ from it were made by hand.
+snapshot() { echo "$(g rev-parse --absolute-git-dir)/port-exported"; }
+remember() { rm -rf "$(snapshot)" && export_patches "$(snapshot)"; }
 need() { [ -f "$ref/.git" ] && [ -f "$(base_file)" ] || { echo "no reference at $ref: run $0 build" >&2; exit 1; }; }
 
 export_patches() { # dir
@@ -43,9 +46,9 @@ case "${1:-}" in
 build)
   if [ -f "$ref/.git" ]; then
     [ -z "$(g status --porcelain)" ] || { echo "the reference has uncommitted changes: save, amend or discard them first" >&2; g status --short >&2; exit 1; }
-    if [ -f "$(base_file)" ]; then
+    if [ -f "$(base_file)" ] && [ -d "$(snapshot)" ]; then
       tmp=$(mktemp -d); export_patches "$tmp"
-      diff -rq "$tmp" "$patches" -x '*.md' >/dev/null 2>&1 || [ -z "$(ls "$tmp")" ] || { echo "the reference has commits not exported to port/patches: run $0 export first" >&2; rm -rf "$tmp"; exit 1; }
+      diff -rq "$tmp" "$(snapshot)" >/dev/null 2>&1 || { echo "the reference has commits made by hand, not saved to port/patches: run $0 export first" >&2; rm -rf "$tmp"; exit 1; }
       rm -rf "$tmp"
     fi
   else
@@ -58,6 +61,7 @@ build)
   for p in $(ls "$patches"/D*.patch 2>/dev/null | sort); do
     g am -q --3way "$p" || { g am --abort; echo "$(basename "$p") no longer applies to upstream $(git -C "$root" rev-parse --short HEAD): re-check the bug, then re-derive the fix or drop the patch" >&2; exit 1; }
   done
+  remember
   (cd "$ref" && bun install --frozen-lockfile >/dev/null)
   "$root/port/scripts/link-deps.sh" "$ref"
   echo "reference: upstream $(git -C "$root" rev-parse --short HEAD) + $(g rev-list --count "$(base)..HEAD") deviation patches"
@@ -68,7 +72,7 @@ save)
   ! g log --format=%s "$(base)..HEAD" | grep -q "^${2%% *} " || { echo "${2%% *} exists: use amend" >&2; exit 1; }
   [ -n "$(g status --porcelain)" ] || { echo "nothing to save" >&2; exit 1; }
   g add -A && g commit -q -m "$2" ${3:+-m "$3"}
-  export_patches "$patches"
+  export_patches "$patches" && remember
   echo "saved $(ls "$patches"/"${2%% *}"-*.patch)"
   ;;
 amend)
@@ -78,12 +82,12 @@ amend)
   [ -n "$(g status --porcelain)" ] || { echo "nothing to amend" >&2; exit 1; }
   g add -A && g commit -q --fixup="$sha"
   GIT_SEQUENCE_EDITOR=true g rebase -q -i --autosquash "$(base)"
-  export_patches "$patches"
+  export_patches "$patches" && remember
   echo "amended $2"
   ;;
 export)
   need
-  export_patches "$patches"
+  export_patches "$patches" && remember
   ls "$patches"
   ;;
 status)
