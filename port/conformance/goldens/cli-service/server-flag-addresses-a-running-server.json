@@ -80,9 +80,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "Error: Server at http://127.0.0.1:<service-port> requires a password; set OPENCODE_PASSWORD {",
-          "  [cause]: UnauthorizedError: Authentication required",
-          "}",
+          "Error: Server at http://127.0.0.1:<service-port> requires a password; set OPENCODE_PASSWORD",
           ""
         ],
         "stdout": ""
@@ -102,9 +100,7 @@
         },
         "exit": 1,
         "stderr": [
-          "Error: Server at http://127.0.0.1:<service-port> rejected the password {",
-          "  [cause]: UnauthorizedError: Authentication required",
-          "}",
+          "Error: Server at http://127.0.0.1:<service-port> rejected the password",
           ""
         ],
         "stdout": ""
@@ -142,11 +138,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "Error: Could not reach server at http://127.0.0.1:<port-1>: Unable to connect. Is the computer able to access the url? {",
-          "  [cause]: ClientError: Transport: Unable to connect. Is the computer able to access the url? {",
-          "    [cause]: TypeError: Unable to connect. Is the computer able to access the url?",
-          "  }",
-          "}",
+          "Error: Could not reach server at http://127.0.0.1:<port-1>: Unable to connect. Is the computer able to access the url?",
           ""
         ],
         "stdout": ""

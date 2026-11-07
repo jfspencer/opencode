@@ -9,7 +9,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "Error: ENOENT: no such file or directory, chdir '<project>' -> 'frobnicate'",
+          "Unknown command or directory: frobnicate",
           ""
         ],
         "stdout": ""
@@ -24,7 +24,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "Error: ENOENT: no such file or directory, chdir '<project>' -> 'export'",
+          "Unknown command or directory: export",
           ""
         ],
         "stdout": ""

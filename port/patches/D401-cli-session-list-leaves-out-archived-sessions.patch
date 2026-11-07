@@ -1,0 +1,22 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:31:56 -0700
+Subject: [PATCH] D401 cli: session list leaves out archived sessions
+
+Upstream: `opencode session list` lists archived sessions, so sessions created with `run --archived` (whose flag says it keeps them "out of session lists") still appear; the TUI session lists and `run --continue` already exclude them.
+Fixed: `session list` asks the server for unarchived sessions only (`archived: false`).
+Scenarios: cli-run.test.ts "run sets the title and archives"
+Upstream tests: none changed
+
+diff --git a/packages/cli/src/commands/handlers/session/list.ts b/packages/cli/src/commands/handlers/session/list.ts
+index b3a1bbbb58..db72e1e7ae 100644
+--- a/packages/cli/src/commands/handlers/session/list.ts
++++ b/packages/cli/src/commands/handlers/session/list.ts
+@@ -22,6 +22,7 @@ const handler = Effect.fn("cli.session.list")(function* (
+         {
+           project: location.project.id,
+           parentID: null,
++          archived: false,
+           order: "desc",
+           limit: Option.getOrElse(input.maxCount, () => 100),
+         },

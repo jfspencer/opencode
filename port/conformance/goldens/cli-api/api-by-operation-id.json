@@ -177,9 +177,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "UnknownError: An error occurred in Effect.tryPromise {",
-          "  [cause]: Error: Missing path parameter: sessionID",
-          "}",
+          "Error: Missing path parameter: sessionID",
           ""
         ],
         "stdout": ""
@@ -195,9 +193,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "UnknownError: An error occurred in Effect.tryPromise {",
-          "  [cause]: Error: Operation not found: no.such.operation",
-          "}",
+          "Error: Operation not found: no.such.operation",
           ""
         ],
         "stdout": ""

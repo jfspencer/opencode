@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:43:40 -0700
+Subject: [PATCH] D403 cli: an unknown command or missing directory fails with
+ a clean error
+
+Upstream: `opencode <word>` takes an unknown command word (or any missing path) as the TUI's optional directory argument and calls `process.chdir` on it unchecked, so it dies with the runtime's raw `ENOENT: no such file or directory, chdir '<cwd>' -> '<word>'` defect and a stack trace.
+Fixed: when the directory cannot be entered it prints `Unknown command or directory: <word>` on stderr and exits 1, before connecting to any server.
+Scenarios: cli-meta.test.ts "unknown commands and subcommands"
+Upstream tests: none changed
+
+diff --git a/packages/cli/src/commands/handlers/default.ts b/packages/cli/src/commands/handlers/default.ts
+index c23e2be273..763f47db9a 100644
+--- a/packages/cli/src/commands/handlers/default.ts
++++ b/packages/cli/src/commands/handlers/default.ts
+@@ -20,7 +20,15 @@ export default Runtime.handler(Commands, (input) =>
+   Effect.gen(function* () {
+     const requestedDirectory = Option.getOrUndefined(input.directory)
+     const requestedServer = Option.getOrUndefined(input.server)
+-    if (requestedDirectory !== undefined) process.chdir(requestedDirectory)
++    // An unknown command word arrives here too, as the optional directory argument.
++    if (
++      requestedDirectory !== undefined &&
++      (yield* Effect.try(() => process.chdir(requestedDirectory)).pipe(Effect.isFailure))
++    ) {
++      process.stderr.write(`Unknown command or directory: ${requestedDirectory}\n`)
++      process.exitCode = 1
++      return
++    }
+     const preflight = UpdatePreflight.make()
+     yield* Effect.addFinalizer(() => Effect.promise(() => preflight.close()))
+     const serviceStarts = yield* Queue.unbounded<{

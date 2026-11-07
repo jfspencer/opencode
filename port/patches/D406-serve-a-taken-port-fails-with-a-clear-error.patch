@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:48:17 -0700
+Subject: [PATCH] D406 serve: a taken port fails with a clear error
+
+Upstream: `opencode serve --port <port>` on a port another process holds fails with the HTTP platform's message-less `ServeError` wrapping Bun's own bind error, printed as `ServeError:  { [cause]: Error: Failed to start server. Is port <port> in use? }`; only the managed service (`serve --service`) has a readable message for this.
+Fixed: it fails with `Error: Port <port> on <hostname> is already in use. Choose another port with --port.`, exit 1.
+Scenarios: cli-serve.test.ts "serve argument errors"
+Upstream tests: none changed
+
+diff --git a/packages/cli/src/server-process.ts b/packages/cli/src/server-process.ts
+index 2f64e3ec7b..33cbeb4a79 100644
+--- a/packages/cli/src/server-process.ts
++++ b/packages/cli/src/server-process.ts
+@@ -163,7 +163,11 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
+       )
+       const server = yield* launch.pipe(
+         Effect.catch((error) => {
+-          if (findIncumbent === undefined || !addressInUse(error)) return Effect.fail(error)
++          if (!addressInUse(error)) return Effect.fail(error)
++          if (findIncumbent === undefined)
++            return Effect.fail(
++              new Error(`Port ${port} on ${hostname} is already in use. Choose another port with --port.`),
++            )
+           return Effect.gen(function* () {
+             const deadline = Date.now() + 15_000
+             while (Date.now() < deadline) {
