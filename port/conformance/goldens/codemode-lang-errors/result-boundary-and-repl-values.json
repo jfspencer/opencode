@@ -2311,7 +2311,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -2597,7 +2597,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -2902,7 +2902,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -3226,7 +3226,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -3569,7 +3569,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -3931,7 +3931,7 @@
               ]
             },
             {
-              "content": "{}",
+              "content": "null",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -6568,7 +6568,7 @@
           "assistantMessageID": "<msg_14>",
           "content": [
             {
-              "text": "{}",
+              "text": "null",
               "type": "text"
             }
           ],

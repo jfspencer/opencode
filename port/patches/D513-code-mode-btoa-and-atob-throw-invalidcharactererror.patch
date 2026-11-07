@@ -1,0 +1,243 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:30:39 -0700
+Subject: [PATCH] D513 code mode: btoa and atob throw InvalidCharacterError
+
+Upstream: btoa and atob threw a TypeError for invalid input, where JS throws a DOMException named InvalidCharacterError (the WPT-adapted tests checked for TypeError, noting that code mode has no DOMException).
+Fixed: they throw an Error named InvalidCharacterError, the closest code mode has to that DOMException (e.name, String(e), instanceof Error, and the uncaught message "InvalidCharacterError: The string contains invalid characters. (line, col)"). The message text is unchanged. A failure can now carry such a name; both engines, and the VM snapshot saves it.
+Scenarios: codemode-stdlib-web.test.ts "bytes and text" (btoa invalid, atob invalid)
+Upstream tests: test/web-wpt.test.ts checks the InvalidCharacterError name where it checked for TypeError, and adds "invalid input throws an Error named InvalidCharacterError, the DOMException JS throws"
+
+diff --git a/packages/codemode/src/interpreter/errors.ts b/packages/codemode/src/interpreter/errors.ts
+index 9699c3b941..815320f3eb 100644
+--- a/packages/codemode/src/interpreter/errors.ts
++++ b/packages/codemode/src/interpreter/errors.ts
+@@ -47,7 +47,7 @@ export const normalizeError = (error: unknown): Diagnostic => {
+     const location = error.node?.loc ? sourceLocation(error.node) : undefined
+     return {
+       kind: error.kind,
+-      message: `${error.type}: ${error.message}${formatLocation(location)}`,
++      message: `${error.name ?? error.type}: ${error.message}${formatLocation(location)}`,
+       ...(location ? { location } : {}),
+       ...(error.suggestions ? { suggestions: error.suggestions } : {}),
+     }
+@@ -124,6 +124,7 @@ export const materialize = <R>(ctx: Interpreter<R>, thrown: unknown): Value => {
+   if (thrown instanceof PendingThrow) {
+     if (thrown.value === undefined) {
+       thrown.value = createErrorValue(builtins[thrown.type], thrown.message)
++      if (thrown.name !== undefined) define(thrown.value, "name", thrown.name, hidden)
+       thrown.value.host = thrown
+     }
+     return thrown.value
+diff --git a/packages/codemode/src/interpreter/model.ts b/packages/codemode/src/interpreter/model.ts
+index 4d9e63145a..151c1b9224 100644
+--- a/packages/codemode/src/interpreter/model.ts
++++ b/packages/codemode/src/interpreter/model.ts
+@@ -41,6 +41,8 @@ export const OptionalShortCircuit: unique symbol = Symbol("codemode.optional-sho
+ export class PendingThrow {
+   node?: AstNode
+   value?: ErrorObj
++  /** The name a DOMException has (`InvalidCharacterError`): code mode has no DOMException, so it is an `Error`. */
++  name?: string
+ 
+   constructor(
+     /** The JS error class a program sees when it catches this failure. */
+@@ -58,6 +60,13 @@ const failure = (type: ErrorType, kind?: DiagnosticKind) => (message: string, no
+   new PendingThrow(type, message, node, kind)
+ 
+ export const typeError = failure("TypeError")
++
++/** A DOMException such as `InvalidCharacterError`: an `Error` with that name, since code mode has no DOMException. */
++export const domException = (name: string, message: string, node?: AstNode): PendingThrow => {
++  const failure = new PendingThrow("Error", message, node)
++  failure.name = name
++  return failure
++}
+ export const invalidData = failure("TypeError", "InvalidDataValue")
+ export const rangeError = failure("RangeError")
+ export const referenceError = failure("ReferenceError")
+diff --git a/packages/codemode/src/stdlib/web.ts b/packages/codemode/src/stdlib/web.ts
+index 1d23c3ead8..b471cd1422 100644
+--- a/packages/codemode/src/stdlib/web.ts
++++ b/packages/codemode/src/stdlib/web.ts
+@@ -1,5 +1,5 @@
+ import { fn, methods } from "../interpreter/native.js"
+-import { typeError } from "../interpreter/model.js"
++import { domException, typeError } from "../interpreter/model.js"
+ import {
+   define,
+   entries,
+@@ -35,7 +35,7 @@ export const base64Global = <R>(ctx: Interpreter<R>, name: "atob" | "btoa") =>
+     try {
+       return name === "atob" ? atob(input) : btoa(input)
+     } catch {
+-      throw typeError("The string contains invalid characters.")
++      throw domException("InvalidCharacterError", "The string contains invalid characters.")
+     }
+   })
+ 
+diff --git a/packages/codemode/src/vm/runtime/errors.ts b/packages/codemode/src/vm/runtime/errors.ts
+index 83748ec9a1..86e519065c 100644
+--- a/packages/codemode/src/vm/runtime/errors.ts
++++ b/packages/codemode/src/vm/runtime/errors.ts
+@@ -48,7 +48,7 @@ export const normalizeError = (error: unknown): Diagnostic => {
+     const location = error.node?.loc ? sourceLocation(error.node) : undefined
+     return {
+       kind: error.kind,
+-      message: `${error.type}: ${error.message}${formatLocation(location)}`,
++      message: `${error.name ?? error.type}: ${error.message}${formatLocation(location)}`,
+       ...(location ? { location } : {}),
+       ...(error.suggestions ? { suggestions: error.suggestions } : {}),
+     }
+@@ -125,6 +125,7 @@ export const materialize = <R>(ctx: Interpreter<R>, thrown: unknown): Value => {
+   if (thrown instanceof PendingThrow) {
+     if (thrown.value === undefined) {
+       thrown.value = createErrorValue(builtins[thrown.type], thrown.message)
++      if (thrown.name !== undefined) define(thrown.value, "name", thrown.name, hidden)
+       thrown.value.failure = thrown
+     }
+     return thrown.value
+diff --git a/packages/codemode/src/vm/runtime/model.ts b/packages/codemode/src/vm/runtime/model.ts
+index b44736e0fd..eeb2d9078b 100644
+--- a/packages/codemode/src/vm/runtime/model.ts
++++ b/packages/codemode/src/vm/runtime/model.ts
+@@ -25,6 +25,8 @@ export class Throw {
+ export class PendingThrow {
+   node?: AstNode
+   value?: ErrorObj
++  /** The name a DOMException has (`InvalidCharacterError`): code mode has no DOMException, so it is an `Error`. */
++  name?: string
+ 
+   constructor(
+     /** The JS error class a program sees when it catches this failure. */
+@@ -58,6 +60,13 @@ const failure = (type: ErrorType, kind?: DiagnosticKind) => (message: string, no
+   new PendingThrow(type, message, node, kind)
+ 
+ export const typeError = failure("TypeError")
++
++/** A DOMException such as `InvalidCharacterError`: an `Error` with that name, since code mode has no DOMException. */
++export const domException = (name: string, message: string, node?: AstNode): PendingThrow => {
++  const failure = new PendingThrow("Error", message, node)
++  failure.name = name
++  return failure
++}
+ export const invalidData = failure("TypeError", "InvalidDataValue")
+ export const rangeError = failure("RangeError")
+ export const referenceError = failure("ReferenceError")
+diff --git a/packages/codemode/src/vm/snapshot/codec.ts b/packages/codemode/src/vm/snapshot/codec.ts
+index 8c738023e7..e46bb49312 100644
+--- a/packages/codemode/src/vm/snapshot/codec.ts
++++ b/packages/codemode/src/vm/snapshot/codec.ts
+@@ -230,7 +230,11 @@ const builtinSpecs = (): ReadonlyArray<ClassSpec> => [
+   },
+   { name: "Resolving", ctor: Resolving, fields: ["done", "scheduler", "promise", "site"] },
+   { name: "Throw", ctor: Throw, fields: ["value"] },
+-  { name: "PendingThrow", ctor: PendingThrow, fields: ["type", "message", "kind", "suggestions", "node", "value"] },
++  {
++    name: "PendingThrow",
++    ctor: PendingThrow,
++    fields: ["type", "message", "kind", "suggestions", "node", "value", "name"],
++  },
+   { name: "Convert", ctor: Convert, fields: ["hints", "values", "ordinal", "coerce"] },
+   { name: "Invoke", ctor: Invoke, fields: ["callable", "thisValue", "args", "site"] },
+   { name: "ToolReference", ctor: ToolReference, fields: ["path", "children"] },
+diff --git a/packages/codemode/src/vm/stdlib/web.ts b/packages/codemode/src/vm/stdlib/web.ts
+index 4c18668d97..baa4eaad80 100644
+--- a/packages/codemode/src/vm/stdlib/web.ts
++++ b/packages/codemode/src/vm/stdlib/web.ts
+@@ -1,5 +1,5 @@
+ import { fn, methods } from "../runtime/native.js"
+-import { typeError } from "../runtime/model.js"
++import { domException, typeError } from "../runtime/model.js"
+ import {
+   define,
+   entries,
+@@ -35,7 +35,7 @@ export const base64Global = <R>(ctx: Interpreter<R>, name: "atob" | "btoa") =>
+     try {
+       return name === "atob" ? atob(input) : btoa(input)
+     } catch {
+-      throw typeError("The string contains invalid characters.")
++      throw domException("InvalidCharacterError", "The string contains invalid characters.")
+     }
+   })
+ 
+diff --git a/packages/codemode/test/web-wpt.test.ts b/packages/codemode/test/web-wpt.test.ts
+index dc9e1a64d9..5c39175a71 100644
+--- a/packages/codemode/test/web-wpt.test.ts
++++ b/packages/codemode/test/web-wpt.test.ts
+@@ -7,7 +7,8 @@
+  *
+  * Copyright © web-platform-tests contributors. Governed by the 3-Clause BSD license in LICENSE.wpt.
+  *
+- * `assert_throws_dom("InvalidCharacterError", …)` becomes a check for a TypeError: CodeMode has no DOMException.
++ * `assert_throws_dom("InvalidCharacterError", …)` becomes a check of the error's name: CodeMode has no DOMException,
++ * so it throws an Error named InvalidCharacterError.
+  * `checkIteratorProperties` (prototype chain and property descriptors) and the custom iterator on a Headers
+  * instance are left out.
+  */
+@@ -60,7 +61,7 @@ const referenceEncoder = `
+   function testBtoa(input) {
+     var expected = mybtoa(input)
+     if (expected === "INVALID_CHARACTER_ERR") {
+-      try { btoa(input) } catch (error) { return error instanceof TypeError ? "ok" : error.name }
++      try { btoa(input) } catch (error) { return error.name === "InvalidCharacterError" ? "ok" : error.name }
+       return "did not throw"
+     }
+     if (btoa(input) !== expected) return "btoa mismatch"
+@@ -88,6 +89,29 @@ describe("btoa WPT parity (html/webappapis/atob/base64.any.js)", () => {
+   })
+ })
+ 
++describe("btoa and atob errors", () => {
++  test("invalid input throws an Error named InvalidCharacterError, the DOMException JS throws", async () => {
++    expect(
++      await value(`
++        const caught = (f) => { try { f() } catch (e) { return [e.name, e.message, e instanceof Error, e instanceof TypeError, String(e)] } }
++        return [caught(() => btoa("€")), caught(() => atob("!"))]
++      `),
++    ).toEqual(
++      Array(2).fill([
++        "InvalidCharacterError",
++        "The string contains invalid characters.",
++        true,
++        false,
++        "InvalidCharacterError: The string contains invalid characters.",
++      ]),
++    )
++    const result = await Effect.runPromise(CodeMode.execute({ code: `atob("!")`, tools: {} }))
++    expect(result.ok ? undefined : result.error.message).toBe(
++      "InvalidCharacterError: The string contains invalid characters. (line 1, col 1)",
++    )
++  })
++})
++
+ describe("atob WPT parity (fetch/data-urls/resources/base64.json)", () => {
+   const idlCases: Array<[unknown, Array<number> | null]> = [
+     [undefined, null],
+@@ -104,7 +128,7 @@ describe("atob WPT parity (fetch/data-urls/resources/base64.json)", () => {
+     [-0, null],
+   ]
+ 
+-  test(`${base64Cases.length} forgiving-base64 inputs decode to the expected bytes or throw a TypeError`, async () => {
++  test(`${base64Cases.length} forgiving-base64 inputs decode as expected or throw InvalidCharacterError`, async () => {
+     expect(
+       await value(`
+         const cases = ${JSON.stringify(base64Cases)}
+@@ -115,7 +139,7 @@ describe("atob WPT parity (fetch/data-urls/resources/base64.json)", () => {
+             const bytes = Array.from({ length: result.length }, (_, i) => result.charCodeAt(i))
+             return JSON.stringify(bytes) === JSON.stringify(output) ? [] : [[input, bytes]]
+           } catch (error) {
+-            return output === null && error instanceof TypeError ? [] : [[input, error.name]]
++            return output === null && error.name === "InvalidCharacterError" ? [] : [[input, error.name]]
+           }
+         })
+       `),
+@@ -140,7 +164,7 @@ describe("atob WPT parity (fetch/data-urls/resources/base64.json)", () => {
+             const bytes = output.map((_, i) => result.charCodeAt(i))
+             return JSON.stringify(bytes) === JSON.stringify(output) ? [] : [[String(input), bytes]]
+           } catch (error) {
+-            return output === null && error instanceof TypeError ? [] : [[String(input), error.name]]
++            return output === null && error.name === "InvalidCharacterError" ? [] : [[String(input), error.name]]
+           }
+         })
+       `),

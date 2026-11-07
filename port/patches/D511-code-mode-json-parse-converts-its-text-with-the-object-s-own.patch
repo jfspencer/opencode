@@ -1,0 +1,109 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:25:21 -0700
+Subject: [PATCH] D511 code mode: JSON.parse converts its text with the
+ object's own toString
+
+Upstream: JSON.parse converted a non-string text with the built-in form only, so JSON.parse({ toString() { return "[7]" } }) failed as invalid JSON ("[object Object]") instead of parsing [7]; JS applies ToString, which calls the object's own toString (and valueOf).
+Fixed: the text goes through ToPrimitive with the string hint, as other coercing built-ins do, before it is parsed. Both engines.
+Scenarios: codemode-stdlib-object.test.ts "json parse and stringify" (parse non-string)
+Upstream tests: test/parity.test.ts adds "JSON.parse converts its text through the object's own toString"
+
+diff --git a/packages/codemode/src/stdlib/json.ts b/packages/codemode/src/stdlib/json.ts
+index dd74456d6f..c7a1ca3784 100644
+--- a/packages/codemode/src/stdlib/json.ts
++++ b/packages/codemode/src/stdlib/json.ts
+@@ -1,6 +1,6 @@
+ import type { Eval } from "../interpreter/runner.js"
+ import { methods } from "../interpreter/native.js"
+-import { applyCollectionCallback } from "../interpreter/callback.js"
++import { applyCollectionCallback, withPrimitives } from "../interpreter/callback.js"
+ import type { Interpreter } from "../interpreter/interpreter.js"
+ import { checkStringLength } from "../interpreter/limits.js"
+ import { syntaxError } from "../interpreter/model.js"
+@@ -28,9 +28,11 @@ export const jsonGlobal = <R>(ctx: Interpreter<R>) => {
+   return json
+ }
+ 
+-const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) => {
+-  const text = coerceToString(args[0])
++// ToString on the text runs a program object's own toString, as in JS.
++const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) =>
++  withPrimitives(ctx, "string", [args[0]], ([text]) => parseText(ctx, coerceToString(text), args[1]))
+ 
++const parseText = <R>(ctx: Interpreter<R>, text: string, reviver: Value) => {
+   const parsed = (() => {
+     try {
+       return fromJson(ctx, JSON.parse(text))
+@@ -38,9 +40,9 @@ const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) => {
+       throw syntaxError(`JSON.parse received invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
+     }
+   })()
+-  if (typeofValue(args[1]) !== "function") return parsed
++  if (typeofValue(reviver) !== "function") return parsed
+ 
+-  const apply = applyCollectionCallback(ctx, args[1], "JSON.parse")
++  const apply = applyCollectionCallback(ctx, reviver, "JSON.parse")
+   const visit = function* (holder: Obj, key: string): Eval<Value> {
+     const value = get(holder, key)
+     if (value instanceof Obj) {
+diff --git a/packages/codemode/src/vm/stdlib/json.ts b/packages/codemode/src/vm/stdlib/json.ts
+index 948efcbf26..d968920817 100644
+--- a/packages/codemode/src/vm/stdlib/json.ts
++++ b/packages/codemode/src/vm/stdlib/json.ts
+@@ -1,5 +1,5 @@
+ import { methods } from "../runtime/native.js"
+-import { requireCallback } from "../runtime/callback.js"
++import { requireCallback, withPrimitives } from "../runtime/callback.js"
+ import type { Interpreter } from "../runtime/interpreter.js"
+ import { syntaxError } from "../runtime/model.js"
+ import { typeofValue } from "../runtime/references.js"
+@@ -16,9 +16,11 @@ export const jsonGlobal = <R>(ctx: Interpreter<R>) => {
+   return json
+ }
+ 
+-const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) => {
+-  const text = coerceToString(args[0])
++// ToString on the text runs a program object's own toString, as in JS.
++const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) =>
++  withPrimitives("string", [args[0]], ([text]) => parseText(ctx, coerceToString(text), args[1]))
+ 
++const parseText = <R>(ctx: Interpreter<R>, text: string, reviver: Value) => {
+   const parsed = (() => {
+     try {
+       return fromJson(ctx, JSON.parse(text))
+@@ -26,12 +28,11 @@ const parse = <R>(ctx: Interpreter<R>, args: Array<Value>) => {
+       throw syntaxError(`JSON.parse received invalid JSON: ${error instanceof Error ? error.message : String(error)}`)
+     }
+   })()
+-  if (typeofValue(args[1]) !== "function") return parsed
+-  const reviver = requireCallback(args[1], "JSON.parse")
++  if (typeofValue(reviver) !== "function") return parsed
+   return new Invoke(
+     ctx.prelude.fn("revive"),
+     undefined,
+-    [record(ctx.builtins.Object, { "": parsed }), "", reviver],
++    [record(ctx.builtins.Object, { "": parsed }), "", requireCallback(reviver, "JSON.parse")],
+     undefined,
+   )
+ }
+diff --git a/packages/codemode/test/parity.test.ts b/packages/codemode/test/parity.test.ts
+index f4f3ee88c9..3434c422d0 100644
+--- a/packages/codemode/test/parity.test.ts
++++ b/packages/codemode/test/parity.test.ts
+@@ -1580,6 +1580,15 @@ describe("this, arguments, and Function.prototype.call/apply/bind", () => {
+ })
+ 
+ describe("ToPrimitive: operators and conversions honor program valueOf and toString", () => {
++  test("JSON.parse converts its text through the object's own toString", async () => {
++    expect(
++      await value(`
++        const text = { valueOf() { return "1" }, toString() { return "[7]" } }
++        return [JSON.parse(text), JSON.parse([3]), JSON.parse(5)]
++      `),
++    ).toEqual([[7], 3, 5])
++  })
++
+   test("program-installed valueOf and toString on opaque values are ignored at every site", async () => {
+     expect(
+       await value(`

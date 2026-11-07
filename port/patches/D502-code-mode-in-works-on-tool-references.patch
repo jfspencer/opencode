@@ -1,0 +1,155 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:57:45 -0700
+Subject: [PATCH] D502 code mode: `in` works on tool references
+
+Upstream: `"models" in tools.opencode` threw "TypeError: Binary operators require data values.", although Object.keys and for...in enumerate tool references and interpreter-support.md lists `in` across the supported values.
+Fixed: `key in reference` is true when Object.keys(reference) lists the key (false under a tool; an unknown namespace is the same UnknownTool error as Object.keys). Both engines.
+Scenarios: codemode-tools.test.ts "codemode tool references and failures" (in)
+Upstream tests: test/enumeration.test.ts adds "`in` finds the names Object.keys lists"
+
+diff --git a/packages/codemode/src/interpreter/interpreter.ts b/packages/codemode/src/interpreter/interpreter.ts
+index fdbf5433a2..aaf2ed2bc4 100644
+--- a/packages/codemode/src/interpreter/interpreter.ts
++++ b/packages/codemode/src/interpreter/interpreter.ts
+@@ -1675,8 +1675,13 @@ class Frame<R> {
+     // references, which are not Obj) compare by identity.
+     const equality = operator === "==" || operator === "!="
+     // `in` checks the right operand before ToPropertyKey on the left, so a bad right side wins over a bad key.
+-    if (operator === "in" && lhs instanceof Obj && !isOpaque(lhs) && rhs instanceof Obj) {
+-      return has(rhs, yield* this.toPropertyKey(lhs, node))
++    if (
++      operator === "in" &&
++      lhs instanceof Obj &&
++      !isOpaque(lhs) &&
++      (rhs instanceof Obj || rhs instanceof ToolReference)
++    ) {
++      return this.hasKey(rhs, yield* this.toPropertyKey(lhs, node))
+     }
+     const other = lhs instanceof Obj ? rhs : lhs
+     const converts =
+@@ -1694,7 +1699,9 @@ class Frame<R> {
+     if (operator === "!==") return lhs !== rhs
+     if (operator === "==") return this.looselyEqual(lhs, rhs, node)
+     if (operator === "!=") return !this.looselyEqual(lhs, rhs, node)
+-    if (operator === "in" && rhs instanceof Obj && !isOpaque(lhs)) return has(rhs, propertyKey(lhs))
++    if (operator === "in" && (rhs instanceof Obj || rhs instanceof ToolReference) && !isOpaque(lhs)) {
++      return this.hasKey(rhs, propertyKey(lhs))
++    }
+     if (isOpaque(lhs) || isOpaque(rhs)) {
+       throw invalidData("Binary operators require data values.", node)
+     }
+@@ -1742,6 +1749,12 @@ class Frame<R> {
+     }
+   }
+ 
++  // A tool reference has the names Object.keys lists for it.
++  private hasKey(target: Obj | ToolReference, key: PropertyKey): boolean {
++    if (target instanceof Obj) return has(target, key)
++    return typeof key !== "symbol" && this.ctx.tools.keys(target.path).includes(String(key))
++  }
++
+   // IsLooselyEqual: objects (including functions and tool references) compare by identity, and a nullish
+   // primitive never equals an object.
+   private looselyEqual(lhs: Value, rhs: Value, node: AstNode): boolean {
+diff --git a/packages/codemode/src/vm/internal-prelude.ts b/packages/codemode/src/vm/internal-prelude.ts
+index 305fc669d9..15ff7d4bb6 100644
+--- a/packages/codemode/src/vm/internal-prelude.ts
++++ b/packages/codemode/src/vm/internal-prelude.ts
+@@ -294,7 +294,7 @@ export const registerVmIntrinsics = (map: Map<string, unknown>, vm: Vm): void =>
+     if (conv.kind === "key") return 1
+     return conv.hint === "default" ? 2 : 3
+   })
+-  add("$ApplyBinary", ([op, lhs, rhs]) => applyBinaryOperator(op as string, lhs, rhs, currentSite()!))
++  add("$ApplyBinary", ([op, lhs, rhs]) => applyBinaryOperator(op as string, lhs, rhs, currentSite()!, ctx.tools))
+ 
+   // Convert helpers
+   add("$ConvValues", ([req]) => new Arr(builtins.Array, [...(req as unknown as Convert).values]))
+diff --git a/packages/codemode/src/vm/runtime/operations.ts b/packages/codemode/src/vm/runtime/operations.ts
+index f9e9abea9b..4d5ee9100b 100644
+--- a/packages/codemode/src/vm/runtime/operations.ts
++++ b/packages/codemode/src/vm/runtime/operations.ts
+@@ -1,5 +1,5 @@
+ import type { Expression, MemberExpression, NewExpression, Super } from "acorn"
+-import { ToolReference } from "../../tool-runtime.js"
++import { ToolReference, type ToolRuntime } from "../../tool-runtime.js"
+ import { type AstNode, invalidData, typeError } from "./model.js"
+ import { checkStringLength } from "./limits.js"
+ import { locate } from "./errors.js"
+@@ -107,12 +107,23 @@ export const instanceofValue = (lhs: Value, rhs: Value, node: AstNode): boolean
+   return hasPrototype(lhs, prototype)
+ }
+ 
+-export const applyBinaryOperator = (operator: string, lhs: Value, rhs: Value, node: AstNode): Value => {
++export const applyBinaryOperator = <R>(
++  operator: string,
++  lhs: Value,
++  rhs: Value,
++  node: AstNode,
++  tools: ToolRuntime<R>,
++): Value => {
+   if (operator === "===") return lhs === rhs
+   if (operator === "!==") return lhs !== rhs
+   if (operator === "==") return looselyEqual(lhs, rhs, node)
+   if (operator === "!=") return !looselyEqual(lhs, rhs, node)
+   if (operator === "in" && rhs instanceof Obj && !isOpaque(lhs)) return has(rhs, propertyKey(lhs))
++  // A tool reference has the names Object.keys lists for it.
++  if (operator === "in" && rhs instanceof ToolReference && !isOpaque(lhs)) {
++    const key = propertyKey(lhs)
++    return typeof key !== "symbol" && tools.keys(rhs.path).includes(String(key))
++  }
+   if (isOpaque(lhs) || isOpaque(rhs)) {
+     throw invalidData("Binary operators require data values.", node)
+   }
+@@ -182,7 +193,14 @@ export const operatorConversion = (
+   rhs: Value,
+ ): { readonly kind: "key" } | { readonly kind: "primitive"; readonly hint: "default" | "number" } | undefined => {
+   // `in` checks the right operand before ToPropertyKey on the left, so a bad right side wins over a bad key.
+-  if (operator === "in" && lhs instanceof Obj && !isOpaque(lhs) && rhs instanceof Obj) return { kind: "key" }
++  if (
++    operator === "in" &&
++    lhs instanceof Obj &&
++    !isOpaque(lhs) &&
++    (rhs instanceof Obj || rhs instanceof ToolReference)
++  ) {
++    return { kind: "key" }
++  }
+   // IsLooselyEqual converts only an object facing a non-nullish primitive; two objects (including tool
+   // references, which are not Obj) compare by identity.
+   const equality = operator === "==" || operator === "!="
+diff --git a/packages/codemode/src/vm/vm.ts b/packages/codemode/src/vm/vm.ts
+index 064832c30a..1690e90b81 100644
+--- a/packages/codemode/src/vm/vm.ts
++++ b/packages/codemode/src/vm/vm.ts
+@@ -2153,7 +2153,7 @@ export class Vm {
+         return true
+       }
+     }
+-    frame.regs[sp - 1] = applyBinaryOperator(op, a, b, site!)
++    frame.regs[sp - 1] = applyBinaryOperator(op, a, b, site!, this.ctx.tools)
+     return false
+   }
+ 
+diff --git a/packages/codemode/test/enumeration.test.ts b/packages/codemode/test/enumeration.test.ts
+index e5feef46d5..cf7d665462 100644
+--- a/packages/codemode/test/enumeration.test.ts
++++ b/packages/codemode/test/enumeration.test.ts
+@@ -62,6 +62,18 @@ describe("Object.keys over tool references", () => {
+     expect(failure.message).toContain("Unknown tool namespace 'nonexistent'")
+   })
+ 
++  test("`in` finds the names Object.keys lists", async () => {
++    expect(
++      await value(`
++      const key = { toString() { return "memory" } }
++      return ["list_issues" in tools.github, "nope" in tools.github, "github" in tools, "value" in tools.memory.search, key in tools]
++    `),
++    ).toEqual([true, false, true, false, true])
++    const failure = await error(`return "list_issues" in tools.nonexistent`)
++    expect(failure.kind).toBe("UnknownTool")
++    expect(failure.message).toContain("Unknown tool namespace 'nonexistent'")
++  })
++
+   test("Object.values/entries on a tool reference explain the working idioms", async () => {
+     for (const method of ["values", "entries"] as const) {
+       const failure = await error(`return Object.${method}(tools)`)

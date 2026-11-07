@@ -1,0 +1,103 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:08:28 -0700
+Subject: [PATCH] D508 code mode: symbols vanish in JSON.stringify and program
+ results
+
+Upstream: a symbol value serialized as {}: JSON.stringify(Symbol.iterator) gave "{}" instead of undefined, { a: Symbol.iterator } gave {"a":{}}, and a program returning Symbol.iterator (or { sym: Symbol.iterator }) handed the model {} (or {"sym":{}}), although the conversion is documented as giving what JSON.stringify would (data.ts, tryFastBoundaryOrJson).
+Fixed: symbols vanish like undefined and functions: omitted from objects, null in arrays, undefined on their own (a null result). Both engines.
+Scenarios: codemode-stdlib-object.test.ts "json parse and stringify" (stringify symbol), "program result boundary" (sym); codemode-lang-errors.test.ts "result boundary and REPL values" (return Symbol.iterator)
+Upstream tests: test/codemode.test.ts adds "symbols vanish like undefined, in results and in JSON.stringify"
+
+diff --git a/packages/codemode/src/data.ts b/packages/codemode/src/data.ts
+index b185f04956..ece7e7c1ba 100644
+--- a/packages/codemode/src/data.ts
++++ b/packages/codemode/src/data.ts
+@@ -28,8 +28,8 @@ export type Json = Schema.Json
+ type Replacer = (args: Array<Value>, holder: Obj) => Eval<Value>
+ 
+ /**
+- * What `JSON.stringify` would serialize for a program value, as host JSON: `toJSON` is honored, functions and
+- * `undefined` vanish, non-finite numbers become null, and everything else is copied. Two departures from JS
++ * What `JSON.stringify` would serialize for a program value, as host JSON: `toJSON` is honored, functions, symbols,
++ * and `undefined` vanish, non-finite numbers become null, and everything else is copied. Two departures from JS
+  * so a mistake is not a silent `{}`: an Error serializes as `{ name, message, ...own }`, and a promise throws.
+  */
+ export const toJson = <R>(ctx: Interpreter<R>, value: Value, replacer?: Replacer) => walk(ctx, value, replacer, false)
+@@ -62,7 +62,7 @@ const walk = <R>(
+     const toJSON = settled instanceof Obj ? get(settled, "toJSON") : undefined
+     const own = toJSON instanceof Callable ? yield* ctx.call(toJSON, settled, [key]) : settled
+     const value = replacer === undefined ? own : yield* replacer([key, own], holder)
+-    if (value === undefined || typeofValue(value) === "function") return undefined
++    if (value === undefined || typeof value === "symbol" || typeofValue(value) === "function") return undefined
+     if (typeof value === "number") return Number.isFinite(value) ? value : null
+     if (value === null || typeof value === "string" || typeof value === "boolean") return value
+     if (!(value instanceof Obj)) return {}
+diff --git a/packages/codemode/src/vm/internal-prelude.ts b/packages/codemode/src/vm/internal-prelude.ts
+index 15ff7d4bb6..6a99067b28 100644
+--- a/packages/codemode/src/vm/internal-prelude.ts
++++ b/packages/codemode/src/vm/internal-prelude.ts
+@@ -325,7 +325,7 @@ export const registerVmIntrinsics = (map: Map<string, unknown>, vm: Vm): void =>
+ 
+   // JSON walk helpers
+   add("$JsonClassify", ([val, boundary, ancestors]) => {
+-    if (val === undefined || typeofValue(val) === "function") return 0
++    if (val === undefined || typeof val === "symbol" || typeofValue(val) === "function") return 0
+     if (typeof val === "number") return Number.isFinite(val) ? 1 : 2
+     if (val === null || typeof val === "string" || typeof val === "boolean") return 1
+     if (!(val instanceof Obj)) return 3
+@@ -397,11 +397,11 @@ const toPlainJson = (val: Value): Json | undefined => {
+  * `{ ok: true, json }` if the tree has no custom `toJSON`, promises, or shared references revisited more than `budget`
+  * times; otherwise the prelude walk (`$vmJsonWalk`) does the work, ticking fuel.
+  *
+- * Both give the text `JSON.stringify` would: `toJSON` is honored, functions and `undefined` vanish, non-finite numbers
+- * become null, and everything else is copied. Two departures from JS so a mistake is not a silent `{}`: an Error
+- * serializes as `{ name, message, ...own }`, and a promise throws. At the host boundary a promise is awaited, a Set
+- * crosses as an array, a URLSearchParams as its query string, a Uint8Array asks to be encoded as text first, and a
+- * `__proto__` key is dropped so host code can never receive one.
++ * Both give the text `JSON.stringify` would: `toJSON` is honored, functions, symbols, and `undefined` vanish,
++ * non-finite numbers become null, and everything else is copied. Two departures from JS so a mistake is not a silent
++ * `{}`: an Error serializes as `{ name, message, ...own }`, and a promise throws. At the host boundary a promise is
++ * awaited, a Set crosses as an array, a URLSearchParams as its query string, a Uint8Array asks to be encoded as text
++ * first, and a `__proto__` key is dropped so host code can never receive one.
+  */
+ export const tryFastBoundaryOrJson = (
+   builtins: Builtins,
+@@ -457,7 +457,8 @@ export const tryFastBoundaryOrJson = (
+     depth: number,
+   ): { readonly ok: true; readonly json: Json | undefined } | { readonly ok: false } => {
+     if (depth > MAX_VALUE_DEPTH) throw rangeError(`Value exceeds the maximum depth of ${MAX_VALUE_DEPTH}.`)
+-    if (cur === undefined || typeofValue(cur) === "function") return { ok: true, json: undefined }
++    if (cur === undefined || typeof cur === "symbol" || typeofValue(cur) === "function")
++      return { ok: true, json: undefined }
+     if (typeof cur === "number") return { ok: true, json: Number.isFinite(cur) ? cur : null }
+     if (cur === null || typeof cur === "string" || typeof cur === "boolean") return { ok: true, json: cur }
+     if (cur instanceof PromiseObj) return { ok: false }
+diff --git a/packages/codemode/test/codemode.test.ts b/packages/codemode/test/codemode.test.ts
+index 0e8f3f5dbb..b3a5be5fb7 100644
+--- a/packages/codemode/test/codemode.test.ts
++++ b/packages/codemode/test/codemode.test.ts
+@@ -1245,6 +1245,23 @@ describe("CodeMode public contract", () => {
+     expect(Schema.decodeUnknownSync(CodeMode.Result)(JSON.parse(JSON.stringify(result)))).toStrictEqual(result)
+   })
+ 
++  test("symbols vanish like undefined, in results and in JSON.stringify", async () => {
++    const result = await Effect.runPromise(
++      CodeMode.execute({
++        code: `return {
++          sym: Symbol.iterator,
++          list: [Symbol.asyncIterator],
++          text: [JSON.stringify(Symbol.iterator), JSON.stringify({ a: Symbol.iterator, b: 1 }), JSON.stringify([Symbol.iterator])],
++        }`,
++      }),
++    )
++    expect(result).toStrictEqual({
++      ok: true,
++      value: { list: [null], text: [null, '{"b":1}', "[null]"] },
++      toolCalls: [],
++    })
++  })
++
+   test("returns the final top-level expression when return is omitted", async () => {
+     const result = await Effect.runPromise(CodeMode.execute({ code: `1; 2` }))
+ 

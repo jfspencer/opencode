@@ -1,0 +1,70 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:01:48 -0700
+Subject: [PATCH] D505 code mode: Promise.try rejects when given a non-function
+
+Upstream: `Promise.try(5)` threw its TypeError synchronously at the call. Promise.try calls the callback inside the new promise, so a value that cannot be called rejects the returned promise, like a callback that throws (interpreter-support.md: "a throw rejects").
+Fixed: Promise.try returns a promise rejected with the same TypeError ("Promise.try expects a function, received ..."). Both engines.
+Scenarios: codemode-lang-async.test.ts "async delegation and settlement edge cases" (tried, describes: the program now tells a rejection from a synchronous throw)
+Upstream tests: test/promise.test.ts adds "a callback that is not a function rejects the promise instead of throwing"
+
+diff --git a/packages/codemode/src/interpreter/promises.ts b/packages/codemode/src/interpreter/promises.ts
+index cf2d39ddd0..d4bd78e8da 100644
+--- a/packages/codemode/src/interpreter/promises.ts
++++ b/packages/codemode/src/interpreter/promises.ts
+@@ -84,11 +84,12 @@ function* invokePromiseMethod<R>(
+     return record(ctx.builtins.Object, { promise: made.promise, resolve: functions.resolve, reject: functions.reject })
+   }
+   if (name === "try") {
+-    if (typeofValue(args[0]) !== "function") {
+-      throw typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`)
+-    }
+     const made = capability(ctx, site)
++    // Calling something that is not a function fails like the callback throwing: the promise rejects.
+     try {
++      if (typeofValue(args[0]) !== "function") {
++        throw typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`)
++      }
+       made.resolve(yield* ctx.call(args[0], undefined, args.slice(1)))
+     } catch (error) {
+       made.reject(error)
+diff --git a/packages/codemode/src/vm/runtime/promises.ts b/packages/codemode/src/vm/runtime/promises.ts
+index 0b91eebb91..c6b7cd5094 100644
+--- a/packages/codemode/src/vm/runtime/promises.ts
++++ b/packages/codemode/src/vm/runtime/promises.ts
+@@ -136,10 +136,13 @@ const invokePromiseMethod = <R>(
+     return record(ctx.builtins.Object, { promise: made.promise, resolve: functions.resolve, reject: functions.reject })
+   }
+   if (name === "try") {
++    const made = capability(ctx, site)
++    // Calling something that is not a function fails like the callback throwing: the promise rejects.
+     if (typeofValue(args[0]) !== "function") {
+-      throw typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`)
++      made.reject(typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`))
++      return made.promise
+     }
+-    return new Push("Promise.try", [capability(ctx, site), args[0], args.slice(1)])
++    return new Push("Promise.try", [made, args[0], args.slice(1)])
+   }
+   return new Push("Promise combinator", [capability(ctx, site), name, args[0]])
+ }
+diff --git a/packages/codemode/test/promise.test.ts b/packages/codemode/test/promise.test.ts
+index 4d84c77ec9..4c54ac1ba6 100644
+--- a/packages/codemode/test/promise.test.ts
++++ b/packages/codemode/test/promise.test.ts
+@@ -1152,6 +1152,15 @@ describe("Promise.try", () => {
+       "Promise.try expects a function, received a number.",
+     )
+   })
++
++  test("a callback that is not a function rejects the promise instead of throwing", async () => {
++    expect(
++      await value(`
++        const p = Promise.try(5)
++        return [p instanceof Promise, await p.catch((e) => [e instanceof TypeError, e.message])]
++      `),
++    ).toEqual([true, [true, "Promise.try expects a function, received a number."]])
++  })
+ })
+ 
+ describe("Promise.withResolvers", () => {

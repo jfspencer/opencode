@@ -1,0 +1,136 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:05:10 -0700
+Subject: [PATCH] D506 code mode: console.log applies format specifiers
+
+Upstream: console.log, info, debug, warn and error printed a format string literally: `console.log("%s and %d", "fmt", 5)` logged "%s and %d fmt 5" instead of "fmt and 5".
+Fixed: a first string argument followed by more arguments takes them in its specifiers, as the WHATWG console Formatter does: %s, %o and %O show the value as console.log would, %d and %i parse an integer, %f a float, %c takes a style and prints nothing, %% is %. A specifier left without an argument stays as written; leftover arguments follow, space-separated; a lone string is printed as is. Both engines.
+Scenarios: codemode-lang-errors.test.ts "console output formatting", codemode-stdlib-console.test.ts "console formatting"
+Upstream tests: test/codemode.test.ts adds "a first string argument takes the arguments after it in its format specifiers"; interpreter-support.md lists the specifiers
+
+diff --git a/packages/codemode/interpreter-support.md b/packages/codemode/interpreter-support.md
+index 52ad4dc9c1..d81c760dff 100644
+--- a/packages/codemode/interpreter-support.md
++++ b/packages/codemode/interpreter-support.md
+@@ -469,6 +469,8 @@ reject }` object.
+       number primitives, and ignore non-string/non-number entries. Primitive wrapper entries remain unsupported.
+ - [x] Captured `console.log`, `console.info`, `console.debug`, `console.warn`, and `console.error`. An Error prints as
+       `Error.prototype.toString` would show it (`Error: boom`), wherever it appears in the logged value.
++- [x] Console format specifiers in a first string argument followed by more arguments: `%s`, `%o`, and `%O` show the
++      value, `%d` and `%i` parse an integer, `%f` a float, `%c` takes a style and prints nothing, and `%%` is `%`.
+ - [x] Captured `console.dir` and `console.table`.
+ 
+ ## Date
+diff --git a/packages/codemode/src/stdlib/console.ts b/packages/codemode/src/stdlib/console.ts
+index f2cb8de3aa..8916417611 100644
+--- a/packages/codemode/src/stdlib/console.ts
++++ b/packages/codemode/src/stdlib/console.ts
+@@ -1,5 +1,5 @@
+ import { type Method, methods } from "../interpreter/native.js"
+-import { entries, get, Arr, Obj, type Value } from "../interpreter/objects.js"
++import { coerceToString, entries, get, Arr, Obj, type Value } from "../interpreter/objects.js"
+ import { ToolReference } from "../tool-runtime.js"
+ import { containsOpaqueReference } from "../interpreter/references.js"
+ import type { Interpreter } from "../interpreter/interpreter.js"
+@@ -33,7 +33,27 @@ const formatConsoleMessage = (name: string, args: Array<Value>): string => {
+   if (name === "dir") return args.length === 0 ? "undefined" : formatValue(args[0])
+   if (name === "table") return formatConsoleTable(args[0], args[1])
+   const prefix = name === "warn" ? "[warn] " : name === "error" ? "[error] " : name === "debug" ? "[debug] " : ""
+-  return `${prefix}${args.map((arg) => formatValue(arg)).join(" ")}`
++  return `${prefix}${formatArguments(args).join(" ")}`
++}
++
++// A first string argument with more after it takes them in its format specifiers, as the console does in JS: %s, %o,
++// and %O show the value, %d and %i parse an integer, %f a float, %c takes a style and shows nothing, and %% is a %.
++// A specifier left without an argument stays as written; arguments left over follow, separated by spaces.
++const formatArguments = (args: Array<Value>): Array<string> => {
++  const first = args[0]
++  if (typeof first !== "string" || args.length < 2) return args.map((arg) => formatValue(arg))
++  let next = 1
++  const text = first.replace(/%([sdifoOc%])/g, (specifier, kind: string) => {
++    if (kind === "%") return "%"
++    if (next >= args.length) return specifier
++    const arg = args[next++]
++    if (kind === "c") return ""
++    if (kind === "d" || kind === "i")
++      return formatValue(typeof arg === "symbol" ? NaN : parseInt(coerceToString(arg), 10))
++    if (kind === "f") return formatValue(typeof arg === "symbol" ? NaN : parseFloat(coerceToString(arg)))
++    return formatValue(arg)
++  })
++  return [text, ...args.slice(next).map((arg) => formatValue(arg))]
+ }
+ 
+ /** One value as `console.log` shows it. */
+diff --git a/packages/codemode/src/vm/stdlib/console.ts b/packages/codemode/src/vm/stdlib/console.ts
+index c4e4f7fd68..34ff031a2b 100644
+--- a/packages/codemode/src/vm/stdlib/console.ts
++++ b/packages/codemode/src/vm/stdlib/console.ts
+@@ -1,5 +1,5 @@
+ import { type Method, methods } from "../runtime/native.js"
+-import { entries, get, Arr, Obj, type Value } from "../runtime/objects.js"
++import { coerceToString, entries, get, Arr, Obj, type Value } from "../runtime/objects.js"
+ import { ToolReference } from "../../tool-runtime.js"
+ import { containsOpaqueReference } from "../runtime/references.js"
+ import type { Interpreter } from "../runtime/interpreter.js"
+@@ -33,7 +33,27 @@ const formatConsoleMessage = (name: string, args: Array<Value>): string => {
+   if (name === "dir") return args.length === 0 ? "undefined" : formatValue(args[0])
+   if (name === "table") return formatConsoleTable(args[0], args[1])
+   const prefix = name === "warn" ? "[warn] " : name === "error" ? "[error] " : name === "debug" ? "[debug] " : ""
+-  return `${prefix}${args.map((arg) => formatValue(arg)).join(" ")}`
++  return `${prefix}${formatArguments(args).join(" ")}`
++}
++
++// A first string argument with more after it takes them in its format specifiers, as the console does in JS: %s, %o,
++// and %O show the value, %d and %i parse an integer, %f a float, %c takes a style and shows nothing, and %% is a %.
++// A specifier left without an argument stays as written; arguments left over follow, separated by spaces.
++const formatArguments = (args: Array<Value>): Array<string> => {
++  const first = args[0]
++  if (typeof first !== "string" || args.length < 2) return args.map((arg) => formatValue(arg))
++  let next = 1
++  const text = first.replace(/%([sdifoOc%])/g, (specifier, kind: string) => {
++    if (kind === "%") return "%"
++    if (next >= args.length) return specifier
++    const arg = args[next++]
++    if (kind === "c") return ""
++    if (kind === "d" || kind === "i")
++      return formatValue(typeof arg === "symbol" ? NaN : parseInt(coerceToString(arg), 10))
++    if (kind === "f") return formatValue(typeof arg === "symbol" ? NaN : parseFloat(coerceToString(arg)))
++    return formatValue(arg)
++  })
++  return [text, ...args.slice(next).map((arg) => formatValue(arg))]
+ }
+ 
+ /** One value as `console.log` shows it. */
+diff --git a/packages/codemode/test/codemode.test.ts b/packages/codemode/test/codemode.test.ts
+index 8392ccf237..0e8f3f5dbb 100644
+--- a/packages/codemode/test/codemode.test.ts
++++ b/packages/codemode/test/codemode.test.ts
+@@ -445,6 +445,28 @@ describe("CodeMode console capture", () => {
+     expect(result.logs).toStrictEqual(["NaN", "Infinity -Infinity", '{"ratio":NaN,"bounds":[Infinity]}'])
+   })
+ 
++  test("a first string argument takes the arguments after it in its format specifiers", async () => {
++    const result = await Effect.runPromise(
++      CodeMode.execute({
++        code: `
++        console.log("%s has %d items (%i%%)", "cart", 3.7, "42", "extra")
++        console.warn("%o then %c%f", { a: [1] }, "color: red", "2.5px")
++        console.log("%s and %s", "only")
++        console.log("100%%")
++        return null
++      `,
++      }),
++    )
++
++    expect(result.ok).toBe(true)
++    expect(result.logs).toStrictEqual([
++      "cart has 3 items (42%) extra",
++      '[warn] {"a":[1]} then 2.5',
++      "only and %s",
++      "100%%",
++    ])
++  })
++
+   test("renders CodeMode values nested inside logged containers", async () => {
+     const result = await Effect.runPromise(
+       CodeMode.execute({

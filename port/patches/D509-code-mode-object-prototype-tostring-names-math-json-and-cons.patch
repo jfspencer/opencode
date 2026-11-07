@@ -1,0 +1,251 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:22:33 -0700
+Subject: [PATCH] D509 code mode: Object.prototype.toString names Math, JSON
+ and console
+
+Upstream: Math, JSON and console were plain data objects, so Object.prototype.toString.call(Math) (and String(Math)) gave "[object Object]" instead of "[object Math]", "[object JSON]" and "[object console]", although interpreter-support.md says toString reports every built-in kind as JS does through Symbol.toStringTag.
+Fixed: the three namespaces are a namespace object kind that carries its tag. Diagnostics still call them "a data object". Both engines; the VM snapshot saves the tag and restores an unchanged namespace by name.
+Scenarios: codemode-stdlib-numeric.test.ts "math" (Math props), codemode-stdlib-object.test.ts "json parse and stringify" (JSON tag) and "object statics" (toString tags), codemode-stdlib-console.test.ts "console formatting" (tag)
+Upstream tests: test/stdlib.test.ts adds "names the Math, JSON, and console namespaces, which stay plain data in diagnostics"
+
+diff --git a/packages/codemode/src/interpreter/objects.ts b/packages/codemode/src/interpreter/objects.ts
+index 1e0de68fab..207abf53cd 100644
+--- a/packages/codemode/src/interpreter/objects.ts
++++ b/packages/codemode/src/interpreter/objects.ts
+@@ -172,6 +172,19 @@ export class Fn extends Callable {
+   }
+ }
+ 
++/** A built-in namespace object (`Math`, `JSON`, `console`): plain data that `Object.prototype.toString` names. */
++export class NamespaceObj extends Obj {
++  constructor(
++    proto: Obj,
++    override readonly tag: string,
++  ) {
++    super(proto)
++  }
++  override get describe() {
++    return "a data object"
++  }
++}
++
+ /** The strict `arguments` object: an ordinary object with indexed own properties and a hidden `length`. */
+ export class Arguments extends Obj {
+   override readonly tag = "Arguments"
+diff --git a/packages/codemode/src/stdlib/console.ts b/packages/codemode/src/stdlib/console.ts
+index 8916417611..10efef16fb 100644
+--- a/packages/codemode/src/stdlib/console.ts
++++ b/packages/codemode/src/stdlib/console.ts
+@@ -1,5 +1,5 @@
+ import { type Method, methods } from "../interpreter/native.js"
+-import { coerceToString, entries, get, Arr, Obj, type Value } from "../interpreter/objects.js"
++import { coerceToString, entries, get, Arr, NamespaceObj, Obj, type Value } from "../interpreter/objects.js"
+ import { ToolReference } from "../tool-runtime.js"
+ import { containsOpaqueReference } from "../interpreter/references.js"
+ import type { Interpreter } from "../interpreter/interpreter.js"
+@@ -9,7 +9,7 @@ const consoleMethods = ["log", "info", "debug", "warn", "error", "dir", "table"]
+ /** Captured console: every method appends one formatted line to `logs`. */
+ export const consoleGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+-  const console = new Obj(builtins.Object)
++  const console = new NamespaceObj(builtins.Object, "console")
+   methods(
+     builtins,
+     console,
+diff --git a/packages/codemode/src/stdlib/json.ts b/packages/codemode/src/stdlib/json.ts
+index c90c123fcd..dd74456d6f 100644
+--- a/packages/codemode/src/stdlib/json.ts
++++ b/packages/codemode/src/stdlib/json.ts
+@@ -6,10 +6,21 @@ import { checkStringLength } from "../interpreter/limits.js"
+ import { syntaxError } from "../interpreter/model.js"
+ import { typeofValue } from "../interpreter/references.js"
+ import { fromJson, toJson } from "../data.js"
+-import { get, keys, Arr, Obj, coerceToString, record, remove, set, type Value } from "../interpreter/objects.js"
++import {
++  get,
++  keys,
++  Arr,
++  NamespaceObj,
++  Obj,
++  coerceToString,
++  record,
++  remove,
++  set,
++  type Value,
++} from "../interpreter/objects.js"
+ 
+ export const jsonGlobal = <R>(ctx: Interpreter<R>) => {
+-  const json = new Obj(ctx.builtins.Object)
++  const json = new NamespaceObj(ctx.builtins.Object, "JSON")
+   methods(ctx.builtins, json, [
+     ["parse", 2, (_, args) => parse(ctx, args)],
+     ["stringify", 3, (_, args) => stringify(ctx, args)],
+diff --git a/packages/codemode/src/stdlib/math.ts b/packages/codemode/src/stdlib/math.ts
+index 5cb9e11a54..9ba7dff7ed 100644
+--- a/packages/codemode/src/stdlib/math.ts
++++ b/packages/codemode/src/stdlib/math.ts
+@@ -1,6 +1,6 @@
+ import { constants, type Method, methods } from "../interpreter/native.js"
+ import { typeError } from "../interpreter/model.js"
+-import { Obj, coerceToNumber } from "../interpreter/objects.js"
++import { NamespaceObj, coerceToNumber } from "../interpreter/objects.js"
+ import { preserveConsumerError, withPrimitives } from "../interpreter/callback.js"
+ import type { Interpreter } from "../interpreter/interpreter.js"
+ import type { Eval } from "../interpreter/runner.js"
+@@ -14,7 +14,7 @@ declare global {
+ 
+ export const mathGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+-  const math = new Obj(builtins.Object)
++  const math = new NamespaceObj(builtins.Object, "Math")
+   // Convert only the arguments a method consumes; like JS, extras are ignored
+   // (so built-ins work as callbacks receiving (element, index, array)).
+   const unary = (name: string, op: (a: number) => number): Method => [
+diff --git a/packages/codemode/src/vm/runtime/intrinsic-names.ts b/packages/codemode/src/vm/runtime/intrinsic-names.ts
+index eb8c8a7093..af92a27bc8 100644
+--- a/packages/codemode/src/vm/runtime/intrinsic-names.ts
++++ b/packages/codemode/src/vm/runtime/intrinsic-names.ts
+@@ -1,6 +1,6 @@
+ import type { Builtins } from "./intrinsics.js"
+ import { AsyncIteratorSymbol, IteratorSymbol } from "./model.js"
+-import { Arr, Fn, Native, Obj, type Value } from "./objects.js"
++import { Arr, Fn, NamespaceObj, Native, Obj, type Value } from "./objects.js"
+ 
+ /**
+  * Deterministic names for one runtime's intrinsic objects, so saved state can refer to a built-in by name instead of
+@@ -107,7 +107,7 @@ export class IntrinsicNames {
+ export const unchanged = (value: Obj): boolean => {
+   if (value.intrinsic <= 0) return false
+   const ctor = value.constructor
+-  return ctor === Obj || ctor === Arr || ctor === Native || ctor === Fn
++  return ctor === Obj || ctor === NamespaceObj || ctor === Arr || ctor === Native || ctor === Fn
+ }
+ 
+ /** The static names, in walk order, once a runtime has been made in this process. */
+diff --git a/packages/codemode/src/vm/runtime/objects.ts b/packages/codemode/src/vm/runtime/objects.ts
+index cef4d7ae3a..5564d10dd2 100644
+--- a/packages/codemode/src/vm/runtime/objects.ts
++++ b/packages/codemode/src/vm/runtime/objects.ts
+@@ -215,6 +215,19 @@ export class Fn extends Callable {
+   }
+ }
+ 
++/** A built-in namespace object (`Math`, `JSON`, `console`): plain data that `Object.prototype.toString` names. */
++export class NamespaceObj extends Obj {
++  constructor(
++    proto: Obj,
++    override readonly tag: string,
++  ) {
++    super(proto)
++  }
++  override get describe() {
++    return "a data object"
++  }
++}
++
+ /** The strict `arguments` object: an ordinary object with indexed own properties and a hidden `length`. */
+ export class Arguments extends Obj {
+   override readonly tag = "Arguments"
+diff --git a/packages/codemode/src/vm/snapshot/codec.ts b/packages/codemode/src/vm/snapshot/codec.ts
+index 3aece20043..666c917b83 100644
+--- a/packages/codemode/src/vm/snapshot/codec.ts
++++ b/packages/codemode/src/vm/snapshot/codec.ts
+@@ -20,6 +20,7 @@ import {
+   HeadersObj,
+   IteratorObj,
+   MapObj,
++  NamespaceObj,
+   Native,
+   Obj,
+   Position,
+@@ -136,6 +137,7 @@ const callable = { tag: "Function" }
+ // Built on first use: the VM's modules and this one import each other, so the classes aren't there at load time.
+ const builtinSpecs = (): ReadonlyArray<ClassSpec> => [
+   { name: "Obj", ctor: Obj, fields: [], obj: true, constants: { tag: "Object" } },
++  { name: "NamespaceObj", ctor: NamespaceObj, fields: ["tag"], obj: true },
+   { name: "Arr", ctor: Arr, fields: ["items", "elements"], obj: true, constants: { tag: "Array" } },
+   { name: "ErrorObj", ctor: ErrorObj, fields: ["failure"], obj: true, constants: { tag: "Error" } },
+   { name: "Arguments", ctor: Arguments, fields: [], obj: true, constants: { tag: "Arguments" } },
+diff --git a/packages/codemode/src/vm/stdlib/console.ts b/packages/codemode/src/vm/stdlib/console.ts
+index 34ff031a2b..b8079bbd1e 100644
+--- a/packages/codemode/src/vm/stdlib/console.ts
++++ b/packages/codemode/src/vm/stdlib/console.ts
+@@ -1,5 +1,5 @@
+ import { type Method, methods } from "../runtime/native.js"
+-import { coerceToString, entries, get, Arr, Obj, type Value } from "../runtime/objects.js"
++import { coerceToString, entries, get, Arr, NamespaceObj, Obj, type Value } from "../runtime/objects.js"
+ import { ToolReference } from "../../tool-runtime.js"
+ import { containsOpaqueReference } from "../runtime/references.js"
+ import type { Interpreter } from "../runtime/interpreter.js"
+@@ -9,7 +9,7 @@ const consoleMethods = ["log", "info", "debug", "warn", "error", "dir", "table"]
+ /** Captured console: every method appends one formatted line to `logs`. */
+ export const consoleGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+-  const console = new Obj(builtins.Object)
++  const console = new NamespaceObj(builtins.Object, "console")
+   methods(
+     builtins,
+     console,
+diff --git a/packages/codemode/src/vm/stdlib/json.ts b/packages/codemode/src/vm/stdlib/json.ts
+index e6c9c286eb..948efcbf26 100644
+--- a/packages/codemode/src/vm/stdlib/json.ts
++++ b/packages/codemode/src/vm/stdlib/json.ts
+@@ -4,11 +4,11 @@ import type { Interpreter } from "../runtime/interpreter.js"
+ import { syntaxError } from "../runtime/model.js"
+ import { typeofValue } from "../runtime/references.js"
+ import { fromJson } from "../data.js"
+-import { Arr, Obj, coerceToString, record, type Value } from "../runtime/objects.js"
++import { Arr, NamespaceObj, coerceToString, record, type Value } from "../runtime/objects.js"
+ import { Invoke, Push } from "../runtime/signals.js"
+ 
+ export const jsonGlobal = <R>(ctx: Interpreter<R>) => {
+-  const json = new Obj(ctx.builtins.Object)
++  const json = new NamespaceObj(ctx.builtins.Object, "JSON")
+   methods(ctx.builtins, json, [
+     ["parse", 2, (_, args) => parse(ctx, args)],
+     ["stringify", 3, (_, args) => stringify(args)],
+diff --git a/packages/codemode/src/vm/stdlib/math.ts b/packages/codemode/src/vm/stdlib/math.ts
+index e5030dd98a..78a2f7bb6d 100644
+--- a/packages/codemode/src/vm/stdlib/math.ts
++++ b/packages/codemode/src/vm/stdlib/math.ts
+@@ -1,11 +1,11 @@
+ import { constants, type Method, methods } from "../runtime/native.js"
+-import { Obj, coerceToNumber } from "../runtime/objects.js"
++import { NamespaceObj, coerceToNumber } from "../runtime/objects.js"
+ import { withPrimitives } from "../runtime/callback.js"
+ import type { Interpreter } from "../runtime/interpreter.js"
+ 
+ export const mathGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+-  const math = new Obj(builtins.Object)
++  const math = new NamespaceObj(builtins.Object, "Math")
+   // Convert only the arguments a method consumes; like JS, extras are ignored
+   // (so built-ins work as callbacks receiving (element, index, array)).
+   const unary = (name: string, op: (a: number) => number): Method => [
+diff --git a/packages/codemode/test/stdlib.test.ts b/packages/codemode/test/stdlib.test.ts
+index 850163cc9f..40af55080e 100644
+--- a/packages/codemode/test/stdlib.test.ts
++++ b/packages/codemode/test/stdlib.test.ts
+@@ -1514,6 +1514,21 @@ describe("Object.prototype.toString", () => {
+       true,
+     ])
+   })
++
++  test("names the Math, JSON, and console namespaces, which stay plain data in diagnostics", async () => {
++    expect(
++      await value(`
++      const tag = (v) => Object.prototype.toString.call(v)
++      return [tag(Math), tag(JSON), tag(console), String(Math), await Promise.try(JSON).catch((e) => e.message)]
++    `),
++    ).toEqual([
++      "[object Math]",
++      "[object JSON]",
++      "[object console]",
++      "[object Math]",
++      "Promise.try expects a function, received a data object.",
++    ])
++  })
+ })
+ 
+ describe("console.log of errors", () => {

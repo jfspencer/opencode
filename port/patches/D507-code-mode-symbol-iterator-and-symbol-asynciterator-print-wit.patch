@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:06:32 -0700
+Subject: [PATCH] D507 code mode: Symbol.iterator and Symbol.asyncIterator
+ print with their JS names
+
+Upstream: the two well-known symbols carried internal descriptions, so String(Symbol.iterator), console.log(Symbol.iterator) and error messages showed "Symbol(codemode.iterator)" and "Symbol(codemode.async-iterator)" instead of "Symbol(Symbol.iterator)" and "Symbol(Symbol.asyncIterator)".
+Fixed: the symbols are described as JS describes them. Both engines (the VM snapshot names symbols by its own table, not their description).
+Scenarios: codemode-stdlib-string.test.ts "string statics and conversion" (String of symbol), codemode-lang-async.test.ts "generators and iterators" (symStr), codemode-lang-errors.test.ts "console output formatting", codemode-stdlib-console.test.ts "console formatting"
+Upstream tests: test/parity.test.ts adds "the well-known symbols print with their JS names"
+
+diff --git a/packages/codemode/src/interpreter/model.ts b/packages/codemode/src/interpreter/model.ts
+index 5624386491..4d9e63145a 100644
+--- a/packages/codemode/src/interpreter/model.ts
++++ b/packages/codemode/src/interpreter/model.ts
+@@ -20,8 +20,8 @@ export type StatementResult =
+ 
+ export type GeneratorRequestKind = "next" | "return" | "throw"
+ 
+-export const AsyncIteratorSymbol: unique symbol = Symbol("codemode.async-iterator")
+-export const IteratorSymbol: unique symbol = Symbol("codemode.iterator")
++export const AsyncIteratorSymbol: unique symbol = Symbol("Symbol.asyncIterator")
++export const IteratorSymbol: unique symbol = Symbol("Symbol.iterator")
+ export const IteratorSymbols = [AsyncIteratorSymbol, IteratorSymbol] as const
+ 
+ export class Throw {
+diff --git a/packages/codemode/src/vm/runtime/model.ts b/packages/codemode/src/vm/runtime/model.ts
+index bbdccc41cc..b44736e0fd 100644
+--- a/packages/codemode/src/vm/runtime/model.ts
++++ b/packages/codemode/src/vm/runtime/model.ts
+@@ -11,8 +11,8 @@ export type Binding = { readonly value: Value }
+ 
+ export type GeneratorRequestKind = "next" | "return" | "throw"
+ 
+-export const AsyncIteratorSymbol: unique symbol = Symbol("codemode.async-iterator")
+-export const IteratorSymbol: unique symbol = Symbol("codemode.iterator")
++export const AsyncIteratorSymbol: unique symbol = Symbol("Symbol.asyncIterator")
++export const IteratorSymbol: unique symbol = Symbol("Symbol.iterator")
+ 
+ export class Throw {
+   constructor(readonly value: Value) {}
+diff --git a/packages/codemode/test/parity.test.ts b/packages/codemode/test/parity.test.ts
+index 4d7bd129f2..f4f3ee88c9 100644
+--- a/packages/codemode/test/parity.test.ts
++++ b/packages/codemode/test/parity.test.ts
+@@ -547,6 +547,13 @@ describe("CodeMode-specific string behavior", () => {
+   test("exposes the Annex B string aliases every engine ships", async () => {
+     expect(await value(`return [" x ".trimLeft(), " x ".trimRight(), "abc".substr(1, 1)]`)).toEqual(["x ", " x", "b"])
+   })
++
++  test("the well-known symbols print with their JS names", async () => {
++    expect(await value(`return [String(Symbol.iterator), String(Symbol.asyncIterator)]`)).toEqual([
++      "Symbol(Symbol.iterator)",
++      "Symbol(Symbol.asyncIterator)",
++    ])
++  })
+ })
+ 
+ describe("compound assignment matches its binary operator", () => {

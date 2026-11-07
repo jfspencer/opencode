@@ -1,0 +1,87 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:26:38 -0700
+Subject: [PATCH] D512 code mode: String.raw accepts a string raw
+
+Upstream: String.raw required its template's `raw` to be an object, so String.raw({ raw: "abc" }, 1, 2) threw "String.raw expects a template object with a raw array." instead of giving "a1b2c"; JS reads `raw` through ToObject, so a string's characters are the literals and another primitive has none.
+Fixed: a string raw supplies its characters, another non-nullish primitive gives ""; a missing, null or undefined raw is still the same TypeError. Both engines.
+Scenarios: codemode-stdlib-string.test.ts "string statics and conversion" (raw short)
+Upstream tests: test/parity.test.ts adds "a primitive raw is read as an object: a string's characters are its literals"
+
+diff --git a/packages/codemode/src/stdlib/string.ts b/packages/codemode/src/stdlib/string.ts
+index 604a1054a4..e4cfd9443e 100644
+--- a/packages/codemode/src/stdlib/string.ts
++++ b/packages/codemode/src/stdlib/string.ts
+@@ -111,12 +111,21 @@ export const stringGlobal = <R>(ctx: Interpreter<R>) => {
+       function* (_, args) {
+         const template = args[0]
+         const raw = template instanceof Obj ? get(template, "raw") : undefined
+-        if (!(raw instanceof Obj)) throw typeError("String.raw expects a template object with a raw array.")
+-        const count = Math.max(0, coerceToInteger(get(raw, "length")))
++        if (raw === null || raw === undefined) {
++          throw typeError("String.raw expects a template object with a raw array.")
++        }
++        // `raw` is read as an object, as in JS: a string's characters are its literals; other primitives have none.
++        const count =
++          typeof raw === "string"
++            ? raw.length
++            : raw instanceof Obj
++              ? Math.max(0, coerceToInteger(get(raw, "length")))
++              : 0
+         checkArrayLength(count)
++        const literal = (index: number) => (typeof raw === "string" ? raw[index] : get(raw as Obj, index))
+         // Each literal is followed by its substitution, except the last literal, or when substitutions run out.
+         const parts = Array.from({ length: count }, (_, index) =>
+-          index + 1 < count && index + 1 < args.length ? [get(raw, index), args[index + 1]] : [get(raw, index)],
++          index + 1 < count && index + 1 < args.length ? [literal(index), args[index + 1]] : [literal(index)],
+         ).flat()
+         const strings: Array<string> = []
+         for (const part of parts) strings.push(yield* toPrimitiveString(ctx, part))
+diff --git a/packages/codemode/src/vm/stdlib/string.ts b/packages/codemode/src/vm/stdlib/string.ts
+index e5da527e2d..c79481a519 100644
+--- a/packages/codemode/src/vm/stdlib/string.ts
++++ b/packages/codemode/src/vm/stdlib/string.ts
+@@ -111,12 +111,21 @@ export const stringGlobal = <R>(ctx: Interpreter<R>) => {
+       (_, args) => {
+         const template = args[0]
+         const raw = template instanceof Obj ? get(template, "raw") : undefined
+-        if (!(raw instanceof Obj)) throw typeError("String.raw expects a template object with a raw array.")
+-        const count = Math.max(0, coerceToInteger(get(raw, "length")))
++        if (raw === null || raw === undefined) {
++          throw typeError("String.raw expects a template object with a raw array.")
++        }
++        // `raw` is read as an object, as in JS: a string's characters are its literals; other primitives have none.
++        const count =
++          typeof raw === "string"
++            ? raw.length
++            : raw instanceof Obj
++              ? Math.max(0, coerceToInteger(get(raw, "length")))
++              : 0
+         checkArrayLength(count)
++        const literal = (index: number) => (typeof raw === "string" ? raw[index] : get(raw as Obj, index))
+         // Each literal is followed by its substitution, except the last literal, or when substitutions run out.
+         const parts = Array.from({ length: count }, (_, index) =>
+-          index + 1 < count && index + 1 < args.length ? [get(raw, index), args[index + 1]] : [get(raw, index)],
++          index + 1 < count && index + 1 < args.length ? [literal(index), args[index + 1]] : [literal(index)],
+         ).flat()
+         return withPrimitives(
+           "string",
+diff --git a/packages/codemode/test/parity.test.ts b/packages/codemode/test/parity.test.ts
+index 3434c422d0..3f4d05d516 100644
+--- a/packages/codemode/test/parity.test.ts
++++ b/packages/codemode/test/parity.test.ts
+@@ -1158,6 +1158,14 @@ describe("String.raw", () => {
+     ).toEqual(["x1y", "x!yz", ""])
+   })
+ 
++  test("a primitive raw is read as an object: a string's characters are its literals", async () => {
++    expect(
++      await value(
++        `return [String.raw({ raw: "abc" }, 1, 2), String.raw({ raw: "ab" }, "-", "+"), String.raw({ raw: 5 }, 1)]`,
++      ),
++    ).toEqual(["a1b2c", "a-b", ""])
++  })
++
+   test("a template without a raw array is a TypeError", async () => {
+     const failure = await error(`String.raw(1)`)
+     expect(failure.message).toContain("String.raw expects a template object with a raw array")
