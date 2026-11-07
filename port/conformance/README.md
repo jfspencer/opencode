@@ -96,6 +96,9 @@ files, all normalized.
    behavior difference.
 6. **No network.** Everything outbound goes through the fake; the sandbox (`lib/preload.ts`) isolates HOME,
    XDG dirs, the working directory, and the terminal/shell identity.
+   Each test process gets one sandbox in `/tmp` and removes it when it ends (`CONFORMANCE_KEEP_SANDBOX=1`
+   keeps it). Leave `TMPDIR` unset: TUI frames truncate paths by length, and a sandbox below a directory with
+   opencode or Claude config (anywhere under `/home`) would pick that config up.
 
 ## Equality rules
 

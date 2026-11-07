@@ -67,9 +67,11 @@ root = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=Tr
 out = os.path.join(root, "port", "coverage", "out")
 labels = (sys.argv[1] if len(sys.argv) > 1 else "bb,all").split(",")
 refs = {part: open(os.path.join(out, f"{part}.ref")).read().strip() for l in labels for part in l.split("+")}
-if len(set(refs.values())) > 1:
-    sys.exit(f"runs were measured on different commits: {refs}; rerun them on one commit")
+# Runs on different fork commits are comparable when upstream's packages are identical (port/ changes don't count).
 ref = next(iter(refs.values()))
+changed = [l for l, r in refs.items() if subprocess.run(["git", "-C", root, "diff", "--quiet", ref, r, "--", "packages"]).returncode != 0]
+if changed:
+    sys.exit(f"runs were measured on different upstream code: {refs}; rerun {changed} on one commit")
 
 
 def git(*args):
