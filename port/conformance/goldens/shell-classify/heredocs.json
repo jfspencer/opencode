@@ -1345,7 +1345,7 @@
             "<<EOF cat\nbody\nEOF"
           ],
           "save": [
-            "cat *"
+            "<<EOF cat\nbody\nEOF"
           ],
           "sessionID": "<ses_1>",
           "source": {

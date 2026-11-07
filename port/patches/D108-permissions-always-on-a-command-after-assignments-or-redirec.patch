@@ -1,0 +1,111 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:29:40 -0700
+Subject: [PATCH] D108 permissions: "always" on a command after assignments or
+ redirects saves a pattern that matches it
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: a command's resource keeps the assignments and redirects in front of it (`FOO=1 git status`), but its saved pattern was built from the words after them (`git status *`), which never matches that resource. "Always" saved an approval that could not apply, so the same command asked again every time. Upstream's own parity test skipped these resources when checking that a save matches its resource.
+Fixed: when the prefix pattern does not match the command's resource, the command is saved exactly as approved (`FOO=1 git status`, `2>err git status`, `<<EOF cat …`). The same applies to a command whose words are separated by extra spaces or tabs (`git  commit   -m …` saved `git commit *`, which never matched it either). Approving `FOO=1 git status` does not approve `LD_PRELOAD=x git status`.
+Scenarios: permissions.test.ts "always on a command with an environment assignment approves it under that assignment only" (new); shell-classify.test.ts assignments and declarations, heredocs, redirections, quoting and escaping (recorded save patterns)
+Upstream tests: test/shell-parse-parity.test.ts (no longer skips assignment-led resources), test/shell-parse-compatibility.test.ts and test/shell-scan/redirect.test.ts (asserted saves that do not match their resource), test/shell-parse.test.ts (new test)
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 54acedc788..562258a4a2 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -244,8 +244,12 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+         if (directoryCommand === parts && resolved.complete) continue
+       }
+       const selected = powershell ? prefix(words) : bashPrefix(words)
+-      // A command that only the shell can identify is saved exactly as approved.
+-      const conventional = selected ? `${selected.join(" ")} *` : item.resource
++      const prefixed = selected && `${selected.join(" ")} *`
++      // A command that only the shell can identify is saved exactly as approved. So is one whose resource starts with
++      // assignments or redirects (`FOO=1 git status`): a prefix of its words would never match it, and dropping them
++      // would approve the command under any other environment.
++      const conventional =
++        prefixed && (powershell || Wildcard.match(item.resource, prefixed)) ? prefixed : item.resource
+       const end = selected && item.wordEnds?.[selected.length - 1]
+       // Keep existing grants stable unless normalized spacing loses the original source boundary.
+       const save =
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index 9817c5e3d5..bdf7943375 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -102,7 +102,7 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       "bash",
+       "FOO=bar git status",
+       {},
+-      { commands: [{ resource: "FOO=bar git status", save: "git status *" }], directories: [] },
++      { commands: [{ resource: "FOO=bar git status", save: "FOO=bar git status" }], directories: [] },
+     ],
+     [
+       "bash",
+diff --git a/packages/core/test/shell-parse-parity.test.ts b/packages/core/test/shell-parse-parity.test.ts
+index dc392e2aba..7335d36753 100644
+--- a/packages/core/test/shell-parse-parity.test.ts
++++ b/packages/core/test/shell-parse-parity.test.ts
+@@ -13,11 +13,7 @@ describe("ShellParse native parity", () => {
+       const scanned = shell === "pwsh" ? ShellScan.scanPowerShell(command) : ShellScan.scan(command)
+       expect(scanned.kind, context).toBe("scanned")
+       const parsed = await Effect.runPromise(ShellParse.scan(command, shell, "/workspace"))
+-      for (const item of parsed.commands) {
+-        if (!/^[A-Za-z_][A-Za-z0-9_]*=/.test(item.resource)) {
+-          expect(Wildcard.match(item.resource, item.save), context).toBe(true)
+-        }
+-      }
++      for (const item of parsed.commands) expect(Wildcard.match(item.resource, item.save), context).toBe(true)
+     }
+   }, 60_000)
+ 
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index ef00e06c36..9ea6e5aedb 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -3,6 +3,7 @@ import { Effect } from "effect"
+ import os from "os"
+ import path from "path"
+ import { ShellParse } from "@opencode/core/shell/parse"
++import { Wildcard } from "@opencode/core/util/wildcard"
+ 
+ describe("ShellParse", () => {
+   test("splits bash commands and derives reusable prefixes", async () => {
+@@ -59,6 +60,13 @@ describe("ShellParse", () => {
+     expect(result.commands).toEqual(commands.map((command) => ({ resource: command, save: command })))
+   })
+ 
++  test("saves a command after assignments or redirects exactly", async () => {
++    const commands = ["FOO=1 git status", "2>err git status", ">> log.txt echo appended"]
++    const result = await Effect.runPromise(ShellParse.scan(commands.join("; "), "/bin/bash", "/workspace"))
++    expect(result.commands).toEqual(commands.map((command) => ({ resource: command, save: command })))
++    expect(Wildcard.match("LD_PRELOAD=x git status", result.commands[0]!.save)).toBe(false)
++  })
++
+   test("rejects malformed syntax with an explicit scanner error", async () => {
+     const malformed = await Effect.runPromiseExit(ShellParse.scan('echo "', "/bin/bash", "/workspace"))
+     expect(malformed).toMatchObject({
+diff --git a/packages/core/test/shell-scan/redirect.test.ts b/packages/core/test/shell-scan/redirect.test.ts
+index 6626b30c81..be970ece6a 100644
+--- a/packages/core/test/shell-scan/redirect.test.ts
++++ b/packages/core/test/shell-scan/redirect.test.ts
+@@ -123,7 +123,7 @@ describe("Bash redirect resource oracle", () => {
+     const parsed = await Effect.runPromise(ShellParse.scan(source, "/bin/bash", "/workspace"))
+     expect(parsed.commands).toEqual([
+       { resource: "pwd", save: "pwd *" },
+-      { resource: "cat\\\n >out", save: "cat *" },
++      { resource: "cat\\\n >out", save: "cat\\\n >out" },
+     ])
+   })
+ 
+@@ -156,7 +156,7 @@ describe("Bash redirect resource oracle", () => {
+     const parsed = await Effect.runPromise(ShellParse.scan(source, "/bin/bash", "/workspace"))
+     expect(parsed.commands).toEqual([
+       { resource: "printf ok", save: "printf *" },
+-      { resource: "FOO=bar >output git status 3>tail", save: "git status *" },
++      { resource: "FOO=bar >output git status 3>tail", save: "FOO=bar >output git status 3>tail" },
+     ])
+   })
+ 

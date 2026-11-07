@@ -179,6 +179,10 @@ probe("command prefixes", [
   "./script.sh --flag",
 ])
 
+probe("command names shared with object properties", ["toString x", "constructor y", "hasOwnProperty z"])
+
+probe("wildcard characters in commands", ["r? notes.txt", "sh -c 'rm -f *.log'", "FOO=1 ls *.txt", "git '*'"])
+
 probe("posix sh", ["make &> build.log", "echo $[1 + 2]", "git status && git diff | head -5", "cat <<EOF\n$(git status)\nEOF"], "sh")
 
 // PowerShell is not installed where the reference runs, but the scanner picks its dialect from the configured

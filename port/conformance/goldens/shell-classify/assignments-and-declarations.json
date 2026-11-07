@@ -752,7 +752,7 @@
           ],
           "save": [
             "FOO=bar env",
-            "make build *",
+            "FOO=$(git rev-parse HEAD) make build",
             "git rev-parse *",
             "hostname *",
             "whoami *"

