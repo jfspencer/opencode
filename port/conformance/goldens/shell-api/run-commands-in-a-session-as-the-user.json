@@ -125,6 +125,38 @@
     },
     {
       "body": {
+        "_tag": "InvalidRequestError",
+        "field": "command",
+        "kind": "invalid_command",
+        "message": "The command contains a NUL character"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "echo a\u0000b"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "command",
+        "kind": "invalid_command",
+        "message": "The command is too long to run"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": {
+          "<blob>": "1b24a36fd0d67b2135519f1a84cc725d448b412ef0c299351236d96afae061a7"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": {
         "cursor": {
           "next": {
             "<base64-json>": {
@@ -273,6 +305,168 @@
       "method": "GET",
       "status": 200,
       "url": "/api/session/<ses_1>/message"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "delivery": "steer",
+            "id": "<msg_6>",
+            "payload": {
+              "metadata": {
+                "exit": 0,
+                "shellID": "<sh_6>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_6>\" state=\"completed\" command=\"cat notes.txt\">\nfirst\nsecond\n\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_7>",
+            "payload": {
+              "metadata": {
+                "exit": 3,
+                "shellID": "<sh_5>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_5>\" state=\"completed\" command=\"echo partial; exit 3\">\npartial\n\n\nExited with code 3\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_8>",
+            "payload": {
+              "metadata": {
+                "exit": 0,
+                "shellID": "<sh_4>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_4>\" state=\"completed\" command=\"true\">\n(no output)\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_9>",
+            "payload": {
+              "metadata": {
+                "shellID": "<sh_3>",
+                "signal": "SIGKILL",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_3>\" state=\"completed\" command=\"kill -KILL $$\">\n(no output)\n\nKilled by SIGKILL\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_10>",
+            "payload": {
+              "metadata": {
+                "exit": 2,
+                "shellID": "<sh_2>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo 'unterminated\">\n/bin/bash: -c: line 1: unexpected EOF while looking for matching `''\n\n\nExited with code 2\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_11>",
+            "payload": {
+              "metadata": {
+                "exit": 0,
+                "shellID": "<sh_1>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_1>\" state=\"completed\" command=\"echo with id\">\nwith id\n\n</shell>"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_12>",
+            "payload": {
+              "description": "echo a\u0000b",
+              "metadata": {
+                "source": "shell",
+                "state": "error"
+              },
+              "text": "User shell command failed to start:\necho a\u0000b\n\nCommand failed: echo a\u0000b: ChildProcess.spawn: Argument 2 contains a NUL character"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_13>",
+            "payload": {
+              "description": {
+                "<blob>": "1b24a36fd0d67b2135519f1a84cc725d448b412ef0c299351236d96afae061a7"
+              },
+              "metadata": {
+                "source": "shell",
+                "state": "error"
+              },
+              "text": {
+                "<blob>": "0216aa4a50db044ed6f909fea8d4edbb292ae78f7e133371a2a9573f50c612c5"
+              }
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
     }
   ],
   "provider": {},

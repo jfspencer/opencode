@@ -54,6 +54,8 @@
       "value": {
         "argv": [
           "run",
+          "--title",
+          "no model",
           "-m",
           "openrouter/no-such-model",
           "Hello"
@@ -72,6 +74,8 @@
       "value": {
         "argv": [
           "run",
+          "--title",
+          "other provider",
           "-m",
           "anthropic/claude-sonnet",
           "Hello"
@@ -90,6 +94,8 @@
       "value": {
         "argv": [
           "run",
+          "--title",
+          "no agent",
           "--agent",
           "no-such-agent",
           "Hello"
@@ -108,6 +114,8 @@
       "value": {
         "argv": [
           "run",
+          "--title",
+          "no variant",
           "-m",
           "openrouter/deepseek/deepseek-v4.1-flash-1017#ultra",
           "Hello"
@@ -139,7 +147,7 @@
               "directory": "<project>",
               "id": "<ses_1>",
               "projectId": "<hash_1>",
-              "title": "Conformance session",
+              "title": "no variant",
               "updated": "<time>"
             },
             {
@@ -147,6 +155,7 @@
               "directory": "<project>",
               "id": "<ses_2>",
               "projectId": "<hash_1>",
+              "title": "other provider",
               "updated": "<time>"
             },
             {
@@ -154,7 +163,7 @@
               "directory": "<project>",
               "id": "<ses_3>",
               "projectId": "<hash_1>",
-              "title": "Conformance session",
+              "title": "no model",
               "updated": "<time>"
             },
             {
@@ -162,21 +171,13 @@
               "directory": "<project>",
               "id": "<ses_4>",
               "projectId": "<hash_1>",
-              "title": "Conformance session",
-              "updated": "<time>"
-            },
-            {
-              "created": "<time>",
-              "directory": "<project>",
-              "id": "<ses_5>",
-              "projectId": "<hash_1>",
               "title": "plan",
               "updated": "<time>"
             },
             {
               "created": "<time>",
               "directory": "<project>",
-              "id": "<ses_6>",
+              "id": "<ses_5>",
               "projectId": "<hash_1>",
               "title": "low",
               "updated": "<time>"
@@ -187,7 +188,7 @@
     }
   ],
   "provider": {
-    "chat:<ses_5>": [
+    "chat:<ses_4>": [
       {
         "body": {
           "max_completion_tokens": 256000,
@@ -206,7 +207,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_5>",
+          "prompt_cache_key": "<ses_4>",
           "reasoning": {
             "effort": "max"
           },
@@ -251,7 +252,7 @@
         "url": "https://openrouter.ai/api/v1/chat/completions"
       }
     ],
-    "chat:<ses_6>": [
+    "chat:<ses_5>": [
       {
         "body": {
           "max_completion_tokens": 256000,
@@ -266,7 +267,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_6>",
+          "prompt_cache_key": "<ses_5>",
           "reasoning": {
             "effort": "low"
           },
@@ -307,114 +308,6 @@
           "content-type": "application/json"
         },
         "kind": "chat",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      }
-    ],
-    "title:<ses_1>": [
-      {
-        "body": {
-          "messages": [
-            {
-              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
-              "role": "system"
-            },
-            {
-              "content": "Here is the first message of the conversation:\n\n<message>\nHello\n</message>\n\nReply with only the title.",
-              "role": "user"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "accept": "*/*",
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "title",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      }
-    ],
-    "title:<ses_3>": [
-      {
-        "body": {
-          "messages": [
-            {
-              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
-              "role": "system"
-            },
-            {
-              "content": "Here is the first message of the conversation:\n\n<message>\nHello\n</message>\n\nReply with only the title.",
-              "role": "user"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_3>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "accept": "*/*",
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "title",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      }
-    ],
-    "title:<ses_4>": [
-      {
-        "body": {
-          "messages": [
-            {
-              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
-              "role": "system"
-            },
-            {
-              "content": "Here is the first message of the conversation:\n\n<message>\nHello\n</message>\n\nReply with only the title.",
-              "role": "user"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_4>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "accept": "*/*",
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "title",
         "method": "POST",
         "url": "https://openrouter.ai/api/v1/chat/completions"
       }

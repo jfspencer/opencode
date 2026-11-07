@@ -135,13 +135,13 @@ cliScenario(
     turns: [say("Low effort reply."), say("Planning reply."), say("Not reached."), say("Not reached either.")],
   },
   async (ctx) => {
-    // Explicit titles: title generation is asynchronous and races the process exiting.
+    // Explicit titles: title generation is asynchronous and races the process exiting (and the next run).
     await ctx.cli(["run", "--title", "low", "--model", "openrouter/deepseek/deepseek-v4.1-flash-1017#low", "Quick question"])
     await ctx.cli(["run", "--title", "plan", "--agent", "plan", "Plan the work"])
-    await ctx.cli(["run", "-m", "openrouter/no-such-model", "Hello"])
-    await ctx.cli(["run", "-m", "anthropic/claude-sonnet", "Hello"])
-    await ctx.cli(["run", "--agent", "no-such-agent", "Hello"])
-    await ctx.cli(["run", "-m", "openrouter/deepseek/deepseek-v4.1-flash-1017#ultra", "Hello"])
+    await ctx.cli(["run", "--title", "no model", "-m", "openrouter/no-such-model", "Hello"])
+    await ctx.cli(["run", "--title", "other provider", "-m", "anthropic/claude-sonnet", "Hello"])
+    await ctx.cli(["run", "--title", "no agent", "--agent", "no-such-agent", "Hello"])
+    await ctx.cli(["run", "--title", "no variant", "-m", "openrouter/deepseek/deepseek-v4.1-flash-1017#ultra", "Hello"])
     await ctx.cli(["session", "list", "--format", "json"])
   },
 )

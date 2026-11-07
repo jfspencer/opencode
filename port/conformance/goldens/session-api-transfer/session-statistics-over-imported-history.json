@@ -1730,6 +1730,169 @@
       "method": "GET",
       "status": 400,
       "url": "/api/experimental/session/stats?from=yesterday"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected a value between -8640000000000000 and 8640000000000000\n  at [\"from\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/experimental/session/stats?from=-1e300"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected a value between -8640000000000000 and 8640000000000000\n  at [\"to\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/experimental/session/stats?to=1e300"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": -8640000000000000,
+            "to": 8640000000000000
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "detail",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            },
+            "usage": [
+              {
+                "calls": 2,
+                "durationP50": 500,
+                "failed": 0,
+                "name": "read",
+                "succeeded": 2,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "durationP50": 200,
+                "failed": 1,
+                "name": "edit",
+                "succeeded": 0,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "failed": 0,
+                "name": "glob",
+                "succeeded": 0,
+                "unfinished": 1
+              }
+            ]
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=-8640000000000000&to=8640000000000000&tools=detail"
     }
   ],
   "provider": {},

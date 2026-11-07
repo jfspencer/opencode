@@ -93,6 +93,23 @@
       },
       "status": 400,
       "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "AgentNotFoundError",
+        "agentID": "missing-agent",
+        "message": "Agent not found: missing-agent"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "missing-agent",
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 404,
+      "url": "/api/session"
     }
   ],
   "provider": {},

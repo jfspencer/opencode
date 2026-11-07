@@ -115,6 +115,54 @@
     },
     {
       "body": {
+        "_tag": "InvalidRequestError",
+        "field": "command",
+        "kind": "invalid_command",
+        "message": "The command is too long to run"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": {
+          "<blob>": "8cbc9c03fe41864af22c6281f8fe5e693305582e8cfd8ca5b9fb1710fe89f6e5"
+        }
+      },
+      "status": 400,
+      "url": "/api/shell"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "command",
+        "kind": "invalid_command",
+        "message": "The command contains a NUL character"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "echo a\u0000b"
+      },
+      "status": 400,
+      "url": "/api/shell"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "cwd",
+        "kind": "invalid_cwd",
+        "message": "cwd is not accessible: <project>/locked"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "true",
+        "cwd": "<project>/locked"
+      },
+      "status": 400,
+      "url": "/api/shell"
+    },
+    {
+      "body": {
         "data": [],
         "location": {
           "directory": "<project>"

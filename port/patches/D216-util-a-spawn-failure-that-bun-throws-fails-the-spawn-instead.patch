@@ -1,0 +1,82 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:49:31 -0700
+Subject: [PATCH] D216 util: a spawn failure that Bun throws fails the spawn
+ instead of hanging
+
+Upstream: Bun's child_process.spawn throws some failures synchronously instead of emitting "error" (E2BIG for an
+argument over the system limit, such as a shell command longer than 128 KiB on Linux). The cross-spawn spawner
+launches inside an Effect.callback, so the throw becomes a defect; Shell.create only settles its startup on a typed
+failure, so POST /api/shell never answers, and a shell tool call with such a command hangs its session.
+Fixed: a synchronous spawn throw fails the spawn with the same PlatformError as an emitted error (Redacted arguments
+stay redacted).
+Scenarios: shell-api.test.ts "shell routes for unknown commands" (new requests; the oversized command answered
+500 before D217, and never before this patch)
+Upstream tests: packages/core/test/effect/cross-spawn-spawner.test.ts adds a test
+
+diff --git a/packages/core/test/effect/cross-spawn-spawner.test.ts b/packages/core/test/effect/cross-spawn-spawner.test.ts
+index 08abaff602..021e18a4b1 100644
+--- a/packages/core/test/effect/cross-spawn-spawner.test.ts
++++ b/packages/core/test/effect/cross-spawn-spawner.test.ts
+@@ -408,6 +408,23 @@ describe("cross-spawn spawner", () => {
+       }),
+     )
+ 
++    fx.effect(
++      "fails for an argument the system cannot pass",
++      Effect.gen(function* () {
++        if (process.platform === "win32") return
++        // Linux limits one argument to 128 KiB and every system limits the whole list.
++        const exit = yield* Effect.exit(
++          Effect.scoped(
++            Effect.flatMap(ChildProcess.make("echo", ["x".repeat(4 * 1024 * 1024)]), (handle) => handle.exitCode),
++          ),
++        )
++        expect(Exit.isFailure(exit)).toBe(true)
++        if (Exit.isSuccess(exit)) return
++        expect(Cause.hasDies(exit.cause)).toBe(false)
++        expect(PlatformError.isPlatformError(Cause.squash(exit.cause))).toBe(true)
++      }),
++    )
++
+     fx.effect(
+       "rejects NUL characters without exposing Redacted values",
+       Effect.gen(function* () {
+diff --git a/packages/util/src/cross-spawn-spawner.ts b/packages/util/src/cross-spawn-spawner.ts
+index 5e67a4acaa..8e40834417 100644
+--- a/packages/util/src/cross-spawn-spawner.ts
++++ b/packages/util/src/cross-spawn-spawner.ts
+@@ -386,11 +386,7 @@ const makeCrossSpawnSpawner = Effect.gen(function* () {
+     Effect.callback<Spawned, PlatformError.PlatformError>((resume) => {
+       const closed = Deferred.makeUnsafe<readonly [code: number | null, signal: NodeJS.Signals | null]>()
+       const exited = Deferred.makeUnsafe<readonly [code: number | null, signal: NodeJS.Signals | null]>()
+-      const proc = launch(file, command.args.map(unwrap), opts)
+-      let settle = () => {}
+-      let end = false
+-      let exit: readonly [code: number | null, signal: NodeJS.Signals | null] | undefined
+-      proc.on("error", (err) => {
++      const fail = (err: NodeJS.ErrnoException) => {
+         // Node copies the arguments into `spawnargs`.
+         if (command.args.some(Redacted.isRedacted)) {
+           Object.assign(err, {
+@@ -398,7 +394,19 @@ const makeCrossSpawnSpawner = Effect.gen(function* () {
+           })
+         }
+         resume(Effect.fail(toPlatformError("spawn", err, command)))
+-      })
++      }
++      // Bun throws some spawn failures, such as E2BIG for an oversized argument, instead of emitting "error".
++      let proc: NodeChildProcess.ChildProcess
++      try {
++        proc = launch(file, command.args.map(unwrap), opts)
++      } catch (err) {
++        fail(err as NodeJS.ErrnoException)
++        return
++      }
++      let settle = () => {}
++      let end = false
++      let exit: readonly [code: number | null, signal: NodeJS.Signals | null] | undefined
++      proc.on("error", fail)
+       proc.on("exit", (...args) => {
+         groups.delete(proc.pid!)
+         exit = args

@@ -91,6 +91,7 @@ scenario("create a session with invalid payloads", {}, async (ctx) => {
   await ctx.http("POST", "/api/session", { location: { directory: "relative/path" } })
   await ctx.http("POST", "/api/session", { permissions: [{ action: "edit", resource: "*", effect: "maybe" }] })
   await ctx.http("POST", "/api/session", { parentID: "msg_notasession000000000" })
+  await ctx.http("POST", "/api/session", { agent: "missing-agent", location: { directory: ctx.project } })
 })
 
 scenario("list sessions with filters", { files: { "pkg/a.txt": "a\n", "other/b.txt": "b\n" } }, async (ctx) => {

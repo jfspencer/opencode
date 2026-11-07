@@ -558,6 +558,10 @@ scenario("session statistics over imported history", { files: { "pkg/x.txt": "x\
   await ctx.http("GET", `/api/experimental/session/stats?from=${day(5)}&to=${day(5)}`)
   await ctx.http("GET", "/api/experimental/session/stats?tools=all")
   await ctx.http("GET", "/api/experimental/session/stats?from=yesterday")
+  // Times outside what a date can represent are rejected; the widest valid range covers the same history.
+  await ctx.http("GET", "/api/experimental/session/stats?from=-1e300")
+  await ctx.http("GET", "/api/experimental/session/stats?to=1e300")
+  await ctx.http("GET", "/api/experimental/session/stats?from=-8640000000000000&to=8640000000000000&tools=detail")
   await booted(ctx)
 })
 

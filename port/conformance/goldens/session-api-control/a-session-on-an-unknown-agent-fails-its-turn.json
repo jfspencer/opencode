@@ -2,6 +2,24 @@
   "transcript": [
     {
       "body": {
+        "_tag": "AgentNotFoundError",
+        "agentID": "ghost",
+        "message": "Agent not found: ghost"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "ghost",
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "ghost agent"
+      },
+      "status": 404,
+      "url": "/api/session"
+    },
+    {
+      "body": {
         "data": {
           "agent": "ghost",
           "cost": 0,
@@ -29,14 +47,36 @@
       "kind": "http",
       "method": "POST",
       "request": {
-        "agent": "ghost",
+        "info": {
+          "agent": "ghost",
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "ghost agent",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
         "location": {
           "directory": "<project>"
         },
-        "title": "ghost agent"
+        "messages": []
       },
       "status": 200,
-      "url": "/api/session"
+      "url": "/api/experimental/session/import"
     },
     {
       "body": {

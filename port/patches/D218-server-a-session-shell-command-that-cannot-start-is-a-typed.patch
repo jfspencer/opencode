@@ -1,0 +1,258 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:53:48 -0700
+Subject: [PATCH] D218 server: a session shell command that cannot start is a
+ typed error
+
+Upstream: POST /api/session/:id/shell records a "failed to start" notice in the session when the command
+cannot start, then turns the failure into a defect, so the request answers 500 with an empty body (a NUL
+character, or a command longer than the system can pass to the shell).
+Fixed: Session.shell keeps the start failure typed, and the route answers it the way POST /api/shell does since D217
+(the mapping moves to handlers/shell-error.ts and is shared): 400 InvalidRequestError (invalid_command, or
+invalid_cwd when the session directory cannot be entered), otherwise 500 UnknownError with a log reference. The
+session still gets its notice.
+Scenarios: shell-api.test.ts "run commands in a session as the user" (two new requests and the inbox)
+Upstream tests: packages/core/test/session-shell.test.ts asserts the start failure is typed; client and openapi.json
+regenerated
+
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index 3dbafc1fdd..b3b808234c 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -807,7 +807,7 @@ export function make(options: ClientOptions) {
+             path: `/api/session/${encodeURIComponent(input.sessionID)}/shell`,
+             body: { id: input["id"], command: input["command"] },
+             successStatus: 204,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 500],
+             empty: true,
+           },
+           requestOptions,
+diff --git a/packages/client/src/promise/generated/types.ts b/packages/client/src/promise/generated/types.ts
+index 06bddbcccb..9e8fb3114a 100644
+--- a/packages/client/src/promise/generated/types.ts
++++ b/packages/client/src/promise/generated/types.ts
+@@ -3034,14 +3034,6 @@ export type CommandExecutionError = {
+ export const isCommandExecutionError = (value: unknown): value is CommandExecutionError =>
+   typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "CommandExecutionError"
+ 
+-export type SessionBusyError = {
+-  readonly _tag: "SessionBusyError"
+-  readonly sessionID: string
+-  readonly message: string
+-}
+-export const isSessionBusyError = (value: unknown): value is SessionBusyError =>
+-  typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "SessionBusyError"
+-
+ export type UnknownError = {
+   readonly _tag: "UnknownError"
+   readonly message: string
+@@ -3050,6 +3042,14 @@ export type UnknownError = {
+ export const isUnknownError = (value: unknown): value is UnknownError =>
+   typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "UnknownError"
+ 
++export type SessionBusyError = {
++  readonly _tag: "SessionBusyError"
++  readonly sessionID: string
++  readonly message: string
++}
++export const isSessionBusyError = (value: unknown): value is SessionBusyError =>
++  typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "SessionBusyError"
++
+ export type FormNotFoundError = { readonly _tag: "FormNotFoundError"; readonly id: string; readonly message: string }
+ export const isFormNotFoundError = (value: unknown): value is FormNotFoundError =>
+   typeof value === "object" && value !== null && "_tag" in value && value["_tag"] === "FormNotFoundError"
+diff --git a/packages/core/src/session/session.ts b/packages/core/src/session/session.ts
+index cec095ad15..bcfd7b8764 100644
+--- a/packages/core/src/session/session.ts
++++ b/packages/core/src/session/session.ts
+@@ -204,9 +204,8 @@ export const make = Effect.fn("Session.make")(function* () {
+             description: input.command,
+             metadata: { source: "shell", state: "error" },
+             resume: false,
+-          }),
++          }).pipe(Effect.orDie),
+         ),
+-        Effect.orDie,
+       )
+       yield* bus.publish(
+         SessionEvent.Shell.Started,
+diff --git a/packages/core/test/session-shell.test.ts b/packages/core/test/session-shell.test.ts
+index 35c7248e81..a41564f6eb 100644
+--- a/packages/core/test/session-shell.test.ts
++++ b/packages/core/test/session-shell.test.ts
+@@ -329,7 +329,8 @@ describe("Session.shell", () => {
+       const command = "echo should-not-start"
+       const exit = yield* fixture.session.shell({ sessionID: fixture.created.id, command }).pipe(Effect.exit)
+ 
+-      expect(Exit.isFailure(exit)).toBe(true)
++      // A typed failure, so the caller can tell the client why the command did not start.
++      expect(Exit.isFailure(exit) && !Cause.hasDies(exit.cause)).toBe(true)
+       expect(yield* fixture.session.messages({ sessionID: fixture.created.id })).toEqual([])
+       const inbox = yield* fixture.session.inbox(fixture.created.id)
+       expect(inbox).toHaveLength(1)
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index b9669d5796..6cd6c16c3e 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -2636,21 +2636,31 @@
+             }
+           },
+           "404": {
+-            "description": "SessionNotFoundError | LocationNotFoundError",
++            "description": "LocationNotFoundError | SessionNotFoundError",
+             "content": {
+               "application/json": {
+                 "schema": {
+                   "anyOf": [
+                     {
+-                      "$ref": "#/components/schemas/SessionNotFoundErrorEncoded"
++                      "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
+                     },
+                     {
+-                      "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                      "$ref": "#/components/schemas/SessionNotFoundErrorEncoded"
+                     }
+                   ]
+                 }
+               }
+             }
++          },
++          "500": {
++            "description": "UnknownError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/UnknownErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "Execute one shell command in the session's working directory. Emits a shell.started event before execution and a shell.ended event with the merged output after.",
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index c90f1713cf..0dfa0717d7 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -433,7 +433,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+           command: Schema.String,
+         }),
+         success: HttpApiSchema.NoContent,
+-        error: SessionNotFoundError,
++        error: [InvalidRequestError, LocationNotFoundError, SessionNotFoundError, UnknownError],
+       })
+         .middleware(sessionLocationMiddleware)
+         .annotateMerge(
+diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
+index edef381981..21d8713d57 100644
+--- a/packages/server/src/handlers/session.ts
++++ b/packages/server/src/handlers/session.ts
+@@ -34,6 +34,7 @@ import {
+ import { AbsolutePath } from "@opencode/core/schema"
+ import { awaitPlugins, locationErrors } from "../location"
+ import { failedMessageDecode, failedSnapshot, missingMessage, missingSession } from "./session-error"
++import { startFailure } from "./shell-error"
+ 
+ function missingForm(id: Form.ID) {
+   return new FormNotFoundError({ id, message: `Form not found: ${id}` })
+@@ -452,9 +453,14 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.shell",
+         Effect.fn(function* (ctx) {
++          const location = yield* Location.Service
+           yield* session
+             .shell({ sessionID: ctx.params.sessionID, id: ctx.payload.id, command: ctx.payload.command })
+-            .pipe(Effect.catchTag("Session.NotFoundError", missingSession))
++            .pipe(
++              Effect.catchTag("Session.NotFoundError", missingSession),
++              Effect.catchTag("AppProcessError", (error) => startFailure(error, location.directory)),
++              locationErrors,
++            )
+           return HttpApiSchema.NoContent.make()
+         }),
+       )
+diff --git a/packages/server/src/handlers/shell-error.ts b/packages/server/src/handlers/shell-error.ts
+new file mode 100644
+index 0000000000..abd8a176fe
+--- /dev/null
++++ b/packages/server/src/handlers/shell-error.ts
+@@ -0,0 +1,29 @@
++import { InvalidRequestError, UnknownError } from "@opencode/protocol/errors"
++import { AppProcess } from "@opencode/util/process"
++import { Effect, PlatformError } from "effect"
++
++/** The system rejects some commands before they start; those are the caller's to fix, anything else is host state. */
++export const startFailure = Effect.fnUntraced(function* (error: AppProcess.AppProcessError, cwd: string) {
++  const reason = PlatformError.isPlatformError(error.cause) ? error.cause.reason : undefined
++  if (reason?._tag === "BadArgument")
++    return yield* new InvalidRequestError({
++      message: "The command contains a NUL character",
++      kind: "invalid_command",
++      field: "command",
++    })
++  if (reason?._tag === "PermissionDenied")
++    return yield* new InvalidRequestError({
++      message: `cwd is not accessible: ${cwd}`,
++      kind: "invalid_cwd",
++      field: "cwd",
++    })
++  if ((reason?.cause as NodeJS.ErrnoException | undefined)?.code === "E2BIG")
++    return yield* new InvalidRequestError({
++      message: "The command is too long to run",
++      kind: "invalid_command",
++      field: "command",
++    })
++  const ref = `err_${crypto.randomUUID().slice(0, 8)}`
++  yield* Effect.logError("failed to start shell command", { cause: error }).pipe(Effect.annotateLogs({ ref }))
++  return yield* new UnknownError({ message: "Unexpected server error. Check server logs for details.", ref })
++})
+diff --git a/packages/server/src/handlers/shell.ts b/packages/server/src/handlers/shell.ts
+index c01c18083b..c37192c53c 100644
+--- a/packages/server/src/handlers/shell.ts
++++ b/packages/server/src/handlers/shell.ts
+@@ -1,12 +1,12 @@
+ import { Shell } from "@opencode/core/shell"
+ import { Environment } from "@opencode/core/environment/index"
+ import { Location } from "@opencode/core/location"
+-import { AppProcess } from "@opencode/util/process"
+-import { Effect, PlatformError } from "effect"
++import { Effect } from "effect"
+ import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
+-import { InvalidRequestError, ShellNotFoundError, UnknownError } from "@opencode/protocol/errors"
++import { InvalidRequestError, ShellNotFoundError } from "@opencode/protocol/errors"
+ import { Api } from "../api"
+ import { response } from "../location"
++import { startFailure } from "./shell-error"
+ 
+ export const ShellHandler = HttpApiBuilder.group(Api, "server.shell", (handlers) =>
+   Effect.gen(function* () {
+@@ -85,29 +85,3 @@ export const ShellHandler = HttpApiBuilder.group(Api, "server.shell", (handlers)
+       )
+   }),
+ )
+-
+-/** The system rejects some commands before they start; those are the caller's to fix, anything else is host state. */
+-const startFailure = Effect.fnUntraced(function* (error: AppProcess.AppProcessError, cwd: string) {
+-  const reason = PlatformError.isPlatformError(error.cause) ? error.cause.reason : undefined
+-  if (reason?._tag === "BadArgument")
+-    return yield* new InvalidRequestError({
+-      message: "The command contains a NUL character",
+-      kind: "invalid_command",
+-      field: "command",
+-    })
+-  if (reason?._tag === "PermissionDenied")
+-    return yield* new InvalidRequestError({
+-      message: `cwd is not accessible: ${cwd}`,
+-      kind: "invalid_cwd",
+-      field: "cwd",
+-    })
+-  if ((reason?.cause as NodeJS.ErrnoException | undefined)?.code === "E2BIG")
+-    return yield* new InvalidRequestError({
+-      message: "The command is too long to run",
+-      kind: "invalid_command",
+-      field: "command",
+-    })
+-  const ref = `err_${crypto.randomUUID().slice(0, 8)}`
+-  yield* Effect.logError("failed to start shell command", { cause: error }).pipe(Effect.annotateLogs({ ref }))
+-  return yield* new UnknownError({ message: "Unexpected server error. Check server logs for details.", ref })
+-})

@@ -7,7 +7,7 @@
 import { HIDDEN_TOOLS } from "../lib/model"
 import { call, say } from "../lib/openrouter"
 import { scenario, type Ctx } from "../lib/scenario"
-import { existsSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync } from "node:fs"
 import path from "node:path"
 
 type Effect = "allow" | "deny" | "ask"
@@ -28,6 +28,15 @@ scenario("shell routes for unknown commands", {}, async (ctx) => {
   await ctx.http("POST", "/api/shell", {})
   // A working directory that does not exist is rejected.
   await ctx.http("POST", "/api/shell", { command: "true", cwd: "/conformance/missing/directory" })
+  // Commands that cannot start: one too long for the system to pass to the shell (Linux limits one argument to
+  // 128 KiB), one with a NUL character, and one in a directory the server may not enter (unless it runs as root).
+  await ctx.http("POST", "/api/shell", { command: `echo ${"x".repeat(200_000)}` })
+  await ctx.http("POST", "/api/shell", { command: "echo a\u0000b" })
+  const locked = path.join(ctx.project, "locked")
+  mkdirSync(locked)
+  chmodSync(locked, 0o000)
+  await ctx.http("POST", "/api/shell", { command: "true", cwd: locked })
+  chmodSync(locked, 0o755)
   await ctx.http("GET", "/api/shell")
 })
 
@@ -81,7 +90,11 @@ scenario(
     await ctx.http("POST", `/api/session/${id}/shell`, { id: "msg_conformance_user_shell", command: "echo with id" })
     await ctx.http("POST", `/api/session/${id}/shell`, {})
     await ctx.http("POST", "/api/session/ses_conformance_missing/shell", { command: "true" })
+    // Commands that cannot start are rejected; the session is told they failed to start.
+    await ctx.http("POST", `/api/session/${id}/shell`, { command: "echo a\u0000b" })
+    await ctx.http("POST", `/api/session/${id}/shell`, { command: `echo ${"y".repeat(200_000)}` })
     await ctx.http("GET", `/api/session/${id}/message`)
+    await ctx.http("GET", `/api/session/${id}/inbox`)
   },
 )
 
