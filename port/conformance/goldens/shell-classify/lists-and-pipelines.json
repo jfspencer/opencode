@@ -1359,7 +1359,7 @@
           ],
           "save": [
             "echo *",
-            "time *"
+            "time -p git status"
           ],
           "sessionID": "<ses_1>",
           "source": {

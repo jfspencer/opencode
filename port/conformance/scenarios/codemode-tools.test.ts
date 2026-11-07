@@ -7,7 +7,7 @@
 // those events out of its recording (`settled`) and records the final rows through the session's messages.
 import { mkdirSync, writeFileSync } from "node:fs"
 import path from "node:path"
-import { MODEL_ID } from "../lib/model"
+import { baseConfig, MODEL_ID } from "../lib/model"
 import { call, say, type ProviderRequest, type Responder, type Turn } from "../lib/openrouter"
 import { scenario, type Ctx } from "../lib/scenario"
 
@@ -194,6 +194,33 @@ return results`,
       )
       mkdirSync(path.join(path.dirname(ctx.project), "moved-out"), { recursive: true })
       await drive(ctx, id, "Move this session out", ["reject", { decision: "reject", message: "Stay in the project." }])
+      await ctx.http("GET", `/api/session/${id}`)
+      await settled(ctx, id)
+    },
+  )
+
+  scenario(
+    `codemode session move outside the project asks when external directories ask${engine.suffix}`,
+    {
+      config: {
+        ...engine.config,
+        permissions: [...baseConfig.permissions, { action: "external_directory", resource: "*", effect: "ask" }],
+      },
+      files: { "README.md": "# r\n" },
+    },
+    async (ctx) => {
+      const id = await ctx.session()
+      ctx.provider.push(
+        ...programs(
+          `try { return await tools.opencode.session_move({ directory: "../moved-out" }) } catch (error) { return error.message }`,
+          `try { return await tools.opencode.session_move({ directory: "~" }) } catch (error) { return error.message }`,
+        ),
+      )
+      mkdirSync(path.join(path.dirname(ctx.project), "moved-out"), { recursive: true })
+      await drive(ctx, id, "Move this session out", [
+        { decision: "reject", message: "Stay in the project." },
+        { decision: "reject", message: "Not home either." },
+      ])
       await ctx.http("GET", `/api/session/${id}`)
       await settled(ctx, id)
     },

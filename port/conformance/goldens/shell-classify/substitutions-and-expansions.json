@@ -981,7 +981,7 @@
             "echo *",
             "echo *",
             "cat *",
-            "$(which git) *",
+            "$(which git) status",
             "which *",
             "echo *"
           ],

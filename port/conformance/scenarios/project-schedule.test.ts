@@ -170,6 +170,26 @@ scenario(
 )
 
 scenario(
+  "shell conditions outside the project need external directory permission",
+  {
+    config: {
+      ...enabled,
+      permissions: [...baseConfig.permissions, { action: "external_directory", resource: "*", effect: "ask" }],
+    },
+  },
+  async (ctx) => {
+    const sessionID = await ctx.session()
+    await ctx.http("POST", "/api/experimental/schedule", {
+      sessionID,
+      when: { in: "1 hour" },
+      if: { run: "cd .. && ls" },
+      prompt: "x",
+    })
+    await ctx.http("GET", "/api/permission/request")
+  },
+)
+
+scenario(
   "denied shell conditions",
   {
     config: { ...enabled, permissions: [...baseConfig.permissions, { action: "shell", resource: "*", effect: "deny" }] },

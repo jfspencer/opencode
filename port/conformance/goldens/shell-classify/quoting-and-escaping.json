@@ -966,8 +966,8 @@
           "save": [
             "grep *",
             "echo *",
-            "git commit *",
-            "git status *"
+            "git  commit   -m  'spaced   message'",
+            "git\tstatus"
           ],
           "sessionID": "<ses_1>",
           "source": {

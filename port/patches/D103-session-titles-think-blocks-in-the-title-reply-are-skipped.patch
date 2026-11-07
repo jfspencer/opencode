@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:52:46 -0700
+Subject: [PATCH] D103 session titles: think blocks in the title reply are
+ skipped
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: the generated title was the first non-empty line of the title model's text, so a model that writes its reasoning into the reply (<think>…</think>) titled the session "<think>". The legacy session code stripped these blocks (fix #1325); the V2 title service lost it.
+Fixed: <think>…</think> blocks are removed from the reply before the first non-empty line is taken.
+Scenarios: agent-loop-agents.test.ts "title skips think blocks written into the reply" (new)
+Upstream tests: test/session-title.test.ts (new test)
+
+diff --git a/packages/core/src/session/title.ts b/packages/core/src/session/title.ts
+index c5534dd8b6..12e9b5d157 100644
+--- a/packages/core/src/session/title.ts
++++ b/packages/core/src/session/title.ts
+@@ -106,6 +106,8 @@ export const layer = Layer.effect(
+         .filter((chunk) => !commentary.has(chunk.id))
+         .map((chunk) => chunk.text)
+         .join("")
++        // Some models write their reasoning into the reply as <think> blocks.
++        .replace(/<think>[\s\S]*?<\/think>\s*/g, "")
+         .split("\n")
+         .map((line) => line.trim())
+         .find((line) => line.length > 0)
+diff --git a/packages/core/test/session-title.test.ts b/packages/core/test/session-title.test.ts
+index 5143eb718c..ee3211315f 100644
+--- a/packages/core/test/session-title.test.ts
++++ b/packages/core/test/session-title.test.ts
+@@ -281,6 +281,27 @@ for (const timing of ["start", "end"] as const)
+     }),
+   )
+ 
++it.effect("drops inline think blocks from the title", () =>
++  Effect.gen(function* () {
++    yield* enableTitleAgent
++    const sessionID = Session.ID.make("ses_title_think")
++    yield* insertSession(sessionID)
++    yield* prompt(sessionID, "Help me debug the failing build")
++    titleStream = () =>
++      Stream.make(
++        LLMEvent.textDelta({ id: "title", text: "<think>\nThe user wants a title.\n</think>\n\n" }),
++        LLMEvent.textDelta({ id: "title", text: "Failing build debugging" }),
++        LLMEvent.finish({ reason: { normalized: "stop" } }),
++      )
++
++    const title = yield* SessionTitle.Service
++    yield* title.generate(sessionID)
++
++    const store = yield* SessionStore.Service
++    expect((yield* store.get(sessionID))?.title).toBe("Failing build debugging")
++  }),
++)
++
+ it.effect("runs title hooks instead of context hooks", () =>
+   Effect.gen(function* () {
+     yield* enableTitleAgent

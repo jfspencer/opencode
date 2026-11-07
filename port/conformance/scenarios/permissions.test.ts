@@ -338,6 +338,68 @@ scenario(
 )
 
 scenario(
+  "always on a wrapped command approves only the wrapped command",
+  {
+    files: { "a.txt": "a\n" },
+    config: { permissions: shellAsks },
+    turns: [
+      call("shell", { command: "env echo one" }),
+      call("shell", { command: "env cat a.txt" }),
+      call("shell", { command: "env echo two" }),
+      say("Done."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "wrapped" })
+    await prompt(ctx, id, "Echo through env", (request) =>
+      request.resources[0].startsWith("env echo") ? { decision: "always" } : { decision: "reject", message: "Not that one." },
+    )
+    await ctx.http("GET", "/api/permission/saved")
+  },
+)
+
+scenario(
+  "always on a command with an environment assignment approves it under that assignment only",
+  {
+    config: { permissions: shellAsks },
+    turns: [
+      call("shell", { command: "LANG=C echo one" }),
+      call("shell", { command: "LANG=C echo one" }),
+      call("shell", { command: "LC_ALL=C echo one" }),
+      say("Done."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "assignment" })
+    await prompt(ctx, id, "Echo with a locale", (request) =>
+      request.resources[0].startsWith("LANG=") ? { decision: "always" } : { decision: "reject", message: "Not that one." },
+    )
+    await ctx.http("GET", "/api/permission/saved")
+  },
+)
+
+scenario(
+  "always on a command with wildcard characters approves only that text",
+  {
+    files: { "a.txt": "a\n", "b.txt": "b\n" },
+    config: { permissions: shellAsks },
+    turns: [
+      call("shell", { command: "sh -c 'echo *.txt'" }),
+      call("shell", { command: "sh -c 'echo ; cat a.txt'" }),
+      call("shell", { command: "sh -c 'echo *.txt'" }),
+      say("Done."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "wildcards" })
+    await prompt(ctx, id, "List the text files", (request) =>
+      request.resources[0] === "sh -c 'echo *.txt'" ? { decision: "always" } : { decision: "reject", message: "Not that one." },
+    )
+    await ctx.http("GET", "/api/permission/saved")
+  },
+)
+
+scenario(
   "configured denies win over saved shell approvals",
   {
     files: { "a.txt": "a\n" },

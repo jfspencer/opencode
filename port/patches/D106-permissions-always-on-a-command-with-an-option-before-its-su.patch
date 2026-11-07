@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:00:49 -0700
+Subject: [PATCH] D106 permissions: "always" on a command with an option before
+ its subcommand saves only that command
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: the saved prefix counts words up to the command's arity without skipping options, so an option where the subcommand belongs became the prefix: "always" on `git -C src status` saved `git -C *` (every git command, in any directory), `kubectl -n prod get pods` saved `kubectl -n *`, `python -m http.server` saved `python -m *`, `bun -e '…'` saved `bun -e *`. The arity table's own generation rules say flags never count as subcommand words.
+Fixed: when an option sits inside the arity prefix, the subcommand cannot be identified and the command is saved exactly as approved (as D101 does for wrappers). Options after the prefix (`git log --oneline` → `git log *`) are unaffected.
+Scenarios: shell-classify.test.ts "command prefixes" (recorded save patterns)
+Upstream tests: test/permission.test.ts "numeric AWS option prefix" (snapshotted `aws --cli-read-timeout 60 *` allowing `aws … ec2 describe-instances`), test/shell-parse.test.ts (new test)
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 9381b9e9bc..3ef1a5c307 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -633,14 +633,18 @@ function prefix(words: string[]) {
+ 
+ /**
+  * The prefix of a POSIX command that names what it runs, or undefined when that depends on the shell: a dynamic
+- * command name, `eval`, or a wrapper whose options hide where the wrapped command starts.
++ * command name, `eval`, or options that hide where the wrapped command or the subcommand starts.
+  */
+ function bashPrefix(words: string[]): string[] | undefined {
+   const head = words[0]
+   if (head === undefined || head === "eval" || !isStaticBashWord(head)) return
+   const name = path.basename(head)
+   const operands = Object.hasOwn(WRAPPERS, name) ? WRAPPERS[name] : undefined
+-  if (operands === undefined) return prefix(words)
++  if (operands === undefined) {
++    const selected = prefix(words)
++    // An option where a subcommand belongs hides which subcommand runs: `git -C *` would approve every git command.
++    return selected.slice(1).some((word) => word.startsWith("-")) ? undefined : selected
++  }
+   // Wrappers like env and sudo take assignments before the command; they stay part of the prefix.
+   const command = words.findIndex((word, index) => index > 0 && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word))
+   if (command === -1 || words[command].startsWith("-")) return
+diff --git a/packages/core/test/permission.test.ts b/packages/core/test/permission.test.ts
+index 8d42e5b54a..2c7feb7bd8 100644
+--- a/packages/core/test/permission.test.ts
++++ b/packages/core/test/permission.test.ts
+@@ -722,13 +722,13 @@ describe("shell scanner permission impact", () => {
+       name: "numeric AWS option prefix",
+       shell: "bash",
+       command: "aws --cli-read-timeout 60 s3 ls",
+-      grants: [["aws --cli-read-timeout s3 *"], ["aws --cli-read-timeout 60 *"]],
++      grants: [["aws --cli-read-timeout s3 *"], ["aws --cli-read-timeout 60 s3 ls"]],
+       repeat: [
+         ["ask", "ask"],
+         ["allow", "allow"],
+       ],
+       next: "aws --cli-read-timeout 60 ec2 describe-instances",
+-      nextEffect: ["ask", "allow"],
++      nextEffect: ["ask", "ask"],
+     },
+     {
+       name: "substitution prefix",
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index a33a55b419..88de0e504c 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -50,6 +50,12 @@ describe("ShellParse", () => {
+     ])
+   })
+ 
++  test("saves a command with an option before its subcommand exactly", async () => {
++    const commands = ["git -C src status", "kubectl -n prod get pods", "python -m http.server"]
++    const result = await Effect.runPromise(ShellParse.scan(commands.join("; "), "/bin/bash", "/workspace"))
++    expect(result.commands).toEqual(commands.map((command) => ({ resource: command, save: command })))
++  })
++
+   test("rejects malformed syntax with an explicit scanner error", async () => {
+     const malformed = await Effect.runPromiseExit(ShellParse.scan('echo "', "/bin/bash", "/workspace"))
+     expect(malformed).toMatchObject({

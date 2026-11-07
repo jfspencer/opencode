@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:27:53 -0700
+Subject: [PATCH] D107 permissions: a command named like an object property
+ saves its own prefix
+
+Upstream: the arity table was read with a plain property lookup, so a command named like an Object.prototype member (`toString x`, `constructor y`) found a function instead of an arity and saved the pattern " *", which matches no command: "always" never took effect.
+Fixed: only the table's own keys count, so these commands save `toString *` like any unknown command.
+Scenarios: shell-classify.test.ts "command names shared with object properties" (new)
+Upstream tests: test/shell-parse.test.ts (the inherited-keys test now covers arities)
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 3ef1a5c307..54acedc788 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -625,8 +625,9 @@ function environment(key: string) {
+ function prefix(words: string[]) {
+   const tokens = words.slice(0, PREFIX_LENGTH)
+   for (let length = tokens.length; length > 0; length--) {
+-    const arity = ARITY[tokens.slice(0, length).join(" ")]
+-    if (arity !== undefined) return tokens.slice(0, arity)
++    const key = tokens.slice(0, length).join(" ")
++    // Own keys only: a command named like an Object.prototype member (`toString`) has no arity entry.
++    if (Object.hasOwn(ARITY, key)) return tokens.slice(0, ARITY[key])
+   }
+   return tokens.slice(0, 1)
+ }
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index 88de0e504c..ef00e06c36 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -35,9 +35,12 @@ describe("ShellParse", () => {
+     ])
+   })
+ 
+-  test("does not take inherited object keys for wrappers", async () => {
+-    const result = await Effect.runPromise(ShellParse.scan("toString x", "/bin/bash", "/workspace"))
+-    expect(result.commands).toHaveLength(1)
++  test("does not take inherited object keys for wrappers or arities", async () => {
++    const result = await Effect.runPromise(ShellParse.scan("toString x; constructor y", "/bin/bash", "/workspace"))
++    expect(result.commands).toEqual([
++      { resource: "toString x", save: "toString *" },
++      { resource: "constructor y", save: "constructor *" },
++    ])
+   })
+ 
+   test("saves commands that only the shell can identify exactly", async () => {

@@ -1132,7 +1132,7 @@
             "> both.txt"
           ],
           "save": [
-            "echo *",
+            ">> log.txt echo appended",
             "2>\t*",
             "echo *",
             "echo *",

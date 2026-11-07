@@ -1,0 +1,94 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:49:39 -0700
+Subject: [PATCH] D102 plan mode: a restored plan reminder no longer costs an
+ extra model call
+
+Upstream: when a plan-mode request lacked the Plan reminder (after compaction or a committed revert), the context hook put the reminder into the request and also admitted it as synthetic input with resume: false. The running session delivered that input after the step and ran another model call whose only new message was the reminder, so the model answered twice.
+Fixed: the hook puts the reminder into each request that lacks it and no longer queues it as input. Reminders from agent switches and session creation are still persisted as before.
+Scenarios: agent-loop-agents.test.ts "plan reminder after compaction" (new)
+Upstream tests: test/plugin/plan.test.ts (asserted the hook persisted the reminder; reminder texts now taken from the agent-switch path)
+
+diff --git a/packages/core/src/plugin/plan.ts b/packages/core/src/plugin/plan.ts
+index 63939deffa..57808724d7 100644
+--- a/packages/core/src/plugin/plan.ts
++++ b/packages/core/src/plugin/plan.ts
+@@ -54,6 +54,8 @@ export const Plugin = define({
+ 
+     // Compaction and committed reverts can strip reminders while the session's agent stays
+     // put. Reconcile per request, appending near the tail so the cached prefix stays warm.
++    // The reminder is not admitted as input: the running session would deliver it after this
++    // step and spend another model call answering it.
+     yield* ctx.session.hook("context", (event) => {
+       const reminder = lastReminder(event.messages, enterReminder)
+       const missing = event.agent === plan && reminder !== enterReminder
+@@ -63,13 +65,7 @@ export const Plugin = define({
+       // Before the user's prompt, matching where agent-switch reminders land.
+       const at = event.messages.at(-1)?.role === "user" ? event.messages.length - 1 : event.messages.length
+       event.messages.splice(at, 0, Message.user(text))
+-      return ctx.session
+-        .synthetic({ sessionID: event.sessionID, text, resume: false })
+-        .pipe(
+-          Effect.catchCause((cause) =>
+-            Effect.logWarning("failed to persist Plan mode reminder", { sessionID: event.sessionID, cause }),
+-          ),
+-        )
++      return Effect.void
+     })
+ 
+     yield* ctx.event.subscribe({ types: ["session.created", "session.agent.selected"] }).pipe(
+diff --git a/packages/core/test/plugin/plan.test.ts b/packages/core/test/plugin/plan.test.ts
+index bb1244c4b1..aa4746a6d9 100644
+--- a/packages/core/test/plugin/plan.test.ts
++++ b/packages/core/test/plugin/plan.test.ts
+@@ -147,11 +147,9 @@ const settle = (persisted: ReadonlyArray<string>, expected: number, remaining =
+ 
+ /** The exact reminder texts, derived from plugin behavior rather than duplicated here. */
+ const reminders = Effect.gen(function* () {
+-  const planRun = yield* run()
+-  yield* planRun.contextHook(request(plan, []))
+-  const buildRun = yield* run()
+-  yield* buildRun.contextHook(request(build, [Message.user(planRun.persisted[0]!)]))
+-  return { enter: planRun.persisted[0]!, leave: buildRun.persisted[0]! }
++  const { persisted } = yield* run([agentSelected(plan, build), agentSelected(build, plan)])
++  yield* settle(persisted, 2)
++  return { enter: persisted[0]!, leave: persisted[1]! }
+ })
+ 
+ describe("plan plugin reminders", () => {
+@@ -167,7 +165,7 @@ describe("plan plugin reminders", () => {
+     }),
+   )
+ 
+-  it.effect("reconciles a missing enter reminder into the request and persists it", () =>
++  it.effect("reconciles a missing enter reminder into the request without queueing it as input", () =>
+     Effect.gen(function* () {
+       const { persisted, contextHook } = yield* run()
+       const messages = [Message.user("what agent are you?")]
+@@ -176,7 +174,7 @@ describe("plan plugin reminders", () => {
+       // Inserted before the user's prompt, matching where agent-switch reminders land.
+       const first = messages[0]?.content[0]
+       expect(first?.type === "text" && first.text).toContain("You are in Plan mode")
+-      expect(persisted).toHaveLength(1)
++      expect(persisted).toHaveLength(0)
+     }),
+   )
+ 
+@@ -200,7 +198,7 @@ describe("plan plugin reminders", () => {
+       expect(messages).toHaveLength(3)
+       const middle = messages[1]?.content[0]
+       expect(middle?.type === "text" && middle.text).toContain("NO LONGER in Plan mode")
+-      expect(persisted).toHaveLength(1)
++      expect(persisted).toHaveLength(0)
+     }),
+   )
+ 
+@@ -233,7 +231,7 @@ describe("plan plugin reminders", () => {
+       const messages = [Message.user(`<conversation-checkpoint>\n${enter}\n</conversation-checkpoint>`)]
+       yield* contextHook(request(plan, messages))
+       expect(messages).toHaveLength(2)
+-      expect(persisted).toHaveLength(1)
++      expect(persisted).toHaveLength(0)
+     }),
+   )
+ })

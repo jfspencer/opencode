@@ -1,0 +1,174 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:38:32 -0700
+Subject: [PATCH] D101 permissions: "always" on a wrapped command approves only
+ that command
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: approving a wrapped command with "always" saved the wrapper alone: `sudo rm -rf /var/cache` saved `sudo *`, which then allowed every sudo command (same for env, xargs, nohup, exec, command, builtin, time, coproc and shells). Commands the scanner cannot identify saved a prefix that approved everything they can run: `sh -c '…'` saved `sh *`, `eval "…"` saved `eval *`, `$(which git) status` saved `$(which git) *`, `sudo -u root git status` saved `sudo *`.
+Fixed: a wrapper's saved prefix extends to the wrapped command's prefix (`sudo rm *`, `env FOO=1 npm test *`, `timeout 10 git push *`). When only the shell can tell what runs (a dynamic command name, eval, or a wrapper option before the wrapped command), the command is saved exactly as approved.
+Scenarios: permissions.test.ts "always on a wrapped command approves only the wrapped command" (new); shell-classify.test.ts wrappers, directory changes, assignments and declarations, substitutions and expansions, lists and pipelines (recorded save patterns)
+Upstream tests: test/shell-parse.test.ts (wrapped cd prefixes updated, three new tests), test/shell-parse-compatibility.test.ts and test/shell-parse-syntax.test.ts (asserted the wrapper-only patterns)
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index f86e42e4a3..9381b9e9bc 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -158,6 +158,27 @@ const ARITY: Record<string, number> = {
+   "yarn run": 3,
+ }
+ const PREFIX_LENGTH = Math.max(...Object.values(ARITY))
++// Wrappers run the command after their own operands (the value counts them), so a saved prefix has to name that
++// command: `sudo *` would approve every command sudo can run.
++const WRAPPERS: Record<string, number> = {
++  bash: 0,
++  builtin: 0,
++  command: 0,
++  coproc: 0,
++  dash: 0,
++  doas: 0,
++  env: 0,
++  exec: 0,
++  ksh: 0,
++  nice: 0,
++  nohup: 0,
++  sh: 0,
++  sudo: 0,
++  time: 0,
++  timeout: 1,
++  xargs: 0,
++  zsh: 0,
++}
+ 
+ export function scan(command: string, shell: string, cwd: string): Effect.Effect<Result, Error> {
+   return Effect.suspend(() => {
+@@ -222,9 +243,10 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+         output.directories.push(...resolved.directories)
+         if (directoryCommand === parts && resolved.complete) continue
+       }
+-      const selected = prefix(words.slice(0, PREFIX_LENGTH))
+-      const conventional = `${selected.join(" ")} *`
+-      const end = item.wordEnds?.[selected.length - 1]
++      const selected = powershell ? prefix(words) : bashPrefix(words)
++      // A command that only the shell can identify is saved exactly as approved.
++      const conventional = selected ? `${selected.join(" ")} *` : item.resource
++      const end = selected && item.wordEnds?.[selected.length - 1]
+       // Keep existing grants stable unless normalized spacing loses the original source boundary.
+       const save =
+         !powershell || end === undefined || Wildcard.match(item.resource, conventional)
+@@ -600,10 +622,28 @@ function environment(key: string) {
+   return name ? process.env[name] : undefined
+ }
+ 
+-function prefix(tokens: string[]) {
++function prefix(words: string[]) {
++  const tokens = words.slice(0, PREFIX_LENGTH)
+   for (let length = tokens.length; length > 0; length--) {
+     const arity = ARITY[tokens.slice(0, length).join(" ")]
+     if (arity !== undefined) return tokens.slice(0, arity)
+   }
+   return tokens.slice(0, 1)
+ }
++
++/**
++ * The prefix of a POSIX command that names what it runs, or undefined when that depends on the shell: a dynamic
++ * command name, `eval`, or a wrapper whose options hide where the wrapped command starts.
++ */
++function bashPrefix(words: string[]): string[] | undefined {
++  const head = words[0]
++  if (head === undefined || head === "eval" || !isStaticBashWord(head)) return
++  const name = path.basename(head)
++  const operands = Object.hasOwn(WRAPPERS, name) ? WRAPPERS[name] : undefined
++  if (operands === undefined) return prefix(words)
++  // Wrappers like env and sudo take assignments before the command; they stay part of the prefix.
++  const command = words.findIndex((word, index) => index > 0 && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word))
++  if (command === -1 || words[command].startsWith("-")) return
++  const wrapped = bashPrefix(words.slice(command + operands))
++  return wrapped && [...words.slice(0, command + operands), ...wrapped]
++}
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index e08bd01545..9817c5e3d5 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -180,8 +180,8 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       {},
+       {
+         commands: [
+-          { resource: "command cd /outside", save: "command *" },
+-          { resource: "builtin cd /elsewhere", save: "builtin *" },
++          { resource: "command cd /outside", save: "command cd *" },
++          { resource: "builtin cd /elsewhere", save: "builtin cd *" },
+         ],
+         directories: ["/outside", "/elsewhere"],
+       },
+diff --git a/packages/core/test/shell-parse-syntax.test.ts b/packages/core/test/shell-parse-syntax.test.ts
+index c971174151..f3092a451f 100644
+--- a/packages/core/test/shell-parse-syntax.test.ts
++++ b/packages/core/test/shell-parse-syntax.test.ts
+@@ -144,7 +144,7 @@ describe("native shell syntax compatibility", () => {
+       commands: [
+         { resource: 'echo "${(P)f}"', save: "echo *" },
+         { resource: "ls -d src/**/target(N/) *.ts(.OL[1,3])", save: "ls *" },
+-        { resource: "nohup sleep 1 >/dev/null 2>&1", save: "nohup *" },
++        { resource: "nohup sleep 1 >/dev/null 2>&1", save: "nohup sleep *" },
+         { resource: "echo started", save: "echo *" },
+       ],
+       directories: [],
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index 44e882e4ee..a33a55b419 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -18,6 +18,38 @@ describe("ShellParse", () => {
+     })
+   })
+ 
++  test("saves the wrapped command's prefix, not the wrapper's", async () => {
++    const result = await Effect.runPromise(
++      ShellParse.scan(
++        "sudo rm -rf /var/cache; env FOO=1 npm run dev; timeout 10 git push origin; xargs rm < files; /usr/bin/nohup bun x tsc",
++        "/bin/bash",
++        "/workspace",
++      ),
++    )
++    expect(result.commands.map((command) => command.save)).toEqual([
++      "sudo rm *",
++      "env FOO=1 npm run dev *",
++      "timeout 10 git push *",
++      "xargs rm *",
++      "/usr/bin/nohup bun x tsc *",
++    ])
++  })
++
++  test("does not take inherited object keys for wrappers", async () => {
++    const result = await Effect.runPromise(ShellParse.scan("toString x", "/bin/bash", "/workspace"))
++    expect(result.commands).toHaveLength(1)
++  })
++
++  test("saves commands that only the shell can identify exactly", async () => {
++    const commands = ["sh -c 'rm -rf build'", "sudo -u root git status", 'eval "echo hi"', "$(which git) status", "env"]
++    const result = await Effect.runPromise(ShellParse.scan(commands.join("; "), "/bin/bash", "/workspace"))
++    expect(result.commands).toEqual([
++      ...commands.slice(0, 4).map((command) => ({ resource: command, save: command })),
++      { resource: "which git", save: "which *" },
++      { resource: "env", save: "env" },
++    ])
++  })
++
+   test("rejects malformed syntax with an explicit scanner error", async () => {
+     const malformed = await Effect.runPromiseExit(ShellParse.scan('echo "', "/bin/bash", "/workspace"))
+     expect(malformed).toMatchObject({
+@@ -150,9 +182,9 @@ describe("ShellParse", () => {
+     )
+     expect(wrapped).toEqual({
+       commands: [
+-        { resource: "command cd /outside", save: "command *" },
+-        { resource: "builtin cd /elsewhere", save: "builtin *" },
+-        { resource: "command -v cd", save: "command *" },
++        { resource: "command cd /outside", save: "command cd *" },
++        { resource: "builtin cd /elsewhere", save: "builtin cd *" },
++        { resource: "command -v cd", save: "command -v cd" },
+       ],
+       directories: ["/outside", "/elsewhere"],
+     })

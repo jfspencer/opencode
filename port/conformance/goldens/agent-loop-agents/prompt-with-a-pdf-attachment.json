@@ -212,7 +212,7 @@
               "role": "system"
             },
             {
-              "content": "Read the PDFERROR: Cannot read \"doc.pdf\" (this model does not support pdf input). Inform the user.",
+              "content": "Read the PDF\n\nERROR: Cannot read \"doc.pdf\" (this model does not support pdf input). Inform the user.",
               "role": "user"
             }
           ],

@@ -77,11 +77,36 @@ scenario(
 
 scenario(
   "plan agent request",
-  // Plan mode adds a reminder to the request and persists it as synthetic input, which takes one more step.
+  // Plan mode's reminder is queued when the session is created and delivered with the first prompt.
   { files, turns: [say("Here is the plan."), say("Still planning.")] },
   async (ctx) => {
     const id = await ctx.session({ title: "plan", agent: "plan" })
     await ctx.prompt(id, "Plan a refactor")
+    await messages(ctx, id)
+  },
+)
+
+scenario(
+  "plan reminder after compaction",
+  // Compaction drops the reminder from history, so each request puts it back before the prompt. It is not queued as
+  // input, which would make the session answer it in a step of its own.
+  {
+    files,
+    turns: [
+      say("Here is the plan."),
+      say("## Objective\n- Plan a refactor\n\n## Work State\n### Completed\n- Drafted the plan\n\n## Next Move\n1. Answer the next question"),
+      say("Still planning."),
+      say("Next, the tests."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "plan", agent: "plan" })
+    await ctx.prompt(id, "Plan a refactor")
+    const from = ctx.events.length
+    await ctx.http("POST", `/api/session/${id}/compact`, {})
+    await ctx.settle(id, from)
+    await ctx.prompt(id, "Remind me")
+    await ctx.prompt(id, "And then?")
     await messages(ctx, id)
   },
 )
@@ -234,6 +259,21 @@ scenario(
     ],
   },
   (ctx) => untitled(ctx, lineTitleGate, () => renamed(ctx)),
+)
+
+const thinkTitleGate = gate()
+scenario(
+  "title skips think blocks written into the reply",
+  {
+    turns: [{ events: [{ until: thinkTitleGate.promise }, { text: "Hello there." }] }],
+    responders: [
+      (request) =>
+        request.kind === "title"
+          ? ({ events: [{ text: "<think>\nThe user wants a short title.\n</think>\n\nMath module refactor" }] } as Turn)
+          : undefined,
+    ],
+  },
+  (ctx) => untitled(ctx, thinkTitleGate, () => renamed(ctx)),
 )
 
 scenario(
@@ -516,7 +556,7 @@ scenario(
 )
 
 scenario(
-  "binary attachment of an unsupported type is dropped",
+  "binary attachment of an unsupported type is reported to the model",
   { turns: [say("Nothing readable attached.")] },
   async (ctx) => {
     const zip = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x21, 0x00, 0xff, 0xfe]).toString("base64")

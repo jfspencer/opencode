@@ -212,7 +212,7 @@
               "role": "system"
             },
             {
-              "content": "Open the archive",
+              "content": "Open the archive\n\nERROR: Cannot read \"archive.zip\" (this model does not support application/octet-stream input). Inform the user.",
               "role": "user"
             }
           ],

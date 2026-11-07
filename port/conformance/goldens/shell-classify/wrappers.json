@@ -750,10 +750,10 @@
             "env FOO=1 npm test"
           ],
           "save": [
-            "builtin *",
-            "command *",
-            "exec *",
-            "env *"
+            "builtin echo *",
+            "command -v git",
+            "exec ls *",
+            "env FOO=1 npm test *"
           ],
           "sessionID": "<ses_1>",
           "source": {
@@ -964,10 +964,10 @@
             "xargs rm < files.txt"
           ],
           "save": [
-            "sudo *",
-            "sh *",
-            "nohup *",
-            "xargs *"
+            "sudo rm *",
+            "sh -c 'rm -rf build'",
+            "nohup npm start *",
+            "xargs rm *"
           ],
           "sessionID": "<ses_1>",
           "source": {

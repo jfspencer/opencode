@@ -751,8 +751,8 @@
             "whoami"
           ],
           "save": [
-            "env *",
-            "make build *",
+            "FOO=bar env",
+            "FOO=$(git rev-parse HEAD) make build",
             "git rev-parse *",
             "hostname *",
             "whoami *"
@@ -968,7 +968,7 @@
           "save": [
             "read *",
             "printf *",
-            "eval *",
+            "eval \"echo hi\"",
             "date *"
           ],
           "sessionID": "<ses_1>",
