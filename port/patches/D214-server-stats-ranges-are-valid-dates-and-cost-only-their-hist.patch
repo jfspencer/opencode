@@ -1,0 +1,91 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:41:36 -0700
+Subject: [PATCH] D214 server: stats ranges are valid dates and cost only their
+ history
+
+Upstream: GET /api/experimental/session/stats accepts any finite from and to. A time outside what a date can
+represent fails with 500 (from=-1e300: invalid array length; to=1e300: invalid date), and the aggregation runs one
+query (two with tools) per 31-day window of the requested range, so a range of a few thousand years makes millions
+of queries.
+Fixed: from and to must be epoch milliseconds a date can represent (+/-8.64e15), otherwise 400 InvalidRequestError
+(kind Query) like D202; and the windows cover only the recorded history inside the range, so a wide range costs no
+more than the history in it. Results for valid ranges are unchanged.
+Scenarios: session-api-transfer.test.ts "session statistics over imported history" (three new requests)
+Upstream tests: packages/core/test/session-stats.test.ts asserts the widest range matches a covering range
+
+diff --git a/packages/core/src/session/stats.ts b/packages/core/src/session/stats.ts
+index 24a8e518e4..d2356c80a9 100644
+--- a/packages/core/src/session/stats.ts
++++ b/packages/core/src/session/stats.ts
+@@ -94,7 +94,23 @@ export const get = Effect.fn("SessionStats.get")(function* (input: Input = {}) {
+       )
+       .pipe(Effect.orDie))?.time ??
+     to
+-  const ranges = windows(from, to)
++  // Only recorded history needs windows, so a wide range costs no more than the history inside it.
++  const recorded = yield* db
++    .get<{ first: number | null; last: number | null }>(
++      sql`
++      SELECT min(message.time_created) AS first, max(message.time_created) AS last
++      FROM ${SessionMessageTable} AS message
++      JOIN ${SessionTable} AS session ON session.id = message.session_id
++      WHERE message.type IN ('user', 'assistant', 'compaction')
++        AND message.time_created >= ${from}
++        AND message.time_created < ${to}
++        AND (session.fork_session_id IS NULL OR message.time_created >= session.time_created)
++        ${project}
++    `,
++    )
++    .pipe(Effect.orDie)
++  const ranges =
++    recorded && recorded.first !== null && recorded.last !== null ? windows(recorded.first, recorded.last + 1) : []
+   const toolMode = input.tools ?? "summary"
+   const sessions = new Set<string>()
+   const subagents = new Set<string>()
+diff --git a/packages/core/test/session-stats.test.ts b/packages/core/test/session-stats.test.ts
+index 7f1f620d5a..e0be085ca0 100644
+--- a/packages/core/test/session-stats.test.ts
++++ b/packages/core/test/session-stats.test.ts
+@@ -248,6 +248,16 @@ describe("SessionStats", () => {
+       })
+       expect(withoutTools.tools).toEqual({ mode: "none" })
+ 
++      // A range much wider than the history costs no more than the history inside it, with the same result.
++      const covering = yield* SessionStats.get({
++        from: Date.UTC(2019, 0, 1),
++        to: Date.UTC(2027, 0, 1),
++        timezone: "UTC",
++        tools: "detail",
++      })
++      const widest = yield* SessionStats.get({ from: -8.64e15, to: 8.64e15, timezone: "UTC", tools: "detail" })
++      expect({ ...widest, range: covering.range }).toEqual(covering)
++
+       const project = yield* SessionStats.get({ projectID, timezone: "UTC", tools: "none" })
+       expect(DateTime.toEpochMillis(project.range.from)).toBe(Date.UTC(2025, 11, 30, 10))
+ 
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index d24747f176..61dedd7bab 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -110,6 +110,9 @@ const BooleanFromString = Schema.Literals(["true", "false"]).pipe(
+ export const SessionsCursor = Session.ListCursor
+ export type SessionsCursor = Session.ListCursor
+ 
++// Epoch milliseconds that a date can represent.
++const StatsTime = Schema.FiniteFromString.check(Schema.isBetween({ minimum: -8.64e15, maximum: 8.64e15 }))
++
+ export const SessionsQuery = Schema.Struct({
+   limit: Schema.NumberFromString.pipe(Schema.decodeTo(PositiveInt), Schema.optional).annotate({
+     description: "Maximum number of sessions to return. Defaults to the newest 50 sessions.",
+@@ -146,8 +149,8 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+     .add(
+       HttpApiEndpoint.get("session.stats", "/api/experimental/session/stats", {
+         query: Schema.Struct({
+-          from: Schema.FiniteFromString.pipe(Schema.optional),
+-          to: Schema.FiniteFromString.pipe(Schema.optional),
++          from: StatsTime.pipe(Schema.optional),
++          to: StatsTime.pipe(Schema.optional),
+           project: Project.ID.pipe(Schema.optional),
+           timezone: Schema.String.pipe(Schema.optional),
+           tools: SessionStats.ToolMode.pipe(Schema.optional),

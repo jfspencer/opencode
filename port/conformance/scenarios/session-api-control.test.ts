@@ -91,7 +91,25 @@ scenario(
 )
 
 scenario("a session on an unknown agent fails its turn", { turns: [say("unused")] }, async (ctx) => {
-  const session = await ctx.session({ title: "ghost agent", agent: "ghost" })
+  // Creating a session on an agent that does not exist is rejected, but an imported session keeps the agent it
+  // recorded, which may not exist here.
+  await ctx.http("POST", "/api/session", { title: "ghost agent", agent: "ghost", location: { directory: ctx.project } })
+  const session = "ses_00000000000000conformanceGHOSTAGT"
+  const time = Date.UTC(2026, 0, 5)
+  await ctx.http("POST", "/api/experimental/session/import", {
+    info: {
+      id: session,
+      projectID: "0000000000000000000000000000000000000000",
+      title: "ghost agent",
+      agent: "ghost",
+      cost: 0,
+      tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+      time: { created: time, updated: time },
+      location: { directory: ctx.project },
+    },
+    location: { directory: ctx.project },
+    messages: [],
+  })
   await ctx.prompt(session, "Hello")
   await ctx.http("GET", `/api/session/${session}`)
   await messages(ctx, session)
