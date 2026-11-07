@@ -10,7 +10,7 @@ Fixed: the route checks the agent in the session's location (after its plugins l
 The route also declares the location errors it can now return (404 LocationNotFoundError, 503 when plugins do not
 finish loading).
 Scenarios: project-agents.test.ts "switching a session to a custom agent"; cli-run.test.ts "run selects the
-model, variant and agent" (run --agent no-such-agent fails before prompting, so that session gets no title)
+model, variant and agent" (run --agent no-such-agent fails on the switch with the 404's message)
 Upstream tests: packages/server/test/session-update.test.ts adds a test; client and openapi.json regenerated
 
 diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
