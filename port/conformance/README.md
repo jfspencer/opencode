@@ -1,9 +1,11 @@
 # Conformance oracle
 
 Scenarios drive opencode **only through its public interface** and record everything observable. The TS
-reference produces the recordings ("goldens"); the Rust implementation must reproduce them exactly.
+reference produces the recordings ("goldens"); the Rust implementation must reproduce them exactly. The
+reference is upstream plus the deviation patches in `port/patches/`, which fix upstream bugs the port does
+not reproduce.
 
-Setup (once per checkout, after `bun install` at the repo root): `port/scripts/link-deps.sh`.
+Setup (once per checkout, and after every upstream merge or patch change): `port/scripts/reference.sh build`.
 
 ```sh
 cd port/conformance
@@ -35,7 +37,8 @@ rewrites goldens recorded by older harness versions.
 
 The server-side reference is booted the way `opencode serve` boots it (`packages/server/src/process.ts`):
 application routes, resumption of interrupted sessions, the schedule runner, and the real server's Linux
-defaults (file watcher on, fff search on; per scenario: `server: { filewatcher, fff }`). Only the listening
+defaults (file watcher on; per scenario: `server: { filewatcher, fff }`), except that fff search is off: the
+port omits fff, so file search is ripgrep + fuzzysort ranking, as with `OPENCODE_DISABLE_FFF=1`. Only the listening
 socket is replaced by an in-process handler, so `bun test --coverage` can measure the TS reference.
 
 ## Writing a scenario
@@ -83,13 +86,15 @@ files, all normalized.
 1. **Public interface only.** Never import opencode internals in a scenario. Inputs are HTTP calls, project
    files, config, and what the fake model says. That is what lets the same scenario run against Rust.
 2. **Never hand-write expected values.** Goldens are recorded from the TS reference.
-3. **Check the recording is meaningful.** Read the golden: a scenario that only exercises an argument-validation
+3. **Don't record a known bug as the standard.** When a golden shows upstream behaving wrongly, fix the
+   reference with a deviation patch (`port/patches/README.md`) and re-record.
+4. **Check the recording is meaningful.** Read the golden: a scenario that only exercises an argument-validation
    error because of a wrong field name proves nothing about the feature it is named after. Tool argument
    schemas are in any golden's provider request (`tools`).
-4. **Deterministic or it doesn't count.** Fix nondeterminism in the scenario (fixed inputs, explicit
+5. **Deterministic or it doesn't count.** Fix nondeterminism in the scenario (fixed inputs, explicit
    ordering, waiting for the state you record), or as a documented equality rule. Never paper over a real
    behavior difference.
-5. **No network.** Everything outbound goes through the fake; the sandbox (`lib/preload.ts`) isolates HOME,
+6. **No network.** Everything outbound goes through the fake; the sandbox (`lib/preload.ts`) isolates HOME,
    XDG dirs, the working directory, and the terminal/shell identity.
 
 ## Equality rules
@@ -105,6 +110,13 @@ Each rule states that the difference it hides is not observable behavior.
   OS release, process IDs.
 - **Streaming batches:** consecutive text/reasoning/compaction deltas for the same part are joined (they flush
   on a 100 ms timer). Only the last tool-progress event per call is kept (throttled to one per 100 ms).
+- **Engine diagnostics:** text the JavaScript engine writes, which opencode passes through inside its own
+  messages, is masked as `<engine message>`. This covers `JSON.parse received invalid JSON: …`, `… received
+  malformed URI data: …`, the reason in `…not a valid regular expression pattern (…)` and
+  `…invalid flags "x" (…)`, and a schedule's `Invalid regular expression "(": …`. Each rule is anchored on
+  opencode's own text, so any implementation's single-line diagnostic masks the same way. Built-in errors
+  whose message is entirely the engine's (`toFixed()` range, `String.fromCodePoint`, `Number(symbol)`) are
+  recorded by error type only, in the scenario itself.
 - **Out of scope:** the startup probes of local model servers (LM Studio, Ollama, vLLM) are not recorded.
 - **TUI frames** (`lib/tui.ts`): step timing and throughput, and the prompt's randomly chosen example text.
 - **CLI** (`lib/cli.ts`): ports, sandbox paths, secrets, locale times, stack frames (documented in the file).

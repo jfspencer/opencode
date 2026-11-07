@@ -58,12 +58,13 @@
 // re-serializing it reproduces the output byte for byte; newline-delimited JSON as `{ ndjson }` under the same
 // condition; anything else as its exact lines (`text.split("\n")`, so a trailing newline shows as a final "").
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { config as makeConfig, OPENROUTER_BASE_URL } from "./model"
 import { scenario, type Ctx, type ScenarioOptions } from "./scenario"
 
-const REPO = path.resolve(import.meta.dir, "../../..")
+// The TS reference being driven (port/conformance/ref, set by port/scripts/link-deps.sh).
+const REPO = realpathSync(path.resolve(import.meta.dir, "../ref"))
 const ENTRY = path.join(REPO, "packages/cli/src/index.ts")
 // The CLI's TUI modules (imported by its config layer) need the SolidJS transform that packages/cli/bunfig.toml
 // preloads; CLI processes run in the project directory, so the preload is passed through BUN_OPTIONS, which
@@ -201,6 +202,8 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       LANG: "C.UTF-8",
       OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY!,
       OPENCODE_DISABLE_MODELS_FETCH: "1",
+      // The port omits fff file search (ripgrep + fuzzysort instead).
+      OPENCODE_DISABLE_FFF: "1",
       OPENCODE_MODELS_PATH: path.join(sandbox, "models.json"),
       BUN_OPTIONS: `--preload ${PRELOAD}`,
       BUN_RUNTIME_TRANSPILER_CACHE_PATH: path.join(root, "bun-transpiler-cache"),

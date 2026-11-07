@@ -5,6 +5,9 @@ import { scenario } from "../lib/scenario"
 const PRELUDE = `const r = {}
 const show = (v) => v === undefined ? "<undefined>" : typeof v === "number" && (!Number.isFinite(v) || Object.is(v, -0)) ? "<" + (Object.is(v, -0) ? "-0" : String(v)) + ">" : v
 const t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = "!" + (e && e.name) + ": " + (e && e.message) } }
+// Errors whose message is the JS engine's own wording (no opencode text around it): the standard records the
+// error type only (see the equality rules in README.md).
+const te = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = "!" + (e && e.name) } }
 `
 
 function programs(name: string, codes: string[]) {
@@ -36,7 +39,7 @@ t("String toString throws", () => String({ toString() { throw new TypeError("nop
 t("String of symbol", () => String(Symbol.iterator))
 t("fromCharCode", () => [String.fromCharCode(72, 105), String.fromCharCode(), String.fromCharCode("65", 0x1F600)])
 t("fromCodePoint", () => [String.fromCodePoint(0x1F600, 97), String.fromCodePoint()])
-t("fromCodePoint invalid", () => String.fromCodePoint(-1))
+te("fromCodePoint invalid", () => String.fromCodePoint(-1))
 t("raw template", () => String.raw\`a\\n\${1 + 1}b\\t\${"x"}c\`)
 t("raw object", () => String.raw({ raw: ["x", "y", "z"] }, 1, 2, 3, 4))
 t("raw short", () => String.raw({ raw: "abc" }, "-", "+"))

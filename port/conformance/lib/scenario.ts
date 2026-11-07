@@ -24,11 +24,11 @@ import { Context, Effect, Layer } from "effect"
 import { HttpEffect, HttpMiddleware, HttpRouter, HttpServer } from "effect/http"
 import { Schedule } from "@opencode/core/schedule"
 import { SessionRestart } from "@opencode/core/session/execution/restart"
-import { isAllowedCorsOrigin } from "../../../packages/server/src/cors"
-import { RequestSite } from "../../../packages/server/src/request-site"
-import { withoutParentSpan } from "../../../packages/server/src/request-tracing"
-import { createRoutes } from "../../../packages/server/src/routes"
-import type { ServerOptions } from "../../../packages/server/src/options"
+import { isAllowedCorsOrigin } from "../ref/packages/server/src/cors"
+import { RequestSite } from "../ref/packages/server/src/request-site"
+import { withoutParentSpan } from "../ref/packages/server/src/request-tracing"
+import { createRoutes } from "../ref/packages/server/src/routes"
+import type { ServerOptions } from "../ref/packages/server/src/options"
 import { matchGolden } from "./golden"
 import { config as makeConfig } from "./model"
 import { normalizer } from "./normalize"
@@ -51,7 +51,8 @@ export interface ScenarioOptions {
   readonly events?: boolean
   /**
    * Server process settings. Defaults are those of the real `opencode serve` on Linux
-   * (packages/cli/src/server-process.ts): file watcher on, fff search on.
+   * (packages/cli/src/server-process.ts), except fff: file watcher on, fff search off (the port omits fff;
+   * file search is ripgrep + fuzzysort, as with OPENCODE_DISABLE_FFF=1).
    */
   readonly server?: { readonly filewatcher?: boolean; readonly fff?: boolean }
   /**
@@ -130,7 +131,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
           config: { project: options.projectConfig ?? true, content: JSON.stringify(makeConfig(options.config)) },
           // No model catalog (live or bundled snapshot): the only models are the ones defined in config.
           models: { fetch: false, snapshot: false },
-          fs: { filewatcher: options.server?.filewatcher ?? true, fff: options.server?.fff ?? true },
+          fs: { filewatcher: options.server?.filewatcher ?? true, fff: options.server?.fff ?? false },
           fetch: provider.fetch,
         })
         const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {

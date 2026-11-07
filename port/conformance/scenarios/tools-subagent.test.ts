@@ -406,14 +406,15 @@ scenario(
       responders: [
         bySession(
           [call("subagent", { agent: "general", description: "Orphaned", prompt: "Take forever." })],
-          [{ events: [{ until: childGate.promise }, { text: "never" }] }],
+          [{ events: [{ reasoning: "Working on it." }, { until: childGate.promise }, { text: "never" }] }],
         ),
       ],
     },
     async (ctx) => {
       const id = await ctx.session()
       await ctx.http("POST", `/api/session/${id}/prompt`, { text: "Start." })
-      await ctx.until(() => ctx.provider.requests.filter((request) => request.kind === "chat").length >= 2)
+      // A step starts with the first response chunk: interrupt once the child's step is under way.
+      await ctx.until((event) => event?.type === "session.step.started" && event?.data?.sessionID !== id)
       await ctx.http("POST", `/api/session/${id}/interrupt`)
       await ctx.wait(id)
       const list = await children(ctx, id)

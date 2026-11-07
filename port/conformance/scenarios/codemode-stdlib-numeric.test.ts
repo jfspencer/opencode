@@ -6,6 +6,9 @@ import { scenario } from "../lib/scenario"
 const PRELUDE = `const r = {}
 const show = (v) => v === undefined ? "<undefined>" : typeof v === "number" && (!Number.isFinite(v) || Object.is(v, -0)) ? "<" + (Object.is(v, -0) ? "-0" : String(v)) + ">" : v
 const t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = "!" + (e && e.name) + ": " + (e && e.message) } }
+// Errors whose message is the JS engine's own wording (no opencode text around it): the standard records the
+// error type only (see the equality rules in README.md).
+const te = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = "!" + (e && e.name) } }
 const num = (v) => typeof v === "number" ? (Number.isNaN(v) ? "NaN" : Object.is(v, -0) ? "-0" : String(v)) : v
 // ISO timestamps are kept readable: the recorder would otherwise mask them as wall-clock times.
 const D = (v) => typeof v === "string" ? v.replace(/(\\d{4}-\\d{2}-\\d{2})T(\\d{2}:)/g, "$1 $2") : Array.isArray(v) ? v.map(D) : v
@@ -55,20 +58,20 @@ return r`,
 programs("number boolean and coercion", [
   `t("Number()", () => [Number(), Number("12"), Number(" 0x1f "), Number("1e3"), Number(""), Number("abc"), Number(null), Number(undefined), Number(true), Number([5]), Number([1, 2]), Number({}), Number("-0"), Number("Infinity"), Number(new Date(5))].map(num))
 t("Number valueOf object", () => Number({ valueOf() { return "42" } }))
-t("Number of symbol", () => Number(Symbol.iterator))
+te("Number of symbol", () => Number(Symbol.iterator))
 t("constants", () => [Number.MAX_SAFE_INTEGER, Number.MIN_SAFE_INTEGER, Number.MAX_VALUE, Number.MIN_VALUE, Number.EPSILON, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY].map(num))
 t("predicates", () => [Number.isInteger(5), Number.isInteger(5.5), Number.isInteger("5"), Number.isFinite(1), Number.isFinite("1"), Number.isFinite(Infinity), Number.isNaN(NaN), Number.isNaN("NaN"), Number.isSafeInteger(2 ** 53), Number.isSafeInteger(2 ** 53 - 1)])
 t("parseInt", () => [parseInt("42px"), parseInt("0x1F"), parseInt("101", 2), parseInt("z", 36), parseInt(""), parseInt("  -7.9"), parseInt("12", 1), parseInt("12", 37), parseInt(null), parseInt("ff", { valueOf() { return 16 } }), Number.parseInt("08"), Number.parseInt === parseInt].map(num))
 t("parseFloat", () => [parseFloat("3.14abc"), parseFloat(".5"), parseFloat("-.5e2"), parseFloat("x"), parseFloat("Infinityx"), Number.parseFloat("1e-3")].map(num))
 t("global predicates", () => [isNaN("abc"), isNaN("12"), isNaN(undefined), isFinite("12"), isFinite("1/0"), isNaN(() => 1), isFinite(null)])
 t("toFixed", () => [(1.005).toFixed(2), (1234.5678).toFixed(1), (0).toFixed(), (-1.5).toFixed(0), (1e21).toFixed(2), (12.3).toFixed("3")])
-t("toFixed range", () => (1).toFixed(101))
+te("toFixed range", () => (1).toFixed(101))
 t("toExponential", () => [(123456).toExponential(2), (0.00015).toExponential(), (5).toExponential(0)])
-t("toExponential range", () => (1).toExponential(-1))
+te("toExponential range", () => (1).toExponential(-1))
 t("toPrecision", () => [(123.456).toPrecision(4), (0.000123).toPrecision(2), (123456).toPrecision(2), (5).toPrecision(), (1.5).toPrecision(undefined)])
-t("toPrecision range", () => (1).toPrecision(0))
+te("toPrecision range", () => (1).toPrecision(0))
 t("toString radix", () => [(255).toString(16), (255).toString(2), (-255).toString(36), (0.5).toString(2), (10).toString(), (255).toString({ valueOf() { return 16 } })])
-t("toString radix range", () => (10).toString(1))
+te("toString radix range", () => (10).toString(1))
 t("toLocaleString", () => [(1234567.891).toLocaleString(), (0).toLocaleString(), (-5.5).toLocaleString(), NaN.toLocaleString()])
 t("valueOf", () => [(5).valueOf(), Number.prototype.valueOf.call(7)])
 t("receiver", () => Number.prototype.toFixed.call("1", 2))

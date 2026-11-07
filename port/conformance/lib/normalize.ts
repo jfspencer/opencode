@@ -17,6 +17,65 @@ const ISO = /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\b/g
 const TIME_KEY = /^(time|created|updated|completed|started|ended|start|end|timestamp|at|lastUsed|modified|mtime|expires(At)?|.*At)$/i
 const DURATION_KEY = /(duration|elapsed|latency)(Ms)?$/i
 
+// Diagnostics written by the JavaScript engine that opencode passes through inside its own messages: JSON.parse,
+// URI and regular-expression syntax errors (JavaScriptCore's wording, e.g. "JSON Parse error: Expected '}'").
+// The standard specifies opencode's message around them, not the engine's wording: a Rust implementation
+// brings its own parsers. Each rule is anchored on opencode's text, so whatever an implementation writes there
+// masks the same way. A diagnostic must be a single line.
+const ENGINE_TAIL = /JSON\.parse received invalid JSON: |received malformed URI data: |Invalid regular expression (?=\\*")/g
+const ENGINE_BETWEEN = [
+  /(, which is not a valid regular expression pattern \()(.*?)(\)\. To match special characters)/g,
+  /( received invalid flags \S+ \()(.*?)(\)\. Valid flags are)/g,
+]
+export const ENGINE_MESSAGE = "<engine message>"
+
+/** Masks engine diagnostics; see ENGINE_TAIL. */
+export function engine(input: string): string {
+  let out = input
+  for (const rule of ENGINE_BETWEEN) out = out.replace(rule, (_, before: string, _reason: string, after: string) => before + ENGINE_MESSAGE + after)
+  // A tail runs to the end of the message that contains it: the quote that closes the enclosing string literal
+  // (as escaped as the quote that opened it, when the message sits inside JSON text), a newline, or the end.
+  const quoteLevel = (at: number): number => {
+    const quote = out.lastIndexOf('"', at - 1)
+    if (quote < 0) return -1
+    let slashes = 0
+    while (quote - slashes - 1 >= 0 && out[quote - slashes - 1] === "\\") slashes++
+    return slashes
+  }
+  const closes = (at: number, level: number) => {
+    if (out[at] === "\n") return true
+    if (level < 0 || out[at] !== '"') return false
+    let slashes = 0
+    while (at - slashes - 1 >= 0 && out[at - slashes - 1] === "\\") slashes++
+    return slashes === level
+  }
+  let from = 0
+  for (;;) {
+    ENGINE_TAIL.lastIndex = from
+    const match = ENGINE_TAIL.exec(out)
+    if (!match) break
+    const level = quoteLevel(match.index)
+    let start = match.index + match[0].length
+    if (match[0].startsWith("Invalid regular expression")) {
+      // opencode quotes the pattern (JSON.stringify), then ": " and the engine's diagnostic.
+      let slashes = 0
+      while (out[start + slashes] === "\\") slashes++
+      let end = start + slashes + 1
+      while (end < out.length && !(out[end] === '"' && out.slice(end - slashes, end) === "\\".repeat(slashes) && out[end - slashes - 1] !== "\\" && out.startsWith(": ", end + 1))) end++
+      if (end >= out.length) {
+        from = start
+        continue
+      }
+      start = end + 3
+    }
+    let end = start
+    while (end < out.length && !closes(end, level)) end++
+    out = out.slice(0, start) + ENGINE_MESSAGE + out.slice(end)
+    from = start + ENGINE_MESSAGE.length
+  }
+  return out
+}
+
 export interface Normalizer {
   readonly value: (input: unknown) => unknown
 }
@@ -58,7 +117,7 @@ export function normalizer(paths: Record<string, string>): Normalizer {
     out = out.replace(HASH, (raw) => placeholder("hash", raw))
     out = out.replace(ISO, "<iso-time>")
     out = out.replace(DATE, "<date>")
-    return out
+    return engine(out)
   }
   // Paging cursors are base64url JSON that embeds IDs: compare their decoded, normalized content.
   const cursor = (input: string): unknown => {

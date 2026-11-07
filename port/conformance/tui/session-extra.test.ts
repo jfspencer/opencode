@@ -61,8 +61,10 @@ scenario(
   async (t) => {
     await ask(t, "Write numbers", "Wrote 3200 numbers.")
     await t.press("F8")
-    await t.waitFor("numbers.txt")
+    // The transcript already names numbers.txt: wait for the diff viewer's own header and rows.
+    await t.waitFor("+3200 -0")
     await t.press("f")
+    await t.waitFor("1 + 1")
     await t.frame("top")
     await t.press("\x1b[6~")
     await t.press("\x1b[6~")

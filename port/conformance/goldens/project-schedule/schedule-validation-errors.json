@@ -361,7 +361,7 @@
       "body": {
         "_tag": "InvalidRequestError",
         "kind": "schedule",
-        "message": "Invalid regular expression \"(\": Invalid regular expression: missing )"
+        "message": "Invalid regular expression \"(\": <engine message>"
       },
       "kind": "http",
       "method": "POST",

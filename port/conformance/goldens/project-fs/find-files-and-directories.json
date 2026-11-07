@@ -6,30 +6,6 @@
           {
             "path": "src/math.ts",
             "type": "file"
-          },
-          {
-            "path": "assets/",
-            "type": "directory"
-          },
-          {
-            "path": "docs/with space.md",
-            "type": "file"
-          },
-          {
-            "path": "assets/pixel.png",
-            "type": "file"
-          },
-          {
-            "path": "data/",
-            "type": "directory"
-          },
-          {
-            "path": "data/empty.txt",
-            "type": "file"
-          },
-          {
-            "path": "src/nested/deep/value.ts",
-            "type": "file"
           }
         ],
         "location": {
@@ -54,14 +30,6 @@
           },
           {
             "path": "src/nested/deep/",
-            "type": "directory"
-          },
-          {
-            "path": "docs/",
-            "type": "directory"
-          },
-          {
-            "path": "assets/",
             "type": "directory"
           }
         ],
@@ -90,35 +58,11 @@
             "type": "file"
           },
           {
-            "path": "docs/with space.md",
-            "type": "file"
-          },
-          {
             "path": "assets/pixel.png",
             "type": "file"
           },
           {
-            "path": ".hidden/secret.txt",
-            "type": "file"
-          },
-          {
-            "path": "docs/guide.md",
-            "type": "file"
-          },
-          {
-            "path": "data/empty.txt",
-            "type": "file"
-          },
-          {
-            "path": ".gitignore",
-            "type": "file"
-          },
-          {
-            "path": ".env",
-            "type": "file"
-          },
-          {
-            "path": "README.md",
+            "path": "docs/with space.md",
             "type": "file"
           }
         ],
@@ -135,11 +79,11 @@
       "body": {
         "data": [
           {
-            "path": "src/strings.ts",
+            "path": "src/math.ts",
             "type": "file"
           },
           {
-            "path": "src/nested/deep/value.ts",
+            "path": "src/strings.ts",
             "type": "file"
           }
         ],
@@ -154,12 +98,7 @@
     },
     {
       "body": {
-        "data": [
-          {
-            "path": "src/nested/deep/value.ts",
-            "type": "file"
-          }
-        ],
+        "data": [],
         "location": {
           "directory": "<project>"
         }
@@ -171,28 +110,7 @@
     },
     {
       "body": {
-        "data": [
-          {
-            "path": ".hidden/secret.txt",
-            "type": "file"
-          },
-          {
-            "path": "src/strings.ts",
-            "type": "file"
-          },
-          {
-            "path": "src/nested/",
-            "type": "directory"
-          },
-          {
-            "path": "src/nested/deep/",
-            "type": "directory"
-          },
-          {
-            "path": "src/nested/deep/value.ts",
-            "type": "file"
-          }
-        ],
+        "data": [],
         "location": {
           "directory": "<project>"
         }

@@ -54,7 +54,8 @@ capture(() => undefined.call())
 capture(() => JSON.parse("{bad"))
 capture(() => new Array(-1))
 capture(() => "x".repeat(-1))
-capture(() => (1).toFixed(200))
+// toFixed's range message is the JS engine's own wording: record the error type only.
+try { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }
 capture(() => decodeURIComponent("%"))
 capture(() => new RegExp("("))
 capture(() => Symbol())

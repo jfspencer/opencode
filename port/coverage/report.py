@@ -30,13 +30,14 @@ def in_scope(path):
     #   no web app/desktop/GUI (whole packages not listed above), no plugins, OpenRouter only,
     #   no `opencode mini`, no v1 storage migration, no AI SDK bridge, hardcoded OpenRouter access point
     #   (no model catalog/resolver, no pricing), no MCP, no legacy v1 config/schema formats, and the tools the
-    #   reference config hides (image generation, websearch).
+    #   reference config hides (image generation, websearch), no fff file search (ripgrep + fuzzysort instead).
     if pkg == "tui" and re.match(r"(mini/|feature-plugins/sidebar/mcp\.tsx|config/v1/|theme/v1\.ts)", rest):
         return False
     if pkg == "cli" and re.match(r"(mini(-host)?\.ts|commands/handlers/(mini|mcp/))", rest):
         return False
     if pkg == "core" and re.match(r"(database/v1-migration|aisdk(-native)?\.ts|models-dev|model-resolver\.ts|mcp/|"
-                                  r"tool/mcp\.ts|tool/plugin/(mcp|image-generate|websearch)|websearch|config/plugin/mcp|v1/|github-copilot/)", rest):
+                                  r"tool/mcp\.ts|tool/plugin/(mcp|image-generate|websearch)|websearch|config/plugin/mcp|v1/|github-copilot/|"
+                                  r"filesystem/fff(\.workerd)?\.ts$)", rest):
         return False
     if pkg == "core" and rest.startswith("plugin/"):
         return rest.startswith("plugin/provider/") and rest.count("/") == 2 and rest.split("/")[-1] in KEEP_PROVIDER
@@ -98,6 +99,9 @@ def load(label):
         for line in open(f):
             if line.startswith("SF:"):
                 sf = os.path.relpath(os.path.normpath(os.path.join(base, line[3:].strip())), root)
+                # The conformance oracle measures the patched reference (port/.reference, see scripts/reference.sh).
+                if sf.startswith("port/.reference/"):
+                    sf = sf[len("port/.reference/"):]
                 # Runs whose cwd is outside the repo (the conformance sandbox) record paths relative to that cwd.
                 if sf.startswith(".."):
                     raw = line[3:].strip()

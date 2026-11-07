@@ -8,7 +8,7 @@ import { Effect, FileSystem } from "effect"
 import path from "node:path"
 import { mkdirSync } from "node:fs"
 import { Global } from "@opencode/util/global"
-import { waitForHighlightedFrame } from "../../../packages/tui/test/fixture/frame"
+import { waitForHighlightedFrame } from "../ref/packages/tui/test/fixture/frame"
 import { scenario, type Ctx, type ScenarioOptions } from "./scenario"
 
 export interface TuiOptions extends ScenarioOptions {
@@ -90,7 +90,7 @@ export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx)
     const setup = await createTestRenderer({ width: options.width ?? 100, height: options.height ?? 30, kittyKeyboard: true })
     await setup.renderer.setupTerminal()
     setup.renderer.start()
-    const { run } = await import("../../../packages/tui/src/app")
+    const { run } = await import("../ref/packages/tui/src/app")
     const state = path.join(process.env.CONFORMANCE_ROOT!, "tui", path.basename(ctx.project))
     for (const dir of ["home", "data", "cache", "config", "state", "tmp"]) mkdirSync(path.join(state, dir), { recursive: true })
     let config: Record<string, unknown> = structuredClone({ ...options.tui, animations: false })
