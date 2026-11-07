@@ -1,0 +1,106 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:54:31 -0700
+Subject: [PATCH] D501 code mode: a tool path read twice is the same reference
+
+Upstream: every read of a tool path (tools.ns, tools.ns.tool) made a new reference object, so a reference compared unequal to itself: tools.opencode.models === tools.opencode.models was false, and so were ==, Object.is, switch cases, includes/indexOf, and Map/Set keys, although upstream's own tests and interpreter-support.md say tool references compare by identity.
+Fixed: a reference keeps the references below it, so a path read twice is the same value (both engines; the VM saves them in its snapshots).
+Scenarios: codemode-tools.test.ts "codemode tool references and failures" (identity)
+Upstream tests: test/tool-paths.test.ts adds "a path read twice is the same reference"
+
+diff --git a/packages/codemode/src/interpreter/interpreter.ts b/packages/codemode/src/interpreter/interpreter.ts
+index 455f41e07a..fdbf5433a2 100644
+--- a/packages/codemode/src/interpreter/interpreter.ts
++++ b/packages/codemode/src/interpreter/interpreter.ts
+@@ -2388,7 +2388,7 @@ class Frame<R> {
+       if (typeof key !== "string") {
+         throw typeError("Tool paths must use string property names.", propertyNode)
+       }
+-      return new ToolReference([...objectValue.path, key])
++      return objectValue.child(key)
+     }
+ 
+     if (objectValue instanceof Obj) return { target: objectValue, key, receiver: objectValue }
+diff --git a/packages/codemode/src/tool-runtime.ts b/packages/codemode/src/tool-runtime.ts
+index 8660d4fd63..23d6d7bd6a 100644
+--- a/packages/codemode/src/tool-runtime.ts
++++ b/packages/codemode/src/tool-runtime.ts
+@@ -116,7 +116,18 @@ export const toolExpression = (path: string) =>
+     .join("")
+ 
+ export class ToolReference {
++  /** The references below this one, made once each, so reading a path twice gives the same value, as in JS. */
++  readonly children = new Map<string, ToolReference>()
++
+   constructor(readonly path: ReadonlyArray<string>) {}
++
++  child(key: string): ToolReference {
++    const known = this.children.get(key)
++    if (known !== undefined) return known
++    const made = new ToolReference([...this.path, key])
++    this.children.set(key, made)
++    return made
++  }
+ }
+ 
+ // Dots in tool names are namespace separators; the last tool for a canonical path wins.
+diff --git a/packages/codemode/src/vm/runtime/operations.ts b/packages/codemode/src/vm/runtime/operations.ts
+index 01cf75ca03..f9e9abea9b 100644
+--- a/packages/codemode/src/vm/runtime/operations.ts
++++ b/packages/codemode/src/vm/runtime/operations.ts
+@@ -261,7 +261,7 @@ export const resolveProperty = (
+     if (typeof key !== "string") {
+       throw typeError("Tool paths must use string property names.", propertyNode)
+     }
+-    return new ToolReference([...objectValue.path, key])
++    return objectValue.child(key)
+   }
+ 
+   if (objectValue instanceof Obj) return { target: objectValue, key, receiver: objectValue }
+diff --git a/packages/codemode/src/vm/snapshot/codec.ts b/packages/codemode/src/vm/snapshot/codec.ts
+index d7f0058c80..3aece20043 100644
+--- a/packages/codemode/src/vm/snapshot/codec.ts
++++ b/packages/codemode/src/vm/snapshot/codec.ts
+@@ -228,7 +228,7 @@ const builtinSpecs = (): ReadonlyArray<ClassSpec> => [
+   { name: "PendingThrow", ctor: PendingThrow, fields: ["type", "message", "kind", "suggestions", "node", "value"] },
+   { name: "Convert", ctor: Convert, fields: ["hints", "values", "ordinal", "coerce"] },
+   { name: "Invoke", ctor: Invoke, fields: ["callable", "thisValue", "args", "site"] },
+-  { name: "ToolReference", ctor: ToolReference, fields: ["path"] },
++  { name: "ToolReference", ctor: ToolReference, fields: ["path", "children"] },
+   { name: "Lost", ctor: Lost, fields: ["description"] },
+   {
+     name: "Interpreter",
+diff --git a/packages/codemode/src/vm/vm.ts b/packages/codemode/src/vm/vm.ts
+index f274c2966c..064832c30a 100644
+--- a/packages/codemode/src/vm/vm.ts
++++ b/packages/codemode/src/vm/vm.ts
+@@ -2007,7 +2007,7 @@ export class Vm {
+       const v = key === "length" ? o.length : this.readObjProp(this.ctx.builtins.String, key, frame.code, pc)
+       return writeRead(regs, sp - 1, mode, o, v)
+     }
+-    if (o instanceof ToolReference) return writeRead(regs, sp - 1, mode, undefined, new ToolReference([...o.path, key]))
++    if (o instanceof ToolReference) return writeRead(regs, sp - 1, mode, undefined, o.child(key))
+     const site = frame.code.siteAt(pc)!
+     if (mode === 2) {
+       regs[sp - 1] = destructuredProperty(this.ctx.builtins, o, key, site)
+diff --git a/packages/codemode/test/tool-paths.test.ts b/packages/codemode/test/tool-paths.test.ts
+index 76c4a875c4..9c5595230b 100644
+--- a/packages/codemode/test/tool-paths.test.ts
++++ b/packages/codemode/test/tool-paths.test.ts
+@@ -426,4 +426,16 @@ describe("tool references under ==", () => {
+       ),
+     ).toEqual([false, false, false, 0])
+   })
++
++  test("a path read twice is the same reference", async () => {
++    const runtime = CodeMode.make({ tools: { ns: { probe: echo("Probe", "ok") } } })
++    expect(
++      await value(
++        runtime,
++        `const probe = tools.ns.probe
++         await probe({})
++         return [probe === tools.ns.probe, tools.ns === tools["ns"], probe == tools.ns.probe, new Set([probe, tools.ns.probe]).size, [probe].includes(tools.ns.probe), new Map([[probe, 1]]).get(tools.ns.probe)]`,
++      ),
++    ).toEqual([true, true, true, 1, true, 1])
++  })
+ })

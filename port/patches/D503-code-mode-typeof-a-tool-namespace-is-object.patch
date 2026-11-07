@@ -1,0 +1,142 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:59:12 -0700
+Subject: [PATCH] D503 code mode: typeof a tool namespace is "object"
+
+Upstream: `typeof` answered "function" for every tool path below the root, so `typeof tools.opencode` was "function" although calling the namespace fails ("Tool 'opencode' is not callable."); only the root was "object".
+Fixed: `typeof` of a namespace without a tool of its own is "object", like the root; a tool (including a callable namespace) stays "function", and so does a path that names nothing, which still fails when called. Both engines.
+Scenarios: codemode-tools.test.ts "codemode tool references and failures" (types)
+Upstream tests: test/tool-paths.test.ts adds "typeof is function for a tool and object for a namespace without one"
+
+diff --git a/packages/codemode/src/interpreter/interpreter.ts b/packages/codemode/src/interpreter/interpreter.ts
+index aaf2ed2bc4..f35da7fc1b 100644
+--- a/packages/codemode/src/interpreter/interpreter.ts
++++ b/packages/codemode/src/interpreter/interpreter.ts
+@@ -124,7 +124,7 @@ import {
+   normal,
+ } from "./runner.js"
+ import { moduleName, resolveModule } from "./modules.js"
+-import { describeValue, isOpaque, rejectCircularInsertion, typeofValue } from "./references.js"
++import { describeValue, isOpaque, rejectCircularInsertion, typeofOperand, typeofValue } from "./references.js"
+ import { fn } from "./native.js"
+ import { capability, promiseLike } from "./promises.js"
+ import { ScopeStack } from "./scope.js"
+@@ -1787,7 +1787,7 @@ class Frame<R> {
+       return "undefined"
+     }
+     const value = yield* this.evaluateExpression(argument)
+-    if (operator === "typeof") return typeofValue(value)
++    if (operator === "typeof") return typeofOperand(this.ctx.tools, value)
+     if (operator === "!") return !value
+     if (operator === "void") return undefined
+     const operand = yield* this.toPrimitive(value, "number", node)
+diff --git a/packages/codemode/src/interpreter/references.ts b/packages/codemode/src/interpreter/references.ts
+index c2c4a25bcd..f511e2fbf5 100644
+--- a/packages/codemode/src/interpreter/references.ts
++++ b/packages/codemode/src/interpreter/references.ts
+@@ -1,4 +1,4 @@
+-import { ToolReference } from "../tool-runtime.js"
++import { ToolReference, type ToolRuntime } from "../tool-runtime.js"
+ import { invalidData } from "./model.js"
+ import { Callable, getOwn, isRuntimeReference, Obj, Opaque, ownKeys, type Value } from "./objects.js"
+ 
+@@ -63,3 +63,7 @@ export const typeofValue = (value: Value): string => {
+   if (value instanceof ToolReference) return value.path.length > 0 ? "function" : "object"
+   return typeof value
+ }
++
++/** The `typeof` operator: a namespace only holds tools, so it is an object; a tool, or an unknown path, is a function. */
++export const typeofOperand = <R>(tools: ToolRuntime<R>, value: Value): string =>
++  value instanceof ToolReference && tools.namespace(value.path) ? "object" : typeofValue(value)
+diff --git a/packages/codemode/src/tool-runtime.ts b/packages/codemode/src/tool-runtime.ts
+index 23d6d7bd6a..9132fcd0fb 100644
+--- a/packages/codemode/src/tool-runtime.ts
++++ b/packages/codemode/src/tool-runtime.ts
+@@ -392,6 +392,8 @@ export type ToolRuntime<R = never> = {
+   ) => Effect.Effect<Json | undefined, unknown, R>
+   readonly search: (args: Array<Json | undefined>) => Effect.Effect<Json | undefined, unknown, R>
+   readonly keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>
++  /** Whether `path` names a namespace without a tool of its own (the root is one), which cannot be called. */
++  readonly namespace: (path: ReadonlyArray<string>) => boolean
+ }
+ 
+ /** Per-execution call state over tools prepared once for the runtime. */
+@@ -458,6 +460,10 @@ export const make = <R>(
+     calls,
+     hooks,
+     keys: (path) => namespaceKeys(root, path),
++    namespace: (path) => {
++      const node = lookup(root, canonicalSegments(path))
++      return node !== undefined && node.tool === undefined
++    },
+     search: (args) => Effect.suspend(() => executeTool("search", makeSearchTool(prepared.searchIndex), args)),
+     execute: (path, args) =>
+       Effect.suspend(() => {
+diff --git a/packages/codemode/src/vm/runtime/references.ts b/packages/codemode/src/vm/runtime/references.ts
+index 05cf8427f6..b2542ed731 100644
+--- a/packages/codemode/src/vm/runtime/references.ts
++++ b/packages/codemode/src/vm/runtime/references.ts
+@@ -1,4 +1,4 @@
+-import { ToolReference } from "../../tool-runtime.js"
++import { ToolReference, type ToolRuntime } from "../../tool-runtime.js"
+ import { invalidData } from "./model.js"
+ import { Callable, getOwn, isRuntimeReference, Obj, Opaque, ownKeys, type Value } from "./objects.js"
+ 
+@@ -63,3 +63,7 @@ export const typeofValue = (value: Value): string => {
+   if (value instanceof ToolReference) return value.path.length > 0 ? "function" : "object"
+   return typeof value
+ }
++
++/** The `typeof` operator: a namespace only holds tools, so it is an object; a tool, or an unknown path, is a function. */
++export const typeofOperand = <R>(tools: ToolRuntime<R>, value: Value): string =>
++  value instanceof ToolReference && tools.namespace(value.path) ? "object" : typeofValue(value)
+diff --git a/packages/codemode/src/vm/vm.ts b/packages/codemode/src/vm/vm.ts
+index 1690e90b81..e5075e3e20 100644
+--- a/packages/codemode/src/vm/vm.ts
++++ b/packages/codemode/src/vm/vm.ts
+@@ -63,7 +63,7 @@ import {
+   writableReference,
+ } from "./runtime/operations.js"
+ import { capability } from "./runtime/promises.js"
+-import { describeValue, isOpaque, typeofValue } from "./runtime/references.js"
++import { describeValue, isOpaque, typeofOperand } from "./runtime/references.js"
+ import {
+   abrupt,
+   type Completion,
+@@ -1460,7 +1460,7 @@ export class Vm {
+       frame.sp = sp
+       throw referenceError(`Unknown identifier '${name}'.`, fcode.siteAt(pc))
+     }
+-    return mode === 1 ? typeofValue(binding.value) : binding.value
++    return mode === 1 ? typeofOperand(this.ctx.tools, binding.value) : binding.value
+   }
+ 
+   private execArgs(frame: Frame, kind: number, bx: number): unknown {
+@@ -2159,7 +2159,7 @@ export class Vm {
+ 
+   private execUnarySlow(frame: Frame, sub: number, v: Value, pc: number, sp: number): boolean {
+     if (sub === 3) {
+-      frame.regs[sp - 1] = typeofValue(v)
++      frame.regs[sp - 1] = typeofOperand(this.ctx.tools, v)
+       return false
+     }
+     if (sub === 4) {
+diff --git a/packages/codemode/test/tool-paths.test.ts b/packages/codemode/test/tool-paths.test.ts
+index 9c5595230b..3331ded0fd 100644
+--- a/packages/codemode/test/tool-paths.test.ts
++++ b/packages/codemode/test/tool-paths.test.ts
+@@ -120,6 +120,14 @@ describe("callable namespaces", () => {
+     expect(diagnostic.kind).toBe("UnknownTool")
+     expect(diagnostic.message).toContain("Tool 'issues' is not callable")
+   })
++
++  test("typeof is function for a tool and object for a namespace without one", async () => {
++    const nested = CodeMode.make({ tools: { "issues.list": echo("List issues", "list") } })
++    expect(
++      await value(nested, `const issues = tools.issues; return [typeof tools, typeof issues, typeof issues.list]`),
++    ).toEqual(["object", "object", "function"])
++    expect(await value(runtime, `return typeof tools.issues`)).toBe("function")
++  })
+ })
+ 
+ describe("tool input diagnostics", () => {

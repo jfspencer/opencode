@@ -2311,7 +2311,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             }
@@ -2597,7 +2597,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -2902,7 +2902,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -3226,7 +3226,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -3569,7 +3569,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -3931,7 +3931,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -4312,7 +4312,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -4712,7 +4712,7 @@
               ]
             },
             {
-              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "content": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "role": "tool",
               "tool_call_id": "call_12"
             },
@@ -7387,7 +7387,7 @@
           "assistantMessageID": "<msg_14>",
           "content": [
             {
-              "text": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {},\n  \"sym\": {}\n}",
+              "text": "{\n  \"g\": {},\n  \"it\": {},\n  \"wm\": {},\n  \"ws\": {}\n}",
               "type": "text"
             }
           ],

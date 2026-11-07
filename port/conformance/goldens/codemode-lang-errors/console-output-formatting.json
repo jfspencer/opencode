@@ -133,7 +133,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -191,7 +191,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -268,7 +268,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -721,7 +721,7 @@
           "assistantMessageID": "<msg_2>",
           "content": [
             {
-              "text": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "text": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "type": "text"
             }
           ],

@@ -325,9 +325,9 @@ ref.n += await Promise.resolve(2)
 ref["n"] *= await 3
 const raceEmpty = await Promise.race([]).catch?.((e) => e.message)
 return { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }`,
-  `const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + ": " + e.message } })()
+  `const tried = await (() => { try { return Promise.try(5).then(() => "fulfilled", (e) => "rejected " + e.name + ": " + e.message) } catch (e) { return "threw " + e.name + ": " + e.message } })()
 const tried2 = await (async () => { try { return await Promise.try("str") } catch (e) { return e.message } })()
-const describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, "s", {}, Symbol.iterator, new Date(0), /r/, new Error("e"), new URL("https://example.com"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return "no throw" } catch (e) { return e.message } })
+const describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, "s", {}, Symbol.iterator, new Date(0), /r/, new Error("e"), new URL("https://example.com"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => "fulfilled", (e) => "rejected " + e.message) } catch (e) { return "threw " + e.message } }))
 const notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return "iterated" } catch (e) { return e.message } })
 let spins = 0
 for (let i = 0; i < 10000; i++) { await null; spins++ }

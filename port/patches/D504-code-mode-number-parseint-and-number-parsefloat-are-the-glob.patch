@@ -1,0 +1,130 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:00:43 -0700
+Subject: [PATCH] D504 code mode: Number.parseInt and Number.parseFloat are the
+ global functions
+
+Upstream: Number.parseInt and Number.parseFloat were separate functions from the global parseInt and parseFloat, so `Number.parseInt === parseInt` was false; the language makes them the same function object.
+Fixed: each runtime makes one coercion function per name, and Number.parseInt/parseFloat are the globals. Both engines.
+Scenarios: codemode-stdlib-numeric.test.ts "number boolean and coercion" (parseInt)
+Upstream tests: test/stdlib.test.ts adds "Number.parseInt and Number.parseFloat are the global functions"
+
+diff --git a/packages/codemode/src/stdlib/number.ts b/packages/codemode/src/stdlib/number.ts
+index d7b93b4a1d..fb696480d3 100644
+--- a/packages/codemode/src/stdlib/number.ts
++++ b/packages/codemode/src/stdlib/number.ts
+@@ -1,9 +1,9 @@
+ import { constructor, constants, type Method, methods } from "../interpreter/native.js"
+-import { coerceToNumber, type Value } from "../interpreter/objects.js"
++import { coerceToNumber, define, hidden, type Value } from "../interpreter/objects.js"
+ import { typeError } from "../interpreter/model.js"
+ import type { Interpreter } from "../interpreter/interpreter.js"
+ import { withPrimitives } from "../interpreter/callback.js"
+-import { coerce, coercion } from "./value.js"
++import { coercion } from "./value.js"
+ 
+ export const numberGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+@@ -27,9 +27,9 @@ export const numberGlobal = <R>(ctx: Interpreter<R>) => {
+     ["isFinite", 1, (_, args) => Number.isFinite(args[0])],
+     ["isNaN", 1, (_, args) => Number.isNaN(args[0])],
+     ["isSafeInteger", 1, (_, args) => Number.isSafeInteger(args[0])],
+-    ["parseInt", 2, (_, args) => coerce(ctx, "parseInt", args)],
+-    ["parseFloat", 1, (_, args) => coerce(ctx, "parseFloat", args)],
+   ])
++  define(number, "parseInt", coercion(ctx, "parseInt", 2), hidden)
++  define(number, "parseFloat", coercion(ctx, "parseFloat"), hidden)
+ 
+   const self = (thisValue: Value, name: string): number => {
+     if (typeof thisValue === "number") return thisValue
+diff --git a/packages/codemode/src/stdlib/value.ts b/packages/codemode/src/stdlib/value.ts
+index 2933f5752a..61427b016e 100644
+--- a/packages/codemode/src/stdlib/value.ts
++++ b/packages/codemode/src/stdlib/value.ts
+@@ -30,6 +30,16 @@ export const coerce = <R>(ctx: Interpreter<R>, name: Coercion, args: Array<Value
+   })
+ }
+ 
++// One function per runtime and name, so `Number.parseInt === parseInt` as in JS.
++const coercions = new WeakMap<object, Map<Coercion, Native>>()
++
+ /** A global coercion function such as `Number` or `parseInt`. */
+-export const coercion = <R>(ctx: Interpreter<R>, name: Coercion, length = 1): Native =>
+-  fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args))
++export const coercion = <R>(ctx: Interpreter<R>, name: Coercion, length = 1): Native => {
++  const made = coercions.get(ctx) ?? new Map<Coercion, Native>()
++  coercions.set(ctx, made)
++  const known = made.get(name)
++  if (known !== undefined) return known
++  const created = fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args))
++  made.set(name, created)
++  return created
++}
+diff --git a/packages/codemode/src/vm/stdlib/number.ts b/packages/codemode/src/vm/stdlib/number.ts
+index c21ec30990..08ef2f534f 100644
+--- a/packages/codemode/src/vm/stdlib/number.ts
++++ b/packages/codemode/src/vm/stdlib/number.ts
+@@ -1,9 +1,9 @@
+ import { constructor, constants, type Method, methods } from "../runtime/native.js"
+-import { coerceToNumber, type Value } from "../runtime/objects.js"
++import { coerceToNumber, define, hidden, type Value } from "../runtime/objects.js"
+ import { typeError } from "../runtime/model.js"
+ import type { Interpreter } from "../runtime/interpreter.js"
+ import { withPrimitives } from "../runtime/callback.js"
+-import { coerce } from "./value.js"
++import { coerce, coercion } from "./value.js"
+ 
+ export const numberGlobal = <R>(ctx: Interpreter<R>) => {
+   const builtins = ctx.builtins
+@@ -27,9 +27,9 @@ export const numberGlobal = <R>(ctx: Interpreter<R>) => {
+     ["isFinite", 1, (_, args) => Number.isFinite(args[0])],
+     ["isNaN", 1, (_, args) => Number.isNaN(args[0])],
+     ["isSafeInteger", 1, (_, args) => Number.isSafeInteger(args[0])],
+-    ["parseInt", 2, (_, args) => coerce(ctx, "parseInt", args)],
+-    ["parseFloat", 1, (_, args) => coerce(ctx, "parseFloat", args)],
+   ])
++  define(number, "parseInt", coercion(ctx, "parseInt", 2), hidden)
++  define(number, "parseFloat", coercion(ctx, "parseFloat"), hidden)
+ 
+   const self = (thisValue: Value, name: string): number => {
+     if (typeof thisValue === "number") return thisValue
+diff --git a/packages/codemode/src/vm/stdlib/value.ts b/packages/codemode/src/vm/stdlib/value.ts
+index 8fb96a45fc..ce0c9f2429 100644
+--- a/packages/codemode/src/vm/stdlib/value.ts
++++ b/packages/codemode/src/vm/stdlib/value.ts
+@@ -28,6 +28,16 @@ export const coerce = <R>(ctx: Interpreter<R>, name: Coercion, args: Array<Value
+   })
+ }
+ 
++// One function per runtime and name, so `Number.parseInt === parseInt` as in JS.
++const coercions = new WeakMap<object, Map<Coercion, Native>>()
++
+ /** A global coercion function such as `Number` or `parseInt`. */
+-export const coercion = <R>(ctx: Interpreter<R>, name: Coercion, length = 1): Native =>
+-  fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args))
++export const coercion = <R>(ctx: Interpreter<R>, name: Coercion, length = 1): Native => {
++  const made = coercions.get(ctx) ?? new Map<Coercion, Native>()
++  coercions.set(ctx, made)
++  const known = made.get(name)
++  if (known !== undefined) return known
++  const created = fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args))
++  made.set(name, created)
++  return created
++}
+diff --git a/packages/codemode/test/stdlib.test.ts b/packages/codemode/test/stdlib.test.ts
+index 9212fe34a0..850163cc9f 100644
+--- a/packages/codemode/test/stdlib.test.ts
++++ b/packages/codemode/test/stdlib.test.ts
+@@ -68,6 +68,12 @@ describe("Number and Math", () => {
+     ).toEqual([true, true, true])
+   })
+ 
++  test("Number.parseInt and Number.parseFloat are the global functions", async () => {
++    expect(
++      await value(`return [Number.parseInt === parseInt, Number.parseFloat === parseFloat, Number.parseInt("08")]`),
++    ).toEqual([true, true, 8])
++  })
++
+   test("Number valueOf returns its primitive receiver", async () => {
+     expect(await value(`return (42).valueOf()`)).toBe(42)
+   })
