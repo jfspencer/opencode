@@ -99,6 +99,14 @@
         },
         "data": [
           {
+            "id": "<msg_2>",
+            "outcome": "interrupted",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
             "agent": "build",
             "content": [
               {
@@ -129,7 +137,7 @@
               "type": "aborted"
             },
             "finish": "error",
-            "id": "<msg_2>",
+            "id": "<msg_3>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
               "providerID": "openrouter",
@@ -473,7 +481,7 @@
         "created": "<time>",
         "data": {
           "agent": "build",
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "model": {
             "id": "deepseek/deepseek-v4.1-flash-1017",
             "providerID": "openrouter",
@@ -496,7 +504,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
           "name": "shell",
           "sessionID": "<ses_1>"
@@ -515,7 +523,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
           "text": "{\"command\":\"rm notes.txt\"}"
@@ -534,7 +542,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "executed": false,
           "id": "call_conformance_0",
           "input": {
@@ -556,7 +564,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -584,7 +592,7 @@
           "sessionID": "<ses_1>",
           "source": {
             "id": "call_conformance_0",
-            "messageID": "<msg_2>",
+            "messageID": "<msg_3>",
             "type": "tool"
           }
         },
@@ -610,7 +618,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "error": {
             "message": "The user declined this tool call",
             "type": "aborted"
@@ -633,7 +641,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "cost": 0,
           "error": {
             "message": "Step interrupted",
@@ -683,7 +691,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_1>"
         },
         "durable": {

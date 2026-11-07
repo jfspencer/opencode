@@ -1,0 +1,128 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:43:59 -0700
+Subject: [PATCH] D201 server: relative session directories are rejected with
+ 400
+
+Upstream: POST /api/session and POST /api/experimental/session/import with a relative location.directory, and
+GET /api/session?directory=relative, answer 500 with an empty body. AbsolutePath is an unchecked brand, so the
+path reaches the database column, which throws "Path is not absolute".
+Fixed: they answer 400 InvalidRequestError (field location.directory or directory, message "<field> must be an
+absolute path", the shape /api/debug/heap-dump already uses for a relative directory).
+Scenarios: session-api-crud.test.ts "create a session with invalid payloads", "list sessions with invalid
+queries"; session-api-transfer.test.ts "import without a location and as a child" (new request)
+Upstream tests: packages/server/test/session-create.test.ts adds a test
+
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index 2816f25bf1..1bd0c70d34 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -174,7 +174,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+           permissions: Permission.Ruleset.pipe(Schema.optional),
+         }),
+         success: Schema.Struct({ data: PublicSessionInfo }),
+-        error: SessionNotFoundError,
++        error: [InvalidRequestError, SessionNotFoundError],
+       }).annotateMerge(
+         OpenApi.annotations({
+           identifier: "session.create",
+@@ -192,7 +192,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+           location: Location.PublicRef.pipe(Schema.optional),
+         }),
+         success: Schema.Struct({ data: PublicSessionInfo }),
+-        error: [ConflictError, SessionNotFoundError],
++        error: [ConflictError, InvalidRequestError, SessionNotFoundError],
+       }).annotateMerge(
+         OpenApi.annotations({
+           identifier: "experimental.session.import",
+diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
+index 2b7f8b9903..be1ddac55d 100644
+--- a/packages/server/src/handlers/session.ts
++++ b/packages/server/src/handlers/session.ts
+@@ -6,6 +6,7 @@ import { SessionTransfer } from "@opencode/core/session/transfer"
+ import { InstructionEntry } from "@opencode/core/session/instruction-entry"
+ import { Form } from "@opencode/core/form"
+ import { DateTime, Effect, Stream } from "effect"
++import path from "node:path"
+ import { HttpServerResponse } from "effect/http"
+ import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
+ import { SessionMediaMessageResponse } from "@opencode/protocol/groups/message"
+@@ -34,6 +35,11 @@ function missingForm(id: Form.ID) {
+   return new FormNotFoundError({ id, message: `Form not found: ${id}` })
+ }
+ 
++// Directories are plain strings on the wire; a relative one would only fail later, when it is stored.
++function relativeDirectory(field: string) {
++  return new InvalidRequestError({ message: `${field} must be an absolute path`, field })
++}
++
+ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handlers) =>
+   Effect.gen(function* () {
+     const session = yield* Session.Service
+@@ -67,6 +73,8 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.list",
+         Effect.fn(function* (ctx) {
++          if (ctx.query.directory !== undefined && !path.isAbsolute(ctx.query.directory))
++            return yield* relativeDirectory("directory")
+           return yield* session
+             .list(ctx.query)
+             .pipe(
+@@ -101,6 +109,8 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.create",
+         Effect.fn(function* (ctx) {
++          if (ctx.payload.location && !path.isAbsolute(ctx.payload.location.directory))
++            return yield* relativeDirectory("location.directory")
+           return {
+             data: yield* session
+               .create({
+@@ -121,6 +131,8 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.import",
+         Effect.fn(function* (ctx) {
++          if (ctx.payload.location && !path.isAbsolute(ctx.payload.location.directory))
++            return yield* relativeDirectory("location.directory")
+           return {
+             data: yield* transfer
+               .import({
+diff --git a/packages/server/test/session-create.test.ts b/packages/server/test/session-create.test.ts
+index 5d7cbfbacb..aead6a507b 100644
+--- a/packages/server/test/session-create.test.ts
++++ b/packages/server/test/session-create.test.ts
+@@ -63,3 +63,35 @@ it.live("returns not found when creating a child of a missing session", () =>
+     })
+   }).pipe(Effect.scoped),
+ )
++
++it.live("rejects relative directories instead of failing when they are stored", () =>
++  Effect.gen(function* () {
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      fs: { filewatcher: false },
++    })
++    const created = yield* Effect.promise(() =>
++      handler(
++        new Request("http://opencode.local/api/session", {
++          method: "POST",
++          headers: { "content-type": "application/json" },
++          body: JSON.stringify({ location: { directory: "relative/path" } }),
++        }),
++      ),
++    )
++    expect(created.status).toBe(400)
++    expect(yield* Effect.promise(() => created.json())).toMatchObject({
++      _tag: "InvalidRequestError",
++      field: "location.directory",
++    })
++    const listed = yield* Effect.promise(() =>
++      handler(new Request("http://opencode.local/api/session?directory=relative")),
++    )
++    expect(listed.status).toBe(400)
++    expect(yield* Effect.promise(() => listed.json())).toMatchObject({
++      _tag: "InvalidRequestError",
++      field: "directory",
++    })
++  }).pipe(Effect.scoped),
++)

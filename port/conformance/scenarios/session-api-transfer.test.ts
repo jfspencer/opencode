@@ -312,7 +312,7 @@ scenario(
     await ctx.http("GET", `/api/experimental/session/${session}/export?sanitize=false`)
     await ctx.http("GET", `/api/experimental/session/${session}/export?sanitize=true`)
     // Importing under the same ID conflicts. Under a new session ID the copied message IDs still collide with the
-    // original's, which fails as an unexpected server error.
+    // original's, which conflicts too.
     await ctx.http("POST", "/api/experimental/session/import", { ...exported.body.data })
     await ctx.http("POST", "/api/experimental/session/import", {
       info: { ...exported.body.data.info, id: sid("IMPORTED0") },
@@ -398,6 +398,11 @@ scenario("import without a location and as a child", {}, async (ctx) => {
   await ctx.http("POST", "/api/experimental/session/import", {
     info: info(sid("BAD0000002")),
     messages: "not a list",
+  })
+  await ctx.http("POST", "/api/experimental/session/import", {
+    info: info(sid("RELATIVE01")),
+    messages: [],
+    location: { directory: "relative/dir" },
   })
 })
 
@@ -559,9 +564,8 @@ scenario("session statistics over imported history", { files: { "pkg/x.txt": "x\
 const SUMMARY =
   "## Objective\n- Keep stats honest\n\n## Work State\n### Completed\n- Imported the history\n\n## Next Move\n1. Wait"
 
-// A compaction of imported history happens now, while the imported steps keep their fixed times. Compaction usage
-// is read from stored event payloads, which the reference server does not keep (events.persist is off), so the
-// totals stay those of the imported steps.
+// A compaction of imported history happens now, while the imported steps keep their fixed times. The compaction's
+// usage counts toward the totals (it is not a step).
 scenario(
   "statistics after compacting imported history",
   { turns: [say(SUMMARY, { prompt: 300, completion: 40 })] },

@@ -26,7 +26,7 @@ scenario("shell routes for unknown commands", {}, async (ctx) => {
   await ctx.http("GET", "/api/shell/not-a-shell-id")
   await ctx.http("GET", "/api/shell/sh_conformance_missing/output?cursor=-1")
   await ctx.http("POST", "/api/shell", {})
-  // A command that cannot start fails the request.
+  // A working directory that does not exist is rejected.
   await ctx.http("POST", "/api/shell", { command: "true", cwd: "/conformance/missing/directory" })
   await ctx.http("GET", "/api/shell")
 })
@@ -58,6 +58,8 @@ scenario(
     await ctx.http("GET", `/api/shell/${shell}/output?cursor=8`)
     // Cursors count bytes, so a page can end inside a multi-byte character.
     await ctx.http("GET", `/api/shell/${shell}/output?cursor=14&limit=2`)
+    // A zero limit reads nothing and leaves the cursor where it was.
+    await ctx.http("GET", `/api/shell/${shell}/output?cursor=4&limit=0`)
     await ctx.http("GET", `/api/shell/${shell}/output?cursor=1000`)
     await ctx.http("DELETE", `/api/shell/${shell}`)
     await ctx.http("GET", `/api/shell/${shell}/output`)

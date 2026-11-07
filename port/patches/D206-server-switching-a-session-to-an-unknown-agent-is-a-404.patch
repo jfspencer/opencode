@@ -1,0 +1,182 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:52:01 -0700
+Subject: [PATCH] D206 server: switching a session to an unknown agent is a 404
+
+Upstream: POST /api/session/:id/agent with an agent that does not exist answers 204 and records it; the session's
+next prompt then fails with "Agent not found".
+Fixed: the route checks the agent in the session's location (after its plugins load, like /api/agent) and answers
+404 AgentNotFoundError ("Agent not found: <id>"), the error /api/agent/:id already uses; nothing is recorded.
+The route also declares the location errors it can now return (404 LocationNotFoundError, 503 when plugins do not
+finish loading).
+Scenarios: project-agents.test.ts "switching a session to a custom agent"; cli-run.test.ts "run selects the
+model, variant and agent" (run --agent no-such-agent fails before prompting, so that session gets no title)
+Upstream tests: packages/server/test/session-update.test.ts adds a test; client and openapi.json regenerated
+
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index b04473c5ec..f9bf6bd768 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -695,7 +695,7 @@ export function make(options: ClientOptions) {
+             path: `/api/session/${encodeURIComponent(input.sessionID)}/agent`,
+             body: { agent: input["agent"] },
+             successStatus: 204,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: true,
+           },
+           requestOptions,
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index 98948944aa..6e09fcec90 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -1859,11 +1859,31 @@
+             }
+           },
+           "404": {
+-            "description": "SessionNotFoundError",
++            "description": "AgentNotFoundError | LocationNotFoundError | SessionNotFoundError",
+             "content": {
+               "application/json": {
+                 "schema": {
+-                  "$ref": "#/components/schemas/SessionNotFoundErrorEncoded"
++                  "anyOf": [
++                    {
++                      "$ref": "#/components/schemas/AgentNotFoundErrorEncoded"
++                    },
++                    {
++                      "$ref": "#/components/schemas/LocationNotFoundErrorEncoded"
++                    },
++                    {
++                      "$ref": "#/components/schemas/SessionNotFoundErrorEncoded"
++                    }
++                  ]
++                }
++              }
++            }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
+                 }
+               }
+             }
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index 0cad8c00c9..2c3e1cc27d 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -11,6 +11,7 @@ import { SessionLegacy } from "@opencode/schema/session-legacy"
+ import { Context, Schema, SchemaGetter, Struct } from "effect"
+ import { HttpApiEndpoint, HttpApiGroup, HttpApiMiddleware, HttpApiSchema, OpenApi } from "effect/http-api"
+ import {
++  AgentNotFoundError,
+   ConflictError,
+   LocationNotFoundError,
+   CommandExecutionError,
+@@ -274,7 +275,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+         params: { sessionID: Session.ID },
+         payload: Schema.Struct({ agent: Agent.ID }),
+         success: HttpApiSchema.NoContent,
+-        error: SessionNotFoundError,
++        error: [AgentNotFoundError, LocationNotFoundError, ServiceUnavailableError, SessionNotFoundError],
+       }).annotateMerge(
+         OpenApi.annotations({
+           identifier: "session.switchAgent",
+diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
+index 075a640fb3..ade68a8c99 100644
+--- a/packages/server/src/handlers/session.ts
++++ b/packages/server/src/handlers/session.ts
+@@ -1,3 +1,4 @@
++import { Agent } from "@opencode/core/agent"
+ import { Instance } from "@opencode/core/instance/service"
+ import { Session } from "@opencode/core/session"
+ import { SessionStats } from "@opencode/core/session/stats"
+@@ -14,6 +15,7 @@ import { SessionMediaInboxResponse } from "@opencode/protocol/groups/session"
+ import { Api } from "../api"
+ import { wantsMediaRefs } from "../media-uri"
+ import {
++  AgentNotFoundError,
+   ConflictError,
+   CommandExecutionError,
+   CommandNotFoundError,
+@@ -28,7 +30,7 @@ import {
+   SkillNotFoundError,
+ } from "@opencode/protocol/errors"
+ import { AbsolutePath } from "@opencode/core/schema"
+-import { locationErrors } from "../location"
++import { awaitPlugins, locationErrors } from "../location"
+ import { failedMessageDecode, failedSnapshot, missingMessage, missingSession } from "./session-error"
+ 
+ function missingForm(id: Form.ID) {
+@@ -236,6 +238,17 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.switchAgent",
+         Effect.fn(function* (ctx) {
++          const info = yield* requireSession(ctx.params.sessionID)
++          const agent = yield* awaitPlugins.pipe(
++            Effect.andThen(Agent.Service.use((agents) => agents.get(ctx.payload.agent))),
++            instances.provide(info),
++            locationErrors,
++          )
++          if (!agent)
++            return yield* new AgentNotFoundError({
++              agentID: ctx.payload.agent,
++              message: `Agent not found: ${ctx.payload.agent}`,
++            })
+           yield* session
+             .switchAgent({ sessionID: ctx.params.sessionID, agent: ctx.payload.agent })
+             .pipe(Effect.catchTag("Session.NotFoundError", missingSession))
+diff --git a/packages/server/test/session-update.test.ts b/packages/server/test/session-update.test.ts
+index 0b27ded442..8131b275db 100644
+--- a/packages/server/test/session-update.test.ts
++++ b/packages/server/test/session-update.test.ts
+@@ -1,6 +1,7 @@
+ import { expect } from "bun:test"
+ import { Session } from "@opencode/schema/session"
+ import { Effect, Schema } from "effect"
++import { tmpdir } from "../../core/test/fixture/tmpdir"
+ import { it } from "../../core/test/lib/effect"
+ import { ServerFetch } from "../src/fetch"
+ 
+@@ -64,3 +65,38 @@ it.live("archives and unarchives a session through PATCH", () =>
+     expect(yield* listed(false)).toContain(created.data.id)
+   }).pipe(Effect.scoped),
+ )
++
++it.live("rejects switching a session to an agent that does not exist", () =>
++  Effect.gen(function* () {
++    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-session-agent-")))
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      config: { directory: tmp.path },
++      fs: { filewatcher: false },
++      models: { fetch: false },
++    })
++    const request = (path: string, body: unknown) =>
++      Effect.promise(async () => {
++        const response = await handler(
++          new Request(`http://opencode.local${path}`, {
++            method: "POST",
++            headers: { "content-type": "application/json" },
++            body: JSON.stringify(body),
++          }),
++        )
++        return { status: response.status, body: response.status === 204 ? undefined : await response.json() }
++      })
++    const created = Schema.decodeUnknownSync(SessionResponse)(
++      (yield* request("/api/session", { location: { directory: tmp.path } })).body,
++    )
++    expect(yield* request(`/api/session/${created.data.id}/agent`, { agent: "plan" })).toEqual({
++      status: 204,
++      body: undefined,
++    })
++    expect(yield* request(`/api/session/${created.data.id}/agent`, { agent: "missing" })).toMatchObject({
++      status: 404,
++      body: { _tag: "AgentNotFoundError", agentID: "missing" },
++    })
++  }).pipe(Effect.scoped),
++)

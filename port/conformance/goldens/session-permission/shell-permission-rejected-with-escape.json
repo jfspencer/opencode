@@ -70,7 +70,8 @@
         "POST /api/session",
         "POST /api/session/<ses_1>/model",
         "POST /api/session/<ses_1>/permission/<per_1>/reply",
-        "POST /api/session/<ses_1>/prompt"
+        "POST /api/session/<ses_1>/prompt",
+        "POST /api/session/<ses_1>/view"
       ]
     }
   ],
@@ -616,7 +617,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -626,6 +627,20 @@
         },
         "id": "<evt_28>",
         "type": "session.execution.interrupted"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "idle": "<time>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "type": "session.viewed"
       }
     ]
   },

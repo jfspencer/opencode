@@ -101,13 +101,17 @@
       "state": "idle"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "AgentNotFoundError",
+        "agentID": "missing-agent",
+        "message": "Agent not found: missing-agent"
+      },
       "kind": "http",
       "method": "POST",
       "request": {
         "agent": "missing-agent"
       },
-      "status": 204,
+      "status": 404,
       "url": "/api/session/<ses_1>/agent"
     }
   ],
@@ -845,21 +849,6 @@
         },
         "id": "<evt_37>",
         "type": "session.execution.succeeded"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "agent": "missing-agent",
-          "previous": "quiet",
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 23,
-          "version": 1
-        },
-        "id": "<evt_38>",
-        "type": "session.agent.selected"
       }
     ]
   },

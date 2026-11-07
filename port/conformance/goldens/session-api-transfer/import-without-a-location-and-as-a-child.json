@@ -316,6 +316,44 @@
       },
       "status": 400,
       "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "location.directory",
+        "message": "location.directory must be an absolute path"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_7>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "relative/dir"
+        },
+        "messages": []
+      },
+      "status": 400,
+      "url": "/api/experimental/session/import"
     }
   ],
   "provider": {},

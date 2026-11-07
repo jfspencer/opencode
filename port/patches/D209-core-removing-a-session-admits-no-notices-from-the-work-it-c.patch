@@ -1,0 +1,135 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:04:54 -0700
+Subject: [PATCH] D209 core: removing a session admits no notices from the work
+ it cancels
+
+Upstream: deleting a session whose background subagent is still running cancels the subagent's job, whose
+completion notice ("Subagent cancelled") is then admitted into the session being deleted and wakes it. The wake
+starts an execution after the session is gone: session.execution.started is published for the deleted session,
+and settling it fails with a FOREIGN KEY constraint error ("Failed to publish Session execution lifecycle").
+Fixed: while a session is being removed, synthetic admissions into it (how background work reports back) fail
+with Session.NotFoundError, so the cancellation is not reported to it and nothing wakes it.
+Scenarios: project-jobs.test.ts "deleting a session cancels its background jobs" (the notice and the execution
+after session.deleted are gone)
+Upstream tests: packages/core/test/session-remove.test.ts adds a test
+
+diff --git a/packages/core/src/session.ts b/packages/core/src/session.ts
+index 8c1f40b767..e9f239a71e 100644
+--- a/packages/core/src/session.ts
++++ b/packages/core/src/session.ts
+@@ -283,6 +283,9 @@ const layer = Layer.effect(
+     const mediaBlob = (session: SessionSchema.Info) => SessionBlob.enabledFor(instances, app, session)
+     const isDurableSessionEvent = (item: Bus.LogItem): item is SessionEvent.DurableEvent =>
+       Object.hasOwn(SessionEvent.Durable.cases, item.type)
++    // Removing a Session cancels its background work, whose completion notices would otherwise be admitted into the
++    // Session being removed and wake it after its deletion.
++    const removing = new Set<SessionSchema.ID>()
+ 
+     const result = Service.of({
+       create: Effect.fn("Session.create")(function* (input) {
+@@ -390,15 +393,18 @@ const layer = Layer.effect(
+       view: (input) => sessions.forSession(input.sessionID).view(input),
+       remove: Effect.fn("Session.remove")(function* (sessionID) {
+         yield* result.get(sessionID)
+-        yield* execution.interrupt(sessionID)
+-        yield* execution.awaitIdle(sessionID)
+-        yield* jobs.cancelSession(sessionID)
+-        yield* transport.close(sessionID)
+-        const children = yield* store.list({ parentID: sessionID })
+-        yield* Effect.forEach(children, (child) => result.remove(child.id), { concurrency: 1, discard: true })
+-        yield* environments.clear(sessionID)
+-        yield* bus.publish(SessionEvent.Deleted, { sessionID })
+-        yield* bus.remove(sessionID)
++        removing.add(sessionID)
++        yield* Effect.gen(function* () {
++          yield* execution.interrupt(sessionID)
++          yield* execution.awaitIdle(sessionID)
++          yield* jobs.cancelSession(sessionID)
++          yield* transport.close(sessionID)
++          const children = yield* store.list({ parentID: sessionID })
++          yield* Effect.forEach(children, (child) => result.remove(child.id), { concurrency: 1, discard: true })
++          yield* environments.clear(sessionID)
++          yield* bus.publish(SessionEvent.Deleted, { sessionID })
++          yield* bus.remove(sessionID)
++        }).pipe(Effect.ensuring(Effect.sync(() => removing.delete(sessionID))))
+       }),
+       list: Effect.fn("Session.list")(function* (input = {}) {
+         const filter =
+@@ -525,7 +531,10 @@ const layer = Layer.effect(
+           .pipe(Effect.catchTag("Session.SyntheticConflictError", Effect.die))
+       }),
+       resume: (sessionID) => sessions.forSession(sessionID).resume(),
+-      synthetic: (input) => sessions.forSession(input.sessionID).synthetic(input),
++      synthetic: (input) =>
++        removing.has(input.sessionID)
++          ? Effect.fail(new NotFoundError({ sessionID: input.sessionID }))
++          : sessions.forSession(input.sessionID).synthetic(input),
+       interrupt: (sessionID, options) => sessions.forSession(sessionID).interrupt(options),
+       revert: {
+         stage: (input) => sessions.forSession(input.sessionID).revert.stage(input),
+diff --git a/packages/core/test/session-remove.test.ts b/packages/core/test/session-remove.test.ts
+index 2e39ee6233..33737d0f48 100644
+--- a/packages/core/test/session-remove.test.ts
++++ b/packages/core/test/session-remove.test.ts
+@@ -1,10 +1,11 @@
+ import { describe, expect } from "bun:test"
+-import { Effect, Layer, RcMap, Scope } from "effect"
++import { Deferred, Effect, Exit, Layer, RcMap, Scope } from "effect"
+ import { AppNodeBuilder } from "@opencode/core/effect/app-node-builder"
+ import { LayerNode } from "@opencode/util/effect/layer-node"
+ import { Database } from "@opencode/core/database/database"
+ import { Bus } from "@opencode/core/bus"
+ import { Instance } from "@opencode/core/instance/service"
++import { Job } from "@opencode/core/job"
+ import { Location } from "@opencode/core/location"
+ import { Project } from "@opencode/core/project"
+ import { AbsolutePath } from "@opencode/core/schema"
+@@ -43,6 +44,7 @@ const it = testEffect(
+       SessionProjector.node,
+       SessionStore.node,
+       SessionEnvironment.node,
++      Job.node,
+       Session.node,
+       Instance.node,
+       LocationServiceMap.node,
+@@ -103,6 +105,39 @@ describe("Session.remove", () => {
+     }),
+   )
+ 
++  it.effect("admits no completion notice from background work the removal cancels", () =>
++    Effect.gen(function* () {
++      const temporary = yield* tmpdirScoped()
++      const sessions = yield* Session.Service
++      const jobs = yield* Job.Service
++      const parent = yield* sessions.create({
++        location: Location.Ref.make({ directory: AbsolutePath.make(temporary.path) }),
++      })
++      const notice = yield* Deferred.make<Exit.Exit<unknown, unknown>>()
++      // Reports the cancellation to the Session the way a background subagent's completion notice does.
++      yield* jobs.start({
++        id: "job_background",
++        type: "test",
++        metadata: { sessionID: parent.id },
++        run: Effect.never.pipe(
++          Effect.onInterrupt(() =>
++            sessions.synthetic({ sessionID: parent.id, text: "Background work cancelled", resume: false }).pipe(
++              Effect.exit,
++              Effect.flatMap((exit) => Deferred.succeed(notice, exit)),
++            ),
++          ),
++        ),
++      })
++
++      yield* sessions.remove(parent.id)
++
++      expect(yield* Deferred.await(notice)).toMatchObject({
++        _tag: "Failure",
++        cause: { reasons: [{ error: { _tag: "Session.NotFoundError", sessionID: parent.id } }] },
++      })
++    }),
++  )
++
+   it.effect("fails when the session does not exist", () =>
+     Effect.gen(function* () {
+       const session = yield* Session.Service

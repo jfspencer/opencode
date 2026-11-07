@@ -1,0 +1,252 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:09:01 -0700
+Subject: [PATCH] D211 core: compaction usage counts toward session statistics
+
+Upstream: GET /api/experimental/session/stats adds compaction usage from stored session.usage.recorded event
+payloads, but event persistence is opt-in (events.persist, off in every shipped host), so compaction usage never
+reaches the totals: they disagree with the sessions' own cost and tokens. The upstream tests only passed because
+they turn persistence on.
+Fixed: stats read compaction usage from the compaction messages, which always record the total of their model calls
+(cost and tokens), within the same time windows, project filter and fork rule as steps. Compactions are not steps.
+Scenarios: session-api-transfer.test.ts "statistics after compacting imported history"
+Upstream tests: packages/core/test/session-stats.test.ts updated (compaction usage now comes from compaction
+messages instead of persisted events)
+
+diff --git a/packages/core/src/session/stats.ts b/packages/core/src/session/stats.ts
+index e0d9eef84a..24a8e518e4 100644
+--- a/packages/core/src/session/stats.ts
++++ b/packages/core/src/session/stats.ts
+@@ -1,18 +1,14 @@
+ export * as SessionStats from "./stats.js"
+ 
+-import { DateTime, Effect, Option, Schema, type Types } from "effect"
+-import { and, eq, gte, inArray, lt, sql } from "drizzle-orm"
++import { DateTime, Effect, Schema, type Types } from "effect"
++import { sql } from "drizzle-orm"
+ import { Model } from "@opencode/schema/model"
+ import { Money } from "@opencode/schema/money"
+ import { Project } from "@opencode/schema/project"
+ import { Provider } from "@opencode/schema/provider"
+-import { Event } from "@opencode/schema/event"
+-import { SessionEvent } from "@opencode/schema/session-event"
+ import { ToolMode } from "@opencode/schema/session-stats"
+ import { TokenUsage } from "@opencode/schema/token-usage"
+ import { Database } from "../database/database.js"
+-import { DatabaseBatch } from "../database/batch.js"
+-import { EventTable } from "../event/sql.js"
+ import { SessionMessageTable, SessionPartTable, SessionTable } from "./sql.js"
+ 
+ type Input = {
+@@ -28,7 +24,7 @@ type Tokens = Types.DeepMutable<TokenUsage.Info>
+ type MessageRow = {
+   sessionID: string
+   parentID: string | null
+-  type: "user" | "assistant"
++  type: "user" | "assistant" | "compaction"
+   timeCreated: number
+   providerID: string | null
+   modelID: string | null
+@@ -70,7 +66,6 @@ type ToolAggregate = {
+   durations: number[]
+ }
+ 
+-const decodeUsage = Schema.decodeUnknownOption(SessionEvent.UsageRecorded.data)
+ const Window = 31 * 24 * 60 * 60 * 1_000
+ 
+ export class InvalidRangeError extends Schema.TaggedError<InvalidRangeError>()("SessionStats.InvalidRangeError", {
+@@ -137,7 +132,7 @@ export const get = Effect.fn("SessionStats.get")(function* (input: Input = {}) {
+             json_extract(message.data, '$.cost') AS cost
+           FROM ${SessionMessageTable} AS message
+           JOIN ${SessionTable} AS session ON session.id = message.session_id
+-          WHERE message.type IN ('user', 'assistant')
++          WHERE message.type IN ('user', 'assistant', 'compaction')
+             AND message.time_created >= ${range.from}
+             AND message.time_created < ${range.to}
+             AND (session.fork_session_id IS NULL OR message.time_created >= session.time_created)
+@@ -149,6 +144,12 @@ export const get = Effect.fn("SessionStats.get")(function* (input: Input = {}) {
+           Effect.tap((rows) =>
+             Effect.sync(() => {
+               rows.forEach((row) => {
++                // A compaction's message carries the usage of all of its model calls; it is not a step.
++                if (row.type === "compaction") {
++                  addTokens(totals.tokens, rowTokens(row))
++                  totals.cost += row.cost ?? 0
++                  return
++                }
+                 if (row.parentID === null) sessions.add(row.sessionID)
+                 else subagents.add(row.sessionID)
+                 if (row.type === "user") {
+@@ -306,45 +307,6 @@ export const get = Effect.fn("SessionStats.get")(function* (input: Input = {}) {
+       { concurrency: 1, discard: true },
+     )
+ 
+-  const ids = yield* db
+-    .select({ id: SessionTable.id })
+-    .from(SessionTable)
+-    .where(input.projectID === undefined ? undefined : eq(SessionTable.project_id, input.projectID))
+-    .all()
+-    .pipe(Effect.orDie)
+-  const events = (yield* Effect.forEach(
+-    DatabaseBatch.batches(
+-      ids.map((row) => row.id),
+-      1,
+-      3,
+-    ),
+-    (batch) =>
+-      db
+-        .select({ data: EventTable.data })
+-        .from(EventTable)
+-        .where(
+-          and(
+-            inArray(EventTable.aggregate_id, batch),
+-            eq(
+-              EventTable.type,
+-              Event.versionedType(SessionEvent.UsageRecorded.type, SessionEvent.UsageRecorded.durable.version),
+-            ),
+-            sql`json_extract(${EventTable.data}, '$.source') = 'compaction'`,
+-            gte(EventTable.created, from),
+-            lt(EventTable.created, to),
+-          ),
+-        )
+-        .all()
+-        .pipe(Effect.orDie),
+-    { concurrency: 4 },
+-  )).flat()
+-  events.forEach((row) => {
+-    const decoded = decodeUsage(row.data)
+-    if (Option.isNone(decoded)) return
+-    addTokens(totals.tokens, decoded.value.tokens)
+-    totals.cost += decoded.value.cost
+-  })
+-
+   const days = [...activity.entries()].sort(([a], [b]) => a.localeCompare(b))
+   return {
+     range: { from: DateTime.makeUnsafe(from), to: DateTime.makeUnsafe(to) },
+diff --git a/packages/core/test/session-stats.test.ts b/packages/core/test/session-stats.test.ts
+index 7e828d4ac9..7f1f620d5a 100644
+--- a/packages/core/test/session-stats.test.ts
++++ b/packages/core/test/session-stats.test.ts
+@@ -7,6 +7,7 @@ import { Provider } from "@opencode/schema/provider"
+ import { Session } from "@opencode/schema/session"
+ import { SessionEvent } from "@opencode/schema/session-event"
+ import { SessionMessage } from "@opencode/schema/session-message"
++import { TokenUsage } from "@opencode/schema/token-usage"
+ import { AbsolutePath } from "@opencode/core/schema"
+ import { Bus } from "@opencode/core/bus"
+ import { DatabaseBatch } from "@opencode/core/database/batch"
+@@ -172,12 +173,21 @@ describe("SessionStats", () => {
+           messageRow(forkID, 3, assistant("msg_stats_fork_new", Date.UTC(2026, 0, 5, 10), [], "fork-new")),
+           messageRow(sessionID, 3, assistant("msg_stats_outside", Date.UTC(2025, 11, 31, 10), [])),
+           messageRow(usageOnlyID, 1, assistant("msg_stats_usage_only", Date.UTC(2025, 11, 30, 10), [])),
++          messageRow(
++            usageOnlyID,
++            2,
++            compaction("msg_stats_compaction", Date.UTC(2026, 0, 2, 10, 0, 3), 0.25, {
++              input: 2,
++              output: 2,
++              reasoning: 2,
++              cache: { read: 2, write: 2 },
++            }),
++          ),
+           messageRow(otherSessionID, 1, assistant("msg_stats_other", Date.UTC(2020, 0, 1, 10), [])),
+         ])
+         .run()
+         .pipe(Effect.orDie)
+-      // Publish through the real Bus so the stored event type is whatever the
+-      // writer persists rather than a string the test assumes.
++      // Title usage is billed to the session but is not a step or a compaction.
+       const bus = yield* Bus.Service
+       yield* TestClock.setTime(Date.UTC(2026, 0, 2, 10, 0, 3))
+       yield* bus.publish(SessionEvent.UsageRecorded, {
+@@ -186,12 +196,6 @@ describe("SessionStats", () => {
+         cost: Money.USD.make(0.5),
+         tokens: { input: 1, output: 1, reasoning: 1, cache: { read: 1, write: 1 } },
+       })
+-      yield* bus.publish(SessionEvent.UsageRecorded, {
+-        sessionID: usageOnlyID,
+-        source: "compaction",
+-        cost: Money.USD.make(0.25),
+-        tokens: { input: 2, output: 2, reasoning: 2, cache: { read: 2, write: 2 } },
+-      })
+ 
+       const stats = yield* SessionStats.get({
+         from: Date.UTC(2026, 0, 1),
+@@ -330,10 +334,9 @@ describe("SessionStats", () => {
+     }),
+   )
+ 
+-  durableIt.effect("aggregates compaction usage across more than 100 sessions under the 100-parameter limit", () =>
++  durableIt.effect("aggregates compaction usage across more than 100 sessions", () =>
+     Effect.gen(function* () {
+       const db = (yield* Database.Service).db
+-      const bus = yield* Bus.Service
+       yield* db
+         .insert(ProjectTable)
+         .values({ id: projectID, worktree: AbsolutePath.make("/stats"), name: "stats", sandboxes: [] })
+@@ -365,19 +368,32 @@ describe("SessionStats", () => {
+         { discard: true },
+       )
+ 
+-      yield* TestClock.setTime(created + 1_000)
+-      yield* bus.publish(SessionEvent.UsageRecorded, {
+-        sessionID: ids[0]!,
+-        source: "compaction",
+-        cost: Money.USD.make(0.25),
+-        tokens: { input: 2, output: 1, reasoning: 0, cache: { read: 0, write: 0 } },
+-      })
+-      yield* bus.publish(SessionEvent.UsageRecorded, {
+-        sessionID: ids.at(-1)!,
+-        source: "compaction",
+-        cost: Money.USD.make(0.75),
+-        tokens: { input: 3, output: 4, reasoning: 0, cache: { read: 0, write: 0 } },
+-      })
++      yield* db
++        .insert(SessionMessageTable)
++        .values([
++          messageRow(
++            ids[0]!,
++            2,
++            compaction("msg_stats_compaction_first", created + 1_000, 0.25, {
++              input: 2,
++              output: 1,
++              reasoning: 0,
++              cache: { read: 0, write: 0 },
++            }),
++          ),
++          messageRow(
++            ids.at(-1)!,
++            2,
++            compaction("msg_stats_compaction_last", created + 1_000, 0.75, {
++              input: 3,
++              output: 4,
++              reasoning: 0,
++              cache: { read: 0, write: 0 },
++            }),
++          ),
++        ])
++        .run()
++        .pipe(Effect.orDie)
+ 
+       const stats = yield* SessionStats.get({
+         from: Date.UTC(2026, 0, 1),
+@@ -418,6 +434,19 @@ function assistant(
+   })
+ }
+ 
++function compaction(id: string, created: number, cost: number, tokens: TokenUsage.Info) {
++  return SessionMessage.CompactionCompleted.make({
++    id: SessionMessage.ID.make(id),
++    type: "compaction",
++    status: "completed",
++    reason: "auto",
++    summary: "Summary",
++    cost: Money.USD.make(cost),
++    tokens,
++    time: { created: DateTime.makeUnsafe(created) },
++  })
++}
++
+ function messageRow(
+   sessionID: Session.ID,
+   seq: number,

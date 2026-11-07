@@ -243,6 +243,34 @@ scenario(
   },
 )
 
+// Importing a session doesn't boot its location, so the title request is the location's first: generating the title
+// waits for its plugins (they register the title agent).
+scenario(
+  "an empty title on a location's first request",
+  {
+    boot: false,
+    responders: [(request) => (request.kind === "title" ? say("Named on a cold location") : undefined)],
+  },
+  async (ctx) => {
+    const id = "ses_00000000000000conformanceCOLDNAME"
+    const time = Date.UTC(2026, 0, 5)
+    await ctx.http("POST", "/api/experimental/session/import", {
+      info: {
+        id,
+        projectID: "0000000000000000000000000000000000000000",
+        cost: 0,
+        tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+        time: { created: time, updated: time },
+        location: { directory: ctx.project },
+      },
+      location: { directory: ctx.project },
+      messages: [{ id: "msg_00000000000000conformanceCOLD1", type: "user", text: "Name me", time: { created: time } }],
+    })
+    await ctx.http("PATCH", `/api/session/${id}`, { title: "" })
+    await ctx.http("GET", `/api/session/${id}`)
+  },
+)
+
 scenario("remove a session with its descendants", {}, async (ctx) => {
   const root = await ctx.session({ title: "root" })
   const child = (await ctx.http("POST", "/api/session", { parentID: root, title: "child" })).body.data.id

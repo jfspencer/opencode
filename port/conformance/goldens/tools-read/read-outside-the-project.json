@@ -198,12 +198,20 @@
           "previous": {
             "<base64-json>": {
               "direction": "previous",
-              "id": "<msg_4>",
+              "id": "<msg_5>",
               "order": "desc"
             }
           }
         },
         "data": [
+          {
+            "id": "<msg_5>",
+            "outcome": "interrupted",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
           {
             "agent": "build",
             "content": [
@@ -290,7 +298,7 @@
             ],
             "cost": 0,
             "finish": "tool-calls",
-            "id": "<msg_5>",
+            "id": "<msg_6>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
               "providerID": "openrouter",
@@ -345,7 +353,7 @@
             ],
             "cost": 0,
             "finish": "tool-calls",
-            "id": "<msg_6>",
+            "id": "<msg_7>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
               "providerID": "openrouter",
@@ -1590,7 +1598,7 @@
         "created": "<time>",
         "data": {
           "agent": "build",
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "model": {
             "id": "deepseek/deepseek-v4.1-flash-1017",
             "providerID": "openrouter",
@@ -1613,7 +1621,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "id": "call_conformance_0",
           "name": "read",
           "sessionID": "<ses_1>"
@@ -1632,7 +1640,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
           "text": "{\"path\":\"../outside/other.txt\"}"
@@ -1651,7 +1659,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "executed": false,
           "id": "call_conformance_0",
           "input": {
@@ -1673,7 +1681,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -1690,7 +1698,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "content": [
             {
               "text": "Read file ../outside/other.txt, lines 1-1\n1: other notes",
@@ -1718,7 +1726,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_6>",
+          "assistantMessageID": "<msg_7>",
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
@@ -1766,7 +1774,7 @@
         "created": "<time>",
         "data": {
           "agent": "build",
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "model": {
             "id": "deepseek/deepseek-v4.1-flash-1017",
             "providerID": "openrouter",
@@ -1789,7 +1797,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "name": "read",
           "sessionID": "<ses_1>"
@@ -1808,7 +1816,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
           "text": "{\"path\":\"../outside\"}"
@@ -1827,7 +1835,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "executed": false,
           "id": "call_conformance_0",
           "input": {
@@ -1849,7 +1857,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -1866,7 +1874,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "content": [
             {
               "text": "Read directory ../outside, entries 1-2\nnotes.txt\nother.txt",
@@ -1894,7 +1902,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_5>",
+          "assistantMessageID": "<msg_6>",
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
@@ -2152,7 +2160,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_1>"
         },
         "durable": {

@@ -1,0 +1,28 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:44:25 -0700
+Subject: [PATCH] D202 server: non-numeric stats ranges are rejected with 400
+
+Upstream: GET /api/experimental/session/stats?from=yesterday answers 500 with an empty body. The from and to
+query parameters decode with NumberFromString, which accepts NaN, and building the response range from NaN throws
+"Invalid date".
+Fixed: from and to decode with FiniteFromString, so a non-numeric or non-finite value is a 400 InvalidRequestError
+(kind Query, "Expected a finite number"), like every other malformed query parameter.
+Scenarios: session-api-transfer.test.ts "session statistics over imported history"
+Upstream tests: none changed
+
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index 1bd0c70d34..0cad8c00c9 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -145,8 +145,8 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+     .add(
+       HttpApiEndpoint.get("session.stats", "/api/experimental/session/stats", {
+         query: Schema.Struct({
+-          from: Schema.NumberFromString.pipe(Schema.optional),
+-          to: Schema.NumberFromString.pipe(Schema.optional),
++          from: Schema.FiniteFromString.pipe(Schema.optional),
++          to: Schema.FiniteFromString.pipe(Schema.optional),
+           project: Project.ID.pipe(Schema.optional),
+           timezone: Schema.String.pipe(Schema.optional),
+           tools: SessionStats.ToolMode.pipe(Schema.optional),

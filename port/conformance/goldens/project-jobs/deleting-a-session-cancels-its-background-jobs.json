@@ -1053,59 +1053,15 @@
       {
         "created": "<time>",
         "data": {
-          "inboxID": "<msg_6>",
-          "item": {
-            "delivery": "steer",
-            "payload": {
-              "description": "Doomed task",
-              "metadata": {
-                "agent": "General",
-                "childID": "<ses_2>",
-                "source": "subagent",
-                "state": "cancelled"
-              },
-              "text": "<subagent sessionID=\"<ses_2>\" state=\"cancelled\" description=\"Doomed task\">\nSubagent cancelled\n</subagent>"
-            },
-            "type": "synthetic"
-          },
           "sessionID": "<ses_1>"
         },
         "durable": {
           "aggregateID": "<ses_1>",
           "seq": 20,
-          "version": 1
-        },
-        "id": "<evt_44>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.inbox.enqueued"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 21,
           "version": 2
         },
-        "id": "<evt_45>",
+        "id": "<evt_44>",
         "type": "session.deleted"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 0,
-          "version": 1
-        },
-        "id": "<evt_46>",
-        "type": "session.execution.started"
       }
     ]
   },
