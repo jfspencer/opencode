@@ -261,6 +261,21 @@ scenario(
   (ctx) => untitled(ctx, lineTitleGate, () => renamed(ctx)),
 )
 
+const thinkTitleGate = gate()
+scenario(
+  "title skips think blocks written into the reply",
+  {
+    turns: [{ events: [{ until: thinkTitleGate.promise }, { text: "Hello there." }] }],
+    responders: [
+      (request) =>
+        request.kind === "title"
+          ? ({ events: [{ text: "<think>\nThe user wants a short title.\n</think>\n\nMath module refactor" }] } as Turn)
+          : undefined,
+    ],
+  },
+  (ctx) => untitled(ctx, thinkTitleGate, () => renamed(ctx)),
+)
+
 scenario(
   "generate text from session context",
   { turns: [say("A demo."), say("A generated one-liner.")] },
