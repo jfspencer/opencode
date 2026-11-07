@@ -1450,10 +1450,10 @@
           ],
           "save": [
             "ls *",
-            "builtin *",
-            "command *",
+            "builtin cd *",
+            "command cd *",
             "ls *",
-            "command *"
+            "command -v cd"
           ],
           "sessionID": "<ses_1>",
           "source": {

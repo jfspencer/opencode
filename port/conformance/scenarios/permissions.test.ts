@@ -338,6 +338,27 @@ scenario(
 )
 
 scenario(
+  "always on a wrapped command approves only the wrapped command",
+  {
+    files: { "a.txt": "a\n" },
+    config: { permissions: shellAsks },
+    turns: [
+      call("shell", { command: "env echo one" }),
+      call("shell", { command: "env cat a.txt" }),
+      call("shell", { command: "env echo two" }),
+      say("Done."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "wrapped" })
+    await prompt(ctx, id, "Echo through env", (request) =>
+      request.resources[0].startsWith("env echo") ? { decision: "always" } : { decision: "reject", message: "Not that one." },
+    )
+    await ctx.http("GET", "/api/permission/saved")
+  },
+)
+
+scenario(
   "configured denies win over saved shell approvals",
   {
     files: { "a.txt": "a\n" },
