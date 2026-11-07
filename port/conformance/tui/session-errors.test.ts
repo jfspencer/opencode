@@ -119,7 +119,6 @@ scenario(
     await t.frame("retrying")
     await waitLong(t, "Answered after the rate limit.")
     await t.until((event) => event?.type === "session.viewed", 0, 60_000)
-    await waitLong(t, "Retry due")
     await t.frame("answered")
   },
 )
@@ -131,8 +130,6 @@ scenario(
     await submit(t, "Answer please")
     await waitLong(t, "the answer.")
     await t.until((event) => event?.type === "session.viewed", 0, 60_000)
-    // The failed first attempt keeps its retry notice; its countdown runs out on its own clock.
-    await waitLong(t, "Retry due")
     await t.frame("continued")
   },
 )

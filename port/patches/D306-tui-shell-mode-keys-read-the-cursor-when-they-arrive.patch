@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:52:39 -0700
+Subject: [PATCH] D306 tui: shell-mode keys read the cursor when they arrive
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: `!` enters shell mode and backspace leaves it only at the start of the prompt, but the prompt checks a cursor position refreshed by cursor events, which the editor delivers a microtask later. Keys typed in one burst act on a stale cursor: typing `wow!` enters shell mode and drops the `!` (prompt `wow`), and `!` then `ls⌫` leaves shell mode keeping `ls` instead of deleting the `s`.
+Fixed: both bindings read the cursor when the key arrives; elsewhere the key is typed as text or deletes.
+Scenarios: tui/nav-shell.test.ts "shell: ! typed in one burst after text is text", "shell: backspace typed in one burst after a command deletes text" (new)
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/component/prompt/index.tsx b/packages/tui/src/component/prompt/index.tsx
+index 075f037dcc..8c4d95c445 100644
+--- a/packages/tui/src/component/prompt/index.tsx
++++ b/packages/tui/src/component/prompt/index.tsx
+@@ -964,21 +964,14 @@ export function Prompt(props: PromptProps) {
+   Keymap.createLayer(() => {
+     return {
+       target: inputTarget,
+-      enabled: (() => {
+-        cursorVersion()
+-        return (
+-          inputTarget() !== undefined &&
+-          !disabled() &&
+-          store.mode === "normal" &&
+-          !auto()?.visible &&
+-          input?.visualCursor.offset === 0
+-        )
+-      })(),
++      enabled: inputTarget() !== undefined && !disabled() && store.mode === "normal" && !auto()?.visible,
+       commands: [
+         {
+           bind: "!",
+           title: "Shell mode",
+           group: "Prompt",
++          // Read the cursor when the key arrives: cursor events lag behind keys typed in one burst.
++          enabled: () => input?.visualCursor.offset === 0,
+           run: () => {
+             setStore("placeholder", randomIndex(shell().length))
+             setStore("mode", "shell")
+@@ -1009,12 +1002,15 @@ export function Prompt(props: PromptProps) {
+   Keymap.createLayer(() => {
+     return {
+       target: inputTarget,
+-      enabled: (() => {
+-        cursorVersion()
+-        return inputTarget() !== undefined && !disabled() && store.mode === "shell" && input?.visualCursor.offset === 0
+-      })(),
++      enabled: inputTarget() !== undefined && !disabled() && store.mode === "shell",
+       commands: [
+-        { bind: "backspace", title: "Exit shell mode", group: "Prompt", run: () => setStore("mode", "normal") },
++        {
++          bind: "backspace",
++          title: "Exit shell mode",
++          group: "Prompt",
++          enabled: () => input?.visualCursor.offset === 0,
++          run: () => setStore("mode", "normal"),
++        },
+       ],
+     }
+   })

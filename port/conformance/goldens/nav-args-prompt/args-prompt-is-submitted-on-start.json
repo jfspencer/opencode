@@ -12,7 +12,7 @@
         "",
         "     Answered the start prompt.",
         "",
-        "     Build · DeepSeek V4.1 Flash 1017 · <duration> · <rate> tok/s",
+        "     Plan · DeepSeek V4.1 Flash 1017 · <duration> · <rate> tok/s",
         "",
         "",
         "",
@@ -84,6 +84,10 @@
                 "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
+            },
+            {
+              "content": "<system-reminder>\nYou are in Plan mode. Discuss the plan with the user directly in the conversation. Do not create or update plan files unless the user explicitly asks you to; when they do, write them only in:\n<home>/.opencode/plan\n\nDo not modify any other files or ask a subagent to do so.\n\nYou remain in Plan mode until the user switches agents. If the user asks you to implement changes, do not do so. Tell them they need to switch agents.\n</system-reminder>",
+              "role": "user"
             },
             {
               "content": "Started with a prompt",
@@ -257,7 +261,7 @@
       {
         "created": "<time>",
         "data": {
-          "agent": "build",
+          "agent": "plan",
           "location": {
             "directory": "<project>"
           },
@@ -290,11 +294,9 @@
           "item": {
             "delivery": "steer",
             "payload": {
-              "agents": [],
-              "files": [],
-              "text": "Started with a prompt"
+              "text": "<system-reminder>\nYou are in Plan mode. Discuss the plan with the user directly in the conversation. Do not create or update plan files unless the user explicitly asks you to; when they do, write them only in:\n<home>/.opencode/plan\n\nDo not modify any other files or ask a subagent to do so.\n\nYou remain in Plan mode until the user switches agents. If the user asks you to implement changes, do not do so. Tell them they need to switch agents.\n</system-reminder>"
             },
-            "type": "user"
+            "type": "synthetic"
           },
           "sessionID": "<ses_1>"
         },
@@ -312,6 +314,16 @@
       {
         "created": "<time>",
         "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "agents": [],
+              "files": [],
+              "text": "Started with a prompt"
+            },
+            "type": "user"
+          },
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -320,6 +332,22 @@
           "version": 1
         },
         "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_14>",
         "type": "session.execution.started"
       },
       {
@@ -335,10 +363,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 3,
+          "seq": 4,
           "version": 2
         },
-        "id": "<evt_14>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -357,10 +385,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 4,
+          "seq": 5,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -369,32 +397,7 @@
       {
         "created": "<time>",
         "data": {
-          "agent": "build",
-          "assistantMessageID": "<msg_2>",
-          "model": {
-            "id": "deepseek/deepseek-v4.1-flash-1017",
-            "providerID": "openrouter",
-            "variant": "max"
-          },
-          "sessionID": "<ses_1>",
-          "started": "<time>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 5,
-          "version": 1
-        },
-        "id": "<evt_16>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.step.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_2>",
-          "ordinal": 0,
+          "inboxID": "<msg_2>",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -406,17 +409,59 @@
         "location": {
           "directory": "<project>"
         },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "plan",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
         "type": "session.text.started"
       },
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "delta": "Answered the start prompt.",
           "ordinal": 0,
           "sessionID": "<ses_1>"
         },
-        "id": "<evt_18>",
+        "id": "<evt_20>",
         "location": {
           "directory": "<project>"
         },
@@ -425,17 +470,17 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "ordinal": 0,
           "sessionID": "<ses_1>",
           "text": "Answered the start prompt."
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 7,
+          "seq": 9,
           "version": 1
         },
-        "id": "<evt_19>",
+        "id": "<evt_21>",
         "location": {
           "directory": "<project>"
         },
@@ -444,15 +489,15 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "sessionID": "<ses_1>"
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 8,
+          "seq": 10,
           "version": 1
         },
-        "id": "<evt_20>",
+        "id": "<evt_22>",
         "location": {
           "directory": "<project>"
         },
@@ -461,7 +506,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_3>",
           "cost": 0,
           "finish": "stop",
           "rawFinish": "stop",
@@ -478,10 +523,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 9,
+          "seq": 11,
           "version": 1
         },
-        "id": "<evt_21>",
+        "id": "<evt_23>",
         "location": {
           "directory": "<project>"
         },
@@ -502,7 +547,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_22>",
+        "id": "<evt_24>",
         "type": "session.usage.updated"
       },
       {
@@ -512,10 +557,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 10,
+          "seq": 12,
           "version": 1
         },
-        "id": "<evt_23>",
+        "id": "<evt_25>",
         "type": "session.execution.succeeded"
       },
       {
@@ -533,7 +578,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_24>",
+        "id": "<evt_26>",
         "type": "session.usage.updated"
       },
       {
@@ -544,10 +589,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 12,
+          "seq": 14,
           "version": 1
         },
-        "id": "<evt_25>",
+        "id": "<evt_27>",
         "location": {
           "directory": "<project>"
         },

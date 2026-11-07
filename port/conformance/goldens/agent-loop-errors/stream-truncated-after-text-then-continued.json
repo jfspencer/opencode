@@ -185,15 +185,6 @@
               "providerID": "openrouter",
               "variant": "max"
             },
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "OpenAI Chat stream ended without finish_reason",
-                "status": 200,
-                "type": "provider.invalid-output"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

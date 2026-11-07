@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:45:09 -0700
+Subject: [PATCH] D303 tui: --agent and --model apply once agents and models
+ load
+
+Upstream: the TUI applies `--agent` and `--model` when the app mounts, before the location's agents and models have loaded: `--agent plan` warns "Agent not found: plan" and starts on Build (a `--prompt` given with it is submitted to Build), and `--model` is silently dropped (not selected, not added to recents). An invalid `--model` format also skipped `--session`.
+Fixed: both are applied once the agents, models and model preferences have loaded, before `--prompt` is submitted; unknown agents and malformed models still warn. `--session` navigation stays on mount, independent of them.
+Scenarios: tui/nav-args.test.ts "args: --agent picks the starting agent", "args: --model picks the starting model"; tui/nav-args-prompt.test.ts "args: --prompt is submitted on start" (submitted to Plan)
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/app.tsx b/packages/tui/src/app.tsx
+index 387510a7b4..469efc1975 100644
+--- a/packages/tui/src/app.tsx
++++ b/packages/tui/src/app.tsx
+@@ -25,6 +25,7 @@ import { RouteProvider, useRoute } from "./context/route"
+ import {
+   Switch,
+   Match,
++  createComputed,
+   createEffect,
+   createMemo,
+   ErrorBoundary,
+@@ -662,7 +663,12 @@ function App() {
+ 
+   const args = useArgs()
+   const startupPrompt = args.prompt ? { text: args.prompt, files: [], agents: [], pasted: [] } : undefined
+-  onMount(() => {
++  // --agent and --model name entries of the location's agents and models, which load after mount. A computed applies
++  // them before effects read the selection (Home submitting --prompt).
++  let selected = false
++  createComputed(() => {
++    if (selected || !local.agent.ready || !local.model.ready || !local.model.catalogReady) return
++    selected = true
+     batch(() => {
+       if (args.agent) local.agent.set(args.agent)
+       if (args.model) {
+@@ -675,15 +681,17 @@ function App() {
+           })
+         local.model.set({ providerID, modelID }, { recent: true })
+       }
+-      if (args.sessionID && !args.fork) {
+-        route.navigate({
+-          type: "session",
+-          sessionID: args.sessionID,
+-          prompt: startupPrompt,
+-        })
+-      }
+     })
+   })
++  onMount(() => {
++    if (args.sessionID && !args.fork) {
++      route.navigate({
++        type: "session",
++        sessionID: args.sessionID,
++        prompt: startupPrompt,
++      })
++    }
++  })
+ 
+   let continued = false
+   createEffect(() => {
+diff --git a/packages/tui/src/context/local.tsx b/packages/tui/src/context/local.tsx
+index d3304eb339..c652c93b91 100644
+--- a/packages/tui/src/context/local.tsx
++++ b/packages/tui/src/context/local.tsx
+@@ -86,6 +86,9 @@ export const { use: useLocal, provider: LocalProvider } = createSimpleContext({
+         list() {
+           return agents()
+         },
++        get ready() {
++          return data.location.agent.list(location.ref) !== undefined
++        },
+         current() {
+           const draft = route.data.type === "session" ? agentStore.draftBySession[route.data.sessionID] : undefined
+           const selected =

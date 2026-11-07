@@ -55,17 +55,20 @@ const models = {
 
 const MISSING = "ses_0000000000conformanceMissing"
 
-// Arguments are applied when the app mounts, and their warning or error toasts (3-5s) can be over before a slow
-// startup (plugins loading) has finished: these scenarios record the screen once any such toast is gone.
+// Arguments are applied at startup, and their warning or error toasts (3-5s) can be over before a slow startup
+// (plugins loading) has finished: these scenarios record the screen once any such toast is gone. --agent and --model
+// are applied once the agents and models have loaded, which the prompt footer shows (agent · model).
 // (Home is shown only after a missing session's toast has been raised.)
 async function afterStartupToasts(t: TuiCtx) {
   await waitLong(t, "Ask anything")
+  await waitLong(t, /(Build|Plan) · (DeepSeek|Plain One)/)
   for (const text of ["Invalid model format", "Agent not found", "Session not found"]) await waitLong(t, absent(text))
 }
 const NEW = "ses_0000000000conformanceNewOne1"
 
 scenario("args: --model picks the starting model", { width: 100, height: 30, config: models, args: { model: "openrouter/acme/plain-1" } }, async (t) => {
   await afterStartupToasts(t)
+  await waitLong(t, "Build · Plain One")
   await t.frame("home")
   await t.press("x", { ctrl: true })
   await t.press("m")
@@ -85,6 +88,7 @@ scenario("args: --model that doesn't exist", { width: 100, height: 30, args: { m
 
 scenario("args: --agent picks the starting agent", { width: 100, height: 30, args: { agent: "plan" } }, async (t) => {
   await afterStartupToasts(t)
+  await waitLong(t, "Plan · DeepSeek")
   await t.frame("home")
 })
 
@@ -104,8 +108,28 @@ scenario("args: --session --fork of a session that doesn't exist", { width: 100,
   await t.frame("home")
 })
 
-// (--continue without any session is not recorded: the TUI opens a placeholder "dummy" session route, and the
-// toast shows whichever of the resulting invalid requests fails first, which varies between runs.)
+scenario("args: --continue without any session", { width: 100, height: 30, args: { continue: true } }, async (t) => {
+  await afterStartupToasts(t)
+  await t.frame("home")
+})
+
+scenario(
+  "args: --continue opens the latest session",
+  {
+    width: 100,
+    height: 30,
+    args: { continue: true },
+    turns: [say("Earlier reply.")],
+    setup: async (ctx) => {
+      const id = await ctx.session()
+      await ctx.prompt(id, "Earlier question")
+    },
+  },
+  async (t) => {
+    await waitLong(t, "Earlier reply.")
+    await t.frame("session")
+  },
+)
 
 scenario(
   "args: the first new session takes the given ID",

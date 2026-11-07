@@ -81,3 +81,21 @@ scenario("shell: ! in the middle of a prompt is text", { width: 100, height: 30 
   await t.frame("text")
   await clear(t)
 })
+
+// Keys typed in one burst (fast typing, or a terminal delivering several at once) reach the prompt before its
+// cursor events.
+scenario("shell: ! typed in one burst after text is text", { width: 100, height: 30 }, async (t) => {
+  await waitLong(t, "ctrl+p commands")
+  await t.type("wow!")
+  await t.frame("text")
+  await clear(t)
+})
+
+scenario("shell: backspace typed in one burst after a command deletes text", { width: 100, height: 30 }, async (t) => {
+  await waitLong(t, "ctrl+p commands")
+  await t.type("!")
+  await t.type("ls\b")
+  await t.frame("still in shell mode")
+  await clear(t)
+  await t.escape()
+})

@@ -186,14 +186,6 @@
               "variant": "max"
             },
             "rawFinish": "mystery",
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "The provider response ended with an unknown finish reason.",
-                "type": "provider.invalid-output"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

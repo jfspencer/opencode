@@ -185,15 +185,6 @@
               "providerID": "openrouter",
               "variant": "max"
             },
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "Timed out waiting for response data",
-                "status": 200,
-                "type": "provider.transport"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

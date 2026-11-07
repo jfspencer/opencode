@@ -1,0 +1,50 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:55:41 -0700
+Subject: [PATCH] D307 tui: hidden form fields are not shown
+
+Upstream: a form field with `hidden: true` (documented as "skip the interactive prompt and use the default unless an answer is supplied") is honored by the integration login dialog and the CLI, but the session form shows it as a tab, asks it and lists it in the review.
+Fixed: the session form skips hidden fields and submits their defaults (their answers still count for `when` conditions).
+Scenarios: tui/session-forms.test.ts "api form with conditional fields and a required multiselect" (the step that answered the hidden field is gone; the reply still carries its default)
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/routes/session/form.tsx b/packages/tui/src/routes/session/form.tsx
+index e65b56a6fe..02a0361022 100644
+--- a/packages/tui/src/routes/session/form.tsx
++++ b/packages/tui/src/routes/session/form.tsx
+@@ -69,7 +69,7 @@ export function FormPrompt(props: { form: FormWithLocation }) {
+   const cursorStyle = useCursorStyle()
+   const clipboard = useClipboard()
+   const toast = useToast()
+-  const configuredFields = props.form.fields.filter(isFormAnswerField)
++  const configuredFields = props.form.fields.filter(isFormAnswerField).filter((field) => !field.hidden)
+   const initial = formInitialValues(props.form.fields)
+   const draft = drafts.get(props.form.id)
+   drafts.delete(props.form.id)
+@@ -96,7 +96,7 @@ export function FormPrompt(props: { form: FormWithLocation }) {
+     const value = props.form.metadata?.["message"]
+     return typeof value === "string" ? value : undefined
+   })
+-  const fields = createMemo(() => {
++  const activeFields = createMemo(() => {
+     const answers: Record<string, FormValue | undefined> = {}
+     return props.form.fields.filter((field) => {
+       if (field.type === "external") return true
+@@ -110,6 +110,8 @@ export function FormPrompt(props: { form: FormWithLocation }) {
+       return active
+     })
+   })
++  // Hidden fields are not asked: they answer with their default.
++  const fields = createMemo(() => activeFields().filter((field) => field.type === "external" || !field.hidden))
+   const single = createMemo(() => {
+     const list = fields()
+     if (list.length !== 1) return false
+@@ -527,7 +529,7 @@ export function FormPrompt(props: { form: FormWithLocation }) {
+     }
+     reply(
+       Object.fromEntries(
+-        fields().flatMap((field) => {
++        activeFields().flatMap((field) => {
+           const value = store.answers[field.key]
+           return value === undefined ? [] : [[field.key, value] as const]
+         }),
