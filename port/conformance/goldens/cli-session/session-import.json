@@ -172,7 +172,7 @@
           "import",
           "export.json"
         ],
-        "exit": 0,
+        "exit": 1,
         "stderr": [
           "Session already exists",
           ""

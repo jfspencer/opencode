@@ -1,0 +1,35 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:33:53 -0700
+Subject: [PATCH] D402 cli: session import of an existing session exits 1
+
+Upstream: `opencode session import` of a session that already exists (the server answers 409) prints "Session already exists" on stderr, imports nothing and exits 0, so scripts cannot tell it from a successful import; every other failed import exits 1.
+Fixed: it prints the same message and exits 1.
+Scenarios: cli-session.test.ts "session import"
+Upstream tests: test/import-export.test.ts "import reports an existing session without a stack trace" updated (asserted exit code 0)
+
+diff --git a/packages/cli/src/commands/handlers/session/import.ts b/packages/cli/src/commands/handlers/session/import.ts
+index 94ef51c771..a4219ca638 100644
+--- a/packages/cli/src/commands/handlers/session/import.ts
++++ b/packages/cli/src/commands/handlers/session/import.ts
+@@ -48,6 +48,7 @@ export default Runtime.handler(
+     )
+     if (response.status === 409) {
+       process.stderr.write(`Session already exists${EOL}`)
++      process.exitCode = 1
+       return
+     }
+     if (!response.ok) yield* Effect.fail(new Error(`Failed to import session: ${response.statusText}`))
+diff --git a/packages/cli/test/import-export.test.ts b/packages/cli/test/import-export.test.ts
+index d17d90be66..ace38a8649 100644
+--- a/packages/cli/test/import-export.test.ts
++++ b/packages/cli/test/import-export.test.ts
+@@ -222,7 +222,7 @@ test("import reports an existing session without a stack trace", async () => {
+   try {
+     const [stdout, stderr, exitCode] = await run(["session", "import", file, "--server", server.url.toString()])
+ 
+-    expect(exitCode).toBe(0)
++    expect(exitCode).toBe(1)
+     expect(stdout).toBe("")
+     expect(stderr).toBe(`Session already exists${os.EOL}`)
+   } finally {

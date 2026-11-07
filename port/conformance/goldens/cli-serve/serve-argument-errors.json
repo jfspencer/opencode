@@ -31,9 +31,7 @@
         },
         "exit": 1,
         "stderr": [
-          "ServeError:  {",
-          "  [cause]: Error: Failed to start server. Is port <port-1> in use?",
-          "}",
+          "Error: Port <port-1> on 127.0.0.1 is already in use. Choose another port with --port.",
           ""
         ],
         "stdout": ""

@@ -1,0 +1,42 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:45:31 -0700
+Subject: [PATCH] D405 cli: --server connection failures print one line
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: when `--server <url>` cannot be used (password missing or rejected, server unreachable, not a V2 server), every command without its own error handling (models, debug, api, reload, the TUI, …) prints the error and then the client's internal `[cause]` chain (`UnauthorizedError: Authentication required`; `ClientError: Transport: …` and its `TypeError`), repeating what the message already says.
+Fixed: the connection errors carry no `cause`, so the report is the message alone (`Error: Server at <url> requires a password; set OPENCODE_PASSWORD`, `… rejected the password`, `Error: Could not reach server at <url>: <reason>`), exit 1 as before.
+Scenarios: cli-service.test.ts "server flag addresses a running server"
+Upstream tests: none changed
+
+diff --git a/packages/cli/src/services/server-connection.ts b/packages/cli/src/services/server-connection.ts
+index 48af79aac5..45477af073 100644
+--- a/packages/cli/src/services/server-connection.ts
++++ b/packages/cli/src/services/server-connection.ts
+@@ -98,21 +98,18 @@ const resolveManaged = Effect.fnUntraced(function* (options: EnsureOptions, mism
+   return yield* Service.ensure(options)
+ })
+ 
++// The messages carry the reason. No `cause`: the CLI's error report would print the client's error chain after them.
+ function connectError(endpoint: Endpoint, cause: unknown) {
+   if (isUnauthorizedError(cause)) {
+     return new Error(
+       endpoint.auth === undefined
+         ? `Server at ${endpoint.url} requires a password; set OPENCODE_PASSWORD`
+         : `Server at ${endpoint.url} rejected the password`,
+-      { cause },
+     )
+   }
+   if (cause instanceof ClientError && cause.reason === "Transport")
+-    return new Error(`Could not reach server at ${endpoint.url}: ${errorMessage(cause.cause ?? cause)}`, { cause })
+-  return new Error(
+-    `Server at ${endpoint.url} did not provide a compatible V2 health response: ${errorMessage(cause)}`,
+-    { cause },
+-  )
++    return new Error(`Could not reach server at ${endpoint.url}: ${errorMessage(cause.cause ?? cause)}`)
++  return new Error(`Server at ${endpoint.url} did not provide a compatible V2 health response: ${errorMessage(cause)}`)
+ }
+ 
+ export * as ServerConnection from "./server-connection"
