@@ -1,0 +1,89 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:23:56 -0700
+Subject: [PATCH] D510 code mode: Object.prototype.toString names async
+ generators AsyncGenerator
+
+Upstream: an async generator reported "[object Generator]" (Object.prototype.toString, String(...)), where JS reports "[object AsyncGenerator]".
+Fixed: a generator's tag follows whether it is async. Diagnostics still say "a generator". Both engines; the VM snapshot derives the tag from the saved `asynchronous` field instead of a constant.
+Scenarios: codemode-lang-async.test.ts "generators and iterators" (tag)
+Upstream tests: test/stdlib.test.ts adds "tells async generators from generators"
+
+diff --git a/packages/codemode/src/interpreter/objects.ts b/packages/codemode/src/interpreter/objects.ts
+index 207abf53cd..6221b7fd66 100644
+--- a/packages/codemode/src/interpreter/objects.ts
++++ b/packages/codemode/src/interpreter/objects.ts
+@@ -261,7 +261,7 @@ export type GeneratorState =
+   | "completed"
+ 
+ export class GeneratorObj extends Opaque {
+-  override readonly tag = "Generator"
++  override readonly tag: string
+   state: GeneratorState = "suspendedStart"
+   /** The suspended body's activations, kept while it waits for the next request. */
+   entries: Array<Entry> | undefined
+@@ -274,6 +274,7 @@ export class GeneratorObj extends Opaque {
+     readonly body: Eval<Value>,
+   ) {
+     super(proto)
++    this.tag = asynchronous ? "AsyncGenerator" : "Generator"
+   }
+   override get describe() {
+     return "a generator"
+diff --git a/packages/codemode/src/vm/runtime/objects.ts b/packages/codemode/src/vm/runtime/objects.ts
+index 5564d10dd2..9022cf3533 100644
+--- a/packages/codemode/src/vm/runtime/objects.ts
++++ b/packages/codemode/src/vm/runtime/objects.ts
+@@ -386,7 +386,7 @@ export type GeneratorState =
+   | "completed"
+ 
+ export class GeneratorObj extends Opaque {
+-  override readonly tag = "Generator"
++  override readonly tag: string
+   state: GeneratorState = "suspendedStart"
+   /** The suspended body's frame, kept while it waits for the next request, which puts it back on the job stack. */
+   frame: Frame | undefined = undefined
+@@ -397,6 +397,7 @@ export class GeneratorObj extends Opaque {
+     readonly asynchronous: boolean,
+   ) {
+     super(proto)
++    this.tag = asynchronous ? "AsyncGenerator" : "Generator"
+   }
+   override get describe() {
+     return "a generator"
+diff --git a/packages/codemode/src/vm/snapshot/codec.ts b/packages/codemode/src/vm/snapshot/codec.ts
+index 666c917b83..8c738023e7 100644
+--- a/packages/codemode/src/vm/snapshot/codec.ts
++++ b/packages/codemode/src/vm/snapshot/codec.ts
+@@ -169,7 +169,10 @@ const builtinSpecs = (): ReadonlyArray<ClassSpec> => [
+     ctor: GeneratorObj,
+     fields: ["state", "frame", "queue", "asynchronous"],
+     obj: true,
+-    constants: { tag: "Generator" },
++    // The tag follows from `asynchronous`.
++    reset: (generator: { tag: string; readonly asynchronous: boolean }) => {
++      generator.tag = generator.asynchronous ? "AsyncGenerator" : "Generator"
++    },
+   },
+   { name: "IteratorObj", ctor: IteratorObj, fields: ["cursor"], obj: true, constants: { tag: "Iterator" } },
+   { name: "DateObj", ctor: DateObj, fields: ["time"], obj: true, constants: { tag: "Date" } },
+diff --git a/packages/codemode/test/stdlib.test.ts b/packages/codemode/test/stdlib.test.ts
+index 40af55080e..2bf1f93a4b 100644
+--- a/packages/codemode/test/stdlib.test.ts
++++ b/packages/codemode/test/stdlib.test.ts
+@@ -1529,6 +1529,15 @@ describe("Object.prototype.toString", () => {
+       "Promise.try expects a function, received a data object.",
+     ])
+   })
++
++  test("tells async generators from generators", async () => {
++    expect(
++      await value(`
++      const tag = (v) => Object.prototype.toString.call(v)
++      return [tag((async function* () {})()), tag((function* () {})()), String((async function* () {})())]
++    `),
++    ).toEqual(["[object AsyncGenerator]", "[object Generator]", "[object AsyncGenerator]"])
++  })
+ })
+ 
+ describe("console.log of errors", () => {

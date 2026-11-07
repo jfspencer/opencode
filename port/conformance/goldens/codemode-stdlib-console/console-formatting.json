@@ -210,7 +210,7 @@
               ]
             },
             {
-              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object console]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
               "role": "tool",
               "tool_call_id": "call_1"
             }
@@ -287,7 +287,7 @@
               ]
             },
             {
-              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object console]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
               "role": "tool",
               "tool_call_id": "call_1"
             },
@@ -383,7 +383,7 @@
               ]
             },
             {
-              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object console]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
               "role": "tool",
               "tool_call_id": "call_1"
             },
@@ -498,7 +498,7 @@
               ]
             },
             {
-              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object console]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
               "role": "tool",
               "tool_call_id": "call_1"
             },
@@ -1147,7 +1147,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "text": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object console]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
               "type": "text"
             }
           ],
