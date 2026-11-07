@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:46:35 -0700
+Subject: [PATCH] D304 tui: a theme that fails to load is not saved
+
+Upstream: picking a theme that fails to load (e.g. an invalid custom theme) shows the error and falls back to opencode, but the name is still written to the TUI config: Settings lists it as the theme, and every later start fails to load it again.
+Fixed: the theme is saved only when it loads; a failing pick leaves the configured theme unchanged.
+Scenarios: tui/nav-theme.test.ts "themes: custom themes from the project"
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/context/theme.tsx b/packages/tui/src/context/theme.tsx
+index a5405a5a6e..f1487ef477 100644
+--- a/packages/tui/src/context/theme.tsx
++++ b/packages/tui/src/context/theme.tsx
+@@ -340,6 +340,9 @@ const themeContext = createSimpleContext({
+       set(theme: string) {
+         if (!has(theme)) return false
+         setStore("active", theme)
++        // A theme that fails to load reports its error and falls back to opencode: don't save it.
++        selected()
++        if (store.active !== theme) return false
+         if (theme === "system") refreshPalette()
+         void configState
+           .update((draft) => {

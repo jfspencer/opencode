@@ -38,8 +38,6 @@ scenario(
   { width: 100, height: 30, args: { prompt: "Started with a prompt", agent: "plan" }, turns: [say("Answered the start prompt.")] },
   async (t) => {
     await waitLong(t, "Answered the start prompt.")
-    // --agent is applied before the agents are loaded: a warning toast, which is waited out.
-    await waitLong(t, absent("Agent not found"))
     await t.frame("answered")
   },
 )

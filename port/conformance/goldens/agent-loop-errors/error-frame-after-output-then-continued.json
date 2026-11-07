@@ -188,18 +188,6 @@
               "providerID": "openrouter",
               "variant": "max"
             },
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "Internal server error",
-                "response": {
-                  "body": "{\"id\":\"gen-raw\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"deepseek/deepseek-v4.1-flash-1017\",\"provider\":\"DeepSeek\",\"error\":{\"message\":\"Internal server error\",\"code\":\"server_error\"}}"
-                },
-                "status": 200,
-                "type": "provider.internal"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

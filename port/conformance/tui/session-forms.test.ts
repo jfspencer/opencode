@@ -294,8 +294,7 @@ scenario(
     await t.press("u", { ctrl: true })
     await t.type("2026-03-01")
     await t.enter()
-    await t.frame("hidden-field")
-    await t.enter()
+    // The hidden field is not asked: its default is submitted.
     await t.frame("review")
     await replied(t, () => t.enter())
     await t.frame("submitted")

@@ -1,0 +1,215 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:05:52 -0700
+Subject: [PATCH] D308 tui: a failed step's retry notice clears when the retry
+ starts
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: a step that fails after streaming output is completed before its retry is scheduled, and the retry continues in a new assistant message. The projections (server and the TUI's live data) clear a pending retry only on the in-progress assistant, so the failed message keeps `retry` for good: `GET /api/session/:id/message` returns it after the session succeeded, and the TUI shows "⚠ Retry due · attempt 2 · <error>" above the continued answer. Upstream's own test ("clears it at the next step or execution terminal") skips the step failure.
+Fixed: the failed step stays current while its retry is pending, so the next step (or the execution's end) clears it; the message keeps its error, which the TUI then shows like any failed step's.
+Scenarios: tui/session-errors.test.ts "rate limited, retried, then answered", "stream truncated after text, then continued"; agent-loop.test.ts "unknown finish reason", "finish reason error after output continues"; agent-loop-errors.test.ts "stream truncated after text, then continued", "stream truncated during a tool call, then continued", "error frame after output, then continued"; agent-loop-transport.test.ts "connection dropped after output, then continued", "response stalls after output past the chunk timeout, then continued"
+Upstream tests: core test/session-projector.test.ts and client test/solid-data.test.ts: a test each for a failed step's retry clearing when its continuation starts
+
+diff --git a/packages/client/src/solid/data.ts b/packages/client/src/solid/data.ts
+index d128dac68e..1f6589ee61 100644
+--- a/packages/client/src/solid/data.ts
++++ b/packages/client/src/solid/data.ts
+@@ -536,8 +536,11 @@ export function createData(config: CreateDataInput) {
+         if (reasoning) fn(reasoning)
+       })
+     },
++    // The step in progress, or a failed step whose retry is pending.
+     activeAssistant(messages: SessionMessageInfo[]) {
+-      const item = messages.findLast((item) => item.type === "assistant" && !item.time.completed)
++      const item = messages.findLast(
++        (item) => item.type === "assistant" && (!item.time.completed || item.retry !== undefined),
++      )
+       return item?.type === "assistant" ? item : undefined
+     },
+     shell(messages: SessionMessageInfo[], shellID: string) {
+@@ -990,7 +993,7 @@ export function createData(config: CreateDataInput) {
+           const currentAssistant = message.activeAssistant(draft)
+           if (currentAssistant) {
+             currentAssistant.retry = undefined
+-            currentAssistant.time.completed = event.created
++            currentAssistant.time.completed ??= event.created
+           }
+           message.append(draft, index, {
+             id: event.data.assistantMessageID,
+diff --git a/packages/client/test/solid-data.test.ts b/packages/client/test/solid-data.test.ts
+index 69dea99a24..d92d27740f 100644
+--- a/packages/client/test/solid-data.test.ts
++++ b/packages/client/test/solid-data.test.ts
+@@ -239,6 +239,75 @@ test("reconciles a stale running tool when execution settles", async () => {
+   }
+ })
+ 
++test("clears a failed step's retry once its continuation starts", async () => {
++  const listeners = new Set<Parameters<CreateDataInput["event"]["listen"]>[0]>()
++  const error = { type: "provider.transport" as const, message: "Disconnected" }
++  const model = { providerID: "provider", id: "model" }
++  const api = OpenCode.make({
++    baseUrl: "http://opencode.local",
++    fetch: async () =>
++      Response.json({
++        data: [
++          {
++            id: "msg_failed",
++            type: "assistant",
++            agent: "build",
++            model,
++            time: { created: 1, completed: 2 },
++            content: [{ type: "text", text: "Partial" }],
++            finish: "error",
++            error,
++          },
++        ],
++        cursor: {},
++      }),
++  })
++  const setup = createRoot((dispose) => ({
++    data: createData({
++      api: () => api,
++      directory: "/project",
++      event: {
++        on: () => () => {},
++        listen(handler) {
++          listeners.add(handler)
++          return () => listeners.delete(handler)
++        },
++      },
++      connection: { status: () => "connected" },
++    }),
++    dispose,
++  }))
++  const emit = (event: OpenCodeEvent) => listeners.forEach((listener) => listener({ name: event.type, details: event }))
++  try {
++    await setup.data.session.message.sync("ses_retry")
++    // A step that failed after output is completed before its retry is scheduled; the retry continues in a new step.
++    emit({
++      id: "evt_retry",
++      created: 3,
++      type: "session.retry.scheduled",
++      durable: { aggregateID: "ses_retry", seq: 1, version: 1 },
++      data: { sessionID: "ses_retry", assistantMessageID: "msg_failed", attempt: 2, at: 4, error },
++    })
++    await wait(() => setup.data.session.message.get("ses_retry", "msg_failed")?.type === "assistant")
++    expect(setup.data.session.message.get("ses_retry", "msg_failed")).toMatchObject({ retry: { attempt: 2 } })
++    emit({
++      id: "evt_continued",
++      created: 5,
++      type: "session.step.started",
++      durable: { aggregateID: "ses_retry", seq: 2, version: 1 },
++      data: { sessionID: "ses_retry", assistantMessageID: "msg_continued", agent: "build", model, started: 5 },
++    })
++    await wait(() => setup.data.session.message.get("ses_retry", "msg_continued") !== undefined)
++    expect(setup.data.session.message.get("ses_retry", "msg_failed")).toMatchObject({
++      error,
++      retry: undefined,
++      time: { created: 1, completed: 2 },
++    })
++  } finally {
++    setup.dispose()
++  }
++})
++
+ test("omits inline tool-result file payloads from read and live tool results when asked", async () => {
+   const listeners = new Set<Parameters<CreateDataInput["event"]["listen"]>[0]>()
+   const screenshot = `data:image/png;base64,${"A".repeat(4096)}`
+diff --git a/packages/core/src/session/message-updater.ts b/packages/core/src/session/message-updater.ts
+index 6297fe679e..f12a882068 100644
+--- a/packages/core/src/session/message-updater.ts
++++ b/packages/core/src/session/message-updater.ts
+@@ -243,7 +243,7 @@ export function update(adapter: Adapter, event: SessionEvent.DurableEvent) {
+             yield* adapter.updateAssistant(
+               produce(currentAssistant, (draft) => {
+                 draft.retry = undefined
+-                draft.time.completed = created
++                draft.time.completed ??= created
+               }),
+             )
+           }
+diff --git a/packages/core/src/session/projector.ts b/packages/core/src/session/projector.ts
+index 35f038b00a..be5c1ff8ec 100644
+--- a/packages/core/src/session/projector.ts
++++ b/packages/core/src/session/projector.ts
+@@ -445,7 +445,8 @@ function assistantReads(
+   return {
+     getCurrentAssistant() {
+       return Effect.gen(function* () {
+-        // A newer step supersedes stale incomplete rows; never resume an older assistant projection.
++        // A newer step supersedes stale incomplete rows; never resume an older assistant projection. A failed step
++        // stays current while its retry is pending.
+         const row = yield* db
+           .select()
+           .from(SessionMessageTable)
+@@ -456,9 +457,10 @@ function assistantReads(
+           .limit(1)
+           .get()
+           .pipe(Effect.orDie)
+-        if (!row || ("completed" in row.data.time && row.data.time.completed)) return
++        if (!row) return
++        if ("completed" in row.data.time && row.data.time.completed && !("retry" in row.data && row.data.retry)) return
+         const message = yield* decode(row)
+-        return message.type === "assistant" && !message.time.completed ? message : undefined
++        return message.type === "assistant" && (!message.time.completed || message.retry) ? message : undefined
+       })
+     },
+     getAssistant(messageID) {
+diff --git a/packages/core/test/session-projector.test.ts b/packages/core/test/session-projector.test.ts
+index a818c954f5..54d327893e 100644
+--- a/packages/core/test/session-projector.test.ts
++++ b/packages/core/test/session-projector.test.ts
+@@ -595,6 +595,50 @@ describe("SessionProjector", () => {
+     }),
+   )
+ 
++  it.effect("clears a failed step's retry once its continuation starts", () =>
++    Effect.gen(function* () {
++      const db = yield* seedSession()
++      const bus = yield* Bus.Service
++      const failed = SessionMessage.ID.make("msg_retry_failed")
++      const error = { type: "provider.transport" as const, message: "Disconnected" }
++      yield* bus.publish(SessionEvent.Step.Started, {
++        sessionID,
++        assistantMessageID: failed,
++        agent: build,
++        model,
++        started: 0,
++      })
++      // A step that failed after output is completed before its retry is scheduled; the retry continues in a new step.
++      yield* bus.publish(SessionEvent.Step.Failed, { sessionID, assistantMessageID: failed, error })
++      yield* bus.publish(SessionEvent.RetryScheduled, {
++        sessionID,
++        assistantMessageID: failed,
++        attempt: 2,
++        at: 2_000,
++        error,
++      })
++
++      const decode = (row: typeof SessionMessageTable.$inferSelect | undefined) =>
++        Schema.decodeUnknownSync(SessionMessage.Info)({ ...row?.data, id: row?.id, type: row?.type })
++      const row = () =>
++        db.select().from(SessionMessageTable).where(eq(SessionMessageTable.id, failed)).get().pipe(Effect.orDie)
++      const scheduled = decode(yield* row())
++      expect(scheduled).toMatchObject({ error, retry: { attempt: 2 } })
++
++      yield* bus.publish(SessionEvent.Step.Started, {
++        sessionID,
++        assistantMessageID: SessionMessage.ID.make("msg_retry_continued"),
++        agent: build,
++        model,
++        started: 3_000,
++      })
++
++      const continued = decode(yield* row())
++      expect(continued).not.toHaveProperty("retry")
++      expect(continued).toMatchObject({ error, time: scheduled.time })
++    }),
++  )
++
+   it.effect("does not infer restart continuation from lifecycle history", () =>
+     Effect.gen(function* () {
+       const db = yield* seedSession()

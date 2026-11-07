@@ -185,15 +185,6 @@
               "providerID": "openrouter",
               "variant": "max"
             },
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "Connection lost while reading the response: ECONNRESET: socket hang up",
-                "status": 200,
-                "type": "provider.transport"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

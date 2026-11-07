@@ -188,18 +188,6 @@
               "providerID": "openrouter",
               "variant": "max"
             },
-            "retry": {
-              "at": "<time>",
-              "attempt": 2,
-              "error": {
-                "message": "Provider reported an error (finish_reason: error)",
-                "response": {
-                  "body": "{\"id\":\"gen-conformance-1\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"deepseek/deepseek-v4.1-flash-1017\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"error\",\"native_finish_reason\":\"error\"}]}"
-                },
-                "status": 200,
-                "type": "provider.unknown"
-              }
-            },
             "time": {
               "completed": "<time>",
               "created": "<time>",

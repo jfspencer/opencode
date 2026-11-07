@@ -1,0 +1,25 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:08:23 -0700
+Subject: [PATCH] D309 tui: name models in a session whose location is
+ unavailable
+
+Upstream: the transcript names models from the session's location's model list. When that location is unavailable (its directory is gone), the list never loads and every assistant footer and model-switch notice shows the raw ID (`openrouter/deepseek/deepseek-v4.1-flash-1017`) instead of the model's name.
+Fixed: until the session's location has a model list, names come from the default location's list (raw IDs remain the fallback for models neither knows).
+Scenarios: tui/session-history.test.ts "a session whose directory is gone"
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/routes/session/index.tsx b/packages/tui/src/routes/session/index.tsx
+index 33bd34340e..dafbc53cc1 100644
+--- a/packages/tui/src/routes/session/index.tsx
++++ b/packages/tui/src/routes/session/index.tsx
+@@ -260,7 +260,8 @@ export function Session(props: {
+     commands: [{ bind: "escape,ctrl+c", title: "Close sidebar", group: "Session", run: props.onToggleSidebar }],
+   }))
+   const contentWidth = createMemo(() => (props.width ?? dimensions().width - props.verticalTabsWidth) - 4)
+-  const models = createMemo(() => data.location.model.list(location()) ?? [])
++  // A session whose location is unavailable never loads its models: name them from the default location's.
++  const models = createMemo(() => data.location.model.list(location()) ?? data.location.model.list() ?? [])
+ 
+   const scrollAcceleration = createMemo(() => getScrollAcceleration(config))
+   const toast = useToast()

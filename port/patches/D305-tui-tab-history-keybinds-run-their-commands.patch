@@ -1,0 +1,63 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:49:54 -0700
+Subject: [PATCH] D305 tui: tab history keybinds run their commands
+
+Upstream: the v2 keybinds `session.tab.history.back` (default none) and `session.tab.history.forward` (default ctrl+i) are defined and documented ("Go back/forward in session tab history"), but #39752 removed the commands behind them when ctrl+o went to the open menu, so binding them does nothing. The history they walk is still recorded.
+Fixed: the two commands exist again (with tabs enabled): back returns to the previously active tab, forward undoes it.
+Scenarios: tui/nav-tabs.test.ts "tabs: history back and forward"
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/app.tsx b/packages/tui/src/app.tsx
+index 469efc1975..3d920b4bb4 100644
+--- a/packages/tui/src/app.tsx
++++ b/packages/tui/src/app.tsx
+@@ -120,6 +120,8 @@ const appGlobalBindingCommands = ["session.list", "session.new", "open.menu", "t
+ const sessionTabBindingCommands = [
+   "session.tab.next",
+   "session.tab.previous",
++  "session.tab.history.back",
++  "session.tab.history.forward",
+   "session.tab.next_unread",
+   "session.tab.previous_unread",
+   "session.tab.close",
+@@ -869,6 +871,22 @@ function App() {
+         enabled: sessionTabs.enabled,
+         run: () => sessionTabs.cycle(-1),
+       },
++      {
++        name: "session.tab.history.back",
++        title: "Back in tab history",
++        category: "Session",
++        palette: undefined,
++        enabled: sessionTabs.enabled,
++        run: () => sessionTabs.history(-1),
++      },
++      {
++        name: "session.tab.history.forward",
++        title: "Forward in tab history",
++        category: "Session",
++        palette: undefined,
++        enabled: sessionTabs.enabled,
++        run: () => sessionTabs.history(1),
++      },
+       {
+         name: "session.tab.next_unread",
+         title: "Next unread tab",
+diff --git a/packages/tui/src/context/session-tabs.tsx b/packages/tui/src/context/session-tabs.tsx
+index 45265f4e7c..afc4cc3ca6 100644
+--- a/packages/tui/src/context/session-tabs.tsx
++++ b/packages/tui/src/context/session-tabs.tsx
+@@ -488,6 +488,12 @@ export const { use: useSessionTabs, provider: SessionTabsProvider } = createSimp
+         )
+         if (tab) route.navigate({ type: "session", sessionID: tab.sessionID })
+       },
++      history(direction: 1 | -1) {
++        if (!enabled()) return
++        const next = moveSessionTabHistory(history, state().tabs, current(), direction)
++        history = next.history
++        if (next.sessionID) route.navigate({ type: "session", sessionID: next.sessionID })
++      },
+       selectIndex(index: number) {
+         if (!enabled()) return
+         const tab = state().tabs[index]

@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:32:33 -0700
+Subject: [PATCH] D301 tui: tab-completing a directory mention adds one slash
+
+Upstream: tab on a directory in the @ list inserts `@src/util//`: file search already returns directory paths with a trailing slash, and the completion appends another, so the list then finds nothing.
+Fixed: the slash is appended only when the path doesn't already end with one (`@src/util/`, listing the directory's files), as the cd-directory completion already does.
+Scenarios: tui/nav-mention.test.ts "mentions: tab completes a directory"
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/component/prompt/autocomplete.tsx b/packages/tui/src/component/prompt/autocomplete.tsx
+index 444297a6e2..15f4df3f96 100644
+--- a/packages/tui/src/component/prompt/autocomplete.tsx
++++ b/packages/tui/src/component/prompt/autocomplete.tsx
+@@ -676,7 +676,7 @@ export function Autocomplete(props: {
+     const endCursor = input.logicalCursor
+ 
+     input.deleteRange(startCursor.row, startCursor.col, endCursor.row, endCursor.col)
+-    input.insertText("@" + selectedPath + "/")
++    input.insertText("@" + (selectedPath.endsWith("/") ? selectedPath : selectedPath + "/"))
+ 
+     setStore("selected", 0)
+   }
