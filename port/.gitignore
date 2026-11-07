@@ -2,3 +2,4 @@ coverage/out/
 __pycache__/
 .reference/
 conformance/ref
+.worktrees/

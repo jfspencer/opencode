@@ -1,7 +1,8 @@
 // Runs before any test module loads (see bunfig.toml). opencode resolves its global directories from the
 // environment once, at import time, so isolation has to happen here: the oracle must never read the user's
 // real config or write into their real data directories.
-import { mkdirSync, mkdtempSync, realpathSync } from "node:fs"
+import { afterAll } from "bun:test"
+import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -18,6 +19,16 @@ const dir = (name: string) => {
 }
 
 process.env.CONFORMANCE_ROOT = root
+// The sandbox holds every scenario's project, git repositories and caches: remove it when the test process exits,
+// or /tmp (often a tmpfs with a fixed inode count) fills up. CONFORMANCE_KEEP_SANDBOX=1 keeps it for debugging.
+// (A global afterAll registered here runs once after every test file; bun's test runner skips "exit" listeners.)
+if (!process.env.CONFORMANCE_KEEP_SANDBOX)
+  afterAll(() => {
+    try {
+      process.chdir(tmpdir())
+      rmSync(root, { recursive: true, force: true })
+    } catch {}
+  })
 process.env.HOME = dir("home")
 process.env.OPENCODE_TEST_HOME = process.env.HOME
 process.env.XDG_CONFIG_HOME = dir("config")
