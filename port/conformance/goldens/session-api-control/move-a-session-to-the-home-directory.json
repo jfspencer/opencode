@@ -1,0 +1,729 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "home",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "home"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "directory": "~"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/move"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/wait"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<home>"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_2>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "home",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "directory": "~/work"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/move"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/wait"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<home>/work"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_3>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "home",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "location": {
+              "directory": "<home>"
+            },
+            "previous": {
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "subpath": ""
+            },
+            "projectID": "<hash_2>",
+            "subpath": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "location-switched"
+          },
+          {
+            "id": "<msg_3>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_4>",
+            "location": {
+              "directory": "<home>/work"
+            },
+            "previous": {
+              "location": {
+                "directory": "<home>"
+              },
+              "projectID": "<hash_2>",
+              "subpath": ""
+            },
+            "projectID": "<hash_3>",
+            "subpath": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "location-switched"
+          },
+          {
+            "id": "<msg_1>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<home>",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<home>/work",
+          "id": "<hash_3>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<home>/work"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "home",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_5>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "location": {
+                "directory": "<home>"
+              },
+              "projectID": "<hash_2>",
+              "subpath": ""
+            },
+            "type": "move"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<home>"
+          },
+          "projectID": "<hash_2>",
+          "sessionID": "<ses_1>",
+          "subpath": ""
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.moved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_6>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "location": {
+                "directory": "<home>/work"
+              },
+              "projectID": "<hash_3>",
+              "subpath": ""
+            },
+            "type": "move"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<home>/work"
+          },
+          "projectID": "<hash_3>",
+          "sessionID": "<ses_1>",
+          "subpath": ""
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<home>"
+        },
+        "type": "session.moved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {
+    "a.txt": "a\n"
+  }
+}

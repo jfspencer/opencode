@@ -1,0 +1,564 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "frame:narrow",
+      "value": [
+        "   Conformance session           +",
+        "  ┃",
+        "",
+        "     This reply is deliberately long so that it has to",
+        "     wrap across several lines of the transcript; it keeps",
+        "     going with ordinary words, a very-long-hyphenated-",
+        "     compound-word-that-does-not-fit, and a URL https://",
+        "     example.com/a/very/long/path/that/keeps/going/and/",
+        "     going/until/it/must/wrap/somewhere/index.html before",
+        "     it finally ends.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  /…/oc-conform…/<project-name>  110 (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get",
+        "POST /api/session",
+        "POST /api/session/<ses_1>/model",
+        "POST /api/session/<ses_1>/prompt",
+        "POST /api/session/<ses_1>/view"
+      ]
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Say something long",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nSay something long\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "location": {
+            "directory": "<project>"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "agents": [],
+              "files": [],
+              "text": "Say something long"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "delta": "This reply is deliberately long so that it has to wrap across several lines of the transcript; it keeps going with ordinary words, a very-long-hyphenated-compound-word-that-does-not-fit, and a URL https://example.com/a/very/long/path/that/keeps/going/and/going/until/it/must/wrap/somewhere/index.html before it finally ends.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "This reply is deliberately long so that it has to wrap across several lines of the transcript; it keeps going with ordinary words, a very-long-hyphenated-compound-word-that-does-not-fit, and a URL https://example.com/a/very/long/path/that/keeps/going/and/going/until/it/must/wrap/somewhere/index.html before it finally ends."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_24>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_25>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "idle": "<time>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "type": "session.viewed"
+      }
+    ]
+  },
+  "files": {}
+}

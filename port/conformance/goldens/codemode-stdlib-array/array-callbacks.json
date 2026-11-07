@@ -1,0 +1,776 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the array callbacks programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the array callbacks programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the array callbacks programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the array callbacks programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst a = [1, 2, 3, 4]\\nt(\\\"map\\\", () => a.map((x, i, arr) => x * i + arr.length))\\nt(\\\"map holes\\\", () => { const m = [1, , 3].map((x) => x * 2); return [m.length, 1 in m, JSON.stringify(m)] })\\nt(\\\"map thisArg\\\", () => a.map(function (x) { return x + this.d }, { d: 100 }))\\nt(\\\"map arrow ignores thisArg\\\", () => a.map((x) => typeof this, { d: 1 }))\\nt(\\\"filter\\\", () => a.filter((x) => x % 2 === 0))\\nt(\\\"filter holes\\\", () => [1, , 3].filter(() => true))\\nt(\\\"find\\\", () => [a.find((x) => x > 2), a.find((x) => x > 9), [, 1].find((x) => x === undefined)])\\nt(\\\"findIndex\\\", () => [a.findIndex((x) => x > 2), a.findIndex((x) => x > 9)])\\nt(\\\"findLast\\\", () => [a.findLast((x) => x < 3), a.findLast((x) => x > 9)])\\nt(\\\"findLastIndex\\\", () => [a.findLastIndex((x) => x < 3), a.findLastIndex((x) => x > 9)])\\nt(\\\"some/every\\\", () => [a.some((x) => x > 3), a.some((x) => x > 4), a.every((x) => x > 0), a.every((x) => x > 1), [].some(() => true), [].every(() => false), [, ,].every(() => false)])\\nt(\\\"forEach\\\", () => { const out = []; const ret = [5, , 7].forEach((x, i) => out.push(i + \\\":\\\" + x)); return [out, ret === undefined] })\\nt(\\\"forEach thisArg\\\", () => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })\\nt(\\\"reduce\\\", () => [a.reduce((s, x) => s + x), a.reduce((s, x) => s + x, 10), a.reduce((s, x, i) => s + i, \\\"\\\"), [, 5].reduce((s, x) => s + x)])\\nt(\\\"reduce empty\\\", () => [].reduce((s, x) => s + x))\\nt(\\\"reduce holes only\\\", () => [, ,].reduce((s, x) => s + x))\\nt(\\\"reduceRight\\\", () => [a.reduceRight((s, x) => s + x), [\\\"a\\\", \\\"b\\\", \\\"c\\\"].reduceRight((s, x) => s + x, \\\">\\\")])\\nt(\\\"reduceRight empty\\\", () => [].reduceRight((s, x) => s + x))\\nt(\\\"flatMap\\\", () => [a.flatMap((x) => [x, x * 10]), a.flatMap((x) => x), [1, 2].flatMap((x) => [[x]]), [1, , 2].flatMap((x) => [x, , x])])\\nt(\\\"flatMap thisArg\\\", () => [1].flatMap(function (x) { return [this.v] }, { v: \\\"t\\\" }))\\nt(\\\"non-callable\\\", () => a.map(5))\\nt(\\\"missing callback\\\", () => a.filter())\\nt(\\\"object callback\\\", () => a.forEach({}))\\nt(\\\"callback throws\\\", () => a.map((x) => { if (x === 3) throw new RangeError(\\\"three\\\"); return x }))\\nt(\\\"builtin callbacks\\\", () => [[-1, 2.5].map(Math.abs), [1, \\\"2\\\"].map(String), [\\\"1\\\", \\\"x\\\"].map(Number), [\\\"10\\\", \\\"11\\\"].map(parseInt), [0, 1, \\\"\\\"].filter(Boolean), [{ a: 1 }].map(JSON.stringify)])\\nt(\\\"Error as callback\\\", () => [\\\"m\\\"].map(Error).map((e) => e.message))\\nt(\\\"Map as callback\\\", () => [1].map(Map))\\nt(\\\"detached includes\\\", () => [\\\"a\\\"].filter(\\\"abc\\\".includes))\\nt(\\\"bound callback\\\", () => [1, 2].map(function (x) { return x + this.k }.bind({ k: 3 })))\\nt(\\\"mutating during map\\\", () => { const b = [1, 2, 3]; return b.map((x, i) => { if (i === 0) b.push(9); b[2] = 30; return x }) })\\nt(\\\"callback receives array\\\", () => [7].map((x, i, arr) => arr === undefined ? \\\"none\\\" : arr.length))\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"map\": [\n    4,\n    6,\n    10,\n    16\n  ],\n  \"map holes\": [\n    3,\n    false,\n    \"[2,null,6]\"\n  ],\n  \"map thisArg\": [\n    101,\n    102,\n    103,\n    104\n  ],\n  \"map arrow ignores thisArg\": [\n    \"undefined\",\n    \"undefined\",\n    \"undefined\",\n    \"undefined\"\n  ],\n  \"filter\": [\n    2,\n    4\n  ],\n  \"filter holes\": [\n    1,\n    3\n  ],\n  \"find\": [\n    3,\n    null,\n    null\n  ],\n  \"findIndex\": [\n    2,\n    -1\n  ],\n  \"findLast\": [\n    2,\n    null\n  ],\n  \"findLastIndex\": [\n    1,\n    -1\n  ],\n  \"some/every\": [\n    true,\n    false,\n    true,\n    false,\n    false,\n    true,\n    true\n  ],\n  \"forEach\": [\n    [\n      \"0:5\",\n      \"2:7\"\n    ],\n    true\n  ],\n  \"forEach thisArg\": 2,\n  \"reduce\": [\n    10,\n    20,\n    \"0123\",\n    5\n  ],\n  \"reduce empty\": \"!TypeError: Array.reduce of an empty array with no initial value.\",\n  \"reduce holes only\": \"!TypeError: Array.reduce of an empty array with no initial value.\",\n  \"reduceRight\": [\n    10,\n    \">cba\"\n  ],\n  \"reduceRight empty\": \"!TypeError: Array.reduceRight of an empty array with no initial value.\",\n  \"flatMap\": [\n    [\n      1,\n      10,\n      2,\n      20,\n      3,\n      30,\n      4,\n      40\n    ],\n    [\n      1,\n      2,\n      3,\n      4\n    ],\n    [\n      [\n        1\n      ],\n      [\n        2\n      ]\n    ],\n    [\n      1,\n      1,\n      2,\n      2\n    ]\n  ],\n  \"flatMap thisArg\": [\n    \"t\"\n  ],\n  \"non-callable\": \"!TypeError: Array.map expects a function callback.\",\n  \"missing callback\": \"!TypeError: Array.filter expects a function callback.\",\n  \"object callback\": \"!TypeError: Array.forEach expects a function callback.\",\n  \"callback throws\": \"!RangeError: three\",\n  \"builtin callbacks\": [\n    [\n      1,\n      2.5\n    ],\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      1,\n      null\n    ],\n    [\n      10,\n      null\n    ],\n    [\n      1\n    ],\n    [\n      \"{\\\"a\\\":1}\"\n    ]\n  ],\n  \"Error as callback\": [\n    \"m\"\n  ],\n  \"Map as callback\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"detached includes\": \"!TypeError: String.prototype.includes called on null or undefined.\",\n  \"bound callback\": [\n    4,\n    5\n  ],\n  \"mutating during map\": [\n    1,\n    2,\n    30\n  ],\n  \"callback receives array\": [\n    1\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the array callbacks programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the array callbacks programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst a = [1, 2, 3, 4]\\nt(\\\"map\\\", () => a.map((x, i, arr) => x * i + arr.length))\\nt(\\\"map holes\\\", () => { const m = [1, , 3].map((x) => x * 2); return [m.length, 1 in m, JSON.stringify(m)] })\\nt(\\\"map thisArg\\\", () => a.map(function (x) { return x + this.d }, { d: 100 }))\\nt(\\\"map arrow ignores thisArg\\\", () => a.map((x) => typeof this, { d: 1 }))\\nt(\\\"filter\\\", () => a.filter((x) => x % 2 === 0))\\nt(\\\"filter holes\\\", () => [1, , 3].filter(() => true))\\nt(\\\"find\\\", () => [a.find((x) => x > 2), a.find((x) => x > 9), [, 1].find((x) => x === undefined)])\\nt(\\\"findIndex\\\", () => [a.findIndex((x) => x > 2), a.findIndex((x) => x > 9)])\\nt(\\\"findLast\\\", () => [a.findLast((x) => x < 3), a.findLast((x) => x > 9)])\\nt(\\\"findLastIndex\\\", () => [a.findLastIndex((x) => x < 3), a.findLastIndex((x) => x > 9)])\\nt(\\\"some/every\\\", () => [a.some((x) => x > 3), a.some((x) => x > 4), a.every((x) => x > 0), a.every((x) => x > 1), [].some(() => true), [].every(() => false), [, ,].every(() => false)])\\nt(\\\"forEach\\\", () => { const out = []; const ret = [5, , 7].forEach((x, i) => out.push(i + \\\":\\\" + x)); return [out, ret === undefined] })\\nt(\\\"forEach thisArg\\\", () => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })\\nt(\\\"reduce\\\", () => [a.reduce((s, x) => s + x), a.reduce((s, x) => s + x, 10), a.reduce((s, x, i) => s + i, \\\"\\\"), [, 5].reduce((s, x) => s + x)])\\nt(\\\"reduce empty\\\", () => [].reduce((s, x) => s + x))\\nt(\\\"reduce holes only\\\", () => [, ,].reduce((s, x) => s + x))\\nt(\\\"reduceRight\\\", () => [a.reduceRight((s, x) => s + x), [\\\"a\\\", \\\"b\\\", \\\"c\\\"].reduceRight((s, x) => s + x, \\\">\\\")])\\nt(\\\"reduceRight empty\\\", () => [].reduceRight((s, x) => s + x))\\nt(\\\"flatMap\\\", () => [a.flatMap((x) => [x, x * 10]), a.flatMap((x) => x), [1, 2].flatMap((x) => [[x]]), [1, , 2].flatMap((x) => [x, , x])])\\nt(\\\"flatMap thisArg\\\", () => [1].flatMap(function (x) { return [this.v] }, { v: \\\"t\\\" }))\\nt(\\\"non-callable\\\", () => a.map(5))\\nt(\\\"missing callback\\\", () => a.filter())\\nt(\\\"object callback\\\", () => a.forEach({}))\\nt(\\\"callback throws\\\", () => a.map((x) => { if (x === 3) throw new RangeError(\\\"three\\\"); return x }))\\nt(\\\"builtin callbacks\\\", () => [[-1, 2.5].map(Math.abs), [1, \\\"2\\\"].map(String), [\\\"1\\\", \\\"x\\\"].map(Number), [\\\"10\\\", \\\"11\\\"].map(parseInt), [0, 1, \\\"\\\"].filter(Boolean), [{ a: 1 }].map(JSON.stringify)])\\nt(\\\"Error as callback\\\", () => [\\\"m\\\"].map(Error).map((e) => e.message))\\nt(\\\"Map as callback\\\", () => [1].map(Map))\\nt(\\\"detached includes\\\", () => [\\\"a\\\"].filter(\\\"abc\\\".includes))\\nt(\\\"bound callback\\\", () => [1, 2].map(function (x) { return x + this.k }.bind({ k: 3 })))\\nt(\\\"mutating during map\\\", () => { const b = [1, 2, 3]; return b.map((x, i) => { if (i === 0) b.push(9); b[2] = 30; return x }) })\\nt(\\\"callback receives array\\\", () => [7].map((x, i, arr) => arr === undefined ? \\\"none\\\" : arr.length))\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst a = [1, 2, 3, 4]\nt(\"map\", () => a.map((x, i, arr) => x * i + arr.length))\nt(\"map holes\", () => { const m = [1, , 3].map((x) => x * 2); return [m.length, 1 in m, JSON.stringify(m)] })\nt(\"map thisArg\", () => a.map(function (x) { return x + this.d }, { d: 100 }))\nt(\"map arrow ignores thisArg\", () => a.map((x) => typeof this, { d: 1 }))\nt(\"filter\", () => a.filter((x) => x % 2 === 0))\nt(\"filter holes\", () => [1, , 3].filter(() => true))\nt(\"find\", () => [a.find((x) => x > 2), a.find((x) => x > 9), [, 1].find((x) => x === undefined)])\nt(\"findIndex\", () => [a.findIndex((x) => x > 2), a.findIndex((x) => x > 9)])\nt(\"findLast\", () => [a.findLast((x) => x < 3), a.findLast((x) => x > 9)])\nt(\"findLastIndex\", () => [a.findLastIndex((x) => x < 3), a.findLastIndex((x) => x > 9)])\nt(\"some/every\", () => [a.some((x) => x > 3), a.some((x) => x > 4), a.every((x) => x > 0), a.every((x) => x > 1), [].some(() => true), [].every(() => false), [, ,].every(() => false)])\nt(\"forEach\", () => { const out = []; const ret = [5, , 7].forEach((x, i) => out.push(i + \":\" + x)); return [out, ret === undefined] })\nt(\"forEach thisArg\", () => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })\nt(\"reduce\", () => [a.reduce((s, x) => s + x), a.reduce((s, x) => s + x, 10), a.reduce((s, x, i) => s + i, \"\"), [, 5].reduce((s, x) => s + x)])\nt(\"reduce empty\", () => [].reduce((s, x) => s + x))\nt(\"reduce holes only\", () => [, ,].reduce((s, x) => s + x))\nt(\"reduceRight\", () => [a.reduceRight((s, x) => s + x), [\"a\", \"b\", \"c\"].reduceRight((s, x) => s + x, \">\")])\nt(\"reduceRight empty\", () => [].reduceRight((s, x) => s + x))\nt(\"flatMap\", () => [a.flatMap((x) => [x, x * 10]), a.flatMap((x) => x), [1, 2].flatMap((x) => [[x]]), [1, , 2].flatMap((x) => [x, , x])])\nt(\"flatMap thisArg\", () => [1].flatMap(function (x) { return [this.v] }, { v: \"t\" }))\nt(\"non-callable\", () => a.map(5))\nt(\"missing callback\", () => a.filter())\nt(\"object callback\", () => a.forEach({}))\nt(\"callback throws\", () => a.map((x) => { if (x === 3) throw new RangeError(\"three\"); return x }))\nt(\"builtin callbacks\", () => [[-1, 2.5].map(Math.abs), [1, \"2\"].map(String), [\"1\", \"x\"].map(Number), [\"10\", \"11\"].map(parseInt), [0, 1, \"\"].filter(Boolean), [{ a: 1 }].map(JSON.stringify)])\nt(\"Error as callback\", () => [\"m\"].map(Error).map((e) => e.message))\nt(\"Map as callback\", () => [1].map(Map))\nt(\"detached includes\", () => [\"a\"].filter(\"abc\".includes))\nt(\"bound callback\", () => [1, 2].map(function (x) { return x + this.k }.bind({ k: 3 })))\nt(\"mutating during map\", () => { const b = [1, 2, 3]; return b.map((x, i) => { if (i === 0) b.push(9); b[2] = 30; return x }) })\nt(\"callback receives array\", () => [7].map((x, i, arr) => arr === undefined ? \"none\" : arr.length))\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"map\": [\n    4,\n    6,\n    10,\n    16\n  ],\n  \"map holes\": [\n    3,\n    false,\n    \"[2,null,6]\"\n  ],\n  \"map thisArg\": [\n    101,\n    102,\n    103,\n    104\n  ],\n  \"map arrow ignores thisArg\": [\n    \"undefined\",\n    \"undefined\",\n    \"undefined\",\n    \"undefined\"\n  ],\n  \"filter\": [\n    2,\n    4\n  ],\n  \"filter holes\": [\n    1,\n    3\n  ],\n  \"find\": [\n    3,\n    null,\n    null\n  ],\n  \"findIndex\": [\n    2,\n    -1\n  ],\n  \"findLast\": [\n    2,\n    null\n  ],\n  \"findLastIndex\": [\n    1,\n    -1\n  ],\n  \"some/every\": [\n    true,\n    false,\n    true,\n    false,\n    false,\n    true,\n    true\n  ],\n  \"forEach\": [\n    [\n      \"0:5\",\n      \"2:7\"\n    ],\n    true\n  ],\n  \"forEach thisArg\": 2,\n  \"reduce\": [\n    10,\n    20,\n    \"0123\",\n    5\n  ],\n  \"reduce empty\": \"!TypeError: Array.reduce of an empty array with no initial value.\",\n  \"reduce holes only\": \"!TypeError: Array.reduce of an empty array with no initial value.\",\n  \"reduceRight\": [\n    10,\n    \">cba\"\n  ],\n  \"reduceRight empty\": \"!TypeError: Array.reduceRight of an empty array with no initial value.\",\n  \"flatMap\": [\n    [\n      1,\n      10,\n      2,\n      20,\n      3,\n      30,\n      4,\n      40\n    ],\n    [\n      1,\n      2,\n      3,\n      4\n    ],\n    [\n      [\n        1\n      ],\n      [\n        2\n      ]\n    ],\n    [\n      1,\n      1,\n      2,\n      2\n    ]\n  ],\n  \"flatMap thisArg\": [\n    \"t\"\n  ],\n  \"non-callable\": \"!TypeError: Array.map expects a function callback.\",\n  \"missing callback\": \"!TypeError: Array.filter expects a function callback.\",\n  \"object callback\": \"!TypeError: Array.forEach expects a function callback.\",\n  \"callback throws\": \"!RangeError: three\",\n  \"builtin callbacks\": [\n    [\n      1,\n      2.5\n    ],\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      1,\n      null\n    ],\n    [\n      10,\n      null\n    ],\n    [\n      1\n    ],\n    [\n      \"{\\\"a\\\":1}\"\n    ]\n  ],\n  \"Error as callback\": [\n    \"m\"\n  ],\n  \"Map as callback\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"detached includes\": \"!TypeError: String.prototype.includes called on null or undefined.\",\n  \"bound callback\": [\n    4,\n    5\n  ],\n  \"mutating during map\": [\n    1,\n    2,\n    30\n  ],\n  \"callback receives array\": [\n    1\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

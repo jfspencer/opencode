@@ -28,7 +28,7 @@ upstream range to run through the conformance loop.
 
 | Path | What |
 |---|---|
-| `conformance/` | Scenario suite run against both implementations. Expected outputs are recorded from the TS reference, never hand-written. |
+| `conformance/` | The conformance oracle: scenarios (HTTP API, TUI, CLI) recorded from the TS reference, never hand-written. See `conformance/README.md` and `conformance/FINDINGS.md`. |
 | `coverage/` | Tooling that measures how much of the in-scope TS source each test set reaches. `report.py` holds the scope definition. |
 | `rust/` | The Rust implementation (its own Cargo workspace). Not created yet. |
 | `scripts/` | Upstream sync, ownership check, dependency linking. |
@@ -39,7 +39,6 @@ upstream range to run through the conformance loop.
 root `package.json`. After `bun install` at the repo root, run `port/scripts/link-deps.sh`. It symlinks
 `effect` and `@opencode/*` from `packages/server`'s node_modules into `port/conformance/node_modules`
 (gitignored), so the suite loads the same module instances as the server it drives.
-`conformance/smoke.test.ts` checks this works.
 
 ## Scope
 
@@ -50,11 +49,14 @@ Out of scope:
 - plugin support;
 - every provider except OpenRouter (one hardcoded access point; models are added by hand);
 - `opencode mini`;
-- the v1 storage migration;
+- the v1 storage migration and the legacy v1 config and schema formats;
 - the AI SDK bridge;
 - the model catalog and pricing;
-- MCP;
-- the legacy v1 config and schema formats.
+- MCP, websearch and image generation (their tools are hidden from the model in the reference config);
+- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM).
+
+Dropped features keep the API endpoints the TUI calls, answered as the TS reference does with nothing
+configured (see `conformance/README.md`). The coverage scope is defined in `coverage/report.py`.
 
 ## Coverage workflow
 

@@ -1,0 +1,199 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected a string starting with \"ses\"\n  at [\"id\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "not-a-session-id"
+      },
+      "status": 400,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected string | null\n  at [\"title\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "title": 42
+      },
+      "status": 400,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"model\"][\"id\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "providerID": "openrouter"
+        }
+      },
+      "status": 400,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "relative/path"
+        }
+      },
+      "status": 500,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected Permission.Effect\n  at [\"permissions\"][0][\"effect\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "permissions": [
+          {
+            "action": "edit",
+            "effect": "maybe",
+            "resource": "*"
+          }
+        ]
+      },
+      "status": 400,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected a string starting with \"ses\"\n  at [\"parentID\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "parentID": "<msg_1>"
+      },
+      "status": 400,
+      "url": "/api/session"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

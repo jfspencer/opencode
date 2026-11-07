@@ -1,0 +1,27 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp",
+          "--login"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "│",
+          "■  Pass an integration ID or name when running without an interactive terminal",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

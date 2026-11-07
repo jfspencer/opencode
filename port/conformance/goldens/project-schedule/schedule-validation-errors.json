@@ -1,0 +1,671 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Invalid duration: soon"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "soon"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Duration must be positive: 0 seconds"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "0 seconds"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Time is in the past: <iso-time>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "at": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Invalid time: next tuesday"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "at": "next tuesday"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "every must be at least 1 minute"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "30 seconds"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Invalid number of segments in cron expression"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "cron": "not a cron"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "cron must fire at most once a minute"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "cron": "*/10 * * * * *"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "cron never fires: 0 0 30 2 *"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "cron": "0 0 30 2 *"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Unknown time zone: Mars/Olympus"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour",
+          "tz": "Mars/Olympus"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Invalid time: whenever"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "at": "whenever"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "The schedule ends before it first fires"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "after": "10 minutes"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected a value greater than 0\n  at [\"ends\"][\"times\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "times": 0
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "when is required unless until is set"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "No when",
+        "sessionID": "<ses_1>"
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Choose either if or until, not both"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "run": "true"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "until": {
+          "run": "true"
+        },
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "A shell check needs a command"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "run": "   "
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Choose at most one of is, matches or changes"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "is": "a",
+          "matches": "b",
+          "run": "echo"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Invalid regular expression \"(\": Invalid regular expression: missing )"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "matches": "(",
+          "run": "echo"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "SyntaxError: Unexpected token. Code must be plain JavaScript written as a program body. (line 1, col 9)"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "return ("
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Tool opencode.worktree_create cannot be used inside a schedule check"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "await tools.opencode.worktree_create({ name: 'x' }); return true"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Unknown Code Mode tool: nope.missing"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "await tools.nope.missing(); return true"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"when\"][\"in\"]\nMissing key\n  at [\"when\"][\"at\"]\nMissing key\n  at [\"when\"][\"every\"]\nMissing key\n  at [\"when\"][\"cron\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "sometime": true
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected never\n  at [\"when\"][\"every\"]\nMissing key\n  at [\"when\"][\"at\"]\nExpected never\n  at [\"when\"][\"in\"]\nMissing key\n  at [\"when\"][\"cron\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour",
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected never\n  at [\"if\"][\"code\"]\nExpected never\n  at [\"if\"][\"run\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "return true",
+          "run": "true"
+        },
+        "prompt": "Ping",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected a value with a length of at least 1\n  at [\"prompt\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_2>",
+        "sessionID": "<ses_2>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "x",
+        "sessionID": "<ses_2>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 404,
+      "url": "/api/experimental/schedule"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

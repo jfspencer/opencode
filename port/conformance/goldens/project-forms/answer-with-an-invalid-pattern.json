@@ -1,0 +1,336 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "p",
+              "pattern": "(",
+              "type": "string"
+            },
+            {
+              "custom": true,
+              "key": "m",
+              "options": [
+                {
+                  "label": "A",
+                  "value": "a"
+                }
+              ],
+              "required": true,
+              "type": "multiselect"
+            }
+          ],
+          "id": "<frm_1>",
+          "sessionID": "<ses_1>",
+          "title": "Pattern"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "p",
+            "pattern": "(",
+            "type": "string"
+          },
+          {
+            "custom": true,
+            "key": "m",
+            "options": [
+              {
+                "label": "A",
+                "value": "a"
+              }
+            ],
+            "required": true,
+            "type": "multiselect"
+          }
+        ],
+        "title": "Pattern"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field has invalid pattern: p"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "m": [
+            "a"
+          ],
+          "p": "x"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Missing required form field: m"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "m": []
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "m": [
+            "anything"
+          ]
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "key": "p",
+                "pattern": "(",
+                "type": "string"
+              },
+              {
+                "custom": true,
+                "key": "m",
+                "options": [
+                  {
+                    "label": "A",
+                    "value": "a"
+                  }
+                ],
+                "required": true,
+                "type": "multiselect"
+              }
+            ],
+            "id": "<frm_1>",
+            "sessionID": "<ses_1>",
+            "title": "Pattern"
+          }
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "answer": {
+            "m": [
+              "anything"
+            ]
+          },
+          "id": "<frm_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.replied"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,685 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Tool history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Tool history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Show every state",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "# Demo",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "path": "README.md"
+                  },
+                  "metadata": {
+                    "loaded": [
+                      "AGENTS.md",
+                      "docs/AGENTS.md"
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_2",
+                "name": "bash",
+                "state": {
+                  "content": [
+                    {
+                      "text": "built",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "command": "make build",
+                    "workdir": "/"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_3",
+                "name": "shell",
+                "state": {
+                  "content": [
+                    {
+                      "text": "started",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "background": true,
+                    "command": "npm run dev"
+                  },
+                  "metadata": {
+                    "shellID": "<sh_1>",
+                    "status": "running"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_4",
+                "name": "task",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Looked.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "description": "Look around",
+                    "prompt": "Look",
+                    "subagent_type": "explore"
+                  },
+                  "metadata": {
+                    "sessionID": "<ses_2>",
+                    "status": "running"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_5",
+                "name": "question",
+                "state": {
+                  "content": [
+                    {
+                      "text": "answered",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "questions": [
+                      {
+                        "question": "Pick a color?"
+                      },
+                      {
+                        "question": "Pick a size?"
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "answers": [
+                      [
+                        "Blue"
+                      ],
+                      []
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_6",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "TypeError: tools.x is not a function\n    at line 1\n    at line 2\n    at line 3\n    at line 4",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "await tools.x()"
+                  },
+                  "metadata": {
+                    "error": true,
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "query": "deepseek"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "title": "x"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "status": "running",
+                        "tool": "opencode.worktree_list"
+                      }
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_7",
+                "name": "skill",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Skill body",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "id": "review"
+                  },
+                  "metadata": {
+                    "name": "Code Review"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_8",
+                "name": "custom_tool",
+                "state": {
+                  "content": [
+                    {
+                      "text": "custom output",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "count": 3,
+                    "force": true,
+                    "nested": {
+                      "a": 1
+                    },
+                    "target": "prod"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_9",
+                "name": "webfetch",
+                "state": {
+                  "error": {
+                    "message": "Request failed with status 503",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "url": "https://example.com/down"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_10",
+                "name": "question",
+                "state": {
+                  "error": {
+                    "message": "QuestionRejectedError: the user dismissed this question",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "questions": [
+                      {
+                        "question": "Ignored?"
+                      }
+                    ]
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "text": "All states shown.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "kind": "note",
+      "label": "frame:bottom",
+      "value": [
+        "   Tool history                  +",
+        "  ┃  Show every state",
+        "  ┃",
+        "",
+        "     → Read README.md",
+        "     ↳ Loaded AGENTS.md",
+        "     ↳ Loaded docs/AGENTS.md",
+        "",
+        "  ┃",
+        "  ┃  $ cd / && make build",
+        "  ┃",
+        "  ┃  built",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ npm run dev",
+        "  ┃",
+        "  ┃   Background",
+        "  ┃",
+        "",
+        "     ✓ Explore Subagent — Look around  Background",
+        "",
+        "  ┃",
+        "  ┃  # Questions",
+        "  ┃",
+        "  ┃  Pick a color?",
+        "  ┃  Blue",
+        "  ┃",
+        "  ┃  Pick a size?",
+        "  ┃  (no answer)",
+        "  ┃",
+        "",
+        "     ✗ execute",
+        "     › opencode.models [query=deepseek]",
+        "     ✗ opencode.session_rename [title=x]",
+        "     › opencode.worktree_list",
+        "     ↳ TypeError: tools.x is not a function",
+        "           at line 1",
+        "           at line 2",
+        "           at line 3…",
+        "",
+        "     → Skill \"Code Review\"",
+        "",
+        "     ✓ custom_tool [target=prod, force=true, count=3]",
+        "",
+        "     % WebFetch https://example.com/down",
+        "",
+        "     → Asked 1 question",
+        "",
+        "     All states shown.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                             1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:top",
+      "value": [
+        "   Tool history                  +",
+        "",
+        "  ┃",
+        "  ┃  Show every state",
+        "  ┃",
+        "",
+        "     → Read README.md",
+        "     ↳ Loaded AGENTS.md",
+        "     ↳ Loaded docs/AGENTS.md",
+        "",
+        "  ┃",
+        "  ┃  $ cd / && make build",
+        "  ┃",
+        "  ┃  built",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ npm run dev",
+        "  ┃",
+        "  ┃   Background",
+        "  ┃",
+        "",
+        "     ✓ Explore Subagent — Look around  Background",
+        "",
+        "  ┃",
+        "  ┃  # Questions",
+        "  ┃",
+        "  ┃  Pick a color?",
+        "  ┃  Blue",
+        "  ┃",
+        "  ┃  Pick a size?",
+        "  ┃  (no answer)",
+        "  ┃",
+        "",
+        "     ✗ execute",
+        "     › opencode.models [query=deepseek]",
+        "     ✗ opencode.session_rename [title=x]",
+        "     › opencode.worktree_list",
+        "     ↳ TypeError: tools.x is not a function",
+        "           at line 1",
+        "           at line 2",
+        "           at line 3…",
+        "",
+        "     → Skill \"Code Review\"",
+        "",
+        "     ✓ custom_tool [target=prod, force=true, count=3]",
+        "",
+        "     % WebFetch https://example.com/down",
+        "",
+        "     → Asked 1 question",
+        "",
+        "     All states shown.",
+        "                                                                                  Jump to latest ↓",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                             1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/inbox",
+        "GET /api/session/<ses_1>/message",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "Tool history",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

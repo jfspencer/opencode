@@ -1,0 +1,280 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "frame:custom theme listed",
+      "value": [
+        "",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Failed to load theme: broken                  x  ┃",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Invalid theme: broken value is an invalid value  ┃",
+        "                                             ┃                                                   ┃",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Themes                                           esc",
+        "",
+        "                        bro",
+        "",
+        "                        broken",
+        "",
+        "",
+        "",
+        "",
+        "             ┃",
+        "             ┃  Ask anything… \"<placeholder>\"",
+        "             ┃",
+        "             ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "             ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "             /…/<root-name>/<project-name>   shift+tab agents  ctrl+p commands",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:error toast",
+      "value": [
+        "",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Failed to load theme: broken                  x  ┃",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Invalid theme: broken value is an invalid value  ┃",
+        "                                             ┃                                                   ┃",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                ▄",
+        "                               █▀▀█ █▀▀█ █▀▀█ █▀▀▄ █▀▀▀ █▀▀█ █▀▀█ █▀▀█",
+        "                               █  █ █  █ █▀▀▀ █  █ █    █  █ █  █ █▀▀▀",
+        "                               ▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀",
+        "",
+        "",
+        "             ┃",
+        "             ┃  Ask anything… \"<placeholder>\"",
+        "             ┃",
+        "             ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "             ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "             /…/<root-name>/<project-name>   shift+tab agents  ctrl+p commands",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:theme after the failure",
+      "value": [
+        "",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Failed to load theme: broken                  x  ┃",
+        "                                             ┃                                                   ┃",
+        "                                             ┃  Invalid theme: broken value is an invalid value  ┃",
+        "                                             ┃                                                   ┃",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Settings                                         esc",
+        "",
+        "                        Search",
+        "",
+        "                        Appearance",
+        "                      ● Theme                                         broken",
+        "                        Color mode                                    system",
+        "                        Animations                                       off",
+        "",
+        "             ┃          Session",
+        "             ┃  Ask     Sidebar                                         auto",
+        "             ┃          Scrollbar                                        off",
+        "             ┃  Buil    Scroll on send                        jump to latest",
+        "             ╹▀▀▀▀▀▀    Thinking                                        hide    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Markdown                                    rendered    commands",
+        "                        Tool grouping                                   auto",
+        "                        Verbosity                                     medium",
+        "                        Transcript images                                off",
+        "",
+        "                        change ←/→",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session/active",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".opencode/themes/broken.json": "{\"base\":{\"text\":{\"base\":42}}}",
+    ".opencode/themes/notatheme.json": "{\"hello\":\"world\"}"
+  }
+}

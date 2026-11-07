@@ -1,0 +1,48 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": null,
+            "previous": null
+          },
+          "data": []
+        },
+        "headers": {
+          "authorization": "Basic base64(opencode:conformance-secret)"
+        },
+        "method": "GET",
+        "status": 200,
+        "url": "http://127.0.0.1:<port>/api/session"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "serve",
+          "--stdio",
+          "--port",
+          "0"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-secret"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "url": "http://127.0.0.1:<port>"
+          }
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

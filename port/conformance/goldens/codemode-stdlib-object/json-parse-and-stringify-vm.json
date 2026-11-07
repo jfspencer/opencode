@@ -1,0 +1,780 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the json parse and stringify programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the json parse and stringify programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the json parse and stringify programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the json parse and stringify programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": {
+                      "<blob>": "4cf9021d88db6b5bcb9fda1b27a4431ad838ded5cd744036f8557a8e8814f2eb"
+                    },
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected EOF\",\n  \"parse non-string\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"object\\\"\",\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"undefined\\\"\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"{}\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object Object]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the json parse and stringify programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the json parse and stringify programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": {
+            "<blob>": "4cf9021d88db6b5bcb9fda1b27a4431ad838ded5cd744036f8557a8e8814f2eb"
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"parse\", () => [JSON.parse(\"1\"), JSON.parse('\"s\"'), JSON.parse(\"null\"), JSON.parse(\"[1,{\\\"a\\\":true}]\"), JSON.parse(\" {\\\"x\\\": [] } \")])\nt(\"parse invalid\", () => JSON.parse(\"{bad\"))\nt(\"parse empty\", () => JSON.parse(\"\"))\nt(\"parse non-string\", () => [JSON.parse(5), JSON.parse(true), JSON.parse({ toString() { return \"[7]\" } })])\nt(\"parse undefined\", () => JSON.parse())\nt(\"parse reviver\", () => JSON.parse('{\"a\":1,\"b\":{\"c\":2,\"d\":[3,4]}}', (k, v) => (typeof v === \"number\" ? v * 10 : v)))\nt(\"parse reviver delete\", () => JSON.parse('{\"a\":1,\"b\":2}', (k, v) => (k === \"a\" ? undefined : v)))\nt(\"parse reviver this\", () => { const seen = []; JSON.parse('{\"x\":{\"y\":1}}', function (k, v) { seen.push(k + \":\" + Object.keys(this).join(\"|\")); return v }); return seen })\nt(\"parse reviver root\", () => JSON.parse(\"[1]\", (k, v) => (k === \"\" ? \"root\" : v)))\nt(\"parse non-function reviver\", () => JSON.parse(\"[1]\", 5))\nt(\"parse proto key\", () => { const x = JSON.parse('{\"__proto__\": {\"p\": 1}, \"a\": 2}'); return [Object.keys(x), x.p] })\nt(\"stringify\", () => [JSON.stringify(1), JSON.stringify(\"s\"), JSON.stringify(null), JSON.stringify(undefined), JSON.stringify([undefined, () => 1, NaN, Infinity]), JSON.stringify({ a: undefined, b: () => 1, c: NaN, d: -0 })])\nt(\"stringify nested\", () => JSON.stringify({ a: [1, { b: \"x\" }], c: { d: null } }))\nt(\"stringify indent number\", () => JSON.stringify({ a: [1, 2], b: {} }, null, 2))\nt(\"stringify indent string\", () => JSON.stringify({ a: 1 }, null, \"--\"))\nt(\"stringify indent big\", () => JSON.stringify([1], null, 20))\nt(\"stringify indent other\", () => JSON.stringify([1], null, {}))\nt(\"stringify replacer array\", () => JSON.stringify({ a: 1, b: 2, c: { a: 3, d: 4 }, 1: \"one\" }, [\"a\", \"c\", 1, {}]))\nt(\"stringify replacer function\", () => JSON.stringify({ a: 1, b: \"x\", c: [1, 2] }, (k, v) => (typeof v === \"number\" ? v + 100 : v)))\nt(\"stringify replacer drops\", () => JSON.stringify({ a: 1, b: 2 }, (k, v) => (k === \"b\" ? undefined : v)))\nt(\"stringify replacer this\", () => { const keys = []; JSON.stringify({ o: { p: 1 } }, function (k, v) { keys.push(k + \"@\" + (this === undefined ? \"u\" : Object.keys(this).join(\",\"))); return v }); return keys })\nt(\"stringify replacer root\", () => JSON.stringify(5, (k, v) => (k === \"\" ? [v] : v)))\nt(\"stringify toJSON\", () => JSON.stringify({ a: { toJSON(key) { return \"J:\" + key } }, d: new Date(0), u: new URL(\"http://x.y/z\") }))\nt(\"stringify toJSON array\", () => JSON.stringify([{ toJSON(k) { return k } }]))\nt(\"stringify cyclic\", () => { const a = { n: 1 }; const b = { a }; return JSON.stringify([b, b]) })\nt(\"stringify promise\", () => JSON.stringify({ p: Promise.resolve(1) }))\nt(\"stringify map set\", () => JSON.stringify({ m: new Map([[1, 2]]), s: new Set([1]), re: /a/, h: new Headers({ \"X-A\": \"1\" }), q: new URLSearchParams(\"a=1\"), b: new Uint8Array([1, 2]) }))\nt(\"stringify error\", () => JSON.stringify({ e: new TypeError(\"bad\"), f: Object.assign(new Error(\"x\"), { code: 5 }) }))\nt(\"stringify function\", () => JSON.stringify(() => 1))\nt(\"stringify symbol\", () => JSON.stringify(Symbol.iterator))\nt(\"stringify generator\", () => JSON.stringify((function* () {})()))\nt(\"stringify deep\", () => { let x = 1; for (let i = 0; i < 40; i++) x = [x]; return JSON.stringify(x).length })\nt(\"stringify too long\", () => { const s = \"x\".repeat(9000000); return JSON.stringify([s, s]) })\nt(\"stringify unicode\", () => JSON.stringify(\"é\\u2028\\n\\u0001\"))\nt(\"JSON tag\", () => [Object.prototype.toString.call(JSON), typeof JSON.parse, JSON.parse.length, JSON.stringify.length])\nt(\"stringify callable\", () => [1, 2].map(JSON.stringify))\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected EOF\",\n  \"parse non-string\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"object\\\"\",\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"undefined\\\"\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"{}\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object Object]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

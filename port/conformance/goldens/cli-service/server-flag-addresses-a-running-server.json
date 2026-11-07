@@ -1,0 +1,172 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "password",
+          "conformance-password"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--server",
+          "http://127.0.0.1:<service-port>"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-password"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "openrouter/deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--server",
+          "http://127.0.0.1:<service-port>"
+        ],
+        "env": {
+          "OPENCODE_SERVER_PASSWORD": "conformance-password"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--server",
+          "http://127.0.0.1:<service-port>"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Server at http://127.0.0.1:<service-port> requires a password; set OPENCODE_PASSWORD {",
+          "  [cause]: UnauthorizedError: Authentication required",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--server",
+          "http://127.0.0.1:<service-port>"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "wrong"
+        },
+        "exit": 1,
+        "stderr": [
+          "Error: Server at http://127.0.0.1:<service-port> rejected the password {",
+          "  [cause]: UnauthorizedError: Authentication required",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--server",
+          "http://127.0.0.1:<service-port>",
+          "--standalone"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-password"
+        },
+        "exit": 1,
+        "stderr": [
+          "Error: --server and --standalone cannot be combined",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--server",
+          "http://127.0.0.1:<port-1>"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Could not reach server at http://127.0.0.1:<port-1>: Unable to connect. Is the computer able to access the url? {",
+          "  [cause]: ClientError: Transport: Unable to connect. Is the computer able to access the url? {",
+          "    [cause]: TypeError: Unable to connect. Is the computer able to access the url?",
+          "  }",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

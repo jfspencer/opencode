@@ -1,0 +1,1441 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "entries",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "entries"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": {
+          "lead": "sam",
+          "size": 4
+        }
+      },
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/team"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": "Answer tersely."
+      },
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/style"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "key": "style",
+            "value": "Answer tersely."
+          },
+          {
+            "key": "team",
+            "value": {
+              "lead": "sam",
+              "size": 4
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Who leads?"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Who leads?"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": {
+          "lead": "alex",
+          "size": 5
+        }
+      },
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/team"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": "Answer tersely."
+      },
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/style"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": [
+          "one",
+          "two"
+        ]
+      },
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/extra"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_2>",
+          "payload": {
+            "text": "And now?"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "And now?"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/team"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/never-set"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "key": "extra",
+            "value": [
+              "one",
+              "two"
+            ]
+          },
+          {
+            "key": "style",
+            "value": "Answer tersely."
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_3>",
+          "payload": {
+            "text": "Anything else?"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Anything else?"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "id": "<msg_1>",
+            "text": "Who leads?",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Noted the team.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_5>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "description": "Instructions updated: api/extra, api/team",
+            "id": "<msg_6>",
+            "metadata": {
+              "instructionSources": [
+                "api/extra",
+                "api/team"
+              ],
+              "notice": "instructions"
+            },
+            "text": "<context key=\"extra\">\n[\n  \"one\",\n  \"two\"\n]\n</context>\n\nThe context under \"team\" changed and supersedes the previous value:\n<context key=\"team\">\n{\n  \"lead\": \"alex\",\n  \"size\": 5\n}\n</context>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_2>",
+            "text": "And now?",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Noted the changes.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_8>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "description": "Instructions updated: api/team",
+            "id": "<msg_9>",
+            "metadata": {
+              "instructionSources": [
+                "api/team"
+              ],
+              "notice": "instructions"
+            },
+            "text": "The context under \"team\" no longer applies. Disregard it.",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_3>",
+            "text": "Anything else?",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Noted the removal.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_10>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_11>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/context"
+    },
+    {
+      "kind": "note",
+      "label": "PUT entries/huge with a 300000-character value",
+      "value": {
+        "body": {
+          "_tag": "InstructionEntryValueTooLargeError",
+          "actualBytes": 300002,
+          "maxBytes": 262144,
+          "message": "Instruction entry value is 300002 bytes; the limit is 262144 bytes"
+        },
+        "status": 413
+      }
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string matching the RegExp ^[a-z0-9][a-z0-9._-]*$\n  at [\"key\"]"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": 1
+      },
+      "status": 400,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/bad%20key"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"value\"]"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {},
+      "status": 400,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/novalue"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "6bdf48b6f4c835d8661433707003627a430cbb94f7cb567187031ebcd9fe1d5d"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Who leads?",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "6bdf48b6f4c835d8661433707003627a430cbb94f7cb567187031ebcd9fe1d5d"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Who leads?",
+              "role": "user"
+            },
+            {
+              "content": "Noted the team.",
+              "role": "assistant"
+            },
+            {
+              "content": "<system-update>\n&lt;context key=\"extra\"&gt;\n[\n  \"one\",\n  \"two\"\n]\n&lt;/context&gt;\n\nThe context under \"team\" changed and supersedes the previous value:\n&lt;context key=\"team\"&gt;\n{\n  \"lead\": \"alex\",\n  \"size\": 5\n}\n&lt;/context&gt;\n</system-update>",
+              "role": "user"
+            },
+            {
+              "content": "And now?",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "6bdf48b6f4c835d8661433707003627a430cbb94f7cb567187031ebcd9fe1d5d"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Who leads?",
+              "role": "user"
+            },
+            {
+              "content": "Noted the team.",
+              "role": "assistant"
+            },
+            {
+              "content": "<system-update>\n&lt;context key=\"extra\"&gt;\n[\n  \"one\",\n  \"two\"\n]\n&lt;/context&gt;\n\nThe context under \"team\" changed and supersedes the previous value:\n&lt;context key=\"team\"&gt;\n{\n  \"lead\": \"alex\",\n  \"size\": 5\n}\n&lt;/context&gt;\n</system-update>",
+              "role": "user"
+            },
+            {
+              "content": "And now?",
+              "role": "user"
+            },
+            {
+              "content": "Noted the changes.",
+              "role": "assistant"
+            },
+            {
+              "content": "<system-update>\nThe context under \"team\" no longer applies. Disregard it.\n</system-update>",
+              "role": "user"
+            },
+            {
+              "content": "Anything else?",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "entries",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Who leads?"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "api/style": "<hash_2>",
+            "api/team": "<hash_3>",
+            "core/codemode": "<hash_4>",
+            "core/date": "<hash_5>",
+            "core/environment": "<hash_6>",
+            "core/skill-guidance": "<hash_7>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Noted the team.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Noted the team."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_22>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "And now?"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_25>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "api/extra": "<hash_8>",
+            "api/team": "<hash_9>"
+          },
+          "sessionID": "<ses_1>",
+          "text": "<context key=\"extra\">\n[\n  \"one\",\n  \"two\"\n]\n</context>\n\nThe context under \"team\" changed and supersedes the previous value:\n<context key=\"team\">\n{\n  \"lead\": \"alex\",\n  \"size\": 5\n}\n</context>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 2
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "delta": "Noted the changes.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Noted the changes."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_34>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Anything else?"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "api/team": "removed"
+          },
+          "sessionID": "<ses_1>",
+          "text": "The context under \"team\" no longer applies. Disregard it."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 2
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_10>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "delta": "Noted the removal.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Noted the removal."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_46>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

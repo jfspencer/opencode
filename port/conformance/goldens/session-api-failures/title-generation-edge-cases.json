@@ -1,0 +1,2305 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before FAIL-TITLE",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "before FAIL-TITLE"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "FAIL-TITLE please"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "FAIL-TITLE please"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before FAIL-TITLE",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before LONG-TITLE",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "before LONG-TITLE"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_2>",
+          "payload": {
+            "text": "LONG-TITLE please"
+          },
+          "sessionID": "<ses_2>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "LONG-TITLE please"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_2>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_2>",
+      "state": "idle"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "A very very very very very very very very very very very very very very very very very very very ...",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before BLANK-TITLE",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "before BLANK-TITLE"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_3>",
+          "payload": {
+            "text": "BLANK-TITLE please"
+          },
+          "sessionID": "<ses_3>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "BLANK-TITLE please"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_3>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_3>",
+      "state": "idle"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before BLANK-TITLE",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_4>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before follow-up",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "before follow-up"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_4>",
+          "payload": {
+            "text": "follow-up please"
+          },
+          "sessionID": "<ses_4>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "follow-up please"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_4>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_4>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_5>",
+          "payload": {
+            "text": "Follow-up question"
+          },
+          "sessionID": "<ses_4>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "resume": false,
+        "text": "Follow-up question"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_4>/prompt"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_4>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_4>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "succeeded",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Named from the conversation",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_4>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_5>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_5>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_6>",
+            "text": "Name me please",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_5>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_5>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Named from the first message",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_5>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_5>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_5>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Named from the first message",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_5>"
+    }
+  ],
+  "provider": {
+    "chat:<ses_4>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "follow-up please",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_4>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "chat:<ses_3>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "BLANK-TITLE please",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_3>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "chat:<ses_2>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "LONG-TITLE please",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_2>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "FAIL-TITLE please",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_5>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nName me please\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_5>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the conversation so far:\n\n<conversation>\nOriginal request:\nName me please\n</conversation>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_5>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_4>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the conversation so far:\n\n<conversation>\nOriginal request:\nfollow-up please\n\nRecent conversation:\nAssistant: Answered.\n</conversation>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_4>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_3>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the conversation so far:\n\n<conversation>\nOriginal request:\nBLANK-TITLE please\n\nRecent conversation:\nAssistant: Answered.\n</conversation>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_3>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_2>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the conversation so far:\n\n<conversation>\nOriginal request:\nLONG-TITLE please\n\nRecent conversation:\nAssistant: Answered.\n</conversation>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_2>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the conversation so far:\n\n<conversation>\nOriginal request:\nFAIL-TITLE please\n\nRecent conversation:\nAssistant: Answered.\n</conversation>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_5>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_5>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_5>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_5>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_12>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_5>",
+          "title": "Named from the first message"
+        },
+        "durable": {
+          "aggregateID": "<ses_5>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_5>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_14>",
+        "type": "session.usage.updated"
+      }
+    ],
+    "<ses_4>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_4>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "before follow-up",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_4>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "follow-up please"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_3>",
+            "core/date": "<hash_4>",
+            "core/environment": "<hash_5>",
+            "core/skill-guidance": "<hash_6>"
+          },
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_4>",
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_4>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "delta": "Answered.",
+          "ordinal": 0,
+          "sessionID": "<ses_4>"
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_4>",
+          "text": "Answered."
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_4>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_4>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_26>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_5>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Follow-up question"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_4>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_29>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_4>",
+          "title": "Named from the conversation"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "before BLANK-TITLE",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "BLANK-TITLE please"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_3>",
+            "core/date": "<hash_4>",
+            "core/environment": "<hash_5>",
+            "core/skill-guidance": "<hash_6>"
+          },
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_3>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "ordinal": 0,
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "delta": "Answered.",
+          "ordinal": 0,
+          "sessionID": "<ses_3>"
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "ordinal": 0,
+          "sessionID": "<ses_3>",
+          "text": "Answered."
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_42>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_44>",
+        "type": "session.usage.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "before LONG-TITLE",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "LONG-TITLE please"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_3>",
+            "core/date": "<hash_4>",
+            "core/environment": "<hash_5>",
+            "core/skill-guidance": "<hash_6>"
+          },
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_9>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_2>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "ordinal": 0,
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "delta": "Answered.",
+          "ordinal": 0,
+          "sessionID": "<ses_2>"
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "ordinal": 0,
+          "sessionID": "<ses_2>",
+          "text": "Answered."
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_56>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_57>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_58>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "title": "A very very very very very very very very very very very very very very very very very very very ..."
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "before FAIL-TITLE",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "FAIL-TITLE please"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_3>",
+            "core/date": "<hash_4>",
+            "core/environment": "<hash_5>",
+            "core/skill-guidance": "<hash_6>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_10>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_65>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "delta": "Answered.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_67>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Answered."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_69>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_70>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_71>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

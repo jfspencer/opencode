@@ -1,0 +1,165 @@
+{
+  "transcript": [
+    {
+      "body": "# Demo\n\nA small project.\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/README.md"
+    },
+    {
+      "body": "export const value = 42\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/src/nested/deep/value.ts"
+    },
+    {
+      "body": "Spaced name.\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/docs/with%20space.md"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/data/empty.txt"
+    },
+    {
+      "body": "hidden\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/.hidden/secret.txt"
+    },
+    {
+      "body": "ignored\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/dist/bundle.js"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".env": "TOKEN=1\n",
+    ".gitignore": "dist/\n*.log\n",
+    ".hidden/secret.txt": "hidden\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "app.log": "ignored log\n",
+    "assets/pixel.png": "PNG\r\n\u001a\nfake",
+    "data/empty.txt": "",
+    "dist/bundle.js": "ignored\n",
+    "docs/guide.md": "Guide.\n",
+    "docs/with space.md": "Spaced name.\n",
+    "src/math.ts": "export const add = (a: number, b: number) => a + b\n",
+    "src/nested/deep/value.ts": "export const value = 42\n",
+    "src/strings.ts": "export const greet = (name: string) => `hello ${name}`\n"
+  }
+}

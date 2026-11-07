@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the destructuring and spread programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the destructuring and spread programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the destructuring and spread programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the destructuring and spread programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst { a, b: renamed, c = \\\"default\\\", d: { e } = { e: \\\"nested default\\\" }, ...rest } = { a: 1, b: 2, x: 9, y: 8 }\\nconst [p, , q = 30, ...tail] = [10, 20, undefined, 40, 50]\\nconst [[n1, n2], { deep: [d1] }] = [[1, 2], { deep: [\\\"d\\\"] }]\\nconst key = \\\"dyn\\\"\\nconst { [key]: computed, [key + \\\"2\\\"]: computed2 = \\\"c2\\\" } = { dyn: \\\"computed!\\\" }\\nconst { length } = \\\"abc\\\"\\nconst { toFixed } = 1\\nconst {} = 1\\nconst { 1: second, ...strRest } = \\\"xyz\\\"\\nconst { constructor } = new Error(\\\"x\\\")\\nconst { slice } = [1]\\nconst [s1, s2] = \\\"hi\\\"\\nconst [m1, [mk, mv]] = new Map([[\\\"a\\\", 1], [\\\"b\\\", 2]])\\nconst [set1] = new Set([\\\"only\\\"])\\nlet x1, y1\\n;[x1, y1] = [1, 2]\\n;[x1, y1] = [y1, x1]\\nconst tgt = {}\\n;({ a: tgt.a, b: tgt[\\\"b\\\"], c: tgt.c = \\\"dflt\\\" } = { a: \\\"A\\\", b: \\\"B\\\" })\\nconst arr2 = []\\n;[arr2[0], arr2[1]] = [\\\"i0\\\", \\\"i1\\\"]\\nconst fn = ({ a, b = 2 } = {}, [c2, d2] = [3, 4], ...more) => [a, b, c2, d2, more]\\nreturn {\\n  a, renamed, c, e, rest, p, q, tail, n1, n2, d1, computed, computed2, length, toFixedType: typeof toFixed, second, strRest,\\n  ctorIsError: constructor === Error, sliceType: typeof slice, s1, s2, m1, mk, mv, set1, x1, y1, tgt, arr2,\\n  fn: [fn(), fn({ a: 1 }, [5, 6], 7, 8)],\\n  nullDestructure: t(() => { const { z } = null }),\\n  undefDestructure: t(() => { const [z] = undefined }),\\n  notIterable: t(() => { const [z] = {} }),\\n  nestedNull: t(() => { const { a: { b } } = { a: null } }),\\n  defaultFnName: (() => { const { f = () => 1 } = {}; const [g = function () {}] = []; return [f.name, g.name] })(),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 1,\n  \"renamed\": 2,\n  \"c\": \"default\",\n  \"e\": \"nested default\",\n  \"rest\": {\n    \"x\": 9,\n    \"y\": 8\n  },\n  \"p\": 10,\n  \"q\": 30,\n  \"tail\": [\n    40,\n    50\n  ],\n  \"n1\": 1,\n  \"n2\": 2,\n  \"d1\": \"d\",\n  \"computed\": \"computed!\",\n  \"computed2\": \"c2\",\n  \"length\": 3,\n  \"toFixedType\": \"function\",\n  \"second\": \"y\",\n  \"strRest\": {\n    \"0\": \"x\",\n    \"2\": \"z\"\n  },\n  \"ctorIsError\": true,\n  \"sliceType\": \"function\",\n  \"s1\": \"h\",\n  \"s2\": \"i\",\n  \"m1\": [\n    \"a\",\n    1\n  ],\n  \"mk\": \"b\",\n  \"mv\": 2,\n  \"set1\": \"only\",\n  \"x1\": 2,\n  \"y1\": 1,\n  \"tgt\": {\n    \"a\": \"A\",\n    \"b\": \"B\",\n    \"c\": \"dflt\"\n  },\n  \"arr2\": [\n    \"i0\",\n    \"i1\"\n  ],\n  \"fn\": [\n    [\n      null,\n      2,\n      3,\n      4,\n      []\n    ],\n    [\n      1,\n      2,\n      5,\n      6,\n      [\n        7,\n        8\n      ]\n    ]\n  ],\n  \"nullDestructure\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"undefDestructure\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"notIterable\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"nestedNull\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"defaultFnName\": [\n    \"f\",\n    \"g\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the destructuring and spread programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst { a, b: renamed, c = \\\"default\\\", d: { e } = { e: \\\"nested default\\\" }, ...rest } = { a: 1, b: 2, x: 9, y: 8 }\\nconst [p, , q = 30, ...tail] = [10, 20, undefined, 40, 50]\\nconst [[n1, n2], { deep: [d1] }] = [[1, 2], { deep: [\\\"d\\\"] }]\\nconst key = \\\"dyn\\\"\\nconst { [key]: computed, [key + \\\"2\\\"]: computed2 = \\\"c2\\\" } = { dyn: \\\"computed!\\\" }\\nconst { length } = \\\"abc\\\"\\nconst { toFixed } = 1\\nconst {} = 1\\nconst { 1: second, ...strRest } = \\\"xyz\\\"\\nconst { constructor } = new Error(\\\"x\\\")\\nconst { slice } = [1]\\nconst [s1, s2] = \\\"hi\\\"\\nconst [m1, [mk, mv]] = new Map([[\\\"a\\\", 1], [\\\"b\\\", 2]])\\nconst [set1] = new Set([\\\"only\\\"])\\nlet x1, y1\\n;[x1, y1] = [1, 2]\\n;[x1, y1] = [y1, x1]\\nconst tgt = {}\\n;({ a: tgt.a, b: tgt[\\\"b\\\"], c: tgt.c = \\\"dflt\\\" } = { a: \\\"A\\\", b: \\\"B\\\" })\\nconst arr2 = []\\n;[arr2[0], arr2[1]] = [\\\"i0\\\", \\\"i1\\\"]\\nconst fn = ({ a, b = 2 } = {}, [c2, d2] = [3, 4], ...more) => [a, b, c2, d2, more]\\nreturn {\\n  a, renamed, c, e, rest, p, q, tail, n1, n2, d1, computed, computed2, length, toFixedType: typeof toFixed, second, strRest,\\n  ctorIsError: constructor === Error, sliceType: typeof slice, s1, s2, m1, mk, mv, set1, x1, y1, tgt, arr2,\\n  fn: [fn(), fn({ a: 1 }, [5, 6], 7, 8)],\\n  nullDestructure: t(() => { const { z } = null }),\\n  undefDestructure: t(() => { const [z] = undefined }),\\n  notIterable: t(() => { const [z] = {} }),\\n  nestedNull: t(() => { const { a: { b } } = { a: null } }),\\n  defaultFnName: (() => { const { f = () => 1 } = {}; const [g = function () {}] = []; return [f.name, g.name] })(),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 1,\n  \"renamed\": 2,\n  \"c\": \"default\",\n  \"e\": \"nested default\",\n  \"rest\": {\n    \"x\": 9,\n    \"y\": 8\n  },\n  \"p\": 10,\n  \"q\": 30,\n  \"tail\": [\n    40,\n    50\n  ],\n  \"n1\": 1,\n  \"n2\": 2,\n  \"d1\": \"d\",\n  \"computed\": \"computed!\",\n  \"computed2\": \"c2\",\n  \"length\": 3,\n  \"toFixedType\": \"function\",\n  \"second\": \"y\",\n  \"strRest\": {\n    \"0\": \"x\",\n    \"2\": \"z\"\n  },\n  \"ctorIsError\": true,\n  \"sliceType\": \"function\",\n  \"s1\": \"h\",\n  \"s2\": \"i\",\n  \"m1\": [\n    \"a\",\n    1\n  ],\n  \"mk\": \"b\",\n  \"mv\": 2,\n  \"set1\": \"only\",\n  \"x1\": 2,\n  \"y1\": 1,\n  \"tgt\": {\n    \"a\": \"A\",\n    \"b\": \"B\",\n    \"c\": \"dflt\"\n  },\n  \"arr2\": [\n    \"i0\",\n    \"i1\"\n  ],\n  \"fn\": [\n    [\n      null,\n      2,\n      3,\n      4,\n      []\n    ],\n    [\n      1,\n      2,\n      5,\n      6,\n      [\n        7,\n        8\n      ]\n    ]\n  ],\n  \"nullDestructure\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"undefDestructure\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"notIterable\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"nestedNull\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"defaultFnName\": [\n    \"f\",\n    \"g\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const closed = []\\nconst it = (label) => ({ [Symbol.iterator]() { let i = 0; return { next: () => ({ value: i++, done: i > 5 }), return: () => { closed.push(label); return {} } } } })\\nconst [a, b] = it(\\\"pattern\\\")\\nconst [c, ...rest] = it(\\\"rest-no-close\\\")\\nconst [] = it(\\\"empty\\\")\\ntry { const [x = (() => { throw new Error(\\\"default failed\\\") })()] = [undefined] } catch (e) { closed.push(e.message) }\\ntry { const [{ y }] = it(\\\"binding-failure\\\") } catch (e) { closed.push(\\\"caught: \\\" + e.constructor.name) }\\nconst gen = function* () { try { yield 1; yield 2; yield 3 } finally { closed.push(\\\"gen finally\\\") } }\\nconst [g1] = gen()\\nconst arr = [1, 2, 3]\\nconst spread = {\\n  array: [0, ...arr, 4],\\n  string: [...\\\"héllo\\\"],\\n  set: [...new Set([1, 1, 2])],\\n  map: [...new Map([[1, \\\"a\\\"]])],\\n  holes: [...[1, , 3]],\\n  gen: [...gen()],\\n  call: Math.max(...arr, 10),\\n  callIter: ((...args) => args.length)(...\\\"abcd\\\"),\\n  object: { ...{ a: 1, b: 2 }, b: 3, ...null, ...undefined, ...5, ...\\\"hi\\\", ...[7, 8] },\\n  objectOrder: { z: 1, ...{ a: 2, z: 3 } },\\n}\\nreturn { a, b, c, rest, g1, closed, spread }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 0,\n  \"b\": 1,\n  \"c\": 0,\n  \"rest\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"g1\": 1,\n  \"closed\": [\n    \"pattern\",\n    \"empty\",\n    \"default failed\",\n    \"binding-failure\",\n    \"gen finally\",\n    \"gen finally\"\n  ],\n  \"spread\": {\n    \"array\": [\n      0,\n      1,\n      2,\n      3,\n      4\n    ],\n    \"string\": [\n      \"h\",\n      \"é\",\n      \"l\",\n      \"l\",\n      \"o\"\n    ],\n    \"set\": [\n      1,\n      2\n    ],\n    \"map\": [\n      [\n        1,\n        \"a\"\n      ]\n    ],\n    \"holes\": [\n      1,\n      null,\n      3\n    ],\n    \"gen\": [\n      1,\n      2,\n      3\n    ],\n    \"call\": 10,\n    \"callIter\": 4,\n    \"object\": {\n      \"0\": 7,\n      \"1\": 8,\n      \"a\": 1,\n      \"b\": 3\n    },\n    \"objectOrder\": {\n      \"z\": 3,\n      \"a\": 2\n    }\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the destructuring and spread programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst { a, b: renamed, c = \\\"default\\\", d: { e } = { e: \\\"nested default\\\" }, ...rest } = { a: 1, b: 2, x: 9, y: 8 }\\nconst [p, , q = 30, ...tail] = [10, 20, undefined, 40, 50]\\nconst [[n1, n2], { deep: [d1] }] = [[1, 2], { deep: [\\\"d\\\"] }]\\nconst key = \\\"dyn\\\"\\nconst { [key]: computed, [key + \\\"2\\\"]: computed2 = \\\"c2\\\" } = { dyn: \\\"computed!\\\" }\\nconst { length } = \\\"abc\\\"\\nconst { toFixed } = 1\\nconst {} = 1\\nconst { 1: second, ...strRest } = \\\"xyz\\\"\\nconst { constructor } = new Error(\\\"x\\\")\\nconst { slice } = [1]\\nconst [s1, s2] = \\\"hi\\\"\\nconst [m1, [mk, mv]] = new Map([[\\\"a\\\", 1], [\\\"b\\\", 2]])\\nconst [set1] = new Set([\\\"only\\\"])\\nlet x1, y1\\n;[x1, y1] = [1, 2]\\n;[x1, y1] = [y1, x1]\\nconst tgt = {}\\n;({ a: tgt.a, b: tgt[\\\"b\\\"], c: tgt.c = \\\"dflt\\\" } = { a: \\\"A\\\", b: \\\"B\\\" })\\nconst arr2 = []\\n;[arr2[0], arr2[1]] = [\\\"i0\\\", \\\"i1\\\"]\\nconst fn = ({ a, b = 2 } = {}, [c2, d2] = [3, 4], ...more) => [a, b, c2, d2, more]\\nreturn {\\n  a, renamed, c, e, rest, p, q, tail, n1, n2, d1, computed, computed2, length, toFixedType: typeof toFixed, second, strRest,\\n  ctorIsError: constructor === Error, sliceType: typeof slice, s1, s2, m1, mk, mv, set1, x1, y1, tgt, arr2,\\n  fn: [fn(), fn({ a: 1 }, [5, 6], 7, 8)],\\n  nullDestructure: t(() => { const { z } = null }),\\n  undefDestructure: t(() => { const [z] = undefined }),\\n  notIterable: t(() => { const [z] = {} }),\\n  nestedNull: t(() => { const { a: { b } } = { a: null } }),\\n  defaultFnName: (() => { const { f = () => 1 } = {}; const [g = function () {}] = []; return [f.name, g.name] })(),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 1,\n  \"renamed\": 2,\n  \"c\": \"default\",\n  \"e\": \"nested default\",\n  \"rest\": {\n    \"x\": 9,\n    \"y\": 8\n  },\n  \"p\": 10,\n  \"q\": 30,\n  \"tail\": [\n    40,\n    50\n  ],\n  \"n1\": 1,\n  \"n2\": 2,\n  \"d1\": \"d\",\n  \"computed\": \"computed!\",\n  \"computed2\": \"c2\",\n  \"length\": 3,\n  \"toFixedType\": \"function\",\n  \"second\": \"y\",\n  \"strRest\": {\n    \"0\": \"x\",\n    \"2\": \"z\"\n  },\n  \"ctorIsError\": true,\n  \"sliceType\": \"function\",\n  \"s1\": \"h\",\n  \"s2\": \"i\",\n  \"m1\": [\n    \"a\",\n    1\n  ],\n  \"mk\": \"b\",\n  \"mv\": 2,\n  \"set1\": \"only\",\n  \"x1\": 2,\n  \"y1\": 1,\n  \"tgt\": {\n    \"a\": \"A\",\n    \"b\": \"B\",\n    \"c\": \"dflt\"\n  },\n  \"arr2\": [\n    \"i0\",\n    \"i1\"\n  ],\n  \"fn\": [\n    [\n      null,\n      2,\n      3,\n      4,\n      []\n    ],\n    [\n      1,\n      2,\n      5,\n      6,\n      [\n        7,\n        8\n      ]\n    ]\n  ],\n  \"nullDestructure\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"undefDestructure\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"notIterable\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"nestedNull\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"defaultFnName\": [\n    \"f\",\n    \"g\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const closed = []\\nconst it = (label) => ({ [Symbol.iterator]() { let i = 0; return { next: () => ({ value: i++, done: i > 5 }), return: () => { closed.push(label); return {} } } } })\\nconst [a, b] = it(\\\"pattern\\\")\\nconst [c, ...rest] = it(\\\"rest-no-close\\\")\\nconst [] = it(\\\"empty\\\")\\ntry { const [x = (() => { throw new Error(\\\"default failed\\\") })()] = [undefined] } catch (e) { closed.push(e.message) }\\ntry { const [{ y }] = it(\\\"binding-failure\\\") } catch (e) { closed.push(\\\"caught: \\\" + e.constructor.name) }\\nconst gen = function* () { try { yield 1; yield 2; yield 3 } finally { closed.push(\\\"gen finally\\\") } }\\nconst [g1] = gen()\\nconst arr = [1, 2, 3]\\nconst spread = {\\n  array: [0, ...arr, 4],\\n  string: [...\\\"héllo\\\"],\\n  set: [...new Set([1, 1, 2])],\\n  map: [...new Map([[1, \\\"a\\\"]])],\\n  holes: [...[1, , 3]],\\n  gen: [...gen()],\\n  call: Math.max(...arr, 10),\\n  callIter: ((...args) => args.length)(...\\\"abcd\\\"),\\n  object: { ...{ a: 1, b: 2 }, b: 3, ...null, ...undefined, ...5, ...\\\"hi\\\", ...[7, 8] },\\n  objectOrder: { z: 1, ...{ a: 2, z: 3 } },\\n}\\nreturn { a, b, c, rest, g1, closed, spread }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 0,\n  \"b\": 1,\n  \"c\": 0,\n  \"rest\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"g1\": 1,\n  \"closed\": [\n    \"pattern\",\n    \"empty\",\n    \"default failed\",\n    \"binding-failure\",\n    \"gen finally\",\n    \"gen finally\"\n  ],\n  \"spread\": {\n    \"array\": [\n      0,\n      1,\n      2,\n      3,\n      4\n    ],\n    \"string\": [\n      \"h\",\n      \"é\",\n      \"l\",\n      \"l\",\n      \"o\"\n    ],\n    \"set\": [\n      1,\n      2\n    ],\n    \"map\": [\n      [\n        1,\n        \"a\"\n      ]\n    ],\n    \"holes\": [\n      1,\n      null,\n      3\n    ],\n    \"gen\": [\n      1,\n      2,\n      3\n    ],\n    \"call\": 10,\n    \"callIter\": 4,\n    \"object\": {\n      \"0\": 7,\n      \"1\": 8,\n      \"a\": 1,\n      \"b\": 3\n    },\n    \"objectOrder\": {\n      \"z\": 3,\n      \"a\": 2\n    }\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tag = (strings, ...values) => ({ strings: [...strings], raw: strings.raw, values, sameRaw: Array.isArray(strings.raw) })\\nconst name = \\\"world\\\"\\nconst n = 5\\nconst sites = []\\nconst remember = (s) => { sites.push(s); return s }\\nfor (let i = 0; i < 2; i++) remember`site`\\nconst obj = { prefix: \\\"P\\\", tag(strings, v) { return this.prefix + strings[0] + v } }\\nreturn {\\n  plain: `hello ${name}!`,\\n  multiline: `a\\nb`,\\n  nested: `outer ${`inner ${n * 2}`}`,\\n  expr: `${n > 3 ? \\\"big\\\" : \\\"small\\\"} ${[1, 2]} ${{}} ${null} ${undefined} ${() => 1}`,\\n  escapes: `tab\\\\there \\\\u0041 \\\\x42 \\\\` dollar \\\\${not}`,\\n  tagged: tag`a${1}b${\\\"two\\\"}c`,\\n  taggedEmpty: tag``,\\n  rawEscape: tag`line\\\\nnext \\\\unicode`,\\n  memberTag: obj.tag`-${\\\"v\\\"}`,\\n  sameSite: sites[0] === sites[1],\\n  stringRaw: String.raw`x\\\\ny${1 + 1}`,\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"plain\": \"hello world!\",\n  \"multiline\": \"a\\nb\",\n  \"nested\": \"outer inner 10\",\n  \"expr\": \"big 1,2 [object Object] null undefined [object Function]\",\n  \"escapes\": \"tab\\there A B ` dollar ${not}\",\n  \"tagged\": {\n    \"strings\": [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    \"raw\": [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    \"values\": [\n      1,\n      \"two\"\n    ],\n    \"sameRaw\": true\n  },\n  \"taggedEmpty\": {\n    \"strings\": [\n      \"\"\n    ],\n    \"raw\": [\n      \"\"\n    ],\n    \"values\": [],\n    \"sameRaw\": true\n  },\n  \"rawEscape\": {\n    \"strings\": [\n      null\n    ],\n    \"raw\": [\n      \"line\\\\nnext \\\\unicode\"\n    ],\n    \"values\": [],\n    \"sameRaw\": true\n  },\n  \"memberTag\": \"P-v\",\n  \"sameSite\": true,\n  \"stringRaw\": \"x\\\\ny2\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the destructuring and spread programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the destructuring and spread programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst { a, b: renamed, c = \\\"default\\\", d: { e } = { e: \\\"nested default\\\" }, ...rest } = { a: 1, b: 2, x: 9, y: 8 }\\nconst [p, , q = 30, ...tail] = [10, 20, undefined, 40, 50]\\nconst [[n1, n2], { deep: [d1] }] = [[1, 2], { deep: [\\\"d\\\"] }]\\nconst key = \\\"dyn\\\"\\nconst { [key]: computed, [key + \\\"2\\\"]: computed2 = \\\"c2\\\" } = { dyn: \\\"computed!\\\" }\\nconst { length } = \\\"abc\\\"\\nconst { toFixed } = 1\\nconst {} = 1\\nconst { 1: second, ...strRest } = \\\"xyz\\\"\\nconst { constructor } = new Error(\\\"x\\\")\\nconst { slice } = [1]\\nconst [s1, s2] = \\\"hi\\\"\\nconst [m1, [mk, mv]] = new Map([[\\\"a\\\", 1], [\\\"b\\\", 2]])\\nconst [set1] = new Set([\\\"only\\\"])\\nlet x1, y1\\n;[x1, y1] = [1, 2]\\n;[x1, y1] = [y1, x1]\\nconst tgt = {}\\n;({ a: tgt.a, b: tgt[\\\"b\\\"], c: tgt.c = \\\"dflt\\\" } = { a: \\\"A\\\", b: \\\"B\\\" })\\nconst arr2 = []\\n;[arr2[0], arr2[1]] = [\\\"i0\\\", \\\"i1\\\"]\\nconst fn = ({ a, b = 2 } = {}, [c2, d2] = [3, 4], ...more) => [a, b, c2, d2, more]\\nreturn {\\n  a, renamed, c, e, rest, p, q, tail, n1, n2, d1, computed, computed2, length, toFixedType: typeof toFixed, second, strRest,\\n  ctorIsError: constructor === Error, sliceType: typeof slice, s1, s2, m1, mk, mv, set1, x1, y1, tgt, arr2,\\n  fn: [fn(), fn({ a: 1 }, [5, 6], 7, 8)],\\n  nullDestructure: t(() => { const { z } = null }),\\n  undefDestructure: t(() => { const [z] = undefined }),\\n  notIterable: t(() => { const [z] = {} }),\\n  nestedNull: t(() => { const { a: { b } } = { a: null } }),\\n  defaultFnName: (() => { const { f = () => 1 } = {}; const [g = function () {}] = []; return [f.name, g.name] })(),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nconst { a, b: renamed, c = \"default\", d: { e } = { e: \"nested default\" }, ...rest } = { a: 1, b: 2, x: 9, y: 8 }\nconst [p, , q = 30, ...tail] = [10, 20, undefined, 40, 50]\nconst [[n1, n2], { deep: [d1] }] = [[1, 2], { deep: [\"d\"] }]\nconst key = \"dyn\"\nconst { [key]: computed, [key + \"2\"]: computed2 = \"c2\" } = { dyn: \"computed!\" }\nconst { length } = \"abc\"\nconst { toFixed } = 1\nconst {} = 1\nconst { 1: second, ...strRest } = \"xyz\"\nconst { constructor } = new Error(\"x\")\nconst { slice } = [1]\nconst [s1, s2] = \"hi\"\nconst [m1, [mk, mv]] = new Map([[\"a\", 1], [\"b\", 2]])\nconst [set1] = new Set([\"only\"])\nlet x1, y1\n;[x1, y1] = [1, 2]\n;[x1, y1] = [y1, x1]\nconst tgt = {}\n;({ a: tgt.a, b: tgt[\"b\"], c: tgt.c = \"dflt\" } = { a: \"A\", b: \"B\" })\nconst arr2 = []\n;[arr2[0], arr2[1]] = [\"i0\", \"i1\"]\nconst fn = ({ a, b = 2 } = {}, [c2, d2] = [3, 4], ...more) => [a, b, c2, d2, more]\nreturn {\n  a, renamed, c, e, rest, p, q, tail, n1, n2, d1, computed, computed2, length, toFixedType: typeof toFixed, second, strRest,\n  ctorIsError: constructor === Error, sliceType: typeof slice, s1, s2, m1, mk, mv, set1, x1, y1, tgt, arr2,\n  fn: [fn(), fn({ a: 1 }, [5, 6], 7, 8)],\n  nullDestructure: t(() => { const { z } = null }),\n  undefDestructure: t(() => { const [z] = undefined }),\n  notIterable: t(() => { const [z] = {} }),\n  nestedNull: t(() => { const { a: { b } } = { a: null } }),\n  defaultFnName: (() => { const { f = () => 1 } = {}; const [g = function () {}] = []; return [f.name, g.name] })(),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"a\": 1,\n  \"renamed\": 2,\n  \"c\": \"default\",\n  \"e\": \"nested default\",\n  \"rest\": {\n    \"x\": 9,\n    \"y\": 8\n  },\n  \"p\": 10,\n  \"q\": 30,\n  \"tail\": [\n    40,\n    50\n  ],\n  \"n1\": 1,\n  \"n2\": 2,\n  \"d1\": \"d\",\n  \"computed\": \"computed!\",\n  \"computed2\": \"c2\",\n  \"length\": 3,\n  \"toFixedType\": \"function\",\n  \"second\": \"y\",\n  \"strRest\": {\n    \"0\": \"x\",\n    \"2\": \"z\"\n  },\n  \"ctorIsError\": true,\n  \"sliceType\": \"function\",\n  \"s1\": \"h\",\n  \"s2\": \"i\",\n  \"m1\": [\n    \"a\",\n    1\n  ],\n  \"mk\": \"b\",\n  \"mv\": 2,\n  \"set1\": \"only\",\n  \"x1\": 2,\n  \"y1\": 1,\n  \"tgt\": {\n    \"a\": \"A\",\n    \"b\": \"B\",\n    \"c\": \"dflt\"\n  },\n  \"arr2\": [\n    \"i0\",\n    \"i1\"\n  ],\n  \"fn\": [\n    [\n      null,\n      2,\n      3,\n      4,\n      []\n    ],\n    [\n      1,\n      2,\n      5,\n      6,\n      [\n        7,\n        8\n      ]\n    ]\n  ],\n  \"nullDestructure\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"undefDestructure\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"notIterable\": \"throws TypeError: Array destructuring requires a supported iterable value.\",\n  \"nestedNull\": \"throws TypeError: Cannot destructure null as it is null.\",\n  \"defaultFnName\": [\n    \"f\",\n    \"g\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const closed = []\\nconst it = (label) => ({ [Symbol.iterator]() { let i = 0; return { next: () => ({ value: i++, done: i > 5 }), return: () => { closed.push(label); return {} } } } })\\nconst [a, b] = it(\\\"pattern\\\")\\nconst [c, ...rest] = it(\\\"rest-no-close\\\")\\nconst [] = it(\\\"empty\\\")\\ntry { const [x = (() => { throw new Error(\\\"default failed\\\") })()] = [undefined] } catch (e) { closed.push(e.message) }\\ntry { const [{ y }] = it(\\\"binding-failure\\\") } catch (e) { closed.push(\\\"caught: \\\" + e.constructor.name) }\\nconst gen = function* () { try { yield 1; yield 2; yield 3 } finally { closed.push(\\\"gen finally\\\") } }\\nconst [g1] = gen()\\nconst arr = [1, 2, 3]\\nconst spread = {\\n  array: [0, ...arr, 4],\\n  string: [...\\\"héllo\\\"],\\n  set: [...new Set([1, 1, 2])],\\n  map: [...new Map([[1, \\\"a\\\"]])],\\n  holes: [...[1, , 3]],\\n  gen: [...gen()],\\n  call: Math.max(...arr, 10),\\n  callIter: ((...args) => args.length)(...\\\"abcd\\\"),\\n  object: { ...{ a: 1, b: 2 }, b: 3, ...null, ...undefined, ...5, ...\\\"hi\\\", ...[7, 8] },\\n  objectOrder: { z: 1, ...{ a: 2, z: 3 } },\\n}\\nreturn { a, b, c, rest, g1, closed, spread }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const closed = []\nconst it = (label) => ({ [Symbol.iterator]() { let i = 0; return { next: () => ({ value: i++, done: i > 5 }), return: () => { closed.push(label); return {} } } } })\nconst [a, b] = it(\"pattern\")\nconst [c, ...rest] = it(\"rest-no-close\")\nconst [] = it(\"empty\")\ntry { const [x = (() => { throw new Error(\"default failed\") })()] = [undefined] } catch (e) { closed.push(e.message) }\ntry { const [{ y }] = it(\"binding-failure\") } catch (e) { closed.push(\"caught: \" + e.constructor.name) }\nconst gen = function* () { try { yield 1; yield 2; yield 3 } finally { closed.push(\"gen finally\") } }\nconst [g1] = gen()\nconst arr = [1, 2, 3]\nconst spread = {\n  array: [0, ...arr, 4],\n  string: [...\"héllo\"],\n  set: [...new Set([1, 1, 2])],\n  map: [...new Map([[1, \"a\"]])],\n  holes: [...[1, , 3]],\n  gen: [...gen()],\n  call: Math.max(...arr, 10),\n  callIter: ((...args) => args.length)(...\"abcd\"),\n  object: { ...{ a: 1, b: 2 }, b: 3, ...null, ...undefined, ...5, ...\"hi\", ...[7, 8] },\n  objectOrder: { z: 1, ...{ a: 2, z: 3 } },\n}\nreturn { a, b, c, rest, g1, closed, spread }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"a\": 0,\n  \"b\": 1,\n  \"c\": 0,\n  \"rest\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"g1\": 1,\n  \"closed\": [\n    \"pattern\",\n    \"empty\",\n    \"default failed\",\n    \"binding-failure\",\n    \"gen finally\",\n    \"gen finally\"\n  ],\n  \"spread\": {\n    \"array\": [\n      0,\n      1,\n      2,\n      3,\n      4\n    ],\n    \"string\": [\n      \"h\",\n      \"é\",\n      \"l\",\n      \"l\",\n      \"o\"\n    ],\n    \"set\": [\n      1,\n      2\n    ],\n    \"map\": [\n      [\n        1,\n        \"a\"\n      ]\n    ],\n    \"holes\": [\n      1,\n      null,\n      3\n    ],\n    \"gen\": [\n      1,\n      2,\n      3\n    ],\n    \"call\": 10,\n    \"callIter\": 4,\n    \"object\": {\n      \"0\": 7,\n      \"1\": 8,\n      \"a\": 1,\n      \"b\": 3\n    },\n    \"objectOrder\": {\n      \"z\": 3,\n      \"a\": 2\n    }\n  }\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const tag = (strings, ...values) => ({ strings: [...strings], raw: strings.raw, values, sameRaw: Array.isArray(strings.raw) })\\nconst name = \\\"world\\\"\\nconst n = 5\\nconst sites = []\\nconst remember = (s) => { sites.push(s); return s }\\nfor (let i = 0; i < 2; i++) remember`site`\\nconst obj = { prefix: \\\"P\\\", tag(strings, v) { return this.prefix + strings[0] + v } }\\nreturn {\\n  plain: `hello ${name}!`,\\n  multiline: `a\\nb`,\\n  nested: `outer ${`inner ${n * 2}`}`,\\n  expr: `${n > 3 ? \\\"big\\\" : \\\"small\\\"} ${[1, 2]} ${{}} ${null} ${undefined} ${() => 1}`,\\n  escapes: `tab\\\\there \\\\u0041 \\\\x42 \\\\` dollar \\\\${not}`,\\n  tagged: tag`a${1}b${\\\"two\\\"}c`,\\n  taggedEmpty: tag``,\\n  rawEscape: tag`line\\\\nnext \\\\unicode`,\\n  memberTag: obj.tag`-${\\\"v\\\"}`,\\n  sameSite: sites[0] === sites[1],\\n  stringRaw: String.raw`x\\\\ny${1 + 1}`,\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const tag = (strings, ...values) => ({ strings: [...strings], raw: strings.raw, values, sameRaw: Array.isArray(strings.raw) })\nconst name = \"world\"\nconst n = 5\nconst sites = []\nconst remember = (s) => { sites.push(s); return s }\nfor (let i = 0; i < 2; i++) remember`site`\nconst obj = { prefix: \"P\", tag(strings, v) { return this.prefix + strings[0] + v } }\nreturn {\n  plain: `hello ${name}!`,\n  multiline: `a\nb`,\n  nested: `outer ${`inner ${n * 2}`}`,\n  expr: `${n > 3 ? \"big\" : \"small\"} ${[1, 2]} ${{}} ${null} ${undefined} ${() => 1}`,\n  escapes: `tab\\there \\u0041 \\x42 \\` dollar \\${not}`,\n  tagged: tag`a${1}b${\"two\"}c`,\n  taggedEmpty: tag``,\n  rawEscape: tag`line\\nnext \\unicode`,\n  memberTag: obj.tag`-${\"v\"}`,\n  sameSite: sites[0] === sites[1],\n  stringRaw: String.raw`x\\ny${1 + 1}`,\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"plain\": \"hello world!\",\n  \"multiline\": \"a\\nb\",\n  \"nested\": \"outer inner 10\",\n  \"expr\": \"big 1,2 [object Object] null undefined [object Function]\",\n  \"escapes\": \"tab\\there A B ` dollar ${not}\",\n  \"tagged\": {\n    \"strings\": [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    \"raw\": [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    \"values\": [\n      1,\n      \"two\"\n    ],\n    \"sameRaw\": true\n  },\n  \"taggedEmpty\": {\n    \"strings\": [\n      \"\"\n    ],\n    \"raw\": [\n      \"\"\n    ],\n    \"values\": [],\n    \"sameRaw\": true\n  },\n  \"rawEscape\": {\n    \"strings\": [\n      null\n    ],\n    \"raw\": [\n      \"line\\\\nnext \\\\unicode\"\n    ],\n    \"values\": [],\n    \"sameRaw\": true\n  },\n  \"memberTag\": \"P-v\",\n  \"sameSite\": true,\n  \"stringRaw\": \"x\\\\ny2\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,2939 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Make the changes"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Make the changes"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_2>",
+          "payload": {
+            "text": "Add a todo"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Add a todo"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_3>",
+          "payload": {
+            "text": "Just answer"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Just answer"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_4>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_4>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Nothing to change.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "snapshot": {
+              "end": "<hash_2>",
+              "files": [],
+              "start": "<hash_2>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_3>",
+            "text": "Just answer",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "id": "<msg_6>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Added a todo.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "snapshot": {
+              "end": "<hash_2>",
+              "files": [],
+              "start": "<hash_2>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "write",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Wrote file successfully: notes/todo.txt",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "content": "one\ntwo\nthree\nfour\n",
+                    "path": "notes/todo.txt"
+                  },
+                  "metadata": {
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "snapshot": {
+              "end": "<hash_2>",
+              "files": [
+                "notes/todo.txt"
+              ],
+              "start": "<hash_3>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_2>",
+            "text": "Add a todo",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "id": "<msg_9>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Changed three files.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_10>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "snapshot": {
+              "end": "<hash_3>",
+              "files": [],
+              "start": "<hash_3>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "write",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Created file successfully: dist/out.js",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "content": "ignored build output\n",
+                    "path": "dist/out.js"
+                  },
+                  "metadata": {
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_11>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "snapshot": {
+              "end": "<hash_3>",
+              "files": [],
+              "start": "<hash_3>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "edit",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Edited src/math.ts (1 replacement)",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "newString": "return b + a",
+                    "oldString": "return a + b",
+                    "path": "src/math.ts"
+                  },
+                  "metadata": {
+                    "files": [
+                      {
+                        "additions": 1,
+                        "deletions": 1,
+                        "file": "src/math.ts",
+                        "patch": "Index: src/math.ts\n===================================================================\n--- src/math.ts\n+++ src/math.ts\n@@ -1,3 +1,3 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n",
+                        "status": "modified"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_12>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "snapshot": {
+              "end": "<hash_3>",
+              "files": [
+                "src/math.ts"
+              ],
+              "start": "<hash_4>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "write",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Created file successfully: src/new.ts",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "content": "export const fresh = 1\n",
+                    "path": "src/new.ts"
+                  },
+                  "metadata": {
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_13>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "snapshot": {
+              "end": "<hash_4>",
+              "files": [
+                "src/new.ts"
+              ],
+              "start": "<hash_5>"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Make the changes",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..47fbfa5 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,3 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff?from=<msg_1>"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..47fbfa5 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -2 +2 @@ export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff?from=<msg_1>&context=0"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\nindex 4cb29ea..f384549 100644\n--- a/notes/todo.txt\n+++ b/notes/todo.txt\n@@ -1,3 +1,4 @@\n one\n two\n three\n+four\n",
+            "status": "modified"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff?from=<msg_2>"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\nindex 4cb29ea..f384549 100644\n--- a/notes/todo.txt\n+++ b/notes/todo.txt\n@@ -3 +3,2 @@ two\n three\n+four\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..47fbfa5 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,3 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff?from=<msg_1>&to=<msg_3>&context=1"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff?from=<msg_3>"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited src/math.ts (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited src/math.ts (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"dist/out.js\",\"content\":\"ignored build output\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: dist/out.js",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited src/math.ts (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"dist/out.js\",\"content\":\"ignored build output\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: dist/out.js",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Changed three files.",
+              "role": "assistant"
+            },
+            {
+              "content": "Add a todo",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited src/math.ts (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"dist/out.js\",\"content\":\"ignored build output\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: dist/out.js",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Changed three files.",
+              "role": "assistant"
+            },
+            {
+              "content": "Add a todo",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes/todo.txt\",\"content\":\"one\\ntwo\\nthree\\nfour\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Wrote file successfully: notes/todo.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "9fa4a2840829544bd7ba97f98f7b35d27d41fb822da71620776b256f6df48d75"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Make the changes",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: src/new.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited src/math.ts (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"dist/out.js\",\"content\":\"ignored build output\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: dist/out.js",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Changed three files.",
+              "role": "assistant"
+            },
+            {
+              "content": "Add a todo",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes/todo.txt\",\"content\":\"one\\ntwo\\nthree\\nfour\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Wrote file successfully: notes/todo.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Added a todo.",
+              "role": "assistant"
+            },
+            {
+              "content": "Just answer",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nMake the changes\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Make the changes"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_6>",
+            "core/date": "<hash_7>",
+            "core/environment": "<hash_8>",
+            "core/skill-guidance": "<hash_9>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_13>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_5>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "id": "call_conformance_0",
+          "name": "write",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"path\":\"src/new.ts\",\"content\":\"export const fresh = 1\\n\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "content": "export const fresh = 1\n",
+            "path": "src/new.ts"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "content": [
+            {
+              "text": "Created file successfully: src/new.ts",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_13>",
+          "cost": 0,
+          "files": [
+            "src/new.ts"
+          ],
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_4>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_27>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_12>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_4>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "id": "call_conformance_0",
+          "name": "edit",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"path\":\"src/math.ts\",\"oldString\":\"return a + b\",\"newString\":\"return b + a\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "newString": "return b + a",
+            "oldString": "return a + b",
+            "path": "src/math.ts"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "content": [
+            {
+              "text": "Edited src/math.ts (1 replacement)",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "files": [
+              {
+                "additions": 1,
+                "deletions": 1,
+                "file": "src/math.ts",
+                "patch": "Index: src/math.ts\n===================================================================\n--- src/math.ts\n+++ src/math.ts\n@@ -1,3 +1,3 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n",
+                "status": "modified"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_12>",
+          "cost": 0,
+          "files": [
+            "src/math.ts"
+          ],
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_35>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_11>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "id": "call_conformance_0",
+          "name": "write",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"path\":\"dist/out.js\",\"content\":\"ignored build output\\n\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "content": "ignored build output\n",
+            "path": "dist/out.js"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "content": [
+            {
+              "text": "Created file successfully: dist/out.js",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "cost": 0,
+          "files": [],
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_43>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_10>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "delta": "Changed three files.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Changed three files."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "cost": 0,
+          "files": [],
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_50>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Add a todo"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_3>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "name": "write",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"path\":\"notes/todo.txt\",\"content\":\"one\\ntwo\\nthree\\nfour\\n\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_57>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "content": "one\ntwo\nthree\nfour\n",
+            "path": "notes/todo.txt"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "content": [
+            {
+              "text": "Wrote file successfully: notes/todo.txt",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 2
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "files": [
+            "notes/todo.txt"
+          ],
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_62>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_2>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "delta": "Added a todo.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_65>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Added a todo."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 1
+        },
+        "id": "<evt_67>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "files": [],
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 48,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_69>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 49,
+          "version": 1
+        },
+        "id": "<evt_70>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Just answer"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 50,
+          "version": 1
+        },
+        "id": "<evt_71>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 51,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 52,
+          "version": 1
+        },
+        "id": "<evt_73>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_2>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 53,
+          "version": 1
+        },
+        "id": "<evt_74>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 54,
+          "version": 1
+        },
+        "id": "<evt_75>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Nothing to change.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_76>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Nothing to change."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 55,
+          "version": 1
+        },
+        "id": "<evt_77>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 56,
+          "version": 1
+        },
+        "id": "<evt_78>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "files": [],
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "snapshot": "<hash_2>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 57,
+          "version": 1
+        },
+        "id": "<evt_79>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 800,
+            "output": 80,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_80>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 58,
+          "version": 1
+        },
+        "id": "<evt_81>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {
+    ".gitignore": "dist/\n*.log\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "dist/out.js": "ignored build output\n",
+    "notes/todo.txt": "one\ntwo\nthree\nfour\n",
+    "src/math.ts": "export function add(a: number, b: number) {\n  return b + a\n}\n",
+    "src/new.ts": "export const fresh = 1\n"
+  }
+}

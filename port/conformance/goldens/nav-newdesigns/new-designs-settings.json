@@ -1,0 +1,324 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "frame:settings",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Search settings                                  esc",
+        "",
+        "                        Appearance",
+        "                    ┃   Theme                                       opencode ↵",
+        "                        Color mode                                    system",
+        "                        Animations                                       off",
+        "",
+        "                        Session",
+        "                        Sidebar                                         auto",
+        "             ┃          Scrollbar                                        off",
+        "             ┃  Ask     Scroll on send                        jump to latest",
+        "             ┃          Thinking                                        hide",
+        "             ┃  Buil    Markdown                                    rendered",
+        "             ╹▀▀▀▀▀▀    Tool grouping                                   auto    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Verbosity                                     medium    commands",
+        "                        …",
+        "",
+        "                        Color theme used across the interface",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:color mode changed",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Search settings                                  esc",
+        "",
+        "                        Appearance",
+        "                        Theme                                       opencode",
+        "                    ┃   Color mode                                    ‹ dark ›",
+        "                        Animations                                       off",
+        "",
+        "                        Session",
+        "                        Sidebar                                         auto",
+        "             ┃          Scrollbar                                        off",
+        "             ┃  Ask     Scroll on send                        jump to latest",
+        "             ┃          Thinking                                        hide",
+        "             ┃  Buil    Markdown                                    rendered",
+        "             ╹▀▀▀▀▀▀    Tool grouping                                   auto    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Verbosity                                     medium    commands",
+        "                        …",
+        "",
+        "                        Dark or light variant, or follow the system",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:theme picker from settings",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Search themes                                    esc",
+        "",
+        "                        matrix",
+        "                        mercury",
+        "                        monokai",
+        "                        nightowl",
+        "                        nord",
+        "                        one-dark",
+        "                    ┃ ▪ opencode",
+        "             ┃          opencode2",
+        "             ┃  Ask     orng",
+        "             ┃          osaka-jade",
+        "             ┃  Buil    palenight",
+        "             ╹▀▀▀▀▀▀    rosepine                                                ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    solarized                                               commands",
+        "                        …",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:back in settings",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Search settings                                  esc",
+        "",
+        "                        Appearance",
+        "                    ┃   Theme                                           nord ↵",
+        "                        Color mode                                      dark",
+        "                        Animations                                       off",
+        "",
+        "                        Session",
+        "                        Sidebar                                         auto",
+        "             ┃          Scrollbar                                        off",
+        "             ┃  Ask     Scroll on send                        jump to latest",
+        "             ┃          Thinking                                        hide",
+        "             ┃  Buil    Markdown                                    rendered",
+        "             ╹▀▀▀▀▀▀    Tool grouping                                   auto    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Verbosity                                     medium    commands",
+        "                        …",
+        "",
+        "                        Color theme used across the interface",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session/active",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

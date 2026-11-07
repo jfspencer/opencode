@@ -1,0 +1,440 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "path": ".hidden/",
+            "type": "directory"
+          },
+          {
+            "path": "assets/",
+            "type": "directory"
+          },
+          {
+            "path": "data/",
+            "type": "directory"
+          },
+          {
+            "path": "dist/",
+            "type": "directory"
+          },
+          {
+            "path": "docs/",
+            "type": "directory"
+          },
+          {
+            "path": "src/",
+            "type": "directory"
+          },
+          {
+            "path": "sub/",
+            "type": "directory"
+          },
+          {
+            "path": ".env",
+            "type": "file"
+          },
+          {
+            "path": ".gitignore",
+            "type": "file"
+          },
+          {
+            "path": "app.log",
+            "type": "file"
+          },
+          {
+            "path": "README.md",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "path": "src/nested/",
+            "type": "directory"
+          },
+          {
+            "path": "src/math.ts",
+            "type": "file"
+          },
+          {
+            "path": "src/strings.ts",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=src"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "path": "src/nested/deep/",
+            "type": "directory"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=src/nested/"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "path": "docs/guide.md",
+            "type": "file"
+          },
+          {
+            "path": "docs/with space.md",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=%2Ftmp%2F<root-name>%2F<project-name>%2Fdocs"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "Directory not found: missing",
+        "path": "missing"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/list?path=missing"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "Directory not found: README.md",
+        "path": "README.md"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/list?path=README.md"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "path": "../.hidden/",
+            "type": "directory"
+          },
+          {
+            "path": "../assets/",
+            "type": "directory"
+          },
+          {
+            "path": "../data/",
+            "type": "directory"
+          },
+          {
+            "path": "../dist/",
+            "type": "directory"
+          },
+          {
+            "path": "../docs/",
+            "type": "directory"
+          },
+          {
+            "path": "../src/",
+            "type": "directory"
+          },
+          {
+            "path": "./",
+            "type": "directory"
+          },
+          {
+            "path": "../.env",
+            "type": "file"
+          },
+          {
+            "path": "../.gitignore",
+            "type": "file"
+          },
+          {
+            "path": "../app.log",
+            "type": "file"
+          },
+          {
+            "path": "../README.md",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>/sub"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=.."
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "path": "inner/file.txt",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>/sub"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=inner"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/sub",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".env": "TOKEN=1\n",
+    ".gitignore": "dist/\n*.log\n",
+    ".hidden/secret.txt": "hidden\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "app.log": "ignored log\n",
+    "assets/pixel.png": "PNG\r\n\u001a\nfake",
+    "data/empty.txt": "",
+    "dist/bundle.js": "ignored\n",
+    "docs/guide.md": "Guide.\n",
+    "docs/with space.md": "Spaced name.\n",
+    "link.md": "<symlink -> <project>/README.md>",
+    "src/math.ts": "export const add = (a: number, b: number) => a + b\n",
+    "src/nested/deep/value.ts": "export const value = 42\n",
+    "src/strings.ts": "export const greet = (name: string) => `hello ${name}`\n",
+    "sub/inner/file.txt": "x\n"
+  }
+}

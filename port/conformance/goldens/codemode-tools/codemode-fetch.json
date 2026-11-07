@@ -1,0 +1,3250 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Call the API"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Call the API"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Done.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"all\": [\n    \"hello text\",\n    201\n  ],\n  \"pendingType\": \"function\"\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const pending = fetch(\"https://api.example.com/text\")\nconst all = await Promise.all([fetch(\"https://api.example.com/text\").then((r) => r.text()), fetch(\"https://api.example.com/created\").then((r) => r.status)])\nreturn { all, pendingType: typeof pending.then }"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/text"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/text"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/created"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const results = {}\nfor (const [label, url] of Object.entries({ file: \"file:///etc/passwd\", creds: \"https://user:pw@api.example.com/echo\", unanswered: \"https://unanswered.example.com/\" })) {\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \": \" + error.message }\n}\ntry { await (await fetch(\"https://api.example.com/bad-json\")).json() } catch (error) { results.badJson = error.name }\nfor (const [label, init] of Object.entries({\n  dateBody: { method: \"POST\", body: new Date(0) },\n  mapHeaders: { headers: new Map([[\"a\", \"b\"]]) },\n  headersObj: { headers: new Headers({ \"x-h\": \"1\" }) },\n  regexBody: { method: \"POST\", body: /re/g },\n  setBody: { method: \"POST\", body: new Set([1]) },\n  urlBody: { method: \"POST\", body: new URL(\"https://x.example.com/\") },\n  arrayBody: { method: \"POST\", body: [1, 2] },\n  fnInit: { method: \"POST\", body: () => 1 },\n  promiseInit: { method: \"POST\", body: Promise.resolve(1) },\n  errorBody: { method: \"POST\", body: new TypeError(\"bad\", { cause: new Error(\"root\") }) },\n  deep: { method: \"POST\", body: JSON.parse(\"[\".repeat(40) + \"]\".repeat(40)) },\n})) {\n  try { const r = await fetch(\"https://api.example.com/echo\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \": \" + error.message }\n}\ntry {\n  const looped = { headers: {} }\n  looped.headers.self = looped\n  await fetch(\"https://api.example.com/echo\", looped)\n} catch (error) { results.circular = error.name + \": \" + error.message }\nreturn results"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "file:///etc/passwd"
+                        },
+                        "status": "error",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://user:pw@api.example.com/echo"
+                        },
+                        "status": "error",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://unanswered.example.com/"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/bad-json"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const results = {}\nfor (const path of [\"r301\", \"r302\", \"r303\", \"r307\", \"r308\", \"cross\"]) {\n  const response = await fetch(\"https://api.example.com/\" + path, { method: \"POST\", headers: { authorization: \"Bearer x\", \"content-type\": \"text/plain\" }, body: \"payload\" })\n  const echoed = await response.json()\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\n}\nfor (const path of [\"to-ftp\", \"to-creds\", \"loop/0\", \"no-location\"]) {\n  try { const r = await fetch(\"https://api.example.com/\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \": \" + error.message }\n}\nconst see = await fetch(\"https://api.example.com/r303\", { method: \"HEAD\" })\nresults.seeOtherHead = see.status\nreturn results"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/r301"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/r302"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/r303"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/r307"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/r308"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/cross"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/to-ftp"
+                        },
+                        "status": "error",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/to-creds"
+                        },
+                        "status": "error",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/loop/0"
+                        },
+                        "status": "error",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/no-location"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "HEAD",
+                          "url": "https://api.example.com/r303"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const post = await fetch(\"https://api.example.com/echo\", {\n  method: \"post\",\n  headers: { \"content-type\": \"application/json\", authorization: \"Bearer secret\", \"x-trace\": \"1\" },\n  body: JSON.stringify({ hello: \"world\" }),\n})\nconst form = await fetch(\"https://api.example.com/echo\", { method: \"PUT\", headers: [[\"x-pairs\", \"yes\"]], body: new URLSearchParams({ a: \"1\", b: \"two\" }) })\nconst binary = await fetch(\"https://api.example.com/echo\", { method: \"PATCH\", body: new TextEncoder().encode(\"bytes body\") })\nconst head = await fetch(\"https://api.example.com/text\", { method: \"HEAD\" })\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "method": "POST",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "PUT",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "PATCH",
+                          "url": "https://api.example.com/echo"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "HEAD",
+                          "url": "https://api.example.com/text"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/text"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/echo?q=1#fragment"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/bytes"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/created"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      },
+                      {
+                        "input": {
+                          "method": "GET",
+                          "url": "https://api.example.com/missing"
+                        },
+                        "status": "completed",
+                        "tool": "fetch"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Call the API",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const [label, url] of Object.entries({ file: \\\"file:///etc/passwd\\\", creds: \\\"https://user:pw@api.example.com/echo\\\", unanswered: \\\"https://unanswered.example.com/\\\" })) {\\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry { await (await fetch(\\\"https://api.example.com/bad-json\\\")).json() } catch (error) { results.badJson = error.name }\\nfor (const [label, init] of Object.entries({\\n  dateBody: { method: \\\"POST\\\", body: new Date(0) },\\n  mapHeaders: { headers: new Map([[\\\"a\\\", \\\"b\\\"]]) },\\n  headersObj: { headers: new Headers({ \\\"x-h\\\": \\\"1\\\" }) },\\n  regexBody: { method: \\\"POST\\\", body: /re/g },\\n  setBody: { method: \\\"POST\\\", body: new Set([1]) },\\n  urlBody: { method: \\\"POST\\\", body: new URL(\\\"https://x.example.com/\\\") },\\n  arrayBody: { method: \\\"POST\\\", body: [1, 2] },\\n  fnInit: { method: \\\"POST\\\", body: () => 1 },\\n  promiseInit: { method: \\\"POST\\\", body: Promise.resolve(1) },\\n  errorBody: { method: \\\"POST\\\", body: new TypeError(\\\"bad\\\", { cause: new Error(\\\"root\\\") }) },\\n  deep: { method: \\\"POST\\\", body: JSON.parse(\\\"[\\\".repeat(40) + \\\"]\\\".repeat(40)) },\\n})) {\\n  try { const r = await fetch(\\\"https://api.example.com/echo\\\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry {\\n  const looped = { headers: {} }\\n  looped.headers.self = looped\\n  await fetch(\\\"https://api.example.com/echo\\\", looped)\\n} catch (error) { results.circular = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const [label, url] of Object.entries({ file: \\\"file:///etc/passwd\\\", creds: \\\"https://user:pw@api.example.com/echo\\\", unanswered: \\\"https://unanswered.example.com/\\\" })) {\\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry { await (await fetch(\\\"https://api.example.com/bad-json\\\")).json() } catch (error) { results.badJson = error.name }\\nfor (const [label, init] of Object.entries({\\n  dateBody: { method: \\\"POST\\\", body: new Date(0) },\\n  mapHeaders: { headers: new Map([[\\\"a\\\", \\\"b\\\"]]) },\\n  headersObj: { headers: new Headers({ \\\"x-h\\\": \\\"1\\\" }) },\\n  regexBody: { method: \\\"POST\\\", body: /re/g },\\n  setBody: { method: \\\"POST\\\", body: new Set([1]) },\\n  urlBody: { method: \\\"POST\\\", body: new URL(\\\"https://x.example.com/\\\") },\\n  arrayBody: { method: \\\"POST\\\", body: [1, 2] },\\n  fnInit: { method: \\\"POST\\\", body: () => 1 },\\n  promiseInit: { method: \\\"POST\\\", body: Promise.resolve(1) },\\n  errorBody: { method: \\\"POST\\\", body: new TypeError(\\\"bad\\\", { cause: new Error(\\\"root\\\") }) },\\n  deep: { method: \\\"POST\\\", body: JSON.parse(\\\"[\\\".repeat(40) + \\\"]\\\".repeat(40)) },\\n})) {\\n  try { const r = await fetch(\\\"https://api.example.com/echo\\\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry {\\n  const looped = { headers: {} }\\n  looped.headers.self = looped\\n  await fetch(\\\"https://api.example.com/echo\\\", looped)\\n} catch (error) { results.circular = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const pending = fetch(\\\"https://api.example.com/text\\\")\\nconst all = await Promise.all([fetch(\\\"https://api.example.com/text\\\").then((r) => r.text()), fetch(\\\"https://api.example.com/created\\\").then((r) => r.status)])\\nreturn { all, pendingType: typeof pending.then }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"hello text\",\n    201\n  ],\n  \"pendingType\": \"function\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/text"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo?q=1"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/bytes"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/created"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/missing"
+      },
+      {
+        "body": {
+          "hello": "world"
+        },
+        "headers": {
+          "authorization": "Bearer secret",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "a=1&b=two",
+        "headers": {
+          "content-type": "application/x-www-form-urlencoded;charset=UTF-8"
+        },
+        "kind": "other",
+        "method": "PUT",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "bytes body",
+        "headers": {},
+        "kind": "other",
+        "method": "PATCH",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "HEAD",
+        "url": "https://api.example.com/text"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/r301"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer x"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/r302"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer x"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/r303"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer x"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/r307"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/r308"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "authorization": "Bearer x",
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/cross"
+      },
+      {
+        "body": "payload",
+        "headers": {
+          "content-type": "text/plain"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://other.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/to-ftp"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/to-creds"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/0"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/1"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/2"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/3"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/4"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/5"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/6"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/7"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/8"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/9"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/10"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/11"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/12"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/13"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/14"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/15"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/16"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/17"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/18"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/19"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/loop/20"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/no-location"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "HEAD",
+        "url": "https://api.example.com/r303"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "HEAD",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://unanswered.example.com/"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/bad-json"
+      },
+      {
+        "body": "<date> 00:00:00 GMT+0000 (Coordinated Universal Time)",
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "/re/g",
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "[object Set]",
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "https://x.example.com/",
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": 12,
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "body": "TypeError: bad",
+        "headers": {},
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.example.com/echo"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/text"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/text"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://api.example.com/created"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nCall the API\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Call the API"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "content": [
+            {
+              "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/text"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/echo?q=1#fragment"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/bytes"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/created"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/missing"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const post = await fetch(\"https://api.example.com/echo\", {\n  method: \"post\",\n  headers: { \"content-type\": \"application/json\", authorization: \"Bearer secret\", \"x-trace\": \"1\" },\n  body: JSON.stringify({ hello: \"world\" }),\n})\nconst form = await fetch(\"https://api.example.com/echo\", { method: \"PUT\", headers: [[\"x-pairs\", \"yes\"]], body: new URLSearchParams({ a: \"1\", b: \"two\" }) })\nconst binary = await fetch(\"https://api.example.com/echo\", { method: \"PATCH\", body: new TextEncoder().encode(\"bytes body\") })\nconst head = await fetch(\"https://api.example.com/text\", { method: \"HEAD\" })\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "content": [
+            {
+              "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "PUT",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "PATCH",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "HEAD",
+                  "url": "https://api.example.com/text"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const results = {}\nfor (const path of [\"r301\", \"r302\", \"r303\", \"r307\", \"r308\", \"cross\"]) {\n  const response = await fetch(\"https://api.example.com/\" + path, { method: \"POST\", headers: { authorization: \"Bearer x\", \"content-type\": \"text/plain\" }, body: \"payload\" })\n  const echoed = await response.json()\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\n}\nfor (const path of [\"to-ftp\", \"to-creds\", \"loop/0\", \"no-location\"]) {\n  try { const r = await fetch(\"https://api.example.com/\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \": \" + error.message }\n}\nconst see = await fetch(\"https://api.example.com/r303\", { method: \"HEAD\" })\nresults.seeOtherHead = see.status\nreturn results"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/r301"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/r302"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/r303"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/r307"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/r308"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/cross"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/to-ftp"
+                },
+                "status": "error",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/to-creds"
+                },
+                "status": "error",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/loop/0"
+                },
+                "status": "error",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/no-location"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "HEAD",
+                  "url": "https://api.example.com/r303"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const results = {}\\nfor (const [label, url] of Object.entries({ file: \\\"file:///etc/passwd\\\", creds: \\\"https://user:pw@api.example.com/echo\\\", unanswered: \\\"https://unanswered.example.com/\\\" })) {\\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry { await (await fetch(\\\"https://api.example.com/bad-json\\\")).json() } catch (error) { results.badJson = error.name }\\nfor (const [label, init] of Object.entries({\\n  dateBody: { method: \\\"POST\\\", body: new Date(0) },\\n  mapHeaders: { headers: new Map([[\\\"a\\\", \\\"b\\\"]]) },\\n  headersObj: { headers: new Headers({ \\\"x-h\\\": \\\"1\\\" }) },\\n  regexBody: { method: \\\"POST\\\", body: /re/g },\\n  setBody: { method: \\\"POST\\\", body: new Set([1]) },\\n  urlBody: { method: \\\"POST\\\", body: new URL(\\\"https://x.example.com/\\\") },\\n  arrayBody: { method: \\\"POST\\\", body: [1, 2] },\\n  fnInit: { method: \\\"POST\\\", body: () => 1 },\\n  promiseInit: { method: \\\"POST\\\", body: Promise.resolve(1) },\\n  errorBody: { method: \\\"POST\\\", body: new TypeError(\\\"bad\\\", { cause: new Error(\\\"root\\\") }) },\\n  deep: { method: \\\"POST\\\", body: JSON.parse(\\\"[\\\".repeat(40) + \\\"]\\\".repeat(40)) },\\n})) {\\n  try { const r = await fetch(\\\"https://api.example.com/echo\\\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry {\\n  const looped = { headers: {} }\\n  looped.headers.self = looped\\n  await fetch(\\\"https://api.example.com/echo\\\", looped)\\n} catch (error) { results.circular = error.name + \\\": \\\" + error.message }\\nreturn results\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const results = {}\nfor (const [label, url] of Object.entries({ file: \"file:///etc/passwd\", creds: \"https://user:pw@api.example.com/echo\", unanswered: \"https://unanswered.example.com/\" })) {\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \": \" + error.message }\n}\ntry { await (await fetch(\"https://api.example.com/bad-json\")).json() } catch (error) { results.badJson = error.name }\nfor (const [label, init] of Object.entries({\n  dateBody: { method: \"POST\", body: new Date(0) },\n  mapHeaders: { headers: new Map([[\"a\", \"b\"]]) },\n  headersObj: { headers: new Headers({ \"x-h\": \"1\" }) },\n  regexBody: { method: \"POST\", body: /re/g },\n  setBody: { method: \"POST\", body: new Set([1]) },\n  urlBody: { method: \"POST\", body: new URL(\"https://x.example.com/\") },\n  arrayBody: { method: \"POST\", body: [1, 2] },\n  fnInit: { method: \"POST\", body: () => 1 },\n  promiseInit: { method: \"POST\", body: Promise.resolve(1) },\n  errorBody: { method: \"POST\", body: new TypeError(\"bad\", { cause: new Error(\"root\") }) },\n  deep: { method: \"POST\", body: JSON.parse(\"[\".repeat(40) + \"]\".repeat(40)) },\n})) {\n  try { const r = await fetch(\"https://api.example.com/echo\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \": \" + error.message }\n}\ntry {\n  const looped = { headers: {} }\n  looped.headers.self = looped\n  await fetch(\"https://api.example.com/echo\", looped)\n} catch (error) { results.circular = error.name + \": \" + error.message }\nreturn results"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "file:///etc/passwd"
+                },
+                "status": "error",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://user:pw@api.example.com/echo"
+                },
+                "status": "error",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://unanswered.example.com/"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/bad-json"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "POST",
+                  "url": "https://api.example.com/echo"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 2
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_49>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const pending = fetch(\\\"https://api.example.com/text\\\")\\nconst all = await Promise.all([fetch(\\\"https://api.example.com/text\\\").then((r) => r.text()), fetch(\\\"https://api.example.com/created\\\").then((r) => r.status)])\\nreturn { all, pendingType: typeof pending.then }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const pending = fetch(\"https://api.example.com/text\")\nconst all = await Promise.all([fetch(\"https://api.example.com/text\").then((r) => r.text()), fetch(\"https://api.example.com/created\").then((r) => r.status)])\nreturn { all, pendingType: typeof pending.then }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"all\": [\n    \"hello text\",\n    201\n  ],\n  \"pendingType\": \"function\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/text"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/text"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              },
+              {
+                "input": {
+                  "method": "GET",
+                  "url": "https://api.example.com/created"
+                },
+                "status": "completed",
+                "tool": "fetch"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 2
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_57>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_64>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 1
+        },
+        "id": "<evt_65>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,161 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "hg-project-id"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": [
+        {
+          "canonical": "<project>",
+          "id": "hg-project-id",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "hg"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/project"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "hg-project-id",
+          "projectID": "hg-project-id"
+        },
+        "durable": {
+          "aggregateID": "hg-project-id",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "hg-project-id",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "hg"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".hg/opencode": "hg-project-id\n",
+    "a.txt": "a\n"
+  }
+}

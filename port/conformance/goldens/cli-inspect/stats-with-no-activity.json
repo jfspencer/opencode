@@ -1,0 +1,135 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode stats · <year> so far · all projects",
+          "",
+          "no activity in this range",
+          "",
+          "opencode.ai",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats",
+          "--json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "activeDays": 0,
+            "activity": [],
+            "cost": 0,
+            "models": [],
+            "prompts": 0,
+            "range": {
+              "from": "<time>",
+              "to": "<time>"
+            },
+            "sessions": 0,
+            "steps": 0,
+            "streak": 0,
+            "subagents": 0,
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            },
+            "tools": {
+              "mode": "detail",
+              "totals": {
+                "calls": 0,
+                "failed": 0,
+                "succeeded": 0,
+                "unfinished": 0
+              },
+              "usage": []
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats",
+          "--days",
+          "0"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode stats · today · all projects",
+          "",
+          "no activity in this range",
+          "",
+          "opencode.ai",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats",
+          "--all",
+          "--project",
+          "."
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode stats · all time · current project",
+          "",
+          "no activity in this range",
+          "",
+          "opencode.ai",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats",
+          "--days",
+          "7",
+          "--all"
+        ],
+        "exit": 1,
+        "stderr": [
+          "--days, --year, and --all cannot be combined",
+          ""
+        ],
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

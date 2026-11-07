@@ -1,0 +1,353 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "canonical": "<project>",
+        "commands": {
+          "start": "bun install"
+        },
+        "icon": {
+          "color": "#336699",
+          "override": "https://example.test/icon.png"
+        },
+        "id": "<hash_1>",
+        "name": "Demo project",
+        "sandboxes": [],
+        "time": {
+          "active": "<time>",
+          "created": "<time>",
+          "updated": "<time>"
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "commands": {
+          "start": "bun install"
+        },
+        "icon": {
+          "color": "#336699",
+          "override": "https://example.test/icon.png"
+        },
+        "name": "Demo project"
+      },
+      "status": 200,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": {
+        "canonical": "<project>",
+        "commands": {
+          "start": "bun install"
+        },
+        "icon": {
+          "color": "#336699",
+          "override": "https://example.test/icon.png"
+        },
+        "id": "<hash_1>",
+        "name": "Renamed",
+        "sandboxes": [],
+        "time": {
+          "active": "<time>",
+          "created": "<time>",
+          "updated": "<time>"
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "name": "Renamed"
+      },
+      "status": 200,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": {
+        "canonical": "<project>",
+        "id": "<hash_1>",
+        "sandboxes": [],
+        "time": {
+          "active": "<time>",
+          "created": "<time>",
+          "updated": "<time>"
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "commands": {
+          "start": ""
+        },
+        "icon": {
+          "color": "",
+          "override": ""
+        },
+        "name": ""
+      },
+      "status": 200,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": {
+        "canonical": "<project>/moved",
+        "id": "<hash_1>",
+        "sandboxes": [],
+        "time": {
+          "active": "<time>",
+          "created": "<time>",
+          "updated": "<time>"
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "canonical": "<project>/moved"
+      },
+      "status": 200,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": {
+        "_tag": "ProjectNotFoundError",
+        "message": "Project not found: does-not-exist",
+        "projectID": "does-not-exist"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "name": "x"
+      },
+      "status": 404,
+      "url": "/api/project/does-not-exist"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected string\n  at [\"name\"]"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "name": 5
+      },
+      "status": 400,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": [
+        {
+          "canonical": "<project>/moved",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/project"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "commands": {
+            "start": "bun install"
+          },
+          "icon": {
+            "color": "#336699",
+            "override": "https://example.test/icon.png"
+          },
+          "id": "<hash_1>",
+          "name": "Demo project",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "commands": {
+            "start": "bun install"
+          },
+          "icon": {
+            "color": "#336699",
+            "override": "https://example.test/icon.png"
+          },
+          "id": "<hash_1>",
+          "name": "Renamed",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_12>",
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_13>",
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/moved",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_14>",
+        "type": "project.updated"
+      }
+    ]
+  },
+  "files": {
+    "a.txt": "a\n"
+  }
+}

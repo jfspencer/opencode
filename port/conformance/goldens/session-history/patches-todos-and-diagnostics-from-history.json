@@ -1,0 +1,818 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Patch history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Patch history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Refactor the module",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "call_p1",
+                "name": "apply_patch",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Applied.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "patchText": "*** Begin Patch\n*** Update File: src/a.ts\n*** End Patch"
+                  },
+                  "metadata": {
+                    "files": [
+                      {
+                        "additions": 1,
+                        "deletions": 1,
+                        "filePath": "src/a.ts",
+                        "patch": "@@ -1,3 +1,3 @@\n export const a = 1\n-export const b = 2\n+export const b = 20\n export const c = 3\n",
+                        "relativePath": "src/a.ts",
+                        "type": "update"
+                      },
+                      {
+                        "additions": 1,
+                        "deletions": 0,
+                        "file": "src/new.ts",
+                        "patch": "@@ -0,0 +1 @@\n+export const n = 1\n",
+                        "status": "added"
+                      },
+                      {
+                        "additions": 0,
+                        "deletions": 3,
+                        "filePath": "src/old.ts",
+                        "patch": "",
+                        "relativePath": "src/old.ts",
+                        "type": "delete"
+                      }
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_p2",
+                "name": "apply_patch",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Applied.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "patchText": "*** Begin Patch\n*** Add File: src/b.ts\n*** End Patch"
+                  },
+                  "metadata": {
+                    "applied": [
+                      {
+                        "resource": "src/b.ts",
+                        "type": "add"
+                      },
+                      {
+                        "resource": "src/c.ts",
+                        "type": "delete"
+                      }
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_p3",
+                "name": "apply_patch",
+                "state": {
+                  "error": {
+                    "message": "Context not found",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "patchText": "*** Begin Patch\n*** Update File: src/x.ts\n*** End Patch"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_p4",
+                "name": "apply_patch",
+                "state": {
+                  "error": {
+                    "message": "Two files failed",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "patchText": "*** Update File: a\n*** Update File: b"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_t2",
+                "name": "todowrite",
+                "state": {
+                  "content": [
+                    {
+                      "text": "cleared",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "todos": []
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_t3",
+                "name": "todowrite",
+                "state": {
+                  "error": {
+                    "message": "Invalid todos",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "todos": "nope"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_t1",
+                "name": "todowrite",
+                "state": {
+                  "content": [
+                    {
+                      "text": "4 todos",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "todos": [
+                      {
+                        "content": "Write the parser",
+                        "status": "completed"
+                      },
+                      {
+                        "content": "Wire up the CLI",
+                        "status": "in_progress"
+                      },
+                      {
+                        "content": "Document flags",
+                        "status": "pending"
+                      },
+                      {
+                        "content": "Drop legacy mode",
+                        "status": "cancelled"
+                      }
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_w1",
+                "name": "write",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Wrote.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "content": "export const x: number = 'one'\n",
+                    "path": "src/typed.ts"
+                  },
+                  "metadata": {
+                    "diagnostics": {
+                      "src/typed.ts": [
+                        {
+                          "message": "Type 'string' is not assignable to type 'number'.",
+                          "range": {
+                            "start": {
+                              "character": 25,
+                              "line": 0
+                            }
+                          },
+                          "severity": 1
+                        },
+                        {
+                          "message": "A warning that is not shown",
+                          "range": {
+                            "start": {
+                              "character": 0,
+                              "line": 0
+                            }
+                          },
+                          "severity": 2
+                        }
+                      ]
+                    }
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_e1",
+                "name": "edit",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Edited.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "newString": "20",
+                    "oldString": "2",
+                    "path": "src/a.ts"
+                  },
+                  "metadata": {
+                    "diagnostics": {
+                      "src/a.ts": [
+                        {
+                          "message": "Unused export",
+                          "range": {
+                            "start": {
+                              "character": 13,
+                              "line": 1
+                            }
+                          },
+                          "severity": 1
+                        }
+                      ]
+                    },
+                    "files": [
+                      {
+                        "additions": 1,
+                        "deletions": 1,
+                        "filePath": "src/a.ts",
+                        "patch": "@@ -1,3 +1,3 @@\n export const a = 1\n-export const b = 2\n+export const b = 20\n export const c = 3\n",
+                        "relativePath": "src/a.ts",
+                        "type": "update"
+                      }
+                    ]
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "text": "Refactored.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "kind": "note",
+      "label": "frame:bottom",
+      "value": [
+        "   Patch history                 +",
+        "  ┃  # Created src/new.ts",
+        "  ┃",
+        "  ┃    1 + export const n = 1",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Deleted src/old.ts",
+        "  ┃",
+        "  ┃  -3 lines",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Created src/b.ts",
+        "  ┃",
+        "  ┃  src/b.ts",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Deleted src/c.ts",
+        "  ┃",
+        "  ┃  src/c.ts",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Patch failed src/x.ts",
+        "  ┃",
+        "  ┃  Context not found",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Patch failed",
+        "  ┃",
+        "  ┃  Two files failed",
+        "  ┃",
+        "",
+        "     ⚙ Cleared todos",
+        "",
+        "     ⚙ Todo update failed",
+        "",
+        "  ┃",
+        "  ┃  # Todos",
+        "  ┃",
+        "  ┃  [✓] Write the parser",
+        "  ┃  [•] Wire up the CLI",
+        "  ┃  [ ] Document flags",
+        "  ┃  [-] Drop legacy mode",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Wrote src/typed.ts",
+        "  ┃",
+        "  ┃   1 export const x: number = 'one'",
+        "  ┃   2",
+        "  ┃",
+        "  ┃  Error [1:26] Type 'string' is not assignable to type 'number'.",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  ← Edit src/a.ts",
+        "  ┃",
+        "  ┃    1   export const a = 1",
+        "  ┃    2 - export const b = 2",
+        "  ┃    2 + export const b = 20",
+        "  ┃    3   export const c = 3",
+        "  ┃",
+        "  ┃  Error [2:14] Unused export",
+        "  ┃",
+        "",
+        "     Refactored.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>:main                        1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:top",
+      "value": [
+        "   Patch history                 +",
+        "",
+        "  ┃",
+        "  ┃  Refactor the module",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  ← Patched src/a.ts",
+        "  ┃",
+        "  ┃    1   export const a = 1",
+        "  ┃    2 - export const b = 2",
+        "  ┃    2 + export const b = 20",
+        "  ┃    3   export const c = 3",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Created src/new.ts",
+        "  ┃",
+        "  ┃    1 + export const n = 1",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Deleted src/old.ts",
+        "  ┃",
+        "  ┃  -3 lines",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Created src/b.ts",
+        "  ┃",
+        "  ┃  src/b.ts",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Deleted src/c.ts",
+        "  ┃",
+        "  ┃  src/c.ts",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Patch failed src/x.ts",
+        "  ┃",
+        "  ┃  Context not found",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Patch failed",
+        "  ┃",
+        "  ┃  Two files failed",
+        "  ┃",
+        "",
+        "     ⚙ Cleared todos",
+        "",
+        "     ⚙ Todo update failed",
+        "",
+        "  ┃",
+        "  ┃  # Todos",
+        "  ┃",
+        "  ┃  [✓] Write the parser",
+        "  ┃  [•] Wire up the CLI",
+        "  ┃  [ ] Document flags",
+        "  ┃  [-] Drop legacy mode",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Wrote src/typed.ts",
+        "  ┃",
+        "  ┃   1 export const x: number = 'one'",
+        "  ┃   2",
+        "  ┃",
+        "  ┃  Error [1:26] Type 'string' is not assignable to type 'number'.",
+        "  ┃",
+        "                                                                                  Jump to latest ↓",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>:main                        1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:sidebar-todos",
+      "value": [
+        "   Patch history                 +",
+        "",
+        "  ┃                                                                                                                     Patch history",
+        "  ┃  Refactor the module",
+        "  ┃                                                                                                                     Context",
+        "                                                                                                                        1,050 tokens",
+        "  ┃                                                                                                                     0% used",
+        "  ┃  ← Patched src/a.ts",
+        "  ┃                                                                                                                     ▼ Todo",
+        "  ┃    1   export const a = 1                                                                                           [✓] Write the parser",
+        "  ┃    2 - export const b = 2                                                                                           [•] Wire up the CLI",
+        "  ┃    2 + export const b = 20                                                                                          [ ] Document flags",
+        "  ┃    3   export const c = 3                                                                                           [-] Drop legacy mode",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Created src/new.ts",
+        "  ┃",
+        "  ┃    1 + export const n = 1",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Deleted src/old.ts",
+        "  ┃",
+        "  ┃  -3 lines",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  # Created src/b.ts",
+        "  ┃",
+        "  ┃  src/b.ts",
+        "  ┃",
+        "                                                                                                    Jump to latest ↓",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>:main                                          1.1K (0%)  ctrl+p commands    /…/oc-conformance…/<project-name>:main",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/inbox",
+        "GET /api/session/<ses_1>/message",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "Patch history",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

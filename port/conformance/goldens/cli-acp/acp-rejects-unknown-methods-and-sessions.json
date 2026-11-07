@@ -1,0 +1,96 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/frobnicate\",\"params\":{}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Hi\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"session/new\",\"params\":{\"cwd\":\"relative/dir\",\"mcpServers\":[]}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "local"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "error": {
+                "code": -32601,
+                "data": {
+                  "method": "session/frobnicate"
+                },
+                "message": "\"Method not found\": session/frobnicate"
+              },
+              "id": 2,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32602,
+                "data": {
+                  "sessionId": "<ses_1>"
+                },
+                "message": "Invalid params: session not found: <ses_1>"
+              },
+              "id": 3,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32602,
+                "data": {
+                  "field": "cwd"
+                },
+                "message": "Invalid params: cwd must be an absolute path: relative/dir"
+              },
+              "id": 4,
+              "jsonrpc": "2.0"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

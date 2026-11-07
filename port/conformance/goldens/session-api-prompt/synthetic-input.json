@@ -1,0 +1,1085 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "synthetic",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "synthetic"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "description": "client context",
+            "metadata": {
+              "n": 1,
+              "source": "conformance"
+            },
+            "text": "Context injected by a client"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "description": "client context",
+        "id": "<msg_1>",
+        "metadata": {
+          "n": 1,
+          "source": "conformance"
+        },
+        "resume": false,
+        "text": "Context injected by a client"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "description": "client context",
+            "metadata": {
+              "n": 1,
+              "source": "conformance"
+            },
+            "text": "Context injected by a client"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "<msg_1>",
+        "resume": false,
+        "text": "other text"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "queue",
+          "id": "<msg_2>",
+          "payload": {
+            "text": "Queued context"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "delivery": "queue",
+        "resume": false,
+        "text": "Queued context"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "delivery": "steer",
+            "id": "<msg_1>",
+            "payload": {
+              "description": "client context",
+              "metadata": {
+                "n": 1,
+                "source": "conformance"
+              },
+              "text": "Context injected by a client"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "delivery": "queue",
+            "id": "<msg_2>",
+            "payload": {
+              "text": "Queued context"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    },
+    {
+      "body": {
+        "_tag": "ConflictError",
+        "message": "Prompt message ID conflicts with an existing durable record: <msg_1>",
+        "resource": "<msg_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "<msg_1>",
+        "resume": false,
+        "text": "conflicting prompt"
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_3>",
+          "payload": {
+            "text": "Resume now"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Resume now"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_4>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "description": "client context",
+            "id": "<msg_1>",
+            "metadata": {
+              "n": 1,
+              "source": "conformance"
+            },
+            "text": "Context injected by a client",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "id": "<msg_3>",
+            "text": "Resume now",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Noted the synthetic context.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_2>",
+            "text": "Queued context",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Noted the queued context.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_4>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "description": "client context",
+            "metadata": {
+              "n": 1,
+              "source": "conformance"
+            },
+            "text": "Context injected by a client"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "<msg_1>",
+        "resume": false,
+        "text": "again"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"text\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "description": "missing text"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "data": {
+          "description": "client context",
+          "id": "<msg_1>",
+          "metadata": {
+            "n": 1,
+            "source": "conformance"
+          },
+          "text": "Context injected by a client",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "synthetic"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message/<msg_1>"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Context injected by a client",
+              "role": "user"
+            },
+            {
+              "content": "Resume now",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Context injected by a client",
+              "role": "user"
+            },
+            {
+              "content": "Resume now",
+              "role": "user"
+            },
+            {
+              "content": "Noted the synthetic context.",
+              "role": "assistant"
+            },
+            {
+              "content": "Queued context",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "synthetic",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "description": "client context",
+              "metadata": {
+                "n": 1,
+                "source": "conformance"
+              },
+              "text": "Context injected by a client"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "queue",
+            "payload": {
+              "text": "Queued context"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Resume now"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 2
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Noted the synthetic context.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Noted the synthetic context."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "delta": "Noted the queued context.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Noted the queued context."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

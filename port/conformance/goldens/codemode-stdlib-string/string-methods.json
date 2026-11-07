@@ -1,0 +1,780 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the string methods programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the string methods programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the string methods programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the string methods programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": {
+                      "<blob>": "5a186aadfd1a1906f52e352e3e512466966a2fcdced18ffc8575ec316caab7f6"
+                    },
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"case\": [\n    \"  HELLO, WORLD  \",\n    \"  hello, world  \",\n    \"i̇\",\n    \"SS\"\n  ],\n  \"trim\": [\n    \"Hello, World\",\n    \"Hello, World  \",\n    \"  Hello, World\",\n    \"Hello, World  \",\n    \"  Hello, World\"\n  ],\n  \"localeCompare\": [\n    -1,\n    1,\n    0,\n    -1\n  ],\n  \"normalize\": [\n    1,\n    1,\n    2,\n    \"fi\",\n    \"fi\"\n  ],\n  \"normalize invalid\": \"!RangeError: String.normalize expects the form \\\"NFC\\\", \\\"NFD\\\", \\\"NFKC\\\", or \\\"NFKD\\\" (got \\\"NFX\\\").\",\n  \"split\": [\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"a\",\n      \"b\"\n    ],\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"abc\"\n    ],\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"a\",\n      \"1\",\n      \"b\",\n      \"2\",\n      \"c\"\n    ],\n    [],\n    [\n      \"a\",\n      \"b\"\n    ],\n    [\n      \"\"\n    ],\n    [\n      \"a\"\n    ]\n  ],\n  \"split regex limit\": [\n    \"a\",\n    \"b\"\n  ],\n  \"split object separator\": [\n    \"a\",\n    \"b\"\n  ],\n  \"slice\": [\n    \"el\",\n    \"llo\",\n    \"hello\",\n    \"ll\",\n    \"e\"\n  ],\n  \"includes\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"includes regex\": \"!TypeError: String.includes cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"startsWith\": [\n    true,\n    true,\n    false\n  ],\n  \"startsWith regex\": \"!TypeError: String.startsWith cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"endsWith\": [\n    true,\n    true,\n    false\n  ],\n  \"endsWith regex\": \"!TypeError: String.endsWith cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"indexOf\": [\n    2,\n    3,\n    -1,\n    0,\n    1\n  ],\n  \"lastIndexOf\": [\n    3,\n    2,\n    -1\n  ],\n  \"indexOf coercion\": 1,\n  \"repeat\": [\n    \"ababab\",\n    \"\",\n    \"xx\"\n  ],\n  \"repeat negative\": \"!RangeError: String.repeat expects a finite non-negative count.\",\n  \"repeat infinite\": \"!RangeError: String.repeat expects a finite non-negative count.\",\n  \"repeat too long\": \"!RangeError: Invalid string length\",\n  \"padStart\": [\n    \"005\",\n    \"   abc\",\n    \"abc\",\n    \"12121abc\",\n    \"x\"\n  ],\n  \"padEnd\": [\n    \"500\",\n    \"abc-=-\",\n    \"abc\"\n  ],\n  \"pad too long\": \"!RangeError: Invalid string length\",\n  \"charAt\": [\n    \"b\",\n    \"a\",\n    \"\",\n    \"\"\n  ],\n  \"at\": [\n    \"a\",\n    \"c\",\n    null,\n    \"a\"\n  ],\n  \"substring\": [\n    \"el\",\n    \"el\",\n    \"hello\",\n    \"hello\"\n  ],\n  \"substr\": [\n    \"ell\",\n    \"ll\",\n    \"hello\",\n    \"llo\"\n  ],\n  \"well formed\": [\n    true,\n    false,\n    65533\n  ],\n  \"charCodeAt\": [\n    97,\n    97,\n    null,\n    56832\n  ],\n  \"codePointAt\": [\n    128512,\n    56832,\n    null,\n    97\n  ],\n  \"concat\": [\n    \"ab1null2,3\",\n    \"a\"\n  ],\n  \"concat object\": \"aZ\",\n  \"opaque argument\": \"!TypeError: String.indexOf expects argument 1 to be a data value.\",\n  \"ToPrimitive order\": [\n    \"search\",\n    \"pos\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the string methods programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the string methods programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": {
+            "<blob>": "5a186aadfd1a1906f52e352e3e512466966a2fcdced18ffc8575ec316caab7f6"
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst s = \"  Hello, World  \"\nt(\"case\", () => [s.toUpperCase(), s.toLowerCase(), \"İ\".toLocaleLowerCase(), \"ß\".toLocaleUpperCase()])\nt(\"trim\", () => [s.trim(), s.trimStart(), s.trimEnd(), s.trimLeft(), s.trimRight()])\nt(\"localeCompare\", () => [\"a\".localeCompare(\"b\"), \"b\".localeCompare(\"a\"), \"a\".localeCompare(\"a\"), \"a\".localeCompare()])\nt(\"normalize\", () => [\"e\\u0301\".normalize().length, \"e\\u0301\".normalize(\"NFC\").length, \"é\".normalize(\"NFD\").length, \"ﬁ\".normalize(\"NFKC\"), \"ﬁ\".normalize(\"NFKD\")])\nt(\"normalize invalid\", () => \"a\".normalize(\"NFX\"))\nt(\"split\", () => [\"a,b,c\".split(\",\"), \"a,b,c\".split(\",\", 2), \"abc\".split(\"\"), \"abc\".split(), \"a1b2c\".split(/\\d/), \"a1b2c\".split(/(\\d)/), \"abc\".split(undefined, 0), \"a,b\".split(\",\", -1), \"\".split(\",\"), \"a,b\".split(\",\", \"1\")])\nt(\"split regex limit\", () => \"a1b2c3\".split(/\\d/, 2))\nt(\"split object separator\", () => \"a-b\".split({ toString() { return \"-\" } }))\nt(\"slice\", () => [\"hello\".slice(1, 3), \"hello\".slice(-3), \"hello\".slice(), \"hello\".slice(2, -1), \"hello\".slice(\"1\", \"2\")])\nt(\"includes\", () => [\"hello\".includes(\"ell\"), \"hello\".includes(\"ell\", 2), \"hello\".includes(), \"undefined\".includes()])\nt(\"includes regex\", () => \"abc\".includes(/b/))\nt(\"startsWith\", () => [\"hello\".startsWith(\"he\"), \"hello\".startsWith(\"l\", 2), \"hello\".startsWith(\"x\")])\nt(\"startsWith regex\", () => \"abc\".startsWith(/a/))\nt(\"endsWith\", () => [\"hello\".endsWith(\"lo\"), \"hello\".endsWith(\"l\", 4), \"hello\".endsWith(\"h\", 0)])\nt(\"endsWith regex\", () => \"abc\".endsWith(/c/))\nt(\"indexOf\", () => [\"hello\".indexOf(\"l\"), \"hello\".indexOf(\"l\", 3), \"hello\".indexOf(\"z\"), \"hello\".indexOf(\"\"), \"a1\".indexOf(1)])\nt(\"lastIndexOf\", () => [\"hello\".lastIndexOf(\"l\"), \"hello\".lastIndexOf(\"l\", 2), \"hello\".lastIndexOf(\"z\")])\nt(\"indexOf coercion\", () => \"abc\".indexOf({ toString() { return \"b\" } }))\nt(\"repeat\", () => [\"ab\".repeat(3), \"x\".repeat(0), \"x\".repeat(\"2\")])\nt(\"repeat negative\", () => \"x\".repeat(-1))\nt(\"repeat infinite\", () => \"x\".repeat(Infinity))\nt(\"repeat too long\", () => \"abcdefgh\".repeat(4000000))\nt(\"padStart\", () => [\"5\".padStart(3, \"0\"), \"abc\".padStart(6), \"abc\".padStart(2), \"abc\".padStart(8, \"12\"), \"x\".padStart(3, \"\")])\nt(\"padEnd\", () => [\"5\".padEnd(3, \"0\"), \"abc\".padEnd(6, \"-=\"), \"abc\".padEnd(1)])\nt(\"pad too long\", () => \"x\".padEnd(20000000))\nt(\"charAt\", () => [\"abc\".charAt(1), \"abc\".charAt(), \"abc\".charAt(9), \"abc\".charAt(-1)])\nt(\"at\", () => [\"abc\".at(0), \"abc\".at(-1), \"abc\".at(5), \"abc\".at()])\nt(\"substring\", () => [\"hello\".substring(1, 3), \"hello\".substring(3, 1), \"hello\".substring(-2), \"hello\".substring()])\nt(\"substr\", () => [\"hello\".substr(1, 3), \"hello\".substr(-3, 2), \"hello\".substr(), \"hello\".substr(2)])\nt(\"well formed\", () => [\"ab\".isWellFormed(), \"a\\uD800\".isWellFormed(), \"a\\uD800\".toWellFormed().charCodeAt(1)])\nt(\"charCodeAt\", () => [\"abc\".charCodeAt(0), \"abc\".charCodeAt(), \"abc\".charCodeAt(10), \"😀\".charCodeAt(1)])\nt(\"codePointAt\", () => [\"😀\".codePointAt(0), \"😀\".codePointAt(1), \"a\".codePointAt(5), \"a\".codePointAt()])\nt(\"concat\", () => [\"a\".concat(\"b\", 1, null, [2, 3]), \"a\".concat()])\nt(\"concat object\", () => \"a\".concat({ toString() { return \"Z\" } }))\nt(\"opaque argument\", () => \"abc\".indexOf(Promise.resolve(1)))\nt(\"ToPrimitive order\", () => { const log = []; const o = (n) => ({ toString() { log.push(n); return \"b\" } }); \"abc\".lastIndexOf(o(\"search\"), { valueOf() { log.push(\"pos\"); return 2 } }); return log })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"case\": [\n    \"  HELLO, WORLD  \",\n    \"  hello, world  \",\n    \"i̇\",\n    \"SS\"\n  ],\n  \"trim\": [\n    \"Hello, World\",\n    \"Hello, World  \",\n    \"  Hello, World\",\n    \"Hello, World  \",\n    \"  Hello, World\"\n  ],\n  \"localeCompare\": [\n    -1,\n    1,\n    0,\n    -1\n  ],\n  \"normalize\": [\n    1,\n    1,\n    2,\n    \"fi\",\n    \"fi\"\n  ],\n  \"normalize invalid\": \"!RangeError: String.normalize expects the form \\\"NFC\\\", \\\"NFD\\\", \\\"NFKC\\\", or \\\"NFKD\\\" (got \\\"NFX\\\").\",\n  \"split\": [\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"a\",\n      \"b\"\n    ],\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"abc\"\n    ],\n    [\n      \"a\",\n      \"b\",\n      \"c\"\n    ],\n    [\n      \"a\",\n      \"1\",\n      \"b\",\n      \"2\",\n      \"c\"\n    ],\n    [],\n    [\n      \"a\",\n      \"b\"\n    ],\n    [\n      \"\"\n    ],\n    [\n      \"a\"\n    ]\n  ],\n  \"split regex limit\": [\n    \"a\",\n    \"b\"\n  ],\n  \"split object separator\": [\n    \"a\",\n    \"b\"\n  ],\n  \"slice\": [\n    \"el\",\n    \"llo\",\n    \"hello\",\n    \"ll\",\n    \"e\"\n  ],\n  \"includes\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"includes regex\": \"!TypeError: String.includes cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"startsWith\": [\n    true,\n    true,\n    false\n  ],\n  \"startsWith regex\": \"!TypeError: String.startsWith cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"endsWith\": [\n    true,\n    true,\n    false\n  ],\n  \"endsWith regex\": \"!TypeError: String.endsWith cannot take a regular expression; use regex.test(string) or String.search instead.\",\n  \"indexOf\": [\n    2,\n    3,\n    -1,\n    0,\n    1\n  ],\n  \"lastIndexOf\": [\n    3,\n    2,\n    -1\n  ],\n  \"indexOf coercion\": 1,\n  \"repeat\": [\n    \"ababab\",\n    \"\",\n    \"xx\"\n  ],\n  \"repeat negative\": \"!RangeError: String.repeat expects a finite non-negative count.\",\n  \"repeat infinite\": \"!RangeError: String.repeat expects a finite non-negative count.\",\n  \"repeat too long\": \"!RangeError: Invalid string length\",\n  \"padStart\": [\n    \"005\",\n    \"   abc\",\n    \"abc\",\n    \"12121abc\",\n    \"x\"\n  ],\n  \"padEnd\": [\n    \"500\",\n    \"abc-=-\",\n    \"abc\"\n  ],\n  \"pad too long\": \"!RangeError: Invalid string length\",\n  \"charAt\": [\n    \"b\",\n    \"a\",\n    \"\",\n    \"\"\n  ],\n  \"at\": [\n    \"a\",\n    \"c\",\n    null,\n    \"a\"\n  ],\n  \"substring\": [\n    \"el\",\n    \"el\",\n    \"hello\",\n    \"hello\"\n  ],\n  \"substr\": [\n    \"ell\",\n    \"ll\",\n    \"hello\",\n    \"llo\"\n  ],\n  \"well formed\": [\n    true,\n    false,\n    65533\n  ],\n  \"charCodeAt\": [\n    97,\n    97,\n    null,\n    56832\n  ],\n  \"codePointAt\": [\n    128512,\n    56832,\n    null,\n    97\n  ],\n  \"concat\": [\n    \"ab1null2,3\",\n    \"a\"\n  ],\n  \"concat object\": \"aZ\",\n  \"opaque argument\": \"!TypeError: String.indexOf expects argument 1 to be a data value.\",\n  \"ToPrimitive order\": [\n    \"search\",\n    \"pos\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

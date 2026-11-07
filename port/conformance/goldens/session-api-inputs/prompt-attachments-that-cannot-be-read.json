@@ -1,0 +1,571 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "bad attachments",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "bad attachments"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Unable to read attachment: file://<project>/missing.txt"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "file://<project>/missing.txt"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Attachment is not a file: file:///dev/null"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "file:///dev/null"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Invalid file URI: file://remote-host/share/file.txt"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "file://remote-host/share/file.txt"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Invalid attachment URI: not a uri"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "not a uri"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Unsupported attachment URI: https://example.com/file.txt"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "https://example.com/file.txt"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Invalid attachment data URL: inline attachment"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "data:text/plain;base64"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Invalid attachment data URL: inline attachment"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "data:text/plain;base64,YQ"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "files": [
+              {
+                "data": "bm90IGEgcG5n",
+                "mime": "text/plain",
+                "name": "broken.png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Attach"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "name": "broken.png",
+            "uri": "data:image/png;base64,bm90IGEgcG5n"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_2>",
+          "payload": {
+            "files": [
+              {
+                "data": "bm90IGEgcG5n",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Attach"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "data:image/png;base64,bm90IGEgcG5n"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Attachment is no longer stored: media:<hash_2>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "media:<hash_2>"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "files",
+        "message": "Attachment exceeds the 20971520 byte limit: file://<project>/big.bin"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "file://<project>/big.bin"
+          }
+        ],
+        "resume": false,
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"files\"][0][\"uri\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {}
+        ],
+        "text": "Attach"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "delivery": "steer",
+            "id": "<msg_1>",
+            "payload": {
+              "files": [
+                {
+                  "data": "bm90IGEgcG5n",
+                  "mime": "text/plain",
+                  "name": "broken.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Attach"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "delivery": "steer",
+            "id": "<msg_2>",
+            "payload": {
+              "files": [
+                {
+                  "data": "bm90IGEgcG5n",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Attach"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "bad attachments",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "bm90IGEgcG5n",
+                  "mime": "text/plain",
+                  "name": "broken.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Attach"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "bm90IGEgcG5n",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Attach"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      }
+    ]
+  },
+  "files": {
+    "docs/api/ref.md": "# Ref\n",
+    "docs/guide.md": "# Guide\n",
+    "notes.txt": "one\ntwo\nthree\nfour\n",
+    "pixel.png": "placeholder"
+  }
+}

@@ -1,0 +1,1986 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "media",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "media"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "files": [
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                }
+              },
+              {
+                "data": "bm90ZQ==",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Pending with an image"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "name": "pixel.png",
+            "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+          },
+          {
+            "uri": "data:text/plain;base64,bm90ZQ=="
+          }
+        ],
+        "resume": false,
+        "text": "Pending with an image"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "delivery": "steer",
+            "id": "<msg_1>",
+            "payload": {
+              "files": [
+                {
+                  "bytes": 70,
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  },
+                  "uri": "media:<hash_2>"
+                },
+                {
+                  "bytes": 4,
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  },
+                  "uri": "media:<hash_3>"
+                }
+              ],
+              "text": "Pending with an image"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "delivery": "steer",
+            "id": "<msg_1>",
+            "payload": {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                },
+                {
+                  "data": "bm90ZQ==",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Pending with an image"
+            },
+            "sessionID": "<ses_1>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_2>",
+          "payload": {
+            "files": [
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Look"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "name": "pixel.png",
+            "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+          }
+        ],
+        "text": "Look"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_3>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "files": [
+              {
+                "bytes": 70,
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_2>"
+              },
+              {
+                "bytes": 4,
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_3>"
+              }
+            ],
+            "id": "<msg_1>",
+            "text": "Pending with an image",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "files": [
+              {
+                "bytes": 70,
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_2>"
+              }
+            ],
+            "id": "<msg_2>",
+            "text": "Look",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Saw the image.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_3>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_3>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "files": [
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                }
+              },
+              {
+                "data": "bm90ZQ==",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_1>",
+            "text": "Pending with an image",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "files": [
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_2>",
+            "text": "Look",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Saw the image.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_3>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": {
+          "files": [
+            {
+              "bytes": 70,
+              "mime": "image/png",
+              "name": "pixel.png",
+              "source": {
+                "type": "inline"
+              },
+              "uri": "media:<hash_2>"
+            },
+            {
+              "bytes": 4,
+              "mime": "text/plain",
+              "source": {
+                "type": "inline"
+              },
+              "uri": "media:<hash_3>"
+            }
+          ],
+          "id": "<msg_1>",
+          "text": "Pending with an image",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message/<msg_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "files": [
+            {
+              "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+              "mime": "image/png",
+              "name": "pixel.png",
+              "source": {
+                "type": "inline"
+              }
+            },
+            {
+              "data": "bm90ZQ==",
+              "mime": "text/plain",
+              "source": {
+                "type": "inline"
+              }
+            }
+          ],
+          "id": "<msg_1>",
+          "text": "Pending with an image",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message/<msg_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_5>",
+          "payload": {
+            "files": [
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "again.png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Same image again"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "name": "again.png",
+            "uri": "media:<hash_2>"
+          }
+        ],
+        "text": "Same image again"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_6>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "files": [
+              {
+                "bytes": 70,
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_2>"
+              },
+              {
+                "bytes": 4,
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_3>"
+              }
+            ],
+            "id": "<msg_1>",
+            "text": "Pending with an image",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "files": [
+              {
+                "bytes": 70,
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_2>"
+              }
+            ],
+            "id": "<msg_2>",
+            "text": "Look",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Saw the image.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_3>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "files": [
+              {
+                "bytes": 70,
+                "mime": "image/png",
+                "name": "again.png",
+                "source": {
+                  "type": "inline"
+                },
+                "uri": "media:<hash_2>"
+              }
+            ],
+            "id": "<msg_5>",
+            "text": "Same image again",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Saw it again.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_6>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": {
+          "info": {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "outcome": "succeeded",
+            "projectID": "<hash_1>",
+            "time": {
+              "busy": "<time>",
+              "created": "<time>",
+              "idle": "<time>",
+              "updated": "<time>"
+            },
+            "title": "media",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 200,
+              "output": 20,
+              "reasoning": 0
+            }
+          },
+          "messages": [
+            {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                },
+                {
+                  "data": "bm90ZQ==",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "id": "<msg_1>",
+              "text": "Pending with an image",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "id": "<msg_2>",
+              "text": "Look",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "agent": "build",
+              "content": [
+                {
+                  "text": "Saw the image.",
+                  "type": "text"
+                }
+              ],
+              "cost": 0,
+              "finish": "stop",
+              "id": "<msg_4>",
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "rawFinish": "stop",
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "streamed": "<time>"
+              },
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 100,
+                "output": 10,
+                "reasoning": 0
+              },
+              "type": "assistant"
+            },
+            {
+              "id": "<msg_3>",
+              "outcome": "succeeded",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "idle"
+            },
+            {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "again.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "id": "<msg_5>",
+              "text": "Same image again",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "agent": "build",
+              "content": [
+                {
+                  "text": "Saw it again.",
+                  "type": "text"
+                }
+              ],
+              "cost": 0,
+              "finish": "stop",
+              "id": "<msg_7>",
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "rawFinish": "stop",
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "streamed": "<time>"
+              },
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 100,
+                "output": 10,
+                "reasoning": 0
+              },
+              "type": "assistant"
+            },
+            {
+              "id": "<msg_6>",
+              "outcome": "succeeded",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "idle"
+            }
+          ]
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/export"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "fork": {
+            "boundary": {
+              "messageID": "<msg_6>",
+              "type": "through"
+            },
+            "sessionID": "<ses_1>"
+          },
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "media (fork #1)",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 200,
+      "url": "/api/session/<ses_1>/fork"
+    },
+    {
+      "kind": "note",
+      "label": "GET /api/session/<ses_2>/message?type=user&limit=1",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "direction": "next",
+                "id": "<forked>_15",
+                "order": "desc"
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "direction": "previous",
+                "id": "<forked>_15",
+                "order": "desc"
+              }
+            }
+          },
+          "data": [
+            {
+              "files": [
+                {
+                  "bytes": 70,
+                  "mime": "image/png",
+                  "name": "again.png",
+                  "source": {
+                    "type": "inline"
+                  },
+                  "uri": "media:<hash_2>"
+                }
+              ],
+              "id": "<forked>_15",
+              "text": "Same image again",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_8>",
+          "payload": {
+            "files": [
+              {
+                "data": "Y2FuY2VsbGVk",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Cancel me"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "data:text/plain;base64,Y2FuY2VsbGVk"
+          }
+        ],
+        "resume": false,
+        "text": "Cancel me"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_1>/inbox/<msg_8>"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_2>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "files": [
+          {
+            "uri": "media:<hash_2>"
+          }
+        ],
+        "text": "Gone"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/prompt"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": [
+                {
+                  "text": "Pending with an image",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                },
+                {
+                  "text": "\n\nAttached file: inline attachment\n\nnote",
+                  "type": "text"
+                }
+              ],
+              "role": "user"
+            },
+            {
+              "content": [
+                {
+                  "text": "Look",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                }
+              ],
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": [
+                {
+                  "text": "Pending with an image",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                },
+                {
+                  "text": "\n\nAttached file: inline attachment\n\nnote",
+                  "type": "text"
+                }
+              ],
+              "role": "user"
+            },
+            {
+              "content": [
+                {
+                  "text": "Look",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                }
+              ],
+              "role": "user"
+            },
+            {
+              "content": "Saw the image.",
+              "role": "assistant"
+            },
+            {
+              "content": [
+                {
+                  "text": "Same image again",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                }
+              ],
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "boundary": {
+            "messageID": "<msg_6>",
+            "type": "through"
+          },
+          "instructionEntries": [],
+          "instructions": {
+            "core/codemode": "<hash_4>",
+            "core/date": "<hash_5>",
+            "core/environment": "<hash_6>",
+            "core/skill-guidance": "<hash_7>"
+          },
+          "parentID": "<ses_1>",
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 2
+        },
+        "id": "<evt_11>",
+        "type": "session.forked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 22,
+          "version": 2
+        },
+        "id": "<evt_12>",
+        "type": "session.deleted"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "media",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                },
+                {
+                  "data": "bm90ZQ==",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Pending with an image"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Look"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_4>",
+            "core/date": "<hash_5>",
+            "core/environment": "<hash_6>",
+            "core/skill-guidance": "<hash_7>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 2
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Saw the image.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Saw the image."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_26>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_5>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "again.png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Same image again"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "delta": "Saw it again.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Saw it again."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_37>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "type": "session.execution.succeeded"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_8>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "files": [
+                {
+                  "data": "Y2FuY2VsbGVk",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Cancel me"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "type": "session.inbox.cancelled"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 2
+        },
+        "id": "<evt_41>",
+        "type": "session.deleted"
+      }
+    ]
+  },
+  "files": {
+    "docs/api/ref.md": "# Ref\n",
+    "docs/guide.md": "# Guide\n",
+    "notes.txt": "one\ntwo\nthree\nfour\n",
+    "pixel.png": "placeholder"
+  }
+}

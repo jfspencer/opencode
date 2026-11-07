@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the async functions and await ordering programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the async functions and await ordering programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async functions and await ordering programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async functions and await ordering programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nasync function a() { log.push(\\\"a1\\\"); await null; log.push(\\\"a2\\\"); await undefined; log.push(\\\"a3\\\"); return \\\"A\\\" }\\nasync function b() { log.push(\\\"b1\\\"); await 1; log.push(\\\"b2\\\"); return \\\"B\\\" }\\nconst arrow = async (x) => { await x; log.push(\\\"arrow \\\" + x); return x * 2 }\\nconst method = { async m() { return \\\"method\\\" } }\\nconst pa = a(), pb = b()\\nlog.push(\\\"sync after calls\\\")\\nconst results = [await pa, await pb, await arrow(21), await method.m()]\\nconst thenable = { then(resolve) { log.push(\\\"thenable then\\\"); resolve(\\\"from thenable\\\") } }\\nconst fromThenable = await thenable\\nconst plain = await 42\\nconst nested = await (async () => (async () => \\\"deep\\\")())()\\nlet caught\\ntry { await (async () => { throw new TypeError(\\\"async throw\\\") })() } catch (e) { caught = e.name + \\\": \\\" + e.message }\\nconst rejectedThenable = await ({ then(_, reject) { reject(new Error(\\\"thenable rejected\\\")) } }).catch?.((e) => e.message) ?? \\\"no catch on plain object\\\"\\nlet caught2\\ntry { await { then(_, reject) { reject(\\\"thenable reject value\\\") } } } catch (e) { caught2 = e }\\nconst throwingThenable = await (async () => { try { await { then() { throw new RangeError(\\\"then threw\\\") } } } catch (e) { return e.message } })()\\nconst typeofAsync = typeof a\\nconst isPromise = pa instanceof Promise\\nreturn { log, results, fromThenable, plain, nested, caught, rejectedThenable, caught2, throwingThenable, typeofAsync, isPromise, str: Object.prototype.toString.call(pa) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"a1\",\n    \"b1\",\n    \"sync after calls\",\n    \"a2\",\n    \"b2\",\n    \"a3\",\n    \"arrow 21\",\n    \"thenable then\"\n  ],\n  \"results\": [\n    \"A\",\n    \"B\",\n    42,\n    \"method\"\n  ],\n  \"fromThenable\": \"from thenable\",\n  \"plain\": 42,\n  \"nested\": \"deep\",\n  \"caught\": \"TypeError: async throw\",\n  \"rejectedThenable\": \"no catch on plain object\",\n  \"caught2\": \"thenable reject value\",\n  \"throwingThenable\": \"then threw\",\n  \"typeofAsync\": \"function\",\n  \"isPromise\": true,\n  \"str\": \"[object Promise]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async functions and await ordering programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nasync function a() { log.push(\\\"a1\\\"); await null; log.push(\\\"a2\\\"); await undefined; log.push(\\\"a3\\\"); return \\\"A\\\" }\\nasync function b() { log.push(\\\"b1\\\"); await 1; log.push(\\\"b2\\\"); return \\\"B\\\" }\\nconst arrow = async (x) => { await x; log.push(\\\"arrow \\\" + x); return x * 2 }\\nconst method = { async m() { return \\\"method\\\" } }\\nconst pa = a(), pb = b()\\nlog.push(\\\"sync after calls\\\")\\nconst results = [await pa, await pb, await arrow(21), await method.m()]\\nconst thenable = { then(resolve) { log.push(\\\"thenable then\\\"); resolve(\\\"from thenable\\\") } }\\nconst fromThenable = await thenable\\nconst plain = await 42\\nconst nested = await (async () => (async () => \\\"deep\\\")())()\\nlet caught\\ntry { await (async () => { throw new TypeError(\\\"async throw\\\") })() } catch (e) { caught = e.name + \\\": \\\" + e.message }\\nconst rejectedThenable = await ({ then(_, reject) { reject(new Error(\\\"thenable rejected\\\")) } }).catch?.((e) => e.message) ?? \\\"no catch on plain object\\\"\\nlet caught2\\ntry { await { then(_, reject) { reject(\\\"thenable reject value\\\") } } } catch (e) { caught2 = e }\\nconst throwingThenable = await (async () => { try { await { then() { throw new RangeError(\\\"then threw\\\") } } } catch (e) { return e.message } })()\\nconst typeofAsync = typeof a\\nconst isPromise = pa instanceof Promise\\nreturn { log, results, fromThenable, plain, nested, caught, rejectedThenable, caught2, throwingThenable, typeofAsync, isPromise, str: Object.prototype.toString.call(pa) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"a1\",\n    \"b1\",\n    \"sync after calls\",\n    \"a2\",\n    \"b2\",\n    \"a3\",\n    \"arrow 21\",\n    \"thenable then\"\n  ],\n  \"results\": [\n    \"A\",\n    \"B\",\n    42,\n    \"method\"\n  ],\n  \"fromThenable\": \"from thenable\",\n  \"plain\": 42,\n  \"nested\": \"deep\",\n  \"caught\": \"TypeError: async throw\",\n  \"rejectedThenable\": \"no catch on plain object\",\n  \"caught2\": \"thenable reject value\",\n  \"throwingThenable\": \"then threw\",\n  \"typeofAsync\": \"function\",\n  \"isPromise\": true,\n  \"str\": \"[object Promise]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const order = []\\nconst p = Promise.resolve(1)\\np.then((v) => order.push(\\\"then1 \\\" + v))\\np.then((v) => order.push(\\\"then2 \\\" + v))\\norder.push(\\\"sync\\\")\\nawait null\\norder.push(\\\"after await\\\")\\norder.push(typeof queueMicrotask)\\nawait Promise.resolve()\\nconst chain = await Promise.resolve(1)\\n  .then((v) => v + 1)\\n  .then((v) => { throw new Error(\\\"chain err \\\" + v) })\\n  .then(() => \\\"skipped\\\")\\n  .catch((e) => e.message)\\n  .finally(() => order.push(\\\"finally ran\\\"))\\nconst finallyKeeps = await Promise.resolve(\\\"kept\\\").finally(() => \\\"ignored\\\")\\nconst finallyOverride = await Promise.resolve(\\\"x\\\").finally(() => { throw new Error(\\\"finally failed\\\") }).catch((e) => e.message)\\nconst finallyReject = await Promise.reject(new Error(\\\"orig\\\")).finally(() => order.push(\\\"finally on reject\\\")).catch((e) => e.message)\\nconst thenNonFn = await Promise.resolve(\\\"passthrough\\\").then(5, null)\\nconst thenReject = await Promise.reject(\\\"r\\\").then(null, (e) => \\\"handled \\\" + e)\\nconst adopted = await Promise.resolve(1).then(() => Promise.resolve(\\\"adopted\\\"))\\nconst adoptedThenable = await Promise.resolve(1).then(() => ({ then: (r) => r(\\\"thenable adopted\\\") }))\\nconst selfP = Promise.resolve(1).then(() => selfP)\\nconst selfResolution = await selfP.catch((e) => e.name + \\\": \\\" + e.message)\\nreturn { order, chain, finallyKeeps, finallyOverride, finallyReject, thenNonFn, thenReject, adopted, adoptedThenable, selfResolution }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"order\": [\n    \"sync\",\n    \"then1 1\",\n    \"then2 1\",\n    \"after await\",\n    \"undefined\",\n    \"finally ran\",\n    \"finally on reject\"\n  ],\n  \"chain\": \"chain err 2\",\n  \"finallyKeeps\": \"kept\",\n  \"finallyOverride\": \"finally failed\",\n  \"finallyReject\": \"orig\",\n  \"thenNonFn\": \"passthrough\",\n  \"thenReject\": \"handled r\",\n  \"adopted\": \"adopted\",\n  \"adoptedThenable\": \"thenable adopted\",\n  \"selfResolution\": \"TypeError: Chaining cycle detected: a promise cannot resolve with itself.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async functions and await ordering programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nasync function a() { log.push(\\\"a1\\\"); await null; log.push(\\\"a2\\\"); await undefined; log.push(\\\"a3\\\"); return \\\"A\\\" }\\nasync function b() { log.push(\\\"b1\\\"); await 1; log.push(\\\"b2\\\"); return \\\"B\\\" }\\nconst arrow = async (x) => { await x; log.push(\\\"arrow \\\" + x); return x * 2 }\\nconst method = { async m() { return \\\"method\\\" } }\\nconst pa = a(), pb = b()\\nlog.push(\\\"sync after calls\\\")\\nconst results = [await pa, await pb, await arrow(21), await method.m()]\\nconst thenable = { then(resolve) { log.push(\\\"thenable then\\\"); resolve(\\\"from thenable\\\") } }\\nconst fromThenable = await thenable\\nconst plain = await 42\\nconst nested = await (async () => (async () => \\\"deep\\\")())()\\nlet caught\\ntry { await (async () => { throw new TypeError(\\\"async throw\\\") })() } catch (e) { caught = e.name + \\\": \\\" + e.message }\\nconst rejectedThenable = await ({ then(_, reject) { reject(new Error(\\\"thenable rejected\\\")) } }).catch?.((e) => e.message) ?? \\\"no catch on plain object\\\"\\nlet caught2\\ntry { await { then(_, reject) { reject(\\\"thenable reject value\\\") } } } catch (e) { caught2 = e }\\nconst throwingThenable = await (async () => { try { await { then() { throw new RangeError(\\\"then threw\\\") } } } catch (e) { return e.message } })()\\nconst typeofAsync = typeof a\\nconst isPromise = pa instanceof Promise\\nreturn { log, results, fromThenable, plain, nested, caught, rejectedThenable, caught2, throwingThenable, typeofAsync, isPromise, str: Object.prototype.toString.call(pa) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"a1\",\n    \"b1\",\n    \"sync after calls\",\n    \"a2\",\n    \"b2\",\n    \"a3\",\n    \"arrow 21\",\n    \"thenable then\"\n  ],\n  \"results\": [\n    \"A\",\n    \"B\",\n    42,\n    \"method\"\n  ],\n  \"fromThenable\": \"from thenable\",\n  \"plain\": 42,\n  \"nested\": \"deep\",\n  \"caught\": \"TypeError: async throw\",\n  \"rejectedThenable\": \"no catch on plain object\",\n  \"caught2\": \"thenable reject value\",\n  \"throwingThenable\": \"then threw\",\n  \"typeofAsync\": \"function\",\n  \"isPromise\": true,\n  \"str\": \"[object Promise]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const order = []\\nconst p = Promise.resolve(1)\\np.then((v) => order.push(\\\"then1 \\\" + v))\\np.then((v) => order.push(\\\"then2 \\\" + v))\\norder.push(\\\"sync\\\")\\nawait null\\norder.push(\\\"after await\\\")\\norder.push(typeof queueMicrotask)\\nawait Promise.resolve()\\nconst chain = await Promise.resolve(1)\\n  .then((v) => v + 1)\\n  .then((v) => { throw new Error(\\\"chain err \\\" + v) })\\n  .then(() => \\\"skipped\\\")\\n  .catch((e) => e.message)\\n  .finally(() => order.push(\\\"finally ran\\\"))\\nconst finallyKeeps = await Promise.resolve(\\\"kept\\\").finally(() => \\\"ignored\\\")\\nconst finallyOverride = await Promise.resolve(\\\"x\\\").finally(() => { throw new Error(\\\"finally failed\\\") }).catch((e) => e.message)\\nconst finallyReject = await Promise.reject(new Error(\\\"orig\\\")).finally(() => order.push(\\\"finally on reject\\\")).catch((e) => e.message)\\nconst thenNonFn = await Promise.resolve(\\\"passthrough\\\").then(5, null)\\nconst thenReject = await Promise.reject(\\\"r\\\").then(null, (e) => \\\"handled \\\" + e)\\nconst adopted = await Promise.resolve(1).then(() => Promise.resolve(\\\"adopted\\\"))\\nconst adoptedThenable = await Promise.resolve(1).then(() => ({ then: (r) => r(\\\"thenable adopted\\\") }))\\nconst selfP = Promise.resolve(1).then(() => selfP)\\nconst selfResolution = await selfP.catch((e) => e.name + \\\": \\\" + e.message)\\nreturn { order, chain, finallyKeeps, finallyOverride, finallyReject, thenNonFn, thenReject, adopted, adoptedThenable, selfResolution }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"order\": [\n    \"sync\",\n    \"then1 1\",\n    \"then2 1\",\n    \"after await\",\n    \"undefined\",\n    \"finally ran\",\n    \"finally on reject\"\n  ],\n  \"chain\": \"chain err 2\",\n  \"finallyKeeps\": \"kept\",\n  \"finallyOverride\": \"finally failed\",\n  \"finallyReject\": \"orig\",\n  \"thenNonFn\": \"passthrough\",\n  \"thenReject\": \"handled r\",\n  \"adopted\": \"adopted\",\n  \"adoptedThenable\": \"thenable adopted\",\n  \"selfResolution\": \"TypeError: Chaining cycle detected: a promise cannot resolve with itself.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst p = new Promise((resolve, reject) => { log.push(\\\"executor sync\\\"); resolve(\\\"value\\\"); resolve(\\\"ignored\\\"); reject(new Error(\\\"ignored\\\")) })\\nlog.push(\\\"after construct\\\")\\nconst v = await p\\nconst rejected = await new Promise((_, reject) => reject(new Error(\\\"rejected\\\"))).catch((e) => e.message)\\nconst execThrow = await new Promise(() => { throw new Error(\\\"executor threw\\\") }).catch((e) => e.message)\\nconst execThrowAfter = await new Promise((resolve) => { resolve(\\\"first\\\"); throw new Error(\\\"ignored\\\") })\\nlet escaped\\nconst later = new Promise((resolve) => { escaped = resolve })\\nescaped(\\\"escaped resolver\\\")\\nconst escapedValue = await later\\nconst adopt = await new Promise((resolve) => resolve(Promise.resolve(\\\"adopted inner\\\")))\\nconst adoptThen = await new Promise((resolve) => resolve({ then: (r) => r(\\\"adopted thenable\\\") }))\\nlet selfResolve\\nconst selfP = new Promise((resolve) => { selfResolve = resolve })\\nselfResolve(selfP)\\nconst selfErr = await selfP.catch((e) => e.name + \\\": \\\" + e.message)\\nconst wr = Promise.withResolvers()\\nwr.resolve(\\\"with resolvers\\\")\\nconst wrValue = await wr.promise\\nconst wr2 = Promise.withResolvers()\\nwr2.reject(new Error(\\\"wr rejected\\\"))\\nconst wrErr = await wr2.promise.catch((e) => e.message)\\nconst tried = await Promise.try((a, b) => a + b, 2, 3)\\nconst triedThrow = await Promise.try(() => { throw new Error(\\\"try threw\\\") }).catch((e) => e.message)\\nconst triedPromise = await Promise.try(() => Promise.resolve(\\\"try promise\\\"))\\nconst resolvers = [1, 2, 3].map((n) => new Promise((resolve) => [n].forEach(resolve)))\\nconst fromForEach = await Promise.all(resolvers)\\nconst asCallback = await Promise.resolve(-5).then(Math.abs)\\nlet notNew\\ntry { Promise((r) => r(1)) } catch (e) { notNew = e.message }\\nlet badExecutor\\ntry { new Promise(5) } catch (e) { badExecutor = e.message }\\nlet staticDetached\\ntry { [1].map(Promise.resolve) } catch (e) { staticDetached = e.message }\\nreturn { log, v, rejected, execThrow, execThrowAfter, escapedValue, adopt, adoptThen, selfErr, wrValue, wrErr, tried, triedThrow, triedPromise, fromForEach, asCallback, notNew, badExecutor, staticDetached }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"executor sync\",\n    \"after construct\"\n  ],\n  \"v\": \"value\",\n  \"rejected\": \"rejected\",\n  \"execThrow\": \"executor threw\",\n  \"execThrowAfter\": \"first\",\n  \"escapedValue\": \"escaped resolver\",\n  \"adopt\": \"adopted inner\",\n  \"adoptThen\": \"adopted thenable\",\n  \"selfErr\": \"TypeError: Chaining cycle detected: a promise cannot resolve with itself.\",\n  \"wrValue\": \"with resolvers\",\n  \"wrErr\": \"wr rejected\",\n  \"tried\": 5,\n  \"triedThrow\": \"try threw\",\n  \"triedPromise\": \"try promise\",\n  \"fromForEach\": [\n    1,\n    2,\n    3\n  ],\n  \"asCallback\": 5,\n  \"notNew\": \"Constructor Promise requires 'new'.\",\n  \"badExecutor\": \"new Promise(...) expects an executor function (e.g. new Promise((resolve, reject) => { ... })).\",\n  \"staticDetached\": \"Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the async functions and await ordering programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the async functions and await ordering programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const log = []\\nasync function a() { log.push(\\\"a1\\\"); await null; log.push(\\\"a2\\\"); await undefined; log.push(\\\"a3\\\"); return \\\"A\\\" }\\nasync function b() { log.push(\\\"b1\\\"); await 1; log.push(\\\"b2\\\"); return \\\"B\\\" }\\nconst arrow = async (x) => { await x; log.push(\\\"arrow \\\" + x); return x * 2 }\\nconst method = { async m() { return \\\"method\\\" } }\\nconst pa = a(), pb = b()\\nlog.push(\\\"sync after calls\\\")\\nconst results = [await pa, await pb, await arrow(21), await method.m()]\\nconst thenable = { then(resolve) { log.push(\\\"thenable then\\\"); resolve(\\\"from thenable\\\") } }\\nconst fromThenable = await thenable\\nconst plain = await 42\\nconst nested = await (async () => (async () => \\\"deep\\\")())()\\nlet caught\\ntry { await (async () => { throw new TypeError(\\\"async throw\\\") })() } catch (e) { caught = e.name + \\\": \\\" + e.message }\\nconst rejectedThenable = await ({ then(_, reject) { reject(new Error(\\\"thenable rejected\\\")) } }).catch?.((e) => e.message) ?? \\\"no catch on plain object\\\"\\nlet caught2\\ntry { await { then(_, reject) { reject(\\\"thenable reject value\\\") } } } catch (e) { caught2 = e }\\nconst throwingThenable = await (async () => { try { await { then() { throw new RangeError(\\\"then threw\\\") } } } catch (e) { return e.message } })()\\nconst typeofAsync = typeof a\\nconst isPromise = pa instanceof Promise\\nreturn { log, results, fromThenable, plain, nested, caught, rejectedThenable, caught2, throwingThenable, typeofAsync, isPromise, str: Object.prototype.toString.call(pa) }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const log = []\nasync function a() { log.push(\"a1\"); await null; log.push(\"a2\"); await undefined; log.push(\"a3\"); return \"A\" }\nasync function b() { log.push(\"b1\"); await 1; log.push(\"b2\"); return \"B\" }\nconst arrow = async (x) => { await x; log.push(\"arrow \" + x); return x * 2 }\nconst method = { async m() { return \"method\" } }\nconst pa = a(), pb = b()\nlog.push(\"sync after calls\")\nconst results = [await pa, await pb, await arrow(21), await method.m()]\nconst thenable = { then(resolve) { log.push(\"thenable then\"); resolve(\"from thenable\") } }\nconst fromThenable = await thenable\nconst plain = await 42\nconst nested = await (async () => (async () => \"deep\")())()\nlet caught\ntry { await (async () => { throw new TypeError(\"async throw\") })() } catch (e) { caught = e.name + \": \" + e.message }\nconst rejectedThenable = await ({ then(_, reject) { reject(new Error(\"thenable rejected\")) } }).catch?.((e) => e.message) ?? \"no catch on plain object\"\nlet caught2\ntry { await { then(_, reject) { reject(\"thenable reject value\") } } } catch (e) { caught2 = e }\nconst throwingThenable = await (async () => { try { await { then() { throw new RangeError(\"then threw\") } } } catch (e) { return e.message } })()\nconst typeofAsync = typeof a\nconst isPromise = pa instanceof Promise\nreturn { log, results, fromThenable, plain, nested, caught, rejectedThenable, caught2, throwingThenable, typeofAsync, isPromise, str: Object.prototype.toString.call(pa) }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"log\": [\n    \"a1\",\n    \"b1\",\n    \"sync after calls\",\n    \"a2\",\n    \"b2\",\n    \"a3\",\n    \"arrow 21\",\n    \"thenable then\"\n  ],\n  \"results\": [\n    \"A\",\n    \"B\",\n    42,\n    \"method\"\n  ],\n  \"fromThenable\": \"from thenable\",\n  \"plain\": 42,\n  \"nested\": \"deep\",\n  \"caught\": \"TypeError: async throw\",\n  \"rejectedThenable\": \"no catch on plain object\",\n  \"caught2\": \"thenable reject value\",\n  \"throwingThenable\": \"then threw\",\n  \"typeofAsync\": \"function\",\n  \"isPromise\": true,\n  \"str\": \"[object Promise]\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const order = []\\nconst p = Promise.resolve(1)\\np.then((v) => order.push(\\\"then1 \\\" + v))\\np.then((v) => order.push(\\\"then2 \\\" + v))\\norder.push(\\\"sync\\\")\\nawait null\\norder.push(\\\"after await\\\")\\norder.push(typeof queueMicrotask)\\nawait Promise.resolve()\\nconst chain = await Promise.resolve(1)\\n  .then((v) => v + 1)\\n  .then((v) => { throw new Error(\\\"chain err \\\" + v) })\\n  .then(() => \\\"skipped\\\")\\n  .catch((e) => e.message)\\n  .finally(() => order.push(\\\"finally ran\\\"))\\nconst finallyKeeps = await Promise.resolve(\\\"kept\\\").finally(() => \\\"ignored\\\")\\nconst finallyOverride = await Promise.resolve(\\\"x\\\").finally(() => { throw new Error(\\\"finally failed\\\") }).catch((e) => e.message)\\nconst finallyReject = await Promise.reject(new Error(\\\"orig\\\")).finally(() => order.push(\\\"finally on reject\\\")).catch((e) => e.message)\\nconst thenNonFn = await Promise.resolve(\\\"passthrough\\\").then(5, null)\\nconst thenReject = await Promise.reject(\\\"r\\\").then(null, (e) => \\\"handled \\\" + e)\\nconst adopted = await Promise.resolve(1).then(() => Promise.resolve(\\\"adopted\\\"))\\nconst adoptedThenable = await Promise.resolve(1).then(() => ({ then: (r) => r(\\\"thenable adopted\\\") }))\\nconst selfP = Promise.resolve(1).then(() => selfP)\\nconst selfResolution = await selfP.catch((e) => e.name + \\\": \\\" + e.message)\\nreturn { order, chain, finallyKeeps, finallyOverride, finallyReject, thenNonFn, thenReject, adopted, adoptedThenable, selfResolution }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const order = []\nconst p = Promise.resolve(1)\np.then((v) => order.push(\"then1 \" + v))\np.then((v) => order.push(\"then2 \" + v))\norder.push(\"sync\")\nawait null\norder.push(\"after await\")\norder.push(typeof queueMicrotask)\nawait Promise.resolve()\nconst chain = await Promise.resolve(1)\n  .then((v) => v + 1)\n  .then((v) => { throw new Error(\"chain err \" + v) })\n  .then(() => \"skipped\")\n  .catch((e) => e.message)\n  .finally(() => order.push(\"finally ran\"))\nconst finallyKeeps = await Promise.resolve(\"kept\").finally(() => \"ignored\")\nconst finallyOverride = await Promise.resolve(\"x\").finally(() => { throw new Error(\"finally failed\") }).catch((e) => e.message)\nconst finallyReject = await Promise.reject(new Error(\"orig\")).finally(() => order.push(\"finally on reject\")).catch((e) => e.message)\nconst thenNonFn = await Promise.resolve(\"passthrough\").then(5, null)\nconst thenReject = await Promise.reject(\"r\").then(null, (e) => \"handled \" + e)\nconst adopted = await Promise.resolve(1).then(() => Promise.resolve(\"adopted\"))\nconst adoptedThenable = await Promise.resolve(1).then(() => ({ then: (r) => r(\"thenable adopted\") }))\nconst selfP = Promise.resolve(1).then(() => selfP)\nconst selfResolution = await selfP.catch((e) => e.name + \": \" + e.message)\nreturn { order, chain, finallyKeeps, finallyOverride, finallyReject, thenNonFn, thenReject, adopted, adoptedThenable, selfResolution }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"order\": [\n    \"sync\",\n    \"then1 1\",\n    \"then2 1\",\n    \"after await\",\n    \"undefined\",\n    \"finally ran\",\n    \"finally on reject\"\n  ],\n  \"chain\": \"chain err 2\",\n  \"finallyKeeps\": \"kept\",\n  \"finallyOverride\": \"finally failed\",\n  \"finallyReject\": \"orig\",\n  \"thenNonFn\": \"passthrough\",\n  \"thenReject\": \"handled r\",\n  \"adopted\": \"adopted\",\n  \"adoptedThenable\": \"thenable adopted\",\n  \"selfResolution\": \"TypeError: Chaining cycle detected: a promise cannot resolve with itself.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const log = []\\nconst p = new Promise((resolve, reject) => { log.push(\\\"executor sync\\\"); resolve(\\\"value\\\"); resolve(\\\"ignored\\\"); reject(new Error(\\\"ignored\\\")) })\\nlog.push(\\\"after construct\\\")\\nconst v = await p\\nconst rejected = await new Promise((_, reject) => reject(new Error(\\\"rejected\\\"))).catch((e) => e.message)\\nconst execThrow = await new Promise(() => { throw new Error(\\\"executor threw\\\") }).catch((e) => e.message)\\nconst execThrowAfter = await new Promise((resolve) => { resolve(\\\"first\\\"); throw new Error(\\\"ignored\\\") })\\nlet escaped\\nconst later = new Promise((resolve) => { escaped = resolve })\\nescaped(\\\"escaped resolver\\\")\\nconst escapedValue = await later\\nconst adopt = await new Promise((resolve) => resolve(Promise.resolve(\\\"adopted inner\\\")))\\nconst adoptThen = await new Promise((resolve) => resolve({ then: (r) => r(\\\"adopted thenable\\\") }))\\nlet selfResolve\\nconst selfP = new Promise((resolve) => { selfResolve = resolve })\\nselfResolve(selfP)\\nconst selfErr = await selfP.catch((e) => e.name + \\\": \\\" + e.message)\\nconst wr = Promise.withResolvers()\\nwr.resolve(\\\"with resolvers\\\")\\nconst wrValue = await wr.promise\\nconst wr2 = Promise.withResolvers()\\nwr2.reject(new Error(\\\"wr rejected\\\"))\\nconst wrErr = await wr2.promise.catch((e) => e.message)\\nconst tried = await Promise.try((a, b) => a + b, 2, 3)\\nconst triedThrow = await Promise.try(() => { throw new Error(\\\"try threw\\\") }).catch((e) => e.message)\\nconst triedPromise = await Promise.try(() => Promise.resolve(\\\"try promise\\\"))\\nconst resolvers = [1, 2, 3].map((n) => new Promise((resolve) => [n].forEach(resolve)))\\nconst fromForEach = await Promise.all(resolvers)\\nconst asCallback = await Promise.resolve(-5).then(Math.abs)\\nlet notNew\\ntry { Promise((r) => r(1)) } catch (e) { notNew = e.message }\\nlet badExecutor\\ntry { new Promise(5) } catch (e) { badExecutor = e.message }\\nlet staticDetached\\ntry { [1].map(Promise.resolve) } catch (e) { staticDetached = e.message }\\nreturn { log, v, rejected, execThrow, execThrowAfter, escapedValue, adopt, adoptThen, selfErr, wrValue, wrErr, tried, triedThrow, triedPromise, fromForEach, asCallback, notNew, badExecutor, staticDetached }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const log = []\nconst p = new Promise((resolve, reject) => { log.push(\"executor sync\"); resolve(\"value\"); resolve(\"ignored\"); reject(new Error(\"ignored\")) })\nlog.push(\"after construct\")\nconst v = await p\nconst rejected = await new Promise((_, reject) => reject(new Error(\"rejected\"))).catch((e) => e.message)\nconst execThrow = await new Promise(() => { throw new Error(\"executor threw\") }).catch((e) => e.message)\nconst execThrowAfter = await new Promise((resolve) => { resolve(\"first\"); throw new Error(\"ignored\") })\nlet escaped\nconst later = new Promise((resolve) => { escaped = resolve })\nescaped(\"escaped resolver\")\nconst escapedValue = await later\nconst adopt = await new Promise((resolve) => resolve(Promise.resolve(\"adopted inner\")))\nconst adoptThen = await new Promise((resolve) => resolve({ then: (r) => r(\"adopted thenable\") }))\nlet selfResolve\nconst selfP = new Promise((resolve) => { selfResolve = resolve })\nselfResolve(selfP)\nconst selfErr = await selfP.catch((e) => e.name + \": \" + e.message)\nconst wr = Promise.withResolvers()\nwr.resolve(\"with resolvers\")\nconst wrValue = await wr.promise\nconst wr2 = Promise.withResolvers()\nwr2.reject(new Error(\"wr rejected\"))\nconst wrErr = await wr2.promise.catch((e) => e.message)\nconst tried = await Promise.try((a, b) => a + b, 2, 3)\nconst triedThrow = await Promise.try(() => { throw new Error(\"try threw\") }).catch((e) => e.message)\nconst triedPromise = await Promise.try(() => Promise.resolve(\"try promise\"))\nconst resolvers = [1, 2, 3].map((n) => new Promise((resolve) => [n].forEach(resolve)))\nconst fromForEach = await Promise.all(resolvers)\nconst asCallback = await Promise.resolve(-5).then(Math.abs)\nlet notNew\ntry { Promise((r) => r(1)) } catch (e) { notNew = e.message }\nlet badExecutor\ntry { new Promise(5) } catch (e) { badExecutor = e.message }\nlet staticDetached\ntry { [1].map(Promise.resolve) } catch (e) { staticDetached = e.message }\nreturn { log, v, rejected, execThrow, execThrowAfter, escapedValue, adopt, adoptThen, selfErr, wrValue, wrErr, tried, triedThrow, triedPromise, fromForEach, asCallback, notNew, badExecutor, staticDetached }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"log\": [\n    \"executor sync\",\n    \"after construct\"\n  ],\n  \"v\": \"value\",\n  \"rejected\": \"rejected\",\n  \"execThrow\": \"executor threw\",\n  \"execThrowAfter\": \"first\",\n  \"escapedValue\": \"escaped resolver\",\n  \"adopt\": \"adopted inner\",\n  \"adoptThen\": \"adopted thenable\",\n  \"selfErr\": \"TypeError: Chaining cycle detected: a promise cannot resolve with itself.\",\n  \"wrValue\": \"with resolvers\",\n  \"wrErr\": \"wr rejected\",\n  \"tried\": 5,\n  \"triedThrow\": \"try threw\",\n  \"triedPromise\": \"try promise\",\n  \"fromForEach\": [\n    1,\n    2,\n    3\n  ],\n  \"asCallback\": 5,\n  \"notNew\": \"Constructor Promise requires 'new'.\",\n  \"badExecutor\": \"new Promise(...) expects an executor function (e.g. new Promise((resolve, reject) => { ... })).\",\n  \"staticDetached\": \"Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,1375 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "one",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "one"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "two",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "two"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "three",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "three"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_4>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "four",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "four"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_5>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "five",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "five"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_4>",
+                "time": "<time>"
+              }
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_5>",
+                "time": "<time>"
+              }
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_5>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "five",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "four",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?limit=2"
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 1 next>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "next",
+                  "id": "<ses_2>",
+                  "time": "<time>"
+                }
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "previous",
+                  "id": "<ses_3>",
+                  "time": "<time>"
+                }
+              }
+            }
+          },
+          "data": [
+            {
+              "cost": 0,
+              "id": "<ses_3>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "three",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            },
+            {
+              "cost": 0,
+              "id": "<ses_2>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "two",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 2 next>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "next",
+                  "id": "<ses_1>",
+                  "time": "<time>"
+                }
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "previous",
+                  "id": "<ses_1>",
+                  "time": "<time>"
+                }
+              }
+            }
+          },
+          "data": [
+            {
+              "cost": 0,
+              "id": "<ses_1>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "one",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 3 next>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": null,
+            "previous": null
+          },
+          "data": []
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 3 previous>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "next",
+                  "id": "<ses_2>",
+                  "time": "<time>"
+                }
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "previous",
+                  "id": "<ses_3>",
+                  "time": "<time>"
+                }
+              }
+            }
+          },
+          "data": [
+            {
+              "cost": 0,
+              "id": "<ses_3>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "three",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            },
+            {
+              "cost": 0,
+              "id": "<ses_2>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "two",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 2 previous>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "next",
+                  "id": "<ses_4>",
+                  "time": "<time>"
+                }
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "previous",
+                  "id": "<ses_5>",
+                  "time": "<time>"
+                }
+              }
+            }
+          },
+          "data": [
+            {
+              "cost": 0,
+              "id": "<ses_5>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "five",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            },
+            {
+              "cost": 0,
+              "id": "<ses_4>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "four",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<page 1 previous>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": null,
+            "previous": null
+          },
+          "data": []
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_2>",
+                "time": "<time>"
+              },
+              "order": "asc",
+              "search": "o"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "order": "asc",
+              "search": "o"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?limit=2&order=asc&search=o"
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 search=five cursor=<asc search=o next>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "next",
+                  "id": "<ses_4>",
+                  "time": "<time>"
+                },
+                "order": "asc",
+                "search": "o"
+              }
+            },
+            "previous": {
+              "<base64-json>": {
+                "anchor": {
+                  "direction": "previous",
+                  "id": "<ses_4>",
+                  "time": "<time>"
+                },
+                "order": "asc",
+                "search": "o"
+              }
+            }
+          },
+          "data": [
+            {
+              "cost": 0,
+              "id": "<ses_4>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "four",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          ]
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "GET limit=2 cursor=<asc search=o previous>",
+      "value": {
+        "body": {
+          "cursor": {
+            "next": null,
+            "previous": null
+          },
+          "data": []
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_3>",
+                "time": "<time>"
+              }
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_5>",
+                "time": "<time>"
+              }
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_5>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "five",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "four",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?limit=3&cursor=<base64-json:{\"anchor\":{\"direction\":\"next\",\"id\":\"<ses_6>\",\"time\":\"<time>\"}}>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": null,
+          "previous": null
+        },
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?limit=3&cursor=<base64-json:{\"anchor\":{\"direction\":\"previous\",\"id\":\"<ses_6>\",\"time\":\"<time>\"}}>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              }
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              }
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?limit=3&cursor=<base64-json:{\"anchor\":{\"direction\":\"previous\",\"id\":\"<ses_7>\",\"time\":0}}>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "order": "asc",
+              "search": "t"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_2>",
+                "time": "<time>"
+              },
+              "order": "asc",
+              "search": "t"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?cursor=<base64-json:{\"anchor\":{\"direction\":\"next\",\"id\":\"<ses_7>\",\"time\":0},\"order\":\"asc\",\"search\":\"t\"}>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "archived": "false",
+              "parentID": "null"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_5>",
+                "time": "<time>"
+              },
+              "archived": "false",
+              "parentID": "null"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_5>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "five",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "four",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?cursor=<base64-json:{\"anchor\":{\"direction\":\"next\",\"id\":\"<ses_6>\",\"time\":\"<time>\"},\"archived\":\"false\",\"parentID\":\"null\"}>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_5>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_5>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "five",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_5>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_4>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_4>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "four",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "three",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "two",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "one",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

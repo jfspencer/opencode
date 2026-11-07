@@ -1,0 +1,251 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "newdir/a.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "newdir/deep/b.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/extra.ts",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/status"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "newdir/",
+            "patch": "Index: newdir/\n===================================================================\n--- newdir/\t\n+++ newdir/\t\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/extra.ts",
+            "patch": "diff --git a/src/extra.ts b/src/extra.ts\nnew file mode 100644\nindex 0000000..336ce12\n--- /dev/null\n+++ b/src/extra.ts\n@@ -0,0 +1 @@\n+export {}\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working&untracked=folders"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "newdir/a.txt",
+            "patch": "diff --git a/newdir/a.txt b/newdir/a.txt\nnew file mode 100644\nindex 0000000..7898192\n--- /dev/null\n+++ b/newdir/a.txt\n@@ -0,0 +1 @@\n+a\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "newdir/deep/b.txt",
+            "patch": "diff --git a/newdir/deep/b.txt b/newdir/deep/b.txt\nnew file mode 100644\nindex 0000000..6178079\n--- /dev/null\n+++ b/newdir/deep/b.txt\n@@ -0,0 +1 @@\n+b\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/extra.ts",
+            "patch": "diff --git a/src/extra.ts b/src/extra.ts\nnew file mode 100644\nindex 0000000..336ce12\n--- /dev/null\n+++ b/src/extra.ts\n@@ -0,0 +1 @@\n+export {}\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working&untracked=files"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".gitignore": "dist/\n*.log\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "newdir/a.txt": "a\n",
+    "newdir/deep/b.txt": "b\n",
+    "notes/todo.txt": "one\ntwo\nthree\n",
+    "src/extra.ts": "export {}\n",
+    "src/math.ts": "export function add(a: number, b: number) {\n  return a + b\n}\n",
+    "src/old-name.ts": "export const legacy = true\n"
+  }
+}

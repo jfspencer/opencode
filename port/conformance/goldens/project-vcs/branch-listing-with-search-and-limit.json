@@ -1,0 +1,242 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": [
+          "Release-1",
+          "alpha",
+          "beta",
+          "feature/one",
+          "feature/two",
+          "main"
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/branch"
+    },
+    {
+      "body": {
+        "data": [
+          "feature/one",
+          "feature/two"
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/branch?search=feature"
+    },
+    {
+      "body": {
+        "data": [
+          "Release-1"
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/branch?search=%20RELEASE%20"
+    },
+    {
+      "body": {
+        "data": [
+          "Release-1",
+          "alpha"
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/branch?limit=2"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected a value greater than 0\n  at [\"limit\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/vcs/branch?limit=0"
+    },
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/branch?search=nothing-matches"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".gitignore": "dist/\n*.log\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "notes/todo.txt": "one\ntwo\nthree\n",
+    "src/math.ts": "export function add(a: number, b: number) {\n  return a + b\n}\n",
+    "src/old-name.ts": "export const legacy = true\n"
+  }
+}

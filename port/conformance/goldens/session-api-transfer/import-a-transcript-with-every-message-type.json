@@ -1,0 +1,2147 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "agent": "explore",
+          "cost": 1.5,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "owner": "conformance"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "outcome": "failed",
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "ask",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "archived": "<time>",
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>",
+            "viewed": "<time>"
+          },
+          "title": "rich",
+          "tokens": {
+            "cache": {
+              "read": 30,
+              "write": 4
+            },
+            "input": 1000,
+            "output": 200,
+            "reasoning": 50
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "agent": "explore",
+          "cost": 1.5,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "metadata": {
+            "owner": "conformance"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "outcome": "failed",
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "ask",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_2>",
+          "revert": {
+            "files": [
+              {
+                "additions": 1,
+                "deletions": 1,
+                "file": "notes.txt",
+                "patch": "@@ -1 +1 @@",
+                "status": "modified"
+              }
+            ],
+            "messageID": "<msg_1>",
+            "snapshot": "deadbeef"
+          },
+          "time": {
+            "archived": "<time>",
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>",
+            "viewed": "<time>"
+          },
+          "title": "rich",
+          "tokens": {
+            "cache": {
+              "read": 30,
+              "write": 4
+            },
+            "input": 1000,
+            "output": 200,
+            "reasoning": 50
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "agent": "plan",
+            "id": "<msg_2>",
+            "previous": "build",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "agent-switched"
+          },
+          {
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "low"
+            },
+            "previous": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "created": "<time>"
+            },
+            "type": "model-switched"
+          },
+          {
+            "id": "<msg_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "previous": {
+              "location": {
+                "directory": "/old/place"
+              },
+              "subpath": ""
+            },
+            "subpath": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "location-switched"
+          },
+          {
+            "agents": [
+              {
+                "mention": {
+                  "end": 32,
+                  "start": 24,
+                  "text": "@explore"
+                },
+                "name": "explore"
+              },
+              {
+                "name": "general"
+              }
+            ],
+            "files": [
+              {
+                "data": "YWxwaGEKYmV0YQo=",
+                "description": "the notes",
+                "mention": {
+                  "end": 18,
+                  "start": 8,
+                  "text": "@notes.txt"
+                },
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file:///project/notes.txt"
+                }
+              },
+              {
+                "data": "cGxhaW4=",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_5>",
+            "metadata": {
+              "client": "conformance"
+            },
+            "skills": [
+              {
+                "id": "review",
+                "mention": {
+                  "end": 44,
+                  "start": 37,
+                  "text": "$review"
+                },
+                "name": "review",
+                "text": "Review carefully."
+              },
+              {
+                "id": "lint",
+                "name": "lint"
+              }
+            ],
+            "text": "Look at @notes.txt with @explore and $review",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "id": "<msg_6>",
+            "text": "   ",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "description": "client note",
+            "id": "<msg_7>",
+            "metadata": {
+              "source": "client"
+            },
+            "text": "Injected context",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "id": "<msg_8>",
+            "metadata": {},
+            "text": "No description",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "update",
+            "id": "<msg_9>",
+            "text": "Instructions changed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_10>",
+            "name": "review",
+            "skill": "review",
+            "text": "Skill body",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "skill"
+          },
+          {
+            "command": "ls -la",
+            "exit": 0,
+            "id": "<msg_11>",
+            "output": {
+              "cursor": 8,
+              "output": "total 0\n",
+              "size": 8,
+              "truncated": false
+            },
+            "shellID": "<sh_1>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "true",
+            "id": "<msg_12>",
+            "shellID": "<sh_2>",
+            "status": "killed",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "sleep 100",
+            "id": "<msg_13>",
+            "shellID": "<sh_3>",
+            "status": "running",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "native": {
+                  "signature": "abc"
+                },
+                "text": "Thinking it over",
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "reasoning"
+              },
+              {
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "native": {
+                  "id": "text-1"
+                },
+                "text": "Here is what I found",
+                "type": "text"
+              },
+              {
+                "text": "No native",
+                "type": "text"
+              },
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "alpha",
+                      "type": "text"
+                    },
+                    {
+                      "mime": "text/plain",
+                      "name": "notes.txt",
+                      "type": "file",
+                      "uri": "file:///project/notes.txt"
+                    },
+                    {
+                      "mime": "text/plain",
+                      "type": "file",
+                      "uri": "data:text/plain;base64,YQ=="
+                    }
+                  ],
+                  "input": {
+                    "path": "notes.txt"
+                  },
+                  "metadata": {
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_2",
+                "name": "grep",
+                "native": {
+                  "item": "n1"
+                },
+                "state": {
+                  "content": [
+                    {
+                      "text": "match line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nend",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "pattern": "x"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_3",
+                "name": "edit",
+                "state": {
+                  "content": [
+                    {
+                      "text": "failed",
+                      "type": "text"
+                    }
+                  ],
+                  "error": {
+                    "message": "oldString not found",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "path": "notes.txt"
+                  },
+                  "metadata": {
+                    "attempts": 1
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_4",
+                "name": "glob",
+                "state": {
+                  "error": {
+                    "message": "denied",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "pattern": "*"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_5",
+                "name": "shell",
+                "state": {
+                  "input": {
+                    "command": "ls"
+                  },
+                  "metadata": {},
+                  "status": "running"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_6",
+                "name": "write",
+                "state": {
+                  "input": "{\"path\":",
+                  "status": "streaming"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_7",
+                "name": "read",
+                "state": {
+                  "input": "",
+                  "status": "streaming"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_1>",
+            "metadata": {
+              "step": 1
+            },
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "native": {
+              "block": "none"
+            },
+            "snapshot": {
+              "end": "b",
+              "files": [
+                "notes.txt"
+              ],
+              "start": "a"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "unfinished",
+                "type": "text"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_14>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          },
+          {
+            "cost": 0.01,
+            "id": "<msg_15>",
+            "metadata": {
+              "keepID": "<msg_1>"
+            },
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "native": {
+              "messages": []
+            },
+            "reason": "manual",
+            "status": "completed",
+            "summary": "Summary of the work",
+            "time": {
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 50,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "compaction"
+          },
+          {
+            "id": "<msg_16>",
+            "metadata": {
+              "keepID": "<msg_4>"
+            },
+            "native": {},
+            "reason": "auto",
+            "status": "completed",
+            "summary": "Another summary",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "context too long",
+              "status": 400,
+              "type": "provider"
+            },
+            "id": "<msg_17>",
+            "metadata": {
+              "attempt": 2
+            },
+            "reason": "auto",
+            "status": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "id": "<msg_18>",
+            "reason": "manual",
+            "status": "running",
+            "summary": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "boom",
+              "type": "provider"
+            },
+            "id": "<msg_19>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "explore",
+          "cost": 1.5,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "owner": "conformance"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "outcome": "failed",
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "ask",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "archived": "<time>",
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>",
+            "viewed": "<time>"
+          },
+          "title": "rich",
+          "tokens": {
+            "cache": {
+              "read": 30,
+              "write": 4
+            },
+            "input": 1000,
+            "output": 200,
+            "reasoning": 50
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_19>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "agent": "plan",
+            "id": "<msg_2>",
+            "previous": "build",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "agent-switched"
+          },
+          {
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "low"
+            },
+            "previous": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "created": "<time>"
+            },
+            "type": "model-switched"
+          },
+          {
+            "id": "<msg_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "previous": {
+              "location": {
+                "directory": "/old/place"
+              },
+              "subpath": ""
+            },
+            "subpath": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "location-switched"
+          },
+          {
+            "agents": [
+              {
+                "mention": {
+                  "end": 32,
+                  "start": 24,
+                  "text": "@explore"
+                },
+                "name": "explore"
+              },
+              {
+                "name": "general"
+              }
+            ],
+            "files": [
+              {
+                "data": "YWxwaGEKYmV0YQo=",
+                "description": "the notes",
+                "mention": {
+                  "end": 18,
+                  "start": 8,
+                  "text": "@notes.txt"
+                },
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file:///project/notes.txt"
+                }
+              },
+              {
+                "data": "cGxhaW4=",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_5>",
+            "metadata": {
+              "client": "conformance"
+            },
+            "skills": [
+              {
+                "id": "review",
+                "mention": {
+                  "end": 44,
+                  "start": 37,
+                  "text": "$review"
+                },
+                "name": "review",
+                "text": "Review carefully."
+              },
+              {
+                "id": "lint",
+                "name": "lint"
+              }
+            ],
+            "text": "Look at @notes.txt with @explore and $review",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "id": "<msg_6>",
+            "text": "   ",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "description": "client note",
+            "id": "<msg_7>",
+            "metadata": {
+              "source": "client"
+            },
+            "text": "Injected context",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "id": "<msg_8>",
+            "metadata": {},
+            "text": "No description",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "update",
+            "id": "<msg_9>",
+            "text": "Instructions changed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_10>",
+            "name": "review",
+            "skill": "review",
+            "text": "Skill body",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "skill"
+          },
+          {
+            "command": "ls -la",
+            "exit": 0,
+            "id": "<msg_11>",
+            "output": {
+              "cursor": 8,
+              "output": "total 0\n",
+              "size": 8,
+              "truncated": false
+            },
+            "shellID": "<sh_1>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "true",
+            "id": "<msg_12>",
+            "shellID": "<sh_2>",
+            "status": "killed",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "native": {
+                  "signature": "abc"
+                },
+                "text": "Thinking it over",
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "reasoning"
+              },
+              {
+                "text": "",
+                "type": "reasoning"
+              },
+              {
+                "native": {
+                  "id": "text-1"
+                },
+                "text": "Here is what I found",
+                "type": "text"
+              },
+              {
+                "text": "No native",
+                "type": "text"
+              },
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "alpha",
+                      "type": "text"
+                    },
+                    {
+                      "mime": "text/plain",
+                      "name": "notes.txt",
+                      "type": "file",
+                      "uri": "file:///project/notes.txt"
+                    },
+                    {
+                      "mime": "text/plain",
+                      "type": "file",
+                      "uri": "data:text/plain;base64,YQ=="
+                    }
+                  ],
+                  "input": {
+                    "path": "notes.txt"
+                  },
+                  "metadata": {
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_2",
+                "name": "grep",
+                "native": {
+                  "item": "n1"
+                },
+                "state": {
+                  "content": [
+                    {
+                      "text": "match line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nend",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "pattern": "x"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_3",
+                "name": "edit",
+                "state": {
+                  "content": [
+                    {
+                      "text": "failed",
+                      "type": "text"
+                    }
+                  ],
+                  "error": {
+                    "message": "oldString not found",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "path": "notes.txt"
+                  },
+                  "metadata": {
+                    "attempts": 1
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_4",
+                "name": "glob",
+                "state": {
+                  "error": {
+                    "message": "denied",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "pattern": "*"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_5",
+                "name": "shell",
+                "state": {
+                  "input": {
+                    "command": "ls"
+                  },
+                  "metadata": {},
+                  "status": "running"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_6",
+                "name": "write",
+                "state": {
+                  "input": "{\"path\":",
+                  "status": "streaming"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "call_7",
+                "name": "read",
+                "state": {
+                  "input": "",
+                  "status": "streaming"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_1>",
+            "metadata": {
+              "step": 1
+            },
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "native": {
+              "block": "none"
+            },
+            "snapshot": {
+              "end": "b",
+              "files": [
+                "notes.txt"
+              ],
+              "start": "a"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          },
+          {
+            "cost": 0.01,
+            "id": "<msg_15>",
+            "metadata": {
+              "keepID": "<msg_1>"
+            },
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "native": {
+              "messages": []
+            },
+            "reason": "manual",
+            "status": "completed",
+            "summary": "Summary of the work",
+            "time": {
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 50,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "compaction"
+          },
+          {
+            "id": "<msg_16>",
+            "metadata": {
+              "keepID": "<msg_4>"
+            },
+            "native": {},
+            "reason": "auto",
+            "status": "completed",
+            "summary": "Another summary",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "context too long",
+              "status": 400,
+              "type": "provider"
+            },
+            "id": "<msg_17>",
+            "metadata": {
+              "attempt": 2
+            },
+            "reason": "auto",
+            "status": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "boom",
+              "type": "provider"
+            },
+            "id": "<msg_19>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "id": "<msg_16>",
+            "metadata": {
+              "keepID": "<msg_4>",
+              "recent": "[User]: The working directory has been changed to <project>.\n\n[Skill activated: review]\nReview carefully.\n[User]: Look at @notes.txt with @explore and $review\n[Attached text/plain: notes.txt]\n[Attached text/plain: inline attachment]\n\n[User]:    \n\n[Synthetic context]: Injected context\n\n[Synthetic context]: No description\n\n[Skill activated: review]\nSkill body\n\n[Shell]: ls -la\ntotal 0\n\n\n[Shell]: true\n\n\n[Assistant]: Here is what I found\n[Assistant]: No native\n[Assistant tool call]: read({\"path\":\"notes.txt\"})\n[Tool result]: alpha\n[Attached text/plain: notes.txt]\n[Attached text/plain]\n[Assistant tool call]: grep({\"pattern\":\"x\"})\n[Tool result]: match line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch l\n[truncated]\n[Assistant tool call]: edit({\"path\":\"notes.txt\"})\n[Tool error]: oldString not found\n[Assistant tool call]: glob({\"pattern\":\"*\"})\n[Tool error]: denied\n[Assistant tool call]: shell({\"command\":\"ls\"})\n[Assistant tool call]: write({\"path\":)\n[Assistant tool call]: read()"
+            },
+            "native": {},
+            "reason": "auto",
+            "status": "completed",
+            "summary": "Another summary",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "context too long",
+              "status": 400,
+              "type": "provider"
+            },
+            "id": "<msg_17>",
+            "metadata": {
+              "attempt": 2
+            },
+            "reason": "auto",
+            "status": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "boom",
+              "type": "provider"
+            },
+            "id": "<msg_19>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/context"
+    },
+    {
+      "body": {
+        "data": {
+          "info": {
+            "agent": "explore",
+            "cost": 1.5,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "/[redacted:session-directory:<ses_1>]"
+            },
+            "metadata": {
+              "redacted": "session-metadata:<ses_1>"
+            },
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "outcome": "failed",
+            "permissions": [
+              {
+                "action": "edit",
+                "effect": "ask",
+                "resource": "*"
+              }
+            ],
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "busy": "<time>",
+              "created": "<time>",
+              "idle": "<time>",
+              "updated": "<time>",
+              "viewed": "<time>"
+            },
+            "title": "[redacted:session-title:<ses_1>]",
+            "tokens": {
+              "cache": {
+                "read": 30,
+                "write": 4
+              },
+              "input": 1000,
+              "output": 200,
+              "reasoning": 50
+            }
+          },
+          "messages": [
+            {
+              "agent": "plan",
+              "id": "<msg_2>",
+              "previous": "build",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "agent-switched"
+            },
+            {
+              "id": "<msg_3>",
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "previous": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "time": {
+                "created": "<time>"
+              },
+              "type": "model-switched"
+            },
+            {
+              "id": "<msg_4>",
+              "location": {
+                "directory": "<project>"
+              },
+              "previous": {
+                "location": {
+                  "directory": "/old/place"
+                },
+                "subpath": ""
+              },
+              "subpath": "",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "location-switched"
+            },
+            {
+              "agents": [
+                {
+                  "mention": {
+                    "end": 32,
+                    "start": 24,
+                    "text": "[redacted:agent-mention:0]"
+                  },
+                  "name": "[redacted:agent-name:0]"
+                },
+                {
+                  "name": "[redacted:agent-name:1]"
+                }
+              ],
+              "files": [
+                {
+                  "data": "",
+                  "description": "[redacted:file-description:0]",
+                  "mention": {
+                    "end": 18,
+                    "start": 8,
+                    "text": "[redacted:file-mention:0]"
+                  },
+                  "mime": "text/plain",
+                  "name": "[redacted:file-name:0]",
+                  "source": {
+                    "type": "inline"
+                  }
+                },
+                {
+                  "data": "",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "id": "<msg_5>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_5>"
+              },
+              "skills": [
+                {
+                  "id": "review",
+                  "mention": {
+                    "end": 44,
+                    "start": 37,
+                    "text": "[redacted:skill-mention:0]"
+                  },
+                  "name": "[redacted:skill-name:0]",
+                  "text": "[redacted:skill:0]"
+                },
+                {
+                  "id": "lint",
+                  "name": "[redacted:skill-name:1]"
+                }
+              ],
+              "text": "[redacted:text:<msg_5>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "id": "<msg_6>",
+              "text": "   ",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "description": "[redacted:synthetic-description:<msg_7>]",
+              "id": "<msg_7>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_7>"
+              },
+              "text": "[redacted:synthetic:<msg_7>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "synthetic"
+            },
+            {
+              "id": "<msg_8>",
+              "metadata": {},
+              "text": "[redacted:synthetic:<msg_8>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "synthetic"
+            },
+            {
+              "description": "update",
+              "id": "<msg_9>",
+              "text": "[redacted:system:<msg_9>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "system"
+            },
+            {
+              "id": "<msg_10>",
+              "name": "review",
+              "skill": "review",
+              "text": "[redacted:skill:<msg_10>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "skill"
+            },
+            {
+              "command": "[redacted:shell-command:<msg_11>]",
+              "exit": 0,
+              "id": "<msg_11>",
+              "output": {
+                "cursor": 8,
+                "output": "[redacted:shell-output:<msg_11>]",
+                "size": 8,
+                "truncated": false
+              },
+              "shellID": "<sh_1>",
+              "status": "exited",
+              "time": {
+                "completed": "<time>",
+                "created": "<time>"
+              },
+              "type": "shell"
+            },
+            {
+              "command": "[redacted:shell-command:<msg_12>]",
+              "id": "<msg_12>",
+              "shellID": "<sh_2>",
+              "status": "killed",
+              "time": {
+                "completed": "<time>",
+                "created": "<time>"
+              },
+              "type": "shell"
+            },
+            {
+              "agent": "build",
+              "content": [
+                {
+                  "native": {
+                    "redacted": "reasoning-native:<msg_1>"
+                  },
+                  "text": "[redacted:reasoning:<msg_1>]",
+                  "time": {
+                    "created": "<time>"
+                  },
+                  "type": "reasoning"
+                },
+                {
+                  "text": "",
+                  "type": "reasoning"
+                },
+                {
+                  "native": {
+                    "redacted": "text-native:<msg_1>"
+                  },
+                  "text": "[redacted:text:<msg_1>]",
+                  "type": "text"
+                },
+                {
+                  "text": "[redacted:text:<msg_1>]",
+                  "type": "text"
+                },
+                {
+                  "id": "call_1",
+                  "name": "read",
+                  "state": {
+                    "content": [
+                      {
+                        "text": "[redacted:tool-output:<msg_1>]",
+                        "type": "text"
+                      },
+                      {
+                        "mime": "text/plain",
+                        "name": "[redacted:tool-file-name:<msg_1>]",
+                        "type": "file",
+                        "uri": "[redacted:tool-file-uri:<msg_1>]"
+                      },
+                      {
+                        "mime": "text/plain",
+                        "name": null,
+                        "type": "file",
+                        "uri": "[redacted:tool-file-uri:<msg_1>]"
+                      }
+                    ],
+                    "input": {
+                      "redacted": "tool-input:<msg_1>"
+                    },
+                    "metadata": {
+                      "redacted": "tool-metadata:<msg_1>"
+                    },
+                    "status": "completed"
+                  },
+                  "time": {
+                    "completed": "<time>",
+                    "created": "<time>",
+                    "ran": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_2",
+                  "name": "grep",
+                  "native": {
+                    "redacted": "tool-native:<msg_1>"
+                  },
+                  "state": {
+                    "content": [
+                      {
+                        "text": "[redacted:tool-output:<msg_1>]",
+                        "type": "text"
+                      }
+                    ],
+                    "input": {
+                      "redacted": "tool-input:<msg_1>"
+                    },
+                    "status": "completed"
+                  },
+                  "time": {
+                    "completed": "<time>",
+                    "created": "<time>",
+                    "ran": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_3",
+                  "name": "edit",
+                  "state": {
+                    "content": [
+                      {
+                        "text": "[redacted:tool-output:<msg_1>]",
+                        "type": "text"
+                      }
+                    ],
+                    "error": {
+                      "message": "oldString not found",
+                      "type": "tool"
+                    },
+                    "input": {
+                      "redacted": "tool-input:<msg_1>"
+                    },
+                    "metadata": {
+                      "redacted": "tool-metadata:<msg_1>"
+                    },
+                    "status": "error"
+                  },
+                  "time": {
+                    "completed": "<time>",
+                    "created": "<time>",
+                    "ran": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_4",
+                  "name": "glob",
+                  "state": {
+                    "error": {
+                      "message": "denied",
+                      "type": "tool"
+                    },
+                    "input": {
+                      "redacted": "tool-input:<msg_1>"
+                    },
+                    "status": "error"
+                  },
+                  "time": {
+                    "completed": "<time>",
+                    "created": "<time>",
+                    "ran": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_5",
+                  "name": "shell",
+                  "state": {
+                    "input": {
+                      "redacted": "tool-input:<msg_1>"
+                    },
+                    "metadata": {
+                      "redacted": "tool-metadata:<msg_1>"
+                    },
+                    "status": "running"
+                  },
+                  "time": {
+                    "created": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_6",
+                  "name": "write",
+                  "state": {
+                    "input": "[redacted:tool-input:<msg_1>]",
+                    "status": "streaming"
+                  },
+                  "time": {
+                    "created": "<time>"
+                  },
+                  "type": "tool"
+                },
+                {
+                  "id": "call_7",
+                  "name": "read",
+                  "state": {
+                    "input": "",
+                    "status": "streaming"
+                  },
+                  "time": {
+                    "created": "<time>"
+                  },
+                  "type": "tool"
+                }
+              ],
+              "cost": 0.25,
+              "finish": "stop",
+              "id": "<msg_1>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_1>"
+              },
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "native": {
+                "block": "none"
+              },
+              "snapshot": {
+                "end": "b",
+                "files": [
+                  "notes.txt"
+                ],
+                "start": "a"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "streamed": "<time>"
+              },
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              },
+              "type": "assistant"
+            },
+            {
+              "cost": 0.01,
+              "id": "<msg_15>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_15>"
+              },
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "native": {
+                "redacted": "compaction-native:<msg_15>"
+              },
+              "reason": "manual",
+              "status": "completed",
+              "summary": "[redacted:compaction-summary:<msg_15>]",
+              "time": {
+                "created": "<time>"
+              },
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 50,
+                "output": 10,
+                "reasoning": 0
+              },
+              "type": "compaction"
+            },
+            {
+              "id": "<msg_16>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_16>"
+              },
+              "native": {},
+              "reason": "auto",
+              "status": "completed",
+              "summary": "[redacted:compaction-summary:<msg_16>]",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "compaction"
+            },
+            {
+              "error": {
+                "message": "context too long",
+                "status": 400,
+                "type": "provider"
+              },
+              "id": "<msg_17>",
+              "metadata": {
+                "redacted": "message-metadata:<msg_17>"
+              },
+              "reason": "auto",
+              "status": "failed",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "compaction"
+            },
+            {
+              "error": {
+                "message": "boom",
+                "type": "provider"
+              },
+              "id": "<msg_19>",
+              "outcome": "failed",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "idle"
+            }
+          ]
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/export?sanitize=true"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "build",
+          "content": [
+            {
+              "native": {
+                "signature": "abc"
+              },
+              "text": "Thinking it over",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "reasoning"
+            },
+            {
+              "text": "",
+              "type": "reasoning"
+            },
+            {
+              "native": {
+                "id": "text-1"
+              },
+              "text": "Here is what I found",
+              "type": "text"
+            },
+            {
+              "text": "No native",
+              "type": "text"
+            },
+            {
+              "id": "call_1",
+              "name": "read",
+              "state": {
+                "content": [
+                  {
+                    "text": "alpha",
+                    "type": "text"
+                  },
+                  {
+                    "mime": "text/plain",
+                    "name": "notes.txt",
+                    "type": "file",
+                    "uri": "file:///project/notes.txt"
+                  },
+                  {
+                    "mime": "text/plain",
+                    "type": "file",
+                    "uri": "data:text/plain;base64,YQ=="
+                  }
+                ],
+                "input": {
+                  "path": "notes.txt"
+                },
+                "metadata": {
+                  "truncated": false
+                },
+                "status": "completed"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "ran": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_2",
+              "name": "grep",
+              "native": {
+                "item": "n1"
+              },
+              "state": {
+                "content": [
+                  {
+                    "text": "match line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nmatch line\nend",
+                    "type": "text"
+                  }
+                ],
+                "input": {
+                  "pattern": "x"
+                },
+                "status": "completed"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "ran": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_3",
+              "name": "edit",
+              "state": {
+                "content": [
+                  {
+                    "text": "failed",
+                    "type": "text"
+                  }
+                ],
+                "error": {
+                  "message": "oldString not found",
+                  "type": "tool"
+                },
+                "input": {
+                  "path": "notes.txt"
+                },
+                "metadata": {
+                  "attempts": 1
+                },
+                "status": "error"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "ran": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_4",
+              "name": "glob",
+              "state": {
+                "error": {
+                  "message": "denied",
+                  "type": "tool"
+                },
+                "input": {
+                  "pattern": "*"
+                },
+                "status": "error"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "ran": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_5",
+              "name": "shell",
+              "state": {
+                "input": {
+                  "command": "ls"
+                },
+                "metadata": {},
+                "status": "running"
+              },
+              "time": {
+                "created": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_6",
+              "name": "write",
+              "state": {
+                "input": "{\"path\":",
+                "status": "streaming"
+              },
+              "time": {
+                "created": "<time>"
+              },
+              "type": "tool"
+            },
+            {
+              "id": "call_7",
+              "name": "read",
+              "state": {
+                "input": "",
+                "status": "streaming"
+              },
+              "time": {
+                "created": "<time>"
+              },
+              "type": "tool"
+            }
+          ],
+          "cost": 0.25,
+          "finish": "stop",
+          "id": "<msg_1>",
+          "metadata": {
+            "step": 1
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "native": {
+            "block": "none"
+          },
+          "snapshot": {
+            "end": "b",
+            "files": [
+              "notes.txt"
+            ],
+            "start": "a"
+          },
+          "time": {
+            "completed": "<time>",
+            "created": "<time>",
+            "streamed": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 10,
+              "write": 2
+            },
+            "input": 100,
+            "output": 20,
+            "reasoning": 5
+          },
+          "type": "assistant"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message/<msg_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "explore",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "owner": "conformance"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "ask",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "rich",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {
+    "notes.txt": "x\n"
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Unknown service config key: frobnicate",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "port",
+          "extra"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Usage: opencode service get port",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "frobnicate",
+          "1"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Unknown service config key: frobnicate",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "port",
+          "0"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Port must be between 1 and 65535",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "port",
+          "65536"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Port must be between 1 and 65535",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "port",
+          "eighty"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Port must be between 1 and 65535",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "disabled",
+          "maybe"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Disabled must be true or false",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "sometimes"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Remote must be true or false",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "hostname",
+          "localhost",
+          "extra"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Usage: opencode service set hostname <value>",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "env",
+          "ONLY_NAME"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Usage: opencode service set env <key> <value>",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "cors",
+          "app.example.test"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: CORS must be a comma-separated list of HTTP(S) origins without paths or trailing slashes",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "cors",
+          "https://app.example.test/path"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: CORS must be a comma-separated list of HTTP(S) origins without paths or trailing slashes",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Unknown service config key: frobnicate",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "port",
+          "extra"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Usage: opencode service unset port",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "env"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Usage: opencode service unset env <key>",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-local.json"
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

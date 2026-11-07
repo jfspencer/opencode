@@ -1,0 +1,237 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "_tag": "ProjectNotFoundError",
+        "message": "Project not found: unknown-project",
+        "projectID": "unknown-project"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/worktree?projectID=unknown-project"
+    },
+    {
+      "body": {
+        "_tag": "ProjectNotFoundError",
+        "message": "Project not found: unknown-project",
+        "projectID": "unknown-project"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "x",
+        "projectID": "unknown-project"
+      },
+      "status": 404,
+      "url": "/api/worktree"
+    },
+    {
+      "body": {
+        "_tag": "ProjectNotFoundError",
+        "message": "Project not found: unknown-project",
+        "projectID": "unknown-project"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "request": {
+        "directory": "<project>",
+        "force": false,
+        "projectID": "unknown-project"
+      },
+      "status": 404,
+      "url": "/api/worktree"
+    },
+    {
+      "body": {
+        "_tag": "ProjectNotFoundError",
+        "message": "Project not found: unknown-project",
+        "projectID": "unknown-project"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "unknown-project"
+      },
+      "status": 404,
+      "url": "/api/worktree/refresh"
+    },
+    {
+      "body": [],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/worktree?projectID=<hash_1>"
+    },
+    {
+      "body": {
+        "_tag": "WorktreeError",
+        "data": {
+          "forceRequired": null,
+          "message": "Cannot create a worktree from <project>: it is not a checkout of this project that supports worktrees, such as a git repository"
+        },
+        "name": "WorktreeError"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "directory": "<project>/.wt",
+        "name": "plain",
+        "projectID": "<hash_1>"
+      },
+      "status": 400,
+      "url": "/api/worktree"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "<hash_1>"
+      },
+      "status": 204,
+      "url": "/api/worktree/refresh"
+    },
+    {
+      "body": {
+        "_tag": "WorktreeError",
+        "data": {
+          "forceRequired": null,
+          "message": "Cannot create a worktree from <project>: it is not a checkout of this project that supports worktrees, such as a git repository"
+        },
+        "name": "WorktreeError"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "directory": "relative/dir",
+        "name": "bad",
+        "projectID": "<hash_1>"
+      },
+      "status": 400,
+      "url": "/api/worktree"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    "README.md": "# Demo\n",
+    "src/app.ts": "export const app = 1\n"
+  }
+}

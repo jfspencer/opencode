@@ -1,0 +1,749 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "activation": "enabled",
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "package": "@opencode/ai/providers/openrouter",
+            "settings": {
+              "baseURL": "https://openrouter.ai/api/v1"
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "saved",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "saved"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_1>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "src/*"
+        ],
+        "save": [
+          "src/*"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "always"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_1>/reply"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_2>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "docs/*"
+        ],
+        "save": [
+          "docs/*"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "always"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_2>/reply"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<psv_1>",
+            "projectID": "<hash_1>",
+            "resource": "docs/*",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          },
+          {
+            "action": "deploy",
+            "id": "<psv_2>",
+            "projectID": "<hash_1>",
+            "resource": "src/*",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved"
+    },
+    {
+      "body": {
+        "data": {
+          "action": "deploy",
+          "id": "<psv_2>",
+          "projectID": "<hash_1>",
+          "resource": "src/allowed.ts",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "resource": "src/allowed.ts"
+      },
+      "status": 200,
+      "url": "/api/permission/saved/<psv_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_3>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "src/allowed.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_4>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "src/other.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "reject"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_4>/reply"
+    },
+    {
+      "body": {
+        "data": {
+          "action": "publish",
+          "id": "<psv_1>",
+          "projectID": "<hash_1>",
+          "resource": "docs/*",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "action": "publish"
+      },
+      "status": 200,
+      "url": "/api/permission/saved/<psv_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_5>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "publish",
+        "resources": [
+          "docs/a.md"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_6>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "docs/a.md"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "reject"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_6>/reply"
+    },
+    {
+      "body": {
+        "data": {
+          "action": "publish",
+          "id": "<psv_1>",
+          "projectID": "<hash_1>",
+          "resource": "docs/*",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {},
+      "status": 200,
+      "url": "/api/permission/saved/<psv_1>"
+    },
+    {
+      "body": {
+        "_tag": "ConflictError",
+        "message": "A saved permission already allows publish for docs/*",
+        "resource": "<psv_2>"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "action": "publish",
+        "resource": "docs/*"
+      },
+      "status": 409,
+      "url": "/api/permission/saved/<psv_2>"
+    },
+    {
+      "body": {
+        "_tag": "PermissionSavedNotFoundError",
+        "id": "psv_conformance_missing",
+        "message": "Saved permission not found: psv_conformance_missing"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "resource": "x"
+      },
+      "status": 404,
+      "url": "/api/permission/saved/psv_conformance_missing"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<psv_2>",
+            "projectID": "<hash_1>",
+            "resource": "src/allowed.ts",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          },
+          {
+            "action": "publish",
+            "id": "<psv_1>",
+            "projectID": "<hash_1>",
+            "resource": "docs/*",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<psv_2>",
+            "projectID": "<hash_1>",
+            "resource": "src/allowed.ts",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          },
+          {
+            "action": "publish",
+            "id": "<psv_1>",
+            "projectID": "<hash_1>",
+            "resource": "docs/*",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved?projectID=<hash_1>"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved?projectID=prj_conformance_other_project"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/permission/saved/<psv_2>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/permission/saved/<psv_2>"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "publish",
+            "id": "<psv_1>",
+            "projectID": "<hash_1>",
+            "resource": "docs/*",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_7>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "src/allowed.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "reject"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_7>/reply"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "saved",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_1>",
+          "resources": [
+            "src/*"
+          ],
+          "save": [
+            "src/*"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "always",
+          "requestID": "<per_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_2>",
+          "resources": [
+            "docs/*"
+          ],
+          "save": [
+            "docs/*"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "always",
+          "requestID": "<per_2>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_4>",
+          "resources": [
+            "src/other.ts"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "reject",
+          "requestID": "<per_4>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_6>",
+          "resources": [
+            "docs/a.md"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "reject",
+          "requestID": "<per_6>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_7>",
+          "resources": [
+            "src/allowed.ts"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "reject",
+          "requestID": "<per_7>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      }
+    ]
+  },
+  "files": {}
+}

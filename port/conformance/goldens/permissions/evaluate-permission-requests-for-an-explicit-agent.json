@@ -1,0 +1,532 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "activation": "enabled",
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "package": "@opencode/ai/providers/openrouter",
+            "settings": {
+              "baseURL": "https://openrouter.ai/api/v1"
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "agents",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "agents"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_1>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "edit",
+        "agent": "plan",
+        "resources": [
+          "src/a.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_2>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "edit",
+        "agent": "build",
+        "resources": [
+          "src/a.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_3>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "edit",
+        "agent": "explore",
+        "resources": [
+          "src/a.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_4>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "grep",
+        "agent": "explore",
+        "resources": [
+          "*"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_5>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "agent": "explore",
+        "resources": [
+          ".env"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_6>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "shell",
+        "agent": "explore",
+        "resources": [
+          "git status"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_7>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "shell",
+        "agent": "explore",
+        "resources": [
+          "ls"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_8>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "agent": "title",
+        "resources": [
+          "a.txt"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_9>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "agent": "no-such-agent",
+        "resources": [
+          "a.txt"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "plan",
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "plan",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "plan",
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "plan"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_10>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "edit",
+        "resources": [
+          "src/a.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_2>/permission"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "read",
+            "id": "<per_5>",
+            "resources": [
+              ".env"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "shell",
+            "id": "<per_6>",
+            "resources": [
+              "git status"
+            ],
+            "sessionID": "<ses_1>"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/request"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "plan",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "plan",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "<system-reminder>\nYou are in Plan mode. Discuss the plan with the user directly in the conversation. Do not create or update plan files unless the user explicitly asks you to; when they do, write them only in:\n<home>/.opencode/plan\n\nDo not modify any other files or ask a subagent to do so.\n\nYou remain in Plan mode until the user switches agents. If the user asks you to implement changes, do not do so. Tell them they need to switch agents.\n</system-reminder>"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "agents",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "read",
+          "id": "<per_5>",
+          "resources": [
+            ".env"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "shell",
+          "id": "<per_6>",
+          "resources": [
+            "git status"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      }
+    ]
+  },
+  "files": {}
+}

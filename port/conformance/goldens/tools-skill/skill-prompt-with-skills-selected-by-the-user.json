@@ -1,0 +1,228 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "skills",
+        "message": "Skill not found: missing"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "skills": [
+          {
+            "id": "deploy",
+            "name": "Deploy"
+          },
+          {
+            "id": "missing",
+            "name": "Missing",
+            "text": "/missing"
+          }
+        ],
+        "text": "Ship it."
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": null,
+          "previous": null
+        },
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {
+    ".opencode/skill/empty.md": "",
+    ".opencode/skill/lint.md": "---\ndescription: Lint the code base.\n---\nRun the linter.\n",
+    ".opencode/skill/notes.txt": "not a skill\n",
+    ".opencode/skills/.hidden/SKILL.md": "---\ndescription: Hidden directory skill.\n---\nHidden.\n",
+    ".opencode/skills/bad-frontmatter/SKILL.md": "---\nname: [unclosed\n---\nBroken.\n",
+    ".opencode/skills/deploy/SKILL.md": "---\nname: Deploy\ndescription: Deploy the application to staging. Use when the user asks to deploy or ship.\n---\n# Deploy\n\n1. Run `scripts/deploy.sh staging`.\n2. Check `reference/checklist.md` before announcing.\n",
+    ".opencode/skills/deploy/reference/checklist.md": "- tests pass\n- changelog updated\n",
+    ".opencode/skills/deploy/scripts/deploy.sh": "#!/bin/sh\necho deploying $1\n",
+    ".opencode/skills/manual-only/SKILL.md": "---\nname: Manual\ndescription: Only when the user asks.\ndisable-model-invocation: true\n---\nManual steps.\n",
+    ".opencode/skills/meta-off/SKILL.md": "---\nname: Meta off\ndescription: Hidden through metadata.\nmetadata:\n  \"opencode/autoinvoke\": \"no\"\n---\nMeta steps.\n",
+    ".opencode/skills/meta-on/SKILL.md": "---\nname: Meta on\ndescription: Listed despite the opt-out.\ndisable-model-invocation: yes\nmetadata:\n  opencode/autoinvoke: 1\n---\nMeta on steps.\n",
+    ".opencode/skills/nested/group/inner/SKILL.md": "---\ndescription: A deeply nested skill.\n---\nInner.\n",
+    ".opencode/skills/no-description/SKILL.md": "---\nname: Bare\n---\nNo description here.\n",
+    ".opencode/skills/review/SKILL.md": "---\ndescription: Review a pull request for style issues.\n---\nLook for style issues.\n",
+    ".opencode/skills/wrong-types/SKILL.md": "---\nname: 42\ndescription: true\n---\nWrong types.\n",
+    "src/app.ts": "export const app = true\n"
+  }
+}

@@ -1,0 +1,1595 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the generators and iterators programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the generators and iterators programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \\\"end\\\" }\\nconst seen = []\\nfor await (const v of ticker(3)) seen.push(v)\\nconst ag = ticker(2)\\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\\nconst fromSync = []\\nfor await (const v of [Promise.resolve(\\\"p1\\\"), \\\"plain\\\", Promise.resolve(\\\"p2\\\")]) fromSync.push(v)\\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \\\"async\\\" + i++, done: false } : { done: true }), return: async () => { seen.push(\\\"async return\\\"); return { done: true } } } } }\\nfor await (const v of custom) seen.push(v)\\nfor await (const v of custom) { seen.push(\\\"break at \\\" + v); break }\\nasync function* delegating() { yield* ticker(2); yield* [\\\"sync-a\\\", Promise.resolve(\\\"sync-b\\\")]; yield* custom }\\nconst delegated = []\\nfor await (const v of delegating()) delegated.push(v)\\nasync function* withFinally() { try { yield \\\"x\\\"; yield \\\"y\\\" } finally { seen.push(\\\"async gen finally\\\") } }\\nfor await (const v of withFinally()) break\\nconst queued = ticker(3)\\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\\\"stop\\\"), queued.next()])\\nasync function* thrower() { yield 1; throw new Error(\\\"async gen threw\\\") }\\nlet thrownAsync\\ntry { for await (const v of thrower()) seen.push(\\\"got \\\" + v) } catch (e) { thrownAsync = e.message }\\nconst ag2 = ticker(5)\\nawait ag2.next()\\nconst throwIn = await ag2.throw(new Error(\\\"injected\\\")).catch((e) => e.message)\\nlet syncSpread\\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \\\": \\\" + e.message }\\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\\\"yielded rejection\\\")) })()\\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Array spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \\\"end\\\" }\\nconst seen = []\\nfor await (const v of ticker(3)) seen.push(v)\\nconst ag = ticker(2)\\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\\nconst fromSync = []\\nfor await (const v of [Promise.resolve(\\\"p1\\\"), \\\"plain\\\", Promise.resolve(\\\"p2\\\")]) fromSync.push(v)\\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \\\"async\\\" + i++, done: false } : { done: true }), return: async () => { seen.push(\\\"async return\\\"); return { done: true } } } } }\\nfor await (const v of custom) seen.push(v)\\nfor await (const v of custom) { seen.push(\\\"break at \\\" + v); break }\\nasync function* delegating() { yield* ticker(2); yield* [\\\"sync-a\\\", Promise.resolve(\\\"sync-b\\\")]; yield* custom }\\nconst delegated = []\\nfor await (const v of delegating()) delegated.push(v)\\nasync function* withFinally() { try { yield \\\"x\\\"; yield \\\"y\\\" } finally { seen.push(\\\"async gen finally\\\") } }\\nfor await (const v of withFinally()) break\\nconst queued = ticker(3)\\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\\\"stop\\\"), queued.next()])\\nasync function* thrower() { yield 1; throw new Error(\\\"async gen threw\\\") }\\nlet thrownAsync\\ntry { for await (const v of thrower()) seen.push(\\\"got \\\" + v) } catch (e) { thrownAsync = e.message }\\nconst ag2 = ticker(5)\\nawait ag2.next()\\nconst throwIn = await ag2.throw(new Error(\\\"injected\\\")).catch((e) => e.message)\\nlet syncSpread\\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \\\": \\\" + e.message }\\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\\\"yielded rejection\\\")) })()\\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Array spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const iterable = {\\n  from: 1, to: 4,\\n  [Symbol.iterator]() { let cur = this.from; const last = this.to; return { next: () => (cur <= last ? { value: cur++, done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this } } },\\n}\\nconst arr = [...iterable]\\nconst [first, ...others] = iterable\\nconst set = new Set(iterable)\\nconst map = new Map([[1, \\\"a\\\"]].concat([[2, \\\"b\\\"]]))\\nconst fromEntries = Object.fromEntries((function* () { yield [\\\"k1\\\", 1]; yield [\\\"k2\\\", 2] })())\\nconst grouped = Object.groupBy((function* () { yield* [1, 2, 3, 4] })(), (n) => (n % 2 ? \\\"odd\\\" : \\\"even\\\"))\\nconst mapGrouped = Map.groupBy([1, 2, 3], (n) => n > 1)\\nconst arrayIter = [1, 2][Symbol.iterator]()\\nconst steps = [arrayIter.next(), arrayIter.next(), arrayIter.next()]\\nconst entries = [...\\\"ab\\\".matchAll(/./g)].map((m) => m[0])\\nconst maxOf = Math.max(...iterable)\\nconst strIter = \\\"xy\\\"[Symbol.iterator]()\\nlet badIter\\ntry { [...{ [Symbol.iterator]: 5 }] } catch (e) { badIter = e.name + \\\": \\\" + e.message }\\nlet badNext\\ntry { [...{ [Symbol.iterator]() { return {} } }] } catch (e) { badNext = e.name + \\\": \\\" + e.message }\\nreturn { arr, first, others, set: [...set], map: [...map], fromEntries, grouped, mapGrouped: [...mapGrouped], steps, entries, maxOf, strIter: [strIter.next(), strIter.next(), strIter.next()], badIter, badNext, asyncSym: typeof Symbol.asyncIterator, symStr: String(Symbol.iterator) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(codemode.iterator)\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the generators and iterators programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the generators and iterators programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \"done\" }\nconst g = counter(10)\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\"early\"), g.next()]\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \"cleanup\" } }\nconst wf = withFinally()\nconst wfSteps = [wf.next(), wf.return(\"r\"), wf.next(), wf.next()]\nfunction* catcher() { while (true) { try { yield \"waiting\" } catch (e) { yield \"caught \" + e } } }\nconst c = catcher()\nconst cSteps = [c.next(), c.throw(\"boom\"), c.next(), c.throw(\"again\")]\nfunction* thrower() { yield 1 }\nconst th = thrower()\nlet thrownOut\ntry { th.throw(new Error(\"not started\")) } catch (e) { thrownOut = e.message }\nconst thAfter = th.next()\nfunction* inner() { const x = yield \"inner1\"; yield \"inner got \" + x; return \"inner result\" }\nfunction* outer() { const r = yield* inner(); yield \"outer got \" + r; yield* [10, 20]; yield* \"ab\" }\nconst o = outer()\nconst oSteps = [o.next(), o.next(\"X\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\nconst genExpr = function* named() { yield named.name }\nconst objGen = { *items() { yield* [1, 2] } }\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\nconst firstFibs = []\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\nconst isIter = typeof g[Symbol.iterator] === \"function\" && g[Symbol.iterator]() === g\nfunction* argsGen(a, { b } = {}) { yield a + b }\nlet badArg\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\nconst running = (function* self() { yield 1 })()\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "function* reentrant() { yield gen.next() }\nconst gen = reentrant()\nlet reentry\ntry { gen.next() } catch (e) { reentry = e.name + \": \" + e.message }\nfunction* throwsInside() { yield 1; throw new Error(\"gen threw\") }\nconst ti = throwsInside()\nti.next()\nlet insideErr\ntry { ti.next() } catch (e) { insideErr = e.message }\nconst afterThrow = ti.next()\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\"finally threw\") } }\nconst rt = returnsThrow()\nrt.next()\nlet finallyErr\ntry { rt.return() } catch (e) { finallyErr = e.message }\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\nlet badReturn\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \": \" + e.message }\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\"return threw\") } } } }\nlet consumerWins\ntry { for (const x of throwsReturn) throw new Error(\"consumer error\") } catch (e) { consumerWins = e.message }\nlet cleanupThrow\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \"from custom\", done: false } : { value: \"custom result\", done: true }) } } }; yield r })()\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \\\"end\\\" }\\nconst seen = []\\nfor await (const v of ticker(3)) seen.push(v)\\nconst ag = ticker(2)\\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\\nconst fromSync = []\\nfor await (const v of [Promise.resolve(\\\"p1\\\"), \\\"plain\\\", Promise.resolve(\\\"p2\\\")]) fromSync.push(v)\\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \\\"async\\\" + i++, done: false } : { done: true }), return: async () => { seen.push(\\\"async return\\\"); return { done: true } } } } }\\nfor await (const v of custom) seen.push(v)\\nfor await (const v of custom) { seen.push(\\\"break at \\\" + v); break }\\nasync function* delegating() { yield* ticker(2); yield* [\\\"sync-a\\\", Promise.resolve(\\\"sync-b\\\")]; yield* custom }\\nconst delegated = []\\nfor await (const v of delegating()) delegated.push(v)\\nasync function* withFinally() { try { yield \\\"x\\\"; yield \\\"y\\\" } finally { seen.push(\\\"async gen finally\\\") } }\\nfor await (const v of withFinally()) break\\nconst queued = ticker(3)\\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\\\"stop\\\"), queued.next()])\\nasync function* thrower() { yield 1; throw new Error(\\\"async gen threw\\\") }\\nlet thrownAsync\\ntry { for await (const v of thrower()) seen.push(\\\"got \\\" + v) } catch (e) { thrownAsync = e.message }\\nconst ag2 = ticker(5)\\nawait ag2.next()\\nconst throwIn = await ag2.throw(new Error(\\\"injected\\\")).catch((e) => e.message)\\nlet syncSpread\\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \\\": \\\" + e.message }\\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\\\"yielded rejection\\\")) })()\\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \"end\" }\nconst seen = []\nfor await (const v of ticker(3)) seen.push(v)\nconst ag = ticker(2)\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\nconst fromSync = []\nfor await (const v of [Promise.resolve(\"p1\"), \"plain\", Promise.resolve(\"p2\")]) fromSync.push(v)\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \"async\" + i++, done: false } : { done: true }), return: async () => { seen.push(\"async return\"); return { done: true } } } } }\nfor await (const v of custom) seen.push(v)\nfor await (const v of custom) { seen.push(\"break at \" + v); break }\nasync function* delegating() { yield* ticker(2); yield* [\"sync-a\", Promise.resolve(\"sync-b\")]; yield* custom }\nconst delegated = []\nfor await (const v of delegating()) delegated.push(v)\nasync function* withFinally() { try { yield \"x\"; yield \"y\" } finally { seen.push(\"async gen finally\") } }\nfor await (const v of withFinally()) break\nconst queued = ticker(3)\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\"stop\"), queued.next()])\nasync function* thrower() { yield 1; throw new Error(\"async gen threw\") }\nlet thrownAsync\ntry { for await (const v of thrower()) seen.push(\"got \" + v) } catch (e) { thrownAsync = e.message }\nconst ag2 = ticker(5)\nawait ag2.next()\nconst throwIn = await ag2.throw(new Error(\"injected\")).catch((e) => e.message)\nlet syncSpread\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \": \" + e.message }\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\"yielded rejection\")) })()\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Array spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const iterable = {\\n  from: 1, to: 4,\\n  [Symbol.iterator]() { let cur = this.from; const last = this.to; return { next: () => (cur <= last ? { value: cur++, done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this } } },\\n}\\nconst arr = [...iterable]\\nconst [first, ...others] = iterable\\nconst set = new Set(iterable)\\nconst map = new Map([[1, \\\"a\\\"]].concat([[2, \\\"b\\\"]]))\\nconst fromEntries = Object.fromEntries((function* () { yield [\\\"k1\\\", 1]; yield [\\\"k2\\\", 2] })())\\nconst grouped = Object.groupBy((function* () { yield* [1, 2, 3, 4] })(), (n) => (n % 2 ? \\\"odd\\\" : \\\"even\\\"))\\nconst mapGrouped = Map.groupBy([1, 2, 3], (n) => n > 1)\\nconst arrayIter = [1, 2][Symbol.iterator]()\\nconst steps = [arrayIter.next(), arrayIter.next(), arrayIter.next()]\\nconst entries = [...\\\"ab\\\".matchAll(/./g)].map((m) => m[0])\\nconst maxOf = Math.max(...iterable)\\nconst strIter = \\\"xy\\\"[Symbol.iterator]()\\nlet badIter\\ntry { [...{ [Symbol.iterator]: 5 }] } catch (e) { badIter = e.name + \\\": \\\" + e.message }\\nlet badNext\\ntry { [...{ [Symbol.iterator]() { return {} } }] } catch (e) { badNext = e.name + \\\": \\\" + e.message }\\nreturn { arr, first, others, set: [...set], map: [...map], fromEntries, grouped, mapGrouped: [...mapGrouped], steps, entries, maxOf, strIter: [strIter.next(), strIter.next(), strIter.next()], badIter, badNext, asyncSym: typeof Symbol.asyncIterator, symStr: String(Symbol.iterator) }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const iterable = {\n  from: 1, to: 4,\n  [Symbol.iterator]() { let cur = this.from; const last = this.to; return { next: () => (cur <= last ? { value: cur++, done: false } : { value: undefined, done: true }), [Symbol.iterator]() { return this } } },\n}\nconst arr = [...iterable]\nconst [first, ...others] = iterable\nconst set = new Set(iterable)\nconst map = new Map([[1, \"a\"]].concat([[2, \"b\"]]))\nconst fromEntries = Object.fromEntries((function* () { yield [\"k1\", 1]; yield [\"k2\", 2] })())\nconst grouped = Object.groupBy((function* () { yield* [1, 2, 3, 4] })(), (n) => (n % 2 ? \"odd\" : \"even\"))\nconst mapGrouped = Map.groupBy([1, 2, 3], (n) => n > 1)\nconst arrayIter = [1, 2][Symbol.iterator]()\nconst steps = [arrayIter.next(), arrayIter.next(), arrayIter.next()]\nconst entries = [...\"ab\".matchAll(/./g)].map((m) => m[0])\nconst maxOf = Math.max(...iterable)\nconst strIter = \"xy\"[Symbol.iterator]()\nlet badIter\ntry { [...{ [Symbol.iterator]: 5 }] } catch (e) { badIter = e.name + \": \" + e.message }\nlet badNext\ntry { [...{ [Symbol.iterator]() { return {} } }] } catch (e) { badNext = e.name + \": \" + e.message }\nreturn { arr, first, others, set: [...set], map: [...map], fromEntries, grouped, mapGrouped: [...mapGrouped], steps, entries, maxOf, strIter: [strIter.next(), strIter.next(), strIter.next()], badIter, badNext, asyncSym: typeof Symbol.asyncIterator, symStr: String(Symbol.iterator) }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(codemode.iterator)\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 2
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_49>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_56>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 1
+        },
+        "id": "<evt_57>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

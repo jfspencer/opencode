@@ -1,0 +1,776 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the math programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the math programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the math programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the math programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst num = (v) => typeof v === \\\"number\\\" ? (Number.isNaN(v) ? \\\"NaN\\\" : Object.is(v, -0) ? \\\"-0\\\" : String(v)) : v\\n// ISO timestamps are kept readable: the recorder would otherwise mask them as wall-clock times.\\nconst D = (v) => typeof v === \\\"string\\\" ? v.replace(/(\\\\d{4}-\\\\d{2}-\\\\d{2})T(\\\\d{2}:)/g, \\\"$1 $2\\\") : Array.isArray(v) ? v.map(D) : v\\nt(\\\"constants\\\", () => [Math.PI, Math.E, Math.LN2, Math.LN10, Math.LOG2E, Math.LOG10E, Math.SQRT2, Math.SQRT1_2].map(num))\\nt(\\\"unary\\\", () => [\\\"abs\\\", \\\"acos\\\", \\\"acosh\\\", \\\"asin\\\", \\\"asinh\\\", \\\"atan\\\", \\\"atanh\\\", \\\"floor\\\", \\\"ceil\\\", \\\"round\\\", \\\"trunc\\\", \\\"sign\\\", \\\"sqrt\\\", \\\"cbrt\\\", \\\"cos\\\", \\\"cosh\\\", \\\"sin\\\", \\\"sinh\\\", \\\"tan\\\", \\\"tanh\\\", \\\"log\\\", \\\"log2\\\", \\\"log10\\\", \\\"log1p\\\", \\\"exp\\\", \\\"expm1\\\", \\\"f16round\\\", \\\"fround\\\", \\\"clz32\\\"].map((name) => name + \\\"=\\\" + [-2.5, -0.5, 0, 0.5, 1, 2.7, 100].map((x) => num(Math[name](x))).join(\\\",\\\")))\\nt(\\\"binary\\\", () => [Math.atan2(1, 2), Math.pow(2, 10), Math.pow(-8, 1 / 3), Math.imul(3, 4), Math.imul(0xffffffff, 5)].map(num))\\nt(\\\"variadic\\\", () => [Math.max(), Math.min(), Math.max(1, 3, 2), Math.min(1, -3), Math.max(1, NaN), Math.hypot(3, 4), Math.hypot(), Math.hypot(1, 2, 2)].map(num))\\nt(\\\"coercion\\\", () => [Math.abs(\\\"-3\\\"), Math.max(\\\"7\\\", [8]), Math.floor({ valueOf() { return 4.9 } }), Math.abs(null), Math.abs(undefined), Math.abs([])].map(num))\\nt(\\\"coercion throws\\\", () => Math.abs({ valueOf() { throw new RangeError(\\\"vo\\\") } }))\\nt(\\\"coercion opaque\\\", () => num(Math.abs(() => 1)))\\nt(\\\"random\\\", () => { const x = Math.random(); return [typeof x, x >= 0 && x < 1] })\\nt(\\\"sumPrecise\\\", () => [Math.sumPrecise([1e20, 0.1, -1e20]), Math.sumPrecise([]), Math.sumPrecise(new Set([1, 2]))].map(num))\\nt(\\\"sumPrecise generator\\\", () => { function* g() { yield 0.1; yield 0.2 } return num(Math.sumPrecise(g())) })\\nt(\\\"sumPrecise non-number\\\", () => Math.sumPrecise([1, \\\"2\\\"]))\\nt(\\\"sumPrecise non-iterable\\\", () => Math.sumPrecise(5))\\nt(\\\"sumPrecise closes\\\", () => { let closed = false; function* g() { try { yield 1; yield \\\"x\\\"; yield 3 } finally { closed = true } } try { Math.sumPrecise(g()) } catch (e) { return [e.message, closed] } })\\nt(\\\"as callbacks\\\", () => [[1.5, -2.5].map(Math.round), [4, 9].map(Math.sqrt), [3, 1, 2].reduce((a, b) => Math.max(a, b))])\\nt(\\\"Math props\\\", () => [typeof Math, Object.prototype.toString.call(Math), Math.max.length, Math.abs.name, Object.keys(Math).length])\\nt(\\\"Math readonly\\\", () => { Math.E = 1; return Math.E })\\nt(\\\"Math method replaced\\\", () => { Math.abs = (x) => \\\"patched\\\"; return Math.abs(-1) })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"constants\": [\n    \"3.141592653589793\",\n    \"2.718281828459045\",\n    \"0.6931471805599453\",\n    \"2.302585092994046\",\n    \"1.4426950408889634\",\n    \"0.4342944819032518\",\n    \"1.4142135623730951\",\n    \"0.7071067811865476\"\n  ],\n  \"unary\": [\n    \"abs=2.5,0.5,0,0.5,1,2.7,100\",\n    \"acos=NaN,2.0943951023931957,1.5707963267948966,1.0471975511965979,0,NaN,NaN\",\n    \"acosh=NaN,NaN,NaN,NaN,0,1.650193454979475,5.298292365610485\",\n    \"asin=NaN,-0.5235987755982989,0,0.5235987755982989,1.5707963267948966,NaN,NaN\",\n    \"asinh=-1.6472311463710958,-0.48121182505960347,0,0.48121182505960347,0.881373587019543,1.7190518512089275,5.298342365610589\",\n    \"atan=-1.1902899496825317,-0.4636476090008061,0,0.4636476090008061,0.7853981633974483,1.2160906747839564,1.5607966601082315\",\n    \"atanh=NaN,-0.5493061443340549,0,0.5493061443340549,Infinity,NaN,NaN\",\n    \"floor=-3,-1,0,0,1,2,100\",\n    \"ceil=-2,-0,0,1,1,3,100\",\n    \"round=-2,-0,0,1,1,3,100\",\n    \"trunc=-2,-0,0,0,1,2,100\",\n    \"sign=-1,-1,0,1,1,1,1\",\n    \"sqrt=NaN,NaN,0,0.7071067811865476,1,1.6431676725154984,10\",\n    \"cbrt=-1.3572088082974534,-0.7937005259840998,0,0.7937005259840998,1,1.3924766500838337,4.641588833612779\",\n    \"cos=-0.8011436155469337,0.8775825618903728,1,0.8775825618903728,0.5403023058681398,-0.9040721420170612,0.8623188722876839\",\n    \"cosh=6.132289479663686,1.1276259652063807,1,1.1276259652063807,1.5430806348152437,7.473468618806294,1.3440585709080678e+43\",\n    \"sin=-0.5984721441039565,-0.479425538604203,0,0.479425538604203,0.8414709848078965,0.4273798802338298,-0.5063656411097588\",\n    \"sinh=-6.0502044810397875,-0.5210953054937474,0,0.5210953054937474,1.1752011936438014,7.406263106066543,1.3440585709080678e+43\",\n    \"tan=0.7470222972386603,-0.5463024898437905,0,0.5463024898437905,1.5574077246549023,-0.4727276291030373,-0.5872139151569291\",\n    \"tanh=-0.9866142981514303,-0.46211715726000974,0,0.46211715726000974,0.7615941559557649,0.9910074536781176,1\",\n    \"log=NaN,NaN,-Infinity,-0.6931471805599453,0,0.9932517730102834,4.605170185988092\",\n    \"log2=NaN,NaN,-Infinity,-1,0,1.4329594072761063,6.643856189774724\",\n    \"log10=NaN,NaN,-Infinity,-0.3010299956639812,0,0.43136376415898736,2\",\n    \"log1p=NaN,-0.6931471805599453,0,0.4054651081081644,0.6931471805599453,1.308332819650179,4.61512051684126\",\n    \"exp=0.0820849986238988,0.6065306597126334,1,1.6487212707001282,2.718281828459045,14.879731724872837,2.6881171418161356e+43\",\n    \"expm1=-0.9179150013761013,-0.3934693402873666,0,0.6487212707001282,1.718281828459045,13.879731724872837,2.6881171418161356e+43\",\n    \"f16round=-2.5,-0.5,0,0.5,1,2.69921875,100\",\n    \"fround=-2.5,-0.5,0,0.5,1,2.700000047683716,100\",\n    \"clz32=0,32,32,32,31,30,25\"\n  ],\n  \"binary\": [\n    \"0.4636476090008061\",\n    \"1024\",\n    \"NaN\",\n    \"12\",\n    \"-5\"\n  ],\n  \"variadic\": [\n    \"-Infinity\",\n    \"Infinity\",\n    \"3\",\n    \"-3\",\n    \"NaN\",\n    \"5\",\n    \"0\",\n    \"3\"\n  ],\n  \"coercion\": [\n    \"3\",\n    \"8\",\n    \"4\",\n    \"0\",\n    \"NaN\",\n    \"0\"\n  ],\n  \"coercion throws\": \"!RangeError: vo\",\n  \"coercion opaque\": \"NaN\",\n  \"random\": [\n    \"number\",\n    true\n  ],\n  \"sumPrecise\": [\n    \"0.1\",\n    \"-0\",\n    \"3\"\n  ],\n  \"sumPrecise generator\": \"0.30000000000000004\",\n  \"sumPrecise non-number\": \"!TypeError: Math.sumPrecise expects an iterable of numbers.\",\n  \"sumPrecise non-iterable\": \"!TypeError: for...of requires an iterable value, received a number.\",\n  \"sumPrecise closes\": [\n    \"Math.sumPrecise expects an iterable of numbers.\",\n    true\n  ],\n  \"as callbacks\": [\n    [\n      2,\n      -2\n    ],\n    [\n      2,\n      3\n    ],\n    3\n  ],\n  \"Math props\": [\n    \"object\",\n    \"[object Object]\",\n    2,\n    \"abs\",\n    0\n  ],\n  \"Math readonly\": \"!TypeError: Cannot assign to read only property 'E'.\",\n  \"Math method replaced\": \"patched\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the math programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the math programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst num = (v) => typeof v === \\\"number\\\" ? (Number.isNaN(v) ? \\\"NaN\\\" : Object.is(v, -0) ? \\\"-0\\\" : String(v)) : v\\n// ISO timestamps are kept readable: the recorder would otherwise mask them as wall-clock times.\\nconst D = (v) => typeof v === \\\"string\\\" ? v.replace(/(\\\\d{4}-\\\\d{2}-\\\\d{2})T(\\\\d{2}:)/g, \\\"$1 $2\\\") : Array.isArray(v) ? v.map(D) : v\\nt(\\\"constants\\\", () => [Math.PI, Math.E, Math.LN2, Math.LN10, Math.LOG2E, Math.LOG10E, Math.SQRT2, Math.SQRT1_2].map(num))\\nt(\\\"unary\\\", () => [\\\"abs\\\", \\\"acos\\\", \\\"acosh\\\", \\\"asin\\\", \\\"asinh\\\", \\\"atan\\\", \\\"atanh\\\", \\\"floor\\\", \\\"ceil\\\", \\\"round\\\", \\\"trunc\\\", \\\"sign\\\", \\\"sqrt\\\", \\\"cbrt\\\", \\\"cos\\\", \\\"cosh\\\", \\\"sin\\\", \\\"sinh\\\", \\\"tan\\\", \\\"tanh\\\", \\\"log\\\", \\\"log2\\\", \\\"log10\\\", \\\"log1p\\\", \\\"exp\\\", \\\"expm1\\\", \\\"f16round\\\", \\\"fround\\\", \\\"clz32\\\"].map((name) => name + \\\"=\\\" + [-2.5, -0.5, 0, 0.5, 1, 2.7, 100].map((x) => num(Math[name](x))).join(\\\",\\\")))\\nt(\\\"binary\\\", () => [Math.atan2(1, 2), Math.pow(2, 10), Math.pow(-8, 1 / 3), Math.imul(3, 4), Math.imul(0xffffffff, 5)].map(num))\\nt(\\\"variadic\\\", () => [Math.max(), Math.min(), Math.max(1, 3, 2), Math.min(1, -3), Math.max(1, NaN), Math.hypot(3, 4), Math.hypot(), Math.hypot(1, 2, 2)].map(num))\\nt(\\\"coercion\\\", () => [Math.abs(\\\"-3\\\"), Math.max(\\\"7\\\", [8]), Math.floor({ valueOf() { return 4.9 } }), Math.abs(null), Math.abs(undefined), Math.abs([])].map(num))\\nt(\\\"coercion throws\\\", () => Math.abs({ valueOf() { throw new RangeError(\\\"vo\\\") } }))\\nt(\\\"coercion opaque\\\", () => num(Math.abs(() => 1)))\\nt(\\\"random\\\", () => { const x = Math.random(); return [typeof x, x >= 0 && x < 1] })\\nt(\\\"sumPrecise\\\", () => [Math.sumPrecise([1e20, 0.1, -1e20]), Math.sumPrecise([]), Math.sumPrecise(new Set([1, 2]))].map(num))\\nt(\\\"sumPrecise generator\\\", () => { function* g() { yield 0.1; yield 0.2 } return num(Math.sumPrecise(g())) })\\nt(\\\"sumPrecise non-number\\\", () => Math.sumPrecise([1, \\\"2\\\"]))\\nt(\\\"sumPrecise non-iterable\\\", () => Math.sumPrecise(5))\\nt(\\\"sumPrecise closes\\\", () => { let closed = false; function* g() { try { yield 1; yield \\\"x\\\"; yield 3 } finally { closed = true } } try { Math.sumPrecise(g()) } catch (e) { return [e.message, closed] } })\\nt(\\\"as callbacks\\\", () => [[1.5, -2.5].map(Math.round), [4, 9].map(Math.sqrt), [3, 1, 2].reduce((a, b) => Math.max(a, b))])\\nt(\\\"Math props\\\", () => [typeof Math, Object.prototype.toString.call(Math), Math.max.length, Math.abs.name, Object.keys(Math).length])\\nt(\\\"Math readonly\\\", () => { Math.E = 1; return Math.E })\\nt(\\\"Math method replaced\\\", () => { Math.abs = (x) => \\\"patched\\\"; return Math.abs(-1) })\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst num = (v) => typeof v === \"number\" ? (Number.isNaN(v) ? \"NaN\" : Object.is(v, -0) ? \"-0\" : String(v)) : v\n// ISO timestamps are kept readable: the recorder would otherwise mask them as wall-clock times.\nconst D = (v) => typeof v === \"string\" ? v.replace(/(\\d{4}-\\d{2}-\\d{2})T(\\d{2}:)/g, \"$1 $2\") : Array.isArray(v) ? v.map(D) : v\nt(\"constants\", () => [Math.PI, Math.E, Math.LN2, Math.LN10, Math.LOG2E, Math.LOG10E, Math.SQRT2, Math.SQRT1_2].map(num))\nt(\"unary\", () => [\"abs\", \"acos\", \"acosh\", \"asin\", \"asinh\", \"atan\", \"atanh\", \"floor\", \"ceil\", \"round\", \"trunc\", \"sign\", \"sqrt\", \"cbrt\", \"cos\", \"cosh\", \"sin\", \"sinh\", \"tan\", \"tanh\", \"log\", \"log2\", \"log10\", \"log1p\", \"exp\", \"expm1\", \"f16round\", \"fround\", \"clz32\"].map((name) => name + \"=\" + [-2.5, -0.5, 0, 0.5, 1, 2.7, 100].map((x) => num(Math[name](x))).join(\",\")))\nt(\"binary\", () => [Math.atan2(1, 2), Math.pow(2, 10), Math.pow(-8, 1 / 3), Math.imul(3, 4), Math.imul(0xffffffff, 5)].map(num))\nt(\"variadic\", () => [Math.max(), Math.min(), Math.max(1, 3, 2), Math.min(1, -3), Math.max(1, NaN), Math.hypot(3, 4), Math.hypot(), Math.hypot(1, 2, 2)].map(num))\nt(\"coercion\", () => [Math.abs(\"-3\"), Math.max(\"7\", [8]), Math.floor({ valueOf() { return 4.9 } }), Math.abs(null), Math.abs(undefined), Math.abs([])].map(num))\nt(\"coercion throws\", () => Math.abs({ valueOf() { throw new RangeError(\"vo\") } }))\nt(\"coercion opaque\", () => num(Math.abs(() => 1)))\nt(\"random\", () => { const x = Math.random(); return [typeof x, x >= 0 && x < 1] })\nt(\"sumPrecise\", () => [Math.sumPrecise([1e20, 0.1, -1e20]), Math.sumPrecise([]), Math.sumPrecise(new Set([1, 2]))].map(num))\nt(\"sumPrecise generator\", () => { function* g() { yield 0.1; yield 0.2 } return num(Math.sumPrecise(g())) })\nt(\"sumPrecise non-number\", () => Math.sumPrecise([1, \"2\"]))\nt(\"sumPrecise non-iterable\", () => Math.sumPrecise(5))\nt(\"sumPrecise closes\", () => { let closed = false; function* g() { try { yield 1; yield \"x\"; yield 3 } finally { closed = true } } try { Math.sumPrecise(g()) } catch (e) { return [e.message, closed] } })\nt(\"as callbacks\", () => [[1.5, -2.5].map(Math.round), [4, 9].map(Math.sqrt), [3, 1, 2].reduce((a, b) => Math.max(a, b))])\nt(\"Math props\", () => [typeof Math, Object.prototype.toString.call(Math), Math.max.length, Math.abs.name, Object.keys(Math).length])\nt(\"Math readonly\", () => { Math.E = 1; return Math.E })\nt(\"Math method replaced\", () => { Math.abs = (x) => \"patched\"; return Math.abs(-1) })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"constants\": [\n    \"3.141592653589793\",\n    \"2.718281828459045\",\n    \"0.6931471805599453\",\n    \"2.302585092994046\",\n    \"1.4426950408889634\",\n    \"0.4342944819032518\",\n    \"1.4142135623730951\",\n    \"0.7071067811865476\"\n  ],\n  \"unary\": [\n    \"abs=2.5,0.5,0,0.5,1,2.7,100\",\n    \"acos=NaN,2.0943951023931957,1.5707963267948966,1.0471975511965979,0,NaN,NaN\",\n    \"acosh=NaN,NaN,NaN,NaN,0,1.650193454979475,5.298292365610485\",\n    \"asin=NaN,-0.5235987755982989,0,0.5235987755982989,1.5707963267948966,NaN,NaN\",\n    \"asinh=-1.6472311463710958,-0.48121182505960347,0,0.48121182505960347,0.881373587019543,1.7190518512089275,5.298342365610589\",\n    \"atan=-1.1902899496825317,-0.4636476090008061,0,0.4636476090008061,0.7853981633974483,1.2160906747839564,1.5607966601082315\",\n    \"atanh=NaN,-0.5493061443340549,0,0.5493061443340549,Infinity,NaN,NaN\",\n    \"floor=-3,-1,0,0,1,2,100\",\n    \"ceil=-2,-0,0,1,1,3,100\",\n    \"round=-2,-0,0,1,1,3,100\",\n    \"trunc=-2,-0,0,0,1,2,100\",\n    \"sign=-1,-1,0,1,1,1,1\",\n    \"sqrt=NaN,NaN,0,0.7071067811865476,1,1.6431676725154984,10\",\n    \"cbrt=-1.3572088082974534,-0.7937005259840998,0,0.7937005259840998,1,1.3924766500838337,4.641588833612779\",\n    \"cos=-0.8011436155469337,0.8775825618903728,1,0.8775825618903728,0.5403023058681398,-0.9040721420170612,0.8623188722876839\",\n    \"cosh=6.132289479663686,1.1276259652063807,1,1.1276259652063807,1.5430806348152437,7.473468618806294,1.3440585709080678e+43\",\n    \"sin=-0.5984721441039565,-0.479425538604203,0,0.479425538604203,0.8414709848078965,0.4273798802338298,-0.5063656411097588\",\n    \"sinh=-6.0502044810397875,-0.5210953054937474,0,0.5210953054937474,1.1752011936438014,7.406263106066543,1.3440585709080678e+43\",\n    \"tan=0.7470222972386603,-0.5463024898437905,0,0.5463024898437905,1.5574077246549023,-0.4727276291030373,-0.5872139151569291\",\n    \"tanh=-0.9866142981514303,-0.46211715726000974,0,0.46211715726000974,0.7615941559557649,0.9910074536781176,1\",\n    \"log=NaN,NaN,-Infinity,-0.6931471805599453,0,0.9932517730102834,4.605170185988092\",\n    \"log2=NaN,NaN,-Infinity,-1,0,1.4329594072761063,6.643856189774724\",\n    \"log10=NaN,NaN,-Infinity,-0.3010299956639812,0,0.43136376415898736,2\",\n    \"log1p=NaN,-0.6931471805599453,0,0.4054651081081644,0.6931471805599453,1.308332819650179,4.61512051684126\",\n    \"exp=0.0820849986238988,0.6065306597126334,1,1.6487212707001282,2.718281828459045,14.879731724872837,2.6881171418161356e+43\",\n    \"expm1=-0.9179150013761013,-0.3934693402873666,0,0.6487212707001282,1.718281828459045,13.879731724872837,2.6881171418161356e+43\",\n    \"f16round=-2.5,-0.5,0,0.5,1,2.69921875,100\",\n    \"fround=-2.5,-0.5,0,0.5,1,2.700000047683716,100\",\n    \"clz32=0,32,32,32,31,30,25\"\n  ],\n  \"binary\": [\n    \"0.4636476090008061\",\n    \"1024\",\n    \"NaN\",\n    \"12\",\n    \"-5\"\n  ],\n  \"variadic\": [\n    \"-Infinity\",\n    \"Infinity\",\n    \"3\",\n    \"-3\",\n    \"NaN\",\n    \"5\",\n    \"0\",\n    \"3\"\n  ],\n  \"coercion\": [\n    \"3\",\n    \"8\",\n    \"4\",\n    \"0\",\n    \"NaN\",\n    \"0\"\n  ],\n  \"coercion throws\": \"!RangeError: vo\",\n  \"coercion opaque\": \"NaN\",\n  \"random\": [\n    \"number\",\n    true\n  ],\n  \"sumPrecise\": [\n    \"0.1\",\n    \"-0\",\n    \"3\"\n  ],\n  \"sumPrecise generator\": \"0.30000000000000004\",\n  \"sumPrecise non-number\": \"!TypeError: Math.sumPrecise expects an iterable of numbers.\",\n  \"sumPrecise non-iterable\": \"!TypeError: for...of requires an iterable value, received a number.\",\n  \"sumPrecise closes\": [\n    \"Math.sumPrecise expects an iterable of numbers.\",\n    true\n  ],\n  \"as callbacks\": [\n    [\n      2,\n      -2\n    ],\n    [\n      2,\n      3\n    ],\n    3\n  ],\n  \"Math props\": [\n    \"object\",\n    \"[object Object]\",\n    2,\n    \"abs\",\n    0\n  ],\n  \"Math readonly\": \"!TypeError: Cannot assign to read only property 'E'.\",\n  \"Math method replaced\": \"patched\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

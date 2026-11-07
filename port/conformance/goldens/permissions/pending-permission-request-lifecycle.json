@@ -1,0 +1,719 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "activation": "enabled",
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "package": "@opencode/ai/providers/openrouter",
+            "settings": {
+              "baseURL": "https://openrouter.ai/api/v1"
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "lifecycle",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "lifecycle"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "other",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "other"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_1>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "metadata": {
+          "dryRun": false,
+          "nested": {
+            "count": 2
+          },
+          "target": "web"
+        },
+        "resources": [
+          "web"
+        ],
+        "save": [
+          "web*"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "per_conformance_explicit_id"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "id": "per_conformance_explicit_id",
+        "resources": [
+          "api"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_2>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "docs"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_2>/permission"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<per_1>",
+            "metadata": {
+              "dryRun": false,
+              "nested": {
+                "count": 2
+              },
+              "target": "web"
+            },
+            "resources": [
+              "web"
+            ],
+            "save": [
+              "web*"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "deploy",
+            "id": "per_conformance_explicit_id",
+            "resources": [
+              "api"
+            ],
+            "sessionID": "<ses_1>"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<per_2>",
+            "resources": [
+              "docs"
+            ],
+            "sessionID": "<ses_2>"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_2>/permission"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<per_1>",
+            "metadata": {
+              "dryRun": false,
+              "nested": {
+                "count": 2
+              },
+              "target": "web"
+            },
+            "resources": [
+              "web"
+            ],
+            "save": [
+              "web*"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "deploy",
+            "id": "per_conformance_explicit_id",
+            "resources": [
+              "api"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "deploy",
+            "id": "<per_2>",
+            "resources": [
+              "docs"
+            ],
+            "sessionID": "<ses_2>"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/request"
+    },
+    {
+      "body": {
+        "data": {
+          "action": "deploy",
+          "id": "<per_1>",
+          "metadata": {
+            "dryRun": false,
+            "nested": {
+              "count": 2
+            },
+            "target": "web"
+          },
+          "resources": [
+            "web"
+          ],
+          "save": [
+            "web*"
+          ],
+          "sessionID": "<ses_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission/<per_1>"
+    },
+    {
+      "body": {
+        "_tag": "PermissionNotFoundError",
+        "message": "Permission request not found: <per_1>",
+        "requestID": "<per_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_2>/permission/<per_1>"
+    },
+    {
+      "body": {
+        "_tag": "PermissionNotFoundError",
+        "message": "Permission request not found: <per_1>",
+        "requestID": "<per_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "once"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_2>/permission/<per_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "PermissionNotFoundError",
+        "message": "Permission request not found: per_conformance_missing_request",
+        "requestID": "per_conformance_missing_request"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/permission/per_conformance_missing_request"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "once"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/<per_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "PermissionNotFoundError",
+        "message": "Permission request not found: <per_1>",
+        "requestID": "<per_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/permission/<per_1>"
+    },
+    {
+      "body": {
+        "_tag": "PermissionNotFoundError",
+        "message": "Permission request not found: <per_1>",
+        "requestID": "<per_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "once"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/permission/<per_1>/reply"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "per_conformance_explicit_id",
+            "resources": [
+              "api"
+            ],
+            "sessionID": "<ses_1>"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "once",
+        "message": "ignored for approvals"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/permission/per_conformance_explicit_id/reply"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/permission/saved"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected Permission.Reply\n  at [\"decision\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "decision": "maybe"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_2>/permission/per_conformance_missing_request/reply"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"decision\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 400,
+      "url": "/api/session/<ses_2>/permission/per_conformance_missing_request/reply"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string starting with \"per\"\n  at [\"requestID\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/session/<ses_2>/permission/not-a-permission-id"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"resources\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_2>/permission"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: ses_conformance_missing_session",
+        "sessionID": "ses_conformance_missing_session"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "x"
+        ]
+      },
+      "status": 404,
+      "url": "/api/session/ses_conformance_missing_session/permission"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: ses_conformance_missing_session",
+        "sessionID": "ses_conformance_missing_session"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/ses_conformance_missing_session/permission"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "other",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_2>",
+          "resources": [
+            "docs"
+          ],
+          "sessionID": "<ses_2>"
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "lifecycle",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_1>",
+          "metadata": {
+            "dryRun": false,
+            "nested": {
+              "count": 2
+            },
+            "target": "web"
+          },
+          "resources": [
+            "web"
+          ],
+          "save": [
+            "web*"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "per_conformance_explicit_id",
+          "resources": [
+            "api"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "once",
+          "requestID": "<per_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "reply": "once",
+          "requestID": "per_conformance_explicit_id",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.replied"
+      }
+    ]
+  },
+  "files": {}
+}

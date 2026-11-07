@@ -1,0 +1,115 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/no-such-route"
+        ],
+        "exit": 1,
+        "stderr": [
+          "HTTP 404 Not Found",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "POST",
+          "/api/session",
+          "-d",
+          "{ not json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "HTTP 400 Bad Request",
+          ""
+        ],
+        "stdout": {
+          "json": {
+            "_tag": "InvalidRequestError",
+            "kind": "Payload",
+            "message": "Expected a valid JSON body"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session",
+          "-H",
+          "no-colon-here"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Invalid header, expected name:value: no-colon-here",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "FETCH",
+          "/api/session"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Expected an operation name or an HTTP method and path",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "api/session"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Expected an operation name or an HTTP method and path",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the logical, nullish, optional chaining and assignment operators programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the logical, nullish, optional chaining and assignment operators programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the logical, nullish, optional chaining and assignment operators programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the logical, nullish, optional chaining and assignment operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst calls = []\\nconst f = (v) => { calls.push(v); return v }\\nconst out = {\\n  and: [f(0) && f(1), f(1) && f(2), \\\"\\\" && \\\"x\\\"],\\n  or: [f(0) || f(3), f(4) || f(5), null || undefined],\\n  nullish: [null ?? \\\"d\\\", undefined ?? \\\"d\\\", 0 ?? \\\"d\\\", \\\"\\\" ?? \\\"d\\\", false ?? \\\"d\\\"],\\n  not: [!null, !undefined, !NaN],\\n  calls,\\n}\\nconst o = { a: { b: { c: 1 } }, fn() { return \\\"called\\\" }, arr: [10, 20] }\\nout.opt = [o?.a?.b?.c, o.x?.y, o.x?.y.z.w, o.fn?.(), o.nofn?.(), o.arr?.[1], o.missing?.[0], null?.x, undefined?.(), (o?.a).b.c]\\nout.optDelete = (() => { const x = { y: { z: 1 } }; const r = [delete x?.y.z, delete x.q?.r]; return [r, x] })()\\nout.optThrow = t(() => o.x.y)\\nout.callNonFn = t(() => o.a())\\nout.nullRead = t(() => null.x)\\nout\\n\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"and\": [\n    0,\n    2,\n    \"\"\n  ],\n  \"or\": [\n    3,\n    4,\n    null\n  ],\n  \"nullish\": [\n    \"d\",\n    \"d\",\n    0,\n    \"\",\n    false\n  ],\n  \"not\": [\n    true,\n    true,\n    true\n  ],\n  \"calls\": [\n    0,\n    1,\n    2,\n    0,\n    3,\n    4\n  ],\n  \"opt\": [\n    1,\n    null,\n    null,\n    \"called\",\n    null,\n    20,\n    null,\n    null,\n    null,\n    1\n  ],\n  \"optDelete\": [\n    [\n      true,\n      true\n    ],\n    {\n      \"y\": {}\n    }\n  ],\n  \"optThrow\": \"throws TypeError: Cannot read properties of undefined (reading 'y').\",\n  \"callNonFn\": \"throws TypeError: o.a is not a function.\",\n  \"nullRead\": \"throws TypeError: Cannot read properties of null (reading 'x').\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the logical, nullish, optional chaining and assignment operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst calls = []\\nconst f = (v) => { calls.push(v); return v }\\nconst out = {\\n  and: [f(0) && f(1), f(1) && f(2), \\\"\\\" && \\\"x\\\"],\\n  or: [f(0) || f(3), f(4) || f(5), null || undefined],\\n  nullish: [null ?? \\\"d\\\", undefined ?? \\\"d\\\", 0 ?? \\\"d\\\", \\\"\\\" ?? \\\"d\\\", false ?? \\\"d\\\"],\\n  not: [!null, !undefined, !NaN],\\n  calls,\\n}\\nconst o = { a: { b: { c: 1 } }, fn() { return \\\"called\\\" }, arr: [10, 20] }\\nout.opt = [o?.a?.b?.c, o.x?.y, o.x?.y.z.w, o.fn?.(), o.nofn?.(), o.arr?.[1], o.missing?.[0], null?.x, undefined?.(), (o?.a).b.c]\\nout.optDelete = (() => { const x = { y: { z: 1 } }; const r = [delete x?.y.z, delete x.q?.r]; return [r, x] })()\\nout.optThrow = t(() => o.x.y)\\nout.callNonFn = t(() => o.a())\\nout.nullRead = t(() => null.x)\\nout\\n\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"and\": [\n    0,\n    2,\n    \"\"\n  ],\n  \"or\": [\n    3,\n    4,\n    null\n  ],\n  \"nullish\": [\n    \"d\",\n    \"d\",\n    0,\n    \"\",\n    false\n  ],\n  \"not\": [\n    true,\n    true,\n    true\n  ],\n  \"calls\": [\n    0,\n    1,\n    2,\n    0,\n    3,\n    4\n  ],\n  \"opt\": [\n    1,\n    null,\n    null,\n    \"called\",\n    null,\n    20,\n    null,\n    null,\n    null,\n    1\n  ],\n  \"optDelete\": [\n    [\n      true,\n      true\n    ],\n    {\n      \"y\": {}\n    }\n  ],\n  \"optThrow\": \"throws TypeError: Cannot read properties of undefined (reading 'y').\",\n  \"callNonFn\": \"throws TypeError: o.a is not a function.\",\n  \"nullRead\": \"throws TypeError: Cannot read properties of null (reading 'x').\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nlet a = 1\\na += 2; a -= 1; a *= 10; a /= 4; a %= 3; a **= 3\\nlet b = 6\\nb &= 3; b |= 8; b ^= 1; b <<= 2; b >>= 1; b >>>= 1\\nlet s = \\\"x\\\"\\ns += 1\\nlet n = null, z = 0, y = 5\\nn ??= \\\"filled\\\"; z ||= \\\"or\\\"; y &&= \\\"and\\\"\\nlet q = 1\\nq ??= (() => { throw new Error(\\\"not evaluated\\\") })()\\nconst o = { count: 0, list: [1, 2, 3], nested: { v: 1 } }\\no.count += 5\\no[\\\"count\\\"] *= 2\\no.list[1] += 100\\no.nested.v ||= 9\\no.missing ??= \\\"set\\\"\\nconst key = \\\"dyn\\\"\\no[key] = 1\\no[key + \\\"2\\\"] ??= 2\\nlet i = 0\\nconst pre = ++i, post = i++, preDec = --i, postDec = i--\\no.count++\\n++o.list[0]\\no[\\\"nested\\\"].v--\\nconst arr = [1, 2]\\narr[5] = 6\\narr.length = 3\\nreturn { a, b, s, n, z, y, q, o, pre, post, preDec, postDec, i, arr, len: arr.length,\\n  undeclared: t(() => { undeclaredVar = 1 }),\\n  readUndeclared: t(() => undeclaredVar2 + 1),\\n  updateFn: t(() => { let f = () => 1; f++ }),\\n  chained: (() => { let x, y2; x = y2 = 3; return [x, y2] })(),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 8,\n  \"b\": 11,\n  \"s\": \"x1\",\n  \"n\": \"filled\",\n  \"z\": \"or\",\n  \"y\": \"and\",\n  \"q\": 1,\n  \"o\": {\n    \"count\": 11,\n    \"list\": [\n      2,\n      102,\n      3\n    ],\n    \"nested\": {\n      \"v\": 0\n    },\n    \"missing\": \"set\",\n    \"dyn\": 1,\n    \"dyn2\": 2\n  },\n  \"pre\": 1,\n  \"post\": 1,\n  \"preDec\": 1,\n  \"postDec\": 1,\n  \"i\": 0,\n  \"arr\": [\n    1,\n    2,\n    null\n  ],\n  \"len\": 3,\n  \"undeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar'.\",\n  \"readUndeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar2'.\",\n  \"updateFn\": \"throws TypeError: '++' requires a data value.\",\n  \"chained\": [\n    3,\n    3\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the logical, nullish, optional chaining and assignment operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst calls = []\\nconst f = (v) => { calls.push(v); return v }\\nconst out = {\\n  and: [f(0) && f(1), f(1) && f(2), \\\"\\\" && \\\"x\\\"],\\n  or: [f(0) || f(3), f(4) || f(5), null || undefined],\\n  nullish: [null ?? \\\"d\\\", undefined ?? \\\"d\\\", 0 ?? \\\"d\\\", \\\"\\\" ?? \\\"d\\\", false ?? \\\"d\\\"],\\n  not: [!null, !undefined, !NaN],\\n  calls,\\n}\\nconst o = { a: { b: { c: 1 } }, fn() { return \\\"called\\\" }, arr: [10, 20] }\\nout.opt = [o?.a?.b?.c, o.x?.y, o.x?.y.z.w, o.fn?.(), o.nofn?.(), o.arr?.[1], o.missing?.[0], null?.x, undefined?.(), (o?.a).b.c]\\nout.optDelete = (() => { const x = { y: { z: 1 } }; const r = [delete x?.y.z, delete x.q?.r]; return [r, x] })()\\nout.optThrow = t(() => o.x.y)\\nout.callNonFn = t(() => o.a())\\nout.nullRead = t(() => null.x)\\nout\\n\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"and\": [\n    0,\n    2,\n    \"\"\n  ],\n  \"or\": [\n    3,\n    4,\n    null\n  ],\n  \"nullish\": [\n    \"d\",\n    \"d\",\n    0,\n    \"\",\n    false\n  ],\n  \"not\": [\n    true,\n    true,\n    true\n  ],\n  \"calls\": [\n    0,\n    1,\n    2,\n    0,\n    3,\n    4\n  ],\n  \"opt\": [\n    1,\n    null,\n    null,\n    \"called\",\n    null,\n    20,\n    null,\n    null,\n    null,\n    1\n  ],\n  \"optDelete\": [\n    [\n      true,\n      true\n    ],\n    {\n      \"y\": {}\n    }\n  ],\n  \"optThrow\": \"throws TypeError: Cannot read properties of undefined (reading 'y').\",\n  \"callNonFn\": \"throws TypeError: o.a is not a function.\",\n  \"nullRead\": \"throws TypeError: Cannot read properties of null (reading 'x').\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nlet a = 1\\na += 2; a -= 1; a *= 10; a /= 4; a %= 3; a **= 3\\nlet b = 6\\nb &= 3; b |= 8; b ^= 1; b <<= 2; b >>= 1; b >>>= 1\\nlet s = \\\"x\\\"\\ns += 1\\nlet n = null, z = 0, y = 5\\nn ??= \\\"filled\\\"; z ||= \\\"or\\\"; y &&= \\\"and\\\"\\nlet q = 1\\nq ??= (() => { throw new Error(\\\"not evaluated\\\") })()\\nconst o = { count: 0, list: [1, 2, 3], nested: { v: 1 } }\\no.count += 5\\no[\\\"count\\\"] *= 2\\no.list[1] += 100\\no.nested.v ||= 9\\no.missing ??= \\\"set\\\"\\nconst key = \\\"dyn\\\"\\no[key] = 1\\no[key + \\\"2\\\"] ??= 2\\nlet i = 0\\nconst pre = ++i, post = i++, preDec = --i, postDec = i--\\no.count++\\n++o.list[0]\\no[\\\"nested\\\"].v--\\nconst arr = [1, 2]\\narr[5] = 6\\narr.length = 3\\nreturn { a, b, s, n, z, y, q, o, pre, post, preDec, postDec, i, arr, len: arr.length,\\n  undeclared: t(() => { undeclaredVar = 1 }),\\n  readUndeclared: t(() => undeclaredVar2 + 1),\\n  updateFn: t(() => { let f = () => 1; f++ }),\\n  chained: (() => { let x, y2; x = y2 = 3; return [x, y2] })(),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"a\": 8,\n  \"b\": 11,\n  \"s\": \"x1\",\n  \"n\": \"filled\",\n  \"z\": \"or\",\n  \"y\": \"and\",\n  \"q\": 1,\n  \"o\": {\n    \"count\": 11,\n    \"list\": [\n      2,\n      102,\n      3\n    ],\n    \"nested\": {\n      \"v\": 0\n    },\n    \"missing\": \"set\",\n    \"dyn\": 1,\n    \"dyn2\": 2\n  },\n  \"pre\": 1,\n  \"post\": 1,\n  \"preDec\": 1,\n  \"postDec\": 1,\n  \"i\": 0,\n  \"arr\": [\n    1,\n    2,\n    null\n  ],\n  \"len\": 3,\n  \"undeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar'.\",\n  \"readUndeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar2'.\",\n  \"updateFn\": \"throws TypeError: '++' requires a data value.\",\n  \"chained\": [\n    3,\n    3\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst o = { a: 1, b: { c: 2 } }\\nconst arr = [1, 2, 3]\\nconst proto = { inherited: true }\\nconst child = Object.create(proto)\\nchild.own = 1\\nreturn {\\n  in: [\\\"a\\\" in o, \\\"z\\\" in o, 0 in arr, 5 in arr, \\\"length\\\" in arr, \\\"inherited\\\" in child, \\\"toString\\\" in o, \\\"own\\\" in child],\\n  inPrimitive: t(() => \\\"a\\\" in \\\"abc\\\"),\\n  instanceof: [arr instanceof Array, arr instanceof Object, o instanceof Array, new Error(\\\"x\\\") instanceof Error, new TypeError(\\\"x\\\") instanceof Error, (() => 1) instanceof Function, new Map() instanceof Map],\\n  instanceofBad: t(() => o instanceof o),\\n  delete: (() => { const x = { a: 1, b: 2 }; const r = delete x.a; const r2 = delete x[\\\"b\\\"]; const r3 = delete x.none; return [r, r2, r3, x] })(),\\n  deleteIndex: (() => { const x = [1, 2, 3]; delete x[1]; return [x.length, 1 in x, x] })(),\\n  deleteLength: t(() => { const x = [1]; delete x.length }),\\n  deleteVar: t(() => { let v = 1; return delete v }),\\n  deleteNonRef: [delete 0],\\n  frozen: t(() => { const f = Object.freeze({ a: 1 }); f.a = 2 }),\\n  frozenAdd: t(() => { const f = Object.preventExtensions({ a: 1 }); f.b = 2 }),\\n  sealedDelete: t(() => { const f = Object.seal({ a: 1 }); delete f.a }),\\n  readOnly: t(() => { Math.PI = 3 }),\\n  fnName: t(() => { const f = function named() {}; f.name = \\\"x\\\" }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"in\": [\n    true,\n    false,\n    true,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"inPrimitive\": \"throws TypeError: The 'in' operator requires a data object on the right-hand side.\",\n  \"instanceof\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"instanceofBad\": \"throws TypeError: The right-hand side of 'instanceof' is not callable.\",\n  \"delete\": [\n    true,\n    true,\n    true,\n    {}\n  ],\n  \"deleteIndex\": [\n    3,\n    false,\n    [\n      1,\n      null,\n      3\n    ]\n  ],\n  \"deleteLength\": \"throws TypeError: Cannot delete property 'length'.\",\n  \"deleteVar\": \"throws TypeError: Only data fields may be deleted.\",\n  \"deleteNonRef\": [\n    true\n  ],\n  \"frozen\": \"throws TypeError: Cannot assign to read only property 'a'.\",\n  \"frozenAdd\": \"throws TypeError: Cannot add property b, object is not extensible.\",\n  \"sealedDelete\": \"throws TypeError: Cannot delete property 'a'.\",\n  \"readOnly\": \"throws TypeError: Cannot assign to read only property 'PI'.\",\n  \"fnName\": \"throws TypeError: Cannot assign to read only property 'name'.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the logical, nullish, optional chaining and assignment operators programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the logical, nullish, optional chaining and assignment operators programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst calls = []\\nconst f = (v) => { calls.push(v); return v }\\nconst out = {\\n  and: [f(0) && f(1), f(1) && f(2), \\\"\\\" && \\\"x\\\"],\\n  or: [f(0) || f(3), f(4) || f(5), null || undefined],\\n  nullish: [null ?? \\\"d\\\", undefined ?? \\\"d\\\", 0 ?? \\\"d\\\", \\\"\\\" ?? \\\"d\\\", false ?? \\\"d\\\"],\\n  not: [!null, !undefined, !NaN],\\n  calls,\\n}\\nconst o = { a: { b: { c: 1 } }, fn() { return \\\"called\\\" }, arr: [10, 20] }\\nout.opt = [o?.a?.b?.c, o.x?.y, o.x?.y.z.w, o.fn?.(), o.nofn?.(), o.arr?.[1], o.missing?.[0], null?.x, undefined?.(), (o?.a).b.c]\\nout.optDelete = (() => { const x = { y: { z: 1 } }; const r = [delete x?.y.z, delete x.q?.r]; return [r, x] })()\\nout.optThrow = t(() => o.x.y)\\nout.callNonFn = t(() => o.a())\\nout.nullRead = t(() => null.x)\\nout\\n\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nconst calls = []\nconst f = (v) => { calls.push(v); return v }\nconst out = {\n  and: [f(0) && f(1), f(1) && f(2), \"\" && \"x\"],\n  or: [f(0) || f(3), f(4) || f(5), null || undefined],\n  nullish: [null ?? \"d\", undefined ?? \"d\", 0 ?? \"d\", \"\" ?? \"d\", false ?? \"d\"],\n  not: [!null, !undefined, !NaN],\n  calls,\n}\nconst o = { a: { b: { c: 1 } }, fn() { return \"called\" }, arr: [10, 20] }\nout.opt = [o?.a?.b?.c, o.x?.y, o.x?.y.z.w, o.fn?.(), o.nofn?.(), o.arr?.[1], o.missing?.[0], null?.x, undefined?.(), (o?.a).b.c]\nout.optDelete = (() => { const x = { y: { z: 1 } }; const r = [delete x?.y.z, delete x.q?.r]; return [r, x] })()\nout.optThrow = t(() => o.x.y)\nout.callNonFn = t(() => o.a())\nout.nullRead = t(() => null.x)\nout\n"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"and\": [\n    0,\n    2,\n    \"\"\n  ],\n  \"or\": [\n    3,\n    4,\n    null\n  ],\n  \"nullish\": [\n    \"d\",\n    \"d\",\n    0,\n    \"\",\n    false\n  ],\n  \"not\": [\n    true,\n    true,\n    true\n  ],\n  \"calls\": [\n    0,\n    1,\n    2,\n    0,\n    3,\n    4\n  ],\n  \"opt\": [\n    1,\n    null,\n    null,\n    \"called\",\n    null,\n    20,\n    null,\n    null,\n    null,\n    1\n  ],\n  \"optDelete\": [\n    [\n      true,\n      true\n    ],\n    {\n      \"y\": {}\n    }\n  ],\n  \"optThrow\": \"throws TypeError: Cannot read properties of undefined (reading 'y').\",\n  \"callNonFn\": \"throws TypeError: o.a is not a function.\",\n  \"nullRead\": \"throws TypeError: Cannot read properties of null (reading 'x').\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nlet a = 1\\na += 2; a -= 1; a *= 10; a /= 4; a %= 3; a **= 3\\nlet b = 6\\nb &= 3; b |= 8; b ^= 1; b <<= 2; b >>= 1; b >>>= 1\\nlet s = \\\"x\\\"\\ns += 1\\nlet n = null, z = 0, y = 5\\nn ??= \\\"filled\\\"; z ||= \\\"or\\\"; y &&= \\\"and\\\"\\nlet q = 1\\nq ??= (() => { throw new Error(\\\"not evaluated\\\") })()\\nconst o = { count: 0, list: [1, 2, 3], nested: { v: 1 } }\\no.count += 5\\no[\\\"count\\\"] *= 2\\no.list[1] += 100\\no.nested.v ||= 9\\no.missing ??= \\\"set\\\"\\nconst key = \\\"dyn\\\"\\no[key] = 1\\no[key + \\\"2\\\"] ??= 2\\nlet i = 0\\nconst pre = ++i, post = i++, preDec = --i, postDec = i--\\no.count++\\n++o.list[0]\\no[\\\"nested\\\"].v--\\nconst arr = [1, 2]\\narr[5] = 6\\narr.length = 3\\nreturn { a, b, s, n, z, y, q, o, pre, post, preDec, postDec, i, arr, len: arr.length,\\n  undeclared: t(() => { undeclaredVar = 1 }),\\n  readUndeclared: t(() => undeclaredVar2 + 1),\\n  updateFn: t(() => { let f = () => 1; f++ }),\\n  chained: (() => { let x, y2; x = y2 = 3; return [x, y2] })(),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nlet a = 1\na += 2; a -= 1; a *= 10; a /= 4; a %= 3; a **= 3\nlet b = 6\nb &= 3; b |= 8; b ^= 1; b <<= 2; b >>= 1; b >>>= 1\nlet s = \"x\"\ns += 1\nlet n = null, z = 0, y = 5\nn ??= \"filled\"; z ||= \"or\"; y &&= \"and\"\nlet q = 1\nq ??= (() => { throw new Error(\"not evaluated\") })()\nconst o = { count: 0, list: [1, 2, 3], nested: { v: 1 } }\no.count += 5\no[\"count\"] *= 2\no.list[1] += 100\no.nested.v ||= 9\no.missing ??= \"set\"\nconst key = \"dyn\"\no[key] = 1\no[key + \"2\"] ??= 2\nlet i = 0\nconst pre = ++i, post = i++, preDec = --i, postDec = i--\no.count++\n++o.list[0]\no[\"nested\"].v--\nconst arr = [1, 2]\narr[5] = 6\narr.length = 3\nreturn { a, b, s, n, z, y, q, o, pre, post, preDec, postDec, i, arr, len: arr.length,\n  undeclared: t(() => { undeclaredVar = 1 }),\n  readUndeclared: t(() => undeclaredVar2 + 1),\n  updateFn: t(() => { let f = () => 1; f++ }),\n  chained: (() => { let x, y2; x = y2 = 3; return [x, y2] })(),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"a\": 8,\n  \"b\": 11,\n  \"s\": \"x1\",\n  \"n\": \"filled\",\n  \"z\": \"or\",\n  \"y\": \"and\",\n  \"q\": 1,\n  \"o\": {\n    \"count\": 11,\n    \"list\": [\n      2,\n      102,\n      3\n    ],\n    \"nested\": {\n      \"v\": 0\n    },\n    \"missing\": \"set\",\n    \"dyn\": 1,\n    \"dyn2\": 2\n  },\n  \"pre\": 1,\n  \"post\": 1,\n  \"preDec\": 1,\n  \"postDec\": 1,\n  \"i\": 0,\n  \"arr\": [\n    1,\n    2,\n    null\n  ],\n  \"len\": 3,\n  \"undeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar'.\",\n  \"readUndeclared\": \"throws ReferenceError: Unknown identifier 'undeclaredVar2'.\",\n  \"updateFn\": \"throws TypeError: '++' requires a data value.\",\n  \"chained\": [\n    3,\n    3\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst o = { a: 1, b: { c: 2 } }\\nconst arr = [1, 2, 3]\\nconst proto = { inherited: true }\\nconst child = Object.create(proto)\\nchild.own = 1\\nreturn {\\n  in: [\\\"a\\\" in o, \\\"z\\\" in o, 0 in arr, 5 in arr, \\\"length\\\" in arr, \\\"inherited\\\" in child, \\\"toString\\\" in o, \\\"own\\\" in child],\\n  inPrimitive: t(() => \\\"a\\\" in \\\"abc\\\"),\\n  instanceof: [arr instanceof Array, arr instanceof Object, o instanceof Array, new Error(\\\"x\\\") instanceof Error, new TypeError(\\\"x\\\") instanceof Error, (() => 1) instanceof Function, new Map() instanceof Map],\\n  instanceofBad: t(() => o instanceof o),\\n  delete: (() => { const x = { a: 1, b: 2 }; const r = delete x.a; const r2 = delete x[\\\"b\\\"]; const r3 = delete x.none; return [r, r2, r3, x] })(),\\n  deleteIndex: (() => { const x = [1, 2, 3]; delete x[1]; return [x.length, 1 in x, x] })(),\\n  deleteLength: t(() => { const x = [1]; delete x.length }),\\n  deleteVar: t(() => { let v = 1; return delete v }),\\n  deleteNonRef: [delete 0],\\n  frozen: t(() => { const f = Object.freeze({ a: 1 }); f.a = 2 }),\\n  frozenAdd: t(() => { const f = Object.preventExtensions({ a: 1 }); f.b = 2 }),\\n  sealedDelete: t(() => { const f = Object.seal({ a: 1 }); delete f.a }),\\n  readOnly: t(() => { Math.PI = 3 }),\\n  fnName: t(() => { const f = function named() {}; f.name = \\\"x\\\" }),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nconst o = { a: 1, b: { c: 2 } }\nconst arr = [1, 2, 3]\nconst proto = { inherited: true }\nconst child = Object.create(proto)\nchild.own = 1\nreturn {\n  in: [\"a\" in o, \"z\" in o, 0 in arr, 5 in arr, \"length\" in arr, \"inherited\" in child, \"toString\" in o, \"own\" in child],\n  inPrimitive: t(() => \"a\" in \"abc\"),\n  instanceof: [arr instanceof Array, arr instanceof Object, o instanceof Array, new Error(\"x\") instanceof Error, new TypeError(\"x\") instanceof Error, (() => 1) instanceof Function, new Map() instanceof Map],\n  instanceofBad: t(() => o instanceof o),\n  delete: (() => { const x = { a: 1, b: 2 }; const r = delete x.a; const r2 = delete x[\"b\"]; const r3 = delete x.none; return [r, r2, r3, x] })(),\n  deleteIndex: (() => { const x = [1, 2, 3]; delete x[1]; return [x.length, 1 in x, x] })(),\n  deleteLength: t(() => { const x = [1]; delete x.length }),\n  deleteVar: t(() => { let v = 1; return delete v }),\n  deleteNonRef: [delete 0],\n  frozen: t(() => { const f = Object.freeze({ a: 1 }); f.a = 2 }),\n  frozenAdd: t(() => { const f = Object.preventExtensions({ a: 1 }); f.b = 2 }),\n  sealedDelete: t(() => { const f = Object.seal({ a: 1 }); delete f.a }),\n  readOnly: t(() => { Math.PI = 3 }),\n  fnName: t(() => { const f = function named() {}; f.name = \"x\" }),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"in\": [\n    true,\n    false,\n    true,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"inPrimitive\": \"throws TypeError: The 'in' operator requires a data object on the right-hand side.\",\n  \"instanceof\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"instanceofBad\": \"throws TypeError: The right-hand side of 'instanceof' is not callable.\",\n  \"delete\": [\n    true,\n    true,\n    true,\n    {}\n  ],\n  \"deleteIndex\": [\n    3,\n    false,\n    [\n      1,\n      null,\n      3\n    ]\n  ],\n  \"deleteLength\": \"throws TypeError: Cannot delete property 'length'.\",\n  \"deleteVar\": \"throws TypeError: Only data fields may be deleted.\",\n  \"deleteNonRef\": [\n    true\n  ],\n  \"frozen\": \"throws TypeError: Cannot assign to read only property 'a'.\",\n  \"frozenAdd\": \"throws TypeError: Cannot add property b, object is not extensible.\",\n  \"sealedDelete\": \"throws TypeError: Cannot delete property 'a'.\",\n  \"readOnly\": \"throws TypeError: Cannot assign to read only property 'PI'.\",\n  \"fnName\": \"throws TypeError: Cannot assign to read only property 'name'.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

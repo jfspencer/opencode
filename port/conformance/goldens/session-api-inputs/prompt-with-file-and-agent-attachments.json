@@ -1,0 +1,971 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "attachments",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "attachments"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "agents": [
+              {
+                "mention": {
+                  "end": 50,
+                  "start": 42,
+                  "text": "@explore"
+                },
+                "name": "explore"
+              },
+              {
+                "name": "general"
+              }
+            ],
+            "files": [
+              {
+                "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                "description": "the notes file",
+                "mention": {
+                  "end": 18,
+                  "start": 8,
+                  "text": "@notes.txt"
+                },
+                "mime": "text/plain",
+                "name": "notes",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt"
+                }
+              },
+              {
+                "data": "dHdvCnRocmVl",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=2&end=3"
+                }
+              },
+              {
+                "data": "dGhyZWUKZm91cgo=",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=3"
+                }
+              },
+              {
+                "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=zero&end=-1#fragment"
+                }
+              },
+              {
+                "data": "YXBpLwpndWlkZS5tZA==",
+                "mention": {
+                  "end": 25,
+                  "start": 20,
+                  "text": "@docs"
+                },
+                "mime": "application/x-directory",
+                "name": "docs",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/docs"
+                }
+              },
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/pixel.png"
+                }
+              },
+              {
+                "data": "aW5saW5lIHRleHQ=",
+                "mime": "text/plain",
+                "name": "inline.txt",
+                "source": {
+                  "type": "inline"
+                }
+              },
+              {
+                "data": "aGVsbG8gd29ybGQ=",
+                "mime": "text/plain",
+                "source": {
+                  "type": "uri",
+                  "uri": "clipboard://1"
+                }
+              },
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "text": "Look at @notes.txt, @docs and these, ask @explore"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agents": [
+          {
+            "mention": {
+              "end": 50,
+              "start": 42,
+              "text": "@explore"
+            },
+            "name": "explore"
+          },
+          {
+            "name": "general"
+          }
+        ],
+        "files": [
+          {
+            "description": "the notes file",
+            "mention": {
+              "end": 18,
+              "start": 8,
+              "text": "@notes.txt"
+            },
+            "name": "notes",
+            "uri": "file://<project>/notes.txt"
+          },
+          {
+            "uri": "file://<project>/notes.txt?start=2&end=3"
+          },
+          {
+            "uri": "file://<project>/notes.txt?start=3"
+          },
+          {
+            "uri": "file://<project>/notes.txt?start=zero&end=-1#fragment"
+          },
+          {
+            "mention": {
+              "end": 25,
+              "start": 20,
+              "text": "@docs"
+            },
+            "uri": "file://<project>/docs"
+          },
+          {
+            "uri": "file://<project>/pixel.png"
+          },
+          {
+            "name": "inline.txt",
+            "uri": "data:text/plain;base64,aW5saW5lIHRleHQ="
+          },
+          {
+            "source": {
+              "type": "uri",
+              "uri": "clipboard://1"
+            },
+            "uri": "data:,hello%20world"
+          },
+          {
+            "uri": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+          }
+        ],
+        "text": "Look at @notes.txt, @docs and these, ask @explore"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "agents": [
+              {
+                "mention": {
+                  "end": 50,
+                  "start": 42,
+                  "text": "@explore"
+                },
+                "name": "explore"
+              },
+              {
+                "name": "general"
+              }
+            ],
+            "files": [
+              {
+                "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                "description": "the notes file",
+                "mention": {
+                  "end": 18,
+                  "start": 8,
+                  "text": "@notes.txt"
+                },
+                "mime": "text/plain",
+                "name": "notes",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt"
+                }
+              },
+              {
+                "data": "dHdvCnRocmVl",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=2&end=3"
+                }
+              },
+              {
+                "data": "dGhyZWUKZm91cgo=",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=3"
+                }
+              },
+              {
+                "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/notes.txt?start=zero&end=-1#fragment"
+                }
+              },
+              {
+                "data": "YXBpLwpndWlkZS5tZA==",
+                "mention": {
+                  "end": 25,
+                  "start": 20,
+                  "text": "@docs"
+                },
+                "mime": "application/x-directory",
+                "name": "docs",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/docs"
+                }
+              },
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "name": "pixel.png",
+                "source": {
+                  "type": "uri",
+                  "uri": "file://<project>/pixel.png"
+                }
+              },
+              {
+                "data": "aW5saW5lIHRleHQ=",
+                "mime": "text/plain",
+                "name": "inline.txt",
+                "source": {
+                  "type": "inline"
+                }
+              },
+              {
+                "data": "aGVsbG8gd29ybGQ=",
+                "mime": "text/plain",
+                "source": {
+                  "type": "uri",
+                  "uri": "clipboard://1"
+                }
+              },
+              {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                "mime": "image/png",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_1>",
+            "text": "Look at @notes.txt, @docs and these, ask @explore",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Read the attachments.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": [
+                {
+                  "text": "Look at @notes.txt, @docs and these, ask @explore",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached file: notes\nDescription: the notes file\n\none\ntwo\nthree\nfour\n",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached file: notes.txt\n\ntwo\nthree",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached file: notes.txt\n\nthree\nfour\n",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached file: notes.txt\n\none\ntwo\nthree\nfour\n",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached directory: <project>/docs\n\napi/\nguide.md",
+                  "type": "text"
+                },
+                {
+                  "text": "Attached file: <project>/pixel.png",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                },
+                {
+                  "text": "\n\nAttached file: inline.txt\n\ninline text",
+                  "type": "text"
+                },
+                {
+                  "text": "\n\nAttached file: clipboard://1\n\nhello world",
+                  "type": "text"
+                },
+                {
+                  "image_url": {
+                    "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  },
+                  "type": "image_url"
+                }
+              ],
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "attachments",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "agents": [
+                {
+                  "mention": {
+                    "end": 50,
+                    "start": 42,
+                    "text": "@explore"
+                  },
+                  "name": "explore"
+                },
+                {
+                  "name": "general"
+                }
+              ],
+              "files": [
+                {
+                  "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                  "description": "the notes file",
+                  "mention": {
+                    "end": 18,
+                    "start": 8,
+                    "text": "@notes.txt"
+                  },
+                  "mime": "text/plain",
+                  "name": "notes",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/notes.txt"
+                  }
+                },
+                {
+                  "data": "dHdvCnRocmVl",
+                  "mime": "text/plain",
+                  "name": "notes.txt",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/notes.txt?start=2&end=3"
+                  }
+                },
+                {
+                  "data": "dGhyZWUKZm91cgo=",
+                  "mime": "text/plain",
+                  "name": "notes.txt",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/notes.txt?start=3"
+                  }
+                },
+                {
+                  "data": "b25lCnR3bwp0aHJlZQpmb3VyCg==",
+                  "mime": "text/plain",
+                  "name": "notes.txt",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/notes.txt?start=zero&end=-1#fragment"
+                  }
+                },
+                {
+                  "data": "YXBpLwpndWlkZS5tZA==",
+                  "mention": {
+                    "end": 25,
+                    "start": 20,
+                    "text": "@docs"
+                  },
+                  "mime": "application/x-directory",
+                  "name": "docs",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/docs"
+                  }
+                },
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "name": "pixel.png",
+                  "source": {
+                    "type": "uri",
+                    "uri": "file://<project>/pixel.png"
+                  }
+                },
+                {
+                  "data": "aW5saW5lIHRleHQ=",
+                  "mime": "text/plain",
+                  "name": "inline.txt",
+                  "source": {
+                    "type": "inline"
+                  }
+                },
+                {
+                  "data": "aGVsbG8gd29ybGQ=",
+                  "mime": "text/plain",
+                  "source": {
+                    "type": "uri",
+                    "uri": "clipboard://1"
+                  }
+                },
+                {
+                  "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+                  "mime": "image/png",
+                  "source": {
+                    "type": "inline"
+                  }
+                }
+              ],
+              "text": "Look at @notes.txt, @docs and these, ask @explore"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Read the attachments.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Read the attachments."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_22>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {
+    "docs/api/ref.md": "# Ref\n",
+    "docs/guide.md": "# Guide\n",
+    "notes.txt": "one\ntwo\nthree\nfour\n",
+    "pixel.png": "�PNG\r\n\u001a\n\u0000\u0000\u0000\rIHDR\u0000\u0000\u0000\u0001\u0000\u0000\u0000\u0001\b\u0006\u0000\u0000\u0000\u001f\u0015ĉ\u0000\u0000\u0000\rIDATx�cd`�_\u000f\u0000\u0002�\u0001��G��\u0000\u0000\u0000\u0000IEND�B`�"
+  }
+}

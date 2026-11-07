@@ -1,0 +1,351 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "blob.bin",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "empty.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "nonl.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "quote\"d.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "tab\tname.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "ünïcode.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "with space.txt",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/status"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "blob.bin",
+            "patch": "diff --git a/blob.bin b/blob.bin\nnew file mode 100644\nindex 0000000..0f49c4a\nBinary files /dev/null and b/blob.bin differ\n",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "empty.txt",
+            "patch": "diff --git a/empty.txt b/empty.txt\nnew file mode 100644\nindex 0000000..e69de29\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "nonl.txt",
+            "patch": "diff --git a/nonl.txt b/nonl.txt\nnew file mode 100644\nindex 0000000..20cbb4d\n--- /dev/null\n+++ b/nonl.txt\n@@ -0,0 +1 @@\n+no newline\n\\ No newline at end of file\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "quote\"d.txt",
+            "patch": "diff --git \"a/quote\\\"d.txt\" \"b/quote\\\"d.txt\"\nnew file mode 100644\nindex 0000000..b04fedb\n--- /dev/null\n+++ \"b/quote\\\"d.txt\"\n@@ -0,0 +1 @@\n+quoted\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "tab\tname.txt",
+            "patch": "diff --git \"a/tab\\tname.txt\" \"b/tab\\tname.txt\"\nnew file mode 100644\nindex 0000000..72e24ec\n--- /dev/null\n+++ \"b/tab\\tname.txt\"\n@@ -0,0 +1 @@\n+tabbed\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "ünïcode.txt",
+            "patch": "diff --git a/ünïcode.txt b/ünïcode.txt\nnew file mode 100644\nindex 0000000..4de4f93\n--- /dev/null\n+++ b/ünïcode.txt\n@@ -0,0 +1 @@\n+unicode\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "with space.txt",
+            "patch": "diff --git a/with space.txt b/with space.txt\nnew file mode 100644\nindex 0000000..bd4269f\n--- /dev/null\n+++ b/with space.txt\t\n@@ -0,0 +1 @@\n+spaced\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "blob.bin",
+            "status": "modified"
+          },
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "empty.txt",
+            "status": "deleted"
+          },
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "empty.txt",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 1,
+            "file": "with space.txt",
+            "status": "modified"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/status"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "blob.bin",
+            "patch": "diff --git a/blob.bin b/blob.bin\nindex 0f49c4a..9b2e7c4 100644\nBinary files a/blob.bin and b/blob.bin differ\n",
+            "status": "modified"
+          },
+          {
+            "additions": 0,
+            "deletions": 0,
+            "file": "empty.txt",
+            "patch": "diff --git a/empty.txt b/empty.txt\ndeleted file mode 100644\nindex e69de29..0000000\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 1,
+            "file": "with space.txt",
+            "patch": "diff --git a/with space.txt b/with space.txt\nindex bd4269f..dad058a 100644\n--- a/with space.txt\t\n+++ b/with space.txt\t\n@@ -1 +1 @@\n-spaced\n+spaced again\n",
+            "status": "modified"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".gitignore": "dist/\n*.log\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "blob.bin": "\u0000\u0003changed",
+    "empty.txt": "",
+    "nonl.txt": "no newline",
+    "notes/todo.txt": "one\ntwo\nthree\n",
+    "quote\"d.txt": "quoted\n",
+    "src/math.ts": "export function add(a: number, b: number) {\n  return a + b\n}\n",
+    "src/old-name.ts": "export const legacy = true\n",
+    "tab\tname.txt": "tabbed\n",
+    "with space.txt": "spaced again\n",
+    "ünïcode.txt": "unicode\n"
+  }
+}

@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the map and set programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the map and set programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the map and set programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the map and set programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Map basics\\\", () => { const m = new Map([[\\\"a\\\", 1], [2, \\\"b\\\"]]); m.set(NaN, \\\"nan\\\").set(-0, \\\"zero\\\"); return [m.size, m.get(\\\"a\\\"), m.get(2), m.get(NaN), m.get(0), m.has(\\\"z\\\"), m.delete(\\\"a\\\"), m.delete(\\\"a\\\"), m.size, [...m.keys()], [...m.values()], [...m.entries()], [...m]] })\\nt(\\\"Map object keys\\\", () => { const k = {}; const m = new Map([[k, 1]]); return [m.get(k), m.get({}), m.has(k)] })\\nt(\\\"Map clear\\\", () => { const m = new Map([[1, 1]]); const c = m.clear(); return [m.size, c === undefined] })\\nt(\\\"Map forEach\\\", () => { const out = []; new Map([[\\\"x\\\", 1], [\\\"y\\\", 2]]).forEach(function (v, k, map) { out.push(k + \\\"=\\\" + v + \\\":\\\" + map.size + \\\":\\\" + this.tag) }, { tag: \\\"T\\\" }); return out })\\nt(\\\"Map forEach bad\\\", () => new Map().forEach(1))\\nt(\\\"Map getOrInsert\\\", () => { const m = new Map([[\\\"a\\\", 1]]); return [m.getOrInsert(\\\"a\\\", 5), m.getOrInsert(\\\"b\\\", 6), [...m]] })\\nt(\\\"Map getOrInsertComputed\\\", () => { const m = new Map([[\\\"a\\\", 1]]); const seen = []; const v1 = m.getOrInsertComputed(\\\"a\\\", (k) => { seen.push(k); return 9 }); const v2 = m.getOrInsertComputed(-0, (k) => { seen.push(Object.is(k, -0)); return \\\"z\\\" }); return [v1, v2, seen, [...m.keys()].map(String)] })\\nt(\\\"Map getOrInsertComputed bad\\\", () => new Map().getOrInsertComputed(\\\"a\\\", 5))\\nt(\\\"Map without new\\\", () => Map())\\nt(\\\"Map bad init\\\", () => new Map(5))\\nt(\\\"Map bad entry\\\", () => new Map([1]))\\nt(\\\"Map null init\\\", () => new Map(null).size)\\nt(\\\"Map from generator\\\", () => { function* g() { yield [\\\"k\\\", 1] } return [...new Map(g())] })\\nt(\\\"Map iterator\\\", () => { const it = new Map([[1, 2]]).entries(); return [it.next(), it.next()] })\\nt(\\\"Map size receiver\\\", () => { const proto = Map.prototype; try { return proto.size } catch (e) { return e.message } })\\nt(\\\"Map method receiver\\\", () => Map.prototype.get.call({}, 1))\\nt(\\\"Map groupBy\\\", () => [...Map.groupBy([1, 2, 3, 4], (x) => (x > 2 ? \\\"big\\\" : \\\"small\\\"))])\\nt(\\\"Map groupBy object keys\\\", () => { const odd = { n: \\\"odd\\\" }; const even = { n: \\\"even\\\" }; const g = Map.groupBy([1, 2, 3], (x) => (x % 2 ? odd : even)); return [g.get(odd), g.get(even)] })\\nt(\\\"Map groupBy bad\\\", () => Map.groupBy(null, (x) => x))\\nt(\\\"Map symbol iterator\\\", () => Map.prototype[Symbol.iterator] === Map.prototype.entries)\\nt(\\\"Map tags\\\", () => [Map.name, Map.length, typeof Map.prototype.set, new Map() instanceof Map])\\nt(\\\"Map spread into array\\\", () => [...new Map([[\\\"a\\\", [1]]])])\\nt(\\\"Map destructure\\\", () => { const [[k, v]] = new Map([[\\\"key\\\", \\\"val\\\"]]); return k + v })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"Map basics\": [\n    4,\n    1,\n    \"b\",\n    \"nan\",\n    \"zero\",\n    false,\n    true,\n    false,\n    3,\n    [\n      2,\n      null,\n      0\n    ],\n    [\n      \"b\",\n      \"nan\",\n      \"zero\"\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ]\n  ],\n  \"Map object keys\": [\n    1,\n    null,\n    true\n  ],\n  \"Map clear\": [\n    0,\n    true\n  ],\n  \"Map forEach\": [\n    \"x=1:2:T\",\n    \"y=2:2:T\"\n  ],\n  \"Map forEach bad\": \"!TypeError: Map.forEach expects a function callback.\",\n  \"Map getOrInsert\": [\n    1,\n    6,\n    [\n      [\n        \"a\",\n        1\n      ],\n      [\n        \"b\",\n        6\n      ]\n    ]\n  ],\n  \"Map getOrInsertComputed\": [\n    1,\n    \"z\",\n    [\n      false\n    ],\n    [\n      \"a\",\n      \"0\"\n    ]\n  ],\n  \"Map getOrInsertComputed bad\": \"!TypeError: Map.getOrInsertComputed expects a function callback.\",\n  \"Map without new\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"Map bad init\": \"!TypeError: new Map(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"Map bad entry\": \"!TypeError: new Map(...) expects [key, value] pairs as entry objects.\",\n  \"Map null init\": 0,\n  \"Map from generator\": [\n    [\n      \"k\",\n      1\n    ]\n  ],\n  \"Map iterator\": [\n    {\n      \"value\": [\n        1,\n        2\n      ],\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"Map size receiver\": \"Map.prototype.size called on incompatible receiver a data object.\",\n  \"Map method receiver\": \"!TypeError: Map.prototype.get called on incompatible receiver a data object.\",\n  \"Map groupBy\": [\n    [\n      \"small\",\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      \"big\",\n      [\n        3,\n        4\n      ]\n    ]\n  ],\n  \"Map groupBy object keys\": [\n    [\n      1,\n      3\n    ],\n    [\n      2\n    ]\n  ],\n  \"Map groupBy bad\": \"!TypeError: Map.groupBy expects an iterable collection.\",\n  \"Map symbol iterator\": true,\n  \"Map tags\": [\n    \"Map\",\n    0,\n    \"function\",\n    true\n  ],\n  \"Map spread into array\": [\n    [\n      \"a\",\n      [\n        1\n      ]\n    ]\n  ],\n  \"Map destructure\": \"keyval\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the map and set programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Map basics\\\", () => { const m = new Map([[\\\"a\\\", 1], [2, \\\"b\\\"]]); m.set(NaN, \\\"nan\\\").set(-0, \\\"zero\\\"); return [m.size, m.get(\\\"a\\\"), m.get(2), m.get(NaN), m.get(0), m.has(\\\"z\\\"), m.delete(\\\"a\\\"), m.delete(\\\"a\\\"), m.size, [...m.keys()], [...m.values()], [...m.entries()], [...m]] })\\nt(\\\"Map object keys\\\", () => { const k = {}; const m = new Map([[k, 1]]); return [m.get(k), m.get({}), m.has(k)] })\\nt(\\\"Map clear\\\", () => { const m = new Map([[1, 1]]); const c = m.clear(); return [m.size, c === undefined] })\\nt(\\\"Map forEach\\\", () => { const out = []; new Map([[\\\"x\\\", 1], [\\\"y\\\", 2]]).forEach(function (v, k, map) { out.push(k + \\\"=\\\" + v + \\\":\\\" + map.size + \\\":\\\" + this.tag) }, { tag: \\\"T\\\" }); return out })\\nt(\\\"Map forEach bad\\\", () => new Map().forEach(1))\\nt(\\\"Map getOrInsert\\\", () => { const m = new Map([[\\\"a\\\", 1]]); return [m.getOrInsert(\\\"a\\\", 5), m.getOrInsert(\\\"b\\\", 6), [...m]] })\\nt(\\\"Map getOrInsertComputed\\\", () => { const m = new Map([[\\\"a\\\", 1]]); const seen = []; const v1 = m.getOrInsertComputed(\\\"a\\\", (k) => { seen.push(k); return 9 }); const v2 = m.getOrInsertComputed(-0, (k) => { seen.push(Object.is(k, -0)); return \\\"z\\\" }); return [v1, v2, seen, [...m.keys()].map(String)] })\\nt(\\\"Map getOrInsertComputed bad\\\", () => new Map().getOrInsertComputed(\\\"a\\\", 5))\\nt(\\\"Map without new\\\", () => Map())\\nt(\\\"Map bad init\\\", () => new Map(5))\\nt(\\\"Map bad entry\\\", () => new Map([1]))\\nt(\\\"Map null init\\\", () => new Map(null).size)\\nt(\\\"Map from generator\\\", () => { function* g() { yield [\\\"k\\\", 1] } return [...new Map(g())] })\\nt(\\\"Map iterator\\\", () => { const it = new Map([[1, 2]]).entries(); return [it.next(), it.next()] })\\nt(\\\"Map size receiver\\\", () => { const proto = Map.prototype; try { return proto.size } catch (e) { return e.message } })\\nt(\\\"Map method receiver\\\", () => Map.prototype.get.call({}, 1))\\nt(\\\"Map groupBy\\\", () => [...Map.groupBy([1, 2, 3, 4], (x) => (x > 2 ? \\\"big\\\" : \\\"small\\\"))])\\nt(\\\"Map groupBy object keys\\\", () => { const odd = { n: \\\"odd\\\" }; const even = { n: \\\"even\\\" }; const g = Map.groupBy([1, 2, 3], (x) => (x % 2 ? odd : even)); return [g.get(odd), g.get(even)] })\\nt(\\\"Map groupBy bad\\\", () => Map.groupBy(null, (x) => x))\\nt(\\\"Map symbol iterator\\\", () => Map.prototype[Symbol.iterator] === Map.prototype.entries)\\nt(\\\"Map tags\\\", () => [Map.name, Map.length, typeof Map.prototype.set, new Map() instanceof Map])\\nt(\\\"Map spread into array\\\", () => [...new Map([[\\\"a\\\", [1]]])])\\nt(\\\"Map destructure\\\", () => { const [[k, v]] = new Map([[\\\"key\\\", \\\"val\\\"]]); return k + v })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"Map basics\": [\n    4,\n    1,\n    \"b\",\n    \"nan\",\n    \"zero\",\n    false,\n    true,\n    false,\n    3,\n    [\n      2,\n      null,\n      0\n    ],\n    [\n      \"b\",\n      \"nan\",\n      \"zero\"\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ]\n  ],\n  \"Map object keys\": [\n    1,\n    null,\n    true\n  ],\n  \"Map clear\": [\n    0,\n    true\n  ],\n  \"Map forEach\": [\n    \"x=1:2:T\",\n    \"y=2:2:T\"\n  ],\n  \"Map forEach bad\": \"!TypeError: Map.forEach expects a function callback.\",\n  \"Map getOrInsert\": [\n    1,\n    6,\n    [\n      [\n        \"a\",\n        1\n      ],\n      [\n        \"b\",\n        6\n      ]\n    ]\n  ],\n  \"Map getOrInsertComputed\": [\n    1,\n    \"z\",\n    [\n      false\n    ],\n    [\n      \"a\",\n      \"0\"\n    ]\n  ],\n  \"Map getOrInsertComputed bad\": \"!TypeError: Map.getOrInsertComputed expects a function callback.\",\n  \"Map without new\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"Map bad init\": \"!TypeError: new Map(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"Map bad entry\": \"!TypeError: new Map(...) expects [key, value] pairs as entry objects.\",\n  \"Map null init\": 0,\n  \"Map from generator\": [\n    [\n      \"k\",\n      1\n    ]\n  ],\n  \"Map iterator\": [\n    {\n      \"value\": [\n        1,\n        2\n      ],\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"Map size receiver\": \"Map.prototype.size called on incompatible receiver a data object.\",\n  \"Map method receiver\": \"!TypeError: Map.prototype.get called on incompatible receiver a data object.\",\n  \"Map groupBy\": [\n    [\n      \"small\",\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      \"big\",\n      [\n        3,\n        4\n      ]\n    ]\n  ],\n  \"Map groupBy object keys\": [\n    [\n      1,\n      3\n    ],\n    [\n      2\n    ]\n  ],\n  \"Map groupBy bad\": \"!TypeError: Map.groupBy expects an iterable collection.\",\n  \"Map symbol iterator\": true,\n  \"Map tags\": [\n    \"Map\",\n    0,\n    \"function\",\n    true\n  ],\n  \"Map spread into array\": [\n    [\n      \"a\",\n      [\n        1\n      ]\n    ]\n  ],\n  \"Map destructure\": \"keyval\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Set basics\\\", () => { const s = new Set([1, 2, 2, \\\"2\\\", NaN, NaN]); s.add(3).add(1); return [s.size, s.has(2), s.has(\\\"3\\\"), s.has(NaN), s.delete(2), s.delete(2), [...s], [...s.keys()], [...s.values()], [...s.entries()]] })\\nt(\\\"Set from string\\\", () => [...new Set(\\\"hello\\\")])\\nt(\\\"Set clear\\\", () => { const s = new Set([1]); s.clear(); return s.size })\\nt(\\\"Set forEach\\\", () => { const out = []; new Set([\\\"a\\\", \\\"b\\\"]).forEach(function (v, k, set) { out.push(v + k + set.size + this.x) }, { x: \\\"!\\\" }); return out })\\nt(\\\"Set without new\\\", () => Set([1]))\\nt(\\\"Set bad init\\\", () => new Set(5))\\nt(\\\"Set null init\\\", () => new Set(undefined).size)\\nt(\\\"Set receiver\\\", () => Set.prototype.add.call(new Map(), 1))\\nt(\\\"Set size receiver\\\", () => Set.prototype.size)\\nconst A = new Set([1, 2, 3, 4])\\nconst B = new Set([3, 4, 5])\\nconst small = new Set([3])\\nt(\\\"union\\\", () => [...A.union(B)])\\nt(\\\"intersection\\\", () => [[...A.intersection(B)], [...small.intersection(A)], [...A.intersection(small)]])\\nt(\\\"difference\\\", () => [[...A.difference(B)], [...small.difference(A)], [...A.difference(small)]])\\nt(\\\"symmetricDifference\\\", () => [...A.symmetricDifference(B)])\\nt(\\\"isSubsetOf\\\", () => [small.isSubsetOf(A), A.isSubsetOf(small), new Set([9]).isSubsetOf(A)])\\nt(\\\"isSupersetOf\\\", () => [A.isSupersetOf(small), small.isSupersetOf(A), A.isSupersetOf(new Set([1, 9]))])\\nt(\\\"isDisjointFrom\\\", () => [A.isDisjointFrom(new Set([7])), A.isDisjointFrom(B), small.isDisjointFrom(A), A.isDisjointFrom(new Set([9]))])\\nt(\\\"set ops with Map\\\", () => [[...A.union(new Map([[10, \\\"x\\\"]]))], [...new Set([1]).intersection(new Map([[1, \\\"a\\\"], [2, \\\"b\\\"]]))], new Set([2]).isSubsetOf(new Map([[2, 0], [3, 0]]))])\\nt(\\\"small disjoint\\\", () => [new Set([1]).isDisjointFrom(new Set([7, 8])), new Set([1]).isDisjointFrom(new Set([1, 8]))])\\nt(\\\"set-like object\\\", () => { const like = { size: 2, has(x) { return x === 1 || x === 9 }, keys() { return [1, 9].values() } }; return [[...A.intersection(like)], [...A.union(like)], A.isSupersetOf(like), [...new Set([1]).difference(like)], A.isDisjointFrom(like), new Set([1, 2, 3, 4, 5]).isDisjointFrom(like), [...A.symmetricDifference(like)], new Set([1]).isSubsetOf(like)] })\\nt(\\\"set-like array keys\\\", () => { const like = { size: 1, has() { return false }, keys() { return [5] } }; return [...A.union(like)] })\\nt(\\\"set-like generator keys\\\", () => { const like = { size: 1, has() { return true }, *keys() { yield 8 } }; return [...A.union(like)] })\\nt(\\\"set-like bad size\\\", () => A.union({ size: \\\"x\\\", has() {}, keys() {} }))\\nt(\\\"set-like missing methods\\\", () => A.union({ size: 1 }))\\nt(\\\"set ops non-object\\\", () => A.union(5))\\nt(\\\"set-like intersection large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2, 99].values() } }; return [...A.intersection(like)] })\\nt(\\\"set-like difference large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2].values() } }; return [...A.difference(like)] })\\nt(\\\"Set spread\\\", () => [...new Set([[1], [1]])].length)\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"Set basics\": [\n    5,\n    true,\n    false,\n    true,\n    true,\n    false,\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      [\n        1,\n        1\n      ],\n      [\n        \"2\",\n        \"2\"\n      ],\n      [\n        null,\n        null\n      ],\n      [\n        3,\n        3\n      ]\n    ]\n  ],\n  \"Set from string\": [\n    \"h\",\n    \"e\",\n    \"l\",\n    \"o\"\n  ],\n  \"Set clear\": 0,\n  \"Set forEach\": [\n    \"aa2!\",\n    \"bb2!\"\n  ],\n  \"Set without new\": \"!TypeError: Constructor Set requires 'new'.\",\n  \"Set bad init\": \"!TypeError: new Set(...) expects a synchronous iterable, received a number.\",\n  \"Set null init\": 0,\n  \"Set receiver\": \"!TypeError: Set.prototype.add called on incompatible receiver a Map.\",\n  \"Set size receiver\": \"!TypeError: Set.prototype.size called on incompatible receiver a data object.\",\n  \"union\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"intersection\": [\n    [\n      3,\n      4\n    ],\n    [\n      3\n    ],\n    [\n      3\n    ]\n  ],\n  \"difference\": [\n    [\n      1,\n      2\n    ],\n    [],\n    [\n      1,\n      2,\n      4\n    ]\n  ],\n  \"symmetricDifference\": [\n    1,\n    2,\n    5\n  ],\n  \"isSubsetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isSupersetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isDisjointFrom\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"set ops with Map\": [\n    [\n      1,\n      2,\n      3,\n      4,\n      10\n    ],\n    [\n      1\n    ],\n    true\n  ],\n  \"small disjoint\": [\n    true,\n    false\n  ],\n  \"set-like object\": [\n    [\n      1\n    ],\n    [\n      1,\n      2,\n      3,\n      4,\n      9\n    ],\n    false,\n    [],\n    false,\n    false,\n    [\n      2,\n      3,\n      4,\n      9\n    ],\n    true\n  ],\n  \"set-like array keys\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"set-like generator keys\": [\n    1,\n    2,\n    3,\n    4,\n    8\n  ],\n  \"set-like bad size\": \"!TypeError: Set.union received a Set-like object with an invalid size.\",\n  \"set-like missing methods\": \"!TypeError: Set.union expects callable 'has' and 'keys' methods.\",\n  \"set ops non-object\": \"!TypeError: Set.union expects a Set-like object.\",\n  \"set-like intersection large\": [\n    2\n  ],\n  \"set-like difference large\": [\n    1,\n    3,\n    4\n  ],\n  \"Set spread\": 2\n}",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the map and set programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Map basics\\\", () => { const m = new Map([[\\\"a\\\", 1], [2, \\\"b\\\"]]); m.set(NaN, \\\"nan\\\").set(-0, \\\"zero\\\"); return [m.size, m.get(\\\"a\\\"), m.get(2), m.get(NaN), m.get(0), m.has(\\\"z\\\"), m.delete(\\\"a\\\"), m.delete(\\\"a\\\"), m.size, [...m.keys()], [...m.values()], [...m.entries()], [...m]] })\\nt(\\\"Map object keys\\\", () => { const k = {}; const m = new Map([[k, 1]]); return [m.get(k), m.get({}), m.has(k)] })\\nt(\\\"Map clear\\\", () => { const m = new Map([[1, 1]]); const c = m.clear(); return [m.size, c === undefined] })\\nt(\\\"Map forEach\\\", () => { const out = []; new Map([[\\\"x\\\", 1], [\\\"y\\\", 2]]).forEach(function (v, k, map) { out.push(k + \\\"=\\\" + v + \\\":\\\" + map.size + \\\":\\\" + this.tag) }, { tag: \\\"T\\\" }); return out })\\nt(\\\"Map forEach bad\\\", () => new Map().forEach(1))\\nt(\\\"Map getOrInsert\\\", () => { const m = new Map([[\\\"a\\\", 1]]); return [m.getOrInsert(\\\"a\\\", 5), m.getOrInsert(\\\"b\\\", 6), [...m]] })\\nt(\\\"Map getOrInsertComputed\\\", () => { const m = new Map([[\\\"a\\\", 1]]); const seen = []; const v1 = m.getOrInsertComputed(\\\"a\\\", (k) => { seen.push(k); return 9 }); const v2 = m.getOrInsertComputed(-0, (k) => { seen.push(Object.is(k, -0)); return \\\"z\\\" }); return [v1, v2, seen, [...m.keys()].map(String)] })\\nt(\\\"Map getOrInsertComputed bad\\\", () => new Map().getOrInsertComputed(\\\"a\\\", 5))\\nt(\\\"Map without new\\\", () => Map())\\nt(\\\"Map bad init\\\", () => new Map(5))\\nt(\\\"Map bad entry\\\", () => new Map([1]))\\nt(\\\"Map null init\\\", () => new Map(null).size)\\nt(\\\"Map from generator\\\", () => { function* g() { yield [\\\"k\\\", 1] } return [...new Map(g())] })\\nt(\\\"Map iterator\\\", () => { const it = new Map([[1, 2]]).entries(); return [it.next(), it.next()] })\\nt(\\\"Map size receiver\\\", () => { const proto = Map.prototype; try { return proto.size } catch (e) { return e.message } })\\nt(\\\"Map method receiver\\\", () => Map.prototype.get.call({}, 1))\\nt(\\\"Map groupBy\\\", () => [...Map.groupBy([1, 2, 3, 4], (x) => (x > 2 ? \\\"big\\\" : \\\"small\\\"))])\\nt(\\\"Map groupBy object keys\\\", () => { const odd = { n: \\\"odd\\\" }; const even = { n: \\\"even\\\" }; const g = Map.groupBy([1, 2, 3], (x) => (x % 2 ? odd : even)); return [g.get(odd), g.get(even)] })\\nt(\\\"Map groupBy bad\\\", () => Map.groupBy(null, (x) => x))\\nt(\\\"Map symbol iterator\\\", () => Map.prototype[Symbol.iterator] === Map.prototype.entries)\\nt(\\\"Map tags\\\", () => [Map.name, Map.length, typeof Map.prototype.set, new Map() instanceof Map])\\nt(\\\"Map spread into array\\\", () => [...new Map([[\\\"a\\\", [1]]])])\\nt(\\\"Map destructure\\\", () => { const [[k, v]] = new Map([[\\\"key\\\", \\\"val\\\"]]); return k + v })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"Map basics\": [\n    4,\n    1,\n    \"b\",\n    \"nan\",\n    \"zero\",\n    false,\n    true,\n    false,\n    3,\n    [\n      2,\n      null,\n      0\n    ],\n    [\n      \"b\",\n      \"nan\",\n      \"zero\"\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ]\n  ],\n  \"Map object keys\": [\n    1,\n    null,\n    true\n  ],\n  \"Map clear\": [\n    0,\n    true\n  ],\n  \"Map forEach\": [\n    \"x=1:2:T\",\n    \"y=2:2:T\"\n  ],\n  \"Map forEach bad\": \"!TypeError: Map.forEach expects a function callback.\",\n  \"Map getOrInsert\": [\n    1,\n    6,\n    [\n      [\n        \"a\",\n        1\n      ],\n      [\n        \"b\",\n        6\n      ]\n    ]\n  ],\n  \"Map getOrInsertComputed\": [\n    1,\n    \"z\",\n    [\n      false\n    ],\n    [\n      \"a\",\n      \"0\"\n    ]\n  ],\n  \"Map getOrInsertComputed bad\": \"!TypeError: Map.getOrInsertComputed expects a function callback.\",\n  \"Map without new\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"Map bad init\": \"!TypeError: new Map(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"Map bad entry\": \"!TypeError: new Map(...) expects [key, value] pairs as entry objects.\",\n  \"Map null init\": 0,\n  \"Map from generator\": [\n    [\n      \"k\",\n      1\n    ]\n  ],\n  \"Map iterator\": [\n    {\n      \"value\": [\n        1,\n        2\n      ],\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"Map size receiver\": \"Map.prototype.size called on incompatible receiver a data object.\",\n  \"Map method receiver\": \"!TypeError: Map.prototype.get called on incompatible receiver a data object.\",\n  \"Map groupBy\": [\n    [\n      \"small\",\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      \"big\",\n      [\n        3,\n        4\n      ]\n    ]\n  ],\n  \"Map groupBy object keys\": [\n    [\n      1,\n      3\n    ],\n    [\n      2\n    ]\n  ],\n  \"Map groupBy bad\": \"!TypeError: Map.groupBy expects an iterable collection.\",\n  \"Map symbol iterator\": true,\n  \"Map tags\": [\n    \"Map\",\n    0,\n    \"function\",\n    true\n  ],\n  \"Map spread into array\": [\n    [\n      \"a\",\n      [\n        1\n      ]\n    ]\n  ],\n  \"Map destructure\": \"keyval\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Set basics\\\", () => { const s = new Set([1, 2, 2, \\\"2\\\", NaN, NaN]); s.add(3).add(1); return [s.size, s.has(2), s.has(\\\"3\\\"), s.has(NaN), s.delete(2), s.delete(2), [...s], [...s.keys()], [...s.values()], [...s.entries()]] })\\nt(\\\"Set from string\\\", () => [...new Set(\\\"hello\\\")])\\nt(\\\"Set clear\\\", () => { const s = new Set([1]); s.clear(); return s.size })\\nt(\\\"Set forEach\\\", () => { const out = []; new Set([\\\"a\\\", \\\"b\\\"]).forEach(function (v, k, set) { out.push(v + k + set.size + this.x) }, { x: \\\"!\\\" }); return out })\\nt(\\\"Set without new\\\", () => Set([1]))\\nt(\\\"Set bad init\\\", () => new Set(5))\\nt(\\\"Set null init\\\", () => new Set(undefined).size)\\nt(\\\"Set receiver\\\", () => Set.prototype.add.call(new Map(), 1))\\nt(\\\"Set size receiver\\\", () => Set.prototype.size)\\nconst A = new Set([1, 2, 3, 4])\\nconst B = new Set([3, 4, 5])\\nconst small = new Set([3])\\nt(\\\"union\\\", () => [...A.union(B)])\\nt(\\\"intersection\\\", () => [[...A.intersection(B)], [...small.intersection(A)], [...A.intersection(small)]])\\nt(\\\"difference\\\", () => [[...A.difference(B)], [...small.difference(A)], [...A.difference(small)]])\\nt(\\\"symmetricDifference\\\", () => [...A.symmetricDifference(B)])\\nt(\\\"isSubsetOf\\\", () => [small.isSubsetOf(A), A.isSubsetOf(small), new Set([9]).isSubsetOf(A)])\\nt(\\\"isSupersetOf\\\", () => [A.isSupersetOf(small), small.isSupersetOf(A), A.isSupersetOf(new Set([1, 9]))])\\nt(\\\"isDisjointFrom\\\", () => [A.isDisjointFrom(new Set([7])), A.isDisjointFrom(B), small.isDisjointFrom(A), A.isDisjointFrom(new Set([9]))])\\nt(\\\"set ops with Map\\\", () => [[...A.union(new Map([[10, \\\"x\\\"]]))], [...new Set([1]).intersection(new Map([[1, \\\"a\\\"], [2, \\\"b\\\"]]))], new Set([2]).isSubsetOf(new Map([[2, 0], [3, 0]]))])\\nt(\\\"small disjoint\\\", () => [new Set([1]).isDisjointFrom(new Set([7, 8])), new Set([1]).isDisjointFrom(new Set([1, 8]))])\\nt(\\\"set-like object\\\", () => { const like = { size: 2, has(x) { return x === 1 || x === 9 }, keys() { return [1, 9].values() } }; return [[...A.intersection(like)], [...A.union(like)], A.isSupersetOf(like), [...new Set([1]).difference(like)], A.isDisjointFrom(like), new Set([1, 2, 3, 4, 5]).isDisjointFrom(like), [...A.symmetricDifference(like)], new Set([1]).isSubsetOf(like)] })\\nt(\\\"set-like array keys\\\", () => { const like = { size: 1, has() { return false }, keys() { return [5] } }; return [...A.union(like)] })\\nt(\\\"set-like generator keys\\\", () => { const like = { size: 1, has() { return true }, *keys() { yield 8 } }; return [...A.union(like)] })\\nt(\\\"set-like bad size\\\", () => A.union({ size: \\\"x\\\", has() {}, keys() {} }))\\nt(\\\"set-like missing methods\\\", () => A.union({ size: 1 }))\\nt(\\\"set ops non-object\\\", () => A.union(5))\\nt(\\\"set-like intersection large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2, 99].values() } }; return [...A.intersection(like)] })\\nt(\\\"set-like difference large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2].values() } }; return [...A.difference(like)] })\\nt(\\\"Set spread\\\", () => [...new Set([[1], [1]])].length)\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"Set basics\": [\n    5,\n    true,\n    false,\n    true,\n    true,\n    false,\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      [\n        1,\n        1\n      ],\n      [\n        \"2\",\n        \"2\"\n      ],\n      [\n        null,\n        null\n      ],\n      [\n        3,\n        3\n      ]\n    ]\n  ],\n  \"Set from string\": [\n    \"h\",\n    \"e\",\n    \"l\",\n    \"o\"\n  ],\n  \"Set clear\": 0,\n  \"Set forEach\": [\n    \"aa2!\",\n    \"bb2!\"\n  ],\n  \"Set without new\": \"!TypeError: Constructor Set requires 'new'.\",\n  \"Set bad init\": \"!TypeError: new Set(...) expects a synchronous iterable, received a number.\",\n  \"Set null init\": 0,\n  \"Set receiver\": \"!TypeError: Set.prototype.add called on incompatible receiver a Map.\",\n  \"Set size receiver\": \"!TypeError: Set.prototype.size called on incompatible receiver a data object.\",\n  \"union\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"intersection\": [\n    [\n      3,\n      4\n    ],\n    [\n      3\n    ],\n    [\n      3\n    ]\n  ],\n  \"difference\": [\n    [\n      1,\n      2\n    ],\n    [],\n    [\n      1,\n      2,\n      4\n    ]\n  ],\n  \"symmetricDifference\": [\n    1,\n    2,\n    5\n  ],\n  \"isSubsetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isSupersetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isDisjointFrom\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"set ops with Map\": [\n    [\n      1,\n      2,\n      3,\n      4,\n      10\n    ],\n    [\n      1\n    ],\n    true\n  ],\n  \"small disjoint\": [\n    true,\n    false\n  ],\n  \"set-like object\": [\n    [\n      1\n    ],\n    [\n      1,\n      2,\n      3,\n      4,\n      9\n    ],\n    false,\n    [],\n    false,\n    false,\n    [\n      2,\n      3,\n      4,\n      9\n    ],\n    true\n  ],\n  \"set-like array keys\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"set-like generator keys\": [\n    1,\n    2,\n    3,\n    4,\n    8\n  ],\n  \"set-like bad size\": \"!TypeError: Set.union received a Set-like object with an invalid size.\",\n  \"set-like missing methods\": \"!TypeError: Set.union expects callable 'has' and 'keys' methods.\",\n  \"set ops non-object\": \"!TypeError: Set.union expects a Set-like object.\",\n  \"set-like intersection large\": [\n    2\n  ],\n  \"set-like difference large\": [\n    1,\n    3,\n    4\n  ],\n  \"Set spread\": 2\n}",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"WeakMap\\\", () => { const k = {}; const k2 = []; const w = new WeakMap([[k, \\\"v\\\"]]); w.set(k2, 2); return [w.get(k), w.get(k2), w.get({}), w.get(1), w.has(k), w.has(1), w.delete(k), w.has(k), w.delete(5)] })\\nt(\\\"WeakMap bad key\\\", () => new WeakMap().set(\\\"str\\\", 1))\\nt(\\\"WeakMap bad init\\\", () => new WeakMap(5))\\nt(\\\"WeakMap bad entry\\\", () => new WeakMap([1]))\\nt(\\\"WeakMap bad entry key\\\", () => new WeakMap([[\\\"a\\\", 1]]))\\nt(\\\"WeakMap null init\\\", () => typeof new WeakMap(null))\\nt(\\\"WeakMap without new\\\", () => WeakMap())\\nt(\\\"WeakMap getOrInsert\\\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsert(k, 1), w.getOrInsert(k, 2)] })\\nt(\\\"WeakMap getOrInsertComputed\\\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsertComputed(k, (key) => key === k), w.getOrInsertComputed(k, () => \\\"never\\\")] })\\nt(\\\"WeakMap getOrInsert bad key\\\", () => new WeakMap().getOrInsert(1, 2))\\nt(\\\"WeakMap tool key\\\", () => new WeakMap().set(tools, 1))\\nt(\\\"WeakMap set returns\\\", () => { const w = new WeakMap(); return w.set({}, 1) === w })\\nt(\\\"WeakSet\\\", () => { const k = {}; const s = new WeakSet([k]); return [s.has(k), s.has({}), s.has(1), s.delete(k), s.has(k), s.add(k) === s, s.has(k)] })\\nt(\\\"WeakSet bad value\\\", () => new WeakSet().add(1))\\nt(\\\"WeakSet bad init\\\", () => new WeakSet(1))\\nt(\\\"WeakSet bad item\\\", () => new WeakSet([1]))\\nt(\\\"WeakSet without new\\\", () => WeakSet())\\nt(\\\"WeakSet null\\\", () => typeof new WeakSet(null))\\nt(\\\"weak receivers\\\", () => [(() => { try { return WeakMap.prototype.get.call({}, {}) } catch (e) { return e.message } })(), (() => { try { return WeakSet.prototype.has.call(new Set(), 1) } catch (e) { return e.message } })()])\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_2",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"WeakMap\": [\n    \"v\",\n    2,\n    null,\n    null,\n    true,\n    false,\n    true,\n    false,\n    false\n  ],\n  \"WeakMap bad key\": \"!TypeError: Invalid value used as weak map key: a string cannot be held weakly.\",\n  \"WeakMap bad init\": \"!TypeError: new WeakMap(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"WeakMap bad entry\": \"!TypeError: new WeakMap(...) expects [key, value] pairs as entry objects.\",\n  \"WeakMap bad entry key\": \"!TypeError: Invalid value used as weak map key: a string cannot be held weakly.\",\n  \"WeakMap null init\": \"object\",\n  \"WeakMap without new\": \"!TypeError: Constructor WeakMap requires 'new'.\",\n  \"WeakMap getOrInsert\": [\n    1,\n    1\n  ],\n  \"WeakMap getOrInsertComputed\": [\n    true,\n    true\n  ],\n  \"WeakMap getOrInsert bad key\": \"!TypeError: Invalid value used as weak map key: a number cannot be held weakly.\",\n  \"WeakMap tool key\": \"!TypeError: Invalid value used as weak map key: a tool reference cannot be held weakly.\",\n  \"WeakMap set returns\": true,\n  \"WeakSet\": [\n    true,\n    false,\n    false,\n    true,\n    false,\n    true,\n    true\n  ],\n  \"WeakSet bad value\": \"!TypeError: Invalid value used in weak set: a number cannot be held weakly.\",\n  \"WeakSet bad init\": \"!TypeError: new WeakSet(...) expects a synchronous iterable, received a number.\",\n  \"WeakSet bad item\": \"!TypeError: Invalid value used in weak set: a number cannot be held weakly.\",\n  \"WeakSet without new\": \"!TypeError: Constructor WeakSet requires 'new'.\",\n  \"WeakSet null\": \"object\",\n  \"weak receivers\": [\n    \"WeakMap.prototype.get called on incompatible receiver a data object.\",\n    \"WeakSet.prototype.has called on incompatible receiver a Set.\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_2"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the map and set programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the map and set programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Map basics\\\", () => { const m = new Map([[\\\"a\\\", 1], [2, \\\"b\\\"]]); m.set(NaN, \\\"nan\\\").set(-0, \\\"zero\\\"); return [m.size, m.get(\\\"a\\\"), m.get(2), m.get(NaN), m.get(0), m.has(\\\"z\\\"), m.delete(\\\"a\\\"), m.delete(\\\"a\\\"), m.size, [...m.keys()], [...m.values()], [...m.entries()], [...m]] })\\nt(\\\"Map object keys\\\", () => { const k = {}; const m = new Map([[k, 1]]); return [m.get(k), m.get({}), m.has(k)] })\\nt(\\\"Map clear\\\", () => { const m = new Map([[1, 1]]); const c = m.clear(); return [m.size, c === undefined] })\\nt(\\\"Map forEach\\\", () => { const out = []; new Map([[\\\"x\\\", 1], [\\\"y\\\", 2]]).forEach(function (v, k, map) { out.push(k + \\\"=\\\" + v + \\\":\\\" + map.size + \\\":\\\" + this.tag) }, { tag: \\\"T\\\" }); return out })\\nt(\\\"Map forEach bad\\\", () => new Map().forEach(1))\\nt(\\\"Map getOrInsert\\\", () => { const m = new Map([[\\\"a\\\", 1]]); return [m.getOrInsert(\\\"a\\\", 5), m.getOrInsert(\\\"b\\\", 6), [...m]] })\\nt(\\\"Map getOrInsertComputed\\\", () => { const m = new Map([[\\\"a\\\", 1]]); const seen = []; const v1 = m.getOrInsertComputed(\\\"a\\\", (k) => { seen.push(k); return 9 }); const v2 = m.getOrInsertComputed(-0, (k) => { seen.push(Object.is(k, -0)); return \\\"z\\\" }); return [v1, v2, seen, [...m.keys()].map(String)] })\\nt(\\\"Map getOrInsertComputed bad\\\", () => new Map().getOrInsertComputed(\\\"a\\\", 5))\\nt(\\\"Map without new\\\", () => Map())\\nt(\\\"Map bad init\\\", () => new Map(5))\\nt(\\\"Map bad entry\\\", () => new Map([1]))\\nt(\\\"Map null init\\\", () => new Map(null).size)\\nt(\\\"Map from generator\\\", () => { function* g() { yield [\\\"k\\\", 1] } return [...new Map(g())] })\\nt(\\\"Map iterator\\\", () => { const it = new Map([[1, 2]]).entries(); return [it.next(), it.next()] })\\nt(\\\"Map size receiver\\\", () => { const proto = Map.prototype; try { return proto.size } catch (e) { return e.message } })\\nt(\\\"Map method receiver\\\", () => Map.prototype.get.call({}, 1))\\nt(\\\"Map groupBy\\\", () => [...Map.groupBy([1, 2, 3, 4], (x) => (x > 2 ? \\\"big\\\" : \\\"small\\\"))])\\nt(\\\"Map groupBy object keys\\\", () => { const odd = { n: \\\"odd\\\" }; const even = { n: \\\"even\\\" }; const g = Map.groupBy([1, 2, 3], (x) => (x % 2 ? odd : even)); return [g.get(odd), g.get(even)] })\\nt(\\\"Map groupBy bad\\\", () => Map.groupBy(null, (x) => x))\\nt(\\\"Map symbol iterator\\\", () => Map.prototype[Symbol.iterator] === Map.prototype.entries)\\nt(\\\"Map tags\\\", () => [Map.name, Map.length, typeof Map.prototype.set, new Map() instanceof Map])\\nt(\\\"Map spread into array\\\", () => [...new Map([[\\\"a\\\", [1]]])])\\nt(\\\"Map destructure\\\", () => { const [[k, v]] = new Map([[\\\"key\\\", \\\"val\\\"]]); return k + v })\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"Map basics\", () => { const m = new Map([[\"a\", 1], [2, \"b\"]]); m.set(NaN, \"nan\").set(-0, \"zero\"); return [m.size, m.get(\"a\"), m.get(2), m.get(NaN), m.get(0), m.has(\"z\"), m.delete(\"a\"), m.delete(\"a\"), m.size, [...m.keys()], [...m.values()], [...m.entries()], [...m]] })\nt(\"Map object keys\", () => { const k = {}; const m = new Map([[k, 1]]); return [m.get(k), m.get({}), m.has(k)] })\nt(\"Map clear\", () => { const m = new Map([[1, 1]]); const c = m.clear(); return [m.size, c === undefined] })\nt(\"Map forEach\", () => { const out = []; new Map([[\"x\", 1], [\"y\", 2]]).forEach(function (v, k, map) { out.push(k + \"=\" + v + \":\" + map.size + \":\" + this.tag) }, { tag: \"T\" }); return out })\nt(\"Map forEach bad\", () => new Map().forEach(1))\nt(\"Map getOrInsert\", () => { const m = new Map([[\"a\", 1]]); return [m.getOrInsert(\"a\", 5), m.getOrInsert(\"b\", 6), [...m]] })\nt(\"Map getOrInsertComputed\", () => { const m = new Map([[\"a\", 1]]); const seen = []; const v1 = m.getOrInsertComputed(\"a\", (k) => { seen.push(k); return 9 }); const v2 = m.getOrInsertComputed(-0, (k) => { seen.push(Object.is(k, -0)); return \"z\" }); return [v1, v2, seen, [...m.keys()].map(String)] })\nt(\"Map getOrInsertComputed bad\", () => new Map().getOrInsertComputed(\"a\", 5))\nt(\"Map without new\", () => Map())\nt(\"Map bad init\", () => new Map(5))\nt(\"Map bad entry\", () => new Map([1]))\nt(\"Map null init\", () => new Map(null).size)\nt(\"Map from generator\", () => { function* g() { yield [\"k\", 1] } return [...new Map(g())] })\nt(\"Map iterator\", () => { const it = new Map([[1, 2]]).entries(); return [it.next(), it.next()] })\nt(\"Map size receiver\", () => { const proto = Map.prototype; try { return proto.size } catch (e) { return e.message } })\nt(\"Map method receiver\", () => Map.prototype.get.call({}, 1))\nt(\"Map groupBy\", () => [...Map.groupBy([1, 2, 3, 4], (x) => (x > 2 ? \"big\" : \"small\"))])\nt(\"Map groupBy object keys\", () => { const odd = { n: \"odd\" }; const even = { n: \"even\" }; const g = Map.groupBy([1, 2, 3], (x) => (x % 2 ? odd : even)); return [g.get(odd), g.get(even)] })\nt(\"Map groupBy bad\", () => Map.groupBy(null, (x) => x))\nt(\"Map symbol iterator\", () => Map.prototype[Symbol.iterator] === Map.prototype.entries)\nt(\"Map tags\", () => [Map.name, Map.length, typeof Map.prototype.set, new Map() instanceof Map])\nt(\"Map spread into array\", () => [...new Map([[\"a\", [1]]])])\nt(\"Map destructure\", () => { const [[k, v]] = new Map([[\"key\", \"val\"]]); return k + v })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"Map basics\": [\n    4,\n    1,\n    \"b\",\n    \"nan\",\n    \"zero\",\n    false,\n    true,\n    false,\n    3,\n    [\n      2,\n      null,\n      0\n    ],\n    [\n      \"b\",\n      \"nan\",\n      \"zero\"\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ],\n    [\n      [\n        2,\n        \"b\"\n      ],\n      [\n        null,\n        \"nan\"\n      ],\n      [\n        0,\n        \"zero\"\n      ]\n    ]\n  ],\n  \"Map object keys\": [\n    1,\n    null,\n    true\n  ],\n  \"Map clear\": [\n    0,\n    true\n  ],\n  \"Map forEach\": [\n    \"x=1:2:T\",\n    \"y=2:2:T\"\n  ],\n  \"Map forEach bad\": \"!TypeError: Map.forEach expects a function callback.\",\n  \"Map getOrInsert\": [\n    1,\n    6,\n    [\n      [\n        \"a\",\n        1\n      ],\n      [\n        \"b\",\n        6\n      ]\n    ]\n  ],\n  \"Map getOrInsertComputed\": [\n    1,\n    \"z\",\n    [\n      false\n    ],\n    [\n      \"a\",\n      \"0\"\n    ]\n  ],\n  \"Map getOrInsertComputed bad\": \"!TypeError: Map.getOrInsertComputed expects a function callback.\",\n  \"Map without new\": \"!TypeError: Constructor Map requires 'new'.\",\n  \"Map bad init\": \"!TypeError: new Map(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"Map bad entry\": \"!TypeError: new Map(...) expects [key, value] pairs as entry objects.\",\n  \"Map null init\": 0,\n  \"Map from generator\": [\n    [\n      \"k\",\n      1\n    ]\n  ],\n  \"Map iterator\": [\n    {\n      \"value\": [\n        1,\n        2\n      ],\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"Map size receiver\": \"Map.prototype.size called on incompatible receiver a data object.\",\n  \"Map method receiver\": \"!TypeError: Map.prototype.get called on incompatible receiver a data object.\",\n  \"Map groupBy\": [\n    [\n      \"small\",\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      \"big\",\n      [\n        3,\n        4\n      ]\n    ]\n  ],\n  \"Map groupBy object keys\": [\n    [\n      1,\n      3\n    ],\n    [\n      2\n    ]\n  ],\n  \"Map groupBy bad\": \"!TypeError: Map.groupBy expects an iterable collection.\",\n  \"Map symbol iterator\": true,\n  \"Map tags\": [\n    \"Map\",\n    0,\n    \"function\",\n    true\n  ],\n  \"Map spread into array\": [\n    [\n      \"a\",\n      [\n        1\n      ]\n    ]\n  ],\n  \"Map destructure\": \"keyval\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"Set basics\\\", () => { const s = new Set([1, 2, 2, \\\"2\\\", NaN, NaN]); s.add(3).add(1); return [s.size, s.has(2), s.has(\\\"3\\\"), s.has(NaN), s.delete(2), s.delete(2), [...s], [...s.keys()], [...s.values()], [...s.entries()]] })\\nt(\\\"Set from string\\\", () => [...new Set(\\\"hello\\\")])\\nt(\\\"Set clear\\\", () => { const s = new Set([1]); s.clear(); return s.size })\\nt(\\\"Set forEach\\\", () => { const out = []; new Set([\\\"a\\\", \\\"b\\\"]).forEach(function (v, k, set) { out.push(v + k + set.size + this.x) }, { x: \\\"!\\\" }); return out })\\nt(\\\"Set without new\\\", () => Set([1]))\\nt(\\\"Set bad init\\\", () => new Set(5))\\nt(\\\"Set null init\\\", () => new Set(undefined).size)\\nt(\\\"Set receiver\\\", () => Set.prototype.add.call(new Map(), 1))\\nt(\\\"Set size receiver\\\", () => Set.prototype.size)\\nconst A = new Set([1, 2, 3, 4])\\nconst B = new Set([3, 4, 5])\\nconst small = new Set([3])\\nt(\\\"union\\\", () => [...A.union(B)])\\nt(\\\"intersection\\\", () => [[...A.intersection(B)], [...small.intersection(A)], [...A.intersection(small)]])\\nt(\\\"difference\\\", () => [[...A.difference(B)], [...small.difference(A)], [...A.difference(small)]])\\nt(\\\"symmetricDifference\\\", () => [...A.symmetricDifference(B)])\\nt(\\\"isSubsetOf\\\", () => [small.isSubsetOf(A), A.isSubsetOf(small), new Set([9]).isSubsetOf(A)])\\nt(\\\"isSupersetOf\\\", () => [A.isSupersetOf(small), small.isSupersetOf(A), A.isSupersetOf(new Set([1, 9]))])\\nt(\\\"isDisjointFrom\\\", () => [A.isDisjointFrom(new Set([7])), A.isDisjointFrom(B), small.isDisjointFrom(A), A.isDisjointFrom(new Set([9]))])\\nt(\\\"set ops with Map\\\", () => [[...A.union(new Map([[10, \\\"x\\\"]]))], [...new Set([1]).intersection(new Map([[1, \\\"a\\\"], [2, \\\"b\\\"]]))], new Set([2]).isSubsetOf(new Map([[2, 0], [3, 0]]))])\\nt(\\\"small disjoint\\\", () => [new Set([1]).isDisjointFrom(new Set([7, 8])), new Set([1]).isDisjointFrom(new Set([1, 8]))])\\nt(\\\"set-like object\\\", () => { const like = { size: 2, has(x) { return x === 1 || x === 9 }, keys() { return [1, 9].values() } }; return [[...A.intersection(like)], [...A.union(like)], A.isSupersetOf(like), [...new Set([1]).difference(like)], A.isDisjointFrom(like), new Set([1, 2, 3, 4, 5]).isDisjointFrom(like), [...A.symmetricDifference(like)], new Set([1]).isSubsetOf(like)] })\\nt(\\\"set-like array keys\\\", () => { const like = { size: 1, has() { return false }, keys() { return [5] } }; return [...A.union(like)] })\\nt(\\\"set-like generator keys\\\", () => { const like = { size: 1, has() { return true }, *keys() { yield 8 } }; return [...A.union(like)] })\\nt(\\\"set-like bad size\\\", () => A.union({ size: \\\"x\\\", has() {}, keys() {} }))\\nt(\\\"set-like missing methods\\\", () => A.union({ size: 1 }))\\nt(\\\"set ops non-object\\\", () => A.union(5))\\nt(\\\"set-like intersection large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2, 99].values() } }; return [...A.intersection(like)] })\\nt(\\\"set-like difference large\\\", () => { const like = { size: 1, has() { return true }, keys() { return [2].values() } }; return [...A.difference(like)] })\\nt(\\\"Set spread\\\", () => [...new Set([[1], [1]])].length)\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_1",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"Set basics\", () => { const s = new Set([1, 2, 2, \"2\", NaN, NaN]); s.add(3).add(1); return [s.size, s.has(2), s.has(\"3\"), s.has(NaN), s.delete(2), s.delete(2), [...s], [...s.keys()], [...s.values()], [...s.entries()]] })\nt(\"Set from string\", () => [...new Set(\"hello\")])\nt(\"Set clear\", () => { const s = new Set([1]); s.clear(); return s.size })\nt(\"Set forEach\", () => { const out = []; new Set([\"a\", \"b\"]).forEach(function (v, k, set) { out.push(v + k + set.size + this.x) }, { x: \"!\" }); return out })\nt(\"Set without new\", () => Set([1]))\nt(\"Set bad init\", () => new Set(5))\nt(\"Set null init\", () => new Set(undefined).size)\nt(\"Set receiver\", () => Set.prototype.add.call(new Map(), 1))\nt(\"Set size receiver\", () => Set.prototype.size)\nconst A = new Set([1, 2, 3, 4])\nconst B = new Set([3, 4, 5])\nconst small = new Set([3])\nt(\"union\", () => [...A.union(B)])\nt(\"intersection\", () => [[...A.intersection(B)], [...small.intersection(A)], [...A.intersection(small)]])\nt(\"difference\", () => [[...A.difference(B)], [...small.difference(A)], [...A.difference(small)]])\nt(\"symmetricDifference\", () => [...A.symmetricDifference(B)])\nt(\"isSubsetOf\", () => [small.isSubsetOf(A), A.isSubsetOf(small), new Set([9]).isSubsetOf(A)])\nt(\"isSupersetOf\", () => [A.isSupersetOf(small), small.isSupersetOf(A), A.isSupersetOf(new Set([1, 9]))])\nt(\"isDisjointFrom\", () => [A.isDisjointFrom(new Set([7])), A.isDisjointFrom(B), small.isDisjointFrom(A), A.isDisjointFrom(new Set([9]))])\nt(\"set ops with Map\", () => [[...A.union(new Map([[10, \"x\"]]))], [...new Set([1]).intersection(new Map([[1, \"a\"], [2, \"b\"]]))], new Set([2]).isSubsetOf(new Map([[2, 0], [3, 0]]))])\nt(\"small disjoint\", () => [new Set([1]).isDisjointFrom(new Set([7, 8])), new Set([1]).isDisjointFrom(new Set([1, 8]))])\nt(\"set-like object\", () => { const like = { size: 2, has(x) { return x === 1 || x === 9 }, keys() { return [1, 9].values() } }; return [[...A.intersection(like)], [...A.union(like)], A.isSupersetOf(like), [...new Set([1]).difference(like)], A.isDisjointFrom(like), new Set([1, 2, 3, 4, 5]).isDisjointFrom(like), [...A.symmetricDifference(like)], new Set([1]).isSubsetOf(like)] })\nt(\"set-like array keys\", () => { const like = { size: 1, has() { return false }, keys() { return [5] } }; return [...A.union(like)] })\nt(\"set-like generator keys\", () => { const like = { size: 1, has() { return true }, *keys() { yield 8 } }; return [...A.union(like)] })\nt(\"set-like bad size\", () => A.union({ size: \"x\", has() {}, keys() {} }))\nt(\"set-like missing methods\", () => A.union({ size: 1 }))\nt(\"set ops non-object\", () => A.union(5))\nt(\"set-like intersection large\", () => { const like = { size: 1, has() { return true }, keys() { return [2, 99].values() } }; return [...A.intersection(like)] })\nt(\"set-like difference large\", () => { const like = { size: 1, has() { return true }, keys() { return [2].values() } }; return [...A.difference(like)] })\nt(\"Set spread\", () => [...new Set([[1], [1]])].length)\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"Set basics\": [\n    5,\n    true,\n    false,\n    true,\n    true,\n    false,\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      1,\n      \"2\",\n      null,\n      3\n    ],\n    [\n      [\n        1,\n        1\n      ],\n      [\n        \"2\",\n        \"2\"\n      ],\n      [\n        null,\n        null\n      ],\n      [\n        3,\n        3\n      ]\n    ]\n  ],\n  \"Set from string\": [\n    \"h\",\n    \"e\",\n    \"l\",\n    \"o\"\n  ],\n  \"Set clear\": 0,\n  \"Set forEach\": [\n    \"aa2!\",\n    \"bb2!\"\n  ],\n  \"Set without new\": \"!TypeError: Constructor Set requires 'new'.\",\n  \"Set bad init\": \"!TypeError: new Set(...) expects a synchronous iterable, received a number.\",\n  \"Set null init\": 0,\n  \"Set receiver\": \"!TypeError: Set.prototype.add called on incompatible receiver a Map.\",\n  \"Set size receiver\": \"!TypeError: Set.prototype.size called on incompatible receiver a data object.\",\n  \"union\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"intersection\": [\n    [\n      3,\n      4\n    ],\n    [\n      3\n    ],\n    [\n      3\n    ]\n  ],\n  \"difference\": [\n    [\n      1,\n      2\n    ],\n    [],\n    [\n      1,\n      2,\n      4\n    ]\n  ],\n  \"symmetricDifference\": [\n    1,\n    2,\n    5\n  ],\n  \"isSubsetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isSupersetOf\": [\n    true,\n    false,\n    false\n  ],\n  \"isDisjointFrom\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"set ops with Map\": [\n    [\n      1,\n      2,\n      3,\n      4,\n      10\n    ],\n    [\n      1\n    ],\n    true\n  ],\n  \"small disjoint\": [\n    true,\n    false\n  ],\n  \"set-like object\": [\n    [\n      1\n    ],\n    [\n      1,\n      2,\n      3,\n      4,\n      9\n    ],\n    false,\n    [],\n    false,\n    false,\n    [\n      2,\n      3,\n      4,\n      9\n    ],\n    true\n  ],\n  \"set-like array keys\": [\n    1,\n    2,\n    3,\n    4,\n    5\n  ],\n  \"set-like generator keys\": [\n    1,\n    2,\n    3,\n    4,\n    8\n  ],\n  \"set-like bad size\": \"!TypeError: Set.union received a Set-like object with an invalid size.\",\n  \"set-like missing methods\": \"!TypeError: Set.union expects callable 'has' and 'keys' methods.\",\n  \"set ops non-object\": \"!TypeError: Set.union expects a Set-like object.\",\n  \"set-like intersection large\": [\n    2\n  ],\n  \"set-like difference large\": [\n    1,\n    3,\n    4\n  ],\n  \"Set spread\": 2\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_1",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_2",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_2",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"WeakMap\\\", () => { const k = {}; const k2 = []; const w = new WeakMap([[k, \\\"v\\\"]]); w.set(k2, 2); return [w.get(k), w.get(k2), w.get({}), w.get(1), w.has(k), w.has(1), w.delete(k), w.has(k), w.delete(5)] })\\nt(\\\"WeakMap bad key\\\", () => new WeakMap().set(\\\"str\\\", 1))\\nt(\\\"WeakMap bad init\\\", () => new WeakMap(5))\\nt(\\\"WeakMap bad entry\\\", () => new WeakMap([1]))\\nt(\\\"WeakMap bad entry key\\\", () => new WeakMap([[\\\"a\\\", 1]]))\\nt(\\\"WeakMap null init\\\", () => typeof new WeakMap(null))\\nt(\\\"WeakMap without new\\\", () => WeakMap())\\nt(\\\"WeakMap getOrInsert\\\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsert(k, 1), w.getOrInsert(k, 2)] })\\nt(\\\"WeakMap getOrInsertComputed\\\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsertComputed(k, (key) => key === k), w.getOrInsertComputed(k, () => \\\"never\\\")] })\\nt(\\\"WeakMap getOrInsert bad key\\\", () => new WeakMap().getOrInsert(1, 2))\\nt(\\\"WeakMap tool key\\\", () => new WeakMap().set(tools, 1))\\nt(\\\"WeakMap set returns\\\", () => { const w = new WeakMap(); return w.set({}, 1) === w })\\nt(\\\"WeakSet\\\", () => { const k = {}; const s = new WeakSet([k]); return [s.has(k), s.has({}), s.has(1), s.delete(k), s.has(k), s.add(k) === s, s.has(k)] })\\nt(\\\"WeakSet bad value\\\", () => new WeakSet().add(1))\\nt(\\\"WeakSet bad init\\\", () => new WeakSet(1))\\nt(\\\"WeakSet bad item\\\", () => new WeakSet([1]))\\nt(\\\"WeakSet without new\\\", () => WeakSet())\\nt(\\\"WeakSet null\\\", () => typeof new WeakSet(null))\\nt(\\\"weak receivers\\\", () => [(() => { try { return WeakMap.prototype.get.call({}, {}) } catch (e) { return e.message } })(), (() => { try { return WeakSet.prototype.has.call(new Set(), 1) } catch (e) { return e.message } })()])\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_2",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"WeakMap\", () => { const k = {}; const k2 = []; const w = new WeakMap([[k, \"v\"]]); w.set(k2, 2); return [w.get(k), w.get(k2), w.get({}), w.get(1), w.has(k), w.has(1), w.delete(k), w.has(k), w.delete(5)] })\nt(\"WeakMap bad key\", () => new WeakMap().set(\"str\", 1))\nt(\"WeakMap bad init\", () => new WeakMap(5))\nt(\"WeakMap bad entry\", () => new WeakMap([1]))\nt(\"WeakMap bad entry key\", () => new WeakMap([[\"a\", 1]]))\nt(\"WeakMap null init\", () => typeof new WeakMap(null))\nt(\"WeakMap without new\", () => WeakMap())\nt(\"WeakMap getOrInsert\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsert(k, 1), w.getOrInsert(k, 2)] })\nt(\"WeakMap getOrInsertComputed\", () => { const k = {}; const w = new WeakMap(); return [w.getOrInsertComputed(k, (key) => key === k), w.getOrInsertComputed(k, () => \"never\")] })\nt(\"WeakMap getOrInsert bad key\", () => new WeakMap().getOrInsert(1, 2))\nt(\"WeakMap tool key\", () => new WeakMap().set(tools, 1))\nt(\"WeakMap set returns\", () => { const w = new WeakMap(); return w.set({}, 1) === w })\nt(\"WeakSet\", () => { const k = {}; const s = new WeakSet([k]); return [s.has(k), s.has({}), s.has(1), s.delete(k), s.has(k), s.add(k) === s, s.has(k)] })\nt(\"WeakSet bad value\", () => new WeakSet().add(1))\nt(\"WeakSet bad init\", () => new WeakSet(1))\nt(\"WeakSet bad item\", () => new WeakSet([1]))\nt(\"WeakSet without new\", () => WeakSet())\nt(\"WeakSet null\", () => typeof new WeakSet(null))\nt(\"weak receivers\", () => [(() => { try { return WeakMap.prototype.get.call({}, {}) } catch (e) { return e.message } })(), (() => { try { return WeakSet.prototype.has.call(new Set(), 1) } catch (e) { return e.message } })()])\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"WeakMap\": [\n    \"v\",\n    2,\n    null,\n    null,\n    true,\n    false,\n    true,\n    false,\n    false\n  ],\n  \"WeakMap bad key\": \"!TypeError: Invalid value used as weak map key: a string cannot be held weakly.\",\n  \"WeakMap bad init\": \"!TypeError: new WeakMap(...) expects an iterable of [key, value] pairs, received a number.\",\n  \"WeakMap bad entry\": \"!TypeError: new WeakMap(...) expects [key, value] pairs as entry objects.\",\n  \"WeakMap bad entry key\": \"!TypeError: Invalid value used as weak map key: a string cannot be held weakly.\",\n  \"WeakMap null init\": \"object\",\n  \"WeakMap without new\": \"!TypeError: Constructor WeakMap requires 'new'.\",\n  \"WeakMap getOrInsert\": [\n    1,\n    1\n  ],\n  \"WeakMap getOrInsertComputed\": [\n    true,\n    true\n  ],\n  \"WeakMap getOrInsert bad key\": \"!TypeError: Invalid value used as weak map key: a number cannot be held weakly.\",\n  \"WeakMap tool key\": \"!TypeError: Invalid value used as weak map key: a tool reference cannot be held weakly.\",\n  \"WeakMap set returns\": true,\n  \"WeakSet\": [\n    true,\n    false,\n    false,\n    true,\n    false,\n    true,\n    true\n  ],\n  \"WeakSet bad value\": \"!TypeError: Invalid value used in weak set: a number cannot be held weakly.\",\n  \"WeakSet bad init\": \"!TypeError: new WeakSet(...) expects a synchronous iterable, received a number.\",\n  \"WeakSet bad item\": \"!TypeError: Invalid value used in weak set: a number cannot be held weakly.\",\n  \"WeakSet without new\": \"!TypeError: Constructor WeakSet requires 'new'.\",\n  \"WeakSet null\": \"object\",\n  \"weak receivers\": [\n    \"WeakMap.prototype.get called on incompatible receiver a data object.\",\n    \"WeakSet.prototype.has called on incompatible receiver a Set.\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_2",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

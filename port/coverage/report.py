@@ -29,19 +29,27 @@ def in_scope(path):
     # Out of scope by decision (2026-11-07):
     #   no web app/desktop/GUI (whole packages not listed above), no plugins, OpenRouter only,
     #   no `opencode mini`, no v1 storage migration, no AI SDK bridge, hardcoded OpenRouter access point
-    #   (no model catalog/resolver, no pricing), no MCP, no legacy v1 config/schema formats.
+    #   (no model catalog/resolver, no pricing), no MCP, no legacy v1 config/schema formats, and the tools the
+    #   reference config hides (image generation, websearch).
     if pkg == "tui" and re.match(r"(mini/|feature-plugins/sidebar/mcp\.tsx|config/v1/|theme/v1\.ts)", rest):
         return False
     if pkg == "cli" and re.match(r"(mini(-host)?\.ts|commands/handlers/(mini|mcp/))", rest):
         return False
     if pkg == "core" and re.match(r"(database/v1-migration|aisdk(-native)?\.ts|models-dev|model-resolver\.ts|mcp/|"
-                                  r"tool/mcp\.ts|tool/plugin/mcp|config/plugin/mcp|v1/|github-copilot/)", rest):
+                                  r"tool/mcp\.ts|tool/plugin/(mcp|image-generate|websearch)|websearch|config/plugin/mcp|v1/|github-copilot/)", rest):
         return False
     if pkg == "core" and rest.startswith("plugin/"):
         return rest.startswith("plugin/provider/") and rest.count("/") == 2 and rest.split("/")[-1] in KEEP_PROVIDER
     if pkg in ("server", "protocol") and re.search(r"(^|/)mcp\.ts$", rest):
         return False
     if pkg == "schema" and re.match(r"(mcp(-event)?\.ts|config/mcp\.ts|v1/)", rest):
+        return False
+    # Never executed by the product in this configuration (verified 2026-11-07): the code-mode bytecode VM is behind
+    # an experimental flag that is off in release builds; nothing in core imports codemode's OpenAPI adapter or the
+    # ai package's own LLM/loop/tool runtime (core drives LLMClient directly).
+    if pkg == "codemode" and re.match(r"(vm/|vm\.ts|openapi/)", rest):
+        return False
+    if pkg == "ai" and re.match(r"(llm|loop|tool-runtime|tool)\.ts$", rest):
         return False
     if pkg == "ai":
         if rest.startswith("providers/"):
@@ -57,10 +65,10 @@ def in_scope(path):
 root = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True).stdout.strip()
 out = os.path.join(root, "port", "coverage", "out")
 labels = (sys.argv[1] if len(sys.argv) > 1 else "bb,all").split(",")
-refs = {l: open(os.path.join(out, f"{l}.ref")).read().strip() for l in labels}
+refs = {part: open(os.path.join(out, f"{part}.ref")).read().strip() for l in labels for part in l.split("+")}
 if len(set(refs.values())) > 1:
     sys.exit(f"runs were measured on different commits: {refs}; rerun them on one commit")
-ref = refs[labels[0]]
+ref = next(iter(refs.values()))
 
 
 def git(*args):
@@ -68,13 +76,32 @@ def git(*args):
 
 
 def load(label):
+    """Coverage for a run label; "a+b" is the union of runs a and b."""
+    if "+" in label:
+        parts = [load(part) for part in label.split("+")]
+        lines, funcs = collections.defaultdict(dict), {}
+        for part_lines, part_funcs in parts:
+            for f, hits in part_lines.items():
+                for n, h in hits.items():
+                    lines[f][n] = lines[f].get(n, 0) + h
+            for f, (fnf, fnh) in part_funcs.items():
+                prev = funcs.get(f, (0, 0))
+                funcs[f] = (max(prev[0], fnf), max(prev[1], fnh))
+        return lines, funcs
     lines, funcs = collections.defaultdict(dict), {}
     for f in glob.glob(os.path.join(out, f"{label}-*", "lcov.info")):
-        base = os.path.join(root, "packages", f.split(f"{label}-")[-1].split("/")[0])
+        suite = f.split(f"{label}-")[-1].split("/")[0]
+        base = os.path.join(root, "packages", suite)
+        if not os.path.isdir(base):
+            base = os.path.join(root, "port", suite)
         sf = fnf = None
         for line in open(f):
             if line.startswith("SF:"):
                 sf = os.path.relpath(os.path.normpath(os.path.join(base, line[3:].strip())), root)
+                # Runs whose cwd is outside the repo (the conformance sandbox) record paths relative to that cwd.
+                if sf.startswith(".."):
+                    raw = line[3:].strip()
+                    sf = "packages/" + raw.split("/packages/", 1)[1] if "/packages/" in raw else sf
             elif line.startswith("FNF:"):
                 fnf = int(line[4:])
             elif line.startswith("FNH:") and sf:

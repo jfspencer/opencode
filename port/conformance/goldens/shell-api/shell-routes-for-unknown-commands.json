@@ -1,0 +1,229 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "activation": "enabled",
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "package": "@opencode/ai/providers/openrouter",
+            "settings": {
+              "baseURL": "https://openrouter.ai/api/v1"
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider"
+    },
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/shell"
+    },
+    {
+      "body": {
+        "_tag": "ShellNotFoundError",
+        "id": "sh_conformance_missing",
+        "message": "Shell command not found: sh_conformance_missing"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/shell/sh_conformance_missing"
+    },
+    {
+      "body": {
+        "_tag": "ShellNotFoundError",
+        "id": "sh_conformance_missing",
+        "message": "Shell command not found: sh_conformance_missing"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/shell/sh_conformance_missing/output"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/shell/sh_conformance_missing"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string starting with \"sh_\"\n  at [\"id\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/shell/not-a-shell-id"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected a value greater than or equal to 0\n  at [\"cursor\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/shell/sh_conformance_missing/output?cursor=-1"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"command\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 400,
+      "url": "/api/shell"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "true",
+        "cwd": "/conformance/missing/directory"
+      },
+      "status": 500,
+      "url": "/api/shell"
+    },
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/shell"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

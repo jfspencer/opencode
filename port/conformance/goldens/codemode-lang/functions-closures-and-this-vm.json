@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the functions, closures and this programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the functions, closures and this programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the functions, closures and this programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the functions, closures and this programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nfunction decl(a, b = a * 2, ...rest) { return [a, b, rest, arguments.length] }\\nconst expr = function (x) { return x + 1 }\\nconst named = function fact(n) { return n <= 1 ? 1 : n * fact(n - 1) }\\nconst arrow = (x) => x * 3\\nconst arrowBlock = (x) => { return { x } }\\nconst arrowObj = () => ({ literal: true })\\nconst fib = (n) => (n < 2 ? n : fib(n - 1) + fib(n - 2))\\nconst compose = (...fns) => (x) => fns.reduceRight((acc, f) => f(acc), x)\\nconst curry = (a) => (b) => (c) => a + b + c\\nconst props = function myName(a, b, c = 1, ...d) {}\\nprops.custom = \\\"prop\\\"\\nconst meta = {\\n  declName: decl.name, declLength: decl.length, exprName: expr.name, arrowName: arrow.name, propsLength: props.length, propsName: props.name,\\n  custom: props.custom, keys: Object.keys(props), anonName: (function () {}).name, arrowAnon: (() => {}).name,\\n  methodName: { m() {} }.m.name, assignedName: (() => { let late; late = () => 1; return late.name })(),\\n  computedName: { [\\\"comp\\\" + \\\"uted\\\"]: () => 1 }.computed.name,\\n  fnToString: Object.prototype.toString.call(decl), protoIsFn: Object.getPrototypeOf(decl) === Function.prototype,\\n}\\nconst namedReadonly = t(() => { const f = function self() { self = 1 }; f() })\\nreturn {\\n  decl: [decl(1), decl(1, 5, 6, 7)], expr: expr(1), fact: named(5), arrow: arrow(2), arrowBlock: arrowBlock(1), arrowObj: arrowObj(),\\n  fib: fib(15), composed: compose((x) => x + 1, (x) => x * 2)(5), curry: curry(1)(2)(3), meta, namedReadonly,\\n  iife: (function () { return \\\"iife\\\" })(), iifeArrow: (() => \\\"arrow iife\\\")(),\\n  hasConstructor: decl.constructor === Function, fnCtor: t(() => Function(\\\"return 1\\\")),\\n  newUser: t(() => new decl(1)), newArrow: t(() => new arrow(1)), newNumber: t(() => new Number(1)), newNonFn: t(() => new (5)()),\\n  callNonFn: t(() => (5)()), callUndefined: t(() => { const o = {}; o.missing() }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"decl\": [\n    [\n      1,\n      2,\n      [],\n      1\n    ],\n    [\n      1,\n      5,\n      [\n        6,\n        7\n      ],\n      4\n    ]\n  ],\n  \"expr\": 2,\n  \"fact\": 120,\n  \"arrow\": 6,\n  \"arrowBlock\": {\n    \"x\": 1\n  },\n  \"arrowObj\": {\n    \"literal\": true\n  },\n  \"fib\": 610,\n  \"composed\": 11,\n  \"curry\": 6,\n  \"meta\": {\n    \"declName\": \"decl\",\n    \"declLength\": 1,\n    \"exprName\": \"expr\",\n    \"arrowName\": \"arrow\",\n    \"propsLength\": 2,\n    \"propsName\": \"myName\",\n    \"custom\": \"prop\",\n    \"keys\": [\n      \"custom\"\n    ],\n    \"anonName\": \"\",\n    \"arrowAnon\": \"\",\n    \"methodName\": \"m\",\n    \"assignedName\": \"late\",\n    \"computedName\": \"computed\",\n    \"fnToString\": \"[object Function]\",\n    \"protoIsFn\": true\n  },\n  \"namedReadonly\": \"throws TypeError: Cannot assign to constant 'self'.\",\n  \"iife\": \"iife\",\n  \"iifeArrow\": \"arrow iife\",\n  \"hasConstructor\": true,\n  \"fnCtor\": \"throws TypeError: The Function constructor is not supported; write the function inline.\",\n  \"newUser\": \"throws TypeError: decl cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newArrow\": \"throws TypeError: arrow cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newNumber\": \"throws TypeError: new Number(...) is not supported; call Number(...) without new instead.\",\n  \"newNonFn\": \"throws TypeError: The called value is not a constructor.\",\n  \"callNonFn\": \"throws TypeError: The called value is not a function.\",\n  \"callUndefined\": \"throws TypeError: o.missing is not a function.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the functions, closures and this programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nfunction decl(a, b = a * 2, ...rest) { return [a, b, rest, arguments.length] }\\nconst expr = function (x) { return x + 1 }\\nconst named = function fact(n) { return n <= 1 ? 1 : n * fact(n - 1) }\\nconst arrow = (x) => x * 3\\nconst arrowBlock = (x) => { return { x } }\\nconst arrowObj = () => ({ literal: true })\\nconst fib = (n) => (n < 2 ? n : fib(n - 1) + fib(n - 2))\\nconst compose = (...fns) => (x) => fns.reduceRight((acc, f) => f(acc), x)\\nconst curry = (a) => (b) => (c) => a + b + c\\nconst props = function myName(a, b, c = 1, ...d) {}\\nprops.custom = \\\"prop\\\"\\nconst meta = {\\n  declName: decl.name, declLength: decl.length, exprName: expr.name, arrowName: arrow.name, propsLength: props.length, propsName: props.name,\\n  custom: props.custom, keys: Object.keys(props), anonName: (function () {}).name, arrowAnon: (() => {}).name,\\n  methodName: { m() {} }.m.name, assignedName: (() => { let late; late = () => 1; return late.name })(),\\n  computedName: { [\\\"comp\\\" + \\\"uted\\\"]: () => 1 }.computed.name,\\n  fnToString: Object.prototype.toString.call(decl), protoIsFn: Object.getPrototypeOf(decl) === Function.prototype,\\n}\\nconst namedReadonly = t(() => { const f = function self() { self = 1 }; f() })\\nreturn {\\n  decl: [decl(1), decl(1, 5, 6, 7)], expr: expr(1), fact: named(5), arrow: arrow(2), arrowBlock: arrowBlock(1), arrowObj: arrowObj(),\\n  fib: fib(15), composed: compose((x) => x + 1, (x) => x * 2)(5), curry: curry(1)(2)(3), meta, namedReadonly,\\n  iife: (function () { return \\\"iife\\\" })(), iifeArrow: (() => \\\"arrow iife\\\")(),\\n  hasConstructor: decl.constructor === Function, fnCtor: t(() => Function(\\\"return 1\\\")),\\n  newUser: t(() => new decl(1)), newArrow: t(() => new arrow(1)), newNumber: t(() => new Number(1)), newNonFn: t(() => new (5)()),\\n  callNonFn: t(() => (5)()), callUndefined: t(() => { const o = {}; o.missing() }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"decl\": [\n    [\n      1,\n      2,\n      [],\n      1\n    ],\n    [\n      1,\n      5,\n      [\n        6,\n        7\n      ],\n      4\n    ]\n  ],\n  \"expr\": 2,\n  \"fact\": 120,\n  \"arrow\": 6,\n  \"arrowBlock\": {\n    \"x\": 1\n  },\n  \"arrowObj\": {\n    \"literal\": true\n  },\n  \"fib\": 610,\n  \"composed\": 11,\n  \"curry\": 6,\n  \"meta\": {\n    \"declName\": \"decl\",\n    \"declLength\": 1,\n    \"exprName\": \"expr\",\n    \"arrowName\": \"arrow\",\n    \"propsLength\": 2,\n    \"propsName\": \"myName\",\n    \"custom\": \"prop\",\n    \"keys\": [\n      \"custom\"\n    ],\n    \"anonName\": \"\",\n    \"arrowAnon\": \"\",\n    \"methodName\": \"m\",\n    \"assignedName\": \"late\",\n    \"computedName\": \"computed\",\n    \"fnToString\": \"[object Function]\",\n    \"protoIsFn\": true\n  },\n  \"namedReadonly\": \"throws TypeError: Cannot assign to constant 'self'.\",\n  \"iife\": \"iife\",\n  \"iifeArrow\": \"arrow iife\",\n  \"hasConstructor\": true,\n  \"fnCtor\": \"throws TypeError: The Function constructor is not supported; write the function inline.\",\n  \"newUser\": \"throws TypeError: decl cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newArrow\": \"throws TypeError: arrow cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newNumber\": \"throws TypeError: new Number(...) is not supported; call Number(...) without new instead.\",\n  \"newNonFn\": \"throws TypeError: The called value is not a constructor.\",\n  \"callNonFn\": \"throws TypeError: The called value is not a function.\",\n  \"callUndefined\": \"throws TypeError: o.missing is not a function.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst obj = {\\n  name: \\\"obj\\\",\\n  regular() { return String(this && this.name) },\\n  arrow: () => typeof this,\\n  nested() { const inner = () => this.name; return inner() },\\n  fnInside() { return typeof (function () { return this })() },\\n  counter: 0,\\n  inc() { this.counter++; return this },\\n}\\nconst detached = obj.regular\\nconst other = { name: \\\"other\\\" }\\nfunction show(greeting, punct) { return greeting + \\\" \\\" + (this && this.name) + punct }\\nconst bound = show.bind(obj, \\\"Hi\\\")\\nconst boundTwice = bound.bind(other, \\\"?\\\")\\nfunction argsFn() { return { len: arguments.length, json: JSON.stringify(arguments), str: String(arguments), spread: [...arguments], arr: Array.from(arguments), isArr: Array.isArray(arguments), first: arguments[0] } }\\nfunction shadowArgs(arguments) { return arguments }\\nfunction arrowArgs() { return (() => arguments[0])() }\\nreturn {\\n  regular: obj.regular(), computed: obj[\\\"regular\\\"](), detached: detached(), comma: (0, obj.regular)(), arrow: obj.arrow(), nested: obj.nested(), fnInside: obj.fnInside(),\\n  chained: obj.inc().inc().counter,\\n  call: show.call(other, \\\"Hello\\\", \\\"!\\\"), apply: show.apply(obj, [\\\"Hey\\\", \\\".\\\"]), applyNull: show.apply(null), applyArrayLike: show.apply(other, { length: 2, 0: \\\"A\\\", 1: \\\"B\\\" }),\\n  bound: bound(\\\"!\\\"), boundName: bound.name, boundLength: bound.length, boundTwice: boundTwice(), newBound: t(() => new bound()),\\n  builtinCall: Array.prototype.push.call([1], 2), mathApply: Math.max.apply(null, [1, 5, 3]), joinCall: Array.prototype.join.call([\\\"a\\\", \\\"b\\\"], \\\"-\\\"),\\n  args: argsFn(1, \\\"two\\\", [3]), shadowArgs: shadowArgs(\\\"mine\\\"), arrowArgs: arrowArgs(\\\"outer arg\\\"), topThis: typeof this,\\n  thisArg: (() => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })(),\\n  applyBad: t(() => show.apply(obj, 5)),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"regular\": \"obj\",\n  \"computed\": \"obj\",\n  \"detached\": \"undefined\",\n  \"comma\": \"undefined\",\n  \"arrow\": \"undefined\",\n  \"nested\": \"obj\",\n  \"fnInside\": \"undefined\",\n  \"chained\": 2,\n  \"call\": \"Hello other!\",\n  \"apply\": \"Hey obj.\",\n  \"applyNull\": \"undefined nullundefined\",\n  \"applyArrayLike\": \"A otherB\",\n  \"bound\": \"Hi obj!\",\n  \"boundName\": \"bound show\",\n  \"boundLength\": 1,\n  \"boundTwice\": \"Hi obj?\",\n  \"newBound\": \"throws TypeError: new bound(...) is not supported; call bound(...) without new instead.\",\n  \"builtinCall\": 2,\n  \"mathApply\": 5,\n  \"joinCall\": \"a-b\",\n  \"args\": {\n    \"len\": 3,\n    \"json\": \"{\\\"0\\\":1,\\\"1\\\":\\\"two\\\",\\\"2\\\":[3]}\",\n    \"str\": \"[object Arguments]\",\n    \"spread\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"arr\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"isArr\": false,\n    \"first\": 1\n  },\n  \"shadowArgs\": \"mine\",\n  \"arrowArgs\": \"outer arg\",\n  \"topThis\": \"undefined\",\n  \"thisArg\": 2,\n  \"applyBad\": \"throws TypeError: Function.prototype.apply expects an array-like argument list.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the functions, closures and this programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nfunction decl(a, b = a * 2, ...rest) { return [a, b, rest, arguments.length] }\\nconst expr = function (x) { return x + 1 }\\nconst named = function fact(n) { return n <= 1 ? 1 : n * fact(n - 1) }\\nconst arrow = (x) => x * 3\\nconst arrowBlock = (x) => { return { x } }\\nconst arrowObj = () => ({ literal: true })\\nconst fib = (n) => (n < 2 ? n : fib(n - 1) + fib(n - 2))\\nconst compose = (...fns) => (x) => fns.reduceRight((acc, f) => f(acc), x)\\nconst curry = (a) => (b) => (c) => a + b + c\\nconst props = function myName(a, b, c = 1, ...d) {}\\nprops.custom = \\\"prop\\\"\\nconst meta = {\\n  declName: decl.name, declLength: decl.length, exprName: expr.name, arrowName: arrow.name, propsLength: props.length, propsName: props.name,\\n  custom: props.custom, keys: Object.keys(props), anonName: (function () {}).name, arrowAnon: (() => {}).name,\\n  methodName: { m() {} }.m.name, assignedName: (() => { let late; late = () => 1; return late.name })(),\\n  computedName: { [\\\"comp\\\" + \\\"uted\\\"]: () => 1 }.computed.name,\\n  fnToString: Object.prototype.toString.call(decl), protoIsFn: Object.getPrototypeOf(decl) === Function.prototype,\\n}\\nconst namedReadonly = t(() => { const f = function self() { self = 1 }; f() })\\nreturn {\\n  decl: [decl(1), decl(1, 5, 6, 7)], expr: expr(1), fact: named(5), arrow: arrow(2), arrowBlock: arrowBlock(1), arrowObj: arrowObj(),\\n  fib: fib(15), composed: compose((x) => x + 1, (x) => x * 2)(5), curry: curry(1)(2)(3), meta, namedReadonly,\\n  iife: (function () { return \\\"iife\\\" })(), iifeArrow: (() => \\\"arrow iife\\\")(),\\n  hasConstructor: decl.constructor === Function, fnCtor: t(() => Function(\\\"return 1\\\")),\\n  newUser: t(() => new decl(1)), newArrow: t(() => new arrow(1)), newNumber: t(() => new Number(1)), newNonFn: t(() => new (5)()),\\n  callNonFn: t(() => (5)()), callUndefined: t(() => { const o = {}; o.missing() }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"decl\": [\n    [\n      1,\n      2,\n      [],\n      1\n    ],\n    [\n      1,\n      5,\n      [\n        6,\n        7\n      ],\n      4\n    ]\n  ],\n  \"expr\": 2,\n  \"fact\": 120,\n  \"arrow\": 6,\n  \"arrowBlock\": {\n    \"x\": 1\n  },\n  \"arrowObj\": {\n    \"literal\": true\n  },\n  \"fib\": 610,\n  \"composed\": 11,\n  \"curry\": 6,\n  \"meta\": {\n    \"declName\": \"decl\",\n    \"declLength\": 1,\n    \"exprName\": \"expr\",\n    \"arrowName\": \"arrow\",\n    \"propsLength\": 2,\n    \"propsName\": \"myName\",\n    \"custom\": \"prop\",\n    \"keys\": [\n      \"custom\"\n    ],\n    \"anonName\": \"\",\n    \"arrowAnon\": \"\",\n    \"methodName\": \"m\",\n    \"assignedName\": \"late\",\n    \"computedName\": \"computed\",\n    \"fnToString\": \"[object Function]\",\n    \"protoIsFn\": true\n  },\n  \"namedReadonly\": \"throws TypeError: Cannot assign to constant 'self'.\",\n  \"iife\": \"iife\",\n  \"iifeArrow\": \"arrow iife\",\n  \"hasConstructor\": true,\n  \"fnCtor\": \"throws TypeError: The Function constructor is not supported; write the function inline.\",\n  \"newUser\": \"throws TypeError: decl cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newArrow\": \"throws TypeError: arrow cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newNumber\": \"throws TypeError: new Number(...) is not supported; call Number(...) without new instead.\",\n  \"newNonFn\": \"throws TypeError: The called value is not a constructor.\",\n  \"callNonFn\": \"throws TypeError: The called value is not a function.\",\n  \"callUndefined\": \"throws TypeError: o.missing is not a function.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst obj = {\\n  name: \\\"obj\\\",\\n  regular() { return String(this && this.name) },\\n  arrow: () => typeof this,\\n  nested() { const inner = () => this.name; return inner() },\\n  fnInside() { return typeof (function () { return this })() },\\n  counter: 0,\\n  inc() { this.counter++; return this },\\n}\\nconst detached = obj.regular\\nconst other = { name: \\\"other\\\" }\\nfunction show(greeting, punct) { return greeting + \\\" \\\" + (this && this.name) + punct }\\nconst bound = show.bind(obj, \\\"Hi\\\")\\nconst boundTwice = bound.bind(other, \\\"?\\\")\\nfunction argsFn() { return { len: arguments.length, json: JSON.stringify(arguments), str: String(arguments), spread: [...arguments], arr: Array.from(arguments), isArr: Array.isArray(arguments), first: arguments[0] } }\\nfunction shadowArgs(arguments) { return arguments }\\nfunction arrowArgs() { return (() => arguments[0])() }\\nreturn {\\n  regular: obj.regular(), computed: obj[\\\"regular\\\"](), detached: detached(), comma: (0, obj.regular)(), arrow: obj.arrow(), nested: obj.nested(), fnInside: obj.fnInside(),\\n  chained: obj.inc().inc().counter,\\n  call: show.call(other, \\\"Hello\\\", \\\"!\\\"), apply: show.apply(obj, [\\\"Hey\\\", \\\".\\\"]), applyNull: show.apply(null), applyArrayLike: show.apply(other, { length: 2, 0: \\\"A\\\", 1: \\\"B\\\" }),\\n  bound: bound(\\\"!\\\"), boundName: bound.name, boundLength: bound.length, boundTwice: boundTwice(), newBound: t(() => new bound()),\\n  builtinCall: Array.prototype.push.call([1], 2), mathApply: Math.max.apply(null, [1, 5, 3]), joinCall: Array.prototype.join.call([\\\"a\\\", \\\"b\\\"], \\\"-\\\"),\\n  args: argsFn(1, \\\"two\\\", [3]), shadowArgs: shadowArgs(\\\"mine\\\"), arrowArgs: arrowArgs(\\\"outer arg\\\"), topThis: typeof this,\\n  thisArg: (() => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })(),\\n  applyBad: t(() => show.apply(obj, 5)),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"regular\": \"obj\",\n  \"computed\": \"obj\",\n  \"detached\": \"undefined\",\n  \"comma\": \"undefined\",\n  \"arrow\": \"undefined\",\n  \"nested\": \"obj\",\n  \"fnInside\": \"undefined\",\n  \"chained\": 2,\n  \"call\": \"Hello other!\",\n  \"apply\": \"Hey obj.\",\n  \"applyNull\": \"undefined nullundefined\",\n  \"applyArrayLike\": \"A otherB\",\n  \"bound\": \"Hi obj!\",\n  \"boundName\": \"bound show\",\n  \"boundLength\": 1,\n  \"boundTwice\": \"Hi obj?\",\n  \"newBound\": \"throws TypeError: new bound(...) is not supported; call bound(...) without new instead.\",\n  \"builtinCall\": 2,\n  \"mathApply\": 5,\n  \"joinCall\": \"a-b\",\n  \"args\": {\n    \"len\": 3,\n    \"json\": \"{\\\"0\\\":1,\\\"1\\\":\\\"two\\\",\\\"2\\\":[3]}\",\n    \"str\": \"[object Arguments]\",\n    \"spread\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"arr\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"isArr\": false,\n    \"first\": 1\n  },\n  \"shadowArgs\": \"mine\",\n  \"arrowArgs\": \"outer arg\",\n  \"topThis\": \"undefined\",\n  \"thisArg\": 2,\n  \"applyBad\": \"throws TypeError: Function.prototype.apply expects an array-like argument list.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nlet depth = 0\\nconst recurse = () => { depth++; return recurse() }\\nconst overflow = t(recurse)\\nconst reachedDeep = depth > 1000\\nconst mutual = { even: (n) => (n === 0 ? true : mutual.odd(n - 1)), odd: (n) => (n === 0 ? false : mutual.even(n - 1)) }\\nconst deepOk = (n) => (n === 0 ? 0 : 1 + deepOk(n - 1))\\nconst viaCallbacks = t(() => { const f = () => [1].map(f); f() })\\nreturn { overflow, reachedDeep, even: mutual.even(500), deep: deepOk(5000), viaCallbacks }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"overflow\": \"throws RangeError: Maximum call stack size exceeded\",\n  \"reachedDeep\": true,\n  \"even\": true,\n  \"deep\": 5000,\n  \"viaCallbacks\": \"throws RangeError: Maximum call stack size exceeded\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the functions, closures and this programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the functions, closures and this programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nfunction decl(a, b = a * 2, ...rest) { return [a, b, rest, arguments.length] }\\nconst expr = function (x) { return x + 1 }\\nconst named = function fact(n) { return n <= 1 ? 1 : n * fact(n - 1) }\\nconst arrow = (x) => x * 3\\nconst arrowBlock = (x) => { return { x } }\\nconst arrowObj = () => ({ literal: true })\\nconst fib = (n) => (n < 2 ? n : fib(n - 1) + fib(n - 2))\\nconst compose = (...fns) => (x) => fns.reduceRight((acc, f) => f(acc), x)\\nconst curry = (a) => (b) => (c) => a + b + c\\nconst props = function myName(a, b, c = 1, ...d) {}\\nprops.custom = \\\"prop\\\"\\nconst meta = {\\n  declName: decl.name, declLength: decl.length, exprName: expr.name, arrowName: arrow.name, propsLength: props.length, propsName: props.name,\\n  custom: props.custom, keys: Object.keys(props), anonName: (function () {}).name, arrowAnon: (() => {}).name,\\n  methodName: { m() {} }.m.name, assignedName: (() => { let late; late = () => 1; return late.name })(),\\n  computedName: { [\\\"comp\\\" + \\\"uted\\\"]: () => 1 }.computed.name,\\n  fnToString: Object.prototype.toString.call(decl), protoIsFn: Object.getPrototypeOf(decl) === Function.prototype,\\n}\\nconst namedReadonly = t(() => { const f = function self() { self = 1 }; f() })\\nreturn {\\n  decl: [decl(1), decl(1, 5, 6, 7)], expr: expr(1), fact: named(5), arrow: arrow(2), arrowBlock: arrowBlock(1), arrowObj: arrowObj(),\\n  fib: fib(15), composed: compose((x) => x + 1, (x) => x * 2)(5), curry: curry(1)(2)(3), meta, namedReadonly,\\n  iife: (function () { return \\\"iife\\\" })(), iifeArrow: (() => \\\"arrow iife\\\")(),\\n  hasConstructor: decl.constructor === Function, fnCtor: t(() => Function(\\\"return 1\\\")),\\n  newUser: t(() => new decl(1)), newArrow: t(() => new arrow(1)), newNumber: t(() => new Number(1)), newNonFn: t(() => new (5)()),\\n  callNonFn: t(() => (5)()), callUndefined: t(() => { const o = {}; o.missing() }),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nfunction decl(a, b = a * 2, ...rest) { return [a, b, rest, arguments.length] }\nconst expr = function (x) { return x + 1 }\nconst named = function fact(n) { return n <= 1 ? 1 : n * fact(n - 1) }\nconst arrow = (x) => x * 3\nconst arrowBlock = (x) => { return { x } }\nconst arrowObj = () => ({ literal: true })\nconst fib = (n) => (n < 2 ? n : fib(n - 1) + fib(n - 2))\nconst compose = (...fns) => (x) => fns.reduceRight((acc, f) => f(acc), x)\nconst curry = (a) => (b) => (c) => a + b + c\nconst props = function myName(a, b, c = 1, ...d) {}\nprops.custom = \"prop\"\nconst meta = {\n  declName: decl.name, declLength: decl.length, exprName: expr.name, arrowName: arrow.name, propsLength: props.length, propsName: props.name,\n  custom: props.custom, keys: Object.keys(props), anonName: (function () {}).name, arrowAnon: (() => {}).name,\n  methodName: { m() {} }.m.name, assignedName: (() => { let late; late = () => 1; return late.name })(),\n  computedName: { [\"comp\" + \"uted\"]: () => 1 }.computed.name,\n  fnToString: Object.prototype.toString.call(decl), protoIsFn: Object.getPrototypeOf(decl) === Function.prototype,\n}\nconst namedReadonly = t(() => { const f = function self() { self = 1 }; f() })\nreturn {\n  decl: [decl(1), decl(1, 5, 6, 7)], expr: expr(1), fact: named(5), arrow: arrow(2), arrowBlock: arrowBlock(1), arrowObj: arrowObj(),\n  fib: fib(15), composed: compose((x) => x + 1, (x) => x * 2)(5), curry: curry(1)(2)(3), meta, namedReadonly,\n  iife: (function () { return \"iife\" })(), iifeArrow: (() => \"arrow iife\")(),\n  hasConstructor: decl.constructor === Function, fnCtor: t(() => Function(\"return 1\")),\n  newUser: t(() => new decl(1)), newArrow: t(() => new arrow(1)), newNumber: t(() => new Number(1)), newNonFn: t(() => new (5)()),\n  callNonFn: t(() => (5)()), callUndefined: t(() => { const o = {}; o.missing() }),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"decl\": [\n    [\n      1,\n      2,\n      [],\n      1\n    ],\n    [\n      1,\n      5,\n      [\n        6,\n        7\n      ],\n      4\n    ]\n  ],\n  \"expr\": 2,\n  \"fact\": 120,\n  \"arrow\": 6,\n  \"arrowBlock\": {\n    \"x\": 1\n  },\n  \"arrowObj\": {\n    \"literal\": true\n  },\n  \"fib\": 610,\n  \"composed\": 11,\n  \"curry\": 6,\n  \"meta\": {\n    \"declName\": \"decl\",\n    \"declLength\": 1,\n    \"exprName\": \"expr\",\n    \"arrowName\": \"arrow\",\n    \"propsLength\": 2,\n    \"propsName\": \"myName\",\n    \"custom\": \"prop\",\n    \"keys\": [\n      \"custom\"\n    ],\n    \"anonName\": \"\",\n    \"arrowAnon\": \"\",\n    \"methodName\": \"m\",\n    \"assignedName\": \"late\",\n    \"computedName\": \"computed\",\n    \"fnToString\": \"[object Function]\",\n    \"protoIsFn\": true\n  },\n  \"namedReadonly\": \"throws TypeError: Cannot assign to constant 'self'.\",\n  \"iife\": \"iife\",\n  \"iifeArrow\": \"arrow iife\",\n  \"hasConstructor\": true,\n  \"fnCtor\": \"throws TypeError: The Function constructor is not supported; write the function inline.\",\n  \"newUser\": \"throws TypeError: decl cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newArrow\": \"throws TypeError: arrow cannot be constructed: user-defined constructors and classes are not supported. Call it as a function that returns a plain object instead.\",\n  \"newNumber\": \"throws TypeError: new Number(...) is not supported; call Number(...) without new instead.\",\n  \"newNonFn\": \"throws TypeError: The called value is not a constructor.\",\n  \"callNonFn\": \"throws TypeError: The called value is not a function.\",\n  \"callUndefined\": \"throws TypeError: o.missing is not a function.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst obj = {\\n  name: \\\"obj\\\",\\n  regular() { return String(this && this.name) },\\n  arrow: () => typeof this,\\n  nested() { const inner = () => this.name; return inner() },\\n  fnInside() { return typeof (function () { return this })() },\\n  counter: 0,\\n  inc() { this.counter++; return this },\\n}\\nconst detached = obj.regular\\nconst other = { name: \\\"other\\\" }\\nfunction show(greeting, punct) { return greeting + \\\" \\\" + (this && this.name) + punct }\\nconst bound = show.bind(obj, \\\"Hi\\\")\\nconst boundTwice = bound.bind(other, \\\"?\\\")\\nfunction argsFn() { return { len: arguments.length, json: JSON.stringify(arguments), str: String(arguments), spread: [...arguments], arr: Array.from(arguments), isArr: Array.isArray(arguments), first: arguments[0] } }\\nfunction shadowArgs(arguments) { return arguments }\\nfunction arrowArgs() { return (() => arguments[0])() }\\nreturn {\\n  regular: obj.regular(), computed: obj[\\\"regular\\\"](), detached: detached(), comma: (0, obj.regular)(), arrow: obj.arrow(), nested: obj.nested(), fnInside: obj.fnInside(),\\n  chained: obj.inc().inc().counter,\\n  call: show.call(other, \\\"Hello\\\", \\\"!\\\"), apply: show.apply(obj, [\\\"Hey\\\", \\\".\\\"]), applyNull: show.apply(null), applyArrayLike: show.apply(other, { length: 2, 0: \\\"A\\\", 1: \\\"B\\\" }),\\n  bound: bound(\\\"!\\\"), boundName: bound.name, boundLength: bound.length, boundTwice: boundTwice(), newBound: t(() => new bound()),\\n  builtinCall: Array.prototype.push.call([1], 2), mathApply: Math.max.apply(null, [1, 5, 3]), joinCall: Array.prototype.join.call([\\\"a\\\", \\\"b\\\"], \\\"-\\\"),\\n  args: argsFn(1, \\\"two\\\", [3]), shadowArgs: shadowArgs(\\\"mine\\\"), arrowArgs: arrowArgs(\\\"outer arg\\\"), topThis: typeof this,\\n  thisArg: (() => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })(),\\n  applyBad: t(() => show.apply(obj, 5)),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nconst obj = {\n  name: \"obj\",\n  regular() { return String(this && this.name) },\n  arrow: () => typeof this,\n  nested() { const inner = () => this.name; return inner() },\n  fnInside() { return typeof (function () { return this })() },\n  counter: 0,\n  inc() { this.counter++; return this },\n}\nconst detached = obj.regular\nconst other = { name: \"other\" }\nfunction show(greeting, punct) { return greeting + \" \" + (this && this.name) + punct }\nconst bound = show.bind(obj, \"Hi\")\nconst boundTwice = bound.bind(other, \"?\")\nfunction argsFn() { return { len: arguments.length, json: JSON.stringify(arguments), str: String(arguments), spread: [...arguments], arr: Array.from(arguments), isArr: Array.isArray(arguments), first: arguments[0] } }\nfunction shadowArgs(arguments) { return arguments }\nfunction arrowArgs() { return (() => arguments[0])() }\nreturn {\n  regular: obj.regular(), computed: obj[\"regular\"](), detached: detached(), comma: (0, obj.regular)(), arrow: obj.arrow(), nested: obj.nested(), fnInside: obj.fnInside(),\n  chained: obj.inc().inc().counter,\n  call: show.call(other, \"Hello\", \"!\"), apply: show.apply(obj, [\"Hey\", \".\"]), applyNull: show.apply(null), applyArrayLike: show.apply(other, { length: 2, 0: \"A\", 1: \"B\" }),\n  bound: bound(\"!\"), boundName: bound.name, boundLength: bound.length, boundTwice: boundTwice(), newBound: t(() => new bound()),\n  builtinCall: Array.prototype.push.call([1], 2), mathApply: Math.max.apply(null, [1, 5, 3]), joinCall: Array.prototype.join.call([\"a\", \"b\"], \"-\"),\n  args: argsFn(1, \"two\", [3]), shadowArgs: shadowArgs(\"mine\"), arrowArgs: arrowArgs(\"outer arg\"), topThis: typeof this,\n  thisArg: (() => { const c = { n: 0 }; [1, 2].forEach(function () { this.n++ }, c); return c.n })(),\n  applyBad: t(() => show.apply(obj, 5)),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"regular\": \"obj\",\n  \"computed\": \"obj\",\n  \"detached\": \"undefined\",\n  \"comma\": \"undefined\",\n  \"arrow\": \"undefined\",\n  \"nested\": \"obj\",\n  \"fnInside\": \"undefined\",\n  \"chained\": 2,\n  \"call\": \"Hello other!\",\n  \"apply\": \"Hey obj.\",\n  \"applyNull\": \"undefined nullundefined\",\n  \"applyArrayLike\": \"A otherB\",\n  \"bound\": \"Hi obj!\",\n  \"boundName\": \"bound show\",\n  \"boundLength\": 1,\n  \"boundTwice\": \"Hi obj?\",\n  \"newBound\": \"throws TypeError: new bound(...) is not supported; call bound(...) without new instead.\",\n  \"builtinCall\": 2,\n  \"mathApply\": 5,\n  \"joinCall\": \"a-b\",\n  \"args\": {\n    \"len\": 3,\n    \"json\": \"{\\\"0\\\":1,\\\"1\\\":\\\"two\\\",\\\"2\\\":[3]}\",\n    \"str\": \"[object Arguments]\",\n    \"spread\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"arr\": [\n      1,\n      \"two\",\n      [\n        3\n      ]\n    ],\n    \"isArr\": false,\n    \"first\": 1\n  },\n  \"shadowArgs\": \"mine\",\n  \"arrowArgs\": \"outer arg\",\n  \"topThis\": \"undefined\",\n  \"thisArg\": 2,\n  \"applyBad\": \"throws TypeError: Function.prototype.apply expects an array-like argument list.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nlet depth = 0\\nconst recurse = () => { depth++; return recurse() }\\nconst overflow = t(recurse)\\nconst reachedDeep = depth > 1000\\nconst mutual = { even: (n) => (n === 0 ? true : mutual.odd(n - 1)), odd: (n) => (n === 0 ? false : mutual.even(n - 1)) }\\nconst deepOk = (n) => (n === 0 ? 0 : 1 + deepOk(n - 1))\\nconst viaCallbacks = t(() => { const f = () => [1].map(f); f() })\\nreturn { overflow, reachedDeep, even: mutual.even(500), deep: deepOk(5000), viaCallbacks }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nlet depth = 0\nconst recurse = () => { depth++; return recurse() }\nconst overflow = t(recurse)\nconst reachedDeep = depth > 1000\nconst mutual = { even: (n) => (n === 0 ? true : mutual.odd(n - 1)), odd: (n) => (n === 0 ? false : mutual.even(n - 1)) }\nconst deepOk = (n) => (n === 0 ? 0 : 1 + deepOk(n - 1))\nconst viaCallbacks = t(() => { const f = () => [1].map(f); f() })\nreturn { overflow, reachedDeep, even: mutual.even(500), deep: deepOk(5000), viaCallbacks }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"overflow\": \"throws RangeError: Maximum call stack size exceeded\",\n  \"reachedDeep\": true,\n  \"even\": true,\n  \"deep\": 5000,\n  \"viaCallbacks\": \"throws RangeError: Maximum call stack size exceeded\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

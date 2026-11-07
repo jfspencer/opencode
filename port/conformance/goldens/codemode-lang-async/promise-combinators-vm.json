@@ -1,0 +1,2587 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the promise combinators programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the promise combinators programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const handled = Promise.reject(new Error(\\\"handled later\\\"))\\nawait null\\nconst msg = await handled.catch((e) => e.message)\\nconst late = Promise.reject(new Error(\\\"caught before end\\\"))\\nlate.catch(() => {})\\nreturn msg\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "handled later",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const handled = Promise.reject(new Error(\\\"handled later\\\"))\\nawait null\\nconst msg = await handled.catch((e) => e.message)\\nconst late = Promise.reject(new Error(\\\"caught before end\\\"))\\nlate.catch(() => {})\\nreturn msg\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "handled later",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.resolve({ nested: Promise.resolve(1) })\\nreturn p\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"nested\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const handled = Promise.reject(new Error(\\\"handled later\\\"))\\nawait null\\nconst msg = await handled.catch((e) => e.message)\\nconst late = Promise.reject(new Error(\\\"caught before end\\\"))\\nlate.catch(() => {})\\nreturn msg\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "handled later",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.resolve({ nested: Promise.resolve(1) })\\nreturn p\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"nested\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function main() { throw new RangeError(\\\"top-level async failure\\\") }\\nawait main()\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "RangeError: top-level async failure",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the promise combinators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const handled = Promise.reject(new Error(\\\"handled later\\\"))\\nawait null\\nconst msg = await handled.catch((e) => e.message)\\nconst late = Promise.reject(new Error(\\\"caught before end\\\"))\\nlate.catch(() => {})\\nreturn msg\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "handled later",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const p = Promise.resolve({ nested: Promise.resolve(1) })\\nreturn p\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"nested\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function main() { throw new RangeError(\\\"top-level async failure\\\") }\\nawait main()\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "RangeError: top-level async failure",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"Promise.reject(new Error(\\\"returned rejection\\\"))\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: returned rejection",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the promise combinators programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the promise combinators programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\\nconst all = await Promise.all([delay(\\\"a\\\", 3), \\\"plain\\\", delay(\\\"b\\\", 1), Promise.resolve(\\\"c\\\")])\\nconst allFail = await Promise.all([delay(\\\"a\\\", 3), fail(\\\"all failed\\\", 1), fail(\\\"later\\\", 2)]).catch((e) => e.message)\\nconst allEmpty = await Promise.all([])\\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\\nconst allGen = await Promise.all((function* () { yield delay(\\\"g1\\\", 1); yield \\\"g2\\\" })())\\nconst settled = await Promise.allSettled([delay(\\\"ok\\\", 1), fail(\\\"bad\\\", 2), 3])\\nconst race = await Promise.race([delay(\\\"slow\\\", 5), delay(\\\"fast\\\", 1)])\\nconst raceReject = await Promise.race([delay(\\\"slow\\\", 5), fail(\\\"fast fail\\\", 1)]).catch((e) => e.message)\\nconst racePlain = await Promise.race([delay(\\\"x\\\", 1), \\\"immediate\\\"])\\nconst any = await Promise.any([fail(\\\"e1\\\", 1), delay(\\\"first ok\\\", 3), delay(\\\"second ok\\\", 4)])\\nconst anyAll = await Promise.any([fail(\\\"e1\\\", 2), fail(\\\"e2\\\", 1), Promise.reject(\\\"raw\\\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\\nconst notIterable = await Promise.all(5).catch((e) => e.name + \\\": \\\" + e.message)\\nconst order = []\\nconst p1 = delay(\\\"p1\\\", 1)\\np1.then(() => order.push(\\\"member reaction\\\"))\\nawait Promise.all([p1]).then(() => order.push(\\\"all reaction\\\"))\\nconst agg = new AggregateError([new Error(\\\"x\\\"), \\\"y\\\"], \\\"custom agg\\\")\\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const delay = async (v, n) => { for (let i = 0; i < n; i++) await null; return v }\nconst fail = async (msg, n) => { for (let i = 0; i < n; i++) await null; throw new Error(msg) }\nconst all = await Promise.all([delay(\"a\", 3), \"plain\", delay(\"b\", 1), Promise.resolve(\"c\")])\nconst allFail = await Promise.all([delay(\"a\", 3), fail(\"all failed\", 1), fail(\"later\", 2)]).catch((e) => e.message)\nconst allEmpty = await Promise.all([])\nconst allSet = await Promise.all(new Set([delay(1, 1), 2]))\nconst allGen = await Promise.all((function* () { yield delay(\"g1\", 1); yield \"g2\" })())\nconst settled = await Promise.allSettled([delay(\"ok\", 1), fail(\"bad\", 2), 3])\nconst race = await Promise.race([delay(\"slow\", 5), delay(\"fast\", 1)])\nconst raceReject = await Promise.race([delay(\"slow\", 5), fail(\"fast fail\", 1)]).catch((e) => e.message)\nconst racePlain = await Promise.race([delay(\"x\", 1), \"immediate\"])\nconst any = await Promise.any([fail(\"e1\", 1), delay(\"first ok\", 3), delay(\"second ok\", 4)])\nconst anyAll = await Promise.any([fail(\"e1\", 2), fail(\"e2\", 1), Promise.reject(\"raw\")]).catch((e) => ({ name: e.name, message: e.message, errors: e.errors.map((x) => (x instanceof Error ? x.message : x)), isAgg: e instanceof AggregateError }))\nconst anyEmpty = await Promise.any([]).catch((e) => ({ name: e.name, errors: e.errors, message: e.message }))\nconst notIterable = await Promise.all(5).catch((e) => e.name + \": \" + e.message)\nconst order = []\nconst p1 = delay(\"p1\", 1)\np1.then(() => order.push(\"member reaction\"))\nawait Promise.all([p1]).then(() => order.push(\"all reaction\"))\nconst agg = new AggregateError([new Error(\"x\"), \"y\"], \"custom agg\")\nreturn { all, allFail, allEmpty, allSet, allGen, settled, race, raceReject, racePlain, any, anyAll, anyEmpty, notIterable, order, agg: { name: agg.name, message: agg.message, errors: agg.errors.length } }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"all\": [\n    \"a\",\n    \"plain\",\n    \"b\",\n    \"c\"\n  ],\n  \"allFail\": \"all failed\",\n  \"allEmpty\": [],\n  \"allSet\": [\n    1,\n    2\n  ],\n  \"allGen\": [\n    \"g1\",\n    \"g2\"\n  ],\n  \"settled\": [\n    {\n      \"status\": \"fulfilled\",\n      \"value\": \"ok\"\n    },\n    {\n      \"status\": \"rejected\",\n      \"reason\": {\n        \"name\": \"Error\",\n        \"message\": \"bad\"\n      }\n    },\n    {\n      \"status\": \"fulfilled\",\n      \"value\": 3\n    }\n  ],\n  \"race\": \"fast\",\n  \"raceReject\": \"fast fail\",\n  \"racePlain\": \"immediate\",\n  \"any\": \"first ok\",\n  \"anyAll\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"All promises were rejected\",\n    \"errors\": [\n      \"e1\",\n      \"e2\",\n      \"raw\"\n    ],\n    \"isAgg\": true\n  },\n  \"anyEmpty\": {\n    \"name\": \"AggregateError\",\n    \"errors\": [],\n    \"message\": \"All promises were rejected\"\n  },\n  \"notIterable\": \"TypeError: Promise.all expects a synchronous iterable, received a number.\",\n  \"order\": [\n    \"member reaction\",\n    \"all reaction\"\n  ],\n  \"agg\": {\n    \"name\": \"AggregateError\",\n    \"message\": \"custom agg\",\n    \"errors\": 2\n  }\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const p = Promise.reject(new Error(\\\"never awaited\\\"))\\nconst q = (async () => { throw new TypeError(\\\"background failure\\\") })()\\nPromise.reject(\\\"string reason\\\")\\nconst pending = new Promise(() => {})\\nconst ok = Promise.resolve(\\\"fine\\\")\\n\\\"returned while rejections were unhandled\\\"\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const p = Promise.reject(new Error(\"never awaited\"))\nconst q = (async () => { throw new TypeError(\"background failure\") })()\nPromise.reject(\"string reason\")\nconst pending = new Promise(() => {})\nconst ok = Promise.resolve(\"fine\")\n\"returned while rejections were unhandled\""
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "returned while rejections were unhandled\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Error: never awaited\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: background failure\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: Uncaught: string reason",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const log = []\\nconst work = (async () => { log.push(\\\"started\\\"); await new Promise(() => {}); log.push(\\\"never\\\") })()\\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\\\"slow done\\\") })()\\nconst fast = await Promise.race([slow, Promise.resolve(\\\"race winner\\\")])\\nreturn { fast, log }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const log = []\nconst work = (async () => { log.push(\"started\"); await new Promise(() => {}); log.push(\"never\") })()\nconst slow = (async () => { for (let i = 0; i < 1000; i++) await null; log.push(\"slow done\") })()\nconst fast = await Promise.race([slow, Promise.resolve(\"race winner\")])\nreturn { fast, log }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"fast\": \"race winner\",\n  \"log\": [\n    \"started\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const handled = Promise.reject(new Error(\\\"handled later\\\"))\\nawait null\\nconst msg = await handled.catch((e) => e.message)\\nconst late = Promise.reject(new Error(\\\"caught before end\\\"))\\nlate.catch(() => {})\\nreturn msg\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const handled = Promise.reject(new Error(\"handled later\"))\nawait null\nconst msg = await handled.catch((e) => e.message)\nconst late = Promise.reject(new Error(\"caught before end\"))\nlate.catch(() => {})\nreturn msg"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "handled later",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 2
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_49>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const p = Promise.resolve({ nested: Promise.resolve(1) })\\nreturn p\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const p = Promise.resolve({ nested: Promise.resolve(1) })\nreturn p"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "{\n  \"nested\": 1\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 2
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_57>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"async function main() { throw new RangeError(\\\"top-level async failure\\\") }\\nawait main()\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "async function main() { throw new RangeError(\"top-level async failure\") }\nawait main()"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "content": [
+            {
+              "text": "RangeError: top-level async failure",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 2
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 48,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_65>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 49,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 50,
+          "version": 1
+        },
+        "id": "<evt_67>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"Promise.reject(new Error(\\\"returned rejection\\\"))\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 51,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "Promise.reject(new Error(\"returned rejection\"))"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 52,
+          "version": 1
+        },
+        "id": "<evt_69>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 53,
+          "version": 1
+        },
+        "id": "<evt_70>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "content": [
+            {
+              "text": "Error: returned rejection",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 54,
+          "version": 2
+        },
+        "id": "<evt_71>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 55,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 800,
+            "output": 80,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_73>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_9>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 56,
+          "version": 1
+        },
+        "id": "<evt_74>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 57,
+          "version": 1
+        },
+        "id": "<evt_75>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_76>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 58,
+          "version": 1
+        },
+        "id": "<evt_77>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 59,
+          "version": 1
+        },
+        "id": "<evt_78>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 60,
+          "version": 1
+        },
+        "id": "<evt_79>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 900,
+            "output": 90,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_80>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 61,
+          "version": 1
+        },
+        "id": "<evt_81>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

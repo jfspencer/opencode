@@ -1,0 +1,445 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Long talk",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Long talk",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Question number 1",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Answer 1, line 1.\n\nAnswer 1, line 2.\n\nAnswer 1, line 3.\n\nAnswer 1, line 4.\n\nAnswer 1, line 5.\n\nAnswer 1, line 6.\n\nAnswer 1, line 7.\n\nAnswer 1, line 8.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 500,
+              "output": 40,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_3>",
+            "text": "Question number 2",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Answer 2, line 1.\n\nAnswer 2, line 2.\n\nAnswer 2, line 3.\n\nAnswer 2, line 4.\n\nAnswer 2, line 5.\n\nAnswer 2, line 6.\n\nAnswer 2, line 7.\n\nAnswer 2, line 8.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 500,
+              "output": 40,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_5>",
+            "text": "Question number 3",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Answer 3, line 1.\n\nAnswer 3, line 2.\n\nAnswer 3, line 3.\n\nAnswer 3, line 4.\n\nAnswer 3, line 5.\n\nAnswer 3, line 6.\n\nAnswer 3, line 7.\n\nAnswer 3, line 8.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 500,
+              "output": 40,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "kind": "note",
+      "label": "frame:choices",
+      "value": [
+        "   Long talk                     +",
+        "  ┃",
+        "  ┃  Question number 3",
+        "  ┃",
+        "",
+        "     Answer 3, line 1.",
+        "",
+        "     Answer 3, line 2.",
+        "",
+        "     A    Fork session                                                                 esc",
+        "",
+        "     A    Search",
+        "",
+        "     A  ● Full session",
+        "          Question number 3                                                       10:02 AM",
+        "     A    Question number 2                                                       10:01 AM",
+        "          Question number 1                                                       10:00 AM",
+        "     A",
+        "",
+        "     Answer 3, line 8.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                              540 (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:forked",
+      "value": [
+        "   Long talk                       Long talk (fork #1)           +",
+        "  ┃                                                                        ┃                     ┃",
+        "  ┃  Question number 3                                                     ┃  Forked session  x  ┃",
+        "  ┃                                                                        ┃                     ┃",
+        "",
+        "     Answer 3, line 1.",
+        "",
+        "     Answer 3, line 2.",
+        "",
+        "     Answer 3, line 3.",
+        "",
+        "     Answer 3, line 4.",
+        "",
+        "     Answer 3, line 5.",
+        "",
+        "     Answer 3, line 6.",
+        "",
+        "     Answer 3, line 7.",
+        "",
+        "     Answer 3, line 8.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                              540 (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/experimental/session/<ses_2>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/inbox",
+        "GET /api/session/<ses_1>/message",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/session/<ses_2>",
+        "GET /api/session/<ses_2>/form",
+        "GET /api/session/<ses_2>/inbox",
+        "GET /api/session/<ses_2>/message",
+        "GET /api/session/<ses_2>/permission",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get",
+        "POST /api/session/<ses_1>/fork"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "Long talk",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "boundary": {
+            "messageID": "<msg_6>",
+            "type": "through"
+          },
+          "instructionEntries": [],
+          "parentID": "<ses_1>",
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 2
+        },
+        "id": "<evt_12>",
+        "type": "session.forked"
+      }
+    ]
+  },
+  "files": {}
+}

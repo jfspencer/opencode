@@ -1,0 +1,1303 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the arithmetic and comparison operators programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the arithmetic and comparison operators programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the arithmetic and comparison operators programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the arithmetic and comparison operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"return {\\n  add: [1 + 2, \\\"a\\\" + 1, 1 + \\\"2\\\", true + 1, null + 1, undefined + 1, [1] + [2], {} + \\\"x\\\", 0.1 + 0.2],\\n  sub: [5 - 2, \\\"5\\\" - 2, \\\"x\\\" - 1, null - 1, true - false],\\n  mul: [3 * 4, \\\"3\\\" * \\\"4\\\", -0 * 1, Infinity * 0],\\n  div: [7 / 2, 1 / 0, -1 / 0, 0 / 0, \\\"8\\\" / \\\"2\\\"],\\n  mod: [7 % 3, -7 % 3, 7 % -3, 5.5 % 2, 1 % 0],\\n  exp: [2 ** 10, 2 ** -1, (-2) ** 3, 2 ** 3 ** 2, 4 ** 0.5],\\n  cmp: [1 < 2, 2 <= 2, 3 > 4, 4 >= 4, \\\"a\\\" < \\\"b\\\", \\\"10\\\" < \\\"9\\\", \\\"10\\\" < 9, null < 1, undefined < 1, NaN < 1, NaN >= NaN],\\n  eq: [1 == \\\"1\\\", 0 == false, null == undefined, null == 0, NaN == NaN, [1] == 1, [1, 2] == \\\"1,2\\\", \\\"\\\" == 0, \\\"0\\\" == false],\\n  strict: [1 === 1, 1 === \\\"1\\\", null === undefined, NaN === NaN, 0 === -0, +0 !== -0, \\\"a\\\" !== \\\"a\\\"],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"add\": [\n    3,\n    \"a1\",\n    \"12\",\n    2,\n    1,\n    null,\n    \"12\",\n    \"[object Object]x\",\n    0.30000000000000004\n  ],\n  \"sub\": [\n    3,\n    3,\n    null,\n    -1,\n    1\n  ],\n  \"mul\": [\n    12,\n    12,\n    0,\n    null\n  ],\n  \"div\": [\n    3.5,\n    null,\n    null,\n    null,\n    4\n  ],\n  \"mod\": [\n    1,\n    -1,\n    1,\n    1.5,\n    null\n  ],\n  \"exp\": [\n    1024,\n    0.5,\n    -8,\n    512,\n    2\n  ],\n  \"cmp\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true,\n    false,\n    false,\n    false\n  ],\n  \"eq\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"strict\": [\n    true,\n    false,\n    false,\n    false,\n    true,\n    false,\n    false\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the arithmetic and comparison operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"return {\\n  add: [1 + 2, \\\"a\\\" + 1, 1 + \\\"2\\\", true + 1, null + 1, undefined + 1, [1] + [2], {} + \\\"x\\\", 0.1 + 0.2],\\n  sub: [5 - 2, \\\"5\\\" - 2, \\\"x\\\" - 1, null - 1, true - false],\\n  mul: [3 * 4, \\\"3\\\" * \\\"4\\\", -0 * 1, Infinity * 0],\\n  div: [7 / 2, 1 / 0, -1 / 0, 0 / 0, \\\"8\\\" / \\\"2\\\"],\\n  mod: [7 % 3, -7 % 3, 7 % -3, 5.5 % 2, 1 % 0],\\n  exp: [2 ** 10, 2 ** -1, (-2) ** 3, 2 ** 3 ** 2, 4 ** 0.5],\\n  cmp: [1 < 2, 2 <= 2, 3 > 4, 4 >= 4, \\\"a\\\" < \\\"b\\\", \\\"10\\\" < \\\"9\\\", \\\"10\\\" < 9, null < 1, undefined < 1, NaN < 1, NaN >= NaN],\\n  eq: [1 == \\\"1\\\", 0 == false, null == undefined, null == 0, NaN == NaN, [1] == 1, [1, 2] == \\\"1,2\\\", \\\"\\\" == 0, \\\"0\\\" == false],\\n  strict: [1 === 1, 1 === \\\"1\\\", null === undefined, NaN === NaN, 0 === -0, +0 !== -0, \\\"a\\\" !== \\\"a\\\"],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"add\": [\n    3,\n    \"a1\",\n    \"12\",\n    2,\n    1,\n    null,\n    \"12\",\n    \"[object Object]x\",\n    0.30000000000000004\n  ],\n  \"sub\": [\n    3,\n    3,\n    null,\n    -1,\n    1\n  ],\n  \"mul\": [\n    12,\n    12,\n    0,\n    null\n  ],\n  \"div\": [\n    3.5,\n    null,\n    null,\n    null,\n    4\n  ],\n  \"mod\": [\n    1,\n    -1,\n    1,\n    1.5,\n    null\n  ],\n  \"exp\": [\n    1024,\n    0.5,\n    -8,\n    512,\n    2\n  ],\n  \"cmp\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true,\n    false,\n    false,\n    false\n  ],\n  \"eq\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"strict\": [\n    true,\n    false,\n    false,\n    false,\n    true,\n    false,\n    false\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"let a = 0b1010, b = 0o17, c = 0xff, d = 1_000_000, e = 1e3, f = .5\\nreturn {\\n  literals: [a, b, c, d, e, f, 5e-7, 2e21],\\n  bitwise: [a & b, a | b, a ^ b, ~a, a << 2, -16 >> 2, -16 >>> 28, 1 << 31, (2 ** 32 + 5) | 0, ~~3.7, 5.9 | 0],\\n  unary: [+\\\"3\\\", +\\\"\\\", +\\\"x\\\", -\\\"4\\\", +true, +null, +undefined, +[], +[5], +[1, 2], -(-1), !0, !!\\\"\\\", !!\\\"a\\\", !!{}, !![]],\\n  typeof: [typeof 1, typeof \\\"s\\\", typeof true, typeof undefined, typeof null, typeof {}, typeof [], typeof (() => 1), typeof Math, typeof JSON.parse, typeof notDeclared, typeof Symbol.iterator],\\n  void: [void 0, void \\\"x\\\"],\\n  comma: (1, 2, 3),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"literals\": [\n    10,\n    15,\n    255,\n    1000000,\n    1000,\n    0.5,\n    5e-7,\n    2e+21\n  ],\n  \"bitwise\": [\n    10,\n    15,\n    5,\n    -11,\n    40,\n    -4,\n    15,\n    -2147483648,\n    5,\n    3,\n    5\n  ],\n  \"unary\": [\n    3,\n    0,\n    null,\n    -4,\n    1,\n    0,\n    null,\n    0,\n    5,\n    null,\n    1,\n    true,\n    false,\n    true,\n    true,\n    true\n  ],\n  \"typeof\": [\n    \"number\",\n    \"string\",\n    \"boolean\",\n    \"undefined\",\n    \"object\",\n    \"object\",\n    \"object\",\n    \"function\",\n    \"object\",\n    \"function\",\n    \"undefined\",\n    \"symbol\"\n  ],\n  \"void\": [\n    null,\n    null\n  ],\n  \"comma\": 3\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the arithmetic and comparison operators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"return {\\n  add: [1 + 2, \\\"a\\\" + 1, 1 + \\\"2\\\", true + 1, null + 1, undefined + 1, [1] + [2], {} + \\\"x\\\", 0.1 + 0.2],\\n  sub: [5 - 2, \\\"5\\\" - 2, \\\"x\\\" - 1, null - 1, true - false],\\n  mul: [3 * 4, \\\"3\\\" * \\\"4\\\", -0 * 1, Infinity * 0],\\n  div: [7 / 2, 1 / 0, -1 / 0, 0 / 0, \\\"8\\\" / \\\"2\\\"],\\n  mod: [7 % 3, -7 % 3, 7 % -3, 5.5 % 2, 1 % 0],\\n  exp: [2 ** 10, 2 ** -1, (-2) ** 3, 2 ** 3 ** 2, 4 ** 0.5],\\n  cmp: [1 < 2, 2 <= 2, 3 > 4, 4 >= 4, \\\"a\\\" < \\\"b\\\", \\\"10\\\" < \\\"9\\\", \\\"10\\\" < 9, null < 1, undefined < 1, NaN < 1, NaN >= NaN],\\n  eq: [1 == \\\"1\\\", 0 == false, null == undefined, null == 0, NaN == NaN, [1] == 1, [1, 2] == \\\"1,2\\\", \\\"\\\" == 0, \\\"0\\\" == false],\\n  strict: [1 === 1, 1 === \\\"1\\\", null === undefined, NaN === NaN, 0 === -0, +0 !== -0, \\\"a\\\" !== \\\"a\\\"],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"add\": [\n    3,\n    \"a1\",\n    \"12\",\n    2,\n    1,\n    null,\n    \"12\",\n    \"[object Object]x\",\n    0.30000000000000004\n  ],\n  \"sub\": [\n    3,\n    3,\n    null,\n    -1,\n    1\n  ],\n  \"mul\": [\n    12,\n    12,\n    0,\n    null\n  ],\n  \"div\": [\n    3.5,\n    null,\n    null,\n    null,\n    4\n  ],\n  \"mod\": [\n    1,\n    -1,\n    1,\n    1.5,\n    null\n  ],\n  \"exp\": [\n    1024,\n    0.5,\n    -8,\n    512,\n    2\n  ],\n  \"cmp\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true,\n    false,\n    false,\n    false\n  ],\n  \"eq\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"strict\": [\n    true,\n    false,\n    false,\n    false,\n    true,\n    false,\n    false\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"let a = 0b1010, b = 0o17, c = 0xff, d = 1_000_000, e = 1e3, f = .5\\nreturn {\\n  literals: [a, b, c, d, e, f, 5e-7, 2e21],\\n  bitwise: [a & b, a | b, a ^ b, ~a, a << 2, -16 >> 2, -16 >>> 28, 1 << 31, (2 ** 32 + 5) | 0, ~~3.7, 5.9 | 0],\\n  unary: [+\\\"3\\\", +\\\"\\\", +\\\"x\\\", -\\\"4\\\", +true, +null, +undefined, +[], +[5], +[1, 2], -(-1), !0, !!\\\"\\\", !!\\\"a\\\", !!{}, !![]],\\n  typeof: [typeof 1, typeof \\\"s\\\", typeof true, typeof undefined, typeof null, typeof {}, typeof [], typeof (() => 1), typeof Math, typeof JSON.parse, typeof notDeclared, typeof Symbol.iterator],\\n  void: [void 0, void \\\"x\\\"],\\n  comma: (1, 2, 3),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"literals\": [\n    10,\n    15,\n    255,\n    1000000,\n    1000,\n    0.5,\n    5e-7,\n    2e+21\n  ],\n  \"bitwise\": [\n    10,\n    15,\n    5,\n    -11,\n    40,\n    -4,\n    15,\n    -2147483648,\n    5,\n    3,\n    5\n  ],\n  \"unary\": [\n    3,\n    0,\n    null,\n    -4,\n    1,\n    0,\n    null,\n    0,\n    5,\n    null,\n    1,\n    true,\n    false,\n    true,\n    true,\n    true\n  ],\n  \"typeof\": [\n    \"number\",\n    \"string\",\n    \"boolean\",\n    \"undefined\",\n    \"object\",\n    \"object\",\n    \"object\",\n    \"function\",\n    \"object\",\n    \"function\",\n    \"undefined\",\n    \"symbol\"\n  ],\n  \"void\": [\n    null,\n    null\n  ],\n  \"comma\": 3\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst o = { valueOf() { return 7 }, toString() { return \\\"seven\\\" } }\\nconst s = { toString() { return \\\"str\\\" } }\\nconst order = []\\nconst l = { valueOf() { order.push(\\\"l\\\"); return 1 } }\\nconst r = { valueOf() { order.push(\\\"r\\\"); return 2 } }\\nconst res = {\\n  mulObj: o * 2, plusObj: o + 1, tmpl: `${o}`, strConcat: \\\"\\\" + s, cmp: o > 6, neg: -o, tilde: ~o,\\n  number: Number(o), string: String(o), isNaN: isNaN(s), parseInt: parseInt({ toString() { return \\\"42px\\\" } }),\\n  sum: l + r, order,\\n  arrToStr: (() => { const arr = [1, 2]; arr.toString = () => \\\"x\\\"; return arr + \\\"\\\" })(),\\n  throwing: t(() => ({ valueOf() { throw new TypeError(\\\"no value\\\") } }) * 1),\\n  loose: [o == 7, s == \\\"str\\\", null == false, undefined == null],\\n  fnCoerce: [String(() => 1), `${Math.max}`, isNaN(() => 1)],\\n  fnBinary: t(() => (() => 1) + 1),\\n  fnUnary: t(() => -(() => 1)),\\n  key: (() => { const x = {}; x[{ toString() { return \\\"id\\\" } }] = 1; x[null] = 2; x[true] = 3; x[[1, 2]] = 4; return x })(),\\n  objOps: (() => { const n = { valueOf() { return 6 } }; return [n % 4, n ** 2, n <= 6, n >= 7, n & 3, n | 1, n ^ 2, n << 1, n >> 1, n >>> 1, n - 1, n / 2, 1 - n, n < 7, 2 ** n, 13 % n] })(),\\n  strObj: (() => { const s = { toString() { return \\\"b\\\" } }; return [s < \\\"c\\\", s <= \\\"a\\\", s > \\\"a\\\", s >= \\\"b\\\", s + s, \\\"a\\\" < s] })(),\\n  nullCmp: [({}) == null, null == ({}), undefined == ({}), ({}) != null, ({}) == \\\"[object Object]\\\", [] == false, [0] == false],\\n  dates: [new Date(5) - new Date(2), new Date(0) + 1, new Date(0) < new Date(1), +new Date(7)],\\n  compound: (() => { let x = 1; x += { valueOf() { return 2 } }; let y = { valueOf() { return 3 } }; y *= 2; let z = \\\"s\\\"; z += [1, 2]; let w = 10; w -= (() => 4)(); let v; v = (() => \\\"called\\\")(); return [x, y, z, w, v] })(),\\n  strCmp: [\\\"abc\\\" < \\\"abd\\\", \\\"B\\\" < \\\"a\\\", \\\"a\\\" <= \\\"a\\\", \\\"b\\\" >= \\\"c\\\", \\\"10\\\" >= \\\"9\\\", \\\"x\\\" > \\\"X\\\"],\\n  mixed: [1 <= \\\"1\\\", \\\"2\\\" >= 3, null >= 0, undefined <= 0, true > false, \\\"5\\\" * [2], [3] - 1, \\\"4\\\" ** \\\"2\\\", \\\"9\\\" % \\\"4\\\", \\\"6\\\" & \\\"3\\\", \\\"6\\\" | 1, \\\"6\\\" ^ \\\"2\\\", \\\"1\\\" << \\\"3\\\", \\\"-16\\\" >> 2, \\\"-16\\\" >>> 30],\\n}\\nres\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"mulObj\": 14,\n  \"plusObj\": 8,\n  \"tmpl\": \"seven\",\n  \"strConcat\": \"str\",\n  \"cmp\": true,\n  \"neg\": -7,\n  \"tilde\": -8,\n  \"number\": 7,\n  \"string\": \"seven\",\n  \"isNaN\": true,\n  \"parseInt\": 42,\n  \"sum\": 3,\n  \"order\": [\n    \"l\",\n    \"r\"\n  ],\n  \"arrToStr\": \"x\",\n  \"throwing\": \"throws TypeError: no value\",\n  \"loose\": [\n    true,\n    true,\n    false,\n    true\n  ],\n  \"fnCoerce\": [\n    \"[object Function]\",\n    \"[object Function]\",\n    true\n  ],\n  \"fnBinary\": \"throws TypeError: Binary operators require data values.\",\n  \"fnUnary\": \"throws TypeError: Unary operators require data values.\",\n  \"key\": {\n    \"id\": 1,\n    \"null\": 2,\n    \"true\": 3,\n    \"1,2\": 4\n  },\n  \"objOps\": [\n    2,\n    36,\n    true,\n    false,\n    2,\n    7,\n    4,\n    12,\n    3,\n    3,\n    5,\n    3,\n    -5,\n    true,\n    64,\n    1\n  ],\n  \"strObj\": [\n    true,\n    false,\n    true,\n    true,\n    \"bb\",\n    true\n  ],\n  \"nullCmp\": [\n    false,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"dates\": [\n    3,\n    \"1970-01-01T00:00:00.000Z1\",\n    true,\n    7\n  ],\n  \"compound\": [\n    3,\n    6,\n    \"s1,2\",\n    6,\n    \"called\"\n  ],\n  \"strCmp\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true\n  ],\n  \"mixed\": [\n    true,\n    false,\n    true,\n    false,\n    true,\n    10,\n    2,\n    16,\n    1,\n    2,\n    7,\n    4,\n    8,\n    -4,\n    3\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the arithmetic and comparison operators programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the arithmetic and comparison operators programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"return {\\n  add: [1 + 2, \\\"a\\\" + 1, 1 + \\\"2\\\", true + 1, null + 1, undefined + 1, [1] + [2], {} + \\\"x\\\", 0.1 + 0.2],\\n  sub: [5 - 2, \\\"5\\\" - 2, \\\"x\\\" - 1, null - 1, true - false],\\n  mul: [3 * 4, \\\"3\\\" * \\\"4\\\", -0 * 1, Infinity * 0],\\n  div: [7 / 2, 1 / 0, -1 / 0, 0 / 0, \\\"8\\\" / \\\"2\\\"],\\n  mod: [7 % 3, -7 % 3, 7 % -3, 5.5 % 2, 1 % 0],\\n  exp: [2 ** 10, 2 ** -1, (-2) ** 3, 2 ** 3 ** 2, 4 ** 0.5],\\n  cmp: [1 < 2, 2 <= 2, 3 > 4, 4 >= 4, \\\"a\\\" < \\\"b\\\", \\\"10\\\" < \\\"9\\\", \\\"10\\\" < 9, null < 1, undefined < 1, NaN < 1, NaN >= NaN],\\n  eq: [1 == \\\"1\\\", 0 == false, null == undefined, null == 0, NaN == NaN, [1] == 1, [1, 2] == \\\"1,2\\\", \\\"\\\" == 0, \\\"0\\\" == false],\\n  strict: [1 === 1, 1 === \\\"1\\\", null === undefined, NaN === NaN, 0 === -0, +0 !== -0, \\\"a\\\" !== \\\"a\\\"],\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "return {\n  add: [1 + 2, \"a\" + 1, 1 + \"2\", true + 1, null + 1, undefined + 1, [1] + [2], {} + \"x\", 0.1 + 0.2],\n  sub: [5 - 2, \"5\" - 2, \"x\" - 1, null - 1, true - false],\n  mul: [3 * 4, \"3\" * \"4\", -0 * 1, Infinity * 0],\n  div: [7 / 2, 1 / 0, -1 / 0, 0 / 0, \"8\" / \"2\"],\n  mod: [7 % 3, -7 % 3, 7 % -3, 5.5 % 2, 1 % 0],\n  exp: [2 ** 10, 2 ** -1, (-2) ** 3, 2 ** 3 ** 2, 4 ** 0.5],\n  cmp: [1 < 2, 2 <= 2, 3 > 4, 4 >= 4, \"a\" < \"b\", \"10\" < \"9\", \"10\" < 9, null < 1, undefined < 1, NaN < 1, NaN >= NaN],\n  eq: [1 == \"1\", 0 == false, null == undefined, null == 0, NaN == NaN, [1] == 1, [1, 2] == \"1,2\", \"\" == 0, \"0\" == false],\n  strict: [1 === 1, 1 === \"1\", null === undefined, NaN === NaN, 0 === -0, +0 !== -0, \"a\" !== \"a\"],\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"add\": [\n    3,\n    \"a1\",\n    \"12\",\n    2,\n    1,\n    null,\n    \"12\",\n    \"[object Object]x\",\n    0.30000000000000004\n  ],\n  \"sub\": [\n    3,\n    3,\n    null,\n    -1,\n    1\n  ],\n  \"mul\": [\n    12,\n    12,\n    0,\n    null\n  ],\n  \"div\": [\n    3.5,\n    null,\n    null,\n    null,\n    4\n  ],\n  \"mod\": [\n    1,\n    -1,\n    1,\n    1.5,\n    null\n  ],\n  \"exp\": [\n    1024,\n    0.5,\n    -8,\n    512,\n    2\n  ],\n  \"cmp\": [\n    true,\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true,\n    false,\n    false,\n    false\n  ],\n  \"eq\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"strict\": [\n    true,\n    false,\n    false,\n    false,\n    true,\n    false,\n    false\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"let a = 0b1010, b = 0o17, c = 0xff, d = 1_000_000, e = 1e3, f = .5\\nreturn {\\n  literals: [a, b, c, d, e, f, 5e-7, 2e21],\\n  bitwise: [a & b, a | b, a ^ b, ~a, a << 2, -16 >> 2, -16 >>> 28, 1 << 31, (2 ** 32 + 5) | 0, ~~3.7, 5.9 | 0],\\n  unary: [+\\\"3\\\", +\\\"\\\", +\\\"x\\\", -\\\"4\\\", +true, +null, +undefined, +[], +[5], +[1, 2], -(-1), !0, !!\\\"\\\", !!\\\"a\\\", !!{}, !![]],\\n  typeof: [typeof 1, typeof \\\"s\\\", typeof true, typeof undefined, typeof null, typeof {}, typeof [], typeof (() => 1), typeof Math, typeof JSON.parse, typeof notDeclared, typeof Symbol.iterator],\\n  void: [void 0, void \\\"x\\\"],\\n  comma: (1, 2, 3),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "let a = 0b1010, b = 0o17, c = 0xff, d = 1_000_000, e = 1e3, f = .5\nreturn {\n  literals: [a, b, c, d, e, f, 5e-7, 2e21],\n  bitwise: [a & b, a | b, a ^ b, ~a, a << 2, -16 >> 2, -16 >>> 28, 1 << 31, (2 ** 32 + 5) | 0, ~~3.7, 5.9 | 0],\n  unary: [+\"3\", +\"\", +\"x\", -\"4\", +true, +null, +undefined, +[], +[5], +[1, 2], -(-1), !0, !!\"\", !!\"a\", !!{}, !![]],\n  typeof: [typeof 1, typeof \"s\", typeof true, typeof undefined, typeof null, typeof {}, typeof [], typeof (() => 1), typeof Math, typeof JSON.parse, typeof notDeclared, typeof Symbol.iterator],\n  void: [void 0, void \"x\"],\n  comma: (1, 2, 3),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"literals\": [\n    10,\n    15,\n    255,\n    1000000,\n    1000,\n    0.5,\n    5e-7,\n    2e+21\n  ],\n  \"bitwise\": [\n    10,\n    15,\n    5,\n    -11,\n    40,\n    -4,\n    15,\n    -2147483648,\n    5,\n    3,\n    5\n  ],\n  \"unary\": [\n    3,\n    0,\n    null,\n    -4,\n    1,\n    0,\n    null,\n    0,\n    5,\n    null,\n    1,\n    true,\n    false,\n    true,\n    true,\n    true\n  ],\n  \"typeof\": [\n    \"number\",\n    \"string\",\n    \"boolean\",\n    \"undefined\",\n    \"object\",\n    \"object\",\n    \"object\",\n    \"function\",\n    \"object\",\n    \"function\",\n    \"undefined\",\n    \"symbol\"\n  ],\n  \"void\": [\n    null,\n    null\n  ],\n  \"comma\": 3\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const t = (f) => { try { return f() } catch (e) { return \\\"throws \\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst o = { valueOf() { return 7 }, toString() { return \\\"seven\\\" } }\\nconst s = { toString() { return \\\"str\\\" } }\\nconst order = []\\nconst l = { valueOf() { order.push(\\\"l\\\"); return 1 } }\\nconst r = { valueOf() { order.push(\\\"r\\\"); return 2 } }\\nconst res = {\\n  mulObj: o * 2, plusObj: o + 1, tmpl: `${o}`, strConcat: \\\"\\\" + s, cmp: o > 6, neg: -o, tilde: ~o,\\n  number: Number(o), string: String(o), isNaN: isNaN(s), parseInt: parseInt({ toString() { return \\\"42px\\\" } }),\\n  sum: l + r, order,\\n  arrToStr: (() => { const arr = [1, 2]; arr.toString = () => \\\"x\\\"; return arr + \\\"\\\" })(),\\n  throwing: t(() => ({ valueOf() { throw new TypeError(\\\"no value\\\") } }) * 1),\\n  loose: [o == 7, s == \\\"str\\\", null == false, undefined == null],\\n  fnCoerce: [String(() => 1), `${Math.max}`, isNaN(() => 1)],\\n  fnBinary: t(() => (() => 1) + 1),\\n  fnUnary: t(() => -(() => 1)),\\n  key: (() => { const x = {}; x[{ toString() { return \\\"id\\\" } }] = 1; x[null] = 2; x[true] = 3; x[[1, 2]] = 4; return x })(),\\n  objOps: (() => { const n = { valueOf() { return 6 } }; return [n % 4, n ** 2, n <= 6, n >= 7, n & 3, n | 1, n ^ 2, n << 1, n >> 1, n >>> 1, n - 1, n / 2, 1 - n, n < 7, 2 ** n, 13 % n] })(),\\n  strObj: (() => { const s = { toString() { return \\\"b\\\" } }; return [s < \\\"c\\\", s <= \\\"a\\\", s > \\\"a\\\", s >= \\\"b\\\", s + s, \\\"a\\\" < s] })(),\\n  nullCmp: [({}) == null, null == ({}), undefined == ({}), ({}) != null, ({}) == \\\"[object Object]\\\", [] == false, [0] == false],\\n  dates: [new Date(5) - new Date(2), new Date(0) + 1, new Date(0) < new Date(1), +new Date(7)],\\n  compound: (() => { let x = 1; x += { valueOf() { return 2 } }; let y = { valueOf() { return 3 } }; y *= 2; let z = \\\"s\\\"; z += [1, 2]; let w = 10; w -= (() => 4)(); let v; v = (() => \\\"called\\\")(); return [x, y, z, w, v] })(),\\n  strCmp: [\\\"abc\\\" < \\\"abd\\\", \\\"B\\\" < \\\"a\\\", \\\"a\\\" <= \\\"a\\\", \\\"b\\\" >= \\\"c\\\", \\\"10\\\" >= \\\"9\\\", \\\"x\\\" > \\\"X\\\"],\\n  mixed: [1 <= \\\"1\\\", \\\"2\\\" >= 3, null >= 0, undefined <= 0, true > false, \\\"5\\\" * [2], [3] - 1, \\\"4\\\" ** \\\"2\\\", \\\"9\\\" % \\\"4\\\", \\\"6\\\" & \\\"3\\\", \\\"6\\\" | 1, \\\"6\\\" ^ \\\"2\\\", \\\"1\\\" << \\\"3\\\", \\\"-16\\\" >> 2, \\\"-16\\\" >>> 30],\\n}\\nres\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const t = (f) => { try { return f() } catch (e) { return \"throws \" + (e && e.name) + \": \" + (e && e.message) } }\nconst o = { valueOf() { return 7 }, toString() { return \"seven\" } }\nconst s = { toString() { return \"str\" } }\nconst order = []\nconst l = { valueOf() { order.push(\"l\"); return 1 } }\nconst r = { valueOf() { order.push(\"r\"); return 2 } }\nconst res = {\n  mulObj: o * 2, plusObj: o + 1, tmpl: `${o}`, strConcat: \"\" + s, cmp: o > 6, neg: -o, tilde: ~o,\n  number: Number(o), string: String(o), isNaN: isNaN(s), parseInt: parseInt({ toString() { return \"42px\" } }),\n  sum: l + r, order,\n  arrToStr: (() => { const arr = [1, 2]; arr.toString = () => \"x\"; return arr + \"\" })(),\n  throwing: t(() => ({ valueOf() { throw new TypeError(\"no value\") } }) * 1),\n  loose: [o == 7, s == \"str\", null == false, undefined == null],\n  fnCoerce: [String(() => 1), `${Math.max}`, isNaN(() => 1)],\n  fnBinary: t(() => (() => 1) + 1),\n  fnUnary: t(() => -(() => 1)),\n  key: (() => { const x = {}; x[{ toString() { return \"id\" } }] = 1; x[null] = 2; x[true] = 3; x[[1, 2]] = 4; return x })(),\n  objOps: (() => { const n = { valueOf() { return 6 } }; return [n % 4, n ** 2, n <= 6, n >= 7, n & 3, n | 1, n ^ 2, n << 1, n >> 1, n >>> 1, n - 1, n / 2, 1 - n, n < 7, 2 ** n, 13 % n] })(),\n  strObj: (() => { const s = { toString() { return \"b\" } }; return [s < \"c\", s <= \"a\", s > \"a\", s >= \"b\", s + s, \"a\" < s] })(),\n  nullCmp: [({}) == null, null == ({}), undefined == ({}), ({}) != null, ({}) == \"[object Object]\", [] == false, [0] == false],\n  dates: [new Date(5) - new Date(2), new Date(0) + 1, new Date(0) < new Date(1), +new Date(7)],\n  compound: (() => { let x = 1; x += { valueOf() { return 2 } }; let y = { valueOf() { return 3 } }; y *= 2; let z = \"s\"; z += [1, 2]; let w = 10; w -= (() => 4)(); let v; v = (() => \"called\")(); return [x, y, z, w, v] })(),\n  strCmp: [\"abc\" < \"abd\", \"B\" < \"a\", \"a\" <= \"a\", \"b\" >= \"c\", \"10\" >= \"9\", \"x\" > \"X\"],\n  mixed: [1 <= \"1\", \"2\" >= 3, null >= 0, undefined <= 0, true > false, \"5\" * [2], [3] - 1, \"4\" ** \"2\", \"9\" % \"4\", \"6\" & \"3\", \"6\" | 1, \"6\" ^ \"2\", \"1\" << \"3\", \"-16\" >> 2, \"-16\" >>> 30],\n}\nres"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"mulObj\": 14,\n  \"plusObj\": 8,\n  \"tmpl\": \"seven\",\n  \"strConcat\": \"str\",\n  \"cmp\": true,\n  \"neg\": -7,\n  \"tilde\": -8,\n  \"number\": 7,\n  \"string\": \"seven\",\n  \"isNaN\": true,\n  \"parseInt\": 42,\n  \"sum\": 3,\n  \"order\": [\n    \"l\",\n    \"r\"\n  ],\n  \"arrToStr\": \"x\",\n  \"throwing\": \"throws TypeError: no value\",\n  \"loose\": [\n    true,\n    true,\n    false,\n    true\n  ],\n  \"fnCoerce\": [\n    \"[object Function]\",\n    \"[object Function]\",\n    true\n  ],\n  \"fnBinary\": \"throws TypeError: Binary operators require data values.\",\n  \"fnUnary\": \"throws TypeError: Unary operators require data values.\",\n  \"key\": {\n    \"id\": 1,\n    \"null\": 2,\n    \"true\": 3,\n    \"1,2\": 4\n  },\n  \"objOps\": [\n    2,\n    36,\n    true,\n    false,\n    2,\n    7,\n    4,\n    12,\n    3,\n    3,\n    5,\n    3,\n    -5,\n    true,\n    64,\n    1\n  ],\n  \"strObj\": [\n    true,\n    false,\n    true,\n    true,\n    \"bb\",\n    true\n  ],\n  \"nullCmp\": [\n    false,\n    false,\n    false,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"dates\": [\n    3,\n    \"1970-01-01T00:00:00.000Z1\",\n    true,\n    7\n  ],\n  \"compound\": [\n    3,\n    6,\n    \"s1,2\",\n    6,\n    \"called\"\n  ],\n  \"strCmp\": [\n    true,\n    true,\n    true,\n    false,\n    false,\n    true\n  ],\n  \"mixed\": [\n    true,\n    false,\n    true,\n    false,\n    true,\n    10,\n    2,\n    16,\n    1,\n    2,\n    7,\n    4,\n    8,\n    -4,\n    3\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

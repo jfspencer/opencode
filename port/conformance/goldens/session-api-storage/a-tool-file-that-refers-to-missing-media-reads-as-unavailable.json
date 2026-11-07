@@ -1,0 +1,441 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Show me",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "mime": "image/png",
+                      "name": "gone.png",
+                      "type": "file",
+                      "uri": "media:<hash_3>"
+                    },
+                    {
+                      "mime": "image/png",
+                      "type": "file",
+                      "uri": "media:<hash_4>"
+                    }
+                  ],
+                  "input": {
+                    "path": "gone.png"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_1>",
+            "text": "Show me",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "[media unavailable: gone.png (image/png)]",
+                      "type": "text"
+                    },
+                    {
+                      "text": "[media unavailable: image/png]",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "path": "gone.png"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_1>",
+            "text": "Show me",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "call_1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "[media unavailable: gone.png (image/png)]",
+                      "type": "text"
+                    },
+                    {
+                      "text": "[media unavailable: image/png]",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "path": "gone.png"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "build",
+          "content": [
+            {
+              "id": "call_1",
+              "name": "read",
+              "state": {
+                "content": [
+                  {
+                    "text": "[media unavailable: gone.png (image/png)]",
+                    "type": "text"
+                  },
+                  {
+                    "text": "[media unavailable: image/png]",
+                    "type": "text"
+                  }
+                ],
+                "input": {
+                  "path": "gone.png"
+                },
+                "status": "completed"
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>"
+              },
+              "type": "tool"
+            }
+          ],
+          "id": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter"
+          },
+          "time": {
+            "completed": "<time>",
+            "created": "<time>"
+          },
+          "type": "assistant"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message/<msg_2>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {
+    "notes.txt": "one\ntwo\n",
+    "src/app.ts": "export const v = 1\n"
+  }
+}

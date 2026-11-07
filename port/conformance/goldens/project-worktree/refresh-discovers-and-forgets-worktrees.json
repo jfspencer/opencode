@@ -1,0 +1,268 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "<hash_1>"
+      },
+      "status": 204,
+      "url": "/api/worktree/refresh"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>/.wt/gone",
+          "strategy": "git"
+        },
+        {
+          "directory": "<project>"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/worktree?projectID=<hash_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "<hash_1>"
+      },
+      "status": 204,
+      "url": "/api/worktree/refresh"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>/.wt/manual",
+          "strategy": "git"
+        },
+        {
+          "directory": "<project>/.wt/gone",
+          "strategy": "git"
+        },
+        {
+          "directory": "<project>"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/worktree?projectID=<hash_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "<hash_1>"
+      },
+      "status": 204,
+      "url": "/api/worktree/refresh"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>/.wt/manual",
+          "strategy": "git"
+        },
+        {
+          "directory": "<project>"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/worktree?projectID=<hash_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "projectID": "<hash_1>"
+      },
+      "status": 204,
+      "url": "/api/worktree/refresh"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "projectID": "<hash_1>"
+        },
+        "id": "<evt_13>",
+        "type": "worktree.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "projectID": "<hash_1>"
+        },
+        "id": "<evt_14>",
+        "type": "worktree.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "projectID": "<hash_1>"
+        },
+        "id": "<evt_15>",
+        "type": "worktree.updated"
+      }
+    ]
+  },
+  "files": {
+    ".wt/manual/README.md": "# Demo\n",
+    ".wt/manual/src/app.ts": "export const app = 1\n",
+    "README.md": "# Demo\n",
+    "src/app.ts": "export const app = 1\n"
+  }
+}

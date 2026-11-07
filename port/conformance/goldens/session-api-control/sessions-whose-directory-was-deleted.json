@@ -1,0 +1,513 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>/gone"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "orphaned",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>/gone"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "orphaned",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Old prompt",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "echo hi"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "resume": false,
+        "text": "hello"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "summarize"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/generate"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/diff"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "messageID": "<msg_1>"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/revert/stage"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "k",
+            "type": "string"
+          }
+        ],
+        "title": "t"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "init",
+        "text": ""
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "anything"
+      },
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/skill"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_1>",
+            "text": "Old prompt",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "fork": {
+            "boundary": {
+              "messageID": "<msg_1>",
+              "type": "through"
+            },
+            "sessionID": "<ses_1>"
+          },
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>/gone"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "orphaned (fork #1)",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 200,
+      "url": "/api/session/<ses_1>/fork"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "fork": {
+            "boundary": {
+              "messageID": "<msg_1>",
+              "type": "through"
+            },
+            "sessionID": "<ses_1>"
+          },
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>/gone"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "orphaned (fork #1)",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_2>"
+    },
+    {
+      "body": {
+        "_tag": "LocationNotFoundError",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "message": "Location not found: <project>/gone"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": ""
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/inbox"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_3>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/gone",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "type": "project.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>/gone"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "orphaned",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/gone"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "boundary": {
+            "messageID": "<msg_1>",
+            "type": "through"
+          },
+          "instructionEntries": [],
+          "parentID": "<ses_1>",
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 2
+        },
+        "id": "<evt_13>",
+        "type": "session.forked"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,730 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "one-shot",
+        "prompt": "Remind me",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 hour"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Again",
+            "type": "prompt"
+          },
+          "id": "<sch_2>",
+          "name": "repeating",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "every": "1 hour",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "repeating",
+        "prompt": "Again",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "paused",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_1>/pause"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "paused",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_1>/pause"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_1>/resume"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Remind me",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "one-shot",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 hour",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_1>/resume"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Again",
+            "type": "prompt"
+          },
+          "id": "<sch_2>",
+          "name": "repeating",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "paused",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "every": "1 hour",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_2>/pause"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Again",
+            "type": "prompt"
+          },
+          "id": "<sch_2>",
+          "name": "repeating",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "every": "1 hour",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_2>/resume"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": {
+              "prompt": "Remind me",
+              "type": "prompt"
+            },
+            "id": "<sch_1>",
+            "name": "one-shot",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "UTC",
+            "when": {
+              "in": "1 hour",
+              "type": "in"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Again",
+              "type": "prompt"
+            },
+            "id": "<sch_2>",
+            "name": "repeating",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "UTC",
+            "when": {
+              "every": "1 hour",
+              "type": "every"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/schedule?sessionID=<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/experimental/schedule/<sch_1>"
+    },
+    {
+      "body": {
+        "_tag": "ScheduleNotFoundError",
+        "message": "Schedule not found: <sch_1>",
+        "scheduleID": "<sch_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/schedule/<sch_1>"
+    },
+    {
+      "body": {
+        "_tag": "ScheduleNotFoundError",
+        "message": "Schedule not found: <sch_1>",
+        "scheduleID": "<sch_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/experimental/schedule/<sch_1>"
+    },
+    {
+      "body": {
+        "_tag": "ScheduleNotFoundError",
+        "message": "Schedule not found: <sch_1>",
+        "scheduleID": "<sch_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/experimental/schedule/<sch_1>/pause"
+    },
+    {
+      "body": {
+        "_tag": "ScheduleNotFoundError",
+        "message": "Schedule not found: <sch_1>",
+        "scheduleID": "<sch_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/experimental/schedule/<sch_1>/resume"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": {
+              "prompt": "Again",
+              "type": "prompt"
+            },
+            "id": "<sch_2>",
+            "name": "repeating",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "UTC",
+            "when": {
+              "every": "1 hour",
+              "type": "every"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/schedule?sessionID=<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_2>",
+        "sessionID": "<ses_2>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/schedule?sessionID=<ses_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Now",
+            "type": "prompt"
+          },
+          "id": "<sch_3>",
+          "name": "due soon",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 second",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "due soon",
+        "prompt": "Now",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "1 second"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Now",
+            "type": "prompt"
+          },
+          "id": "<sch_3>",
+          "name": "due soon",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "paused",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 second",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_3>/pause"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Now",
+            "type": "prompt"
+          },
+          "id": "<sch_3>",
+          "name": "due soon",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "in": "1 second",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/schedule/<sch_3>/resume"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "ScheduleNotFoundError",
+        "message": "Schedule not found: <sch_2>",
+        "scheduleID": "<sch_2>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/schedule/<sch_2>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 2
+        },
+        "id": "<evt_12>",
+        "type": "session.deleted"
+      }
+    ]
+  },
+  "files": {}
+}

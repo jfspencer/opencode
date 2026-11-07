@@ -1,0 +1,875 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Notice history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "Notice history",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "files": [
+              {
+                "data": "YWxwaGEK",
+                "mime": "text/plain",
+                "name": "notes.txt",
+                "source": {
+                  "type": "uri",
+                  "uri": "file:///project/notes.txt"
+                }
+              },
+              {
+                "data": "",
+                "mime": "application/x-directory",
+                "name": "docs",
+                "source": {
+                  "type": "uri",
+                  "uri": "file:///project/docs"
+                }
+              },
+              {
+                "data": "cGxhaW4=",
+                "mime": "text/plain",
+                "source": {
+                  "type": "inline"
+                }
+              }
+            ],
+            "id": "<msg_1>",
+            "skills": [
+              {
+                "id": "review",
+                "name": "review",
+                "text": "Review carefully."
+              }
+            ],
+            "text": "Look at these @notes.txt and $review",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "plan",
+            "id": "<msg_2>",
+            "previous": "build",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "agent-switched"
+          },
+          {
+            "agent": "build",
+            "id": "<msg_3>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "agent-switched"
+          },
+          {
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "low"
+            },
+            "previous": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "created": "<time>"
+            },
+            "type": "model-switched"
+          },
+          {
+            "id": "<msg_5>",
+            "location": {
+              "directory": "/somewhere/else"
+            },
+            "subpath": "",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "location-switched"
+          },
+          {
+            "description": "AGENTS.md updated",
+            "id": "<msg_6>",
+            "text": "Instructions changed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_7>",
+            "text": "No description",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "system"
+          },
+          {
+            "id": "<msg_8>",
+            "name": "review",
+            "skill": "review",
+            "text": "Skill body",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "skill"
+          },
+          {
+            "description": "Indexed 3 pages",
+            "id": "<msg_9>",
+            "metadata": {
+              "agent": "general",
+              "childID": "<ses_2>",
+              "source": "subagent",
+              "state": "completed"
+            },
+            "text": "x",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "Crashed while indexing",
+            "id": "<msg_10>",
+            "metadata": {
+              "agent": "explore",
+              "source": "subagent",
+              "state": "error"
+            },
+            "text": "x",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "npm   run\n  dev",
+            "id": "<msg_11>",
+            "metadata": {
+              "source": "shell",
+              "state": "cancelled"
+            },
+            "text": "x",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "Goal reached",
+            "id": "<msg_12>",
+            "metadata": {
+              "source": "goal"
+            },
+            "text": "x",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "description": "Client note",
+            "id": "<msg_13>",
+            "metadata": {
+              "source": "client"
+            },
+            "text": "x",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "command": "ls",
+            "exit": 0,
+            "id": "<msg_14>",
+            "output": {
+              "cursor": 6,
+              "output": "a.txt\n",
+              "size": 6,
+              "truncated": false
+            },
+            "shellID": "<sh_1>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "false",
+            "exit": 1,
+            "id": "<msg_15>",
+            "output": {
+              "cursor": 0,
+              "output": "",
+              "size": 0,
+              "truncated": false
+            },
+            "shellID": "<sh_2>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "sleep 100",
+            "id": "<msg_16>",
+            "shellID": "<sh_3>",
+            "status": "killed",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "sleep 200",
+            "id": "<msg_17>",
+            "shellID": "<sh_4>",
+            "status": "timeout",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Before compaction.",
+                "type": "text"
+              }
+            ],
+            "finish": "stop",
+            "id": "<msg_18>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_19>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "reason": "manual",
+            "status": "completed",
+            "summary": "## Objective\n- Keep going.",
+            "time": {
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 4000,
+              "output": 300,
+              "reasoning": 0
+            },
+            "type": "compaction"
+          },
+          {
+            "id": "<msg_20>",
+            "native": {
+              "messages": []
+            },
+            "reason": "auto",
+            "status": "completed",
+            "summary": "Provider summary.",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "context too long",
+              "type": "provider"
+            },
+            "id": "<msg_21>",
+            "reason": "auto",
+            "status": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "error": {
+              "message": "aborted",
+              "type": "aborted"
+            },
+            "id": "<msg_22>",
+            "reason": "manual",
+            "status": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "compaction"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Partial answer",
+                "type": "text"
+              }
+            ],
+            "error": {
+              "message": "Upstream overloaded",
+              "status": 529,
+              "type": "provider"
+            },
+            "finish": "error",
+            "id": "<msg_23>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "id": "<msg_24>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "retry": {
+              "at": "<time>",
+              "attempt": 3,
+              "error": {
+                "message": "Rate limited",
+                "type": "provider"
+              }
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Stopped here",
+                "type": "text"
+              }
+            ],
+            "error": {
+              "message": "Step interrupted",
+              "type": "aborted"
+            },
+            "finish": "stop",
+            "id": "<msg_25>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 1000,
+              "output": 50,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "The session failed for good",
+              "type": "provider"
+            },
+            "id": "<msg_26>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_27>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "kind": "note",
+      "label": "frame:bottom",
+      "value": [
+        "   Notice history                +",
+        "",
+        "     → Skill review",
+        "",
+        "     ↳ General finished · Indexed 3 pages",
+        "",
+        "     ! Explore failed · Crashed while indexing",
+        "",
+        "     ! Shell cancelled · npm run dev",
+        "",
+        "     ◎ Goal reached",
+        "",
+        "     ◈ Client note",
+        "",
+        "  ┃",
+        "  ┃  $ ls",
+        "  ┃",
+        "  ┃  a.txt",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ false",
+        "  ┃",
+        "  ┃  Command exited with code 1",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ sleep 100",
+        "  ┃",
+        "  ┃  Command cancelled",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ sleep 200",
+        "  ┃",
+        "  ┃  Command timed out",
+        "  ┃",
+        "",
+        "     Before compaction.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ──────────────────────────────── Compaction · 4.0K in · 300 out ────────────────────────────────",
+        "",
+        "     Objective",
+        "",
+        "     - Keep going.",
+        "",
+        "  ────────────────────────────────────── Provider compaction ─────────────────────────────────────",
+        "",
+        "     Provider summary.",
+        "",
+        "  ───────────────────────────────────────── ✗ Compaction ─────────────────────────────────────────",
+        "",
+        "     context too long",
+        "",
+        "  ──────────────────────────────────── Compaction · cancelled ────────────────────────────────────",
+        "",
+        "     Partial answer",
+        "",
+        "     Error: Upstream overloaded",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "     ⚠ Retry due · attempt 3 · Rate limited",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "     Stopped here",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration> · interrupted",
+        "",
+        "     Error: The session failed for good",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                             1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:top",
+      "value": [
+        "   Notice history                +",
+        "",
+        "  ┃",
+        "  ┃  Look at these @notes.txt and $review",
+        "  ┃",
+        "  ┃   skill  review",
+        "  ┃",
+        "  ┃   file  notes.txt   dir  docs   file  attachment",
+        "  ┃",
+        "",
+        "     Switched agent from Build to Plan",
+        "",
+        "     Switched agent to Build",
+        "",
+        "     Switched variant to low",
+        "",
+        "     ↳ Moved to /somewhere/else",
+        "",
+        "     ◈ AGENTS.md updated",
+        "",
+        "     ◈ Instructions updated",
+        "",
+        "     → Skill review",
+        "",
+        "     ↳ General finished · Indexed 3 pages",
+        "",
+        "     ! Explore failed · Crashed while indexing",
+        "",
+        "     ! Shell cancelled · npm run dev",
+        "",
+        "     ◎ Goal reached",
+        "",
+        "     ◈ Client note",
+        "",
+        "  ┃",
+        "  ┃  $ ls",
+        "  ┃",
+        "  ┃  a.txt",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ false",
+        "  ┃",
+        "  ┃  Command exited with code 1",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ sleep 100",
+        "  ┃",
+        "  ┃  Command cancelled",
+        "  ┃",
+        "",
+        "  ┃",
+        "  ┃  $ sleep 200",
+        "  ┃",
+        "  ┃  Command timed out",
+        "  ┃",
+        "",
+        "     Before compaction.",
+        "",
+        "     Build · DeepSeek V4.1 Flash 1017 · <duration>",
+        "",
+        "  ──────────────────────────────── Compaction · 4.0K in · 300 out ────────────────────────────────",
+        "",
+        "     Objective",
+        "",
+        "     - Keep going.",
+        "",
+        "  ────────────────────────────────────── Provider compaction ─────────────────────────────────────",
+        "",
+        "     Provider summary.",
+        "",
+        "  ───────────────────────────────────────── ✗ Compaction ─────────────────────────────────────────",
+        "",
+        "     context too long",
+        "",
+        "  ──────────────────────────────────── Compaction · cancelled ────────────────────────────────────",
+        "",
+        "     Partial answer",
+        "",
+        "     Error: Upstream overloaded",
+        "",
+        "                                                                                  Jump to latest ↓",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                             1.1K (0%)  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/inbox",
+        "GET /api/session/<ses_1>/message",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "Notice history",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

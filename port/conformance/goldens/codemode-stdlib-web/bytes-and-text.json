@@ -1,0 +1,1036 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the bytes and text programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the bytes and text programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the bytes and text programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the bytes and text programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": {
+                      "<blob>": "c35d45996e84f3baf598f947631877847585c0b8f56b674ab99ef85206e770ae"
+                    },
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"construct\": [\n    \"\",\n    \"0,0,0\",\n    \"1,0,255,3\",\n    \"7,8\",\n    \"9\"\n  ],\n  \"bad length\": \"!RangeError: Invalid typed array length: -1\",\n  \"fraction length\": \"!RangeError: Invalid typed array length: 1.5\",\n  \"string length\": 2,\n  \"bad source\": \"!TypeError: new Uint8Array(...) expects a Uint8Array, an array, or an iterable of numbers, received a data object.\",\n  \"without new\": \"!TypeError: Constructor Uint8Array requires 'new'.\",\n  \"from\": [\n    \"1,2\",\n    \"1,2,3\",\n    \"10,21\",\n    \"5\",\n    \"5\"\n  ],\n  \"from bad\": \"!TypeError: Uint8Array.from expects a Uint8Array, an array, or an iterable of numbers, received a number.\",\n  \"of\": \"1,2,44\",\n  \"dates as bytes\": [\n    \"5,44\",\n    \"7\"\n  ],\n  \"large default sort\": [\n    0,\n    0,\n    1,\n    255,\n    5000\n  ],\n  \"base64\": [\n    \"aGk=\",\n    \"104,105\",\n    \"ff00\",\n    \"255,0\"\n  ],\n  \"fromBase64 invalid\": \"!SyntaxError: Uint8Array.fromBase64: the string is not valid base64.\",\n  \"fromHex invalid\": \"!SyntaxError: Uint8Array.fromHex: the string is not valid hex.\",\n  \"fromHex non-string\": \"!TypeError: Uint8Array.fromHex expects a string.\",\n  \"access\": [\n    5,\n    5,\n    null,\n    3,\n    5,\n    2,\n    -1,\n    -1,\n    0,\n    0,\n    -1,\n    true,\n    false,\n    \"5-1-4-2-3\",\n    \"5,1,4,2,3\",\n    \"5,1,4,2,3\"\n  ],\n  \"slice/subarray\": [\n    \"2,3\",\n    \"99,3\",\n    \"1,99,3,4\",\n    \"4\",\n    \"1,99,3,4\"\n  ],\n  \"set\": \"1,2,0,9\",\n  \"set overflow\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"set bad offset\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"fill/reverse/sort\": [\n    \"0,7,7,0\",\n    \"3,2,1\",\n    \"2,10,33\",\n    \"33,10,2\"\n  ],\n  \"index write\": [\n    \"44,7\",\n    2,\n    false\n  ],\n  \"delete index\": \"!TypeError: Cannot delete property '0'.\",\n  \"iterators\": [\n    [\n      1,\n      2\n    ],\n    [\n      0,\n      1\n    ],\n    [\n      [\n        0,\n        1\n      ],\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      3\n    ]\n  ],\n  \"callbacks\": [\n    \"100,200,44\",\n    \"2,3\",\n    2,\n    -1,\n    2,\n    1,\n    true,\n    true,\n    6,\n    \"321\",\n    [\n      0,\n      1,\n      2\n    ]\n  ],\n  \"map returns bytes\": \"[object Uint8Array]\",\n  \"reduce empty\": \"!TypeError: Uint8Array.reduce of an empty array with no initial value.\",\n  \"receiver\": \"!TypeError: Uint8Array.prototype.at called on incompatible receiver an array.\",\n  \"length receiver\": \"!TypeError: Uint8Array.prototype.length called on incompatible receiver a data object.\",\n  \"Object.keys\": [\n    [\n      \"0\",\n      \"1\"\n    ],\n    [\n      4,\n      5\n    ]\n  ],\n  \"json\": \"{\\\"0\\\":1,\\\"1\\\":2}\",\n  \"spread to array\": [\n    7,\n    8\n  ],\n  \"for-of\": 6\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the bytes and text programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": {
+                      "<blob>": "c35d45996e84f3baf598f947631877847585c0b8f56b674ab99ef85206e770ae"
+                    },
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"construct\": [\n    \"\",\n    \"0,0,0\",\n    \"1,0,255,3\",\n    \"7,8\",\n    \"9\"\n  ],\n  \"bad length\": \"!RangeError: Invalid typed array length: -1\",\n  \"fraction length\": \"!RangeError: Invalid typed array length: 1.5\",\n  \"string length\": 2,\n  \"bad source\": \"!TypeError: new Uint8Array(...) expects a Uint8Array, an array, or an iterable of numbers, received a data object.\",\n  \"without new\": \"!TypeError: Constructor Uint8Array requires 'new'.\",\n  \"from\": [\n    \"1,2\",\n    \"1,2,3\",\n    \"10,21\",\n    \"5\",\n    \"5\"\n  ],\n  \"from bad\": \"!TypeError: Uint8Array.from expects a Uint8Array, an array, or an iterable of numbers, received a number.\",\n  \"of\": \"1,2,44\",\n  \"dates as bytes\": [\n    \"5,44\",\n    \"7\"\n  ],\n  \"large default sort\": [\n    0,\n    0,\n    1,\n    255,\n    5000\n  ],\n  \"base64\": [\n    \"aGk=\",\n    \"104,105\",\n    \"ff00\",\n    \"255,0\"\n  ],\n  \"fromBase64 invalid\": \"!SyntaxError: Uint8Array.fromBase64: the string is not valid base64.\",\n  \"fromHex invalid\": \"!SyntaxError: Uint8Array.fromHex: the string is not valid hex.\",\n  \"fromHex non-string\": \"!TypeError: Uint8Array.fromHex expects a string.\",\n  \"access\": [\n    5,\n    5,\n    null,\n    3,\n    5,\n    2,\n    -1,\n    -1,\n    0,\n    0,\n    -1,\n    true,\n    false,\n    \"5-1-4-2-3\",\n    \"5,1,4,2,3\",\n    \"5,1,4,2,3\"\n  ],\n  \"slice/subarray\": [\n    \"2,3\",\n    \"99,3\",\n    \"1,99,3,4\",\n    \"4\",\n    \"1,99,3,4\"\n  ],\n  \"set\": \"1,2,0,9\",\n  \"set overflow\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"set bad offset\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"fill/reverse/sort\": [\n    \"0,7,7,0\",\n    \"3,2,1\",\n    \"2,10,33\",\n    \"33,10,2\"\n  ],\n  \"index write\": [\n    \"44,7\",\n    2,\n    false\n  ],\n  \"delete index\": \"!TypeError: Cannot delete property '0'.\",\n  \"iterators\": [\n    [\n      1,\n      2\n    ],\n    [\n      0,\n      1\n    ],\n    [\n      [\n        0,\n        1\n      ],\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      3\n    ]\n  ],\n  \"callbacks\": [\n    \"100,200,44\",\n    \"2,3\",\n    2,\n    -1,\n    2,\n    1,\n    true,\n    true,\n    6,\n    \"321\",\n    [\n      0,\n      1,\n      2\n    ]\n  ],\n  \"map returns bytes\": \"[object Uint8Array]\",\n  \"reduce empty\": \"!TypeError: Uint8Array.reduce of an empty array with no initial value.\",\n  \"receiver\": \"!TypeError: Uint8Array.prototype.at called on incompatible receiver an array.\",\n  \"length receiver\": \"!TypeError: Uint8Array.prototype.length called on incompatible receiver a data object.\",\n  \"Object.keys\": [\n    [\n      \"0\",\n      \"1\"\n    ],\n    [\n      4,\n      5\n    ]\n  ],\n  \"json\": \"{\\\"0\\\":1,\\\"1\\\":2}\",\n  \"spread to array\": [\n    7,\n    8\n  ],\n  \"for-of\": 6\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"TextEncoder\\\", () => { const e = new TextEncoder(); return [e.encoding, String(e.encode(\\\"hé\\\")), String(e.encode()), String(e.encode(12)), Object.prototype.toString.call(e.encode(\\\"x\\\"))] })\\nt(\\\"TextEncoder without new\\\", () => TextEncoder())\\nt(\\\"TextDecoder\\\", () => { const d = new TextDecoder(); return [d.encoding, d.fatal, d.ignoreBOM, d.decode(new Uint8Array([104, 195, 169])), d.decode(), d.decode(new Uint8Array([0xff]))] })\\nt(\\\"TextDecoder labels\\\", () => [new TextDecoder(\\\"utf8\\\").encoding, new TextDecoder(\\\" UTF-8 \\\").encoding, new TextDecoder(\\\"unicode-1-1-utf-8\\\").encoding])\\nt(\\\"TextDecoder unsupported\\\", () => new TextDecoder(\\\"latin1\\\"))\\nt(\\\"TextDecoder fatal\\\", () => new TextDecoder(\\\"utf-8\\\", { fatal: true }).decode(new Uint8Array([0xff])))\\nt(\\\"TextDecoder options\\\", () => { const d = new TextDecoder(\\\"utf-8\\\", { fatal: 1, ignoreBOM: true }); return [d.fatal, d.ignoreBOM, d.decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41]))] })\\nt(\\\"TextDecoder BOM\\\", () => new TextDecoder().decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41])))\\nt(\\\"TextDecoder bad input\\\", () => new TextDecoder().decode(\\\"abc\\\"))\\nt(\\\"TextDecoder without new\\\", () => TextDecoder())\\nt(\\\"TextDecoder receiver\\\", () => TextDecoder.prototype.decode.call({}, new Uint8Array(1)))\\nt(\\\"TextDecoder getter receiver\\\", () => Object.create(TextDecoder.prototype).encoding)\\nt(\\\"roundtrip\\\", () => new TextDecoder().decode(new TextEncoder().encode(\\\"ünïcödé ✓\\\")))\\nt(\\\"btoa/atob\\\", () => [btoa(\\\"hello\\\"), atob(\\\"aGVsbG8=\\\"), btoa(\\\"\\\"), atob(\\\" aGk= \\\"), btoa(123)])\\nt(\\\"btoa invalid\\\", () => btoa(\\\"✓\\\"))\\nt(\\\"atob invalid\\\", () => atob(\\\"@@@\\\"))\\nt(\\\"atob missing\\\", () => atob())\\nt(\\\"btoa missing\\\", () => btoa())\\nt(\\\"structuredClone\\\", () => {\\n  const shared = { s: 1 }\\n  const src = { a: [1, { b: 2 }], m: new Map([[shared, shared]]), set: new Set([shared]), d: new Date(5), re: /x/gi, bytes: new Uint8Array([1, 2]), err: new RangeError(\\\"r\\\", { cause: shared }), nested: { shared, again: shared }, hole: [1, , 3] }\\n  const c = structuredClone(src)\\n  return [c !== src, c.a[1].b, c.m.size, [...c.m.keys()][0] === [...c.m.values()][0], c.set.size, c.d.getTime(), String(c.re), String(c.bytes), c.bytes !== src.bytes, c.err.name, c.err.message, c.err.cause.s, c.err instanceof RangeError, c.nested.shared === c.nested.again, c.nested.shared !== shared, 1 in c.hole, c.hole.length]\\n})\\nt(\\\"structuredClone primitives\\\", () => [structuredClone(1), structuredClone(\\\"s\\\"), structuredClone(null), structuredClone(undefined) === undefined])\\nt(\\\"structuredClone cyclic object\\\", () => { const o = { n: 1 }; const m = new Map(); m.set(\\\"self\\\", m); const c = structuredClone(m); return c.get(\\\"self\\\") === c })\\nt(\\\"structuredClone error kinds\\\", () => { const e = new Error(\\\"plain\\\"); e.name = \\\"CustomName\\\"; const c = structuredClone(e); return [c.name, c.message, Object.prototype.toString.call(c)] })\\nt(\\\"structuredClone function\\\", () => structuredClone(() => 1))\\nt(\\\"structuredClone promise\\\", () => structuredClone(Promise.resolve(1)))\\nt(\\\"structuredClone weakmap\\\", () => structuredClone(new WeakMap()))\\nt(\\\"structuredClone symbol\\\", () => structuredClone(Symbol.iterator))\\nt(\\\"structuredClone tool\\\", () => structuredClone(tools))\\nt(\\\"structuredClone missing\\\", () => structuredClone())\\nt(\\\"crypto\\\", () => { const id = crypto.randomUUID(); const bytes = crypto.getRandomValues(new Uint8Array(4)); return [typeof id, id.length, /^[0-9a-f-]+$/.test(id), bytes.length, Object.prototype.toString.call(bytes)] })\\nt(\\\"crypto bad\\\", () => crypto.getRandomValues([1, 2]))\\nt(\\\"crypto iterator\\\", () => crypto.getRandomValues([].values()))\\nt(\\\"console bytes\\\", () => { console.log(new Uint8Array([1, 2])); return true })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the bytes and text programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the bytes and text programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": {
+            "<blob>": "c35d45996e84f3baf598f947631877847585c0b8f56b674ab99ef85206e770ae"
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"construct\", () => [String(new Uint8Array()), String(new Uint8Array(3)), String(new Uint8Array([1, 256, -1, 3.7])), String(new Uint8Array(new Set([7, 8]))), String(new Uint8Array(new Uint8Array([9])))])\nt(\"bad length\", () => new Uint8Array(-1))\nt(\"fraction length\", () => new Uint8Array(1.5))\nt(\"string length\", () => new Uint8Array(\"2\").length)\nt(\"bad source\", () => new Uint8Array({ a: 1 }))\nt(\"without new\", () => Uint8Array(2))\nt(\"from\", () => [String(Uint8Array.from([1, 2])), String(Uint8Array.from(\"123\")), String(Uint8Array.from([1, 2], (x, i) => x * 10 + i)), String(Uint8Array.from([1], function (x) { return x + this.k }, { k: 4 })), String(Uint8Array.from(new Uint8Array([5])))])\nt(\"from bad\", () => Uint8Array.from(5))\nt(\"of\", () => String(Uint8Array.of(1, 2, 300)))\nt(\"dates as bytes\", () => [String(new Uint8Array([new Date(5), new Date(300)])), String(Uint8Array.of(new Date(7)))])\nt(\"large default sort\", () => { const x = new Uint8Array(5000).map((_, i) => (i * 31) % 256); x.sort(); return [x[0], x[19], x[20], x[4999], x.length] })\nt(\"base64\", () => [new Uint8Array([104, 105]).toBase64(), String(Uint8Array.fromBase64(\"aGk=\")), new Uint8Array([255, 0]).toHex(), String(Uint8Array.fromHex(\"ff00\"))])\nt(\"fromBase64 invalid\", () => Uint8Array.fromBase64(\"***\"))\nt(\"fromHex invalid\", () => Uint8Array.fromHex(\"zz\"))\nt(\"fromHex non-string\", () => Uint8Array.fromHex(5))\nconst b = new Uint8Array([5, 1, 4, 2, 3])\nt(\"access\", () => [b.length, b[0], b[9], b.at(-1), b.at(), b.indexOf(4), b.indexOf(\"4\"), b.indexOf(4, 3), b.lastIndexOf(5), b.lastIndexOf(5, 0), b.lastIndexOf(5, -9), b.includes(2), b.includes(2, 4), b.join(\"-\"), b.join(), b.toString()])\nt(\"slice/subarray\", () => { const x = new Uint8Array([1, 2, 3, 4]); const s = x.slice(1, 3); const v = x.subarray(1, 3); v[0] = 99; return [String(s), String(v), String(x), String(x.slice(-1)), String(x.subarray())] })\nt(\"set\", () => { const x = new Uint8Array(4); x.set([1, 2]); x.set(new Uint8Array([9]), 3); return String(x) })\nt(\"set overflow\", () => new Uint8Array(2).set([1, 2, 3]))\nt(\"set bad offset\", () => new Uint8Array(2).set([1], -1))\nt(\"fill/reverse/sort\", () => [String(new Uint8Array(4).fill(7, 1, 3)), String(new Uint8Array([1, 2, 3]).reverse()), String(new Uint8Array([10, 2, 33]).sort()), String(new Uint8Array([10, 2, 33]).sort((a, b) => b - a))])\nt(\"index write\", () => { const x = new Uint8Array(2); x[0] = 300; x[1] = \"7\"; x[5] = 1; return [String(x), x.length, 5 in x] })\nt(\"delete index\", () => { const x = new Uint8Array(1); return delete x[0] })\nt(\"iterators\", () => [[...new Uint8Array([1, 2])], [...new Uint8Array([1, 2]).keys()], [...new Uint8Array([1, 2]).entries()], [...new Uint8Array([3]).values()]])\nt(\"callbacks\", () => { const x = new Uint8Array([1, 2, 3]); return [String(x.map((v) => v * 100)), String(x.filter((v) => v > 1)), x.find((v) => v > 1), x.findIndex((v) => v > 5), x.findLast((v) => v < 3), x.findLastIndex((v) => v < 3), x.some((v) => v > 2), x.every((v) => v > 0), x.reduce((a, v) => a + v), x.reduceRight((a, v) => a + \"\" + v, \"\"), (() => { const out = []; x.forEach((v, i) => out.push(i)); return out })()] })\nt(\"map returns bytes\", () => Object.prototype.toString.call(new Uint8Array([1]).map((v) => v)))\nt(\"reduce empty\", () => new Uint8Array().reduce((a, b) => a + b))\nt(\"receiver\", () => Uint8Array.prototype.at.call([1], 0))\nt(\"length receiver\", () => Object.create(Uint8Array.prototype).length)\nt(\"Object.keys\", () => [Object.keys(new Uint8Array([4, 5])), Object.values(new Uint8Array([4, 5]))])\nt(\"json\", () => JSON.stringify(new Uint8Array([1, 2])))\nt(\"spread to array\", () => Array.from(new Uint8Array([7, 8])))\nt(\"for-of\", () => { let s = 0; for (const v of new Uint8Array([1, 2, 3])) s += v; return s })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"construct\": [\n    \"\",\n    \"0,0,0\",\n    \"1,0,255,3\",\n    \"7,8\",\n    \"9\"\n  ],\n  \"bad length\": \"!RangeError: Invalid typed array length: -1\",\n  \"fraction length\": \"!RangeError: Invalid typed array length: 1.5\",\n  \"string length\": 2,\n  \"bad source\": \"!TypeError: new Uint8Array(...) expects a Uint8Array, an array, or an iterable of numbers, received a data object.\",\n  \"without new\": \"!TypeError: Constructor Uint8Array requires 'new'.\",\n  \"from\": [\n    \"1,2\",\n    \"1,2,3\",\n    \"10,21\",\n    \"5\",\n    \"5\"\n  ],\n  \"from bad\": \"!TypeError: Uint8Array.from expects a Uint8Array, an array, or an iterable of numbers, received a number.\",\n  \"of\": \"1,2,44\",\n  \"dates as bytes\": [\n    \"5,44\",\n    \"7\"\n  ],\n  \"large default sort\": [\n    0,\n    0,\n    1,\n    255,\n    5000\n  ],\n  \"base64\": [\n    \"aGk=\",\n    \"104,105\",\n    \"ff00\",\n    \"255,0\"\n  ],\n  \"fromBase64 invalid\": \"!SyntaxError: Uint8Array.fromBase64: the string is not valid base64.\",\n  \"fromHex invalid\": \"!SyntaxError: Uint8Array.fromHex: the string is not valid hex.\",\n  \"fromHex non-string\": \"!TypeError: Uint8Array.fromHex expects a string.\",\n  \"access\": [\n    5,\n    5,\n    null,\n    3,\n    5,\n    2,\n    -1,\n    -1,\n    0,\n    0,\n    -1,\n    true,\n    false,\n    \"5-1-4-2-3\",\n    \"5,1,4,2,3\",\n    \"5,1,4,2,3\"\n  ],\n  \"slice/subarray\": [\n    \"2,3\",\n    \"99,3\",\n    \"1,99,3,4\",\n    \"4\",\n    \"1,99,3,4\"\n  ],\n  \"set\": \"1,2,0,9\",\n  \"set overflow\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"set bad offset\": \"!RangeError: Uint8Array.set: the source does not fit at that offset.\",\n  \"fill/reverse/sort\": [\n    \"0,7,7,0\",\n    \"3,2,1\",\n    \"2,10,33\",\n    \"33,10,2\"\n  ],\n  \"index write\": [\n    \"44,7\",\n    2,\n    false\n  ],\n  \"delete index\": \"!TypeError: Cannot delete property '0'.\",\n  \"iterators\": [\n    [\n      1,\n      2\n    ],\n    [\n      0,\n      1\n    ],\n    [\n      [\n        0,\n        1\n      ],\n      [\n        1,\n        2\n      ]\n    ],\n    [\n      3\n    ]\n  ],\n  \"callbacks\": [\n    \"100,200,44\",\n    \"2,3\",\n    2,\n    -1,\n    2,\n    1,\n    true,\n    true,\n    6,\n    \"321\",\n    [\n      0,\n      1,\n      2\n    ]\n  ],\n  \"map returns bytes\": \"[object Uint8Array]\",\n  \"reduce empty\": \"!TypeError: Uint8Array.reduce of an empty array with no initial value.\",\n  \"receiver\": \"!TypeError: Uint8Array.prototype.at called on incompatible receiver an array.\",\n  \"length receiver\": \"!TypeError: Uint8Array.prototype.length called on incompatible receiver a data object.\",\n  \"Object.keys\": [\n    [\n      \"0\",\n      \"1\"\n    ],\n    [\n      4,\n      5\n    ]\n  ],\n  \"json\": \"{\\\"0\\\":1,\\\"1\\\":2}\",\n  \"spread to array\": [\n    7,\n    8\n  ],\n  \"for-of\": 6\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"TextEncoder\\\", () => { const e = new TextEncoder(); return [e.encoding, String(e.encode(\\\"hé\\\")), String(e.encode()), String(e.encode(12)), Object.prototype.toString.call(e.encode(\\\"x\\\"))] })\\nt(\\\"TextEncoder without new\\\", () => TextEncoder())\\nt(\\\"TextDecoder\\\", () => { const d = new TextDecoder(); return [d.encoding, d.fatal, d.ignoreBOM, d.decode(new Uint8Array([104, 195, 169])), d.decode(), d.decode(new Uint8Array([0xff]))] })\\nt(\\\"TextDecoder labels\\\", () => [new TextDecoder(\\\"utf8\\\").encoding, new TextDecoder(\\\" UTF-8 \\\").encoding, new TextDecoder(\\\"unicode-1-1-utf-8\\\").encoding])\\nt(\\\"TextDecoder unsupported\\\", () => new TextDecoder(\\\"latin1\\\"))\\nt(\\\"TextDecoder fatal\\\", () => new TextDecoder(\\\"utf-8\\\", { fatal: true }).decode(new Uint8Array([0xff])))\\nt(\\\"TextDecoder options\\\", () => { const d = new TextDecoder(\\\"utf-8\\\", { fatal: 1, ignoreBOM: true }); return [d.fatal, d.ignoreBOM, d.decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41]))] })\\nt(\\\"TextDecoder BOM\\\", () => new TextDecoder().decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41])))\\nt(\\\"TextDecoder bad input\\\", () => new TextDecoder().decode(\\\"abc\\\"))\\nt(\\\"TextDecoder without new\\\", () => TextDecoder())\\nt(\\\"TextDecoder receiver\\\", () => TextDecoder.prototype.decode.call({}, new Uint8Array(1)))\\nt(\\\"TextDecoder getter receiver\\\", () => Object.create(TextDecoder.prototype).encoding)\\nt(\\\"roundtrip\\\", () => new TextDecoder().decode(new TextEncoder().encode(\\\"ünïcödé ✓\\\")))\\nt(\\\"btoa/atob\\\", () => [btoa(\\\"hello\\\"), atob(\\\"aGVsbG8=\\\"), btoa(\\\"\\\"), atob(\\\" aGk= \\\"), btoa(123)])\\nt(\\\"btoa invalid\\\", () => btoa(\\\"✓\\\"))\\nt(\\\"atob invalid\\\", () => atob(\\\"@@@\\\"))\\nt(\\\"atob missing\\\", () => atob())\\nt(\\\"btoa missing\\\", () => btoa())\\nt(\\\"structuredClone\\\", () => {\\n  const shared = { s: 1 }\\n  const src = { a: [1, { b: 2 }], m: new Map([[shared, shared]]), set: new Set([shared]), d: new Date(5), re: /x/gi, bytes: new Uint8Array([1, 2]), err: new RangeError(\\\"r\\\", { cause: shared }), nested: { shared, again: shared }, hole: [1, , 3] }\\n  const c = structuredClone(src)\\n  return [c !== src, c.a[1].b, c.m.size, [...c.m.keys()][0] === [...c.m.values()][0], c.set.size, c.d.getTime(), String(c.re), String(c.bytes), c.bytes !== src.bytes, c.err.name, c.err.message, c.err.cause.s, c.err instanceof RangeError, c.nested.shared === c.nested.again, c.nested.shared !== shared, 1 in c.hole, c.hole.length]\\n})\\nt(\\\"structuredClone primitives\\\", () => [structuredClone(1), structuredClone(\\\"s\\\"), structuredClone(null), structuredClone(undefined) === undefined])\\nt(\\\"structuredClone cyclic object\\\", () => { const o = { n: 1 }; const m = new Map(); m.set(\\\"self\\\", m); const c = structuredClone(m); return c.get(\\\"self\\\") === c })\\nt(\\\"structuredClone error kinds\\\", () => { const e = new Error(\\\"plain\\\"); e.name = \\\"CustomName\\\"; const c = structuredClone(e); return [c.name, c.message, Object.prototype.toString.call(c)] })\\nt(\\\"structuredClone function\\\", () => structuredClone(() => 1))\\nt(\\\"structuredClone promise\\\", () => structuredClone(Promise.resolve(1)))\\nt(\\\"structuredClone weakmap\\\", () => structuredClone(new WeakMap()))\\nt(\\\"structuredClone symbol\\\", () => structuredClone(Symbol.iterator))\\nt(\\\"structuredClone tool\\\", () => structuredClone(tools))\\nt(\\\"structuredClone missing\\\", () => structuredClone())\\nt(\\\"crypto\\\", () => { const id = crypto.randomUUID(); const bytes = crypto.getRandomValues(new Uint8Array(4)); return [typeof id, id.length, /^[0-9a-f-]+$/.test(id), bytes.length, Object.prototype.toString.call(bytes)] })\\nt(\\\"crypto bad\\\", () => crypto.getRandomValues([1, 2]))\\nt(\\\"crypto iterator\\\", () => crypto.getRandomValues([].values()))\\nt(\\\"console bytes\\\", () => { console.log(new Uint8Array([1, 2])); return true })\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_1",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"TextEncoder\", () => { const e = new TextEncoder(); return [e.encoding, String(e.encode(\"hé\")), String(e.encode()), String(e.encode(12)), Object.prototype.toString.call(e.encode(\"x\"))] })\nt(\"TextEncoder without new\", () => TextEncoder())\nt(\"TextDecoder\", () => { const d = new TextDecoder(); return [d.encoding, d.fatal, d.ignoreBOM, d.decode(new Uint8Array([104, 195, 169])), d.decode(), d.decode(new Uint8Array([0xff]))] })\nt(\"TextDecoder labels\", () => [new TextDecoder(\"utf8\").encoding, new TextDecoder(\" UTF-8 \").encoding, new TextDecoder(\"unicode-1-1-utf-8\").encoding])\nt(\"TextDecoder unsupported\", () => new TextDecoder(\"latin1\"))\nt(\"TextDecoder fatal\", () => new TextDecoder(\"utf-8\", { fatal: true }).decode(new Uint8Array([0xff])))\nt(\"TextDecoder options\", () => { const d = new TextDecoder(\"utf-8\", { fatal: 1, ignoreBOM: true }); return [d.fatal, d.ignoreBOM, d.decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41]))] })\nt(\"TextDecoder BOM\", () => new TextDecoder().decode(new Uint8Array([0xef, 0xbb, 0xbf, 0x41])))\nt(\"TextDecoder bad input\", () => new TextDecoder().decode(\"abc\"))\nt(\"TextDecoder without new\", () => TextDecoder())\nt(\"TextDecoder receiver\", () => TextDecoder.prototype.decode.call({}, new Uint8Array(1)))\nt(\"TextDecoder getter receiver\", () => Object.create(TextDecoder.prototype).encoding)\nt(\"roundtrip\", () => new TextDecoder().decode(new TextEncoder().encode(\"ünïcödé ✓\")))\nt(\"btoa/atob\", () => [btoa(\"hello\"), atob(\"aGVsbG8=\"), btoa(\"\"), atob(\" aGk= \"), btoa(123)])\nt(\"btoa invalid\", () => btoa(\"✓\"))\nt(\"atob invalid\", () => atob(\"@@@\"))\nt(\"atob missing\", () => atob())\nt(\"btoa missing\", () => btoa())\nt(\"structuredClone\", () => {\n  const shared = { s: 1 }\n  const src = { a: [1, { b: 2 }], m: new Map([[shared, shared]]), set: new Set([shared]), d: new Date(5), re: /x/gi, bytes: new Uint8Array([1, 2]), err: new RangeError(\"r\", { cause: shared }), nested: { shared, again: shared }, hole: [1, , 3] }\n  const c = structuredClone(src)\n  return [c !== src, c.a[1].b, c.m.size, [...c.m.keys()][0] === [...c.m.values()][0], c.set.size, c.d.getTime(), String(c.re), String(c.bytes), c.bytes !== src.bytes, c.err.name, c.err.message, c.err.cause.s, c.err instanceof RangeError, c.nested.shared === c.nested.again, c.nested.shared !== shared, 1 in c.hole, c.hole.length]\n})\nt(\"structuredClone primitives\", () => [structuredClone(1), structuredClone(\"s\"), structuredClone(null), structuredClone(undefined) === undefined])\nt(\"structuredClone cyclic object\", () => { const o = { n: 1 }; const m = new Map(); m.set(\"self\", m); const c = structuredClone(m); return c.get(\"self\") === c })\nt(\"structuredClone error kinds\", () => { const e = new Error(\"plain\"); e.name = \"CustomName\"; const c = structuredClone(e); return [c.name, c.message, Object.prototype.toString.call(c)] })\nt(\"structuredClone function\", () => structuredClone(() => 1))\nt(\"structuredClone promise\", () => structuredClone(Promise.resolve(1)))\nt(\"structuredClone weakmap\", () => structuredClone(new WeakMap()))\nt(\"structuredClone symbol\", () => structuredClone(Symbol.iterator))\nt(\"structuredClone tool\", () => structuredClone(tools))\nt(\"structuredClone missing\", () => structuredClone())\nt(\"crypto\", () => { const id = crypto.randomUUID(); const bytes = crypto.getRandomValues(new Uint8Array(4)); return [typeof id, id.length, /^[0-9a-f-]+$/.test(id), bytes.length, Object.prototype.toString.call(bytes)] })\nt(\"crypto bad\", () => crypto.getRandomValues([1, 2]))\nt(\"crypto iterator\", () => crypto.getRandomValues([].values()))\nt(\"console bytes\", () => { console.log(new Uint8Array([1, 2])); return true })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_1",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_40>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

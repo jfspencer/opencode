@@ -1,0 +1,485 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_1>",
+          "lastFiredAt": "<time>",
+          "lastOutcome": "fired",
+          "name": "true",
+          "remainingRuns": 0,
+          "runCount": 1,
+          "sessionID": "<ses_1>",
+          "status": "done",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "until": {
+            "code": "return true",
+            "type": "code"
+          },
+          "when": {
+            "every": "30 seconds",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "true",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "return true"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_2>",
+          "name": "stateful",
+          "nextDueAt": "<time>",
+          "remainingRuns": 1,
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "until": {
+            "code": "return { wake: false, state: { runs, seen: state } }",
+            "type": "code"
+          },
+          "when": {
+            "every": "30 seconds",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "stateful",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "return { wake: false, state: { runs, seen: state } }"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_3>",
+          "lastFiredAt": "<time>",
+          "lastOutcome": "fired",
+          "lastOutput": "All green",
+          "name": "message",
+          "remainingRuns": 0,
+          "runCount": 1,
+          "sessionID": "<ses_1>",
+          "status": "done",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "until": {
+            "code": "return { wake: true, message: 'All green' }",
+            "type": "code"
+          },
+          "when": {
+            "every": "30 seconds",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "message",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "return { wake: true, message: 'All green' }"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "A code check must return a boolean or { wake, state?, message? }: SchemaError(Expected object)"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "bad shape",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "return 42"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "schedule",
+        "message": "Error: boom"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "throws",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "throw new Error('boom')"
+        }
+      },
+      "status": 400,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "id": "<sch_4>",
+          "if": {
+            "code": "return now > 0",
+            "type": "code"
+          },
+          "name": "if code",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "every": "1 hour",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "return now > 0"
+        },
+        "name": "if code",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "id": "<sch_5>",
+          "if": {
+            "code": "const found = await tools.opencode.models({ limit: 1 })\nreturn found.total > 0",
+            "type": "code"
+          },
+          "name": "with a tool",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "when": {
+            "every": "1 hour",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "if": {
+          "code": "const found = await tools.opencode.models({ limit: 1 })\nreturn found.total > 0"
+        },
+        "name": "with a tool",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 hour"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Report",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_6>",
+          "lastFiredAt": "<time>",
+          "lastOutcome": "fired",
+          "lastOutput": "models: 1",
+          "name": "until with a tool",
+          "remainingRuns": 0,
+          "runCount": 1,
+          "sessionID": "<ses_1>",
+          "status": "done",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "UTC",
+          "until": {
+            "code": "const found = await tools.opencode.models({ query: 'deepseek' })\nreturn { wake: found.total > 0, message: `models: ${found.total}` }",
+            "type": "code"
+          },
+          "when": {
+            "every": "30 seconds",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "until with a tool",
+        "prompt": "Report",
+        "sessionID": "<ses_1>",
+        "until": {
+          "code": "const found = await tools.opencode.models({ query: 'deepseek' })\nreturn { wake: found.total > 0, message: `models: ${found.total}` }"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

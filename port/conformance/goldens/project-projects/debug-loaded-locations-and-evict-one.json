@@ -1,0 +1,305 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "directory": "<project>/sub",
+        "project": {
+          "canonical": "<project>/sub",
+          "directory": "<project>/sub",
+          "id": "<hash_2>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>"
+        },
+        {
+          "directory": "<project>/sub"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/debug/location"
+    },
+    {
+      "kind": "note",
+      "label": "loaded locations in this scenario",
+      "value": [
+        "<project>",
+        "<project>/sub"
+      ]
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/debug/location"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/debug/location"
+    },
+    {
+      "kind": "note",
+      "label": "after evicting sub",
+      "value": [
+        "<project>"
+      ]
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "directory",
+        "message": "directory must be an absolute path"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 400,
+      "url": "/api/debug/heap-dump?directory=relative/dir"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/sub",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "location.shutdown"
+      }
+    ]
+  },
+  "files": {
+    "sub/a.txt": "a\n"
+  }
+}

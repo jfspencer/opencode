@@ -1,0 +1,506 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "before",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "before"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": "after"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "metadata": {
+          "count": 3,
+          "stage": "review"
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "permissions": [
+          {
+            "action": "read",
+            "effect": "deny",
+            "resource": "*.env"
+          }
+        ]
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": true
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "count": 3,
+            "stage": "review"
+          },
+          "permissions": [
+            {
+              "action": "read",
+              "effect": "deny",
+              "resource": "*.env"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "archived": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "after",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": true
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": false
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": false
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {},
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": true,
+        "metadata": {},
+        "permissions": [],
+        "title": "all at once"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {},
+          "permissions": [],
+          "projectID": "<hash_1>",
+          "time": {
+            "archived": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "all at once",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected boolean | null\n  at [\"archived\"]"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": "yes"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_2>",
+        "sessionID": "<ses_2>"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "title": "missing"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_2>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "before",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "after"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "metadata": {
+            "count": 3,
+            "stage": "review"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.metadata.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "permissions": [
+            {
+              "action": "read",
+              "effect": "deny",
+              "resource": "*.env"
+            }
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "type": "session.permissions"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "type": "session.archived"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "type": "session.unarchived"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "all at once"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "metadata": {},
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "type": "session.metadata.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "permissions": [],
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "type": "session.permissions"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "type": "session.archived"
+      }
+    ]
+  },
+  "files": {}
+}

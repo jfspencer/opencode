@@ -1,0 +1,1030 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the array mutation programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the array mutation programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the array mutation programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the array mutation programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"push/pop\\\", () => { const a = [1]; const n = a.push(2, 3); const p = a.pop(); return [n, p, a, [].pop()] })\\nt(\\\"shift/unshift\\\", () => { const a = [1, 2]; const n = a.unshift(-1, 0); const s = a.shift(); return [n, s, a, [].shift()] })\\nt(\\\"splice remove\\\", () => { const a = [1, 2, 3, 4]; const removed = a.splice(1, 2); return [removed, a] })\\nt(\\\"splice insert\\\", () => { const a = [1, 4]; a.splice(1, 0, 2, 3); return a })\\nt(\\\"splice negative\\\", () => { const a = [1, 2, 3]; const removed = a.splice(-2); return [removed, a] })\\nt(\\\"splice no args\\\", () => { const a = [1, 2]; return [a.splice(), a] })\\nt(\\\"splice huge count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, 99), a] })\\nt(\\\"splice negative count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, -1), a] })\\nt(\\\"fill\\\", () => [[1, 2, 3, 4].fill(0), [1, 2, 3, 4].fill(9, 1, 3), [1, 2, 3].fill(7, -1), Array(3).fill(\\\"x\\\")])\\nt(\\\"copyWithin\\\", () => [[1, 2, 3, 4, 5].copyWithin(0, 3), [1, 2, 3, 4, 5].copyWithin(1, 0, 2), [1, 2, 3].copyWithin(-1)])\\nt(\\\"reverse\\\", () => { const a = [1, 2, 3]; const b = a.reverse(); return [a, b === a] })\\nt(\\\"sort default\\\", () => [3, 20, 100, 1].sort())\\nt(\\\"sort comparator\\\", () => [3, 20, 100, 1].sort((x, y) => y - x))\\nt(\\\"sort strings\\\", () => [\\\"b\\\", \\\"a\\\", \\\"C\\\", \\\"B\\\"].sort())\\nt(\\\"sort stable NaN\\\", () => [{ k: 1, v: \\\"a\\\" }, { k: 0, v: \\\"b\\\" }, { k: 1, v: \\\"c\\\" }].sort(() => NaN).map((x) => x.v))\\nt(\\\"sort holes and undefined\\\", () => { const a = [3, undefined, , 1]; a.sort(); return [a.length, 2 in a, 3 in a, JSON.stringify(a)] })\\nt(\\\"sort bad comparator\\\", () => [2, 1].sort(5))\\nt(\\\"sort comparator throws\\\", () => [2, 1].sort(() => { throw new Error(\\\"cmp\\\") }))\\nt(\\\"sort coerces result\\\", () => [1, 2, 3].sort(() => \\\"1\\\"))\\nt(\\\"large default sort\\\", () => { const x = Array.from({ length: 5000 }, (_, i) => (i * 7919) % 5003); x[10] = undefined; delete x[20]; x.sort(); return [x.slice(0, 5), x.slice(-3).map(String), x.length, 4999 in x] })\\nt(\\\"large toSorted\\\", () => { const x = Array.from({ length: 4500 }, (_, i) => String(4500 - i)).toSorted(); return [x[0], x[1], x[4499]] })\\nt(\\\"circular push\\\", () => { const a = []; a.push(a); return a.length })\\nt(\\\"circular unshift\\\", () => { const a = [1]; a.unshift(a); return a.length })\\nt(\\\"circular splice\\\", () => { const a = [1]; a.splice(0, 0, a); return a.length })\\nt(\\\"circular fill\\\", () => { const a = [1]; a.fill(a); return a.length })\\nt(\\\"nested circular\\\", () => { const a = []; const b = [a]; a.push(b); return a.length })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"push/pop\": [\n    3,\n    3,\n    [\n      1,\n      2\n    ],\n    null\n  ],\n  \"shift/unshift\": [\n    4,\n    -1,\n    [\n      0,\n      1,\n      2\n    ],\n    null\n  ],\n  \"splice remove\": [\n    [\n      2,\n      3\n    ],\n    [\n      1,\n      4\n    ]\n  ],\n  \"splice insert\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"splice negative\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice no args\": [\n    [],\n    [\n      1,\n      2\n    ]\n  ],\n  \"splice huge count\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice negative count\": [\n    [],\n    [\n      1,\n      2,\n      3\n    ]\n  ],\n  \"fill\": [\n    [\n      0,\n      0,\n      0,\n      0\n    ],\n    [\n      1,\n      9,\n      9,\n      4\n    ],\n    [\n      1,\n      2,\n      7\n    ],\n    [\n      \"x\",\n      \"x\",\n      \"x\"\n    ]\n  ],\n  \"copyWithin\": [\n    [\n      4,\n      5,\n      3,\n      4,\n      5\n    ],\n    [\n      1,\n      1,\n      2,\n      4,\n      5\n    ],\n    [\n      1,\n      2,\n      1\n    ]\n  ],\n  \"reverse\": [\n    [\n      3,\n      2,\n      1\n    ],\n    true\n  ],\n  \"sort default\": [\n    1,\n    100,\n    20,\n    3\n  ],\n  \"sort comparator\": [\n    100,\n    20,\n    3,\n    1\n  ],\n  \"sort strings\": [\n    \"B\",\n    \"C\",\n    \"a\",\n    \"b\"\n  ],\n  \"sort stable NaN\": [\n    \"a\",\n    \"b\",\n    \"c\"\n  ],\n  \"sort holes and undefined\": [\n    4,\n    true,\n    false,\n    \"[1,3,null,null]\"\n  ],\n  \"sort bad comparator\": \"!TypeError: Array.sort expects a function callback.\",\n  \"sort comparator throws\": \"!Error: cmp\",\n  \"sort coerces result\": [\n    3,\n    2,\n    1\n  ],\n  \"large default sort\": [\n    [\n      0,\n      1,\n      10,\n      100,\n      1000\n    ],\n    [\n      \"999\",\n      \"undefined\",\n      null\n    ],\n    5000,\n    false\n  ],\n  \"large toSorted\": [\n    \"1\",\n    \"10\",\n    \"999\"\n  ],\n  \"circular push\": \"!TypeError: Array.push result contains a circular value.\",\n  \"circular unshift\": \"!TypeError: Array.unshift result contains a circular value.\",\n  \"circular splice\": \"!TypeError: Array.splice result contains a circular value.\",\n  \"circular fill\": \"!TypeError: Array.fill result contains a circular value.\",\n  \"nested circular\": \"!TypeError: Array.push result contains a circular value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the array mutation programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"push/pop\\\", () => { const a = [1]; const n = a.push(2, 3); const p = a.pop(); return [n, p, a, [].pop()] })\\nt(\\\"shift/unshift\\\", () => { const a = [1, 2]; const n = a.unshift(-1, 0); const s = a.shift(); return [n, s, a, [].shift()] })\\nt(\\\"splice remove\\\", () => { const a = [1, 2, 3, 4]; const removed = a.splice(1, 2); return [removed, a] })\\nt(\\\"splice insert\\\", () => { const a = [1, 4]; a.splice(1, 0, 2, 3); return a })\\nt(\\\"splice negative\\\", () => { const a = [1, 2, 3]; const removed = a.splice(-2); return [removed, a] })\\nt(\\\"splice no args\\\", () => { const a = [1, 2]; return [a.splice(), a] })\\nt(\\\"splice huge count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, 99), a] })\\nt(\\\"splice negative count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, -1), a] })\\nt(\\\"fill\\\", () => [[1, 2, 3, 4].fill(0), [1, 2, 3, 4].fill(9, 1, 3), [1, 2, 3].fill(7, -1), Array(3).fill(\\\"x\\\")])\\nt(\\\"copyWithin\\\", () => [[1, 2, 3, 4, 5].copyWithin(0, 3), [1, 2, 3, 4, 5].copyWithin(1, 0, 2), [1, 2, 3].copyWithin(-1)])\\nt(\\\"reverse\\\", () => { const a = [1, 2, 3]; const b = a.reverse(); return [a, b === a] })\\nt(\\\"sort default\\\", () => [3, 20, 100, 1].sort())\\nt(\\\"sort comparator\\\", () => [3, 20, 100, 1].sort((x, y) => y - x))\\nt(\\\"sort strings\\\", () => [\\\"b\\\", \\\"a\\\", \\\"C\\\", \\\"B\\\"].sort())\\nt(\\\"sort stable NaN\\\", () => [{ k: 1, v: \\\"a\\\" }, { k: 0, v: \\\"b\\\" }, { k: 1, v: \\\"c\\\" }].sort(() => NaN).map((x) => x.v))\\nt(\\\"sort holes and undefined\\\", () => { const a = [3, undefined, , 1]; a.sort(); return [a.length, 2 in a, 3 in a, JSON.stringify(a)] })\\nt(\\\"sort bad comparator\\\", () => [2, 1].sort(5))\\nt(\\\"sort comparator throws\\\", () => [2, 1].sort(() => { throw new Error(\\\"cmp\\\") }))\\nt(\\\"sort coerces result\\\", () => [1, 2, 3].sort(() => \\\"1\\\"))\\nt(\\\"large default sort\\\", () => { const x = Array.from({ length: 5000 }, (_, i) => (i * 7919) % 5003); x[10] = undefined; delete x[20]; x.sort(); return [x.slice(0, 5), x.slice(-3).map(String), x.length, 4999 in x] })\\nt(\\\"large toSorted\\\", () => { const x = Array.from({ length: 4500 }, (_, i) => String(4500 - i)).toSorted(); return [x[0], x[1], x[4499]] })\\nt(\\\"circular push\\\", () => { const a = []; a.push(a); return a.length })\\nt(\\\"circular unshift\\\", () => { const a = [1]; a.unshift(a); return a.length })\\nt(\\\"circular splice\\\", () => { const a = [1]; a.splice(0, 0, a); return a.length })\\nt(\\\"circular fill\\\", () => { const a = [1]; a.fill(a); return a.length })\\nt(\\\"nested circular\\\", () => { const a = []; const b = [a]; a.push(b); return a.length })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"push/pop\": [\n    3,\n    3,\n    [\n      1,\n      2\n    ],\n    null\n  ],\n  \"shift/unshift\": [\n    4,\n    -1,\n    [\n      0,\n      1,\n      2\n    ],\n    null\n  ],\n  \"splice remove\": [\n    [\n      2,\n      3\n    ],\n    [\n      1,\n      4\n    ]\n  ],\n  \"splice insert\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"splice negative\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice no args\": [\n    [],\n    [\n      1,\n      2\n    ]\n  ],\n  \"splice huge count\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice negative count\": [\n    [],\n    [\n      1,\n      2,\n      3\n    ]\n  ],\n  \"fill\": [\n    [\n      0,\n      0,\n      0,\n      0\n    ],\n    [\n      1,\n      9,\n      9,\n      4\n    ],\n    [\n      1,\n      2,\n      7\n    ],\n    [\n      \"x\",\n      \"x\",\n      \"x\"\n    ]\n  ],\n  \"copyWithin\": [\n    [\n      4,\n      5,\n      3,\n      4,\n      5\n    ],\n    [\n      1,\n      1,\n      2,\n      4,\n      5\n    ],\n    [\n      1,\n      2,\n      1\n    ]\n  ],\n  \"reverse\": [\n    [\n      3,\n      2,\n      1\n    ],\n    true\n  ],\n  \"sort default\": [\n    1,\n    100,\n    20,\n    3\n  ],\n  \"sort comparator\": [\n    100,\n    20,\n    3,\n    1\n  ],\n  \"sort strings\": [\n    \"B\",\n    \"C\",\n    \"a\",\n    \"b\"\n  ],\n  \"sort stable NaN\": [\n    \"a\",\n    \"b\",\n    \"c\"\n  ],\n  \"sort holes and undefined\": [\n    4,\n    true,\n    false,\n    \"[1,3,null,null]\"\n  ],\n  \"sort bad comparator\": \"!TypeError: Array.sort expects a function callback.\",\n  \"sort comparator throws\": \"!Error: cmp\",\n  \"sort coerces result\": [\n    3,\n    2,\n    1\n  ],\n  \"large default sort\": [\n    [\n      0,\n      1,\n      10,\n      100,\n      1000\n    ],\n    [\n      \"999\",\n      \"undefined\",\n      null\n    ],\n    5000,\n    false\n  ],\n  \"large toSorted\": [\n    \"1\",\n    \"10\",\n    \"999\"\n  ],\n  \"circular push\": \"!TypeError: Array.push result contains a circular value.\",\n  \"circular unshift\": \"!TypeError: Array.unshift result contains a circular value.\",\n  \"circular splice\": \"!TypeError: Array.splice result contains a circular value.\",\n  \"circular fill\": \"!TypeError: Array.fill result contains a circular value.\",\n  \"nested circular\": \"!TypeError: Array.push result contains a circular value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst frozen = Object.freeze([1, 2])\\nconst sealed = Object.seal([1, 2])\\nconst fixed = Object.preventExtensions([1, 2])\\nconst tryAll = (label, arr) => {\\n  t(label + \\\" push\\\", () => arr.push(3))\\n  t(label + \\\" pop\\\", () => arr.pop())\\n  t(label + \\\" shift\\\", () => arr.shift())\\n  t(label + \\\" unshift\\\", () => arr.unshift(0))\\n  t(label + \\\" splice\\\", () => arr.splice(0, 1, 9))\\n  t(label + \\\" fill\\\", () => arr.fill(5))\\n  t(label + \\\" sort\\\", () => arr.sort())\\n  t(label + \\\" reverse\\\", () => arr.reverse())\\n  t(label + \\\" copyWithin\\\", () => arr.copyWithin(0, 1))\\n  t(label + \\\" index write\\\", () => { arr[0] = 42; return arr[0] })\\n  t(label + \\\" index add\\\", () => { arr[5] = 42; return arr.length })\\n  t(label + \\\" length\\\", () => { arr.length = 0; return arr.length })\\n  t(label + \\\" state\\\", () => [JSON.stringify(arr), Object.isFrozen(arr), Object.isSealed(arr), Object.isExtensible(arr)])\\n}\\ntryAll(\\\"frozen\\\", frozen)\\ntryAll(\\\"sealed\\\", sealed)\\ntryAll(\\\"non-extensible\\\", fixed)\\nt(\\\"frozen single reverse\\\", () => Object.freeze([1]).reverse())\\nt(\\\"frozen empty push nothing\\\", () => Object.freeze([]).push())\\nt(\\\"empty non-extensible\\\", () => [Object.isSealed(Object.preventExtensions([])), Object.isFrozen(Object.preventExtensions([]))])\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"frozen push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"frozen pop\": \"!TypeError: Cannot delete property '1'.\",\n  \"frozen shift\": \"!TypeError: Cannot delete property '1'.\",\n  \"frozen unshift\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"frozen splice\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen fill\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen sort\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen reverse\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen copyWithin\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen index write\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"frozen length\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"frozen state\": [\n    \"[1,2]\",\n    true,\n    true,\n    false\n  ],\n  \"sealed push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"sealed pop\": \"!TypeError: Cannot delete property '1'.\",\n  \"sealed shift\": \"!TypeError: Cannot delete property '1'.\",\n  \"sealed unshift\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"sealed splice\": [\n    1\n  ],\n  \"sealed fill\": [\n    42,\n    5\n  ],\n  \"sealed sort\": [\n    42,\n    5\n  ],\n  \"sealed reverse\": [\n    42,\n    5\n  ],\n  \"sealed copyWithin\": [\n    42,\n    5\n  ],\n  \"sealed index write\": 42,\n  \"sealed index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"sealed length\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"sealed state\": [\n    \"[42,5]\",\n    false,\n    true,\n    false\n  ],\n  \"non-extensible push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"non-extensible pop\": 2,\n  \"non-extensible shift\": 1,\n  \"non-extensible unshift\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible splice\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible fill\": [],\n  \"non-extensible sort\": [],\n  \"non-extensible reverse\": [],\n  \"non-extensible copyWithin\": [],\n  \"non-extensible index write\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"non-extensible length\": 0,\n  \"non-extensible state\": [\n    \"[]\",\n    false,\n    true,\n    false\n  ],\n  \"frozen single reverse\": [\n    1\n  ],\n  \"frozen empty push nothing\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"empty non-extensible\": [\n    true,\n    false\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the array mutation programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the array mutation programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"push/pop\\\", () => { const a = [1]; const n = a.push(2, 3); const p = a.pop(); return [n, p, a, [].pop()] })\\nt(\\\"shift/unshift\\\", () => { const a = [1, 2]; const n = a.unshift(-1, 0); const s = a.shift(); return [n, s, a, [].shift()] })\\nt(\\\"splice remove\\\", () => { const a = [1, 2, 3, 4]; const removed = a.splice(1, 2); return [removed, a] })\\nt(\\\"splice insert\\\", () => { const a = [1, 4]; a.splice(1, 0, 2, 3); return a })\\nt(\\\"splice negative\\\", () => { const a = [1, 2, 3]; const removed = a.splice(-2); return [removed, a] })\\nt(\\\"splice no args\\\", () => { const a = [1, 2]; return [a.splice(), a] })\\nt(\\\"splice huge count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, 99), a] })\\nt(\\\"splice negative count\\\", () => { const a = [1, 2, 3]; return [a.splice(1, -1), a] })\\nt(\\\"fill\\\", () => [[1, 2, 3, 4].fill(0), [1, 2, 3, 4].fill(9, 1, 3), [1, 2, 3].fill(7, -1), Array(3).fill(\\\"x\\\")])\\nt(\\\"copyWithin\\\", () => [[1, 2, 3, 4, 5].copyWithin(0, 3), [1, 2, 3, 4, 5].copyWithin(1, 0, 2), [1, 2, 3].copyWithin(-1)])\\nt(\\\"reverse\\\", () => { const a = [1, 2, 3]; const b = a.reverse(); return [a, b === a] })\\nt(\\\"sort default\\\", () => [3, 20, 100, 1].sort())\\nt(\\\"sort comparator\\\", () => [3, 20, 100, 1].sort((x, y) => y - x))\\nt(\\\"sort strings\\\", () => [\\\"b\\\", \\\"a\\\", \\\"C\\\", \\\"B\\\"].sort())\\nt(\\\"sort stable NaN\\\", () => [{ k: 1, v: \\\"a\\\" }, { k: 0, v: \\\"b\\\" }, { k: 1, v: \\\"c\\\" }].sort(() => NaN).map((x) => x.v))\\nt(\\\"sort holes and undefined\\\", () => { const a = [3, undefined, , 1]; a.sort(); return [a.length, 2 in a, 3 in a, JSON.stringify(a)] })\\nt(\\\"sort bad comparator\\\", () => [2, 1].sort(5))\\nt(\\\"sort comparator throws\\\", () => [2, 1].sort(() => { throw new Error(\\\"cmp\\\") }))\\nt(\\\"sort coerces result\\\", () => [1, 2, 3].sort(() => \\\"1\\\"))\\nt(\\\"large default sort\\\", () => { const x = Array.from({ length: 5000 }, (_, i) => (i * 7919) % 5003); x[10] = undefined; delete x[20]; x.sort(); return [x.slice(0, 5), x.slice(-3).map(String), x.length, 4999 in x] })\\nt(\\\"large toSorted\\\", () => { const x = Array.from({ length: 4500 }, (_, i) => String(4500 - i)).toSorted(); return [x[0], x[1], x[4499]] })\\nt(\\\"circular push\\\", () => { const a = []; a.push(a); return a.length })\\nt(\\\"circular unshift\\\", () => { const a = [1]; a.unshift(a); return a.length })\\nt(\\\"circular splice\\\", () => { const a = [1]; a.splice(0, 0, a); return a.length })\\nt(\\\"circular fill\\\", () => { const a = [1]; a.fill(a); return a.length })\\nt(\\\"nested circular\\\", () => { const a = []; const b = [a]; a.push(b); return a.length })\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"push/pop\", () => { const a = [1]; const n = a.push(2, 3); const p = a.pop(); return [n, p, a, [].pop()] })\nt(\"shift/unshift\", () => { const a = [1, 2]; const n = a.unshift(-1, 0); const s = a.shift(); return [n, s, a, [].shift()] })\nt(\"splice remove\", () => { const a = [1, 2, 3, 4]; const removed = a.splice(1, 2); return [removed, a] })\nt(\"splice insert\", () => { const a = [1, 4]; a.splice(1, 0, 2, 3); return a })\nt(\"splice negative\", () => { const a = [1, 2, 3]; const removed = a.splice(-2); return [removed, a] })\nt(\"splice no args\", () => { const a = [1, 2]; return [a.splice(), a] })\nt(\"splice huge count\", () => { const a = [1, 2, 3]; return [a.splice(1, 99), a] })\nt(\"splice negative count\", () => { const a = [1, 2, 3]; return [a.splice(1, -1), a] })\nt(\"fill\", () => [[1, 2, 3, 4].fill(0), [1, 2, 3, 4].fill(9, 1, 3), [1, 2, 3].fill(7, -1), Array(3).fill(\"x\")])\nt(\"copyWithin\", () => [[1, 2, 3, 4, 5].copyWithin(0, 3), [1, 2, 3, 4, 5].copyWithin(1, 0, 2), [1, 2, 3].copyWithin(-1)])\nt(\"reverse\", () => { const a = [1, 2, 3]; const b = a.reverse(); return [a, b === a] })\nt(\"sort default\", () => [3, 20, 100, 1].sort())\nt(\"sort comparator\", () => [3, 20, 100, 1].sort((x, y) => y - x))\nt(\"sort strings\", () => [\"b\", \"a\", \"C\", \"B\"].sort())\nt(\"sort stable NaN\", () => [{ k: 1, v: \"a\" }, { k: 0, v: \"b\" }, { k: 1, v: \"c\" }].sort(() => NaN).map((x) => x.v))\nt(\"sort holes and undefined\", () => { const a = [3, undefined, , 1]; a.sort(); return [a.length, 2 in a, 3 in a, JSON.stringify(a)] })\nt(\"sort bad comparator\", () => [2, 1].sort(5))\nt(\"sort comparator throws\", () => [2, 1].sort(() => { throw new Error(\"cmp\") }))\nt(\"sort coerces result\", () => [1, 2, 3].sort(() => \"1\"))\nt(\"large default sort\", () => { const x = Array.from({ length: 5000 }, (_, i) => (i * 7919) % 5003); x[10] = undefined; delete x[20]; x.sort(); return [x.slice(0, 5), x.slice(-3).map(String), x.length, 4999 in x] })\nt(\"large toSorted\", () => { const x = Array.from({ length: 4500 }, (_, i) => String(4500 - i)).toSorted(); return [x[0], x[1], x[4499]] })\nt(\"circular push\", () => { const a = []; a.push(a); return a.length })\nt(\"circular unshift\", () => { const a = [1]; a.unshift(a); return a.length })\nt(\"circular splice\", () => { const a = [1]; a.splice(0, 0, a); return a.length })\nt(\"circular fill\", () => { const a = [1]; a.fill(a); return a.length })\nt(\"nested circular\", () => { const a = []; const b = [a]; a.push(b); return a.length })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"push/pop\": [\n    3,\n    3,\n    [\n      1,\n      2\n    ],\n    null\n  ],\n  \"shift/unshift\": [\n    4,\n    -1,\n    [\n      0,\n      1,\n      2\n    ],\n    null\n  ],\n  \"splice remove\": [\n    [\n      2,\n      3\n    ],\n    [\n      1,\n      4\n    ]\n  ],\n  \"splice insert\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"splice negative\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice no args\": [\n    [],\n    [\n      1,\n      2\n    ]\n  ],\n  \"splice huge count\": [\n    [\n      2,\n      3\n    ],\n    [\n      1\n    ]\n  ],\n  \"splice negative count\": [\n    [],\n    [\n      1,\n      2,\n      3\n    ]\n  ],\n  \"fill\": [\n    [\n      0,\n      0,\n      0,\n      0\n    ],\n    [\n      1,\n      9,\n      9,\n      4\n    ],\n    [\n      1,\n      2,\n      7\n    ],\n    [\n      \"x\",\n      \"x\",\n      \"x\"\n    ]\n  ],\n  \"copyWithin\": [\n    [\n      4,\n      5,\n      3,\n      4,\n      5\n    ],\n    [\n      1,\n      1,\n      2,\n      4,\n      5\n    ],\n    [\n      1,\n      2,\n      1\n    ]\n  ],\n  \"reverse\": [\n    [\n      3,\n      2,\n      1\n    ],\n    true\n  ],\n  \"sort default\": [\n    1,\n    100,\n    20,\n    3\n  ],\n  \"sort comparator\": [\n    100,\n    20,\n    3,\n    1\n  ],\n  \"sort strings\": [\n    \"B\",\n    \"C\",\n    \"a\",\n    \"b\"\n  ],\n  \"sort stable NaN\": [\n    \"a\",\n    \"b\",\n    \"c\"\n  ],\n  \"sort holes and undefined\": [\n    4,\n    true,\n    false,\n    \"[1,3,null,null]\"\n  ],\n  \"sort bad comparator\": \"!TypeError: Array.sort expects a function callback.\",\n  \"sort comparator throws\": \"!Error: cmp\",\n  \"sort coerces result\": [\n    3,\n    2,\n    1\n  ],\n  \"large default sort\": [\n    [\n      0,\n      1,\n      10,\n      100,\n      1000\n    ],\n    [\n      \"999\",\n      \"undefined\",\n      null\n    ],\n    5000,\n    false\n  ],\n  \"large toSorted\": [\n    \"1\",\n    \"10\",\n    \"999\"\n  ],\n  \"circular push\": \"!TypeError: Array.push result contains a circular value.\",\n  \"circular unshift\": \"!TypeError: Array.unshift result contains a circular value.\",\n  \"circular splice\": \"!TypeError: Array.splice result contains a circular value.\",\n  \"circular fill\": \"!TypeError: Array.fill result contains a circular value.\",\n  \"nested circular\": \"!TypeError: Array.push result contains a circular value.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst frozen = Object.freeze([1, 2])\\nconst sealed = Object.seal([1, 2])\\nconst fixed = Object.preventExtensions([1, 2])\\nconst tryAll = (label, arr) => {\\n  t(label + \\\" push\\\", () => arr.push(3))\\n  t(label + \\\" pop\\\", () => arr.pop())\\n  t(label + \\\" shift\\\", () => arr.shift())\\n  t(label + \\\" unshift\\\", () => arr.unshift(0))\\n  t(label + \\\" splice\\\", () => arr.splice(0, 1, 9))\\n  t(label + \\\" fill\\\", () => arr.fill(5))\\n  t(label + \\\" sort\\\", () => arr.sort())\\n  t(label + \\\" reverse\\\", () => arr.reverse())\\n  t(label + \\\" copyWithin\\\", () => arr.copyWithin(0, 1))\\n  t(label + \\\" index write\\\", () => { arr[0] = 42; return arr[0] })\\n  t(label + \\\" index add\\\", () => { arr[5] = 42; return arr.length })\\n  t(label + \\\" length\\\", () => { arr.length = 0; return arr.length })\\n  t(label + \\\" state\\\", () => [JSON.stringify(arr), Object.isFrozen(arr), Object.isSealed(arr), Object.isExtensible(arr)])\\n}\\ntryAll(\\\"frozen\\\", frozen)\\ntryAll(\\\"sealed\\\", sealed)\\ntryAll(\\\"non-extensible\\\", fixed)\\nt(\\\"frozen single reverse\\\", () => Object.freeze([1]).reverse())\\nt(\\\"frozen empty push nothing\\\", () => Object.freeze([]).push())\\nt(\\\"empty non-extensible\\\", () => [Object.isSealed(Object.preventExtensions([])), Object.isFrozen(Object.preventExtensions([]))])\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_1",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst frozen = Object.freeze([1, 2])\nconst sealed = Object.seal([1, 2])\nconst fixed = Object.preventExtensions([1, 2])\nconst tryAll = (label, arr) => {\n  t(label + \" push\", () => arr.push(3))\n  t(label + \" pop\", () => arr.pop())\n  t(label + \" shift\", () => arr.shift())\n  t(label + \" unshift\", () => arr.unshift(0))\n  t(label + \" splice\", () => arr.splice(0, 1, 9))\n  t(label + \" fill\", () => arr.fill(5))\n  t(label + \" sort\", () => arr.sort())\n  t(label + \" reverse\", () => arr.reverse())\n  t(label + \" copyWithin\", () => arr.copyWithin(0, 1))\n  t(label + \" index write\", () => { arr[0] = 42; return arr[0] })\n  t(label + \" index add\", () => { arr[5] = 42; return arr.length })\n  t(label + \" length\", () => { arr.length = 0; return arr.length })\n  t(label + \" state\", () => [JSON.stringify(arr), Object.isFrozen(arr), Object.isSealed(arr), Object.isExtensible(arr)])\n}\ntryAll(\"frozen\", frozen)\ntryAll(\"sealed\", sealed)\ntryAll(\"non-extensible\", fixed)\nt(\"frozen single reverse\", () => Object.freeze([1]).reverse())\nt(\"frozen empty push nothing\", () => Object.freeze([]).push())\nt(\"empty non-extensible\", () => [Object.isSealed(Object.preventExtensions([])), Object.isFrozen(Object.preventExtensions([]))])\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"frozen push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"frozen pop\": \"!TypeError: Cannot delete property '1'.\",\n  \"frozen shift\": \"!TypeError: Cannot delete property '1'.\",\n  \"frozen unshift\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"frozen splice\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen fill\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen sort\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen reverse\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen copyWithin\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen index write\": \"!TypeError: Cannot assign to read only property '0'.\",\n  \"frozen index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"frozen length\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"frozen state\": [\n    \"[1,2]\",\n    true,\n    true,\n    false\n  ],\n  \"sealed push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"sealed pop\": \"!TypeError: Cannot delete property '1'.\",\n  \"sealed shift\": \"!TypeError: Cannot delete property '1'.\",\n  \"sealed unshift\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"sealed splice\": [\n    1\n  ],\n  \"sealed fill\": [\n    42,\n    5\n  ],\n  \"sealed sort\": [\n    42,\n    5\n  ],\n  \"sealed reverse\": [\n    42,\n    5\n  ],\n  \"sealed copyWithin\": [\n    42,\n    5\n  ],\n  \"sealed index write\": 42,\n  \"sealed index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"sealed length\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"sealed state\": [\n    \"[42,5]\",\n    false,\n    true,\n    false\n  ],\n  \"non-extensible push\": \"!TypeError: Cannot add property 2, object is not extensible.\",\n  \"non-extensible pop\": 2,\n  \"non-extensible shift\": 1,\n  \"non-extensible unshift\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible splice\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible fill\": [],\n  \"non-extensible sort\": [],\n  \"non-extensible reverse\": [],\n  \"non-extensible copyWithin\": [],\n  \"non-extensible index write\": \"!TypeError: Cannot add property 0, object is not extensible.\",\n  \"non-extensible index add\": \"!TypeError: Cannot add property 5, object is not extensible.\",\n  \"non-extensible length\": 0,\n  \"non-extensible state\": [\n    \"[]\",\n    false,\n    true,\n    false\n  ],\n  \"frozen single reverse\": [\n    1\n  ],\n  \"frozen empty push nothing\": \"!TypeError: Cannot assign to read only property 'length'.\",\n  \"empty non-extensible\": [\n    true,\n    false\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_1",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_40>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

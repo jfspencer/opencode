@@ -1,0 +1,46 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "serve",
+          "--service",
+          "--stdio"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: --service and --stdio cannot be combined",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "serve",
+          "--port",
+          "<port-1>"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-secret"
+        },
+        "exit": 1,
+        "stderr": [
+          "ServeError:  {",
+          "  [cause]: Error: Failed to start server. Is port <port-1> in use?",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

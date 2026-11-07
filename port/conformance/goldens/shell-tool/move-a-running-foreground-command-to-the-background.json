@@ -1,0 +1,805 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "to background",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "to background"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run it"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run it"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/session/<ses_1>/background"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/wait"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/experimental/session/<ses_1>/wait"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "status": 204,
+      "url": "/api/session/<ses_1>/background"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "It finished.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "description": "touch started; until [ -f go ]; do sleep 0.05; done; cat go",
+            "id": "<msg_4>",
+            "metadata": {
+              "exit": 0,
+              "jobID": "<sh_1>",
+              "shellID": "<sh_1>",
+              "source": "shell",
+              "state": "completed",
+              "truncated": false
+            },
+            "text": "<shell id=\"<sh_1>\" state=\"completed\" command=\"touch started; until [ -f go ]; do sleep 0.05; done; cat go\">\ndone\n\n</shell>",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "id": "<msg_5>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "It is running in the background.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_7>",
+            "text": "User requested that active blocking work be moved to the background.\n\nBackgrounded work:\n- shell: touch started; until [ -f go ]; do sleep 0.05; done; cat go\n\nThe backgrounded work is still unfinished. Move on to other work if you can. If there is nothing else useful to do, finish your response. Do not wait, sleep, poll, or report the backgrounded work as complete until a later completion notification is added to the conversation.",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "synthetic"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "shell",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Command moved to the background (shell ID: <sh_1>).\nOutput is streaming to: <root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+                      "type": "text"
+                    },
+                    {
+                      "text": "You will be notified automatically when the command finishes. The notification will include the command's output. Unless the user explicitly asks otherwise, DO NOT poll for completion, even if you need the final result to continue. Repeatedly sleeping and reading or searching the output file is polling, not useful work. You may read the current output if it lets you do useful work now, but do not repeatedly check it while waiting for the command to finish. Keep working on anything that does not depend on the result. If you have nothing else to do, end your response; you will be resumed automatically when the command finishes.",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "command": "touch started; until [ -f go ]; do sleep 0.05; done; cat go"
+                  },
+                  "metadata": {
+                    "shellID": "<sh_1>",
+                    "status": "running",
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "executed": false,
+                "id": "call_conformance_1",
+                "name": "webfetch",
+                "state": {
+                  "content": [
+                    {
+                      "text": ": OPENROUTER PROCESSING\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"held\",\"role\":\"assistant\"},\"finish_reason\":null,\"native_finish_reason\":null}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":100,\"completion_tokens\":10,\"total_tokens\":110,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"cache_write_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"image_tokens\":0,\"audio_tokens\":0}}}\n\ndata: [DONE]\n\n",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "format": "text",
+                    "url": "https://hold.example/"
+                  },
+                  "metadata": {
+                    "contentType": "text/event-stream",
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Run it",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "Conformance agent.\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <root>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Run it",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Execute a shell command and return its output. Commands run on Linux using bash. Quote file paths containing spaces or special characters. Prefer dedicated tools over shell commands when possible. When output is large, the full result is saved to a file and a truncated preview is returned. Rely on automatic truncation unless filtering the output is more useful. Commands accept an optional timeout, background commands have no timeout by default. Background commands return immediately, and you will be notified when they complete.",
+                "name": "shell",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "background": {
+                      "description": "Run the command in the background and return immediately (useful for dev servers and long-running builds). You do not need to use '&' at the end of the command when using this parameter. You will be notified when it completes. DO NOT poll for completion.",
+                      "type": "boolean"
+                    },
+                    "command": {
+                      "description": "Shell command string to execute",
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Timeout in milliseconds. Set to 0 to disable the timeout. Defaults to 120000 for foreground commands. Background commands have no timeout by default.",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "workdir": {
+                      "description": "Working directory to execute the command in. Defaults to the current working directory. When possible, avoid changing directories in the command and set the working directory here instead.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "command"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Fetch content from an HTTP or HTTPS URL and return it as text, markdown, or HTML. Markdown is the default.\n\nUse a more targeted tool when one is available. This tool is read-only. Large text results may be replaced with a preview while the complete output is retained in managed storage.",
+                "name": "webfetch",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "format": {
+                      "description": "The format to return the content in. Defaults to markdown.",
+                      "enum": [
+                        "text",
+                        "markdown",
+                        "html"
+                      ],
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Optional timeout in seconds (maximum: 120)",
+                      "exclusiveMinimum": 0,
+                      "maximum": 120,
+                      "type": "number"
+                    },
+                    "url": {
+                      "description": "The HTTP or HTTPS URL to fetch content from",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "Conformance agent.\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <root>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Run it",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"command\":\"touch started; until [ -f go ]; do sleep 0.05; done; cat go\"}",
+                    "name": "shell"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                },
+                {
+                  "function": {
+                    "arguments": "{\"url\":\"https://hold.example/\",\"format\":\"text\"}",
+                    "name": "webfetch"
+                  },
+                  "id": "call_conformance_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Command moved to the background (shell ID: <sh_1>).\nOutput is streaming to: <root>/data/opencode/shell/<hash_1>/<sh_1>.out\nYou will be notified automatically when the command finishes. The notification will include the command's output. Unless the user explicitly asks otherwise, DO NOT poll for completion, even if you need the final result to continue. Repeatedly sleeping and reading or searching the output file is polling, not useful work. You may read the current output if it lets you do useful work now, but do not repeatedly check it while waiting for the command to finish. Keep working on anything that does not depend on the result. If you have nothing else to do, end your response; you will be resumed automatically when the command finishes.",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": ": OPENROUTER PROCESSING\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"held\",\"role\":\"assistant\"},\"finish_reason\":null,\"native_finish_reason\":null}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":100,\"completion_tokens\":10,\"total_tokens\":110,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"cache_write_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"image_tokens\":0,\"audio_tokens\":0}}}\n\ndata: [DONE]\n\n",
+              "role": "tool",
+              "tool_call_id": "call_conformance_1"
+            },
+            {
+              "content": "User requested that active blocking work be moved to the background.\n\nBackgrounded work:\n- shell: touch started; until [ -f go ]; do sleep 0.05; done; cat go\n\nThe backgrounded work is still unfinished. Move on to other work if you can. If there is nothing else useful to do, finish your response. Do not wait, sleep, poll, or report the backgrounded work as complete until a later completion notification is added to the conversation.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Execute a shell command and return its output. Commands run on Linux using bash. Quote file paths containing spaces or special characters. Prefer dedicated tools over shell commands when possible. When output is large, the full result is saved to a file and a truncated preview is returned. Rely on automatic truncation unless filtering the output is more useful. Commands accept an optional timeout, background commands have no timeout by default. Background commands return immediately, and you will be notified when they complete.",
+                "name": "shell",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "background": {
+                      "description": "Run the command in the background and return immediately (useful for dev servers and long-running builds). You do not need to use '&' at the end of the command when using this parameter. You will be notified when it completes. DO NOT poll for completion.",
+                      "type": "boolean"
+                    },
+                    "command": {
+                      "description": "Shell command string to execute",
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Timeout in milliseconds. Set to 0 to disable the timeout. Defaults to 120000 for foreground commands. Background commands have no timeout by default.",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "workdir": {
+                      "description": "Working directory to execute the command in. Defaults to the current working directory. When possible, avoid changing directories in the command and set the working directory here instead.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "command"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Fetch content from an HTTP or HTTPS URL and return it as text, markdown, or HTML. Markdown is the default.\n\nUse a more targeted tool when one is available. This tool is read-only. Large text results may be replaced with a preview while the complete output is retained in managed storage.",
+                "name": "webfetch",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "format": {
+                      "description": "The format to return the content in. Defaults to markdown.",
+                      "enum": [
+                        "text",
+                        "markdown",
+                        "html"
+                      ],
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Optional timeout in seconds (maximum: 120)",
+                      "exclusiveMinimum": 0,
+                      "maximum": 120,
+                      "type": "number"
+                    },
+                    "url": {
+                      "description": "The HTTP or HTTPS URL to fetch content from",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "Conformance agent.\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <root>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Run it",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"command\":\"touch started; until [ -f go ]; do sleep 0.05; done; cat go\"}",
+                    "name": "shell"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                },
+                {
+                  "function": {
+                    "arguments": "{\"url\":\"https://hold.example/\",\"format\":\"text\"}",
+                    "name": "webfetch"
+                  },
+                  "id": "call_conformance_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Command moved to the background (shell ID: <sh_1>).\nOutput is streaming to: <root>/data/opencode/shell/<hash_1>/<sh_1>.out\nYou will be notified automatically when the command finishes. The notification will include the command's output. Unless the user explicitly asks otherwise, DO NOT poll for completion, even if you need the final result to continue. Repeatedly sleeping and reading or searching the output file is polling, not useful work. You may read the current output if it lets you do useful work now, but do not repeatedly check it while waiting for the command to finish. Keep working on anything that does not depend on the result. If you have nothing else to do, end your response; you will be resumed automatically when the command finishes.",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": ": OPENROUTER PROCESSING\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"held\",\"role\":\"assistant\"},\"finish_reason\":null,\"native_finish_reason\":null}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}]}\n\ndata: {\"id\":\"gen-conformance-2\",\"object\":\"chat.completion.chunk\",\"created\":1767225600,\"model\":\"unknown\",\"provider\":\"DeepSeek\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"\",\"role\":\"assistant\"},\"finish_reason\":\"stop\",\"native_finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":100,\"completion_tokens\":10,\"total_tokens\":110,\"cost\":0,\"is_byok\":false,\"prompt_tokens_details\":{\"cached_tokens\":0,\"cache_write_tokens\":0,\"audio_tokens\":0},\"completion_tokens_details\":{\"reasoning_tokens\":0,\"image_tokens\":0,\"audio_tokens\":0}}}\n\ndata: [DONE]\n\n",
+              "role": "tool",
+              "tool_call_id": "call_conformance_1"
+            },
+            {
+              "content": "User requested that active blocking work be moved to the background.\n\nBackgrounded work:\n- shell: touch started; until [ -f go ]; do sleep 0.05; done; cat go\n\nThe backgrounded work is still unfinished. Move on to other work if you can. If there is nothing else useful to do, finish your response. Do not wait, sleep, poll, or report the backgrounded work as complete until a later completion notification is added to the conversation.",
+              "role": "user"
+            },
+            {
+              "content": "It is running in the background.",
+              "role": "assistant"
+            },
+            {
+              "content": "<shell id=\"<sh_1>\" state=\"completed\" command=\"touch started; until [ -f go ]; do sleep 0.05; done; cat go\">\ndone\n\n</shell>",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Execute a shell command and return its output. Commands run on Linux using bash. Quote file paths containing spaces or special characters. Prefer dedicated tools over shell commands when possible. When output is large, the full result is saved to a file and a truncated preview is returned. Rely on automatic truncation unless filtering the output is more useful. Commands accept an optional timeout, background commands have no timeout by default. Background commands return immediately, and you will be notified when they complete.",
+                "name": "shell",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "background": {
+                      "description": "Run the command in the background and return immediately (useful for dev servers and long-running builds). You do not need to use '&' at the end of the command when using this parameter. You will be notified when it completes. DO NOT poll for completion.",
+                      "type": "boolean"
+                    },
+                    "command": {
+                      "description": "Shell command string to execute",
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Timeout in milliseconds. Set to 0 to disable the timeout. Defaults to 120000 for foreground commands. Background commands have no timeout by default.",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "workdir": {
+                      "description": "Working directory to execute the command in. Defaults to the current working directory. When possible, avoid changing directories in the command and set the working directory here instead.",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "command"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Fetch content from an HTTP or HTTPS URL and return it as text, markdown, or HTML. Markdown is the default.\n\nUse a more targeted tool when one is available. This tool is read-only. Large text results may be replaced with a preview while the complete output is retained in managed storage.",
+                "name": "webfetch",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "format": {
+                      "description": "The format to return the content in. Defaults to markdown.",
+                      "enum": [
+                        "text",
+                        "markdown",
+                        "html"
+                      ],
+                      "type": "string"
+                    },
+                    "timeout": {
+                      "description": "Optional timeout in seconds (maximum: 120)",
+                      "exclusiveMinimum": 0,
+                      "maximum": 120,
+                      "type": "number"
+                    },
+                    "url": {
+                      "description": "The HTTP or HTTPS URL to fetch content from",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "other": [
+      {
+        "headers": {
+          "accept": "text/plain;q=1.0, text/markdown;q=0.9, text/html;q=0.8, */*;q=0.1"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://hold.example/"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "README.md": "# Demo\n",
+    "go": "done\n",
+    "lines.txt": "line 1\nline 2\nline 3\nline 4\nline 5\nline 6\nline 7\nline 8\nline 9\nline 10\nline 11\nline 12\nline 13\nline 14\nline 15\nline 16\nline 17\nline 18\nline 19\nline 20\nline 21\nline 22\nline 23\nline 24\nline 25\nline 26\nline 27\nline 28\nline 29\nline 30\n",
+    "src/a.txt": "alpha\n",
+    "src/b.txt": "beta\n",
+    "started": ""
+  }
+}

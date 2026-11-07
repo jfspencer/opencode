@@ -1,0 +1,2180 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "name",
+              "maxLength": 10,
+              "minLength": 2,
+              "pattern": "^[a-z]+$",
+              "required": true,
+              "title": "Name",
+              "type": "string"
+            },
+            {
+              "format": "email",
+              "key": "email",
+              "type": "string"
+            },
+            {
+              "format": "uri",
+              "key": "site",
+              "type": "string"
+            },
+            {
+              "format": "date",
+              "key": "day",
+              "type": "string"
+            },
+            {
+              "format": "date-time",
+              "key": "when",
+              "type": "string"
+            },
+            {
+              "key": "color",
+              "options": [
+                {
+                  "label": "Red",
+                  "value": "red"
+                },
+                {
+                  "label": "Blue",
+                  "value": "blue"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "custom": true,
+              "key": "flavor",
+              "options": [
+                {
+                  "label": "Plain",
+                  "value": "plain"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "key": "count",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "key": "ratio",
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "key": "agree",
+              "type": "boolean"
+            },
+            {
+              "key": "tags",
+              "maxItems": 2,
+              "minItems": 1,
+              "options": [
+                {
+                  "label": "A",
+                  "value": "a"
+                },
+                {
+                  "label": "B",
+                  "value": "b"
+                },
+                {
+                  "label": "C",
+                  "value": "c"
+                }
+              ],
+              "type": "multiselect"
+            },
+            {
+              "key": "reason",
+              "required": true,
+              "type": "string",
+              "when": [
+                {
+                  "key": "agree",
+                  "op": "eq",
+                  "value": false
+                }
+              ]
+            },
+            {
+              "key": "extra",
+              "type": "string",
+              "when": [
+                {
+                  "key": "tags",
+                  "op": "neq",
+                  "value": "c"
+                }
+              ]
+            },
+            {
+              "key": "docs",
+              "title": "Read the docs",
+              "type": "external",
+              "url": "https://example.test/docs"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "title": "Profile"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "name",
+            "maxLength": 10,
+            "minLength": 2,
+            "pattern": "^[a-z]+$",
+            "required": true,
+            "title": "Name",
+            "type": "string"
+          },
+          {
+            "format": "email",
+            "key": "email",
+            "type": "string"
+          },
+          {
+            "format": "uri",
+            "key": "site",
+            "type": "string"
+          },
+          {
+            "format": "date",
+            "key": "day",
+            "type": "string"
+          },
+          {
+            "format": "date-time",
+            "key": "when",
+            "type": "string"
+          },
+          {
+            "key": "color",
+            "options": [
+              {
+                "label": "Red",
+                "value": "red"
+              },
+              {
+                "label": "Blue",
+                "value": "blue"
+              }
+            ],
+            "type": "string"
+          },
+          {
+            "custom": true,
+            "key": "flavor",
+            "options": [
+              {
+                "label": "Plain",
+                "value": "plain"
+              }
+            ],
+            "type": "string"
+          },
+          {
+            "key": "count",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          },
+          {
+            "key": "ratio",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "key": "agree",
+            "type": "boolean"
+          },
+          {
+            "key": "tags",
+            "maxItems": 2,
+            "minItems": 1,
+            "options": [
+              {
+                "label": "A",
+                "value": "a"
+              },
+              {
+                "label": "B",
+                "value": "b"
+              },
+              {
+                "label": "C",
+                "value": "c"
+              }
+            ],
+            "type": "multiselect"
+          },
+          {
+            "key": "reason",
+            "required": true,
+            "type": "string",
+            "when": [
+              {
+                "key": "agree",
+                "op": "eq",
+                "value": false
+              }
+            ]
+          },
+          {
+            "key": "extra",
+            "type": "string",
+            "when": [
+              {
+                "key": "tags",
+                "op": "neq",
+                "value": "c"
+              }
+            ]
+          },
+          {
+            "key": "docs",
+            "title": "Read the docs",
+            "type": "external",
+            "url": "https://example.test/docs"
+          }
+        ],
+        "metadata": {
+          "source": "conformance"
+        },
+        "title": "Profile"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "ok",
+              "type": "boolean"
+            }
+          ],
+          "id": "frm_fixed_identifier_01",
+          "sessionID": "<ses_1>",
+          "title": "Second"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "ok",
+            "type": "boolean"
+          }
+        ],
+        "id": "frm_fixed_identifier_01",
+        "title": "Second"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "ConflictError",
+        "message": "Form already exists: frm_fixed_identifier_01",
+        "resource": "frm_fixed_identifier_01"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "ok",
+            "type": "boolean"
+          }
+        ],
+        "id": "frm_fixed_identifier_01",
+        "title": "Duplicate"
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "fields": [
+              {
+                "key": "name",
+                "maxLength": 10,
+                "minLength": 2,
+                "pattern": "^[a-z]+$",
+                "required": true,
+                "title": "Name",
+                "type": "string"
+              },
+              {
+                "format": "email",
+                "key": "email",
+                "type": "string"
+              },
+              {
+                "format": "uri",
+                "key": "site",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "key": "day",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "key": "when",
+                "type": "string"
+              },
+              {
+                "key": "color",
+                "options": [
+                  {
+                    "label": "Red",
+                    "value": "red"
+                  },
+                  {
+                    "label": "Blue",
+                    "value": "blue"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "custom": true,
+                "key": "flavor",
+                "options": [
+                  {
+                    "label": "Plain",
+                    "value": "plain"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "key": "count",
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "key": "ratio",
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "key": "agree",
+                "type": "boolean"
+              },
+              {
+                "key": "tags",
+                "maxItems": 2,
+                "minItems": 1,
+                "options": [
+                  {
+                    "label": "A",
+                    "value": "a"
+                  },
+                  {
+                    "label": "B",
+                    "value": "b"
+                  },
+                  {
+                    "label": "C",
+                    "value": "c"
+                  }
+                ],
+                "type": "multiselect"
+              },
+              {
+                "key": "reason",
+                "required": true,
+                "type": "string",
+                "when": [
+                  {
+                    "key": "agree",
+                    "op": "eq",
+                    "value": false
+                  }
+                ]
+              },
+              {
+                "key": "extra",
+                "type": "string",
+                "when": [
+                  {
+                    "key": "tags",
+                    "op": "neq",
+                    "value": "c"
+                  }
+                ]
+              },
+              {
+                "key": "docs",
+                "title": "Read the docs",
+                "type": "external",
+                "url": "https://example.test/docs"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "source": "conformance"
+            },
+            "sessionID": "<ses_1>",
+            "title": "Profile"
+          },
+          {
+            "fields": [
+              {
+                "key": "ok",
+                "type": "boolean"
+              }
+            ],
+            "id": "frm_fixed_identifier_01",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/form"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "fields": [
+              {
+                "key": "name",
+                "maxLength": 10,
+                "minLength": 2,
+                "pattern": "^[a-z]+$",
+                "required": true,
+                "title": "Name",
+                "type": "string"
+              },
+              {
+                "format": "email",
+                "key": "email",
+                "type": "string"
+              },
+              {
+                "format": "uri",
+                "key": "site",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "key": "day",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "key": "when",
+                "type": "string"
+              },
+              {
+                "key": "color",
+                "options": [
+                  {
+                    "label": "Red",
+                    "value": "red"
+                  },
+                  {
+                    "label": "Blue",
+                    "value": "blue"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "custom": true,
+                "key": "flavor",
+                "options": [
+                  {
+                    "label": "Plain",
+                    "value": "plain"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "key": "count",
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "key": "ratio",
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "key": "agree",
+                "type": "boolean"
+              },
+              {
+                "key": "tags",
+                "maxItems": 2,
+                "minItems": 1,
+                "options": [
+                  {
+                    "label": "A",
+                    "value": "a"
+                  },
+                  {
+                    "label": "B",
+                    "value": "b"
+                  },
+                  {
+                    "label": "C",
+                    "value": "c"
+                  }
+                ],
+                "type": "multiselect"
+              },
+              {
+                "key": "reason",
+                "required": true,
+                "type": "string",
+                "when": [
+                  {
+                    "key": "agree",
+                    "op": "eq",
+                    "value": false
+                  }
+                ]
+              },
+              {
+                "key": "extra",
+                "type": "string",
+                "when": [
+                  {
+                    "key": "tags",
+                    "op": "neq",
+                    "value": "c"
+                  }
+                ]
+              },
+              {
+                "key": "docs",
+                "title": "Read the docs",
+                "type": "external",
+                "url": "https://example.test/docs"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "source": "conformance"
+            },
+            "sessionID": "<ses_1>",
+            "title": "Profile"
+          },
+          {
+            "fields": [
+              {
+                "key": "ok",
+                "type": "boolean"
+              }
+            ],
+            "id": "frm_fixed_identifier_01",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "name",
+              "maxLength": 10,
+              "minLength": 2,
+              "pattern": "^[a-z]+$",
+              "required": true,
+              "title": "Name",
+              "type": "string"
+            },
+            {
+              "format": "email",
+              "key": "email",
+              "type": "string"
+            },
+            {
+              "format": "uri",
+              "key": "site",
+              "type": "string"
+            },
+            {
+              "format": "date",
+              "key": "day",
+              "type": "string"
+            },
+            {
+              "format": "date-time",
+              "key": "when",
+              "type": "string"
+            },
+            {
+              "key": "color",
+              "options": [
+                {
+                  "label": "Red",
+                  "value": "red"
+                },
+                {
+                  "label": "Blue",
+                  "value": "blue"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "custom": true,
+              "key": "flavor",
+              "options": [
+                {
+                  "label": "Plain",
+                  "value": "plain"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "key": "count",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "key": "ratio",
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "key": "agree",
+              "type": "boolean"
+            },
+            {
+              "key": "tags",
+              "maxItems": 2,
+              "minItems": 1,
+              "options": [
+                {
+                  "label": "A",
+                  "value": "a"
+                },
+                {
+                  "label": "B",
+                  "value": "b"
+                },
+                {
+                  "label": "C",
+                  "value": "c"
+                }
+              ],
+              "type": "multiselect"
+            },
+            {
+              "key": "reason",
+              "required": true,
+              "type": "string",
+              "when": [
+                {
+                  "key": "agree",
+                  "op": "eq",
+                  "value": false
+                }
+              ]
+            },
+            {
+              "key": "extra",
+              "type": "string",
+              "when": [
+                {
+                  "key": "tags",
+                  "op": "neq",
+                  "value": "c"
+                }
+              ]
+            },
+            {
+              "key": "docs",
+              "title": "Read the docs",
+              "type": "external",
+              "url": "https://example.test/docs"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "state": {
+            "status": "pending"
+          },
+          "title": "Profile"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Unknown form field: unknown"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "unknown": "x",
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "External form field must be acknowledged: docs"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Missing required form field: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected string for form field: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": 5,
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Missing required form field: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is too short: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "a",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is too long: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "abcdefghijkl",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field does not match pattern: name"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "Alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected email for form field: email"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "not-an-email",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected URI for form field: site"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "not a uri",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected date for form field: day"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-30",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected date-time for form field: when"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "yesterday"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Invalid option for form field: color"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "green",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected number for form field: count"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": "3",
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected integer for form field: count"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 2.5,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is too small: count"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 0,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is too large: count"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 9,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected boolean for form field: agree"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": "yes",
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Expected string array for form field: tags"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": "a",
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Too few selections for form field: tags"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Too many selections for form field: tags"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b",
+            "c"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Invalid option for form field: tags"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "z"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Missing required form field: reason"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": false,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is not active: reason"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "reason": "because",
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is not active: extra"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "hidden now",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "c"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "<frm_1>",
+        "message": "Form already settled: <frm_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "agree": true,
+          "color": "red",
+          "count": 3,
+          "day": "2026-02-28",
+          "docs": true,
+          "email": "alice@example.test",
+          "extra": "fine",
+          "flavor": "anything",
+          "name": "alice",
+          "ratio": 0.5,
+          "site": "https://example.test",
+          "tags": [
+            "a",
+            "b"
+          ],
+          "when": "<iso-time>"
+        }
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "name",
+              "maxLength": 10,
+              "minLength": 2,
+              "pattern": "^[a-z]+$",
+              "required": true,
+              "title": "Name",
+              "type": "string"
+            },
+            {
+              "format": "email",
+              "key": "email",
+              "type": "string"
+            },
+            {
+              "format": "uri",
+              "key": "site",
+              "type": "string"
+            },
+            {
+              "format": "date",
+              "key": "day",
+              "type": "string"
+            },
+            {
+              "format": "date-time",
+              "key": "when",
+              "type": "string"
+            },
+            {
+              "key": "color",
+              "options": [
+                {
+                  "label": "Red",
+                  "value": "red"
+                },
+                {
+                  "label": "Blue",
+                  "value": "blue"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "custom": true,
+              "key": "flavor",
+              "options": [
+                {
+                  "label": "Plain",
+                  "value": "plain"
+                }
+              ],
+              "type": "string"
+            },
+            {
+              "key": "count",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "key": "ratio",
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "key": "agree",
+              "type": "boolean"
+            },
+            {
+              "key": "tags",
+              "maxItems": 2,
+              "minItems": 1,
+              "options": [
+                {
+                  "label": "A",
+                  "value": "a"
+                },
+                {
+                  "label": "B",
+                  "value": "b"
+                },
+                {
+                  "label": "C",
+                  "value": "c"
+                }
+              ],
+              "type": "multiselect"
+            },
+            {
+              "key": "reason",
+              "required": true,
+              "type": "string",
+              "when": [
+                {
+                  "key": "agree",
+                  "op": "eq",
+                  "value": false
+                }
+              ]
+            },
+            {
+              "key": "extra",
+              "type": "string",
+              "when": [
+                {
+                  "key": "tags",
+                  "op": "neq",
+                  "value": "c"
+                }
+              ]
+            },
+            {
+              "key": "docs",
+              "title": "Read the docs",
+              "type": "external",
+              "url": "https://example.test/docs"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "state": {
+            "answer": {
+              "agree": true,
+              "color": "red",
+              "count": 3,
+              "day": "2026-02-28",
+              "docs": true,
+              "email": "alice@example.test",
+              "extra": "fine",
+              "flavor": "anything",
+              "name": "alice",
+              "ratio": 0.5,
+              "site": "https://example.test",
+              "tags": [
+                "a",
+                "b"
+              ],
+              "when": "<iso-time>"
+            },
+            "status": "answered"
+          },
+          "title": "Profile"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/frm_fixed_identifier_01"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "frm_fixed_identifier_01",
+        "message": "Form already settled: frm_fixed_identifier_01"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/frm_fixed_identifier_01"
+    },
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/form"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "frm_missing_form_00000",
+        "message": "Form not found: frm_missing_form_00000"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/frm_missing_form_00000"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "frm_missing_form_00000",
+        "message": "Form not found: frm_missing_form_00000"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/frm_missing_form_00000/reply"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "key": "name",
+                "maxLength": 10,
+                "minLength": 2,
+                "pattern": "^[a-z]+$",
+                "required": true,
+                "title": "Name",
+                "type": "string"
+              },
+              {
+                "format": "email",
+                "key": "email",
+                "type": "string"
+              },
+              {
+                "format": "uri",
+                "key": "site",
+                "type": "string"
+              },
+              {
+                "format": "date",
+                "key": "day",
+                "type": "string"
+              },
+              {
+                "format": "date-time",
+                "key": "when",
+                "type": "string"
+              },
+              {
+                "key": "color",
+                "options": [
+                  {
+                    "label": "Red",
+                    "value": "red"
+                  },
+                  {
+                    "label": "Blue",
+                    "value": "blue"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "custom": true,
+                "key": "flavor",
+                "options": [
+                  {
+                    "label": "Plain",
+                    "value": "plain"
+                  }
+                ],
+                "type": "string"
+              },
+              {
+                "key": "count",
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer"
+              },
+              {
+                "key": "ratio",
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "key": "agree",
+                "type": "boolean"
+              },
+              {
+                "key": "tags",
+                "maxItems": 2,
+                "minItems": 1,
+                "options": [
+                  {
+                    "label": "A",
+                    "value": "a"
+                  },
+                  {
+                    "label": "B",
+                    "value": "b"
+                  },
+                  {
+                    "label": "C",
+                    "value": "c"
+                  }
+                ],
+                "type": "multiselect"
+              },
+              {
+                "key": "reason",
+                "required": true,
+                "type": "string",
+                "when": [
+                  {
+                    "key": "agree",
+                    "op": "eq",
+                    "value": false
+                  }
+                ]
+              },
+              {
+                "key": "extra",
+                "type": "string",
+                "when": [
+                  {
+                    "key": "tags",
+                    "op": "neq",
+                    "value": "c"
+                  }
+                ]
+              },
+              {
+                "key": "docs",
+                "title": "Read the docs",
+                "type": "external",
+                "url": "https://example.test/docs"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "source": "conformance"
+            },
+            "sessionID": "<ses_1>",
+            "title": "Profile"
+          }
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "key": "ok",
+                "type": "boolean"
+              }
+            ],
+            "id": "frm_fixed_identifier_01",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "answer": {
+            "agree": true,
+            "color": "red",
+            "count": 3,
+            "day": "2026-02-28",
+            "docs": true,
+            "email": "alice@example.test",
+            "extra": "fine",
+            "flavor": "anything",
+            "name": "alice",
+            "ratio": 0.5,
+            "site": "https://example.test",
+            "tags": [
+              "a",
+              "b"
+            ],
+            "when": "<iso-time>"
+          },
+          "id": "<frm_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "frm_fixed_identifier_01",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.cancelled"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,102 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "env",
+          "CONFORMANCE_FLAG",
+          "on"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "env",
+          "CONFORMANCE_FLAG"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

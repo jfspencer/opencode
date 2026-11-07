@@ -1,0 +1,657 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 404,
+      "url": "/api/session/<ses_1>/fork"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "plan"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/agent"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "deepseek/deepseek-v4.1-flash-1017",
+          "providerID": "openrouter"
+        }
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/model"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "directory": "<project>"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/move"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "hi"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "hi"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/synthetic"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "true"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 404,
+      "url": "/api/session/<ses_1>/compact"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/wait"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "messageID": "<msg_1>"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/revert/stage"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_1>/revert"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/session/<ses_1>/revert/commit"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/context"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/diff"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/inbox"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_1>/inbox/<msg_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "delivery": "steer"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/inbox/<msg_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "delivery": "queue"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/inbox/<msg_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "prompt": "hi"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/generate"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/log"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/session/<ses_1>/interrupt"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/session/<ses_1>/background"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/message"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/message/<msg_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "k",
+            "type": "string"
+          }
+        ],
+        "title": "t"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/environment"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "idle": "<time>"
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/view"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/export"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "init",
+        "text": ""
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "id": "anything"
+      },
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/skill"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "value": 1
+      },
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/key"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_1>",
+        "sessionID": "<ses_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/experimental/session/<ses_1>/instructions/entries/key"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string starting with \"ses\"\n  at [\"sessionID\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/session/not-a-session"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "sessionID",
+        "message": "Invalid session ID"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "hi"
+      },
+      "status": 400,
+      "url": "/api/session/not-a-session/prompt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "sessionID",
+        "message": "Invalid session ID"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/session/not-a-session/form"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "sessionID",
+        "message": "Invalid session ID"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "k",
+            "type": "string"
+          }
+        ],
+        "title": "t"
+      },
+      "status": 400,
+      "url": "/api/session/not-a-session/form"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

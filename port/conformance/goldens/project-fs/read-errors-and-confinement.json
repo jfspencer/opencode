@@ -1,0 +1,208 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "File not found: missing.txt",
+        "path": "missing.txt"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/missing.txt"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "File not found: src",
+        "path": "src"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/src"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/src/../../outside.txt"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "File not found: ../../etc/hostname",
+        "path": "../../etc/hostname"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/..%2F..%2Fetc%2Fhostname"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "File not found: escape.txt",
+        "path": "escape.txt"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/escape.txt"
+    },
+    {
+      "body": "# Demo\n\nA small project.\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/inside-link.md"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
+        "message": "File not found: bad\u0000name",
+        "path": "bad\u0000name"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/bad%00name"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/%E0%A4%A"
+    },
+    {
+      "body": "# Demo\n\nA small project.\n",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/%2Ftmp%2F<root-name>%2F<project-name>%2FREADME.md"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".env": "TOKEN=1\n",
+    ".gitignore": "dist/\n*.log\n",
+    ".hidden/secret.txt": "hidden\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "app.log": "ignored log\n",
+    "assets/pixel.png": "PNG\r\n\u001a\nfake",
+    "data/empty.txt": "",
+    "dist/bundle.js": "ignored\n",
+    "docs/guide.md": "Guide.\n",
+    "docs/with space.md": "Spaced name.\n",
+    "escape.txt": "<symlink -> <project>-outside/secret.txt>",
+    "inside-link.md": "<symlink -> <project>/README.md>",
+    "src/math.ts": "export const add = (a: number, b: number) => a + b\n",
+    "src/nested/deep/value.ts": "export const value = 42\n",
+    "src/strings.ts": "export const greet = (name: string) => `hello ${name}`\n"
+  }
+}

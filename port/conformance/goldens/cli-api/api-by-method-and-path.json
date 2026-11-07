@@ -1,0 +1,240 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": null,
+              "previous": null
+            },
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "post",
+          "/api/session",
+          "-d",
+          "{\"location\":{\"directory\":\"<project>\"},\"title\":\"From api\"}"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "data": {
+              "cost": 0,
+              "id": "<ses_1>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "From api",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session/<ses_1>"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "data": {
+              "cost": 0,
+              "id": "<ses_1>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "From api",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "PATCH",
+          "/api/session/<ses_1>",
+          "--data",
+          "{\"title\":\"Renamed\"}"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session",
+          "-H",
+          "accept:  application/json ",
+          "--header",
+          "x-conformance:yes"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": {
+                "<base64-json>": {
+                  "anchor": {
+                    "direction": "next",
+                    "id": "<ses_1>",
+                    "time": "<time>"
+                  }
+                }
+              },
+              "previous": {
+                "<base64-json>": {
+                  "anchor": {
+                    "direction": "previous",
+                    "id": "<ses_1>",
+                    "time": "<time>"
+                  }
+                }
+              }
+            },
+            "data": [
+              {
+                "cost": 0,
+                "id": "<ses_1>",
+                "location": {
+                  "directory": "<project>"
+                },
+                "projectID": "<hash_1>",
+                "time": {
+                  "created": "<time>",
+                  "updated": "<time>"
+                },
+                "title": "Renamed",
+                "tokens": {
+                  "cache": {
+                    "read": 0,
+                    "write": 0
+                  },
+                  "input": 0,
+                  "output": 0,
+                  "reasoning": 0
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "DELETE",
+          "/api/session/<ses_1>"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session/<ses_1>"
+        ],
+        "exit": 1,
+        "stderr": [
+          "HTTP 404 Not Found",
+          ""
+        ],
+        "stdout": {
+          "json": {
+            "_tag": "SessionNotFoundError",
+            "message": "Session not found: <ses_1>",
+            "sessionID": "<ses_1>"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

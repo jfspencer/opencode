@@ -1,0 +1,183 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "│",
+          "■  Pass an integration ID or name when running without an interactive terminal",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "openrouter"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  API key input requires an interactive terminal",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "OpenRouter",
+          "--method",
+          "key"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  API key input requires an interactive terminal",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "openrouter",
+          "--method",
+          "oauth"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Authentication method not found: oauth. Available: key",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "openrouter",
+          "--answer",
+          "region=eu"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Unknown form field: region",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "openrouter",
+          "--answer",
+          "novalue"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Expected --answer key=value",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "no-such-integration"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Integration not found: no-such-integration",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "OpenRouter  OPENROUTER_API_KEY          environment",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

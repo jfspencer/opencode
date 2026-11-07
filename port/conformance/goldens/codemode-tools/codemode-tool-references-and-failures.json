@@ -1,0 +1,3470 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Exercise the tool boundary"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Exercise the tool boundary"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Done.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "returned before observing the failure\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const pending = tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"late\" })\nawait tools.opencode.models({ limit: 1 })\nreturn \"returned before observing the failure\""
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "late"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"uncaught\" })"
+                  },
+                  "metadata": {
+                    "error": true,
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "uncaught"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const settled = await Promise.allSettled([\n  tools.opencode.models({ limit: 1 }),\n  tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }),\n  tools.opencode.models({ limit: 0 }),\n])\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\nconst caught = await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }).catch((e) => \"caught: \" + e.message)\ntools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"unawaited\" })\ntools.opencode.models({})\nreturn { settled: settled.map((s) => s.status + \":\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "x"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "limit": 0
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.worktree_list"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "x"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "unawaited"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const input = { title: \"Boundary\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\"a\", 1]]) } }\nconst results = {}\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\ntry {\n  const cyclic = { title: \"cyclic\" }\n  cyclic.self = cyclic\n  results.cyclic = await tools.opencode.session_rename(cyclic)\n} catch (error) { results.cyclic = error.name + \": \" + error.message }\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \": \" + error.message }\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\"p\") }) } catch (error) { results.promise = error.name + \": \" + error.message }\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \": \" + error.message }\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \": \" + error.message }\nreturn results"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "nested": {
+                            "map": {},
+                            "set": [
+                              1,
+                              2
+                            ],
+                            "when": "<iso-time>"
+                          },
+                          "title": "Boundary"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "title": "p"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.worktree_list"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const attempts = {\n  unknownNamespace: () => tools.nope.thing({}),\n  unknownTool: () => tools.opencode.modelz({}),\n  typo: () => tools.opencode.session_renam({ title: \"x\" }),\n  nonCodemode: () => tools.read({ path: \"README.md\" }),\n  callNamespace: () => tools.opencode({}),\n  callRoot: () => tools({}),\n  asCallback: () => [1].map(tools.opencode.models),\n  newTool: () => new tools.opencode.models({}),\n  assign: () => { tools.opencode.models = 1 },\n  deleteTool: () => delete tools.opencode.models,\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\n}\nconst out = {}\nfor (const [label, attempt] of Object.entries(attempts)) {\n  try {\n    const value = attempt()\n    out[label] = value && typeof value.then === \"function\" ? await value : value\n  } catch (error) {\n    out[label] = error.name + \": \" + error.message\n  }\n}\nreturn out"
+                  },
+                  "metadata": {
+                    "toolCalls": [],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const out = {}\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \": \" + error.message } }\nconst ns = tools.opencode\nt(\"roots\", () => Object.keys(tools))\nt(\"keys\", () => Object.keys(ns))\nt(\"forIn\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\nt(\"types\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\nt(\"string\", () => String(ns.models))\nt(\"stringNamespace\", () => String(ns))\nt(\"json\", () => JSON.stringify({ t: ns.models, n: ns }))\nt(\"template\", () => `${ns}`)\nt(\"identity\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\nt(\"in\", () => \"models\" in ns)\nt(\"concat\", () => ns.models + \"\")\nt(\"optional\", () => typeof tools.opencode?.models)\nt(\"missing\", () => typeof tools.opencode.nope)\nt(\"entries\", () => Object.entries(ns).length)\nt(\"spread\", () => Object.keys({ ...ns }))\nout.bracket = (await tools[\"opencode\"][\"models\"]({ limit: 1 })).total\nreturn out"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_9>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Exercise the tool boundary",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Done.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "returned before observing the failure\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const pending = tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"late\" })\nawait tools.opencode.models({ limit: 1 })\nreturn \"returned before observing the failure\""
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "late"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"uncaught\" })"
+                  },
+                  "metadata": {
+                    "error": true,
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "uncaught"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const settled = await Promise.allSettled([\n  tools.opencode.models({ limit: 1 }),\n  tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }),\n  tools.opencode.models({ limit: 0 }),\n])\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\nconst caught = await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }).catch((e) => \"caught: \" + e.message)\ntools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"unawaited\" })\ntools.opencode.models({})\nreturn { settled: settled.map((s) => s.status + \":\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "x"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "limit": 0
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.worktree_list"
+                      },
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "x"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "sessionID": "ses_doesnotexist",
+                          "title": "unawaited"
+                        },
+                        "status": "error",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const input = { title: \"Boundary\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\"a\", 1]]) } }\nconst results = {}\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\ntry {\n  const cyclic = { title: \"cyclic\" }\n  cyclic.self = cyclic\n  results.cyclic = await tools.opencode.session_rename(cyclic)\n} catch (error) { results.cyclic = error.name + \": \" + error.message }\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \": \" + error.message }\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\"p\") }) } catch (error) { results.promise = error.name + \": \" + error.message }\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \": \" + error.message }\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \": \" + error.message }\nreturn results"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "nested": {
+                            "map": {},
+                            "set": [
+                              1,
+                              2
+                            ],
+                            "when": "<iso-time>"
+                          },
+                          "title": "Boundary"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "input": {
+                          "title": "p"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.session_rename"
+                      },
+                      {
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "status": "completed",
+                        "tool": "opencode.worktree_list"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_7>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const attempts = {\n  unknownNamespace: () => tools.nope.thing({}),\n  unknownTool: () => tools.opencode.modelz({}),\n  typo: () => tools.opencode.session_renam({ title: \"x\" }),\n  nonCodemode: () => tools.read({ path: \"README.md\" }),\n  callNamespace: () => tools.opencode({}),\n  callRoot: () => tools({}),\n  asCallback: () => [1].map(tools.opencode.models),\n  newTool: () => new tools.opencode.models({}),\n  assign: () => { tools.opencode.models = 1 },\n  deleteTool: () => delete tools.opencode.models,\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\n}\nconst out = {}\nfor (const [label, attempt] of Object.entries(attempts)) {\n  try {\n    const value = attempt()\n    out[label] = value && typeof value.then === \"function\" ? await value : value\n  } catch (error) {\n    out[label] = error.name + \": \" + error.message\n  }\n}\nreturn out"
+                  },
+                  "metadata": {
+                    "toolCalls": [],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const out = {}\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \": \" + error.message } }\nconst ns = tools.opencode\nt(\"roots\", () => Object.keys(tools))\nt(\"keys\", () => Object.keys(ns))\nt(\"forIn\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\nt(\"types\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\nt(\"string\", () => String(ns.models))\nt(\"stringNamespace\", () => String(ns))\nt(\"json\", () => JSON.stringify({ t: ns.models, n: ns }))\nt(\"template\", () => `${ns}`)\nt(\"identity\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\nt(\"in\", () => \"models\" in ns)\nt(\"concat\", () => ns.models + \"\")\nt(\"optional\", () => typeof tools.opencode?.models)\nt(\"missing\", () => typeof tools.opencode.nope)\nt(\"entries\", () => Object.entries(ns).length)\nt(\"spread\", () => Object.keys({ ...ns }))\nout.bracket = (await tools[\"opencode\"][\"models\"]({ limit: 1 })).total\nreturn out"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_9>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Exercise the tool boundary",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const input = { title: \\\"Boundary\\\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\\\"a\\\", 1]]) } }\\nconst results = {}\\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\\ntry {\\n  const cyclic = { title: \\\"cyclic\\\" }\\n  cyclic.self = cyclic\\n  results.cyclic = await tools.opencode.session_rename(cyclic)\\n} catch (error) { results.cyclic = error.name + \\\": \\\" + error.message }\\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \\\": \\\" + error.message }\\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\\\"p\\\") }) } catch (error) { results.promise = error.name + \\\": \\\" + error.message }\\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \\\": \\\" + error.message }\\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const input = { title: \\\"Boundary\\\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\\\"a\\\", 1]]) } }\\nconst results = {}\\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\\ntry {\\n  const cyclic = { title: \\\"cyclic\\\" }\\n  cyclic.self = cyclic\\n  results.cyclic = await tools.opencode.session_rename(cyclic)\\n} catch (error) { results.cyclic = error.name + \\\": \\\" + error.message }\\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \\\": \\\" + error.message }\\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\\\"p\\\") }) } catch (error) { results.promise = error.name + \\\": \\\" + error.message }\\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \\\": \\\" + error.message }\\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const settled = await Promise.allSettled([\\n  tools.opencode.models({ limit: 1 }),\\n  tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }),\\n  tools.opencode.models({ limit: 0 }),\\n])\\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\\nconst caught = await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }).catch((e) => \\\"caught: \\\" + e.message)\\ntools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"unawaited\\\" })\\ntools.opencode.models({})\\nreturn { settled: settled.map((s) => s.status + \\\":\\\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const input = { title: \\\"Boundary\\\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\\\"a\\\", 1]]) } }\\nconst results = {}\\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\\ntry {\\n  const cyclic = { title: \\\"cyclic\\\" }\\n  cyclic.self = cyclic\\n  results.cyclic = await tools.opencode.session_rename(cyclic)\\n} catch (error) { results.cyclic = error.name + \\\": \\\" + error.message }\\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \\\": \\\" + error.message }\\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\\\"p\\\") }) } catch (error) { results.promise = error.name + \\\": \\\" + error.message }\\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \\\": \\\" + error.message }\\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const settled = await Promise.allSettled([\\n  tools.opencode.models({ limit: 1 }),\\n  tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }),\\n  tools.opencode.models({ limit: 0 }),\\n])\\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\\nconst caught = await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }).catch((e) => \\\"caught: \\\" + e.message)\\ntools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"unawaited\\\" })\\ntools.opencode.models({})\\nreturn { settled: settled.map((s) => s.status + \\\":\\\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"uncaught\\\" })\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Exercise the tool boundary",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const input = { title: \\\"Boundary\\\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\\\"a\\\", 1]]) } }\\nconst results = {}\\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\\ntry {\\n  const cyclic = { title: \\\"cyclic\\\" }\\n  cyclic.self = cyclic\\n  results.cyclic = await tools.opencode.session_rename(cyclic)\\n} catch (error) { results.cyclic = error.name + \\\": \\\" + error.message }\\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \\\": \\\" + error.message }\\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\\\"p\\\") }) } catch (error) { results.promise = error.name + \\\": \\\" + error.message }\\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \\\": \\\" + error.message }\\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const settled = await Promise.allSettled([\\n  tools.opencode.models({ limit: 1 }),\\n  tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }),\\n  tools.opencode.models({ limit: 0 }),\\n])\\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\\nconst caught = await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }).catch((e) => \\\"caught: \\\" + e.message)\\ntools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"unawaited\\\" })\\ntools.opencode.models({})\\nreturn { settled: settled.map((s) => s.status + \\\":\\\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"uncaught\\\" })\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const pending = tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"late\\\" })\\nawait tools.opencode.models({ limit: 1 })\\nreturn \\\"returned before observing the failure\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "returned before observing the failure\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nExercise the tool boundary\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Exercise the tool boundary"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_9>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const out = {}\\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \\\": \\\" + error.message } }\\nconst ns = tools.opencode\\nt(\\\"roots\\\", () => Object.keys(tools))\\nt(\\\"keys\\\", () => Object.keys(ns))\\nt(\\\"forIn\\\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\\nt(\\\"types\\\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\\nt(\\\"string\\\", () => String(ns.models))\\nt(\\\"stringNamespace\\\", () => String(ns))\\nt(\\\"json\\\", () => JSON.stringify({ t: ns.models, n: ns }))\\nt(\\\"template\\\", () => `${ns}`)\\nt(\\\"identity\\\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\\nt(\\\"in\\\", () => \\\"models\\\" in ns)\\nt(\\\"concat\\\", () => ns.models + \\\"\\\")\\nt(\\\"optional\\\", () => typeof tools.opencode?.models)\\nt(\\\"missing\\\", () => typeof tools.opencode.nope)\\nt(\\\"entries\\\", () => Object.entries(ns).length)\\nt(\\\"spread\\\", () => Object.keys({ ...ns }))\\nout.bracket = (await tools[\\\"opencode\\\"][\\\"models\\\"]({ limit: 1 })).total\\nreturn out\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const out = {}\nconst t = (label, fn) => { try { out[label] = fn() } catch (error) { out[label] = error.name + \": \" + error.message } }\nconst ns = tools.opencode\nt(\"roots\", () => Object.keys(tools))\nt(\"keys\", () => Object.keys(ns))\nt(\"forIn\", () => { const keys = []; for (const key in ns) keys.push(key); return keys })\nt(\"types\", () => [typeof tools, typeof ns, typeof ns.models, typeof tools.opencode.session_rename])\nt(\"string\", () => String(ns.models))\nt(\"stringNamespace\", () => String(ns))\nt(\"json\", () => JSON.stringify({ t: ns.models, n: ns }))\nt(\"template\", () => `${ns}`)\nt(\"identity\", () => [ns.models === tools.opencode.models, ns === tools.opencode, ns.models == ns.models, ns.models !== ns.session_rename])\nt(\"in\", () => \"models\" in ns)\nt(\"concat\", () => ns.models + \"\")\nt(\"optional\", () => typeof tools.opencode?.models)\nt(\"missing\", () => typeof tools.opencode.nope)\nt(\"entries\", () => Object.entries(ns).length)\nt(\"spread\", () => Object.keys({ ...ns }))\nout.bracket = (await tools[\"opencode\"][\"models\"]({ limit: 1 })).total\nreturn out"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "content": [
+            {
+              "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const attempts = {\\n  unknownNamespace: () => tools.nope.thing({}),\\n  unknownTool: () => tools.opencode.modelz({}),\\n  typo: () => tools.opencode.session_renam({ title: \\\"x\\\" }),\\n  nonCodemode: () => tools.read({ path: \\\"README.md\\\" }),\\n  callNamespace: () => tools.opencode({}),\\n  callRoot: () => tools({}),\\n  asCallback: () => [1].map(tools.opencode.models),\\n  newTool: () => new tools.opencode.models({}),\\n  assign: () => { tools.opencode.models = 1 },\\n  deleteTool: () => delete tools.opencode.models,\\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\\n}\\nconst out = {}\\nfor (const [label, attempt] of Object.entries(attempts)) {\\n  try {\\n    const value = attempt()\\n    out[label] = value && typeof value.then === \\\"function\\\" ? await value : value\\n  } catch (error) {\\n    out[label] = error.name + \\\": \\\" + error.message\\n  }\\n}\\nreturn out\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const attempts = {\n  unknownNamespace: () => tools.nope.thing({}),\n  unknownTool: () => tools.opencode.modelz({}),\n  typo: () => tools.opencode.session_renam({ title: \"x\" }),\n  nonCodemode: () => tools.read({ path: \"README.md\" }),\n  callNamespace: () => tools.opencode({}),\n  callRoot: () => tools({}),\n  asCallback: () => [1].map(tools.opencode.models),\n  newTool: () => new tools.opencode.models({}),\n  assign: () => { tools.opencode.models = 1 },\n  deleteTool: () => delete tools.opencode.models,\n  spreadArgs: () => tools.opencode.models(...[{ limit: 1 }, { extra: 1 }]),\n}\nconst out = {}\nfor (const [label, attempt] of Object.entries(attempts)) {\n  try {\n    const value = attempt()\n    out[label] = value && typeof value.then === \"function\" ? await value : value\n  } catch (error) {\n    out[label] = error.name + \": \" + error.message\n  }\n}\nreturn out"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "content": [
+            {
+              "text": "{\n  \"unknownNamespace\": \"Error: Unknown tool 'nope.thing'.\",\n  \"unknownTool\": \"Error: Unknown tool 'opencode.modelz'.\",\n  \"typo\": \"Error: Unknown tool 'opencode.session_renam'. Did you mean tools.opencode.session_rename?\",\n  \"nonCodemode\": \"Error: Unknown tool 'read'. Did you mean tools.opencode.models?\",\n  \"callNamespace\": \"Error: Tool 'opencode' is not callable.\",\n  \"callRoot\": \"TypeError: The tools root is not callable.\",\n  \"asCallback\": \"TypeError: Array.map cannot use this callable as a callback; wrap it in an arrow function, e.g. (value) => tools.ns.tool(value).\",\n  \"newTool\": \"TypeError: tools.opencode.models is not a constructor.\",\n  \"assign\": \"TypeError: Only data fields may be assigned.\",\n  \"deleteTool\": \"TypeError: Only data fields may be deleted.\",\n  \"spreadArgs\": \"Error: Tool 'opencode.models' expects at most one input object.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const input = { title: \\\"Boundary\\\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\\\"a\\\", 1]]) } }\\nconst results = {}\\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\\ntry {\\n  const cyclic = { title: \\\"cyclic\\\" }\\n  cyclic.self = cyclic\\n  results.cyclic = await tools.opencode.session_rename(cyclic)\\n} catch (error) { results.cyclic = error.name + \\\": \\\" + error.message }\\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \\\": \\\" + error.message }\\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\\\"p\\\") }) } catch (error) { results.promise = error.name + \\\": \\\" + error.message }\\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \\\": \\\" + error.message }\\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \\\": \\\" + error.message }\\nreturn results\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const input = { title: \"Boundary\", skipped: undefined, fn() {}, nested: { when: new Date(0), set: new Set([1, 2]), map: new Map([[\"a\", 1]]) } }\nconst results = {}\ntry { results.extraKeys = await tools.opencode.session_rename(input) } catch (error) { results.extraKeys = error.message }\ntry {\n  const cyclic = { title: \"cyclic\" }\n  cyclic.self = cyclic\n  results.cyclic = await tools.opencode.session_rename(cyclic)\n} catch (error) { results.cyclic = error.name + \": \" + error.message }\ntry { results.bytes = await tools.opencode.session_rename({ title: new Uint8Array([1, 2]) }) } catch (error) { results.bytes = error.name + \": \" + error.message }\ntry { results.promise = await tools.opencode.session_rename({ title: Promise.resolve(\"p\") }) } catch (error) { results.promise = error.name + \": \" + error.message }\ntry { results.undefinedArg = await tools.opencode.models(undefined) } catch (error) { results.undefinedArg = error.name + \": \" + error.message }\ntry { results.noArg = (await tools.opencode.worktree_list()).worktrees } catch (error) { results.noArg = error.name + \": \" + error.message }\nreturn results"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Boundary"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "p"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "content": [
+            {
+              "text": "{\n  \"extraKeys\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"Boundary\"\n  },\n  \"cyclic\": \"TypeError: Object assignment result contains a circular value.\",\n  \"bytes\": \"TypeError: A Uint8Array cannot cross to the host; pass text instead, e.g. `new TextDecoder().decode(bytes)` or `bytes.toBase64()`.\",\n  \"promise\": {\n    \"sessionID\": \"<ses_1>\",\n    \"title\": \"p\"\n  },\n  \"undefinedArg\": \"Error: Invalid arguments for tool \\\"opencode_models\\\":\\n- root: Expected object\\n\\nArguments provided:\\nundefined\\n\\nUpdate the arguments and call the tool again.\",\n  \"noArg\": []\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "nested": {
+                    "map": {},
+                    "set": [
+                      1,
+                      2
+                    ],
+                    "when": "<iso-time>"
+                  },
+                  "title": "Boundary"
+                },
+                "status": "completed",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "input": {
+                  "title": "p"
+                },
+                "status": "completed",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "status": "completed",
+                "tool": "opencode.worktree_list"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 2
+        },
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_43>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const settled = await Promise.allSettled([\\n  tools.opencode.models({ limit: 1 }),\\n  tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }),\\n  tools.opencode.models({ limit: 0 }),\\n])\\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\\nconst caught = await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"x\\\" }).catch((e) => \\\"caught: \\\" + e.message)\\ntools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"unawaited\\\" })\\ntools.opencode.models({})\\nreturn { settled: settled.map((s) => s.status + \\\":\\\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const settled = await Promise.allSettled([\n  tools.opencode.models({ limit: 1 }),\n  tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }),\n  tools.opencode.models({ limit: 0 }),\n])\nconst raced = await Promise.race([tools.opencode.models({ limit: 1 }), tools.opencode.worktree_list()])\nconst chained = await tools.opencode.models({ limit: 1 }).then((r) => r.total).finally(() => {})\nconst caught = await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"x\" }).catch((e) => \"caught: \" + e.message)\ntools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"unawaited\" })\ntools.opencode.models({})\nreturn { settled: settled.map((s) => s.status + \":\" + (s.reason ? s.reason.message : typeof s.value)), raced: typeof raced, chained, caught }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "{\n  \"settled\": [\n    \"fulfilled:object\",\n    \"rejected:Unable to rename session ses_doesnotexist\",\n    \"rejected:Invalid arguments for tool \\\"opencode_models\\\":\\n- limit: Expected a value between 1 and 100\\n\\nArguments provided:\\n{\\n  \\\"limit\\\": 0\\n}\\n\\nUpdate the arguments and call the tool again.\"\n  ],\n  \"raced\": \"object\",\n  \"chained\": 1,\n  \"caught\": \"caught: Unable to rename session ses_doesnotexist\"\n}\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "sessionID": "ses_doesnotexist",
+                  "title": "x"
+                },
+                "status": "error",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "input": {
+                  "limit": 0
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "status": "completed",
+                "tool": "opencode.worktree_list"
+              },
+              {
+                "input": {
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "sessionID": "ses_doesnotexist",
+                  "title": "x"
+                },
+                "status": "error",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "input": {
+                  "sessionID": "ses_doesnotexist",
+                  "title": "unawaited"
+                },
+                "status": "error",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "status": "completed",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 2
+        },
+        "id": "<evt_49>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_51>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"await tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"uncaught\\\" })\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "await tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"uncaught\" })"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 1
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "Unable to rename session ses_doesnotexist",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [
+              {
+                "input": {
+                  "sessionID": "ses_doesnotexist",
+                  "title": "uncaught"
+                },
+                "status": "error",
+                "tool": "opencode.session_rename"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 2
+        },
+        "id": "<evt_57>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_59>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const pending = tools.opencode.session_rename({ sessionID: \\\"ses_doesnotexist\\\", title: \\\"late\\\" })\\nawait tools.opencode.models({ limit: 1 })\\nreturn \\\"returned before observing the failure\\\"\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const pending = tools.opencode.session_rename({ sessionID: \"ses_doesnotexist\", title: \"late\" })\nawait tools.opencode.models({ limit: 1 })\nreturn \"returned before observing the failure\""
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 48,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "returned before observing the failure\n\nWarnings:\n- [ToolFailure] Unhandled rejection from an un-awaited promise: Unable to rename session ses_doesnotexist",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "sessionID": "ses_doesnotexist",
+                  "title": "late"
+                },
+                "status": "error",
+                "tool": "opencode.session_rename"
+              },
+              {
+                "input": {
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 49,
+          "version": 2
+        },
+        "id": "<evt_65>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 50,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_67>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 51,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 52,
+          "version": 1
+        },
+        "id": "<evt_69>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_70>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 53,
+          "version": 1
+        },
+        "id": "<evt_71>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 54,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 55,
+          "version": 1
+        },
+        "id": "<evt_73>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 800,
+            "output": 80,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_74>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 56,
+          "version": 1
+        },
+        "id": "<evt_75>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

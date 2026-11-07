@@ -1,0 +1,530 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "activation": "enabled",
+            "id": "openrouter",
+            "name": "OpenRouter",
+            "package": "@opencode/ai/providers/openrouter",
+            "settings": {
+              "baseURL": "https://openrouter.ai/api/v1"
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "permissions": [
+            {
+              "action": "publish",
+              "effect": "allow",
+              "resource": "docs/*"
+            },
+            {
+              "action": "archive",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "evaluate",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "permissions": [
+          {
+            "action": "publish",
+            "effect": "allow",
+            "resource": "docs/*"
+          },
+          {
+            "action": "archive",
+            "effect": "deny",
+            "resource": "*"
+          }
+        ],
+        "title": "evaluate"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_1>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "lint",
+        "resources": [
+          "src/a.ts"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_2>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "staging/web"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_3>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "staging/db/main"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_4>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "staging",
+          "staging/web"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_5>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": [
+          "production",
+          "staging/db/x"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_6>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "publish",
+        "resources": [
+          "docs/index.md"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_7>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "publish",
+        "resources": [
+          "docs/index.md",
+          "src/x"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "deny",
+          "id": "<per_8>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "archive",
+        "resources": [
+          "anything"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_9>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "deploy",
+        "resources": []
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_10>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "resources": [
+          ".env"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "ask",
+          "id": "<per_11>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "resources": [
+          "config/.env.local"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": {
+          "effect": "allow",
+          "id": "<per_12>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "action": "read",
+        "resources": [
+          ".env.example"
+        ]
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": "deploy",
+            "id": "<per_4>",
+            "resources": [
+              "staging",
+              "staging/web"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "read",
+            "id": "<per_10>",
+            "resources": [
+              ".env"
+            ],
+            "sessionID": "<ses_1>"
+          },
+          {
+            "action": "read",
+            "id": "<per_11>",
+            "resources": [
+              "config/.env.local"
+            ],
+            "sessionID": "<ses_1>"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/permission"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "permissions": [
+            {
+              "action": "publish",
+              "effect": "allow",
+              "resource": "docs/*"
+            },
+            {
+              "action": "archive",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "evaluate",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "deploy",
+          "id": "<per_4>",
+          "resources": [
+            "staging",
+            "staging/web"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "read",
+          "id": "<per_10>",
+          "resources": [
+            ".env"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "action": "read",
+          "id": "<per_11>",
+          "resources": [
+            "config/.env.local"
+          ],
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "permission.asked"
+      }
+    ]
+  },
+  "files": {}
+}

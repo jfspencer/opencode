@@ -1,0 +1,1073 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "forms",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "forms"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "other",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "other"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "env",
+              "options": [
+                {
+                  "label": "Production",
+                  "value": "prod"
+                }
+              ],
+              "required": true,
+              "title": "Environment",
+              "type": "string"
+            },
+            {
+              "key": "replicas",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer",
+              "when": [
+                {
+                  "key": "env",
+                  "op": "eq",
+                  "value": "prod"
+                }
+              ]
+            },
+            {
+              "key": "confirm",
+              "required": true,
+              "type": "boolean"
+            },
+            {
+              "key": "regions",
+              "options": [
+                {
+                  "label": "EU",
+                  "value": "eu"
+                },
+                {
+                  "label": "US",
+                  "value": "us"
+                }
+              ],
+              "type": "multiselect"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "title": "Deploy settings"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "env",
+            "options": [
+              {
+                "label": "Production",
+                "value": "prod"
+              }
+            ],
+            "required": true,
+            "title": "Environment",
+            "type": "string"
+          },
+          {
+            "key": "replicas",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer",
+            "when": [
+              {
+                "key": "env",
+                "op": "eq",
+                "value": "prod"
+              }
+            ]
+          },
+          {
+            "key": "confirm",
+            "required": true,
+            "type": "boolean"
+          },
+          {
+            "key": "regions",
+            "options": [
+              {
+                "label": "EU",
+                "value": "eu"
+              },
+              {
+                "label": "US",
+                "value": "us"
+              }
+            ],
+            "type": "multiselect"
+          }
+        ],
+        "id": "<frm_1>",
+        "metadata": {
+          "source": "conformance"
+        },
+        "title": "Deploy settings"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "note",
+              "type": "string"
+            }
+          ],
+          "id": "<frm_2>",
+          "sessionID": "<ses_1>",
+          "title": "Second"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "note",
+            "type": "string"
+          }
+        ],
+        "title": "Second"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "fields": [
+              {
+                "key": "env",
+                "options": [
+                  {
+                    "label": "Production",
+                    "value": "prod"
+                  }
+                ],
+                "required": true,
+                "title": "Environment",
+                "type": "string"
+              },
+              {
+                "key": "replicas",
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer",
+                "when": [
+                  {
+                    "key": "env",
+                    "op": "eq",
+                    "value": "prod"
+                  }
+                ]
+              },
+              {
+                "key": "confirm",
+                "required": true,
+                "type": "boolean"
+              },
+              {
+                "key": "regions",
+                "options": [
+                  {
+                    "label": "EU",
+                    "value": "eu"
+                  },
+                  {
+                    "label": "US",
+                    "value": "us"
+                  }
+                ],
+                "type": "multiselect"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "source": "conformance"
+            },
+            "sessionID": "<ses_1>",
+            "title": "Deploy settings"
+          },
+          {
+            "fields": [
+              {
+                "key": "note",
+                "type": "string"
+              }
+            ],
+            "id": "<frm_2>",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "env",
+              "options": [
+                {
+                  "label": "Production",
+                  "value": "prod"
+                }
+              ],
+              "required": true,
+              "title": "Environment",
+              "type": "string"
+            },
+            {
+              "key": "replicas",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer",
+              "when": [
+                {
+                  "key": "env",
+                  "op": "eq",
+                  "value": "prod"
+                }
+              ]
+            },
+            {
+              "key": "confirm",
+              "required": true,
+              "type": "boolean"
+            },
+            {
+              "key": "regions",
+              "options": [
+                {
+                  "label": "EU",
+                  "value": "eu"
+                },
+                {
+                  "label": "US",
+                  "value": "us"
+                }
+              ],
+              "type": "multiselect"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "state": {
+            "status": "pending"
+          },
+          "title": "Deploy settings"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Missing required form field: confirm"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "env": "prod"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Unknown form field: unknown"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "confirm": true,
+          "env": "prod",
+          "unknown": 1
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormInvalidAnswerError",
+        "id": "<frm_1>",
+        "message": "Form field is too large: replicas"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "confirm": true,
+          "env": "prod",
+          "replicas": 9
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "confirm": true,
+          "env": "prod",
+          "regions": [
+            "eu"
+          ],
+          "replicas": 3
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "env",
+              "options": [
+                {
+                  "label": "Production",
+                  "value": "prod"
+                }
+              ],
+              "required": true,
+              "title": "Environment",
+              "type": "string"
+            },
+            {
+              "key": "replicas",
+              "maximum": 5,
+              "minimum": 1,
+              "type": "integer",
+              "when": [
+                {
+                  "key": "env",
+                  "op": "eq",
+                  "value": "prod"
+                }
+              ]
+            },
+            {
+              "key": "confirm",
+              "required": true,
+              "type": "boolean"
+            },
+            {
+              "key": "regions",
+              "options": [
+                {
+                  "label": "EU",
+                  "value": "eu"
+                },
+                {
+                  "label": "US",
+                  "value": "us"
+                }
+              ],
+              "type": "multiselect"
+            }
+          ],
+          "id": "<frm_1>",
+          "metadata": {
+            "source": "conformance"
+          },
+          "sessionID": "<ses_1>",
+          "state": {
+            "answer": {
+              "confirm": true,
+              "env": "prod",
+              "regions": [
+                "eu"
+              ],
+              "replicas": 3
+            },
+            "status": "answered"
+          },
+          "title": "Deploy settings"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "<frm_1>",
+        "message": "Form already settled: <frm_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "confirm": true,
+          "env": "prod"
+        }
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "<frm_1>",
+        "message": "Form already settled: <frm_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_1>",
+        "message": "Form not found: <frm_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_2>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_1>",
+        "message": "Form not found: <frm_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_2>/form/<frm_1>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_1>",
+        "message": "Form not found: <frm_1>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_2>/form/<frm_1>"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "fields": [
+              {
+                "key": "note",
+                "type": "string"
+              }
+            ],
+            "id": "<frm_2>",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/<frm_2>?message=Not%20now"
+    },
+    {
+      "body": {
+        "data": {
+          "fields": [
+            {
+              "key": "note",
+              "type": "string"
+            }
+          ],
+          "id": "<frm_2>",
+          "sessionID": "<ses_1>",
+          "state": {
+            "message": "Not now",
+            "status": "cancelled"
+          },
+          "title": "Second"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form/<frm_2>"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "<frm_2>",
+        "message": "Form already settled: <frm_2>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/<frm_2>"
+    },
+    {
+      "body": {
+        "_tag": "FormAlreadySettledError",
+        "id": "<frm_2>",
+        "message": "Form already settled: <frm_2>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "note": "late"
+        }
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/form/<frm_2>/reply"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "ConflictError",
+        "message": "Form already exists: <frm_1>",
+        "resource": "<frm_1>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "x",
+            "type": "boolean"
+          }
+        ],
+        "id": "<frm_1>",
+        "title": "Again"
+      },
+      "status": 409,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "fields",
+        "message": "Duplicate form field key: a"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "a",
+            "type": "string"
+          },
+          {
+            "key": "a",
+            "type": "number"
+          }
+        ],
+        "title": "Duplicate keys"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "fields",
+        "message": "Form field condition must reference an earlier field: a -> b"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [
+          {
+            "key": "a",
+            "type": "string",
+            "when": [
+              {
+                "key": "b",
+                "op": "eq",
+                "value": "x"
+              }
+            ]
+          },
+          {
+            "key": "b",
+            "type": "string"
+          }
+        ],
+        "title": "Forward reference"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"fields\"][0]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "fields": [],
+        "title": "No fields"
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_3>",
+        "message": "Form not found: <frm_3>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_3>"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_3>",
+        "message": "Form not found: <frm_3>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_3>/reply"
+    },
+    {
+      "body": {
+        "_tag": "FormNotFoundError",
+        "id": "<frm_3>",
+        "message": "Form not found: <frm_3>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/session/<ses_1>/form/<frm_3>"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string starting with \"frm_\"\n  at [\"formID\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/session/<ses_1>/form/not-a-form"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "other",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "forms",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "key": "env",
+                "options": [
+                  {
+                    "label": "Production",
+                    "value": "prod"
+                  }
+                ],
+                "required": true,
+                "title": "Environment",
+                "type": "string"
+              },
+              {
+                "key": "replicas",
+                "maximum": 5,
+                "minimum": 1,
+                "type": "integer",
+                "when": [
+                  {
+                    "key": "env",
+                    "op": "eq",
+                    "value": "prod"
+                  }
+                ]
+              },
+              {
+                "key": "confirm",
+                "required": true,
+                "type": "boolean"
+              },
+              {
+                "key": "regions",
+                "options": [
+                  {
+                    "label": "EU",
+                    "value": "eu"
+                  },
+                  {
+                    "label": "US",
+                    "value": "us"
+                  }
+                ],
+                "type": "multiselect"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "source": "conformance"
+            },
+            "sessionID": "<ses_1>",
+            "title": "Deploy settings"
+          }
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "key": "note",
+                "type": "string"
+              }
+            ],
+            "id": "<frm_2>",
+            "sessionID": "<ses_1>",
+            "title": "Second"
+          }
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "answer": {
+            "confirm": true,
+            "env": "prod",
+            "regions": [
+              "eu"
+            ],
+            "replicas": 3
+          },
+          "id": "<frm_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<frm_2>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "form.cancelled"
+      }
+    ]
+  },
+  "files": {}
+}

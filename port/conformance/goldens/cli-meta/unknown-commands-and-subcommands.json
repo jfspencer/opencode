@@ -1,0 +1,265 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: ENOENT: no such file or directory, chdir '<project>' -> 'frobnicate'",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "export"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: ENOENT: no such file or directory, chdir '<project>' -> 'export'",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "import",
+          "session.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Unexpected positional argument: \"session.json\"",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  OpenCode command line interface",
+          "",
+          "USAGE",
+          "  opencode <subcommand> [flags] [<directory>]",
+          "",
+          "ARGUMENTS",
+          "  directory string    Directory to start OpenCode in (optional)",
+          "",
+          "FLAGS",
+          "  --standalone            Run with a private server instead of the background service",
+          "  --server string         Connect to a server URL instead of the background service",
+          "  --auto                  Auto-approve permissions that are not explicitly denied",
+          "  --continue, -c          Continue the last session",
+          "  --session, -s string    Session ID to continue, or to create if it does not exist",
+          "  --prompt string         Prompt to use",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "SUBCOMMANDS",
+          "  upgrade, update    Upgrade OpenCode to the latest or a specific version",
+          "  uninstall          Uninstall OpenCode, keeping session data, configuration, and state",
+          "  acp                Start an Agent Client Protocol server",
+          "  api                Make a request to the running server",
+          "  debug              Debugging and troubleshooting tools",
+          "  auth               manage integrations and credentials",
+          "  mcp                Manage MCP (Model Context Protocol) servers",
+          "  plugin             Manage plugins",
+          "  models             List all available models",
+          "  stats              Show shareable usage statistics",
+          "  mini               Start the minimal interactive interface",
+          "  run                Run OpenCode with a message",
+          "  session            Manage sessions",
+          "  service            Manage the background server",
+          "  reload             Reload configuration",
+          "  pair               Print one-time links to connect a browser or app",
+          "  serve              Start the v2 API and web server",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Unknown subcommand \"frobnicate\" for \"opencode session\"",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Manage sessions",
+          "",
+          "USAGE",
+          "  opencode session <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "",
+          "SUBCOMMANDS",
+          "  list      List top-level sessions in the current project, newest first",
+          "  delete    Delete a session and its child sessions",
+          "  export    Export session data as JSON",
+          "  import    Import session data from a JSON file or URL",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "reload"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Unknown subcommand \"reload\" for \"opencode service\"",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Manage the background server",
+          "",
+          "USAGE",
+          "  opencode service <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "SUBCOMMANDS",
+          "  start      Start the background server",
+          "  restart    Restart the background server",
+          "  status     Show background server status",
+          "  stop       Stop the background server",
+          "  get        Get service configuration",
+          "  set        Set service configuration",
+          "  unset      Unset service configuration",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Unknown subcommand \"frobnicate\" for \"opencode debug\"",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Debugging and troubleshooting tools",
+          "",
+          "USAGE",
+          "  opencode debug <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "SUBCOMMANDS",
+          "  agents       List all agents",
+          "  config       List configuration sources",
+          "  heap-dump    Write a heap snapshot of the running server and print its path",
+          "  paths        Show global paths (data, config, cache, state)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "frobnicate"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Unknown subcommand \"frobnicate\" for \"opencode auth\"",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  manage integrations and credentials",
+          "",
+          "USAGE",
+          "  opencode auth <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "",
+          "SUBCOMMANDS",
+          "  list      list integrations and credentials",
+          "  login     connect an integration",
+          "  logout    log out of a saved account",
+          "  export    print stored credentials, including secrets, as JSON",
+          "  import    import credentials exported by auth export",
+          "  switch    switch the active account for an integration",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

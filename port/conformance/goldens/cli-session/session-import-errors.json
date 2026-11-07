@@ -1,0 +1,79 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "import",
+          "missing.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Failed to read session data: ENOENT: no such file or directory, open 'missing.json'",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "import",
+          "broken.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "SchemaError: Expected a valid JSON string",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "import",
+          "list.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "SchemaError: Expected object",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "import",
+          "empty.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Failed to import session: Bad Request",
+          ""
+        ],
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {
+    "broken.json": "{ not json",
+    "empty.json": "{}",
+    "list.json": "[]"
+  }
+}

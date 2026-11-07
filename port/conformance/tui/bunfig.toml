@@ -1,0 +1,7 @@
+# TUI scenarios: the sandbox preload first (it must run before opencode modules load), then the SolidJS JSX
+# transform the TUI is written with, then upstream's frame-read workaround for the OpenTUI test renderer.
+preload = ["@opentui/solid/preload"]
+
+[test]
+preload = ["../lib/preload.ts", "@opentui/solid/preload", "../../../packages/tui/test/preload.ts"]
+timeout = 90000

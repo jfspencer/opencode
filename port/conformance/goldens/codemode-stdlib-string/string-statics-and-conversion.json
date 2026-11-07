@@ -1,0 +1,776 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the string statics and conversion programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the string statics and conversion programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the string statics and conversion programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the string statics and conversion programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"String()\\\", () => [String(), String(undefined), String(null), String(12.5), String(true), String([1, [2]]), String({}), String(-0)])\\nt(\\\"String of function\\\", () => [String(() => 1), String(Math.max), `${() => 1}`])\\nt(\\\"String toString object\\\", () => String({ toString() { return \\\"custom\\\" } }))\\nt(\\\"String valueOf ignored\\\", () => String({ valueOf() { return 5 }, toString() { return \\\"str\\\" } }))\\nt(\\\"String toString throws\\\", () => String({ toString() { throw new TypeError(\\\"nope\\\") } }))\\nt(\\\"String of symbol\\\", () => String(Symbol.iterator))\\nt(\\\"fromCharCode\\\", () => [String.fromCharCode(72, 105), String.fromCharCode(), String.fromCharCode(\\\"65\\\", 0x1F600)])\\nt(\\\"fromCodePoint\\\", () => [String.fromCodePoint(0x1F600, 97), String.fromCodePoint()])\\nt(\\\"fromCodePoint invalid\\\", () => String.fromCodePoint(-1))\\nt(\\\"raw template\\\", () => String.raw`a\\\\n${1 + 1}b\\\\t${\\\"x\\\"}c`)\\nt(\\\"raw object\\\", () => String.raw({ raw: [\\\"x\\\", \\\"y\\\", \\\"z\\\"] }, 1, 2, 3, 4))\\nt(\\\"raw short\\\", () => String.raw({ raw: \\\"abc\\\" }, \\\"-\\\", \\\"+\\\"))\\nt(\\\"raw empty\\\", () => String.raw({ raw: [] }))\\nt(\\\"raw invalid\\\", () => String.raw({}))\\nt(\\\"raw no args\\\", () => String.raw())\\nt(\\\"String.length\\\", () => [String.length, String.name, \\\"abc\\\".length, \\\"😀\\\".length])\\nt(\\\"prototype\\\", () => [Object.getPrototypeOf(\\\"a\\\") === String.prototype, \\\"a\\\".constructor === String, typeof String.prototype.at])\\nt(\\\"index access\\\", () => [\\\"abc\\\"[1], \\\"abc\\\"[5], \\\"abc\\\"[\\\"length\\\"], \\\"abc\\\"[-1]])\\nt(\\\"iterate\\\", () => [...\\\"a😀b\\\"])\\nt(\\\"iterator next\\\", () => { const it = \\\"ab\\\"[Symbol.iterator](); return [it.next(), it.next(), it.next()] })\\nt(\\\"for-of\\\", () => { const out = []; for (const ch of \\\"xyz\\\") out.push(ch); return out.join(\\\"|\\\") })\\nt(\\\"for-in\\\", () => { const out = []; for (const k in \\\"ab\\\") out.push(k); return out })\\nt(\\\"null receiver\\\", () => String.prototype.trim.call(null))\\nt(\\\"undefined receiver\\\", () => String.prototype.toUpperCase.call(undefined))\\nt(\\\"object receiver\\\", () => String.prototype.trim.call({ toString() { return \\\"  a  \\\" } }))\\nt(\\\"number receiver\\\", () => String.prototype.padStart.call(5, 3, \\\"0\\\"))\\nt(\\\"toString receiver\\\", () => [String.prototype.toString.call(\\\"x\\\"), \\\"y\\\".valueOf()])\\nt(\\\"iterator null receiver\\\", () => String.prototype[Symbol.iterator].call(null))\\nt(\\\"iterator number receiver\\\", () => [...String.prototype[Symbol.iterator].call(42)])\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"String()\": [\n    \"\",\n    \"undefined\",\n    \"null\",\n    \"12.5\",\n    \"true\",\n    \"1,2\",\n    \"[object Object]\",\n    \"0\"\n  ],\n  \"String of function\": [\n    \"[object Function]\",\n    \"[object Function]\",\n    \"[object Function]\"\n  ],\n  \"String toString object\": \"custom\",\n  \"String valueOf ignored\": \"str\",\n  \"String toString throws\": \"!TypeError: nope\",\n  \"String of symbol\": \"Symbol(codemode.iterator)\",\n  \"fromCharCode\": [\n    \"Hi\",\n    \"\",\n    \"A\"\n  ],\n  \"fromCodePoint\": [\n    \"😀a\",\n    \"\"\n  ],\n  \"fromCodePoint invalid\": \"!RangeError: Arguments contain a value that is out of range of code points\",\n  \"raw template\": \"a\\\\n2b\\\\txc\",\n  \"raw object\": \"x1y2z\",\n  \"raw short\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"raw empty\": \"\",\n  \"raw invalid\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"raw no args\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"String.length\": [\n    1,\n    \"String\",\n    3,\n    2\n  ],\n  \"prototype\": [\n    true,\n    true,\n    \"function\"\n  ],\n  \"index access\": [\n    \"b\",\n    null,\n    3,\n    null\n  ],\n  \"iterate\": [\n    \"a\",\n    \"😀\",\n    \"b\"\n  ],\n  \"iterator next\": [\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"for-of\": \"x|y|z\",\n  \"for-in\": [\n    \"0\",\n    \"1\"\n  ],\n  \"null receiver\": \"!TypeError: String.prototype.trim called on null or undefined.\",\n  \"undefined receiver\": \"!TypeError: String.prototype.toUpperCase called on null or undefined.\",\n  \"object receiver\": \"a\",\n  \"number receiver\": \"005\",\n  \"toString receiver\": [\n    \"x\",\n    \"y\"\n  ],\n  \"iterator null receiver\": \"!TypeError: String.prototype.[Symbol.iterator] called on null or undefined.\",\n  \"iterator number receiver\": [\n    \"4\",\n    \"2\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the string statics and conversion programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the string statics and conversion programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"String()\\\", () => [String(), String(undefined), String(null), String(12.5), String(true), String([1, [2]]), String({}), String(-0)])\\nt(\\\"String of function\\\", () => [String(() => 1), String(Math.max), `${() => 1}`])\\nt(\\\"String toString object\\\", () => String({ toString() { return \\\"custom\\\" } }))\\nt(\\\"String valueOf ignored\\\", () => String({ valueOf() { return 5 }, toString() { return \\\"str\\\" } }))\\nt(\\\"String toString throws\\\", () => String({ toString() { throw new TypeError(\\\"nope\\\") } }))\\nt(\\\"String of symbol\\\", () => String(Symbol.iterator))\\nt(\\\"fromCharCode\\\", () => [String.fromCharCode(72, 105), String.fromCharCode(), String.fromCharCode(\\\"65\\\", 0x1F600)])\\nt(\\\"fromCodePoint\\\", () => [String.fromCodePoint(0x1F600, 97), String.fromCodePoint()])\\nt(\\\"fromCodePoint invalid\\\", () => String.fromCodePoint(-1))\\nt(\\\"raw template\\\", () => String.raw`a\\\\n${1 + 1}b\\\\t${\\\"x\\\"}c`)\\nt(\\\"raw object\\\", () => String.raw({ raw: [\\\"x\\\", \\\"y\\\", \\\"z\\\"] }, 1, 2, 3, 4))\\nt(\\\"raw short\\\", () => String.raw({ raw: \\\"abc\\\" }, \\\"-\\\", \\\"+\\\"))\\nt(\\\"raw empty\\\", () => String.raw({ raw: [] }))\\nt(\\\"raw invalid\\\", () => String.raw({}))\\nt(\\\"raw no args\\\", () => String.raw())\\nt(\\\"String.length\\\", () => [String.length, String.name, \\\"abc\\\".length, \\\"😀\\\".length])\\nt(\\\"prototype\\\", () => [Object.getPrototypeOf(\\\"a\\\") === String.prototype, \\\"a\\\".constructor === String, typeof String.prototype.at])\\nt(\\\"index access\\\", () => [\\\"abc\\\"[1], \\\"abc\\\"[5], \\\"abc\\\"[\\\"length\\\"], \\\"abc\\\"[-1]])\\nt(\\\"iterate\\\", () => [...\\\"a😀b\\\"])\\nt(\\\"iterator next\\\", () => { const it = \\\"ab\\\"[Symbol.iterator](); return [it.next(), it.next(), it.next()] })\\nt(\\\"for-of\\\", () => { const out = []; for (const ch of \\\"xyz\\\") out.push(ch); return out.join(\\\"|\\\") })\\nt(\\\"for-in\\\", () => { const out = []; for (const k in \\\"ab\\\") out.push(k); return out })\\nt(\\\"null receiver\\\", () => String.prototype.trim.call(null))\\nt(\\\"undefined receiver\\\", () => String.prototype.toUpperCase.call(undefined))\\nt(\\\"object receiver\\\", () => String.prototype.trim.call({ toString() { return \\\"  a  \\\" } }))\\nt(\\\"number receiver\\\", () => String.prototype.padStart.call(5, 3, \\\"0\\\"))\\nt(\\\"toString receiver\\\", () => [String.prototype.toString.call(\\\"x\\\"), \\\"y\\\".valueOf()])\\nt(\\\"iterator null receiver\\\", () => String.prototype[Symbol.iterator].call(null))\\nt(\\\"iterator number receiver\\\", () => [...String.prototype[Symbol.iterator].call(42)])\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"String()\", () => [String(), String(undefined), String(null), String(12.5), String(true), String([1, [2]]), String({}), String(-0)])\nt(\"String of function\", () => [String(() => 1), String(Math.max), `${() => 1}`])\nt(\"String toString object\", () => String({ toString() { return \"custom\" } }))\nt(\"String valueOf ignored\", () => String({ valueOf() { return 5 }, toString() { return \"str\" } }))\nt(\"String toString throws\", () => String({ toString() { throw new TypeError(\"nope\") } }))\nt(\"String of symbol\", () => String(Symbol.iterator))\nt(\"fromCharCode\", () => [String.fromCharCode(72, 105), String.fromCharCode(), String.fromCharCode(\"65\", 0x1F600)])\nt(\"fromCodePoint\", () => [String.fromCodePoint(0x1F600, 97), String.fromCodePoint()])\nt(\"fromCodePoint invalid\", () => String.fromCodePoint(-1))\nt(\"raw template\", () => String.raw`a\\n${1 + 1}b\\t${\"x\"}c`)\nt(\"raw object\", () => String.raw({ raw: [\"x\", \"y\", \"z\"] }, 1, 2, 3, 4))\nt(\"raw short\", () => String.raw({ raw: \"abc\" }, \"-\", \"+\"))\nt(\"raw empty\", () => String.raw({ raw: [] }))\nt(\"raw invalid\", () => String.raw({}))\nt(\"raw no args\", () => String.raw())\nt(\"String.length\", () => [String.length, String.name, \"abc\".length, \"😀\".length])\nt(\"prototype\", () => [Object.getPrototypeOf(\"a\") === String.prototype, \"a\".constructor === String, typeof String.prototype.at])\nt(\"index access\", () => [\"abc\"[1], \"abc\"[5], \"abc\"[\"length\"], \"abc\"[-1]])\nt(\"iterate\", () => [...\"a😀b\"])\nt(\"iterator next\", () => { const it = \"ab\"[Symbol.iterator](); return [it.next(), it.next(), it.next()] })\nt(\"for-of\", () => { const out = []; for (const ch of \"xyz\") out.push(ch); return out.join(\"|\") })\nt(\"for-in\", () => { const out = []; for (const k in \"ab\") out.push(k); return out })\nt(\"null receiver\", () => String.prototype.trim.call(null))\nt(\"undefined receiver\", () => String.prototype.toUpperCase.call(undefined))\nt(\"object receiver\", () => String.prototype.trim.call({ toString() { return \"  a  \" } }))\nt(\"number receiver\", () => String.prototype.padStart.call(5, 3, \"0\"))\nt(\"toString receiver\", () => [String.prototype.toString.call(\"x\"), \"y\".valueOf()])\nt(\"iterator null receiver\", () => String.prototype[Symbol.iterator].call(null))\nt(\"iterator number receiver\", () => [...String.prototype[Symbol.iterator].call(42)])\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"String()\": [\n    \"\",\n    \"undefined\",\n    \"null\",\n    \"12.5\",\n    \"true\",\n    \"1,2\",\n    \"[object Object]\",\n    \"0\"\n  ],\n  \"String of function\": [\n    \"[object Function]\",\n    \"[object Function]\",\n    \"[object Function]\"\n  ],\n  \"String toString object\": \"custom\",\n  \"String valueOf ignored\": \"str\",\n  \"String toString throws\": \"!TypeError: nope\",\n  \"String of symbol\": \"Symbol(codemode.iterator)\",\n  \"fromCharCode\": [\n    \"Hi\",\n    \"\",\n    \"A\"\n  ],\n  \"fromCodePoint\": [\n    \"😀a\",\n    \"\"\n  ],\n  \"fromCodePoint invalid\": \"!RangeError: Arguments contain a value that is out of range of code points\",\n  \"raw template\": \"a\\\\n2b\\\\txc\",\n  \"raw object\": \"x1y2z\",\n  \"raw short\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"raw empty\": \"\",\n  \"raw invalid\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"raw no args\": \"!TypeError: String.raw expects a template object with a raw array.\",\n  \"String.length\": [\n    1,\n    \"String\",\n    3,\n    2\n  ],\n  \"prototype\": [\n    true,\n    true,\n    \"function\"\n  ],\n  \"index access\": [\n    \"b\",\n    null,\n    3,\n    null\n  ],\n  \"iterate\": [\n    \"a\",\n    \"😀\",\n    \"b\"\n  ],\n  \"iterator next\": [\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"for-of\": \"x|y|z\",\n  \"for-in\": [\n    \"0\",\n    \"1\"\n  ],\n  \"null receiver\": \"!TypeError: String.prototype.trim called on null or undefined.\",\n  \"undefined receiver\": \"!TypeError: String.prototype.toUpperCase called on null or undefined.\",\n  \"object receiver\": \"a\",\n  \"number receiver\": \"005\",\n  \"toString receiver\": [\n    \"x\",\n    \"y\"\n  ],\n  \"iterator null receiver\": \"!TypeError: String.prototype.[Symbol.iterator] called on null or undefined.\",\n  \"iterator number receiver\": [\n    \"4\",\n    \"2\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

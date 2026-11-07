@@ -1,0 +1,353 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "frame:failed",
+      "value": [
+        "   New session                   +",
+        "",
+        "  ┃",
+        "  ┃  $ sleep 0.5; echo oops >&2; exit 3",
+        "  ┃",
+        "  ┃  oops",
+        "  ┃",
+        "  ┃  Command exited with code 3",
+        "  ┃",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "  ┃",
+        "  ┃",
+        "  ┃",
+        "  ┃  Build · DeepSeek V4.1 Flash 1017 OpenRouter · max",
+        "  ╹▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀",
+        "  <project>                      shift+tab agents  ctrl+p commands",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/experimental/session/<ses_1>/terminal",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session/active",
+        "GET /api/session/<ses_1>",
+        "GET /api/session/<ses_1>/form",
+        "GET /api/session/<ses_1>/permission",
+        "GET /api/shell",
+        "GET /api/shell/<sh_1>/output",
+        "GET /api/skill",
+        "GET /api/vcs",
+        "POST /api/rpc/opencode.goal/get",
+        "POST /api/session",
+        "POST /api/session/<ses_1>/shell"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "command": "sleep 0.5; echo oops >&2; exit 3",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "exit": 3,
+          "id": "<sh_1>",
+          "status": "exited"
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.exited"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "location": {
+            "directory": "<project>"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "sleep 0.5; echo oops >&2; exit 3",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "output": {
+            "cursor": 5,
+            "output": "oops\n",
+            "size": 5,
+            "truncated": false
+          },
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "sleep 0.5; echo oops >&2; exit 3",
+            "cwd": "<project>",
+            "exit": 3,
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "metadata": {
+                "exit": 3,
+                "shellID": "<sh_1>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_1>\" state=\"completed\" command=\"sleep 0.5; echo oops >&2; exit 3\">\noops\n\n\nExited with code 3\n</shell>"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      }
+    ]
+  },
+  "files": {}
+}

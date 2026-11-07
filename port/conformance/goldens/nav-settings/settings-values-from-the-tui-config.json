@@ -1,0 +1,337 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "frame:top",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Settings                                         esc",
+        "",
+        "                        Search",
+        "",
+        "                        Appearance",
+        "                      ● Theme                                           nord",
+        "                        Color mode                                     light",
+        "                        Animations                                       off",
+        "",
+        "                        Session",
+        "                        Sidebar                                         hide",
+        "                        Scrollbar                                         on",
+        "                        Scroll on send                         keep position",
+        "                        Thinking                                        show",
+        "             ┃          Markdown                                      source",
+        "             ┃  Ask     Tool grouping                                   none",
+        "             ┃          Verbosity                                       high",
+        "             ┃  Buil    Transcript images                                off",
+        "             ╹▀▀▀▀▀▀    TPS                                              off    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    New session location                  active session    commands",
+        "                        Permissions                              auto accept",
+        "",
+        "                        Tabs",
+        "                        Mode                                             off",
+        "                        Scope                                         global",
+        "                        Layout                                      vertical",
+        "                        Indicators                       always show numbers",
+        "",
+        "",
+        "                        change ←/→",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:middle",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Settings                                         esc",
+        "",
+        "                        Search",
+        "",
+        "                        New session location                  active session",
+        "                        Permissions                              auto accept",
+        "",
+        "                        Tabs",
+        "                        Mode                                             off",
+        "                        Scope                                         global",
+        "                        Layout                                      vertical",
+        "                        Indicators                       always show numbers",
+        "",
+        "                        Diffs",
+        "             ┃          Layout                                         split",
+        "             ┃  Ask     Wrapping                                        none",
+        "             ┃          File tree                                        off",
+        "             ┃  Buil    Single patch                                      on",
+        "             ╹▀▀▀▀▀▀                                                            ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Input                                                   commands",
+        "                        Scroll speed                                    1.50",
+        "                        Acceleration                                      on",
+        "                        Mouse                                            off",
+        "                        Editor context                                   off",
+        "                        Large pastes                                    full",
+        "                        Image previews                                    on",
+        "                        Leader timeout                                500 ms",
+        "",
+        "",
+        "                        change ←/→",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "frame:end",
+      "value": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                        Settings                                         esc",
+        "",
+        "                        Search",
+        "",
+        "                        File tree                                        off",
+        "                        Single patch                                      on",
+        "",
+        "                        Input",
+        "                        Scroll speed                                    1.50",
+        "                        Acceleration                                      on",
+        "                        Mouse                                            off",
+        "                        Editor context                                   off",
+        "                        Large pastes                                    full",
+        "                        Image previews                                    on",
+        "             ┃          Leader timeout                                500 ms",
+        "             ┃  Ask",
+        "             ┃          Alerts",
+        "             ┃  Buil    Notifications                                     on",
+        "             ╹▀▀▀▀▀▀    Sounds                                            on    ▀▀▀▀▀▀▀▀",
+        "             /…/oc-c    Volume                                           70%    commands",
+        "                        Release highlights                               off",
+        "",
+        "                        Terminal",
+        "                        Window title                                     off",
+        "                        Copy behavior                                 manual",
+        "",
+        "                        Debug",
+        "                        Developer tools                                  off",
+        "",
+        "                        change ←/→",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "                                                                                       conformance",
+        "",
+        ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "tui-requests",
+      "value": [
+        "GET /api/agent",
+        "GET /api/command",
+        "GET /api/config",
+        "GET /api/event",
+        "GET /api/experimental/migration/v1",
+        "GET /api/form",
+        "GET /api/fs/list",
+        "GET /api/info",
+        "GET /api/integration",
+        "GET /api/location",
+        "GET /api/mcp",
+        "GET /api/mcp/resource",
+        "GET /api/model",
+        "GET /api/plugin",
+        "GET /api/project",
+        "GET /api/provider",
+        "GET /api/reference",
+        "GET /api/session/active",
+        "GET /api/shell",
+        "GET /api/skill",
+        "GET /api/vcs"
+      ]
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

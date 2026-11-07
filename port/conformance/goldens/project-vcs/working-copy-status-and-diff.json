@@ -1,0 +1,428 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 3,
+            "file": "notes/todo.txt",
+            "status": "deleted"
+          },
+          {
+            "additions": 3,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new-name.ts",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 1,
+            "file": "src/old-name.ts",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "staged.txt",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/status"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 3,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\ndeleted file mode 100644\nindex 4cb29ea..0000000\n--- a/notes/todo.txt\n+++ /dev/null\n@@ -1,3 +0,0 @@\n-one\n-two\n-three\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 3,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..82cb07f 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,5 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n+\n+export const zero = 0\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new-name.ts",
+            "patch": "diff --git a/src/new-name.ts b/src/new-name.ts\nnew file mode 100644\nindex 0000000..cacafe3\n--- /dev/null\n+++ b/src/new-name.ts\n@@ -0,0 +1 @@\n+export const legacy = true\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 1,
+            "file": "src/old-name.ts",
+            "patch": "diff --git a/src/old-name.ts b/src/old-name.ts\ndeleted file mode 100644\nindex cacafe3..0000000\n--- a/src/old-name.ts\n+++ /dev/null\n@@ -1 +0,0 @@\n-export const legacy = true\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "staged.txt",
+            "patch": "diff --git a/staged.txt b/staged.txt\nnew file mode 100644\nindex 0000000..19d9cc8\n--- /dev/null\n+++ b/staged.txt\n@@ -0,0 +1 @@\n+staged\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 3,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\ndeleted file mode 100644\nindex 4cb29ea..0000000\n--- a/notes/todo.txt\n+++ /dev/null\n@@ -1,3 +0,0 @@\n-one\n-two\n-three\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 3,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..82cb07f 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -2 +2 @@ export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n@@ -3,0 +4,2 @@ export function add(a: number, b: number) {\n+\n+export const zero = 0\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new-name.ts",
+            "patch": "diff --git a/src/new-name.ts b/src/new-name.ts\nnew file mode 100644\nindex 0000000..cacafe3\n--- /dev/null\n+++ b/src/new-name.ts\n@@ -0,0 +1 @@\n+export const legacy = true\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 1,
+            "file": "src/old-name.ts",
+            "patch": "diff --git a/src/old-name.ts b/src/old-name.ts\ndeleted file mode 100644\nindex cacafe3..0000000\n--- a/src/old-name.ts\n+++ /dev/null\n@@ -1 +0,0 @@\n-export const legacy = true\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "staged.txt",
+            "patch": "diff --git a/staged.txt b/staged.txt\nnew file mode 100644\nindex 0000000..19d9cc8\n--- /dev/null\n+++ b/staged.txt\n@@ -0,0 +1 @@\n+staged\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working&context=0"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 3,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\ndeleted file mode 100644\nindex 4cb29ea..0000000\n--- a/notes/todo.txt\n+++ /dev/null\n@@ -1,3 +0,0 @@\n-one\n-two\n-three\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 3,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..82cb07f 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,5 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n+\n+export const zero = 0\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new-name.ts",
+            "patch": "diff --git a/src/new-name.ts b/src/new-name.ts\nnew file mode 100644\nindex 0000000..cacafe3\n--- /dev/null\n+++ b/src/new-name.ts\n@@ -0,0 +1 @@\n+export const legacy = true\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 1,
+            "file": "src/old-name.ts",
+            "patch": "diff --git a/src/old-name.ts b/src/old-name.ts\ndeleted file mode 100644\nindex cacafe3..0000000\n--- a/src/old-name.ts\n+++ /dev/null\n@@ -1 +0,0 @@\n-export const legacy = true\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "staged.txt",
+            "patch": "diff --git a/staged.txt b/staged.txt\nnew file mode 100644\nindex 0000000..19d9cc8\n--- /dev/null\n+++ b/staged.txt\n@@ -0,0 +1 @@\n+staged\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working&context=1&untracked=folders"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "additions": 0,
+            "deletions": 3,
+            "file": "notes/todo.txt",
+            "patch": "diff --git a/notes/todo.txt b/notes/todo.txt\ndeleted file mode 100644\nindex 4cb29ea..0000000\n--- a/notes/todo.txt\n+++ /dev/null\n@@ -1,3 +0,0 @@\n-one\n-two\n-three\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 3,
+            "deletions": 1,
+            "file": "src/math.ts",
+            "patch": "diff --git a/src/math.ts b/src/math.ts\nindex 6a1a78a..82cb07f 100644\n--- a/src/math.ts\n+++ b/src/math.ts\n@@ -1,3 +1,5 @@\n export function add(a: number, b: number) {\n-  return a + b\n+  return b + a\n }\n+\n+export const zero = 0\n",
+            "status": "modified"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new-name.ts",
+            "patch": "diff --git a/src/new-name.ts b/src/new-name.ts\nnew file mode 100644\nindex 0000000..cacafe3\n--- /dev/null\n+++ b/src/new-name.ts\n@@ -0,0 +1 @@\n+export const legacy = true\n",
+            "status": "added"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "src/new.ts",
+            "patch": "diff --git a/src/new.ts b/src/new.ts\nnew file mode 100644\nindex 0000000..c87dd65\n--- /dev/null\n+++ b/src/new.ts\n@@ -0,0 +1 @@\n+export const fresh = 1\n",
+            "status": "added"
+          },
+          {
+            "additions": 0,
+            "deletions": 1,
+            "file": "src/old-name.ts",
+            "patch": "diff --git a/src/old-name.ts b/src/old-name.ts\ndeleted file mode 100644\nindex cacafe3..0000000\n--- a/src/old-name.ts\n+++ /dev/null\n@@ -1 +0,0 @@\n-export const legacy = true\n",
+            "status": "deleted"
+          },
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "staged.txt",
+            "patch": "diff --git a/staged.txt b/staged.txt\nnew file mode 100644\nindex 0000000..19d9cc8\n--- /dev/null\n+++ b/staged.txt\n@@ -0,0 +1 @@\n+staged\n",
+            "status": "added"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/vcs/diff?mode=working&untracked=files"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "<hash_1>"
+        },
+        "durable": {
+          "aggregateID": "<hash_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "vcs": "git"
+        },
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "branch": "main"
+        },
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "vcs.branch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".gitignore": "dist/\n*.log\n",
+    "README.md": "# Demo\n\nA small project.\n",
+    "debug.log": "ignored log\n",
+    "dist/bundle.js": "ignored output\n",
+    "src/math.ts": "export function add(a: number, b: number) {\n  return b + a\n}\n\nexport const zero = 0\n",
+    "src/new-name.ts": "export const legacy = true\n",
+    "src/new.ts": "export const fresh = 1\n",
+    "staged.txt": "staged\n"
+  }
+}

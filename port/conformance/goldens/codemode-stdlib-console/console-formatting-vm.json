@@ -1,0 +1,1907 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the console formatting programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the console formatting programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.table([{ a: 1, b: \\\"x\\\" }, { a: 2, c: true }])\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\\\"b\\\"])\\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\\nconsole.table([1, \\\"two\\\", null])\\nconsole.table([[1, 2], { k: undefined }])\\nconsole.table(\\\"scalar\\\")\\nconsole.table(5)\\nconsole.table()\\nconsole.table([])\\nconsole.table([Promise.resolve(1)])\\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\\nconsole.table([{ a: 1 }], \\\"not-an-array\\\")\\nconst methods = Object.keys(console)\\nconst names = [\\\"log\\\", \\\"info\\\", \\\"debug\\\", \\\"warn\\\", \\\"error\\\", \\\"dir\\\", \\\"table\\\"].map((n) => typeof console[n])\\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\\\"x\\\") === undefined }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.table([{ a: 1, b: \\\"x\\\" }, { a: 2, c: true }])\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\\\"b\\\"])\\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\\nconsole.table([1, \\\"two\\\", null])\\nconsole.table([[1, 2], { k: undefined }])\\nconsole.table(\\\"scalar\\\")\\nconsole.table(5)\\nconsole.table()\\nconsole.table([])\\nconsole.table([Promise.resolve(1)])\\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\\nconsole.table([{ a: 1 }], \\\"not-an-array\\\")\\nconst methods = Object.keys(console)\\nconst names = [\\\"log\\\", \\\"info\\\", \\\"debug\\\", \\\"warn\\\", \\\"error\\\", \\\"dir\\\", \\\"table\\\"].map((n) => typeof console[n])\\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\\\"x\\\") === undefined }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"before the failure\\\")\\nconsole.warn({ state: \\\"partial\\\" })\\nthrow new Error(\\\"program failed after logging\\\")\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_2",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: program failed after logging\n\nLogs:\nbefore the failure\n[warn] {\"state\":\"partial\"}",
+              "role": "tool",
+              "tool_call_id": "call_2"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.table([{ a: 1, b: \\\"x\\\" }, { a: 2, c: true }])\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\\\"b\\\"])\\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\\nconsole.table([1, \\\"two\\\", null])\\nconsole.table([[1, 2], { k: undefined }])\\nconsole.table(\\\"scalar\\\")\\nconsole.table(5)\\nconsole.table()\\nconsole.table([])\\nconsole.table([Promise.resolve(1)])\\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\\nconsole.table([{ a: 1 }], \\\"not-an-array\\\")\\nconst methods = Object.keys(console)\\nconst names = [\\\"log\\\", \\\"info\\\", \\\"debug\\\", \\\"warn\\\", \\\"error\\\", \\\"dir\\\", \\\"table\\\"].map((n) => typeof console[n])\\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\\\"x\\\") === undefined }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"before the failure\\\")\\nconsole.warn({ state: \\\"partial\\\" })\\nthrow new Error(\\\"program failed after logging\\\")\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_2",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: program failed after logging\n\nLogs:\nbefore the failure\n[warn] {\"state\":\"partial\"}",
+              "role": "tool",
+              "tool_call_id": "call_2"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"for (let i = 0; i < 5; i++) console.log(\\\"line\\\", i)\\nconst results = [1, 2, 3].map((x) => { console.log(\\\"mapping\\\", x); return x * 2 })\\nconsole.log(JSON.stringify(results), String(results), `${results}`)\\nconsole.log(\\\"%s is not a format\\\", \\\"this\\\", \\\"%d\\\")\\nresults\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_3",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "[\n  2,\n  4,\n  6\n]\n\nLogs:\nline 0\nline 1\nline 2\nline 3\nline 4\nmapping 1\nmapping 2\nmapping 3\n[2,4,6] 2,4,6 2,4,6\n%s is not a format this %d",
+              "role": "tool",
+              "tool_call_id": "call_3"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the console formatting programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.table([{ a: 1, b: \\\"x\\\" }, { a: 2, c: true }])\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\\\"b\\\"])\\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\\nconsole.table([1, \\\"two\\\", null])\\nconsole.table([[1, 2], { k: undefined }])\\nconsole.table(\\\"scalar\\\")\\nconsole.table(5)\\nconsole.table()\\nconsole.table([])\\nconsole.table([Promise.resolve(1)])\\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\\nconsole.table([{ a: 1 }], \\\"not-an-array\\\")\\nconst methods = Object.keys(console)\\nconst names = [\\\"log\\\", \\\"info\\\", \\\"debug\\\", \\\"warn\\\", \\\"error\\\", \\\"dir\\\", \\\"table\\\"].map((n) => typeof console[n])\\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\\\"x\\\") === undefined }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"console.log(\\\"before the failure\\\")\\nconsole.warn({ state: \\\"partial\\\" })\\nthrow new Error(\\\"program failed after logging\\\")\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_2",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: program failed after logging\n\nLogs:\nbefore the failure\n[warn] {\"state\":\"partial\"}",
+              "role": "tool",
+              "tool_call_id": "call_2"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"for (let i = 0; i < 5; i++) console.log(\\\"line\\\", i)\\nconst results = [1, 2, 3].map((x) => { console.log(\\\"mapping\\\", x); return x * 2 })\\nconsole.log(JSON.stringify(results), String(results), `${results}`)\\nconsole.log(\\\"%s is not a format\\\", \\\"this\\\", \\\"%d\\\")\\nresults\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_3",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "[\n  2,\n  4,\n  6\n]\n\nLogs:\nline 0\nline 1\nline 2\nline 3\nline 4\nmapping 1\nmapping 2\nmapping 3\n[2,4,6] 2,4,6 2,4,6\n%s is not a format this %d",
+              "role": "tool",
+              "tool_call_id": "call_3"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const out = [1, 2].forEach(console.log)\\nconst items = [\\\"a\\\", \\\"b\\\"]\\nitems.forEach(console.error)\\nconst bound = console.info.bind(console)\\nbound(\\\"bound info\\\")\\nconsole.log.call(null, \\\"called log\\\")\\nconsole.warn.apply(console, [\\\"applied\\\", \\\"warn\\\"])\\nconst { log } = console\\nlog(\\\"destructured log\\\")\\nconsole.log(console.log.name, console.table.length)\\nnull\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_4",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "null\n\nLogs:\n1 0 [1,2]\n2 1 [1,2]\n[error] a 0 [\"a\",\"b\"]\n[error] b 1 [\"a\",\"b\"]\nbound info\ncalled log\n[warn] applied warn\ndestructured log\nlog 0",
+              "role": "tool",
+              "tool_call_id": "call_4"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the console formatting programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the console formatting programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"console.log(\\\"plain\\\", 1, -0, NaN, true, null, undefined, \\\"quoted? no\\\")\\nconsole.info(\\\"info line\\\")\\nconsole.debug(\\\"debug line\\\")\\nconsole.warn(\\\"warn line\\\", { a: 1 })\\nconsole.error(\\\"error line\\\", [1, \\\"two\\\"])\\nconsole.log()\\nconsole.log({ s: \\\"str\\\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \\\"x\\\" } } })\\nconsole.log([undefined, null, , 4])\\nconsole.log(new Map([[\\\"k\\\", { v: 1 }], [{ o: 1 }, \\\"objkey\\\"]]), new Set([1, \\\"s\\\", [2]]))\\nconsole.log(new WeakMap(), new WeakSet())\\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\\nconsole.log(new Error(\\\"boom\\\"), new TypeError(\\\"typed\\\"), Object.assign(new RangeError(\\\"ranged\\\"), { code: 7 }))\\nconst e = new Error(\\\"named\\\"); e.name = \\\"\\\"; console.log(e)\\nconst e2 = new Error(\\\"\\\"); console.log(e2)\\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\\nconsole.log(new URL(\\\"https://example.com/p?q=1\\\"), new URLSearchParams(\\\"a=1&b=2\\\"), new Headers({ \\\"X-A\\\": \\\"1\\\" }), new Uint8Array([1, 2, 3]))\\nconsole.log({ fn() {}, arr: [() => 2] })\\nconsole.log(Object.create(null))\\nfunction args() { return arguments }\\nconsole.log(args(1, \\\"a\\\"))\\nconst m = new Map(); m.set(\\\"self\\\", m); console.log(m)\\nconst s = new Set(); s.add(s); console.log(s)\\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\\\"d\\\", deep); deep = m2 } console.log(deep)\\nconsole.dir({ dir: [1, 2] })\\nconsole.dir()\\nconsole.dir(\\\"a string\\\")\\n\\\"done\\\"\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "console.log(\"plain\", 1, -0, NaN, true, null, undefined, \"quoted? no\")\nconsole.info(\"info line\")\nconsole.debug(\"debug line\")\nconsole.warn(\"warn line\", { a: 1 })\nconsole.error(\"error line\", [1, \"two\"])\nconsole.log()\nconsole.log({ s: \"str\", n: 1.5, b: false, nil: null, u: undefined, arr: [1, [2, [3]]], nested: { deep: { deeper: \"x\" } } })\nconsole.log([undefined, null, , 4])\nconsole.log(new Map([[\"k\", { v: 1 }], [{ o: 1 }, \"objkey\"]]), new Set([1, \"s\", [2]]))\nconsole.log(new WeakMap(), new WeakSet())\nconsole.log(new Date(Date.UTC(2021, 5, 7)).getTime(), new Date(NaN), /re+/gi)\nconsole.log(new Error(\"boom\"), new TypeError(\"typed\"), Object.assign(new RangeError(\"ranged\"), { code: 7 }))\nconst e = new Error(\"named\"); e.name = \"\"; console.log(e)\nconst e2 = new Error(\"\"); console.log(e2)\nconsole.log(() => 1, function named() {}, Math.max, Promise.resolve(1), tools, tools.opencode, (function* () {})(), [].values())\nconsole.log(Symbol.iterator, Symbol.asyncIterator)\nconsole.log(new URL(\"https://example.com/p?q=1\"), new URLSearchParams(\"a=1&b=2\"), new Headers({ \"X-A\": \"1\" }), new Uint8Array([1, 2, 3]))\nconsole.log({ fn() {}, arr: [() => 2] })\nconsole.log(Object.create(null))\nfunction args() { return arguments }\nconsole.log(args(1, \"a\"))\nconst m = new Map(); m.set(\"self\", m); console.log(m)\nconst s = new Set(); s.add(s); console.log(s)\nlet deep = { v: 0 }; for (let i = 0; i < 40; i++) { const m2 = new Map(); m2.set(\"d\", deep); deep = m2 } console.log(deep)\nconsole.dir({ dir: [1, 2] })\nconsole.dir()\nconsole.dir(\"a string\")\n\"done\""
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "done\n\nLogs:\nplain 1 0 NaN true null undefined quoted? no\ninfo line\n[debug] debug line\n[warn] warn line {\"a\":1}\n[error] error line [1,\"two\"]\n\n{\"s\":\"str\",\"n\":1.5,\"b\":false,\"nil\":null,\"u\":null,\"arr\":[1,[2,[3]]],\"nested\":{\"deep\":{\"deeper\":\"x\"}}}\n[null,null,,4]\nMap(2) [[\"k\",{\"v\":1}],[{\"o\":1},\"objkey\"]] Set(3) [1,\"s\",[2]]\nWeakMap { <items unknown> } WeakSet { <items unknown> }\n1623024000000 Invalid Date /re+/gi\nError: boom TypeError: typed RangeError: ranged\nnamed\nError\n[opaque reference] [opaque reference] [opaque reference] [Promise (await it to get its value)] [opaque reference] [opaque reference] [opaque reference] [opaque reference]\nSymbol(codemode.iterator) Symbol(codemode.async-iterator)\nhttps://example.com/p?q=1 a=1&b=2 Headers {\"x-a\":\"1\"} Uint8Array(3) [1,2,3]\n{\"fn\":[opaque reference],\"arr\":[[opaque reference]]}\n{}\n{\"0\":1,\"1\":\"a\"}\nMap(1) [[\"self\",[Circular]]]\nSet(1) [[Circular]]\nMap(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",Map(1) [[\"d\",...]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]\n{\"dir\":[1,2]}\nundefined\na string",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"console.table([{ a: 1, b: \\\"x\\\" }, { a: 2, c: true }])\\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\\\"b\\\"])\\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\\nconsole.table([1, \\\"two\\\", null])\\nconsole.table([[1, 2], { k: undefined }])\\nconsole.table(\\\"scalar\\\")\\nconsole.table(5)\\nconsole.table()\\nconsole.table([])\\nconsole.table([Promise.resolve(1)])\\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\\nconsole.table([{ a: 1 }], \\\"not-an-array\\\")\\nconst methods = Object.keys(console)\\nconst names = [\\\"log\\\", \\\"info\\\", \\\"debug\\\", \\\"warn\\\", \\\"error\\\", \\\"dir\\\", \\\"table\\\"].map((n) => typeof console[n])\\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\\\"x\\\") === undefined }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_1",
+          "input": {
+            "code": "console.table([{ a: 1, b: \"x\" }, { a: 2, c: true }])\nconsole.table([{ a: 1, b: 2 }, { a: 3, b: 4 }], [\"b\"])\nconsole.table({ row1: { col: 1 }, row2: { col: 2, other: [1] } })\nconsole.table([1, \"two\", null])\nconsole.table([[1, 2], { k: undefined }])\nconsole.table(\"scalar\")\nconsole.table(5)\nconsole.table()\nconsole.table([])\nconsole.table([Promise.resolve(1)])\nconsole.table({ r: { nested: { x: 1 }, m: new Map([[1, 2]]) } })\nconsole.table([{ a: 1 }], \"not-an-array\")\nconst methods = Object.keys(console)\nconst names = [\"log\", \"info\", \"debug\", \"warn\", \"error\", \"dir\", \"table\"].map((n) => typeof console[n])\nreturn { methods, names, tag: Object.prototype.toString.call(console), returns: console.log(\"x\") === undefined }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"methods\": [],\n  \"names\": [\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"tag\": \"[object Object]\",\n  \"returns\": true\n}\n\nLogs:\n(index)\ta\tb\tc\n0\t1\tx\t\n1\t2\t\ttrue\n(index)\tb\n0\t2\n1\t4\n(index)\tcol\tother\nrow1\t1\t\nrow2\t2\t[1]\n(index)\tValue\n0\t1\n1\ttwo\n2\tnull\n(index)\tValue\tk\n0\t[1,2]\t\n1\t\t\n(index)\tValue\n0\tscalar\n(index)\tValue\n0\t5\nundefined\n(index)\n[opaque reference]\n(index)\tnested\tm\nr\t{\"x\":1}\tMap(1) [[1,2]]\n(index)\ta\n0\t1\nx",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_1",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_2",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_2",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"console.log(\\\"before the failure\\\")\\nconsole.warn({ state: \\\"partial\\\" })\\nthrow new Error(\\\"program failed after logging\\\")\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_2",
+          "input": {
+            "code": "console.log(\"before the failure\")\nconsole.warn({ state: \"partial\" })\nthrow new Error(\"program failed after logging\")"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "Error: program failed after logging\n\nLogs:\nbefore the failure\n[warn] {\"state\":\"partial\"}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_2",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_3",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_3",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"for (let i = 0; i < 5; i++) console.log(\\\"line\\\", i)\\nconst results = [1, 2, 3].map((x) => { console.log(\\\"mapping\\\", x); return x * 2 })\\nconsole.log(JSON.stringify(results), String(results), `${results}`)\\nconsole.log(\\\"%s is not a format\\\", \\\"this\\\", \\\"%d\\\")\\nresults\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_3",
+          "input": {
+            "code": "for (let i = 0; i < 5; i++) console.log(\"line\", i)\nconst results = [1, 2, 3].map((x) => { console.log(\"mapping\", x); return x * 2 })\nconsole.log(JSON.stringify(results), String(results), `${results}`)\nconsole.log(\"%s is not a format\", \"this\", \"%d\")\nresults"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "[\n  2,\n  4,\n  6\n]\n\nLogs:\nline 0\nline 1\nline 2\nline 3\nline 4\nmapping 1\nmapping 2\nmapping 3\n[2,4,6] 2,4,6 2,4,6\n%s is not a format this %d",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_3",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 2
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_49>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_4",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_4",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const out = [1, 2].forEach(console.log)\\nconst items = [\\\"a\\\", \\\"b\\\"]\\nitems.forEach(console.error)\\nconst bound = console.info.bind(console)\\nbound(\\\"bound info\\\")\\nconsole.log.call(null, \\\"called log\\\")\\nconsole.warn.apply(console, [\\\"applied\\\", \\\"warn\\\"])\\nconst { log } = console\\nlog(\\\"destructured log\\\")\\nconsole.log(console.log.name, console.table.length)\\nnull\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_4",
+          "input": {
+            "code": "const out = [1, 2].forEach(console.log)\nconst items = [\"a\", \"b\"]\nitems.forEach(console.error)\nconst bound = console.info.bind(console)\nbound(\"bound info\")\nconsole.log.call(null, \"called log\")\nconsole.warn.apply(console, [\"applied\", \"warn\"])\nconst { log } = console\nlog(\"destructured log\")\nconsole.log(console.log.name, console.table.length)\nnull"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "null\n\nLogs:\n1 0 [1,2]\n2 1 [1,2]\n[error] a 0 [\"a\",\"b\"]\n[error] b 1 [\"a\",\"b\"]\nbound info\ncalled log\n[warn] applied warn\ndestructured log\nlog 0",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_4",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 2
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_57>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_64>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 1
+        },
+        "id": "<evt_65>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

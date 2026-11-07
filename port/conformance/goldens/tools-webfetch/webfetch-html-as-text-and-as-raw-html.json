@@ -1,0 +1,1050 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Fetch the release notes as text and as HTML"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Fetch the release notes as text and as HTML"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Fetch the release notes as text and as HTML",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Fetch the release notes as text and as HTML",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"url\":\"https://docs.example.com/release\",\"format\":\"text\"}",
+                    "name": "webfetch"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Ignored title\n  \n  \n  \n  \n\n\n  Hidden nav\n  Release   notes & more\n  \n    What's new\n    Version 2.0 ships bold, italic, struck, deleted and old text.\n       Special characters: 5 * 3 = 15, snake_case, [brackets], a|b, x < y > z, ~tilde~, back\\slash, `tick`.\n    # not a heading+ not a list- not a list1. not ordered\n    Entities: ©  non-breaking  😀 © é\n    Links: documentation,\n       relative, no href, code link,\n       outer inner tail.\n    Images:  and \n    Inline code: const x = 1, a `tick` inside, `edge`, ,   .\n    Empty markers:  done. Marker across block: startinsideend\n    function add(a: number, b: number) {\n  return a + b\n}\n\n    line oneline two with ``` fences\n    echo ~~~ ```\n    link in pre text\n    before preformatted inside link after\n    \n      Quoted text.\n      Nested quote.code in quote\n      quoted item\n    \n    \n    \n      First item\n      Second item\n        Nested linkNested two\n          fivenineten\n      \n      Paragraph item\n    \n    bad start\n    onetwo\n    \n      Prices 2026\n      PlanPrice | USD\n      Free$0Pro$10\n    \n    Spanning cellab\n    raggedxy\n    outer inner cellsecond\n    \n    loose textcell\n    Closed summaryHidden details body.\n    Open summaryVisible details body.\n    TermDefinition oneOtherDefinition two\n    Hidden div\n    aria hidden\n    \n    \n    template\n    \n    Aside textFigure caption\n    Address lineForm textDialog text\n    Footer — end",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Fetch the release notes as text and as HTML",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"url\":\"https://docs.example.com/release\",\"format\":\"text\"}",
+                    "name": "webfetch"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Ignored title\n  \n  \n  \n  \n\n\n  Hidden nav\n  Release   notes & more\n  \n    What's new\n    Version 2.0 ships bold, italic, struck, deleted and old text.\n       Special characters: 5 * 3 = 15, snake_case, [brackets], a|b, x < y > z, ~tilde~, back\\slash, `tick`.\n    # not a heading+ not a list- not a list1. not ordered\n    Entities: ©  non-breaking  😀 © é\n    Links: documentation,\n       relative, no href, code link,\n       outer inner tail.\n    Images:  and \n    Inline code: const x = 1, a `tick` inside, `edge`, ,   .\n    Empty markers:  done. Marker across block: startinsideend\n    function add(a: number, b: number) {\n  return a + b\n}\n\n    line oneline two with ``` fences\n    echo ~~~ ```\n    link in pre text\n    before preformatted inside link after\n    \n      Quoted text.\n      Nested quote.code in quote\n      quoted item\n    \n    \n    \n      First item\n      Second item\n        Nested linkNested two\n          fivenineten\n      \n      Paragraph item\n    \n    bad start\n    onetwo\n    \n      Prices 2026\n      PlanPrice | USD\n      Free$0Pro$10\n    \n    Spanning cellab\n    raggedxy\n    outer inner cellsecond\n    \n    loose textcell\n    Closed summaryHidden details body.\n    Open summaryVisible details body.\n    TermDefinition oneOtherDefinition two\n    Hidden div\n    aria hidden\n    \n    \n    template\n    \n    Aside textFigure caption\n    Address lineForm textDialog text\n    Footer — end",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"url\":\"https://docs.example.com/release\",\"format\":\"html\"}",
+                    "name": "webfetch"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <title>Ignored title</title>\n  <meta charset=\"utf-8\">\n  <link rel=\"stylesheet\" href=\"/style.css\">\n  <style>body { color: red }</style>\n  <script>window.tracking = true</script>\n</head>\n<body>\n  <nav aria-hidden=\"true\"><a href=\"/hidden\">Hidden nav</a></nav>\n  <header><h1>Release   notes &amp; more</h1></header>\n  <main>\n    <h2>What's <em>new</em></h2>\n    <p>Version <strong>2.0</strong> ships <b>bold</b>, <i>italic</i>, <s>struck</s>, <del>deleted</del> and <strike>old</strike> text.\n       Special characters: 5 * 3 = 15, snake_case, [brackets], a|b, x &lt; y &gt; z, ~tilde~, back\\slash, `tick`.</p>\n    <p># not a heading<br>+ not a list<br>- not a list<br>1. not ordered</p>\n    <p>Entities: &copy; &nbsp;non-breaking&nbsp; &#x1F600; &#169; &eacute;</p>\n    <p>Links: <a href=\"https://example.com/docs\" title=\"The &quot;docs&quot;\">documentation</a>,\n       <a href=\"/relative path(1)\">relative</a>, <a>no href</a>, <a href=\"https://example.com/x\"><code>code link</code></a>,\n       <a href=\"https://example.com/outer\">outer <a href=\"https://example.com/inner\">inner</a> tail</a>.</p>\n    <p>Images: <img src=\"/logo.png\" alt=\"Logo [v2]\" title=\"Our logo\"> and <img src=\"/blank.gif\"></p>\n    <p>Inline code: <code>const x = 1</code>, <code>a `tick` inside</code>, <code>`edge`</code>, <code></code>, <code>  </code>.</p>\n    <p>Empty markers: <b></b><em> </em>done. Marker across block: <strong>start<p>inside</p>end</strong></p>\n    <pre><code class=\"language-ts\">function add(a: number, b: number) {\n  return a + b\n}\n</code></pre>\n    <pre>line one<br>line two with ``` fences</pre>\n    <pre><code class=\"lang-sh\">echo ~~~ ```</code></pre>\n    <pre><a href=\"https://example.com/in-pre\">link in pre</a> text</pre>\n    <p><a href=\"https://example.com/around\">before <pre>preformatted inside link</pre> after</a></p>\n    <blockquote>\n      <p>Quoted <em>text</em>.</p>\n      <blockquote><p>Nested quote.</p><pre>code in quote</pre></blockquote>\n      <ul><li>quoted item</li></ul>\n    </blockquote>\n    <hr>\n    <ul>\n      <li>First item</li>\n      <li>Second item\n        <ul><li>Nested <a href=\"https://example.com/n\">link</a></li><li>Nested two\n          <ol start=\"5\"><li>five</li><li value=\"9\">nine</li><li>ten</li></ol></li></ul>\n      </li>\n      <li><p>Paragraph item</p></li>\n    </ul>\n    <ol start=\"x\"><li>bad start</li></ol>\n    <ol><li>one</li><li>two</li></ol>\n    <table>\n      <caption>Prices <em>2026</em></caption>\n      <thead><tr><th>Plan</th><th>Price | USD</th></tr></thead>\n      <tbody><tr><td>Free</td><td>$0</td></tr><tr><td><a href=\"/pro\">Pro</a></td><td><code>$10</code></td></tr></tbody>\n    </table>\n    <table><tr><td colspan=\"2\">Spanning cell</td></tr><tr><td>a</td><td>b</td></tr></table>\n    <table><tr><td>ragged</td></tr><tr><td>x</td><td>y</td></tr></table>\n    <table><tr><td>outer <table><tr><td>inner cell</td></tr></table></td><td>second</td></tr></table>\n    <table></table>\n    <table>loose text<tr><td>cell</td></tr></table>\n    <details><summary>Closed summary</summary><p>Hidden details body.</p></details>\n    <details open><summary>Open summary</summary><p>Visible details body.</p></details>\n    <dl><dt>Term</dt><dd>Definition one</dd><dt>Other</dt><dd>Definition two</dd></dl>\n    <div hidden>Hidden div</div>\n    <span aria-hidden=\"TRUE\">aria hidden</span>\n    <noscript>Enable JavaScript</noscript>\n    <iframe src=\"/frame\">frame</iframe>\n    <template><p>template</p></template>\n    <object data=\"x\"></object><embed src=\"y\">\n    <section><article><aside>Aside text</aside><figure><figcaption>Figure caption</figcaption></figure></article></section>\n    <address>Address line</address><form><fieldset>Form text</fieldset></form><dialog>Dialog text</dialog>\n    <footer>Footer &mdash; end</footer>\n  </main>\n</body>\n</html>",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "other": [
+      {
+        "headers": {
+          "accept": "text/plain;q=1.0, text/markdown;q=0.9, text/html;q=0.8, */*;q=0.1"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://docs.example.com/release"
+      },
+      {
+        "headers": {
+          "accept": "text/html;q=1.0, application/xhtml+xml;q=0.9, text/plain;q=0.8, text/markdown;q=0.7, */*;q=0.1"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://docs.example.com/release"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nFetch the release notes as text and as HTML\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Fetch the release notes as text and as HTML"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "webfetch",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"url\":\"https://docs.example.com/release\",\"format\":\"text\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "format": "text",
+            "url": "https://docs.example.com/release"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "Ignored title\n  \n  \n  \n  \n\n\n  Hidden nav\n  Release   notes & more\n  \n    What's new\n    Version 2.0 ships bold, italic, struck, deleted and old text.\n       Special characters: 5 * 3 = 15, snake_case, [brackets], a|b, x < y > z, ~tilde~, back\\slash, `tick`.\n    # not a heading+ not a list- not a list1. not ordered\n    Entities: ©  non-breaking  😀 © é\n    Links: documentation,\n       relative, no href, code link,\n       outer inner tail.\n    Images:  and \n    Inline code: const x = 1, a `tick` inside, `edge`, ,   .\n    Empty markers:  done. Marker across block: startinsideend\n    function add(a: number, b: number) {\n  return a + b\n}\n\n    line oneline two with ``` fences\n    echo ~~~ ```\n    link in pre text\n    before preformatted inside link after\n    \n      Quoted text.\n      Nested quote.code in quote\n      quoted item\n    \n    \n    \n      First item\n      Second item\n        Nested linkNested two\n          fivenineten\n      \n      Paragraph item\n    \n    bad start\n    onetwo\n    \n      Prices 2026\n      PlanPrice | USD\n      Free$0Pro$10\n    \n    Spanning cellab\n    raggedxy\n    outer inner cellsecond\n    \n    loose textcell\n    Closed summaryHidden details body.\n    Open summaryVisible details body.\n    TermDefinition oneOtherDefinition two\n    Hidden div\n    aria hidden\n    \n    \n    template\n    \n    Aside textFigure caption\n    Address lineForm textDialog text\n    Footer — end",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "contentType": "text/html; charset=utf-8",
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "webfetch",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"url\":\"https://docs.example.com/release\",\"format\":\"html\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "format": "html",
+            "url": "https://docs.example.com/release"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <title>Ignored title</title>\n  <meta charset=\"utf-8\">\n  <link rel=\"stylesheet\" href=\"/style.css\">\n  <style>body { color: red }</style>\n  <script>window.tracking = true</script>\n</head>\n<body>\n  <nav aria-hidden=\"true\"><a href=\"/hidden\">Hidden nav</a></nav>\n  <header><h1>Release   notes &amp; more</h1></header>\n  <main>\n    <h2>What's <em>new</em></h2>\n    <p>Version <strong>2.0</strong> ships <b>bold</b>, <i>italic</i>, <s>struck</s>, <del>deleted</del> and <strike>old</strike> text.\n       Special characters: 5 * 3 = 15, snake_case, [brackets], a|b, x &lt; y &gt; z, ~tilde~, back\\slash, `tick`.</p>\n    <p># not a heading<br>+ not a list<br>- not a list<br>1. not ordered</p>\n    <p>Entities: &copy; &nbsp;non-breaking&nbsp; &#x1F600; &#169; &eacute;</p>\n    <p>Links: <a href=\"https://example.com/docs\" title=\"The &quot;docs&quot;\">documentation</a>,\n       <a href=\"/relative path(1)\">relative</a>, <a>no href</a>, <a href=\"https://example.com/x\"><code>code link</code></a>,\n       <a href=\"https://example.com/outer\">outer <a href=\"https://example.com/inner\">inner</a> tail</a>.</p>\n    <p>Images: <img src=\"/logo.png\" alt=\"Logo [v2]\" title=\"Our logo\"> and <img src=\"/blank.gif\"></p>\n    <p>Inline code: <code>const x = 1</code>, <code>a `tick` inside</code>, <code>`edge`</code>, <code></code>, <code>  </code>.</p>\n    <p>Empty markers: <b></b><em> </em>done. Marker across block: <strong>start<p>inside</p>end</strong></p>\n    <pre><code class=\"language-ts\">function add(a: number, b: number) {\n  return a + b\n}\n</code></pre>\n    <pre>line one<br>line two with ``` fences</pre>\n    <pre><code class=\"lang-sh\">echo ~~~ ```</code></pre>\n    <pre><a href=\"https://example.com/in-pre\">link in pre</a> text</pre>\n    <p><a href=\"https://example.com/around\">before <pre>preformatted inside link</pre> after</a></p>\n    <blockquote>\n      <p>Quoted <em>text</em>.</p>\n      <blockquote><p>Nested quote.</p><pre>code in quote</pre></blockquote>\n      <ul><li>quoted item</li></ul>\n    </blockquote>\n    <hr>\n    <ul>\n      <li>First item</li>\n      <li>Second item\n        <ul><li>Nested <a href=\"https://example.com/n\">link</a></li><li>Nested two\n          <ol start=\"5\"><li>five</li><li value=\"9\">nine</li><li>ten</li></ol></li></ul>\n      </li>\n      <li><p>Paragraph item</p></li>\n    </ul>\n    <ol start=\"x\"><li>bad start</li></ol>\n    <ol><li>one</li><li>two</li></ol>\n    <table>\n      <caption>Prices <em>2026</em></caption>\n      <thead><tr><th>Plan</th><th>Price | USD</th></tr></thead>\n      <tbody><tr><td>Free</td><td>$0</td></tr><tr><td><a href=\"/pro\">Pro</a></td><td><code>$10</code></td></tr></tbody>\n    </table>\n    <table><tr><td colspan=\"2\">Spanning cell</td></tr><tr><td>a</td><td>b</td></tr></table>\n    <table><tr><td>ragged</td></tr><tr><td>x</td><td>y</td></tr></table>\n    <table><tr><td>outer <table><tr><td>inner cell</td></tr></table></td><td>second</td></tr></table>\n    <table></table>\n    <table>loose text<tr><td>cell</td></tr></table>\n    <details><summary>Closed summary</summary><p>Hidden details body.</p></details>\n    <details open><summary>Open summary</summary><p>Visible details body.</p></details>\n    <dl><dt>Term</dt><dd>Definition one</dd><dt>Other</dt><dd>Definition two</dd></dl>\n    <div hidden>Hidden div</div>\n    <span aria-hidden=\"TRUE\">aria hidden</span>\n    <noscript>Enable JavaScript</noscript>\n    <iframe src=\"/frame\">frame</iframe>\n    <template><p>template</p></template>\n    <object data=\"x\"></object><embed src=\"y\">\n    <section><article><aside>Aside text</aside><figure><figcaption>Figure caption</figcaption></figure></article></section>\n    <address>Address line</address><form><fieldset>Form text</fieldset></form><dialog>Dialog text</dialog>\n    <footer>Footer &mdash; end</footer>\n  </main>\n</body>\n</html>",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "contentType": "text/html; charset=utf-8",
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Fetched.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Fetched."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_40>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

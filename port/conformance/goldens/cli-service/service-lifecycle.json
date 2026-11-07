@@ -1,0 +1,203 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/state/opencode/service-local.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "password": "<random-secret>",
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-local.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "restart"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/state/opencode/service-local.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "restart"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

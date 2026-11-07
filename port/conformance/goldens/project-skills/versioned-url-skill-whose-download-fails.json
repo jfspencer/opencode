@@ -1,0 +1,166 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "content": {
+              "<blob>": "13b35761a8429e2a188b950899f255eb182e6b153fb19591e88ea5979347e4c3"
+            },
+            "description": "Use this skill for any question about OpenCode itself, including how OpenCode works, using or configuring it, migrating from V1 to V2, troubleshooting it, developing plugins or integrations, using the OpenCode SDK, clients, server, or API, and contributing to the OpenCode codebase. Also use it for OpenCode agents, commands, skills, tools, permissions, MCP servers, providers, models, themes, keybinds, formatters, the CLI, TUI, desktop app, and web app.",
+            "id": "opencode",
+            "name": "OpenCode",
+            "path": "skill://opencode/SKILL.md"
+          },
+          {
+            "content": {
+              "<blob>": "321e3a6087e21f07e5e556f02bb5a92cce5657bce71ac3fc5826db8ee94695d7"
+            },
+            "description": "Use when the user wants to report an opencode issue or bug. Collect standard diagnostics, add user-specific reproduction context, and publish the issue with GitHub CLI.",
+            "id": "report",
+            "name": "Report",
+            "path": "skill://report/SKILL.md"
+          },
+          {
+            "content": {
+              "<blob>": "98093a75ae23181a0c0d8fc61d1c99dc7b8843136d071cccd7df0d14810e6b0e"
+            },
+            "description": "Use the in-app browser: open and read pages, click and fill forms, take screenshots, check console and network logs, and profile performance and memory. Load it before your first browser tool call.",
+            "id": "browser",
+            "name": "Browser",
+            "path": "skill://browser/SKILL.md"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/skill"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://skills.example.test/vbroken/index.json"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://skills.example.test/vbroken/vbroken/SKILL.md"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

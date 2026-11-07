@@ -1,0 +1,5 @@
+[test]
+# Server-side scenarios only; TUI scenarios run from ./tui (they need the SolidJS JSX transform).
+root = "./scenarios"
+preload = ["./lib/preload.ts"]
+timeout = 60000

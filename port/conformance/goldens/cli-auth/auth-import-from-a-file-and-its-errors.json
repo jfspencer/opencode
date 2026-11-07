@@ -1,0 +1,133 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "env",
+      "value": {
+        "OPENROUTER_API_KEY": null
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import",
+          "keys.json"
+        ],
+        "exit": 0,
+        "stderr": [
+          "Imported 1 credential",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import",
+          "missing.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "ENOENT: no such file or directory, open 'missing.json'",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import",
+          "broken.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Expected a valid JSON string",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import",
+          "wrong.json"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Missing key",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Expected a valid JSON string",
+          ""
+        ],
+        "stdin": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list",
+          "--format",
+          "json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "connections": [
+                {
+                  "id": "<cred_1>",
+                  "label": "From file",
+                  "method": "key",
+                  "type": "credential"
+                }
+              ],
+              "id": "openrouter",
+              "name": "OpenRouter"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {
+    "broken.json": "{ not json",
+    "keys.json": "[\n  {\n    \"id\": \"<cred_1>\",\n    \"integrationID\": \"openrouter\",\n    \"label\": \"From file\",\n    \"active\": true,\n    \"value\": {\n      \"type\": \"key\",\n      \"key\": \"sk-or-file\"\n    }\n  }\n]\n",
+    "wrong.json": "[{\"id\":\"x\",\"label\":\"No value\"}]"
+  }
+}

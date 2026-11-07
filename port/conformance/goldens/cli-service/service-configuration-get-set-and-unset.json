@@ -1,0 +1,531 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "port": "<service-port>"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "disabled"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "hostname"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "port"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "cors"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "env"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {}
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "env",
+          "MISSING"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "hostname",
+          "localhost"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "cors",
+          "http://app.example.test, https://other.example.test:8443"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "env",
+          "CONFORMANCE_FLAG",
+          "on"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "env",
+          "SECOND",
+          "two words"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "password",
+          "conformance-password"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "false"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cors": [
+              "http://app.example.test",
+              "https://other.example.test:8443"
+            ],
+            "env": {
+              "CONFORMANCE_FLAG": "on",
+              "SECOND": "two words"
+            },
+            "hostname": "<hostname>",
+            "port": "<service-port>"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "cors": [
+              "http://app.example.test",
+              "https://other.example.test:8443"
+            ],
+            "env": {
+              "CONFORMANCE_FLAG": "on",
+              "SECOND": "two words"
+            },
+            "hostname": "<hostname>",
+            "password": "conformance-password",
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-local.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "hostname"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "localhost",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "cors"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            "http://app.example.test",
+            "https://other.example.test:8443"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "env"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "CONFORMANCE_FLAG": "on",
+            "SECOND": "two words"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "env",
+          "CONFORMANCE_FLAG"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "on",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "password"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "conformance-password",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "env",
+          "SECOND"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "env",
+          "CONFORMANCE_FLAG"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "cors"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "hostname"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "password"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "disabled"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-local.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "password"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<random-secret>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "password": "<random-secret>",
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-local.json"
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,1030 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the url and search params programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the url and search params programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the url and search params programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the url and search params programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst u = new URL(\\\"https://user:pw@example.com:8080/a/b/../c?x=1&y=two#frag\\\")\\nt(\\\"parts\\\", () => [\\\"href\\\", \\\"origin\\\", \\\"protocol\\\", \\\"username\\\", \\\"password\\\", \\\"host\\\", \\\"hostname\\\", \\\"port\\\", \\\"pathname\\\", \\\"search\\\", \\\"hash\\\"].map((k) => k + \\\"=\\\" + u[k]))\\nt(\\\"relative\\\", () => [new URL(\\\"../d?q\\\", \\\"https://h.test/a/b/c\\\").href, new URL(\\\"/root\\\", new URL(\\\"https://h.test/x\\\")).href, new URL(new URL(\\\"https://h.test/z\\\")).href])\\nt(\\\"invalid\\\", () => new URL(\\\"not a url\\\"))\\nt(\\\"invalid base\\\", () => new URL(\\\"/x\\\", \\\"nope\\\"))\\nt(\\\"no args\\\", () => new URL())\\nt(\\\"without new\\\", () => URL(\\\"https://a.b\\\"))\\nt(\\\"canParse\\\", () => [URL.canParse(\\\"https://a.b\\\"), URL.canParse(\\\"x\\\"), URL.canParse(\\\"/p\\\", \\\"https://a.b\\\"), URL.canParse(new URL(\\\"https://q.r\\\"))])\\nt(\\\"canParse no args\\\", () => URL.canParse())\\nt(\\\"parse\\\", () => [URL.parse(\\\"https://a.b/c\\\").pathname, URL.parse(\\\"bad\\\"), URL.parse(\\\"d\\\", \\\"https://a.b/c/\\\").href])\\nt(\\\"parse no args\\\", () => URL.parse())\\nt(\\\"setters\\\", () => { const x = new URL(\\\"http://a.test/p\\\"); x.protocol = \\\"https\\\"; x.username = \\\"me\\\"; x.password = \\\"s\\\"; x.hostname = \\\"b.test\\\"; x.port = \\\"81\\\"; x.pathname = \\\"/new path\\\"; x.search = \\\"?k=v w\\\"; x.hash = \\\"h\\\"; return x.href })\\nt(\\\"host setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.host = \\\"c.test:99\\\"; return [x.host, x.port] })\\nt(\\\"href setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"https://z.test/q?1\\\"; return [x.href, x.searchParams.toString()] })\\nt(\\\"href invalid\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"::bad::\\\"; return x.href })\\nt(\\\"origin readonly\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.origin = \\\"http://evil\\\"; return x.origin })\\nt(\\\"searchParams live\\\", () => { const x = new URL(\\\"http://a.test/?a=1\\\"); x.searchParams.append(\\\"b\\\", \\\"2\\\"); x.searchParams.set(\\\"a\\\", \\\"9\\\"); return [x.search, x.href, x.searchParams === x.searchParams] })\\nt(\\\"toString/toJSON\\\", () => [u.toString(), u.toJSON(), String(u), `${u}`, JSON.stringify({ u })])\\nt(\\\"receiver\\\", () => URL.prototype.toString.call({}))\\nt(\\\"getter receiver\\\", () => { const g = Object.create(URL.prototype); return g.href })\\nt(\\\"tag\\\", () => [Object.prototype.toString.call(u), u instanceof URL, URL.name])\\nt(\\\"encode/decode\\\", () => [encodeURIComponent(\\\"a b&c/é\\\"), encodeURI(\\\"http://x.y/a b?c=d&e=é\\\"), decodeURIComponent(\\\"a%20b%26\\\"), decodeURI(\\\"%41%2F\\\"), encodeURIComponent(5), decodeURIComponent()])\\nt(\\\"decode malformed\\\", () => decodeURIComponent(\\\"%E0%A4%A\\\"))\\nt(\\\"decodeURI malformed\\\", () => decodeURI(\\\"%\\\"))\\nt(\\\"encode lone surrogate\\\", () => encodeURIComponent(\\\"\\\\uD800\\\"))\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"parts\": [\n    \"href=https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"origin=https://example.com:8080\",\n    \"protocol=https:\",\n    \"username=user\",\n    \"password=pw\",\n    \"host=example.com:8080\",\n    \"hostname=example.com\",\n    \"port=8080\",\n    \"pathname=/a/c\",\n    \"search=?x=1&y=two\",\n    \"hash=#frag\"\n  ],\n  \"relative\": [\n    \"https://h.test/a/d?q\",\n    \"https://h.test/root\",\n    \"https://h.test/z\"\n  ],\n  \"invalid\": \"!TypeError: new URL(...) received an invalid URL.\",\n  \"invalid base\": \"!TypeError: new URL(...) received an invalid URL or base URL.\",\n  \"no args\": \"!TypeError: new URL(...) requires a URL string and an optional base URL.\",\n  \"without new\": \"!TypeError: Constructor URL requires 'new'.\",\n  \"canParse\": [\n    true,\n    false,\n    true,\n    true\n  ],\n  \"canParse no args\": \"!TypeError: URL.canParse requires a URL argument.\",\n  \"parse\": [\n    \"/c\",\n    null,\n    \"https://a.b/c/d\"\n  ],\n  \"parse no args\": \"!TypeError: URL.parse requires a URL argument.\",\n  \"setters\": \"https://me:s@b.test:81/new%20path?k=v%20w#h\",\n  \"host setter\": [\n    \"c.test:99\",\n    \"99\"\n  ],\n  \"href setter\": [\n    \"https://z.test/q?1\",\n    \"1=\"\n  ],\n  \"href invalid\": \"!TypeError: URL.href received an invalid value.\",\n  \"origin readonly\": \"!TypeError: Cannot assign to read only property 'origin'.\",\n  \"searchParams live\": [\n    \"?a=9&b=2\",\n    \"http://a.test/?a=9&b=2\",\n    true\n  ],\n  \"toString/toJSON\": [\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"{\\\"u\\\":\\\"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\\\"}\"\n  ],\n  \"receiver\": \"!TypeError: URL.prototype.toString called on incompatible receiver a data object.\",\n  \"getter receiver\": \"!TypeError: URL.prototype.href called on incompatible receiver a data object.\",\n  \"tag\": [\n    \"[object URL]\",\n    true,\n    \"URL\"\n  ],\n  \"encode/decode\": [\n    \"a%20b%26c%2F%C3%A9\",\n    \"http://x.y/a%20b?c=d&e=%C3%A9\",\n    \"a b&\",\n    \"A%2F\",\n    \"5\",\n    \"undefined\"\n  ],\n  \"decode malformed\": \"!URIError: decodeURIComponent received malformed URI data: URI error\",\n  \"decodeURI malformed\": \"!URIError: decodeURI received malformed URI data: URI error\",\n  \"encode lone surrogate\": \"!URIError: encodeURIComponent received malformed URI data: String contained an illegal UTF-16 sequence.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the url and search params programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst u = new URL(\\\"https://user:pw@example.com:8080/a/b/../c?x=1&y=two#frag\\\")\\nt(\\\"parts\\\", () => [\\\"href\\\", \\\"origin\\\", \\\"protocol\\\", \\\"username\\\", \\\"password\\\", \\\"host\\\", \\\"hostname\\\", \\\"port\\\", \\\"pathname\\\", \\\"search\\\", \\\"hash\\\"].map((k) => k + \\\"=\\\" + u[k]))\\nt(\\\"relative\\\", () => [new URL(\\\"../d?q\\\", \\\"https://h.test/a/b/c\\\").href, new URL(\\\"/root\\\", new URL(\\\"https://h.test/x\\\")).href, new URL(new URL(\\\"https://h.test/z\\\")).href])\\nt(\\\"invalid\\\", () => new URL(\\\"not a url\\\"))\\nt(\\\"invalid base\\\", () => new URL(\\\"/x\\\", \\\"nope\\\"))\\nt(\\\"no args\\\", () => new URL())\\nt(\\\"without new\\\", () => URL(\\\"https://a.b\\\"))\\nt(\\\"canParse\\\", () => [URL.canParse(\\\"https://a.b\\\"), URL.canParse(\\\"x\\\"), URL.canParse(\\\"/p\\\", \\\"https://a.b\\\"), URL.canParse(new URL(\\\"https://q.r\\\"))])\\nt(\\\"canParse no args\\\", () => URL.canParse())\\nt(\\\"parse\\\", () => [URL.parse(\\\"https://a.b/c\\\").pathname, URL.parse(\\\"bad\\\"), URL.parse(\\\"d\\\", \\\"https://a.b/c/\\\").href])\\nt(\\\"parse no args\\\", () => URL.parse())\\nt(\\\"setters\\\", () => { const x = new URL(\\\"http://a.test/p\\\"); x.protocol = \\\"https\\\"; x.username = \\\"me\\\"; x.password = \\\"s\\\"; x.hostname = \\\"b.test\\\"; x.port = \\\"81\\\"; x.pathname = \\\"/new path\\\"; x.search = \\\"?k=v w\\\"; x.hash = \\\"h\\\"; return x.href })\\nt(\\\"host setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.host = \\\"c.test:99\\\"; return [x.host, x.port] })\\nt(\\\"href setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"https://z.test/q?1\\\"; return [x.href, x.searchParams.toString()] })\\nt(\\\"href invalid\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"::bad::\\\"; return x.href })\\nt(\\\"origin readonly\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.origin = \\\"http://evil\\\"; return x.origin })\\nt(\\\"searchParams live\\\", () => { const x = new URL(\\\"http://a.test/?a=1\\\"); x.searchParams.append(\\\"b\\\", \\\"2\\\"); x.searchParams.set(\\\"a\\\", \\\"9\\\"); return [x.search, x.href, x.searchParams === x.searchParams] })\\nt(\\\"toString/toJSON\\\", () => [u.toString(), u.toJSON(), String(u), `${u}`, JSON.stringify({ u })])\\nt(\\\"receiver\\\", () => URL.prototype.toString.call({}))\\nt(\\\"getter receiver\\\", () => { const g = Object.create(URL.prototype); return g.href })\\nt(\\\"tag\\\", () => [Object.prototype.toString.call(u), u instanceof URL, URL.name])\\nt(\\\"encode/decode\\\", () => [encodeURIComponent(\\\"a b&c/é\\\"), encodeURI(\\\"http://x.y/a b?c=d&e=é\\\"), decodeURIComponent(\\\"a%20b%26\\\"), decodeURI(\\\"%41%2F\\\"), encodeURIComponent(5), decodeURIComponent()])\\nt(\\\"decode malformed\\\", () => decodeURIComponent(\\\"%E0%A4%A\\\"))\\nt(\\\"decodeURI malformed\\\", () => decodeURI(\\\"%\\\"))\\nt(\\\"encode lone surrogate\\\", () => encodeURIComponent(\\\"\\\\uD800\\\"))\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"parts\": [\n    \"href=https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"origin=https://example.com:8080\",\n    \"protocol=https:\",\n    \"username=user\",\n    \"password=pw\",\n    \"host=example.com:8080\",\n    \"hostname=example.com\",\n    \"port=8080\",\n    \"pathname=/a/c\",\n    \"search=?x=1&y=two\",\n    \"hash=#frag\"\n  ],\n  \"relative\": [\n    \"https://h.test/a/d?q\",\n    \"https://h.test/root\",\n    \"https://h.test/z\"\n  ],\n  \"invalid\": \"!TypeError: new URL(...) received an invalid URL.\",\n  \"invalid base\": \"!TypeError: new URL(...) received an invalid URL or base URL.\",\n  \"no args\": \"!TypeError: new URL(...) requires a URL string and an optional base URL.\",\n  \"without new\": \"!TypeError: Constructor URL requires 'new'.\",\n  \"canParse\": [\n    true,\n    false,\n    true,\n    true\n  ],\n  \"canParse no args\": \"!TypeError: URL.canParse requires a URL argument.\",\n  \"parse\": [\n    \"/c\",\n    null,\n    \"https://a.b/c/d\"\n  ],\n  \"parse no args\": \"!TypeError: URL.parse requires a URL argument.\",\n  \"setters\": \"https://me:s@b.test:81/new%20path?k=v%20w#h\",\n  \"host setter\": [\n    \"c.test:99\",\n    \"99\"\n  ],\n  \"href setter\": [\n    \"https://z.test/q?1\",\n    \"1=\"\n  ],\n  \"href invalid\": \"!TypeError: URL.href received an invalid value.\",\n  \"origin readonly\": \"!TypeError: Cannot assign to read only property 'origin'.\",\n  \"searchParams live\": [\n    \"?a=9&b=2\",\n    \"http://a.test/?a=9&b=2\",\n    true\n  ],\n  \"toString/toJSON\": [\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"{\\\"u\\\":\\\"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\\\"}\"\n  ],\n  \"receiver\": \"!TypeError: URL.prototype.toString called on incompatible receiver a data object.\",\n  \"getter receiver\": \"!TypeError: URL.prototype.href called on incompatible receiver a data object.\",\n  \"tag\": [\n    \"[object URL]\",\n    true,\n    \"URL\"\n  ],\n  \"encode/decode\": [\n    \"a%20b%26c%2F%C3%A9\",\n    \"http://x.y/a%20b?c=d&e=%C3%A9\",\n    \"a b&\",\n    \"A%2F\",\n    \"5\",\n    \"undefined\"\n  ],\n  \"decode malformed\": \"!URIError: decodeURIComponent received malformed URI data: URI error\",\n  \"decodeURI malformed\": \"!URIError: decodeURI received malformed URI data: URI error\",\n  \"encode lone surrogate\": \"!URIError: encodeURIComponent received malformed URI data: String contained an illegal UTF-16 sequence.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"from string\\\", () => { const p = new URLSearchParams(\\\"?a=1&b=2&a=3&c=%20x+y\\\"); return [p.get(\\\"a\\\"), p.getAll(\\\"a\\\"), p.get(\\\"c\\\"), p.get(\\\"zz\\\"), p.has(\\\"b\\\"), p.has(\\\"a\\\", \\\"3\\\"), p.has(\\\"a\\\", \\\"4\\\"), p.size, p.toString()] })\\nt(\\\"from object\\\", () => new URLSearchParams({ x: 1, y: [1, 2], z: null }).toString())\\nt(\\\"from pairs\\\", () => new URLSearchParams([[\\\"a\\\", \\\"1\\\"], [\\\"b\\\", 2]]).toString())\\nt(\\\"from map\\\", () => new URLSearchParams(new Map([[\\\"k\\\", \\\"v\\\"]])).toString())\\nt(\\\"from params\\\", () => { const a = new URLSearchParams(\\\"q=1\\\"); const b = new URLSearchParams(a); b.append(\\\"r\\\", \\\"2\\\"); return [a.toString(), b.toString()] })\\nt(\\\"from primitives\\\", () => [new URLSearchParams(5).toString(), new URLSearchParams(null).toString(), new URLSearchParams(true).toString(), new URLSearchParams().toString()])\\nt(\\\"bad pair length\\\", () => new URLSearchParams([[\\\"a\\\", \\\"b\\\", \\\"c\\\"]]))\\nt(\\\"bad pair\\\", () => new URLSearchParams([5]))\\nt(\\\"from generator\\\", () => { function* g() { yield [\\\"g\\\", \\\"1\\\"] } return new URLSearchParams(g()).toString() })\\nt(\\\"from opaque\\\", () => new URLSearchParams(Promise.resolve(1)))\\nt(\\\"from function\\\", () => new URLSearchParams(() => 1))\\nt(\\\"from symbol\\\", () => new URLSearchParams(Symbol.iterator))\\nt(\\\"record values coerce\\\", () => new URLSearchParams({ b: new Uint8Array([1, 2]), d: new Date(0).getTime(), re: /x/g, m: new Map(), arr: [1, [2]] }).toString())\\nt(\\\"without new\\\", () => URLSearchParams(\\\"a=1\\\"))\\nt(\\\"mutators\\\", () => { const p = new URLSearchParams(\\\"b=2&a=1&a=0\\\"); p.append(\\\"c\\\", \\\"3\\\"); p.set(\\\"b\\\", \\\"9\\\"); p.delete(\\\"a\\\", \\\"0\\\"); const d1 = p.toString(); p.delete(\\\"a\\\"); p.sort(); return [d1, p.toString(), p.size] })\\nt(\\\"iteration\\\", () => { const p = new URLSearchParams(\\\"x=1&y=2\\\"); return [[...p], [...p.keys()], [...p.values()], [...p.entries()], Object.fromEntries(p)] })\\nt(\\\"forEach\\\", () => { const out = []; new URLSearchParams(\\\"a=1&b=2\\\").forEach(function (v, k, params) { out.push(k + v + params.size + this.s) }, { s: \\\"!\\\" }); return out })\\nt(\\\"missing args\\\", () => { const p = new URLSearchParams(); const out = []; for (const [name, args] of [[\\\"append\\\", [\\\"a\\\"]], [\\\"delete\\\", []], [\\\"get\\\", []], [\\\"getAll\\\", []], [\\\"has\\\", []], [\\\"set\\\", [\\\"a\\\"]], [\\\"forEach\\\", []]]) { try { p[name](...args) } catch (e) { out.push(e.message) } } return out })\\nt(\\\"receiver\\\", () => URLSearchParams.prototype.get.call({}, \\\"a\\\"))\\nt(\\\"size receiver\\\", () => Object.create(URLSearchParams.prototype).size)\\nt(\\\"String\\\", () => [String(new URLSearchParams(\\\"a=b\\\")), `${new URLSearchParams({ q: \\\"x y\\\" })}`])\\nt(\\\"json\\\", () => JSON.stringify(new URLSearchParams(\\\"a=1\\\")))\\nt(\\\"console\\\", () => { console.log(new URLSearchParams(\\\"a=1\\\"), new URL(\\\"http://a.b/c\\\")); return true })\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_1",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"from string\": [\n    \"1\",\n    [\n      \"1\",\n      \"3\"\n    ],\n    \" x y\",\n    null,\n    true,\n    true,\n    false,\n    4,\n    \"a=1&b=2&a=3&c=+x+y\"\n  ],\n  \"from object\": \"x=1&y=1%2C2&z=null\",\n  \"from pairs\": \"a=1&b=2\",\n  \"from map\": \"k=v\",\n  \"from params\": [\n    \"q=1\",\n    \"q=1&r=2\"\n  ],\n  \"from primitives\": [\n    \"5=\",\n    \"null=\",\n    \"true=\",\n    \"\"\n  ],\n  \"bad pair length\": \"!TypeError: new URLSearchParams(...) expects iterable [name, value] pairs.\",\n  \"bad pair\": \"!TypeError: new URLSearchParams(...) expects iterable [name, value] pairs.\",\n  \"from generator\": \"g=1\",\n  \"from opaque\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, or synchronous iterable pairs.\",\n  \"from function\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, or synchronous iterable pairs.\",\n  \"from symbol\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, iterable pairs, or URLSearchParams.\",\n  \"record values coerce\": \"b=1%2C2&d=0&re=%2Fx%2Fg&m=%5Bobject+Map%5D&arr=1%2C2\",\n  \"without new\": \"!TypeError: Constructor URLSearchParams requires 'new'.\",\n  \"mutators\": [\n    \"b=9&a=1&c=3\",\n    \"b=9&c=3\",\n    2\n  ],\n  \"iteration\": [\n    [\n      [\n        \"x\",\n        \"1\"\n      ],\n      [\n        \"y\",\n        \"2\"\n      ]\n    ],\n    [\n      \"x\",\n      \"y\"\n    ],\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      [\n        \"x\",\n        \"1\"\n      ],\n      [\n        \"y\",\n        \"2\"\n      ]\n    ],\n    {\n      \"x\": \"1\",\n      \"y\": \"2\"\n    }\n  ],\n  \"forEach\": [\n    \"a12!\",\n    \"b22!\"\n  ],\n  \"missing args\": [\n    \"URLSearchParams.append requires 2 arguments.\",\n    \"URLSearchParams.delete requires 1 argument.\",\n    \"URLSearchParams.get requires 1 argument.\",\n    \"URLSearchParams.getAll requires 1 argument.\",\n    \"URLSearchParams.has requires 1 argument.\",\n    \"URLSearchParams.set requires 2 arguments.\",\n    \"URLSearchParams.forEach requires 1 argument.\"\n  ],\n  \"receiver\": \"!TypeError: URLSearchParams.prototype.get called on incompatible receiver a data object.\",\n  \"size receiver\": \"!TypeError: URLSearchParams.prototype.size called on incompatible receiver a data object.\",\n  \"String\": [\n    \"a=b\",\n    \"q=x+y\"\n  ],\n  \"json\": \"{}\",\n  \"console\": true\n}\n\nLogs:\na=1 http://a.b/c",
+              "role": "tool",
+              "tool_call_id": "call_1"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the url and search params programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the url and search params programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst u = new URL(\\\"https://user:pw@example.com:8080/a/b/../c?x=1&y=two#frag\\\")\\nt(\\\"parts\\\", () => [\\\"href\\\", \\\"origin\\\", \\\"protocol\\\", \\\"username\\\", \\\"password\\\", \\\"host\\\", \\\"hostname\\\", \\\"port\\\", \\\"pathname\\\", \\\"search\\\", \\\"hash\\\"].map((k) => k + \\\"=\\\" + u[k]))\\nt(\\\"relative\\\", () => [new URL(\\\"../d?q\\\", \\\"https://h.test/a/b/c\\\").href, new URL(\\\"/root\\\", new URL(\\\"https://h.test/x\\\")).href, new URL(new URL(\\\"https://h.test/z\\\")).href])\\nt(\\\"invalid\\\", () => new URL(\\\"not a url\\\"))\\nt(\\\"invalid base\\\", () => new URL(\\\"/x\\\", \\\"nope\\\"))\\nt(\\\"no args\\\", () => new URL())\\nt(\\\"without new\\\", () => URL(\\\"https://a.b\\\"))\\nt(\\\"canParse\\\", () => [URL.canParse(\\\"https://a.b\\\"), URL.canParse(\\\"x\\\"), URL.canParse(\\\"/p\\\", \\\"https://a.b\\\"), URL.canParse(new URL(\\\"https://q.r\\\"))])\\nt(\\\"canParse no args\\\", () => URL.canParse())\\nt(\\\"parse\\\", () => [URL.parse(\\\"https://a.b/c\\\").pathname, URL.parse(\\\"bad\\\"), URL.parse(\\\"d\\\", \\\"https://a.b/c/\\\").href])\\nt(\\\"parse no args\\\", () => URL.parse())\\nt(\\\"setters\\\", () => { const x = new URL(\\\"http://a.test/p\\\"); x.protocol = \\\"https\\\"; x.username = \\\"me\\\"; x.password = \\\"s\\\"; x.hostname = \\\"b.test\\\"; x.port = \\\"81\\\"; x.pathname = \\\"/new path\\\"; x.search = \\\"?k=v w\\\"; x.hash = \\\"h\\\"; return x.href })\\nt(\\\"host setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.host = \\\"c.test:99\\\"; return [x.host, x.port] })\\nt(\\\"href setter\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"https://z.test/q?1\\\"; return [x.href, x.searchParams.toString()] })\\nt(\\\"href invalid\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.href = \\\"::bad::\\\"; return x.href })\\nt(\\\"origin readonly\\\", () => { const x = new URL(\\\"http://a.test/\\\"); x.origin = \\\"http://evil\\\"; return x.origin })\\nt(\\\"searchParams live\\\", () => { const x = new URL(\\\"http://a.test/?a=1\\\"); x.searchParams.append(\\\"b\\\", \\\"2\\\"); x.searchParams.set(\\\"a\\\", \\\"9\\\"); return [x.search, x.href, x.searchParams === x.searchParams] })\\nt(\\\"toString/toJSON\\\", () => [u.toString(), u.toJSON(), String(u), `${u}`, JSON.stringify({ u })])\\nt(\\\"receiver\\\", () => URL.prototype.toString.call({}))\\nt(\\\"getter receiver\\\", () => { const g = Object.create(URL.prototype); return g.href })\\nt(\\\"tag\\\", () => [Object.prototype.toString.call(u), u instanceof URL, URL.name])\\nt(\\\"encode/decode\\\", () => [encodeURIComponent(\\\"a b&c/é\\\"), encodeURI(\\\"http://x.y/a b?c=d&e=é\\\"), decodeURIComponent(\\\"a%20b%26\\\"), decodeURI(\\\"%41%2F\\\"), encodeURIComponent(5), decodeURIComponent()])\\nt(\\\"decode malformed\\\", () => decodeURIComponent(\\\"%E0%A4%A\\\"))\\nt(\\\"decodeURI malformed\\\", () => decodeURI(\\\"%\\\"))\\nt(\\\"encode lone surrogate\\\", () => encodeURIComponent(\\\"\\\\uD800\\\"))\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst u = new URL(\"https://user:pw@example.com:8080/a/b/../c?x=1&y=two#frag\")\nt(\"parts\", () => [\"href\", \"origin\", \"protocol\", \"username\", \"password\", \"host\", \"hostname\", \"port\", \"pathname\", \"search\", \"hash\"].map((k) => k + \"=\" + u[k]))\nt(\"relative\", () => [new URL(\"../d?q\", \"https://h.test/a/b/c\").href, new URL(\"/root\", new URL(\"https://h.test/x\")).href, new URL(new URL(\"https://h.test/z\")).href])\nt(\"invalid\", () => new URL(\"not a url\"))\nt(\"invalid base\", () => new URL(\"/x\", \"nope\"))\nt(\"no args\", () => new URL())\nt(\"without new\", () => URL(\"https://a.b\"))\nt(\"canParse\", () => [URL.canParse(\"https://a.b\"), URL.canParse(\"x\"), URL.canParse(\"/p\", \"https://a.b\"), URL.canParse(new URL(\"https://q.r\"))])\nt(\"canParse no args\", () => URL.canParse())\nt(\"parse\", () => [URL.parse(\"https://a.b/c\").pathname, URL.parse(\"bad\"), URL.parse(\"d\", \"https://a.b/c/\").href])\nt(\"parse no args\", () => URL.parse())\nt(\"setters\", () => { const x = new URL(\"http://a.test/p\"); x.protocol = \"https\"; x.username = \"me\"; x.password = \"s\"; x.hostname = \"b.test\"; x.port = \"81\"; x.pathname = \"/new path\"; x.search = \"?k=v w\"; x.hash = \"h\"; return x.href })\nt(\"host setter\", () => { const x = new URL(\"http://a.test/\"); x.host = \"c.test:99\"; return [x.host, x.port] })\nt(\"href setter\", () => { const x = new URL(\"http://a.test/\"); x.href = \"https://z.test/q?1\"; return [x.href, x.searchParams.toString()] })\nt(\"href invalid\", () => { const x = new URL(\"http://a.test/\"); x.href = \"::bad::\"; return x.href })\nt(\"origin readonly\", () => { const x = new URL(\"http://a.test/\"); x.origin = \"http://evil\"; return x.origin })\nt(\"searchParams live\", () => { const x = new URL(\"http://a.test/?a=1\"); x.searchParams.append(\"b\", \"2\"); x.searchParams.set(\"a\", \"9\"); return [x.search, x.href, x.searchParams === x.searchParams] })\nt(\"toString/toJSON\", () => [u.toString(), u.toJSON(), String(u), `${u}`, JSON.stringify({ u })])\nt(\"receiver\", () => URL.prototype.toString.call({}))\nt(\"getter receiver\", () => { const g = Object.create(URL.prototype); return g.href })\nt(\"tag\", () => [Object.prototype.toString.call(u), u instanceof URL, URL.name])\nt(\"encode/decode\", () => [encodeURIComponent(\"a b&c/é\"), encodeURI(\"http://x.y/a b?c=d&e=é\"), decodeURIComponent(\"a%20b%26\"), decodeURI(\"%41%2F\"), encodeURIComponent(5), decodeURIComponent()])\nt(\"decode malformed\", () => decodeURIComponent(\"%E0%A4%A\"))\nt(\"decodeURI malformed\", () => decodeURI(\"%\"))\nt(\"encode lone surrogate\", () => encodeURIComponent(\"\\uD800\"))\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"parts\": [\n    \"href=https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"origin=https://example.com:8080\",\n    \"protocol=https:\",\n    \"username=user\",\n    \"password=pw\",\n    \"host=example.com:8080\",\n    \"hostname=example.com\",\n    \"port=8080\",\n    \"pathname=/a/c\",\n    \"search=?x=1&y=two\",\n    \"hash=#frag\"\n  ],\n  \"relative\": [\n    \"https://h.test/a/d?q\",\n    \"https://h.test/root\",\n    \"https://h.test/z\"\n  ],\n  \"invalid\": \"!TypeError: new URL(...) received an invalid URL.\",\n  \"invalid base\": \"!TypeError: new URL(...) received an invalid URL or base URL.\",\n  \"no args\": \"!TypeError: new URL(...) requires a URL string and an optional base URL.\",\n  \"without new\": \"!TypeError: Constructor URL requires 'new'.\",\n  \"canParse\": [\n    true,\n    false,\n    true,\n    true\n  ],\n  \"canParse no args\": \"!TypeError: URL.canParse requires a URL argument.\",\n  \"parse\": [\n    \"/c\",\n    null,\n    \"https://a.b/c/d\"\n  ],\n  \"parse no args\": \"!TypeError: URL.parse requires a URL argument.\",\n  \"setters\": \"https://me:s@b.test:81/new%20path?k=v%20w#h\",\n  \"host setter\": [\n    \"c.test:99\",\n    \"99\"\n  ],\n  \"href setter\": [\n    \"https://z.test/q?1\",\n    \"1=\"\n  ],\n  \"href invalid\": \"!TypeError: URL.href received an invalid value.\",\n  \"origin readonly\": \"!TypeError: Cannot assign to read only property 'origin'.\",\n  \"searchParams live\": [\n    \"?a=9&b=2\",\n    \"http://a.test/?a=9&b=2\",\n    true\n  ],\n  \"toString/toJSON\": [\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\",\n    \"{\\\"u\\\":\\\"https://user:pw@example.com:8080/a/c?x=1&y=two#frag\\\"}\"\n  ],\n  \"receiver\": \"!TypeError: URL.prototype.toString called on incompatible receiver a data object.\",\n  \"getter receiver\": \"!TypeError: URL.prototype.href called on incompatible receiver a data object.\",\n  \"tag\": [\n    \"[object URL]\",\n    true,\n    \"URL\"\n  ],\n  \"encode/decode\": [\n    \"a%20b%26c%2F%C3%A9\",\n    \"http://x.y/a%20b?c=d&e=%C3%A9\",\n    \"a b&\",\n    \"A%2F\",\n    \"5\",\n    \"undefined\"\n  ],\n  \"decode malformed\": \"!URIError: decodeURIComponent received malformed URI data: URI error\",\n  \"decodeURI malformed\": \"!URIError: decodeURI received malformed URI data: URI error\",\n  \"encode lone surrogate\": \"!URIError: encodeURIComponent received malformed URI data: String contained an illegal UTF-16 sequence.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_1",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nt(\\\"from string\\\", () => { const p = new URLSearchParams(\\\"?a=1&b=2&a=3&c=%20x+y\\\"); return [p.get(\\\"a\\\"), p.getAll(\\\"a\\\"), p.get(\\\"c\\\"), p.get(\\\"zz\\\"), p.has(\\\"b\\\"), p.has(\\\"a\\\", \\\"3\\\"), p.has(\\\"a\\\", \\\"4\\\"), p.size, p.toString()] })\\nt(\\\"from object\\\", () => new URLSearchParams({ x: 1, y: [1, 2], z: null }).toString())\\nt(\\\"from pairs\\\", () => new URLSearchParams([[\\\"a\\\", \\\"1\\\"], [\\\"b\\\", 2]]).toString())\\nt(\\\"from map\\\", () => new URLSearchParams(new Map([[\\\"k\\\", \\\"v\\\"]])).toString())\\nt(\\\"from params\\\", () => { const a = new URLSearchParams(\\\"q=1\\\"); const b = new URLSearchParams(a); b.append(\\\"r\\\", \\\"2\\\"); return [a.toString(), b.toString()] })\\nt(\\\"from primitives\\\", () => [new URLSearchParams(5).toString(), new URLSearchParams(null).toString(), new URLSearchParams(true).toString(), new URLSearchParams().toString()])\\nt(\\\"bad pair length\\\", () => new URLSearchParams([[\\\"a\\\", \\\"b\\\", \\\"c\\\"]]))\\nt(\\\"bad pair\\\", () => new URLSearchParams([5]))\\nt(\\\"from generator\\\", () => { function* g() { yield [\\\"g\\\", \\\"1\\\"] } return new URLSearchParams(g()).toString() })\\nt(\\\"from opaque\\\", () => new URLSearchParams(Promise.resolve(1)))\\nt(\\\"from function\\\", () => new URLSearchParams(() => 1))\\nt(\\\"from symbol\\\", () => new URLSearchParams(Symbol.iterator))\\nt(\\\"record values coerce\\\", () => new URLSearchParams({ b: new Uint8Array([1, 2]), d: new Date(0).getTime(), re: /x/g, m: new Map(), arr: [1, [2]] }).toString())\\nt(\\\"without new\\\", () => URLSearchParams(\\\"a=1\\\"))\\nt(\\\"mutators\\\", () => { const p = new URLSearchParams(\\\"b=2&a=1&a=0\\\"); p.append(\\\"c\\\", \\\"3\\\"); p.set(\\\"b\\\", \\\"9\\\"); p.delete(\\\"a\\\", \\\"0\\\"); const d1 = p.toString(); p.delete(\\\"a\\\"); p.sort(); return [d1, p.toString(), p.size] })\\nt(\\\"iteration\\\", () => { const p = new URLSearchParams(\\\"x=1&y=2\\\"); return [[...p], [...p.keys()], [...p.values()], [...p.entries()], Object.fromEntries(p)] })\\nt(\\\"forEach\\\", () => { const out = []; new URLSearchParams(\\\"a=1&b=2\\\").forEach(function (v, k, params) { out.push(k + v + params.size + this.s) }, { s: \\\"!\\\" }); return out })\\nt(\\\"missing args\\\", () => { const p = new URLSearchParams(); const out = []; for (const [name, args] of [[\\\"append\\\", [\\\"a\\\"]], [\\\"delete\\\", []], [\\\"get\\\", []], [\\\"getAll\\\", []], [\\\"has\\\", []], [\\\"set\\\", [\\\"a\\\"]], [\\\"forEach\\\", []]]) { try { p[name](...args) } catch (e) { out.push(e.message) } } return out })\\nt(\\\"receiver\\\", () => URLSearchParams.prototype.get.call({}, \\\"a\\\"))\\nt(\\\"size receiver\\\", () => Object.create(URLSearchParams.prototype).size)\\nt(\\\"String\\\", () => [String(new URLSearchParams(\\\"a=b\\\")), `${new URLSearchParams({ q: \\\"x y\\\" })}`])\\nt(\\\"json\\\", () => JSON.stringify(new URLSearchParams(\\\"a=1\\\")))\\nt(\\\"console\\\", () => { console.log(new URLSearchParams(\\\"a=1\\\"), new URL(\\\"http://a.b/c\\\")); return true })\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_1",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nt(\"from string\", () => { const p = new URLSearchParams(\"?a=1&b=2&a=3&c=%20x+y\"); return [p.get(\"a\"), p.getAll(\"a\"), p.get(\"c\"), p.get(\"zz\"), p.has(\"b\"), p.has(\"a\", \"3\"), p.has(\"a\", \"4\"), p.size, p.toString()] })\nt(\"from object\", () => new URLSearchParams({ x: 1, y: [1, 2], z: null }).toString())\nt(\"from pairs\", () => new URLSearchParams([[\"a\", \"1\"], [\"b\", 2]]).toString())\nt(\"from map\", () => new URLSearchParams(new Map([[\"k\", \"v\"]])).toString())\nt(\"from params\", () => { const a = new URLSearchParams(\"q=1\"); const b = new URLSearchParams(a); b.append(\"r\", \"2\"); return [a.toString(), b.toString()] })\nt(\"from primitives\", () => [new URLSearchParams(5).toString(), new URLSearchParams(null).toString(), new URLSearchParams(true).toString(), new URLSearchParams().toString()])\nt(\"bad pair length\", () => new URLSearchParams([[\"a\", \"b\", \"c\"]]))\nt(\"bad pair\", () => new URLSearchParams([5]))\nt(\"from generator\", () => { function* g() { yield [\"g\", \"1\"] } return new URLSearchParams(g()).toString() })\nt(\"from opaque\", () => new URLSearchParams(Promise.resolve(1)))\nt(\"from function\", () => new URLSearchParams(() => 1))\nt(\"from symbol\", () => new URLSearchParams(Symbol.iterator))\nt(\"record values coerce\", () => new URLSearchParams({ b: new Uint8Array([1, 2]), d: new Date(0).getTime(), re: /x/g, m: new Map(), arr: [1, [2]] }).toString())\nt(\"without new\", () => URLSearchParams(\"a=1\"))\nt(\"mutators\", () => { const p = new URLSearchParams(\"b=2&a=1&a=0\"); p.append(\"c\", \"3\"); p.set(\"b\", \"9\"); p.delete(\"a\", \"0\"); const d1 = p.toString(); p.delete(\"a\"); p.sort(); return [d1, p.toString(), p.size] })\nt(\"iteration\", () => { const p = new URLSearchParams(\"x=1&y=2\"); return [[...p], [...p.keys()], [...p.values()], [...p.entries()], Object.fromEntries(p)] })\nt(\"forEach\", () => { const out = []; new URLSearchParams(\"a=1&b=2\").forEach(function (v, k, params) { out.push(k + v + params.size + this.s) }, { s: \"!\" }); return out })\nt(\"missing args\", () => { const p = new URLSearchParams(); const out = []; for (const [name, args] of [[\"append\", [\"a\"]], [\"delete\", []], [\"get\", []], [\"getAll\", []], [\"has\", []], [\"set\", [\"a\"]], [\"forEach\", []]]) { try { p[name](...args) } catch (e) { out.push(e.message) } } return out })\nt(\"receiver\", () => URLSearchParams.prototype.get.call({}, \"a\"))\nt(\"size receiver\", () => Object.create(URLSearchParams.prototype).size)\nt(\"String\", () => [String(new URLSearchParams(\"a=b\")), `${new URLSearchParams({ q: \"x y\" })}`])\nt(\"json\", () => JSON.stringify(new URLSearchParams(\"a=1\")))\nt(\"console\", () => { console.log(new URLSearchParams(\"a=1\"), new URL(\"http://a.b/c\")); return true })\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"from string\": [\n    \"1\",\n    [\n      \"1\",\n      \"3\"\n    ],\n    \" x y\",\n    null,\n    true,\n    true,\n    false,\n    4,\n    \"a=1&b=2&a=3&c=+x+y\"\n  ],\n  \"from object\": \"x=1&y=1%2C2&z=null\",\n  \"from pairs\": \"a=1&b=2\",\n  \"from map\": \"k=v\",\n  \"from params\": [\n    \"q=1\",\n    \"q=1&r=2\"\n  ],\n  \"from primitives\": [\n    \"5=\",\n    \"null=\",\n    \"true=\",\n    \"\"\n  ],\n  \"bad pair length\": \"!TypeError: new URLSearchParams(...) expects iterable [name, value] pairs.\",\n  \"bad pair\": \"!TypeError: new URLSearchParams(...) expects iterable [name, value] pairs.\",\n  \"from generator\": \"g=1\",\n  \"from opaque\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, or synchronous iterable pairs.\",\n  \"from function\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, or synchronous iterable pairs.\",\n  \"from symbol\": \"!TypeError: new URLSearchParams(...) expects a query string, data object, iterable pairs, or URLSearchParams.\",\n  \"record values coerce\": \"b=1%2C2&d=0&re=%2Fx%2Fg&m=%5Bobject+Map%5D&arr=1%2C2\",\n  \"without new\": \"!TypeError: Constructor URLSearchParams requires 'new'.\",\n  \"mutators\": [\n    \"b=9&a=1&c=3\",\n    \"b=9&c=3\",\n    2\n  ],\n  \"iteration\": [\n    [\n      [\n        \"x\",\n        \"1\"\n      ],\n      [\n        \"y\",\n        \"2\"\n      ]\n    ],\n    [\n      \"x\",\n      \"y\"\n    ],\n    [\n      \"1\",\n      \"2\"\n    ],\n    [\n      [\n        \"x\",\n        \"1\"\n      ],\n      [\n        \"y\",\n        \"2\"\n      ]\n    ],\n    {\n      \"x\": \"1\",\n      \"y\": \"2\"\n    }\n  ],\n  \"forEach\": [\n    \"a12!\",\n    \"b22!\"\n  ],\n  \"missing args\": [\n    \"URLSearchParams.append requires 2 arguments.\",\n    \"URLSearchParams.delete requires 1 argument.\",\n    \"URLSearchParams.get requires 1 argument.\",\n    \"URLSearchParams.getAll requires 1 argument.\",\n    \"URLSearchParams.has requires 1 argument.\",\n    \"URLSearchParams.set requires 2 arguments.\",\n    \"URLSearchParams.forEach requires 1 argument.\"\n  ],\n  \"receiver\": \"!TypeError: URLSearchParams.prototype.get called on incompatible receiver a data object.\",\n  \"size receiver\": \"!TypeError: URLSearchParams.prototype.size called on incompatible receiver a data object.\",\n  \"String\": [\n    \"a=b\",\n    \"q=x+y\"\n  ],\n  \"json\": \"{}\",\n  \"console\": true\n}\n\nLogs:\na=1 http://a.b/c",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_1",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_40>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

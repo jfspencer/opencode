@@ -1,0 +1,407 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "agent": "plan",
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "nested": {
+              "ok": true
+            },
+            "priority": 2,
+            "tags": [
+              "a",
+              "b"
+            ],
+            "team": "core"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "low"
+          },
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "configured",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "plan",
+        "id": "<ses_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "nested": {
+            "ok": true
+          },
+          "priority": 2,
+          "tags": [
+            "a",
+            "b"
+          ],
+          "team": "core"
+        },
+        "model": {
+          "id": "deepseek/deepseek-v4.1-flash-1017",
+          "providerID": "openrouter",
+          "variant": "low"
+        },
+        "permissions": [
+          {
+            "action": "edit",
+            "effect": "deny",
+            "resource": "*"
+          }
+        ],
+        "title": "configured"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "plan",
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "nested": {
+              "ok": true
+            },
+            "priority": 2,
+            "tags": [
+              "a",
+              "b"
+            ],
+            "team": "core"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "low"
+          },
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "configured",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "agent": "plan",
+        "id": "<ses_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "nested": {
+            "ok": true
+          },
+          "priority": 2,
+          "tags": [
+            "a",
+            "b"
+          ],
+          "team": "core"
+        },
+        "model": {
+          "id": "deepseek/deepseek-v4.1-flash-1017",
+          "providerID": "openrouter",
+          "variant": "low"
+        },
+        "permissions": [
+          {
+            "action": "edit",
+            "effect": "deny",
+            "resource": "*"
+          }
+        ],
+        "title": "ignored"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "agent": "plan",
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "nested": {
+              "ok": true
+            },
+            "priority": 2,
+            "tags": [
+              "a",
+              "b"
+            ],
+            "team": "core"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "low"
+          },
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "configured",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "plan",
+          "location": {
+            "directory": "<project>"
+          },
+          "metadata": {
+            "nested": {
+              "ok": true
+            },
+            "priority": 2,
+            "tags": [
+              "a",
+              "b"
+            ],
+            "team": "core"
+          },
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "low"
+          },
+          "permissions": [
+            {
+              "action": "edit",
+              "effect": "deny",
+              "resource": "*"
+            }
+          ],
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "configured",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "<system-reminder>\nYou are in Plan mode. Discuss the plan with the user directly in the conversation. Do not create or update plan files unless the user explicitly asks you to; when they do, write them only in:\n<home>/.opencode/plan\n\nDo not modify any other files or ask a subagent to do so.\n\nYou remain in Plan mode until the user switches agents. If the user asks you to implement changes, do not do so. Tell them they need to switch agents.\n</system-reminder>"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      }
+    ]
+  },
+  "files": {}
+}

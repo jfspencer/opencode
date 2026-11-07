@@ -1,0 +1,1938 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "stats root",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "stats root",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "first",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "c1",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "x",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "path": "x"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              },
+              {
+                "id": "c2",
+                "name": "edit",
+                "state": {
+                  "error": {
+                    "message": "bad",
+                    "type": "tool"
+                  },
+                  "input": {
+                    "path": "x"
+                  },
+                  "status": "error"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "id": "c3",
+                "name": "read",
+                "state": {
+                  "content": [
+                    {
+                      "text": "x",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "path": "x"
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "low"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 10,
+              "output": 1,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_4>",
+            "text": "later",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "done",
+                "type": "text"
+              },
+              {
+                "id": "c4",
+                "name": "glob",
+                "state": {
+                  "input": {},
+                  "metadata": {},
+                  "status": "running"
+                },
+                "time": {
+                  "created": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "parentID": "<ses_1>",
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "subagent",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "parentID": "<ses_1>",
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "subagent",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_7>",
+            "text": "sub task",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "ok",
+                "type": "text"
+              }
+            ],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "<project>/pkg"
+          },
+          "projectID": "<hash_3>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "other project",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "other project",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>/pkg"
+        },
+        "messages": [
+          {
+            "id": "<msg_9>",
+            "text": "elsewhere",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "cost": 0.25,
+            "finish": "stop",
+            "id": "<msg_10>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 10,
+                "write": 2
+              },
+              "input": 100,
+              "output": 20,
+              "reasoning": 5
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "fork": {
+            "boundary": {
+              "messageID": "<msg_6>",
+              "type": "through"
+            },
+            "sessionID": "<ses_1>"
+          },
+          "id": "<ses_4>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "stats root (fork #1)",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 200,
+      "url": "/api/session/<ses_1>/fork"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "detail",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            },
+            "usage": [
+              {
+                "calls": 2,
+                "durationP50": 500,
+                "failed": 0,
+                "name": "read",
+                "succeeded": 2,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "durationP50": 200,
+                "failed": 1,
+                "name": "edit",
+                "succeeded": 0,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "failed": 0,
+                "name": "glob",
+                "succeeded": 0,
+                "unfinished": 1
+              }
+            ]
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000&tools=detail"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "none"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000&tools=none"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-10",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000&timezone=Pacific/Kiritimati"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "detail",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            },
+            "usage": [
+              {
+                "calls": 2,
+                "durationP50": 500,
+                "failed": 0,
+                "name": "read",
+                "succeeded": 2,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "durationP50": 200,
+                "failed": 1,
+                "name": "edit",
+                "succeeded": 0,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "failed": 0,
+                "name": "glob",
+                "succeeded": 0,
+                "unfinished": 1
+              }
+            ]
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000&timezone=America/Los_Angeles&tools=detail"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 1,
+          "activity": [
+            {
+              "date": "2026-01-07",
+              "steps": 1
+            }
+          ],
+          "cost": 0.25,
+          "models": [
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            }
+          ],
+          "prompts": 1,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 1,
+          "steps": 1,
+          "streak": 1,
+          "subagents": 0,
+          "tokens": {
+            "cache": {
+              "read": 10,
+              "write": 2
+            },
+            "input": 100,
+            "output": 20,
+            "reasoning": 5
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 0,
+              "failed": 0,
+              "succeeded": 0,
+              "unfinished": 0
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767520800000&to=1768471200000&project=<hash_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 2,
+          "activity": [
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 1
+            }
+          ],
+          "cost": 0.5,
+          "models": [
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 0,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 1,
+          "steps": 2,
+          "streak": 2,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 10,
+              "write": 2
+            },
+            "input": 110,
+            "output": 21,
+            "reasoning": 5
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 1,
+              "failed": 0,
+              "succeeded": 1,
+              "unfinished": 0
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1767693600000&to=1767780000000"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?to=1768471200000"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 0,
+          "activity": [],
+          "cost": 0,
+          "models": [],
+          "prompts": 0,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 0,
+          "steps": 0,
+          "streak": 0,
+          "subagents": 0,
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 0,
+              "failed": 0,
+              "succeeded": 0,
+              "unfinished": 0
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?to=1765015200000"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "detail",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            },
+            "usage": [
+              {
+                "calls": 2,
+                "durationP50": 500,
+                "failed": 0,
+                "name": "read",
+                "succeeded": 2,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "durationP50": 200,
+                "failed": 1,
+                "name": "edit",
+                "succeeded": 0,
+                "unfinished": 0
+              },
+              {
+                "calls": 1,
+                "failed": 0,
+                "name": "glob",
+                "succeeded": 0,
+                "unfinished": 1
+              }
+            ]
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats?from=1758967200000&to=1776247200000&tools=detail"
+    },
+    {
+      "body": {
+        "data": {
+          "activeDays": 5,
+          "activity": [
+            {
+              "date": "2026-01-05",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-06",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-07",
+              "steps": 2
+            },
+            {
+              "date": "2026-01-08",
+              "steps": 1
+            },
+            {
+              "date": "2026-01-09",
+              "steps": 1
+            }
+          ],
+          "cost": 1.5,
+          "models": [
+            {
+              "cost": 1,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "steps": 4,
+              "tokens": {
+                "cache": {
+                  "read": 40,
+                  "write": 8
+                },
+                "input": 400,
+                "output": 80,
+                "reasoning": 20
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              }
+            },
+            {
+              "cost": 0.25,
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "low"
+              },
+              "steps": 1,
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 10,
+                "output": 1,
+                "reasoning": 0
+              }
+            }
+          ],
+          "prompts": 3,
+          "range": {
+            "from": "<time>",
+            "to": "<time>"
+          },
+          "sessions": 2,
+          "steps": 6,
+          "streak": 5,
+          "subagents": 1,
+          "tokens": {
+            "cache": {
+              "read": 50,
+              "write": 10
+            },
+            "input": 510,
+            "output": 101,
+            "reasoning": 25
+          },
+          "tools": {
+            "mode": "summary",
+            "totals": {
+              "calls": 4,
+              "failed": 1,
+              "succeeded": 2,
+              "unfinished": 1
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/stats"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "message": "Invalid time zone: Not/AZone"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/experimental/session/stats?timezone=Not/AZone"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "message": "Stats range must end after it starts"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/experimental/session/stats?from=1768039200000&to=1768039200000"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected \"none\" | \"summary\" | \"detail\"\n  at [\"tools\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/experimental/session/stats?tools=all"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 500,
+      "url": "/api/experimental/session/stats?from=yesterday"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "parentID": "<ses_1>",
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "subagent",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>/pkg"
+          },
+          "projectID": "<hash_3>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "other project",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/pkg"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "stats root",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_4>": [
+      {
+        "created": "<time>",
+        "data": {
+          "boundary": {
+            "messageID": "<msg_6>",
+            "type": "through"
+          },
+          "instructionEntries": [],
+          "parentID": "<ses_1>",
+          "sessionID": "<ses_4>"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 0,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "type": "session.forked"
+      }
+    ]
+  },
+  "files": {
+    "pkg/x.txt": "x\n"
+  }
+}

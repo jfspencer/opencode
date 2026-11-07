@@ -1,0 +1,205 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--worktree=feature-x",
+          "--format",
+          "json",
+          "Hello"
+        ],
+        "exit": 0,
+        "stderr": [
+          "\u001b[90mworktree <sandbox>/data/opencode/worktree/48736f/feature-x\u001b[0m",
+          ""
+        ],
+        "stdout": {
+          "ndjson": [
+            {
+              "part": {
+                "id": "<prt_1>",
+                "messageID": "<msg_1>",
+                "sessionID": "<ses_1>",
+                "snapshot": "<hash_1>",
+                "type": "step-start"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "step_start"
+            },
+            {
+              "part": {
+                "id": "<prt_2>",
+                "messageID": "<msg_1>",
+                "sessionID": "<ses_1>",
+                "text": "Working in the worktree.",
+                "time": {
+                  "end": "<time>",
+                  "start": "<time>"
+                },
+                "type": "text"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "text"
+            },
+            {
+              "part": {
+                "cost": 0,
+                "id": "<prt_3>",
+                "messageID": "<msg_1>",
+                "reason": "stop",
+                "sessionID": "<ses_1>",
+                "snapshot": "<hash_1>",
+                "tokens": {
+                  "cache": {
+                    "read": 0,
+                    "write": 0
+                  },
+                  "input": 100,
+                  "output": 10,
+                  "reasoning": 0
+                },
+                "type": "step-finish"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "step_finish"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--format",
+          "json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "created": "<time>",
+              "directory": "<sandbox>/data/opencode/worktree/48736f/feature-x",
+              "id": "<ses_1>",
+              "projectId": "<hash_2>",
+              "title": "Conformance session",
+              "updated": "<time>"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <sandbox>/data/opencode/worktree/48736f/feature-x\n  Workspace root folder: <sandbox>/data/opencode/worktree/48736f/feature-x\n  Is directory a git repo: yes\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Hello",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nHello\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "accept": "*/*",
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "README.md": "# Repo\n"
+  }
+}

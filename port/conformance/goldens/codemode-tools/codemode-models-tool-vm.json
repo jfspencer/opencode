@@ -1,0 +1,1802 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Which models can I use?"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Which models can I use?"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_2>",
+            "outcome": "succeeded",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "text": "Done.",
+                "type": "text"
+              }
+            ],
+            "cost": 0,
+            "finish": "stop",
+            "id": "<msg_3>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "stop",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "[\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - offset: Expected a value greater than or equal to 0 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - type: Expected \\\"chat\\\" | \\\"image\\\" | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - query: Expected string | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \"\n]",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const errors = []\nfor (const input of [{ limit: 0 }, { limit: 101 }, { offset: -1 }, { type: \"video\" }, { query: 5 }, { extra: true }, \"flash\", null]) {\n  try { await tools.opencode.models(input) } catch (error) { errors.push(String(error.message).split(\"\\n\").slice(0, 3).join(\" | \")) }\n}\nreturn errors"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "limit": 0
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "limit": 101
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "offset": -1
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "type": "video"
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "query": 5
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "extra": true
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "input": "flash"
+                        },
+                        "status": "error",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "status": "error",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_4>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"own\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"byName\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"otherProvider\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"none\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"images\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"page1\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 1\n  },\n  \"page2\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 2\n  },\n  \"past\": {\n    \"providers\": [],\n    \"total\": 3,\n    \"next\": null\n  }\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "return {\n  own: await tools.opencode.models({ provider: \"openrouter\", query: \"flash\" }),\n  byName: await tools.opencode.models({ provider: \"OpenRouter\", query: \"QWEN coder\" }),\n  otherProvider: await tools.opencode.models({ provider: \"anthropic\" }),\n  none: await tools.opencode.models({ query: \"no-such-model\" }),\n  images: await tools.opencode.models({ type: \"image\" }),\n  page1: await tools.opencode.models({ limit: 1, all: true }),\n  page2: await tools.opencode.models({ limit: 1, offset: 1, all: true }),\n  past: await tools.opencode.models({ offset: 10 }),\n}"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "input": {
+                          "provider": "openrouter",
+                          "query": "flash"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "provider": "OpenRouter",
+                          "query": "QWEN coder"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "provider": "anthropic"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "query": "no-such-model"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "type": "image"
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "all": true,
+                          "limit": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "all": true,
+                          "limit": 1,
+                          "offset": 1
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "offset": 10
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "agent": "build",
+            "content": [
+              {
+                "executed": false,
+                "id": "call_conformance_0",
+                "name": "execute",
+                "state": {
+                  "content": [
+                    {
+                      "text": "{\n  \"all\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 3,\n    \"next\": null\n  },\n  \"everything\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": null\n  }\n}",
+                      "type": "text"
+                    }
+                  ],
+                  "input": {
+                    "code": "const all = await tools.opencode.models({})\nreturn { all, everything: await tools.opencode.models({ all: true }) }"
+                  },
+                  "metadata": {
+                    "toolCalls": [
+                      {
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      },
+                      {
+                        "input": {
+                          "all": true
+                        },
+                        "status": "completed",
+                        "tool": "opencode.models"
+                      }
+                    ],
+                    "truncated": false
+                  },
+                  "status": "completed"
+                },
+                "time": {
+                  "completed": "<time>",
+                  "created": "<time>",
+                  "ran": "<time>"
+                },
+                "type": "tool"
+              }
+            ],
+            "cost": 0,
+            "finish": "tool-calls",
+            "id": "<msg_6>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "rawFinish": "tool_calls",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>",
+              "streamed": "<time>"
+            },
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 100,
+              "output": 10,
+              "reasoning": 0
+            },
+            "type": "assistant"
+          },
+          {
+            "id": "<msg_1>",
+            "text": "Which models can I use?",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Which models can I use?",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Which models can I use?",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const all = await tools.opencode.models({})\\nreturn { all, everything: await tools.opencode.models({ all: true }) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 3,\n    \"next\": null\n  },\n  \"everything\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": null\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Which models can I use?",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const all = await tools.opencode.models({})\\nreturn { all, everything: await tools.opencode.models({ all: true }) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 3,\n    \"next\": null\n  },\n  \"everything\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": null\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"return {\\n  own: await tools.opencode.models({ provider: \\\"openrouter\\\", query: \\\"flash\\\" }),\\n  byName: await tools.opencode.models({ provider: \\\"OpenRouter\\\", query: \\\"QWEN coder\\\" }),\\n  otherProvider: await tools.opencode.models({ provider: \\\"anthropic\\\" }),\\n  none: await tools.opencode.models({ query: \\\"no-such-model\\\" }),\\n  images: await tools.opencode.models({ type: \\\"image\\\" }),\\n  page1: await tools.opencode.models({ limit: 1, all: true }),\\n  page2: await tools.opencode.models({ limit: 1, offset: 1, all: true }),\\n  past: await tools.opencode.models({ offset: 10 }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"own\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"byName\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"otherProvider\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"none\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"images\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"page1\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 1\n  },\n  \"page2\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 2\n  },\n  \"past\": {\n    \"providers\": [],\n    \"total\": 3,\n    \"next\": null\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Which models can I use?",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const all = await tools.opencode.models({})\\nreturn { all, everything: await tools.opencode.models({ all: true }) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"all\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 3,\n    \"next\": null\n  },\n  \"everything\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": null\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"return {\\n  own: await tools.opencode.models({ provider: \\\"openrouter\\\", query: \\\"flash\\\" }),\\n  byName: await tools.opencode.models({ provider: \\\"OpenRouter\\\", query: \\\"QWEN coder\\\" }),\\n  otherProvider: await tools.opencode.models({ provider: \\\"anthropic\\\" }),\\n  none: await tools.opencode.models({ query: \\\"no-such-model\\\" }),\\n  images: await tools.opencode.models({ type: \\\"image\\\" }),\\n  page1: await tools.opencode.models({ limit: 1, all: true }),\\n  page2: await tools.opencode.models({ limit: 1, offset: 1, all: true }),\\n  past: await tools.opencode.models({ offset: 10 }),\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"own\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"byName\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"otherProvider\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"none\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"images\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"page1\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 1\n  },\n  \"page2\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 2\n  },\n  \"past\": {\n    \"providers\": [],\n    \"total\": 3,\n    \"next\": null\n  }\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const errors = []\\nfor (const input of [{ limit: 0 }, { limit: 101 }, { offset: -1 }, { type: \\\"video\\\" }, { query: 5 }, { extra: true }, \\\"flash\\\", null]) {\\n  try { await tools.opencode.models(input) } catch (error) { errors.push(String(error.message).split(\\\"\\\\n\\\").slice(0, 3).join(\\\" | \\\")) }\\n}\\nreturn errors\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "[\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - offset: Expected a value greater than or equal to 0 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - type: Expected \\\"chat\\\" | \\\"image\\\" | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - query: Expected string | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \"\n]",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nWhich models can I use?\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug_1>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Which models can I use?"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const all = await tools.opencode.models({})\\nreturn { all, everything: await tools.opencode.models({ all: true }) }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const all = await tools.opencode.models({})\nreturn { all, everything: await tools.opencode.models({ all: true }) }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "{\n  \"all\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 3,\n    \"next\": null\n  },\n  \"everything\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          },\n          {\n            \"id\": \"openrouter/black-forest/flux-pro\",\n            \"name\": \"Flux Pro\",\n            \"released\": 0,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": null\n  }\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "all": true
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"return {\\n  own: await tools.opencode.models({ provider: \\\"openrouter\\\", query: \\\"flash\\\" }),\\n  byName: await tools.opencode.models({ provider: \\\"OpenRouter\\\", query: \\\"QWEN coder\\\" }),\\n  otherProvider: await tools.opencode.models({ provider: \\\"anthropic\\\" }),\\n  none: await tools.opencode.models({ query: \\\"no-such-model\\\" }),\\n  images: await tools.opencode.models({ type: \\\"image\\\" }),\\n  page1: await tools.opencode.models({ limit: 1, all: true }),\\n  page2: await tools.opencode.models({ limit: 1, offset: 1, all: true }),\\n  past: await tools.opencode.models({ offset: 10 }),\\n}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "return {\n  own: await tools.opencode.models({ provider: \"openrouter\", query: \"flash\" }),\n  byName: await tools.opencode.models({ provider: \"OpenRouter\", query: \"QWEN coder\" }),\n  otherProvider: await tools.opencode.models({ provider: \"anthropic\" }),\n  none: await tools.opencode.models({ query: \"no-such-model\" }),\n  images: await tools.opencode.models({ type: \"image\" }),\n  page1: await tools.opencode.models({ limit: 1, all: true }),\n  page2: await tools.opencode.models({ limit: 1, offset: 1, all: true }),\n  past: await tools.opencode.models({ offset: 10 }),\n}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "{\n  \"own\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"byName\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/qwen/qwen-coder\",\n            \"name\": \"Qwen Coder\",\n            \"released\": 1769904000000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 1,\n    \"next\": null\n  },\n  \"otherProvider\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"none\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"images\": {\n    \"providers\": [],\n    \"total\": 0,\n    \"next\": null\n  },\n  \"page1\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4.1-flash-1017\",\n            \"name\": \"DeepSeek V4.1 Flash 1017\",\n            \"released\": 1792195200000,\n            \"variants\": [\n              \"none\",\n              \"low\",\n              \"high\",\n              \"max\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 1\n  },\n  \"page2\": {\n    \"providers\": [\n      {\n        \"id\": \"openrouter\",\n        \"name\": \"OpenRouter\",\n        \"models\": [\n          {\n            \"id\": \"openrouter/deepseek/deepseek-v4-flash\",\n            \"name\": \"DeepSeek V4 Flash\",\n            \"released\": 1775001600000,\n            \"variants\": [\n              \"low\",\n              \"medium\",\n              \"high\"\n            ],\n            \"cost\": [],\n            \"status\": \"active\"\n          }\n        ]\n      }\n    ],\n    \"total\": 4,\n    \"next\": 2\n  },\n  \"past\": {\n    \"providers\": [],\n    \"total\": 3,\n    \"next\": null\n  }\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "provider": "openrouter",
+                  "query": "flash"
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "provider": "OpenRouter",
+                  "query": "QWEN coder"
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "provider": "anthropic"
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "query": "no-such-model"
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "type": "image"
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "all": true,
+                  "limit": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "all": true,
+                  "limit": 1,
+                  "offset": 1
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "offset": 10
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const errors = []\\nfor (const input of [{ limit: 0 }, { limit: 101 }, { offset: -1 }, { type: \\\"video\\\" }, { query: 5 }, { extra: true }, \\\"flash\\\", null]) {\\n  try { await tools.opencode.models(input) } catch (error) { errors.push(String(error.message).split(\\\"\\\\n\\\").slice(0, 3).join(\\\" | \\\")) }\\n}\\nreturn errors\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const errors = []\nfor (const input of [{ limit: 0 }, { limit: 101 }, { offset: -1 }, { type: \"video\" }, { query: 5 }, { extra: true }, \"flash\", null]) {\n  try { await tools.opencode.models(input) } catch (error) { errors.push(String(error.message).split(\"\\n\").slice(0, 3).join(\" | \")) }\n}\nreturn errors"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "[\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - limit: Expected a value between 1 and 100 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - offset: Expected a value greater than or equal to 0 | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - type: Expected \\\"chat\\\" | \\\"image\\\" | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - query: Expected string | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \",\n  \"Invalid arguments for tool \\\"opencode_models\\\": | - root: Expected object | \"\n]",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [
+              {
+                "input": {
+                  "limit": 0
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "limit": 101
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "offset": -1
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "type": "video"
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "query": 5
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "extra": true
+                },
+                "status": "completed",
+                "tool": "opencode.models"
+              },
+              {
+                "input": {
+                  "input": "flash"
+                },
+                "status": "error",
+                "tool": "opencode.models"
+              },
+              {
+                "status": "error",
+                "tool": "opencode.models"
+              }
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_48>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

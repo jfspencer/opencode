@@ -1,0 +1,148 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "DESCRIPTION",
+          "  Manage sessions",
+          "",
+          "USAGE",
+          "  opencode session <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "",
+          "SUBCOMMANDS",
+          "  list      List top-level sessions in the current project, newest first",
+          "  delete    Delete a session and its child sessions",
+          "  export    Export session data as JSON",
+          "  import    Import session data from a JSON file or URL",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "DESCRIPTION",
+          "  Debugging and troubleshooting tools",
+          "",
+          "USAGE",
+          "  opencode debug <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "SUBCOMMANDS",
+          "  agents       List all agents",
+          "  config       List configuration sources",
+          "  heap-dump    Write a heap snapshot of the running server and print its path",
+          "  paths        Show global paths (data, config, cache, state)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "DESCRIPTION",
+          "  manage integrations and credentials",
+          "",
+          "USAGE",
+          "  opencode auth <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "",
+          "SUBCOMMANDS",
+          "  list      list integrations and credentials",
+          "  login     connect an integration",
+          "  logout    log out of a saved account",
+          "  export    print stored credentials, including secrets, as JSON",
+          "  import    import credentials exported by auth export",
+          "  switch    switch the active account for an integration",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "DESCRIPTION",
+          "  Manage the background server",
+          "",
+          "USAGE",
+          "  opencode service <subcommand> [flags]",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "SUBCOMMANDS",
+          "  start      Start the background server",
+          "  restart    Restart the background server",
+          "  status     Show background server status",
+          "  stop       Stop the background server",
+          "  get        Get service configuration",
+          "  set        Set service configuration",
+          "  unset      Unset service configuration",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

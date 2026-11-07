@@ -1,0 +1,6121 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "failures"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Trigger: unauthorized"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: unauthorized"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_2>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_3>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "No auth credentials found",
+              "response": {
+                "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+              },
+              "status": 401,
+              "type": "provider.auth"
+            },
+            "id": "<msg_3>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "No auth credentials found",
+              "response": {
+                "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+              },
+              "status": 401,
+              "type": "provider.auth"
+            },
+            "finish": "error",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_4>",
+          "payload": {
+            "text": "Trigger: forbidden token sharing"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: forbidden token sharing"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_5>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_6>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+              },
+              "status": 403,
+              "type": "provider.auth"
+            },
+            "id": "<msg_6>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+              },
+              "status": 403,
+              "type": "provider.auth"
+            },
+            "finish": "error",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_7>",
+          "payload": {
+            "text": "Trigger: payment required"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: payment required"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_8>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_9>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Insufficient credits",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+              },
+              "status": 402,
+              "type": "provider.quota"
+            },
+            "id": "<msg_9>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Insufficient credits",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+              },
+              "status": 402,
+              "type": "provider.quota"
+            },
+            "finish": "error",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_10>",
+          "payload": {
+            "text": "Trigger: free usage limit"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: free usage limit"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_11>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_12>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.free-limit"
+            },
+            "id": "<msg_12>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.free-limit"
+            },
+            "finish": "error",
+            "id": "<msg_11>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_13>",
+          "payload": {
+            "text": "Trigger: workspace budget"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: workspace budget"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_14>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_15>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.budget-limit"
+            },
+            "id": "<msg_15>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.budget-limit"
+            },
+            "finish": "error",
+            "id": "<msg_14>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_16>",
+          "payload": {
+            "text": "Trigger: model budget"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: model budget"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_17>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_18>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "You've reached the spend limit for this model. Switch models to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+              },
+              "status": 402,
+              "type": "provider.model-budget-limit"
+            },
+            "id": "<msg_18>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "You've reached the spend limit for this model. Switch models to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+              },
+              "status": 402,
+              "type": "provider.model-budget-limit"
+            },
+            "finish": "error",
+            "id": "<msg_17>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_19>",
+          "payload": {
+            "text": "Trigger: go usage limit"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: go usage limit"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_20>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_21>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+              },
+              "status": 429,
+              "type": "provider.go-limit"
+            },
+            "id": "<msg_21>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+              },
+              "status": 429,
+              "type": "provider.go-limit"
+            },
+            "finish": "error",
+            "id": "<msg_20>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_22>",
+          "payload": {
+            "text": "Trigger: go usage limit without a name"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: go usage limit without a name"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_23>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_24>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.go-limit"
+            },
+            "id": "<msg_24>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.go-limit"
+            },
+            "finish": "error",
+            "id": "<msg_23>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_25>",
+          "payload": {
+            "text": "Trigger: chatgpt usage limit"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: chatgpt usage limit"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_26>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_27>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+              },
+              "status": 400,
+              "type": "provider.chatgpt-limit"
+            },
+            "id": "<msg_27>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+              },
+              "status": 400,
+              "type": "provider.chatgpt-limit"
+            },
+            "finish": "error",
+            "id": "<msg_26>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_28>",
+          "payload": {
+            "text": "Trigger: content policy"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: content policy"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_29>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_30>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Flagged",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+              },
+              "status": 400,
+              "type": "provider.content-filter"
+            },
+            "id": "<msg_30>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Flagged",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+              },
+              "status": 400,
+              "type": "provider.content-filter"
+            },
+            "finish": "error",
+            "id": "<msg_29>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_31>",
+          "payload": {
+            "text": "Trigger: invalid request"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: invalid request"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_32>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_33>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Unsupported parameter: foo",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+              },
+              "status": 400,
+              "type": "provider.invalid-request"
+            },
+            "id": "<msg_33>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Unsupported parameter: foo",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+              },
+              "status": 400,
+              "type": "provider.invalid-request"
+            },
+            "finish": "error",
+            "id": "<msg_32>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_34>",
+          "payload": {
+            "text": "Trigger: rate limited"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: rate limited"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_35>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_36>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Slow down",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Slow down\"}}"
+              },
+              "retryAfterMs": 7000,
+              "status": 429,
+              "type": "provider.rate-limit"
+            },
+            "id": "<msg_36>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Slow down",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Slow down\"}}"
+              },
+              "retryAfterMs": 7000,
+              "status": 429,
+              "type": "provider.rate-limit"
+            },
+            "finish": "error",
+            "id": "<msg_35>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_37>",
+          "payload": {
+            "text": "Trigger: server error"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: server error"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_38>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_39>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Upstream overloaded",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+              },
+              "status": 503,
+              "type": "provider.internal"
+            },
+            "id": "<msg_39>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Upstream overloaded",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+              },
+              "status": 503,
+              "type": "provider.internal"
+            },
+            "finish": "error",
+            "id": "<msg_38>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_40>",
+          "payload": {
+            "text": "Trigger: malformed stream"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: malformed stream"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_41>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_42>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Invalid openrouter/openrouter stream event",
+              "response": {
+                "body": "{this is not json"
+              },
+              "status": 200,
+              "type": "provider.invalid-output"
+            },
+            "id": "<msg_42>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Invalid openrouter/openrouter stream event",
+              "response": {
+                "body": "{this is not json"
+              },
+              "status": 200,
+              "type": "provider.invalid-output"
+            },
+            "finish": "error",
+            "id": "<msg_41>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_43>",
+          "payload": {
+            "text": "Trigger: unclassified error event in the stream"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: unclassified error event in the stream"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_44>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_45>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Something odd happened",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+              },
+              "status": 200,
+              "type": "provider.unknown"
+            },
+            "id": "<msg_45>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Something odd happened",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+              },
+              "status": 200,
+              "type": "provider.unknown"
+            },
+            "finish": "error",
+            "id": "<msg_44>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_46>",
+          "payload": {
+            "text": "Trigger: error event in the stream"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Trigger: error event in the stream"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "outcome": "failed",
+          "projectID": "<hash_1>",
+          "time": {
+            "busy": "<time>",
+            "created": "<time>",
+            "idle": "<time>",
+            "updated": "<time>"
+          },
+          "title": "failures",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_47>",
+              "order": "desc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_48>",
+              "order": "desc"
+            }
+          }
+        },
+        "data": [
+          {
+            "error": {
+              "message": "Provider melted",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+              },
+              "status": 200,
+              "type": "provider.invalid-request"
+            },
+            "id": "<msg_48>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Provider melted",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+              },
+              "status": 200,
+              "type": "provider.invalid-request"
+            },
+            "finish": "error",
+            "id": "<msg_47>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=desc&limit=2"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_48>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "id": "<msg_1>",
+            "text": "Trigger: unauthorized",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "No auth credentials found",
+              "response": {
+                "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+              },
+              "status": 401,
+              "type": "provider.auth"
+            },
+            "finish": "error",
+            "id": "<msg_2>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "No auth credentials found",
+              "response": {
+                "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+              },
+              "status": 401,
+              "type": "provider.auth"
+            },
+            "id": "<msg_3>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_4>",
+            "text": "Trigger: forbidden token sharing",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+              },
+              "status": 403,
+              "type": "provider.auth"
+            },
+            "finish": "error",
+            "id": "<msg_5>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+              },
+              "status": 403,
+              "type": "provider.auth"
+            },
+            "id": "<msg_6>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_7>",
+            "text": "Trigger: payment required",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Insufficient credits",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+              },
+              "status": 402,
+              "type": "provider.quota"
+            },
+            "finish": "error",
+            "id": "<msg_8>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Insufficient credits",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+              },
+              "status": 402,
+              "type": "provider.quota"
+            },
+            "id": "<msg_9>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_10>",
+            "text": "Trigger: free usage limit",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.free-limit"
+            },
+            "finish": "error",
+            "id": "<msg_11>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.free-limit"
+            },
+            "id": "<msg_12>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_13>",
+            "text": "Trigger: workspace budget",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.budget-limit"
+            },
+            "finish": "error",
+            "id": "<msg_14>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.budget-limit"
+            },
+            "id": "<msg_15>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_16>",
+            "text": "Trigger: model budget",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "You've reached the spend limit for this model. Switch models to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+              },
+              "status": 402,
+              "type": "provider.model-budget-limit"
+            },
+            "finish": "error",
+            "id": "<msg_17>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "You've reached the spend limit for this model. Switch models to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+              },
+              "status": 402,
+              "type": "provider.model-budget-limit"
+            },
+            "id": "<msg_18>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_19>",
+            "text": "Trigger: go usage limit",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+              },
+              "status": 429,
+              "type": "provider.go-limit"
+            },
+            "finish": "error",
+            "id": "<msg_20>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+              },
+              "status": 429,
+              "type": "provider.go-limit"
+            },
+            "id": "<msg_21>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_22>",
+            "text": "Trigger: go usage limit without a name",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.go-limit"
+            },
+            "finish": "error",
+            "id": "<msg_23>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+              },
+              "status": 402,
+              "type": "provider.go-limit"
+            },
+            "id": "<msg_24>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_25>",
+            "text": "Trigger: chatgpt usage limit",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+              },
+              "status": 400,
+              "type": "provider.chatgpt-limit"
+            },
+            "finish": "error",
+            "id": "<msg_26>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+              "response": {
+                "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+              },
+              "status": 400,
+              "type": "provider.chatgpt-limit"
+            },
+            "id": "<msg_27>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_28>",
+            "text": "Trigger: content policy",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Flagged",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+              },
+              "status": 400,
+              "type": "provider.content-filter"
+            },
+            "finish": "error",
+            "id": "<msg_29>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Flagged",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+              },
+              "status": 400,
+              "type": "provider.content-filter"
+            },
+            "id": "<msg_30>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_31>",
+            "text": "Trigger: invalid request",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Unsupported parameter: foo",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+              },
+              "status": 400,
+              "type": "provider.invalid-request"
+            },
+            "finish": "error",
+            "id": "<msg_32>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Unsupported parameter: foo",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+              },
+              "status": 400,
+              "type": "provider.invalid-request"
+            },
+            "id": "<msg_33>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_34>",
+            "text": "Trigger: rate limited",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Slow down",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Slow down\"}}"
+              },
+              "retryAfterMs": 7000,
+              "status": 429,
+              "type": "provider.rate-limit"
+            },
+            "finish": "error",
+            "id": "<msg_35>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Slow down",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Slow down\"}}"
+              },
+              "retryAfterMs": 7000,
+              "status": 429,
+              "type": "provider.rate-limit"
+            },
+            "id": "<msg_36>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_37>",
+            "text": "Trigger: server error",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Upstream overloaded",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+              },
+              "status": 503,
+              "type": "provider.internal"
+            },
+            "finish": "error",
+            "id": "<msg_38>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Upstream overloaded",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+              },
+              "status": 503,
+              "type": "provider.internal"
+            },
+            "id": "<msg_39>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_40>",
+            "text": "Trigger: malformed stream",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Invalid openrouter/openrouter stream event",
+              "response": {
+                "body": "{this is not json"
+              },
+              "status": 200,
+              "type": "provider.invalid-output"
+            },
+            "finish": "error",
+            "id": "<msg_41>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Invalid openrouter/openrouter stream event",
+              "response": {
+                "body": "{this is not json"
+              },
+              "status": 200,
+              "type": "provider.invalid-output"
+            },
+            "id": "<msg_42>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_43>",
+            "text": "Trigger: unclassified error event in the stream",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Something odd happened",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+              },
+              "status": 200,
+              "type": "provider.unknown"
+            },
+            "finish": "error",
+            "id": "<msg_44>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Something odd happened",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+              },
+              "status": 200,
+              "type": "provider.unknown"
+            },
+            "id": "<msg_45>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
+          {
+            "id": "<msg_46>",
+            "text": "Trigger: error event in the stream",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          {
+            "agent": "build",
+            "content": [],
+            "error": {
+              "message": "Provider melted",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+              },
+              "status": 200,
+              "type": "provider.invalid-request"
+            },
+            "finish": "error",
+            "id": "<msg_47>",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "assistant"
+          },
+          {
+            "error": {
+              "message": "Provider melted",
+              "response": {
+                "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+              },
+              "status": 200,
+              "type": "provider.invalid-request"
+            },
+            "id": "<msg_48>",
+            "outcome": "failed",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: rate limited",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: rate limited",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: server error",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: rate limited",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: server error",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: malformed stream",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: rate limited",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: server error",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: malformed stream",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: unclassified error event in the stream",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Trigger: unauthorized",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: forbidden token sharing",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: payment required",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: free usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: workspace budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: model budget",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: go usage limit without a name",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: chatgpt usage limit",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: content policy",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: invalid request",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: rate limited",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: server error",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: malformed stream",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: unclassified error event in the stream",
+              "role": "user"
+            },
+            {
+              "content": "Trigger: error event in the stream",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "failures",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: unauthorized"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "error": {
+            "message": "No auth credentials found",
+            "response": {
+              "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+            },
+            "status": 401,
+            "type": "provider.auth"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "No auth credentials found",
+            "response": {
+              "body": "{\"error\":{\"message\":\"No auth credentials found\",\"code\":401}}"
+            },
+            "status": 401,
+            "type": "provider.auth"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_4>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: forbidden token sharing"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "error": {
+            "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+            },
+            "status": 403,
+            "type": "provider.auth"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "This ChatGPT connection is no longer valid. Reconnect to ChatGPT.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"denied\",\"code\":\"subscription_sharing_invalid_user\"}}"
+            },
+            "status": 403,
+            "type": "provider.auth"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_7>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: payment required"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "error": {
+            "message": "Insufficient credits",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+            },
+            "status": 402,
+            "type": "provider.quota"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Insufficient credits",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Insufficient credits\",\"code\":402}}"
+            },
+            "status": 402,
+            "type": "provider.quota"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_10>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: free usage limit"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_10>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_11>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "error": {
+            "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.free-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Free tier exhausted\",\"type\":\"FreeUsageLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.free-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_13>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: workspace budget"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_13>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_14>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_14>",
+          "error": {
+            "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.budget-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Workspace usage limit reached. Model use is paused until the limit resets.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Budget hit\",\"type\":\"BudgetLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.budget-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_16>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: model budget"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_16>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_17>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_17>",
+          "error": {
+            "message": "You've reached the spend limit for this model. Switch models to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+            },
+            "status": 402,
+            "type": "provider.model-budget-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "You've reached the spend limit for this model. Switch models to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Model budget hit\",\"type\":\"BudgetLimitError\",\"metadata\":{\"coverage\":\"models\"}}}"
+            },
+            "status": 402,
+            "type": "provider.model-budget-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_19>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: go usage limit"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_19>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_20>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_20>",
+          "error": {
+            "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+            },
+            "status": 429,
+            "type": "provider.go-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "OpenCode Go weekly usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\",\"metadata\":{\"limitName\":\"weekly\"}}}"
+            },
+            "status": 429,
+            "type": "provider.go-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_22>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: go usage limit without a name"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_22>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_57>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_23>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_23>",
+          "error": {
+            "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.go-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 48,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "OpenCode Go usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Go limit\",\"type\":\"GoUsageLimitError\"}}"
+            },
+            "status": 402,
+            "type": "provider.go-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 49,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_25>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: chatgpt usage limit"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 50,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 51,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_25>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 52,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_26>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 53,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_26>",
+          "error": {
+            "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+            },
+            "status": 400,
+            "type": "provider.chatgpt-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 54,
+          "version": 1
+        },
+        "id": "<evt_65>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details.",
+            "response": {
+              "body": "{\"error\":{\"message\":\"limit\",\"code\":\"subscription_sharing_usage_limit_exceeded\"}}"
+            },
+            "status": 400,
+            "type": "provider.chatgpt-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 55,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_28>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: content policy"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 56,
+          "version": 1
+        },
+        "id": "<evt_67>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 57,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_28>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 58,
+          "version": 1
+        },
+        "id": "<evt_69>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_29>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 59,
+          "version": 1
+        },
+        "id": "<evt_70>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_29>",
+          "error": {
+            "message": "Flagged",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+            },
+            "status": 400,
+            "type": "provider.content-filter"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 60,
+          "version": 1
+        },
+        "id": "<evt_71>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Flagged",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Flagged\",\"code\":\"content_policy_violation\"}}"
+            },
+            "status": 400,
+            "type": "provider.content-filter"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 61,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_31>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: invalid request"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 62,
+          "version": 1
+        },
+        "id": "<evt_73>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 63,
+          "version": 1
+        },
+        "id": "<evt_74>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_31>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 64,
+          "version": 1
+        },
+        "id": "<evt_75>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_32>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 65,
+          "version": 1
+        },
+        "id": "<evt_76>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_32>",
+          "error": {
+            "message": "Unsupported parameter: foo",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+            },
+            "status": 400,
+            "type": "provider.invalid-request"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 66,
+          "version": 1
+        },
+        "id": "<evt_77>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Unsupported parameter: foo",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Unsupported parameter: foo\"}}"
+            },
+            "status": 400,
+            "type": "provider.invalid-request"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 67,
+          "version": 1
+        },
+        "id": "<evt_78>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_34>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: rate limited"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 68,
+          "version": 1
+        },
+        "id": "<evt_79>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 69,
+          "version": 1
+        },
+        "id": "<evt_80>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_34>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 70,
+          "version": 1
+        },
+        "id": "<evt_81>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_35>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 71,
+          "version": 1
+        },
+        "id": "<evt_82>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_35>",
+          "error": {
+            "message": "Slow down",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Slow down\"}}"
+            },
+            "retryAfterMs": 7000,
+            "status": 429,
+            "type": "provider.rate-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 72,
+          "version": 1
+        },
+        "id": "<evt_83>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Slow down",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Slow down\"}}"
+            },
+            "retryAfterMs": 7000,
+            "status": 429,
+            "type": "provider.rate-limit"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 73,
+          "version": 1
+        },
+        "id": "<evt_84>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_37>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: server error"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 74,
+          "version": 1
+        },
+        "id": "<evt_85>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 75,
+          "version": 1
+        },
+        "id": "<evt_86>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_37>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 76,
+          "version": 1
+        },
+        "id": "<evt_87>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_38>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 77,
+          "version": 1
+        },
+        "id": "<evt_88>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_38>",
+          "error": {
+            "message": "Upstream overloaded",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+            },
+            "status": 503,
+            "type": "provider.internal"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 78,
+          "version": 1
+        },
+        "id": "<evt_89>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Upstream overloaded",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Upstream overloaded\"}}"
+            },
+            "status": 503,
+            "type": "provider.internal"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 79,
+          "version": 1
+        },
+        "id": "<evt_90>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_40>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: malformed stream"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 80,
+          "version": 1
+        },
+        "id": "<evt_91>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 81,
+          "version": 1
+        },
+        "id": "<evt_92>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_40>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 82,
+          "version": 1
+        },
+        "id": "<evt_93>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_41>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 83,
+          "version": 1
+        },
+        "id": "<evt_94>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_41>",
+          "error": {
+            "message": "Invalid openrouter/openrouter stream event",
+            "response": {
+              "body": "{this is not json"
+            },
+            "status": 200,
+            "type": "provider.invalid-output"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 84,
+          "version": 1
+        },
+        "id": "<evt_95>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Invalid openrouter/openrouter stream event",
+            "response": {
+              "body": "{this is not json"
+            },
+            "status": 200,
+            "type": "provider.invalid-output"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 85,
+          "version": 1
+        },
+        "id": "<evt_96>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_43>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: unclassified error event in the stream"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 86,
+          "version": 1
+        },
+        "id": "<evt_97>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 87,
+          "version": 1
+        },
+        "id": "<evt_98>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_43>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 88,
+          "version": 1
+        },
+        "id": "<evt_99>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_44>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 89,
+          "version": 1
+        },
+        "id": "<evt_100>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_44>",
+          "error": {
+            "message": "Something odd happened",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+            },
+            "status": 200,
+            "type": "provider.unknown"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 90,
+          "version": 1
+        },
+        "id": "<evt_101>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Something odd happened",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Something odd happened\"}}"
+            },
+            "status": 200,
+            "type": "provider.unknown"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 91,
+          "version": 1
+        },
+        "id": "<evt_102>",
+        "type": "session.execution.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_46>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Trigger: error event in the stream"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 92,
+          "version": 1
+        },
+        "id": "<evt_103>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 93,
+          "version": 1
+        },
+        "id": "<evt_104>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_46>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 94,
+          "version": 1
+        },
+        "id": "<evt_105>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_47>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 95,
+          "version": 1
+        },
+        "id": "<evt_106>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_47>",
+          "error": {
+            "message": "Provider melted",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+            },
+            "status": 200,
+            "type": "provider.invalid-request"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 96,
+          "version": 1
+        },
+        "id": "<evt_107>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.failed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "error": {
+            "message": "Provider melted",
+            "response": {
+              "body": "{\"error\":{\"message\":\"Provider melted\",\"code\":400}}"
+            },
+            "status": 200,
+            "type": "provider.invalid-request"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 97,
+          "version": 1
+        },
+        "id": "<evt_108>",
+        "type": "session.execution.failed"
+      }
+    ]
+  },
+  "files": {}
+}

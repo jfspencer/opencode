@@ -1,0 +1,23 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "openrouter/acme/tiny-1",
+          "openrouter/deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

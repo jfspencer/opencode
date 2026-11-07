@@ -1,0 +1,205 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "path": "<project>/notes/new.txt"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": "plain text body",
+      "status": 200,
+      "url": "/api/experimental/fs/write?path=notes/new.txt"
+    },
+    {
+      "body": {
+        "data": {
+          "path": "<project>/README.md"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": "replaced",
+      "status": 200,
+      "url": "/api/experimental/fs/write?path=README.md"
+    },
+    {
+      "body": {
+        "data": {
+          "path": "<project>/abs/written.txt"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": "absolute",
+      "status": 200,
+      "url": "/api/experimental/fs/write?path=%2Ftmp%2F<root-name>%2F<project-name>%2Fabs%2Fwritten.txt"
+    },
+    {
+      "body": {
+        "data": {
+          "path": "<project>/flattened.txt"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": "dots",
+      "status": 200,
+      "url": "/api/experimental/fs/write?path=sub/../flattened.txt"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Missing key\n  at [\"path\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": "no path",
+      "status": 400,
+      "url": "/api/experimental/fs/write"
+    },
+    {
+      "body": "plain text body",
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/read/notes/new.txt"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    ".env": "TOKEN=1\n",
+    ".gitignore": "dist/\n*.log\n",
+    ".hidden/secret.txt": "hidden\n",
+    "README.md": "\"replaced\"",
+    "abs/written.txt": "\"absolute\"",
+    "app.log": "ignored log\n",
+    "assets/pixel.png": "PNG\r\n\u001a\nfake",
+    "data/empty.txt": "",
+    "dist/bundle.js": "ignored\n",
+    "docs/guide.md": "Guide.\n",
+    "docs/with space.md": "Spaced name.\n",
+    "flattened.txt": "\"dots\"",
+    "notes/new.txt": "\"plain text body\"",
+    "src/math.ts": "export const add = (a: number, b: number) => a + b\n",
+    "src/nested/deep/value.ts": "export const value = 42\n",
+    "src/strings.ts": "export const greet = (name: string) => `hello ${name}`\n"
+  }
+}

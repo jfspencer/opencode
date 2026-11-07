@@ -1,0 +1,38 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "openrouter/deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "models",
+          "--standalone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "openrouter/deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

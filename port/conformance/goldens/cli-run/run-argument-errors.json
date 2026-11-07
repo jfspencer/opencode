@@ -1,0 +1,116 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run"
+        ],
+        "exit": 1,
+        "stderr": [
+          "\u001b[91m\u001b[1mError: \u001b[0mYou must provide a message",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run"
+        ],
+        "exit": 1,
+        "stderr": [
+          "\u001b[91m\u001b[1mError: \u001b[0mYou must provide a message",
+          ""
+        ],
+        "stdin": "   \n",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--fork",
+          "Hello"
+        ],
+        "exit": 1,
+        "stderr": [
+          "\u001b[91m\u001b[1mError: \u001b[0m--fork requires --continue or --session",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--worktree",
+          "-c",
+          "Hello"
+        ],
+        "exit": 1,
+        "stderr": [
+          "\u001b[91m\u001b[1mError: \u001b[0m--worktree starts a new session and cannot be combined with --continue or --session",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--format",
+          "json"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "error": {
+              "message": "You must provide a message",
+              "type": "unknown"
+            },
+            "sessionID": "",
+            "timestamp": "<time>",
+            "type": "error"
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--session",
+          "<ses_1>",
+          "--fork",
+          "Hello"
+        ],
+        "exit": 1,
+        "stderr": [
+          "\u001b[91m\u001b[1mError: \u001b[0mSession not found",
+          ""
+        ],
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

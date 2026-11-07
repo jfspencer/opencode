@@ -1,0 +1,51 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "OpenRouter  OPENROUTER_API_KEY          environment",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list",
+          "--format",
+          "json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "connections": [
+                {
+                  "name": "OPENROUTER_API_KEY",
+                  "type": "env"
+                }
+              ],
+              "id": "openrouter",
+              "name": "OpenRouter"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

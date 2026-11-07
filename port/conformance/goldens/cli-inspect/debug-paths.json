@@ -1,0 +1,202 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "home       <sandbox>/home",
+          "data       <sandbox>/data/opencode",
+          "cache      <sandbox>/cache/opencode",
+          "config     <sandbox>/config/opencode",
+          "state      <sandbox>/state/opencode",
+          "tmp        <sandbox>/tmp/opencode",
+          "bin        <sandbox>/cache/opencode/bin",
+          "log        <sandbox>/data/opencode/log",
+          "repos      <sandbox>/data/opencode/repos",
+          "db         <sandbox>/data/opencode/opencode-local.db",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "db"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/data/opencode/opencode-local.db",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "home"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/home",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "data"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/data/opencode",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "config"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/config/opencode",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "cache"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/cache/opencode",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "state"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/state/opencode",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "tmp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/tmp/opencode",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "bin"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/cache/opencode/bin",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "log"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/data/opencode/log",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "repos"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "<sandbox>/data/opencode/repos",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

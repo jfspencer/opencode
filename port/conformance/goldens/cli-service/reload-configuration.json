@@ -1,0 +1,51 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "reload"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "Configuration reloaded",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "reload",
+          "--standalone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "Configuration reloaded",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,3345 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the async delegation and settlement edge cases programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the async delegation and settlement edge cases programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function waitForever() { await new Promise(() => {}) }\\nconst a = waitForever()\\nconst b = waitForever()\\nawait a\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 32)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function waitForever() { await new Promise(() => {}) }\\nconst a = waitForever()\\nconst b = waitForever()\\nawait a\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 32)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const gen = (async function* () { await new Promise(() => {}); yield 1 })()\\nfor await (const v of gen) {}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 35)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function waitForever() { await new Promise(() => {}) }\\nconst a = waitForever()\\nconst b = waitForever()\\nawait a\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 32)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const gen = (async function* () { await new Promise(() => {}); yield 1 })()\\nfor await (const v of gen) {}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 35)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"throw () => 1\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Uncaught: a non-data value",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function waitForever() { await new Promise(() => {}) }\\nconst a = waitForever()\\nconst b = waitForever()\\nawait a\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 32)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const gen = (async function* () { await new Promise(() => {}); yield 1 })()\\nfor await (const v of gen) {}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 35)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"throw () => 1\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Uncaught: a non-data value",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"throw Promise.resolve(1)\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Uncaught: a non-data value",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the async delegation and settlement edge cases programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the async delegation and settlement edge cases programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const log = []\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\n  next: (v) => ({ value: \"n\" + i++ + \":\" + v, done: false }),\n  return: (v) => { log.push(\"sync return \" + v); return { value: \"ret:\" + v, done: true } },\n  throw: (e) => { log.push(\"sync throw \" + e); return { value: \"recovered\", done: false } },\n} } })\nasync function* outer() { const r = yield* syncIt(); return r }\nconst o1 = outer()\nconst r1 = [await o1.next(\"ignored\"), await o1.next(\"second\"), await o1.return(\"R\"), await o1.next()]\nconst o2 = outer()\nconst r2 = [await o2.next(), await o2.throw(\"E\"), await o2.return(\"done\")]\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\nasync function* outer2() { yield* bare() }\nconst o3 = outer2()\nconst r3 = [await o3.next(), await o3.return(\"bare return\")]\nconst o4 = outer2()\nawait o4.next()\nconst r4 = await o4.throw(new Error(\"no throw method\")).catch((e) => e.name + \": \" + e.message)\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\nasync function* outer5() { yield* badReturn() }\nconst o5 = outer5()\nawait o5.next()\nconst r5 = await o5.return(\"x\").catch((e) => e.name + \": \" + e.message)\nconst o5b = outer5()\nawait o5b.next()\nconst r5b = await o5b.throw(\"y\").catch((e) => e.name + \": \" + e.message)\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"rejected value\")), done: false }), return: () => { log.push(\"closed on rejection\"); return {} } } } })\nasync function* outer3() { yield* rejecting() }\nconst r6 = await outer3().next().catch((e) => e.message)\nlet r7\ntry { for await (const v of rejecting()) log.push(\"never \" + v) } catch (e) { r7 = e.message }\nasync function* outer4() { yield* [1, 2, 3] }\nconst o6 = outer4()\nconst r8 = [await o6.next(), await o6.return(\"arr ret\"), await o6.next()]\nconst o7 = outer4()\nawait o7.next()\nconst r9 = await o7.throw(new Error(\"arr throw\")).catch((e) => e.message)\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \"final\", done: true }) } } })\nasync function* outer8() { const r = yield* doneFirst(); yield \"after \" + r }\nconst r10 = []\nfor await (const v of outer8()) r10.push(v)\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const log = []\nconst ag = (async function* () { try { yield 1 } finally { log.push(\"cleanup\") } })()\nconst fresh = await ag.return(Promise.resolve(\"resolved before start\"))\nconst after = await ag.next()\nconst ag2 = (async function* () { yield 1 })()\nawait ag2.next()\nawait ag2.next()\nconst completed = await ag2.return(Promise.resolve(\"on completed\"))\nconst ag3 = (async function* () { yield 1 })()\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\"rejected return\"))).catch((e) => e.message)\nconst ag4 = (async function* () { yield 1 })()\nconst throwFresh = await ag4.throw(new Error(\"thrown before start\")).catch((e) => e.message)\nconst ag5 = (async function* () { const x = yield 1; yield x })()\nconst queued = await Promise.all([ag5.next(), ag5.next(\"queued value\"), ag5.next(), ag5.return(\"q\")])\nconst sg = (function* () { yield 1 })()\nconst syncReturnFresh = [sg.return(\"fresh\"), sg.next()]\nconst sg2 = (function* () { yield 1 })()\nlet syncThrowFresh\ntry { sg2.throw(\"boom\") } catch (e) { syncThrowFresh = e }\nlet acc = 0\nacc += await Promise.resolve(5)\nacc = (await Promise.resolve(acc)) * 2\nlet ref = { n: 1 }\nref.n += await Promise.resolve(2)\nref[\"n\"] *= await 3\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "content": [
+            {
+              "text": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 2
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 20,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_33>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_4>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 21,
+          "version": 1
+        },
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 22,
+          "version": 1
+        },
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 23,
+          "version": 1
+        },
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \": \" + e.message } })()\nconst tried2 = await (async () => { try { return await Promise.try(\"str\") } catch (e) { return e.message } })()\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \"s\", {}, Symbol.iterator, new Date(0), /r/, new Error(\"e\"), new URL(\"https://example.com\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \"no throw\" } catch (e) { return e.message } })\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \"iterated\" } catch (e) { return e.message } })\nlet spins = 0\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"original reason\")), done: false }), return: () => { throw new Error(\"close failed\") } } } }\nlet closeThrows\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"reason wins\")), done: false }), return: () => 5 } } }\nlet closeBad\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 24,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 25,
+          "version": 1
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "content": [
+            {
+              "text": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 26,
+          "version": 2
+        },
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_4>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 27,
+          "version": 1
+        },
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 400,
+            "output": 40,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_41>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_5>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 28,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 29,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = Promise.race([])\\n\\\"unreachable\\\"\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 30,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const r = Promise.race([])\n\"unreachable\""
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 31,
+          "version": 1
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 32,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "content": [
+            {
+              "text": "unreachable\n\nWarnings:\n- [ExecutionFailure] Unhandled rejection from an un-awaited promise: TypeError: Promise.race([]) would never settle; provide at least one promise or value. (line 1, col 11)",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 33,
+          "version": 2
+        },
+        "id": "<evt_47>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_5>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 34,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 500,
+            "output": 50,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_49>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_6>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 35,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 36,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"await new Promise(() => {})\\n\\\"never\\\"\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 37,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "await new Promise(() => {})\n\"never\""
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 38,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 39,
+          "version": 1
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "content": [
+            {
+              "text": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 1)",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 40,
+          "version": 2
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_6>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 41,
+          "version": 1
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 600,
+            "output": 60,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_57>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_7>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 42,
+          "version": 1
+        },
+        "id": "<evt_58>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 43,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"async function waitForever() { await new Promise(() => {}) }\\nconst a = waitForever()\\nconst b = waitForever()\\nawait a\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 44,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "async function waitForever() { await new Promise(() => {}) }\nconst a = waitForever()\nconst b = waitForever()\nawait a"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 45,
+          "version": 1
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 46,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "content": [
+            {
+              "text": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 32)",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 47,
+          "version": 2
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_7>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 48,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 700,
+            "output": 70,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_65>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_8>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 49,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 50,
+          "version": 1
+        },
+        "id": "<evt_67>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const gen = (async function* () { await new Promise(() => {}); yield 1 })()\\nfor await (const v of gen) {}\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 51,
+          "version": 1
+        },
+        "id": "<evt_68>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "const gen = (async function* () { await new Promise(() => {}); yield 1 })()\nfor await (const v of gen) {}"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 52,
+          "version": 1
+        },
+        "id": "<evt_69>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 53,
+          "version": 1
+        },
+        "id": "<evt_70>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "content": [
+            {
+              "text": "Error: The program is waiting on a promise that can never settle: nothing else is running, so nothing can resolve it. Code Mode has no timers or sleep, so don't wait or poll inside a program. (line 1, col 35)",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 54,
+          "version": 2
+        },
+        "id": "<evt_71>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_8>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 55,
+          "version": 1
+        },
+        "id": "<evt_72>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 800,
+            "output": 80,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_73>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_9>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 56,
+          "version": 1
+        },
+        "id": "<evt_74>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 57,
+          "version": 1
+        },
+        "id": "<evt_75>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"throw () => 1\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 58,
+          "version": 1
+        },
+        "id": "<evt_76>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "throw () => 1"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 59,
+          "version": 1
+        },
+        "id": "<evt_77>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 60,
+          "version": 1
+        },
+        "id": "<evt_78>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "content": [
+            {
+              "text": "Uncaught: a non-data value",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 61,
+          "version": 2
+        },
+        "id": "<evt_79>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_9>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 62,
+          "version": 1
+        },
+        "id": "<evt_80>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 900,
+            "output": 90,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_81>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_10>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 63,
+          "version": 1
+        },
+        "id": "<evt_82>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "id": "call_conformance_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 64,
+          "version": 1
+        },
+        "id": "<evt_83>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"throw Promise.resolve(1)\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 65,
+          "version": 1
+        },
+        "id": "<evt_84>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "code": "throw Promise.resolve(1)"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 66,
+          "version": 1
+        },
+        "id": "<evt_85>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 67,
+          "version": 1
+        },
+        "id": "<evt_86>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "content": [
+            {
+              "text": "Uncaught: a non-data value",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "error": true,
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 68,
+          "version": 2
+        },
+        "id": "<evt_87>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_10>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 69,
+          "version": 1
+        },
+        "id": "<evt_88>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 1000,
+            "output": 100,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_89>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_11>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 70,
+          "version": 1
+        },
+        "id": "<evt_90>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 71,
+          "version": 1
+        },
+        "id": "<evt_91>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_92>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 72,
+          "version": 1
+        },
+        "id": "<evt_93>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 73,
+          "version": 1
+        },
+        "id": "<evt_94>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_11>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 74,
+          "version": 1
+        },
+        "id": "<evt_95>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 1100,
+            "output": 110,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_96>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 75,
+          "version": 1
+        },
+        "id": "<evt_97>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

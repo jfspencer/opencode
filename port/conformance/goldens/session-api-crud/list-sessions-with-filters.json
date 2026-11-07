@@ -1,0 +1,1380 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "alpha one",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "alpha one"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>/pkg"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "beta two",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>/pkg"
+        },
+        "title": "beta two"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_3>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "gamma three",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "gamma three"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_4>",
+          "location": {
+            "directory": "<project>"
+          },
+          "parentID": "<ses_1>",
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "alpha child",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "parentID": "<ses_1>",
+        "title": "alpha child"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "archived": true
+      },
+      "status": 204,
+      "url": "/api/session/<ses_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "alpha one",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              }
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              }
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>/pkg"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "beta two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>/pkg"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "beta two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?order=asc"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "search": "alpha"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_4>",
+                "time": "<time>"
+              },
+              "search": "alpha"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?search=alpha"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": null,
+          "previous": null
+        },
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?search=nothing-matches"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "parentID": "null"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "parentID": "null"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>/pkg"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "beta two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?parentID=null"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_4>",
+                "time": "<time>"
+              },
+              "parentID": "<ses_1>"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_4>",
+                "time": "<time>"
+              },
+              "parentID": "<ses_1>"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?parentID=<ses_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "archived": "true"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "archived": "true"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?archived=true"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "archived": "false"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_4>",
+                "time": "<time>"
+              },
+              "archived": "false"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>/pkg"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "beta two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?archived=false"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_2>",
+                "time": "<time>"
+              },
+              "directory": "<project>/pkg"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_2>",
+                "time": "<time>"
+              },
+              "directory": "<project>/pkg"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<project>/pkg"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "beta two",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?directory=%2Ftmp%2F<root-name>%2F<project-name>%2Fpkg"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "archived": "false",
+              "directory": "<project>",
+              "parentID": "null"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "archived": "false",
+              "directory": "<project>",
+              "parentID": "null"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?directory=%2Ftmp%2F<root-name>%2F<project-name>&parentID=null&archived=false"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "project": "<hash_1>"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "project": "<hash_1>"
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?project=<hash_1>"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": null,
+          "previous": null
+        },
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?project=<hash_1>&subpath=pkg"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              },
+              "project": "<hash_1>",
+              "subpath": ""
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_3>",
+                "time": "<time>"
+              },
+              "project": "<hash_1>",
+              "subpath": ""
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "archived": "<time>",
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "gamma three",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<project>"
+            },
+            "parentID": "<ses_1>",
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha child",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "alpha one",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session?project=<hash_1>&subpath="
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_4>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "parentID": "<ses_1>",
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_4>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "alpha child",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "gamma three",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_3>"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.archived"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>/pkg"
+          },
+          "projectID": "<hash_2>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "beta two",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>/pkg"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "alpha one",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {
+    "other/b.txt": "b\n",
+    "pkg/a.txt": "a\n"
+  }
+}

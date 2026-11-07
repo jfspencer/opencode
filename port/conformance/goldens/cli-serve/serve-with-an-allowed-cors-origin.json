@@ -1,0 +1,94 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": null,
+        "headers": {
+          "access-control-request-headers": "authorization",
+          "access-control-request-method": "GET",
+          "origin": "https://app.example.test"
+        },
+        "method": "OPTIONS",
+        "responseHeaders": {
+          "access-control-allow-headers": "authorization",
+          "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
+          "access-control-allow-origin": "https://app.example.test",
+          "access-control-max-age": "86400"
+        },
+        "status": 204,
+        "url": "http://127.0.0.1:<port>/api/session"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": null,
+        "headers": {
+          "access-control-request-headers": "authorization",
+          "access-control-request-method": "GET",
+          "origin": "http://localhost:5173"
+        },
+        "method": "OPTIONS",
+        "responseHeaders": {
+          "access-control-allow-headers": "authorization",
+          "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
+          "access-control-allow-origin": "http://localhost:5173",
+          "access-control-max-age": "86400"
+        },
+        "status": 204,
+        "url": "http://127.0.0.1:<port>/api/session"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": null,
+        "headers": {
+          "access-control-request-headers": "authorization",
+          "access-control-request-method": "GET",
+          "origin": "https://evil.example.test"
+        },
+        "method": "OPTIONS",
+        "responseHeaders": {
+          "access-control-allow-headers": "authorization",
+          "access-control-allow-methods": "GET, HEAD, PUT, PATCH, POST, DELETE",
+          "access-control-max-age": "86400"
+        },
+        "status": 204,
+        "url": "http://127.0.0.1:<port>/api/session"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "serve",
+          "--port",
+          "0",
+          "--cors",
+          "https://app.example.test",
+          "--cors",
+          "http://localhost:5173"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-secret"
+        },
+        "exit": 143,
+        "sent": "SIGTERM",
+        "stderr": "",
+        "stdout": [
+          "server listening on http://127.0.0.1:<port>",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,278 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "ModelNotFoundError",
+        "message": "Model not found: openrouter/missing/model",
+        "modelID": "missing/model",
+        "providerID": "openrouter"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "missing/model",
+          "providerID": "openrouter"
+        },
+        "prompt": "Hi."
+      },
+      "status": 404,
+      "url": "/api/experimental/generate/text"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "model.variant",
+        "message": "Variant unavailable for openrouter/deepseek/deepseek-v4.1-flash-1017: ultra"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "deepseek/deepseek-v4.1-flash-1017",
+          "providerID": "openrouter",
+          "variant": "ultra"
+        },
+        "prompt": "Hi."
+      },
+      "status": 400,
+      "url": "/api/experimental/generate/text"
+    },
+    {
+      "body": {
+        "_tag": "UnsupportedModelError",
+        "capability": "decision",
+        "message": "openrouter/deepseek/deepseek-v4.1-flash-1017 is a chat model, not a decision model",
+        "modelID": "deepseek/deepseek-v4.1-flash-1017",
+        "providerID": "openrouter"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Is this spam?",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "deepseek/deepseek-v4.1-flash-1017",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 422,
+      "url": "/api/experimental/generate/decisions"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<root>/config/opencode",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

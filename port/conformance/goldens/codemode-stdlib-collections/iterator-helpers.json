@@ -1,0 +1,776 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Run the iterator helpers programs"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Run the iterator helpers programs"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the iterator helpers programs",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the iterator helpers programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst it = () => [1, 2, 3, 4, 5].values()\\nt(\\\"map\\\", () => it().map((x, i) => x * 10 + i).toArray())\\nt(\\\"filter\\\", () => it().filter((x) => x % 2).toArray())\\nt(\\\"take\\\", () => it().take(2).toArray())\\nt(\\\"take zero\\\", () => it().take(0).toArray())\\nt(\\\"take negative\\\", () => it().take(-1))\\nt(\\\"take NaN\\\", () => it().take(\\\"x\\\"))\\nt(\\\"drop\\\", () => [it().drop(3).toArray(), it().drop(10).toArray()])\\nt(\\\"drop negative\\\", () => it().drop(-2))\\nt(\\\"flatMap\\\", () => it().take(3).flatMap((x) => [x, x]).toArray())\\nt(\\\"flatMap string\\\", () => it().take(1).flatMap(() => \\\"ab\\\").toArray())\\nt(\\\"flatMap iterator\\\", () => it().take(2).flatMap((x) => new Set([x, -x]).values()).toArray())\\nt(\\\"flatMap non-iterable\\\", () => it().flatMap((x) => x).toArray())\\nt(\\\"reduce\\\", () => [it().reduce((a, b) => a + b), it().reduce((a, b) => a + b, 100), it().reduce((a, b, i) => a + i, \\\"\\\")])\\nt(\\\"reduce empty\\\", () => [].values().reduce((a, b) => a + b))\\nt(\\\"toArray\\\", () => new Set([\\\"a\\\", \\\"b\\\"]).values().toArray())\\nt(\\\"forEach\\\", () => { const out = []; const ret = it().forEach((x, i) => out.push(x * i)); return [out, ret === undefined] })\\nt(\\\"some/every/find\\\", () => [it().some((x) => x > 4), it().some((x) => x > 5), it().every((x) => x > 0), it().every((x) => x < 3), it().find((x) => x > 2), it().find((x) => x > 9)])\\nt(\\\"next\\\", () => { const i = it().map((x) => x * 2); return [i.next(), i.next().value] })\\nt(\\\"return closes\\\", () => { const i = it().map((x) => x); const ret = i.return(); return [ret, i.next()] })\\nt(\\\"lazy\\\", () => { const log = []; const i = it().map((x) => { log.push(x); return x }); i.next(); return log })\\nt(\\\"callback throws\\\", () => it().map(() => { throw new Error(\\\"boom\\\") }).toArray())\\nt(\\\"filter throws\\\", () => it().filter(() => { throw new Error(\\\"f\\\") }).toArray())\\nt(\\\"non-callable\\\", () => it().map(1))\\nt(\\\"reentrant\\\", () => { let inner; inner = it().map((x) => inner.next()); return inner.next() })\\nt(\\\"Iterator.from array\\\", () => Iterator.from([7, 8]).toArray())\\nt(\\\"Iterator.from string\\\", () => Iterator.from(\\\"hi\\\").map((c) => c.toUpperCase()).toArray())\\nt(\\\"Iterator.from iterator\\\", () => { const i = [1].values(); return Iterator.from(i) === i })\\nt(\\\"Iterator.from protocol\\\", () => { let n = 0; return Iterator.from({ next() { n++; return { done: n > 2, value: n } } }).toArray() })\\nt(\\\"Iterator.from number\\\", () => Iterator.from(5))\\nt(\\\"Iterator.from generator\\\", () => { function* g() { yield 1; yield 2 } return Iterator.from(g()).map((x) => x * 3).toArray() })\\nt(\\\"Iterator()\\\", () => Iterator())\\nt(\\\"new Iterator()\\\", () => new Iterator())\\nt(\\\"Iterator.prototype\\\", () => [typeof Iterator.prototype.map, Object.getPrototypeOf([].values()) === Iterator.prototype, [].values() instanceof Iterator])\\nt(\\\"generator helpers\\\", () => { function* g() { yield 1; yield 2; yield 3 } return g().drop(1).map((x) => x + 1).toArray() })\\nt(\\\"closing source\\\", () => { let closed = false; function* g() { try { yield 1; yield 2 } finally { closed = true } } const v = g().take(1).toArray(); return [v, closed] })\\nt(\\\"find closes\\\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } g().find((x) => x === 1); g().some(() => true); g().every(() => false); return closed })\\nt(\\\"flatMap close\\\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } const h = g().flatMap((x) => [x, x]); h.next(); h.return(); return closed })\\nt(\\\"next receiver\\\", () => Iterator.prototype.next.call({}))\\nt(\\\"helper tag\\\", () => Object.prototype.toString.call([].values().map((x) => x)))\\nreturn r\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"map\": [\n    10,\n    21,\n    32,\n    43,\n    54\n  ],\n  \"filter\": [\n    1,\n    3,\n    5\n  ],\n  \"take\": [\n    1,\n    2\n  ],\n  \"take zero\": [],\n  \"take negative\": \"!RangeError: Iterator.prototype.take expects a non-negative count, received -1.\",\n  \"take NaN\": \"!RangeError: Iterator.prototype.take expects a non-negative count, received NaN.\",\n  \"drop\": [\n    [\n      4,\n      5\n    ],\n    []\n  ],\n  \"drop negative\": \"!RangeError: Iterator.prototype.drop expects a non-negative count, received -2.\",\n  \"flatMap\": [\n    1,\n    1,\n    2,\n    2,\n    3,\n    3\n  ],\n  \"flatMap string\": \"!TypeError: Iterator.prototype.flatMap expects an iterable or iterator, received a string.\",\n  \"flatMap iterator\": [\n    1,\n    -1,\n    2,\n    -2\n  ],\n  \"flatMap non-iterable\": \"!TypeError: Iterator.prototype.flatMap expects an iterable or iterator, received a number.\",\n  \"reduce\": [\n    15,\n    115,\n    \"01234\"\n  ],\n  \"reduce empty\": \"!TypeError: Iterator.prototype.reduce of an empty iterator with no initial value.\",\n  \"toArray\": [\n    \"a\",\n    \"b\"\n  ],\n  \"forEach\": [\n    [\n      0,\n      2,\n      6,\n      12,\n      20\n    ],\n    true\n  ],\n  \"some/every/find\": [\n    true,\n    false,\n    true,\n    false,\n    3,\n    null\n  ],\n  \"next\": [\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    4\n  ],\n  \"return closes\": [\n    {\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"lazy\": [\n    1\n  ],\n  \"callback throws\": \"!Error: boom\",\n  \"filter throws\": \"!Error: f\",\n  \"non-callable\": \"!TypeError: Iterator.prototype.map expects a function callback.\",\n  \"reentrant\": \"!TypeError: Iterator helper is already running.\",\n  \"Iterator.from array\": [\n    7,\n    8\n  ],\n  \"Iterator.from string\": [\n    \"H\",\n    \"I\"\n  ],\n  \"Iterator.from iterator\": true,\n  \"Iterator.from protocol\": [\n    1,\n    2\n  ],\n  \"Iterator.from number\": \"!TypeError: Iterator.from expects an iterable or iterator, received a number.\",\n  \"Iterator.from generator\": [\n    3,\n    6\n  ],\n  \"Iterator()\": \"!TypeError: Constructor Iterator requires 'new'.\",\n  \"new Iterator()\": \"!TypeError: Iterator is abstract; use Iterator.from(...) or a built-in iterator.\",\n  \"Iterator.prototype\": [\n    \"function\",\n    true,\n    true\n  ],\n  \"generator helpers\": [\n    3,\n    4\n  ],\n  \"closing source\": [\n    [\n      1\n    ],\n    true\n  ],\n  \"find closes\": 3,\n  \"flatMap close\": 1,\n  \"next receiver\": \"!TypeError: Iterator.prototype.next called on incompatible receiver a data object.\",\n  \"helper tag\": \"[object Iterator]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nRun the iterator helpers programs\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Run the iterator helpers programs"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_2>",
+            "core/date": "<hash_3>",
+            "core/environment": "<hash_4>",
+            "core/skill-guidance": "<hash_5>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "name": "execute",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_18>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"code\":\"const r = {}\\nconst show = (v) => v === undefined ? \\\"<undefined>\\\" : typeof v === \\\"number\\\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \\\"<\\\" + (Object.is(v, -0) ? \\\"-0\\\" : String(v)) + \\\">\\\" : v\\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \\\"!\\\" + (e && e.name) + \\\": \\\" + (e && e.message) } }\\nconst it = () => [1, 2, 3, 4, 5].values()\\nt(\\\"map\\\", () => it().map((x, i) => x * 10 + i).toArray())\\nt(\\\"filter\\\", () => it().filter((x) => x % 2).toArray())\\nt(\\\"take\\\", () => it().take(2).toArray())\\nt(\\\"take zero\\\", () => it().take(0).toArray())\\nt(\\\"take negative\\\", () => it().take(-1))\\nt(\\\"take NaN\\\", () => it().take(\\\"x\\\"))\\nt(\\\"drop\\\", () => [it().drop(3).toArray(), it().drop(10).toArray()])\\nt(\\\"drop negative\\\", () => it().drop(-2))\\nt(\\\"flatMap\\\", () => it().take(3).flatMap((x) => [x, x]).toArray())\\nt(\\\"flatMap string\\\", () => it().take(1).flatMap(() => \\\"ab\\\").toArray())\\nt(\\\"flatMap iterator\\\", () => it().take(2).flatMap((x) => new Set([x, -x]).values()).toArray())\\nt(\\\"flatMap non-iterable\\\", () => it().flatMap((x) => x).toArray())\\nt(\\\"reduce\\\", () => [it().reduce((a, b) => a + b), it().reduce((a, b) => a + b, 100), it().reduce((a, b, i) => a + i, \\\"\\\")])\\nt(\\\"reduce empty\\\", () => [].values().reduce((a, b) => a + b))\\nt(\\\"toArray\\\", () => new Set([\\\"a\\\", \\\"b\\\"]).values().toArray())\\nt(\\\"forEach\\\", () => { const out = []; const ret = it().forEach((x, i) => out.push(x * i)); return [out, ret === undefined] })\\nt(\\\"some/every/find\\\", () => [it().some((x) => x > 4), it().some((x) => x > 5), it().every((x) => x > 0), it().every((x) => x < 3), it().find((x) => x > 2), it().find((x) => x > 9)])\\nt(\\\"next\\\", () => { const i = it().map((x) => x * 2); return [i.next(), i.next().value] })\\nt(\\\"return closes\\\", () => { const i = it().map((x) => x); const ret = i.return(); return [ret, i.next()] })\\nt(\\\"lazy\\\", () => { const log = []; const i = it().map((x) => { log.push(x); return x }); i.next(); return log })\\nt(\\\"callback throws\\\", () => it().map(() => { throw new Error(\\\"boom\\\") }).toArray())\\nt(\\\"filter throws\\\", () => it().filter(() => { throw new Error(\\\"f\\\") }).toArray())\\nt(\\\"non-callable\\\", () => it().map(1))\\nt(\\\"reentrant\\\", () => { let inner; inner = it().map((x) => inner.next()); return inner.next() })\\nt(\\\"Iterator.from array\\\", () => Iterator.from([7, 8]).toArray())\\nt(\\\"Iterator.from string\\\", () => Iterator.from(\\\"hi\\\").map((c) => c.toUpperCase()).toArray())\\nt(\\\"Iterator.from iterator\\\", () => { const i = [1].values(); return Iterator.from(i) === i })\\nt(\\\"Iterator.from protocol\\\", () => { let n = 0; return Iterator.from({ next() { n++; return { done: n > 2, value: n } } }).toArray() })\\nt(\\\"Iterator.from number\\\", () => Iterator.from(5))\\nt(\\\"Iterator.from generator\\\", () => { function* g() { yield 1; yield 2 } return Iterator.from(g()).map((x) => x * 3).toArray() })\\nt(\\\"Iterator()\\\", () => Iterator())\\nt(\\\"new Iterator()\\\", () => new Iterator())\\nt(\\\"Iterator.prototype\\\", () => [typeof Iterator.prototype.map, Object.getPrototypeOf([].values()) === Iterator.prototype, [].values() instanceof Iterator])\\nt(\\\"generator helpers\\\", () => { function* g() { yield 1; yield 2; yield 3 } return g().drop(1).map((x) => x + 1).toArray() })\\nt(\\\"closing source\\\", () => { let closed = false; function* g() { try { yield 1; yield 2 } finally { closed = true } } const v = g().take(1).toArray(); return [v, closed] })\\nt(\\\"find closes\\\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } g().find((x) => x === 1); g().some(() => true); g().every(() => false); return closed })\\nt(\\\"flatMap close\\\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } const h = g().flatMap((x) => [x, x]); h.next(); h.return(); return closed })\\nt(\\\"next receiver\\\", () => Iterator.prototype.next.call({}))\\nt(\\\"helper tag\\\", () => Object.prototype.toString.call([].values().map((x) => x)))\\nreturn r\"}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_0",
+          "input": {
+            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst it = () => [1, 2, 3, 4, 5].values()\nt(\"map\", () => it().map((x, i) => x * 10 + i).toArray())\nt(\"filter\", () => it().filter((x) => x % 2).toArray())\nt(\"take\", () => it().take(2).toArray())\nt(\"take zero\", () => it().take(0).toArray())\nt(\"take negative\", () => it().take(-1))\nt(\"take NaN\", () => it().take(\"x\"))\nt(\"drop\", () => [it().drop(3).toArray(), it().drop(10).toArray()])\nt(\"drop negative\", () => it().drop(-2))\nt(\"flatMap\", () => it().take(3).flatMap((x) => [x, x]).toArray())\nt(\"flatMap string\", () => it().take(1).flatMap(() => \"ab\").toArray())\nt(\"flatMap iterator\", () => it().take(2).flatMap((x) => new Set([x, -x]).values()).toArray())\nt(\"flatMap non-iterable\", () => it().flatMap((x) => x).toArray())\nt(\"reduce\", () => [it().reduce((a, b) => a + b), it().reduce((a, b) => a + b, 100), it().reduce((a, b, i) => a + i, \"\")])\nt(\"reduce empty\", () => [].values().reduce((a, b) => a + b))\nt(\"toArray\", () => new Set([\"a\", \"b\"]).values().toArray())\nt(\"forEach\", () => { const out = []; const ret = it().forEach((x, i) => out.push(x * i)); return [out, ret === undefined] })\nt(\"some/every/find\", () => [it().some((x) => x > 4), it().some((x) => x > 5), it().every((x) => x > 0), it().every((x) => x < 3), it().find((x) => x > 2), it().find((x) => x > 9)])\nt(\"next\", () => { const i = it().map((x) => x * 2); return [i.next(), i.next().value] })\nt(\"return closes\", () => { const i = it().map((x) => x); const ret = i.return(); return [ret, i.next()] })\nt(\"lazy\", () => { const log = []; const i = it().map((x) => { log.push(x); return x }); i.next(); return log })\nt(\"callback throws\", () => it().map(() => { throw new Error(\"boom\") }).toArray())\nt(\"filter throws\", () => it().filter(() => { throw new Error(\"f\") }).toArray())\nt(\"non-callable\", () => it().map(1))\nt(\"reentrant\", () => { let inner; inner = it().map((x) => inner.next()); return inner.next() })\nt(\"Iterator.from array\", () => Iterator.from([7, 8]).toArray())\nt(\"Iterator.from string\", () => Iterator.from(\"hi\").map((c) => c.toUpperCase()).toArray())\nt(\"Iterator.from iterator\", () => { const i = [1].values(); return Iterator.from(i) === i })\nt(\"Iterator.from protocol\", () => { let n = 0; return Iterator.from({ next() { n++; return { done: n > 2, value: n } } }).toArray() })\nt(\"Iterator.from number\", () => Iterator.from(5))\nt(\"Iterator.from generator\", () => { function* g() { yield 1; yield 2 } return Iterator.from(g()).map((x) => x * 3).toArray() })\nt(\"Iterator()\", () => Iterator())\nt(\"new Iterator()\", () => new Iterator())\nt(\"Iterator.prototype\", () => [typeof Iterator.prototype.map, Object.getPrototypeOf([].values()) === Iterator.prototype, [].values() instanceof Iterator])\nt(\"generator helpers\", () => { function* g() { yield 1; yield 2; yield 3 } return g().drop(1).map((x) => x + 1).toArray() })\nt(\"closing source\", () => { let closed = false; function* g() { try { yield 1; yield 2 } finally { closed = true } } const v = g().take(1).toArray(); return [v, closed] })\nt(\"find closes\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } g().find((x) => x === 1); g().some(() => true); g().every(() => false); return closed })\nt(\"flatMap close\", () => { let closed = 0; function* g() { try { yield 1; yield 2 } finally { closed++ } } const h = g().flatMap((x) => [x, x]); h.next(); h.return(); return closed })\nt(\"next receiver\", () => Iterator.prototype.next.call({}))\nt(\"helper tag\", () => Object.prototype.toString.call([].values().map((x) => x)))\nreturn r"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "{\n  \"map\": [\n    10,\n    21,\n    32,\n    43,\n    54\n  ],\n  \"filter\": [\n    1,\n    3,\n    5\n  ],\n  \"take\": [\n    1,\n    2\n  ],\n  \"take zero\": [],\n  \"take negative\": \"!RangeError: Iterator.prototype.take expects a non-negative count, received -1.\",\n  \"take NaN\": \"!RangeError: Iterator.prototype.take expects a non-negative count, received NaN.\",\n  \"drop\": [\n    [\n      4,\n      5\n    ],\n    []\n  ],\n  \"drop negative\": \"!RangeError: Iterator.prototype.drop expects a non-negative count, received -2.\",\n  \"flatMap\": [\n    1,\n    1,\n    2,\n    2,\n    3,\n    3\n  ],\n  \"flatMap string\": \"!TypeError: Iterator.prototype.flatMap expects an iterable or iterator, received a string.\",\n  \"flatMap iterator\": [\n    1,\n    -1,\n    2,\n    -2\n  ],\n  \"flatMap non-iterable\": \"!TypeError: Iterator.prototype.flatMap expects an iterable or iterator, received a number.\",\n  \"reduce\": [\n    15,\n    115,\n    \"01234\"\n  ],\n  \"reduce empty\": \"!TypeError: Iterator.prototype.reduce of an empty iterator with no initial value.\",\n  \"toArray\": [\n    \"a\",\n    \"b\"\n  ],\n  \"forEach\": [\n    [\n      0,\n      2,\n      6,\n      12,\n      20\n    ],\n    true\n  ],\n  \"some/every/find\": [\n    true,\n    false,\n    true,\n    false,\n    3,\n    null\n  ],\n  \"next\": [\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    4\n  ],\n  \"return closes\": [\n    {\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"lazy\": [\n    1\n  ],\n  \"callback throws\": \"!Error: boom\",\n  \"filter throws\": \"!Error: f\",\n  \"non-callable\": \"!TypeError: Iterator.prototype.map expects a function callback.\",\n  \"reentrant\": \"!TypeError: Iterator helper is already running.\",\n  \"Iterator.from array\": [\n    7,\n    8\n  ],\n  \"Iterator.from string\": [\n    \"H\",\n    \"I\"\n  ],\n  \"Iterator.from iterator\": true,\n  \"Iterator.from protocol\": [\n    1,\n    2\n  ],\n  \"Iterator.from number\": \"!TypeError: Iterator.from expects an iterable or iterator, received a number.\",\n  \"Iterator.from generator\": [\n    3,\n    6\n  ],\n  \"Iterator()\": \"!TypeError: Constructor Iterator requires 'new'.\",\n  \"new Iterator()\": \"!TypeError: Iterator is abstract; use Iterator.from(...) or a built-in iterator.\",\n  \"Iterator.prototype\": [\n    \"function\",\n    true,\n    true\n  ],\n  \"generator helpers\": [\n    3,\n    4\n  ],\n  \"closing source\": [\n    [\n      1\n    ],\n    true\n  ],\n  \"find closes\": 3,\n  \"flatMap close\": 1,\n  \"next receiver\": \"!TypeError: Iterator.prototype.next called on incompatible receiver a data object.\",\n  \"helper tag\": \"[object Iterator]\"\n}",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_0",
+          "metadata": {
+            "toolCalls": [],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_25>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Done.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Done."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_32>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {}
+}

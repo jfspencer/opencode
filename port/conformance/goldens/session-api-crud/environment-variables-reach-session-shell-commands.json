@@ -1,0 +1,593 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "env",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "env"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {
+          "CONFORMANCE_GREETING": "hello-env"
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/environment"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "echo $CONFORMANCE_GREETING"
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {}
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/environment"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "echo \"[$CONFORMANCE_GREETING]\""
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/shell"
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "direction": "next",
+              "id": "<msg_1>",
+              "order": "asc"
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "direction": "previous",
+              "id": "<msg_2>",
+              "order": "asc"
+            }
+          }
+        },
+        "data": [
+          {
+            "command": "echo $CONFORMANCE_GREETING",
+            "exit": 0,
+            "id": "<msg_2>",
+            "metadata": {
+              "background": true
+            },
+            "output": {
+              "cursor": 10,
+              "output": "hello-env\n",
+              "size": 10,
+              "truncated": false
+            },
+            "shellID": "<sh_1>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          },
+          {
+            "command": "echo \"[$CONFORMANCE_GREETING]\"",
+            "exit": 0,
+            "id": "<msg_1>",
+            "metadata": {
+              "background": true
+            },
+            "output": {
+              "cursor": 3,
+              "output": "[]\n",
+              "size": 3,
+              "truncated": false
+            },
+            "shellID": "<sh_2>",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "created": "<time>"
+            },
+            "type": "shell"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/message?order=asc"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected string\n  at [\"variables\"][\"BAD\"]"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {
+          "BAD": 1
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/environment"
+    },
+    {
+      "body": {
+        "_tag": "SessionNotFoundError",
+        "message": "Session not found: <ses_2>",
+        "sessionID": "<ses_2>"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {}
+      },
+      "status": 404,
+      "url": "/api/session/<ses_2>/environment"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "command": "echo $CONFORMANCE_GREETING",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "exit": 0,
+          "id": "<sh_1>",
+          "status": "exited"
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.exited"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "command": "echo \"[$CONFORMANCE_GREETING]\"",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
+            "id": "<sh_2>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "exit": 0,
+          "id": "<sh_2>",
+          "status": "exited"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "shell.exited"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "env",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "echo $CONFORMANCE_GREETING",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "output": {
+            "cursor": 10,
+            "output": "hello-env\n",
+            "size": 10,
+            "truncated": false
+          },
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "echo $CONFORMANCE_GREETING",
+            "cwd": "<project>",
+            "exit": 0,
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
+            "id": "<sh_1>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_3>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "metadata": {
+                "exit": 0,
+                "shellID": "<sh_1>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_1>\" state=\"completed\" command=\"echo $CONFORMANCE_GREETING\">\nhello-env\n\n</shell>"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "echo \"[$CONFORMANCE_GREETING]\"",
+            "cwd": "<project>",
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
+            "id": "<sh_2>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "running",
+            "time": {
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "output": {
+            "cursor": 3,
+            "output": "[]\n",
+            "size": 3,
+            "truncated": false
+          },
+          "sessionID": "<ses_1>",
+          "shell": {
+            "command": "echo \"[$CONFORMANCE_GREETING]\"",
+            "cwd": "<project>",
+            "exit": 0,
+            "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
+            "id": "<sh_2>",
+            "metadata": {
+              "background": true,
+              "sessionID": "<ses_1>"
+            },
+            "pid": "<pid>",
+            "shell": "/bin/bash",
+            "status": "exited",
+            "time": {
+              "completed": "<time>",
+              "started": "<time>"
+            }
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 5,
+          "version": 1
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.shell.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_4>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "metadata": {
+                "exit": 0,
+                "shellID": "<sh_2>",
+                "source": "shell",
+                "state": "completed",
+                "truncated": false
+              },
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo \"[$CONFORMANCE_GREETING]\"\">\n[]\n\n</shell>"
+            },
+            "type": "synthetic"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.inbox.enqueued"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,622 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>",
+        "project": {
+          "canonical": "<project>",
+          "directory": "<project>",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "id": "<sch_1>",
+          "name": "later",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Europe/Berlin",
+          "when": {
+            "in": "2 hours",
+            "type": "in"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "later",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "in": "2 hours"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "id": "<sch_2>",
+          "name": "instant",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Europe/Berlin",
+          "when": {
+            "at": "<iso-time>",
+            "type": "at"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "instant",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "at": "<iso-time>"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "id": "<sch_3>",
+          "name": "wall clock",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "America/New_York",
+          "when": {
+            "at": "2031-03-04T09:00",
+            "type": "at",
+            "tz": "America/New_York"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "wall clock",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "at": "2031-03-04T09:00",
+          "tz": "America/New_York"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "id": "<sch_4>",
+          "name": "repeating",
+          "nextDueAt": "<time>",
+          "remainingRuns": 3,
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Europe/Berlin",
+          "when": {
+            "every": "2 hours",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "times": 3
+        },
+        "name": "repeating",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "2 hours"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_5>",
+          "name": "weekday mornings",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Europe/Berlin",
+          "when": {
+            "cron": "0 9 * * 1-5",
+            "type": "cron"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "at": "<iso-time>"
+        },
+        "name": "weekday mornings",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "cron": "0 9 * * 1-5"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_6>",
+          "name": "zoned cron",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Asia/Tokyo",
+          "when": {
+            "cron": "30 6 1 * *",
+            "type": "cron",
+            "tz": "Asia/Tokyo"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "after": "400 days"
+        },
+        "name": "zoned cron",
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "cron": "30 6 1 * *",
+          "tz": "Asia/Tokyo"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": {
+          "action": {
+            "prompt": "Check the build",
+            "type": "prompt"
+          },
+          "endsAt": "<time>",
+          "id": "<sch_7>",
+          "nextDueAt": "<time>",
+          "runCount": 0,
+          "sessionID": "<ses_1>",
+          "status": "active",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tz": "Europe/Berlin",
+          "when": {
+            "every": "1 day",
+            "type": "every"
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "ends": {
+          "after": "3 days",
+          "at": "<iso-time>"
+        },
+        "prompt": "Check the build",
+        "sessionID": "<ses_1>",
+        "when": {
+          "every": "1 day"
+        }
+      },
+      "status": 200,
+      "url": "/api/experimental/schedule"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "id": "<sch_1>",
+            "name": "later",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Europe/Berlin",
+            "when": {
+              "in": "2 hours",
+              "type": "in"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "id": "<sch_2>",
+            "name": "instant",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Europe/Berlin",
+            "when": {
+              "at": "<iso-time>",
+              "type": "at"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "id": "<sch_3>",
+            "name": "wall clock",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "America/New_York",
+            "when": {
+              "at": "2031-03-04T09:00",
+              "type": "at",
+              "tz": "America/New_York"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "id": "<sch_4>",
+            "name": "repeating",
+            "nextDueAt": "<time>",
+            "remainingRuns": 3,
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Europe/Berlin",
+            "when": {
+              "every": "2 hours",
+              "type": "every"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "endsAt": "<time>",
+            "id": "<sch_5>",
+            "name": "weekday mornings",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Europe/Berlin",
+            "when": {
+              "cron": "0 9 * * 1-5",
+              "type": "cron"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "endsAt": "<time>",
+            "id": "<sch_6>",
+            "name": "zoned cron",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Asia/Tokyo",
+            "when": {
+              "cron": "30 6 1 * *",
+              "type": "cron",
+              "tz": "Asia/Tokyo"
+            }
+          },
+          {
+            "action": {
+              "prompt": "Check the build",
+              "type": "prompt"
+            },
+            "endsAt": "<time>",
+            "id": "<sch_7>",
+            "nextDueAt": "<time>",
+            "runCount": 0,
+            "sessionID": "<ses_1>",
+            "status": "active",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "tz": "Europe/Berlin",
+            "when": {
+              "every": "1 day",
+              "type": "every"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/schedule?sessionID=<ses_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

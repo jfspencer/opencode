@@ -1,0 +1,223 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "session.list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": null,
+              "previous": null
+            },
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "session.create",
+          "-d",
+          "{\"location\":{\"directory\":\"<project>\"},\"title\":\"By operation\"}"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "data": {
+              "cost": 0,
+              "id": "<ses_1>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "By operation",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "session.get",
+          "--param",
+          "sessionID=<ses_1>"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "data": {
+              "cost": 0,
+              "id": "<ses_1>",
+              "location": {
+                "directory": "<project>"
+              },
+              "projectID": "<hash_1>",
+              "time": {
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "title": "By operation",
+              "tokens": {
+                "cache": {
+                  "read": 0,
+                  "write": 0
+                },
+                "input": 0,
+                "output": 0,
+                "reasoning": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "session.list",
+          "--param",
+          "limit=1",
+          "--param",
+          "order=asc"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": {
+                "<base64-json>": {
+                  "anchor": {
+                    "direction": "next",
+                    "id": "<ses_1>",
+                    "time": "<time>"
+                  },
+                  "order": "asc"
+                }
+              },
+              "previous": {
+                "<base64-json>": {
+                  "anchor": {
+                    "direction": "previous",
+                    "id": "<ses_1>",
+                    "time": "<time>"
+                  },
+                  "order": "asc"
+                }
+              }
+            },
+            "data": [
+              {
+                "cost": 0,
+                "id": "<ses_1>",
+                "location": {
+                  "directory": "<project>"
+                },
+                "projectID": "<hash_1>",
+                "time": {
+                  "created": "<time>",
+                  "updated": "<time>"
+                },
+                "title": "By operation",
+                "tokens": {
+                  "cache": {
+                    "read": 0,
+                    "write": 0
+                  },
+                  "input": 0,
+                  "output": 0,
+                  "reasoning": 0
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "session.get"
+        ],
+        "exit": 1,
+        "stderr": [
+          "UnknownError: An error occurred in Effect.tryPromise {",
+          "  [cause]: Error: Missing path parameter: sessionID",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "no.such.operation"
+        ],
+        "exit": 1,
+        "stderr": [
+          "UnknownError: An error occurred in Effect.tryPromise {",
+          "  [cause]: Error: Operation not found: no.such.operation",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}
