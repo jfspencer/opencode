@@ -756,7 +756,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_2>"
         },
         "durable": {

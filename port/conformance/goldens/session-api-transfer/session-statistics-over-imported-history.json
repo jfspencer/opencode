@@ -1721,10 +1721,14 @@
       "url": "/api/experimental/session/stats?tools=all"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Query",
+        "message": "Expected a finite number\n  at [\"from\"]"
+      },
       "kind": "http",
       "method": "GET",
-      "status": 500,
+      "status": 400,
       "url": "/api/experimental/session/stats?from=yesterday"
     }
   ],

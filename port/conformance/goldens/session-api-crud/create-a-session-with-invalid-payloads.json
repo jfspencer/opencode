@@ -45,7 +45,11 @@
       "url": "/api/session"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "location.directory",
+        "message": "location.directory must be an absolute path"
+      },
       "kind": "http",
       "method": "POST",
       "request": {
@@ -53,7 +57,7 @@
           "directory": "relative/path"
         }
       },
-      "status": 500,
+      "status": 400,
       "url": "/api/session"
     },
     {

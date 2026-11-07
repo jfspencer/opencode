@@ -256,6 +256,15 @@ scenario(
   },
 )
 
+// The first request to a location boots it, and the listing waits for its plugins to register the references.
+scenario(
+  "references on a location's first request",
+  { boot: false, files: { "docs/readme.md": "Docs.\n" }, config: { references: { docs: "./docs" } } },
+  async (ctx) => {
+    await ctx.http("GET", "/api/reference")
+  },
+)
+
 scenario(
   "reference changes between turns",
   {

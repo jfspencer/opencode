@@ -101,10 +101,14 @@
       "url": "/api/session?archived=maybe"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "directory",
+        "message": "directory must be an absolute path"
+      },
       "kind": "http",
       "method": "GET",
-      "status": 500,
+      "status": 400,
       "url": "/api/session?directory=relative"
     },
     {

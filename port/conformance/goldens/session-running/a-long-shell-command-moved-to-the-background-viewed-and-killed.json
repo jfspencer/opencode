@@ -437,7 +437,7 @@
               "role": "assistant"
             },
             {
-              "content": "<shell id=\"<sh_1>\" state=\"error\" command=\"echo started && sleep 60\">\nShell.NotFoundError\n</shell>",
+              "content": "<shell id=\"<sh_1>\" state=\"error\" command=\"echo started && sleep 60\">\nShell command not found: <sh_1>\n</shell>",
               "role": "user"
             }
           ],
@@ -1354,7 +1354,7 @@
                 "source": "shell",
                 "state": "error"
               },
-              "text": "<shell id=\"<sh_1>\" state=\"error\" command=\"echo started && sleep 60\">\nShell.NotFoundError\n</shell>"
+              "text": "<shell id=\"<sh_1>\" state=\"error\" command=\"echo started && sleep 60\">\nShell command not found: <sh_1>\n</shell>"
             },
             "type": "synthetic"
           },

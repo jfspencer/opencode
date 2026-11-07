@@ -98,14 +98,19 @@
       "url": "/api/shell"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "cwd",
+        "kind": "invalid_cwd",
+        "message": "cwd is not a directory: /conformance/missing/directory"
+      },
       "kind": "http",
       "method": "POST",
       "request": {
         "command": "true",
         "cwd": "/conformance/missing/directory"
       },
-      "status": 500,
+      "status": 400,
       "url": "/api/shell"
     },
     {

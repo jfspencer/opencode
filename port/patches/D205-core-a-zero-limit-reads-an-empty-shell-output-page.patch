@@ -1,0 +1,69 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:48:27 -0700
+Subject: [PATCH] D205 core: a zero limit reads an empty shell output page
+
+Upstream: GET /api/shell/:id/output?limit=0 (limit is a NonNegativeInt, so 0 is accepted) answers 500 with an
+empty body: the zero-length read builds a file stream whose end is before its start, which throws a RangeError.
+Fixed: a zero limit returns an empty page and leaves the cursor where it was (capped at the size, as for a cursor
+past the end).
+Scenarios: shell-api.test.ts "page through the output of a finished command" (new request)
+Upstream tests: packages/server/test/shell.test.ts adds a test
+
+diff --git a/packages/core/src/shell.ts b/packages/core/src/shell.ts
+index e7cfea7b51..98173850b6 100644
+--- a/packages/core/src/shell.ts
++++ b/packages/core/src/shell.ts
+@@ -209,7 +209,9 @@ const layer = () =>
+         const command = yield* require(id)
+         const cursor = input?.cursor ?? 0
+         const limit = input?.limit ?? 65536
+-        if (cursor >= command.size) return { output: "", cursor: command.size, size: command.size, truncated: false }
++        // An empty page reads nothing; a zero-length read stream would be out of range.
++        if (cursor >= command.size || limit === 0)
++          return { output: "", cursor: Math.min(cursor, command.size), size: command.size, truncated: false }
+         const start = Math.max(0, cursor)
+         const length = Math.min(limit, command.size - start)
+         const buffer = Buffer.alloc(length)
+diff --git a/packages/server/test/shell.test.ts b/packages/server/test/shell.test.ts
+index e377c6b76a..4dfc0d575e 100644
+--- a/packages/server/test/shell.test.ts
++++ b/packages/server/test/shell.test.ts
+@@ -34,3 +34,37 @@ it.live("rejects a working directory that is not a directory", () =>
+     })
+   }).pipe(Effect.scoped),
+ )
++
++it.live("reads an empty page when the limit is zero", () =>
++  Effect.gen(function* () {
++    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-shell-endpoint-")))
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      config: { directory: tmp.path },
++      fs: { filewatcher: false },
++      models: { fetch: false },
++    })
++    const request = (url: string, body?: unknown) =>
++      Effect.promise(async () => {
++        const response = await handler(
++          new Request(`http://opencode.local${url}`, {
++            method: body === undefined ? "GET" : "POST",
++            headers: {
++              "content-type": "application/json",
++              "x-opencode-directory": encodeURIComponent(tmp.path),
++            },
++            body: body === undefined ? undefined : JSON.stringify(body),
++          }),
++        )
++        return { status: response.status, body: await response.json() }
++      })
++    const created = yield* request("/api/shell", { command: "printf abcdef" })
++    const id = created.body.data.id
++    while ((yield* request(`/api/shell/${id}`)).body.data.status === "running") yield* Effect.sleep("10 millis")
++    expect(yield* request(`/api/shell/${id}/output?cursor=2&limit=0`)).toMatchObject({
++      status: 200,
++      body: { data: { output: "", cursor: 2, size: 6 } },
++    })
++  }).pipe(Effect.scoped),
++)

@@ -117,6 +117,7 @@
           "location": {
             "directory": "<project>"
           },
+          "outcome": "interrupted",
           "permissions": [
             {
               "action": "edit",
@@ -133,6 +134,7 @@
           "time": {
             "busy": "<time>",
             "created": "<time>",
+            "idle": "<time>",
             "updated": "<time>"
           },
           "title": "tool errors",
@@ -364,7 +366,7 @@
               "type": "aborted"
             },
             "finish": "error",
-            "id": "<msg_2>",
+            "id": "<msg_6>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
               "providerID": "openrouter",
@@ -386,6 +388,14 @@
               "reasoning": 0
             },
             "type": "assistant"
+          },
+          {
+            "id": "<msg_2>",
+            "outcome": "interrupted",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
           }
         ]
       },
@@ -1446,7 +1456,7 @@
         "created": "<time>",
         "data": {
           "agent": "build",
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "model": {
             "id": "deepseek/deepseek-v4.1-flash-1017",
             "providerID": "openrouter",
@@ -1469,7 +1479,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "name": "shell",
           "sessionID": "<ses_1>"
@@ -1488,7 +1498,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
           "text": "{\"command\":\"pwd\",\"description\":\"Print directory\"}"
@@ -1507,7 +1517,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "executed": false,
           "id": "call_conformance_0",
           "input": {
@@ -1530,7 +1540,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "sessionID": "<ses_1>"
         },
         "durable": {
@@ -1558,7 +1568,7 @@
           "sessionID": "<ses_1>",
           "source": {
             "id": "call_conformance_0",
-            "messageID": "<msg_2>",
+            "messageID": "<msg_6>",
             "type": "tool"
           }
         },
@@ -1584,7 +1594,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "error": {
             "message": "The user declined this tool call",
             "type": "aborted"
@@ -1607,7 +1617,7 @@
       {
         "created": "<time>",
         "data": {
-          "assistantMessageID": "<msg_2>",
+          "assistantMessageID": "<msg_6>",
           "cost": 0,
           "error": {
             "message": "Step interrupted",
@@ -1657,7 +1667,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_1>"
         },
         "durable": {

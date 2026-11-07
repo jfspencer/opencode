@@ -1,0 +1,121 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:47:33 -0700
+Subject: [PATCH] D204 server: a shell command's missing working directory is a
+ 400
+
+Upstream: POST /api/shell with a cwd that does not exist (or is not a directory) answers 500 with an empty body:
+the spawn fails with AppProcessError, which the handler turns into a defect.
+Fixed: the handler checks the working directory first and answers 400 InvalidRequestError (kind invalid_cwd,
+field cwd, "cwd is not a directory: <cwd>"), the shape the persistent PTY create route uses for the same input.
+Other spawn failures still answer 500.
+Scenarios: shell-api.test.ts "shell routes for unknown commands"
+Upstream tests: packages/server/test/shell.test.ts (new)
+
+diff --git a/packages/protocol/src/groups/shell.ts b/packages/protocol/src/groups/shell.ts
+index f8948caae9..7ecd6aae18 100644
+--- a/packages/protocol/src/groups/shell.ts
++++ b/packages/protocol/src/groups/shell.ts
+@@ -2,7 +2,7 @@ import { Shell } from "@opencode/schema/shell"
+ import { Location } from "@opencode/schema/location"
+ import { Schema } from "effect"
+ import { HttpApiEndpoint, HttpApiGroup, HttpApiSchema, OpenApi } from "effect/http-api"
+-import { ShellNotFoundError } from "../errors.js"
++import { InvalidRequestError, ShellNotFoundError } from "../errors.js"
+ import { LocationQuery, locationQueryOpenApi } from "./location.js"
+ 
+ export const ShellGroup = HttpApiGroup.make("server.shell")
+@@ -25,6 +25,7 @@ export const ShellGroup = HttpApiGroup.make("server.shell")
+       query: LocationQuery,
+       payload: Shell.CreateInput,
+       success: Location.response(Shell.Info),
++      error: InvalidRequestError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+@@ -83,6 +84,4 @@ export const ShellGroup = HttpApiGroup.make("server.shell")
+         }),
+       ),
+   )
+-  .annotateMerge(
+-    OpenApi.annotations({ title: "shell", description: "Location-scoped shell command routes." }),
+-  )
++  .annotateMerge(OpenApi.annotations({ title: "shell", description: "Location-scoped shell command routes." }))
+diff --git a/packages/server/src/handlers/shell.ts b/packages/server/src/handlers/shell.ts
+index 6b08faf807..2954ddcd0e 100644
+--- a/packages/server/src/handlers/shell.ts
++++ b/packages/server/src/handlers/shell.ts
+@@ -1,8 +1,9 @@
+ import { Shell } from "@opencode/core/shell"
++import { Environment } from "@opencode/core/environment/index"
+ import { Location } from "@opencode/core/location"
+ import { Effect } from "effect"
+ import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
+-import { ShellNotFoundError } from "@opencode/protocol/errors"
++import { InvalidRequestError, ShellNotFoundError } from "@opencode/protocol/errors"
+ import { Api } from "../api"
+ import { response } from "../location"
+ 
+@@ -21,9 +22,18 @@ export const ShellHandler = HttpApiBuilder.group(Api, "server.shell", (handlers)
+         Effect.fn(function* (ctx) {
+           const shell = yield* Shell.Service
+           const location = yield* Location.Service
+-          return yield* response(
+-            shell.create({ ...ctx.payload, cwd: ctx.payload.cwd || location.directory }).pipe(Effect.orDie),
++          const environment = yield* Environment.Service
++          const cwd = ctx.payload.cwd || location.directory
++          const type = yield* Environment.typeFollowing(environment.files, cwd).pipe(
++            Effect.orElseSucceed(() => undefined),
+           )
++          if (type !== "directory")
++            return yield* new InvalidRequestError({
++              message: `cwd is not a directory: ${cwd}`,
++              kind: "invalid_cwd",
++              field: "cwd",
++            })
++          return yield* response(shell.create({ ...ctx.payload, cwd }).pipe(Effect.orDie))
+         }),
+       )
+       .handle(
+diff --git a/packages/server/test/shell.test.ts b/packages/server/test/shell.test.ts
+new file mode 100644
+index 0000000000..e377c6b76a
+--- /dev/null
++++ b/packages/server/test/shell.test.ts
+@@ -0,0 +1,36 @@
++import path from "node:path"
++import { expect } from "bun:test"
++import { Effect } from "effect"
++import { tmpdir } from "../../core/test/fixture/tmpdir"
++import { it } from "../../core/test/lib/effect"
++import { ServerFetch } from "../src/fetch"
++
++it.live("rejects a working directory that is not a directory", () =>
++  Effect.gen(function* () {
++    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-shell-endpoint-")))
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      config: { directory: tmp.path },
++      fs: { filewatcher: false },
++      models: { fetch: false },
++    })
++    const cwd = path.join(tmp.path, "missing")
++    const response = yield* Effect.promise(() =>
++      handler(
++        new Request(`http://opencode.local/api/shell?location[directory]=${encodeURIComponent(tmp.path)}`, {
++          method: "POST",
++          headers: { "content-type": "application/json" },
++          body: JSON.stringify({ command: "true", cwd }),
++        }),
++      ),
++    )
++    expect(response.status).toBe(400)
++    expect(yield* Effect.promise(() => response.json())).toMatchObject({
++      _tag: "InvalidRequestError",
++      kind: "invalid_cwd",
++      field: "cwd",
++      message: `cwd is not a directory: ${cwd}`,
++    })
++  }).pipe(Effect.scoped),
++)

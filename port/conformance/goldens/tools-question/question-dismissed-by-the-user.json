@@ -183,12 +183,20 @@
           "previous": {
             "<base64-json>": {
               "direction": "previous",
-              "id": "<msg_2>",
+              "id": "<msg_3>",
               "order": "desc"
             }
           }
         },
         "data": [
+          {
+            "id": "<msg_3>",
+            "outcome": "interrupted",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "idle"
+          },
           {
             "agent": "build",
             "content": [
@@ -885,7 +893,7 @@
       {
         "created": "<time>",
         "data": {
-          "reason": "shutdown",
+          "reason": "user",
           "sessionID": "<ses_1>"
         },
         "durable": {

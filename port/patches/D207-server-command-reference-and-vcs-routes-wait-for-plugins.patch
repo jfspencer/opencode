@@ -1,0 +1,353 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:55:07 -0700
+Subject: [PATCH] D207 server: command, reference and vcs routes wait for
+ plugins
+
+Upstream: GET /api/command, /api/reference, /api/vcs, /api/vcs/base, /api/vcs/status, /api/vcs/branch and
+/api/vcs/diff answer as soon as the location is built, before its plugins have registered config commands,
+references and the git provider, so right after a location boots they list only built-in commands, no references,
+and no repository (empty status and diff). /api/agent and /api/skill already wait (upstream fixed /api/skill the
+same way in #62569).
+Fixed: these routes wait for plugin activation like /api/skill (503 ServiceUnavailableError when it times out).
+Scenarios: project-commands.test.ts "command list on a location's first request" (new); project-skills.test.ts
+"references on a location's first request" (new); project-vcs.test.ts "vcs routes on a location's first
+request" (new), "vcs routes from a nested location" (the nested location's status and diff were empty)
+Upstream tests: packages/server/test/command.test.ts (new); client and openapi.json regenerated
+
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index f9bf6bd768..8b9574b9e1 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -2243,7 +2243,7 @@ export function make(options: ClientOptions) {
+             path: `/api/command`,
+             query: { location: input?.["location"] },
+             successStatus: 200,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: false,
+           },
+           requestOptions,
+@@ -2453,7 +2453,7 @@ export function make(options: ClientOptions) {
+             path: `/api/reference`,
+             query: { location: input?.["location"] },
+             successStatus: 200,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: false,
+           },
+           requestOptions,
+@@ -2535,7 +2535,7 @@ export function make(options: ClientOptions) {
+             path: `/api/vcs`,
+             query: { location: input?.["location"] },
+             successStatus: 200,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: false,
+           },
+           requestOptions,
+@@ -2559,7 +2559,7 @@ export function make(options: ClientOptions) {
+             path: `/api/vcs/status`,
+             query: { location: input?.["location"] },
+             successStatus: 200,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: false,
+           },
+           requestOptions,
+@@ -2572,7 +2572,7 @@ export function make(options: ClientOptions) {
+               path: `/api/vcs/branch`,
+               query: { location: input?.["location"], search: input?.["search"], limit: input?.["limit"] },
+               successStatus: 200,
+-              declaredStatuses: [400, 401, 404],
++              declaredStatuses: [400, 401, 404, 503],
+               empty: false,
+             },
+             requestOptions,
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index 6e09fcec90..f8dd6141fe 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -9886,6 +9886,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "Retrieve currently registered commands.",
+@@ -14112,6 +14122,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "List references available in the requested location.",
+@@ -14562,6 +14582,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "Get current and default branch information for the requested location.",
+@@ -14754,6 +14784,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "List uncommitted working-copy changes relative to the requested location.",
+@@ -14856,6 +14896,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "List local and remote branches available at the requested location.",
+diff --git a/packages/protocol/src/groups/command.ts b/packages/protocol/src/groups/command.ts
+index f1360b57f8..908df0c84c 100644
+--- a/packages/protocol/src/groups/command.ts
++++ b/packages/protocol/src/groups/command.ts
+@@ -2,6 +2,7 @@ import { Command } from "@opencode/schema/command"
+ import { Location } from "@opencode/schema/location"
+ import { Schema } from "effect"
+ import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
++import { ServiceUnavailableError } from "../errors.js"
+ import { LocationQuery, locationQueryOpenApi } from "./location.js"
+ 
+ export const CommandGroup = HttpApiGroup.make("server.command")
+@@ -9,6 +10,7 @@ export const CommandGroup = HttpApiGroup.make("server.command")
+     HttpApiEndpoint.get("command.list", "/api/command", {
+       query: LocationQuery,
+       success: Location.response(Schema.Array(Command.Info)),
++      error: ServiceUnavailableError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+diff --git a/packages/protocol/src/groups/reference.ts b/packages/protocol/src/groups/reference.ts
+index 6935a75b84..20f5fc2baf 100644
+--- a/packages/protocol/src/groups/reference.ts
++++ b/packages/protocol/src/groups/reference.ts
+@@ -2,6 +2,7 @@ import { Location } from "@opencode/schema/location"
+ import { Reference } from "@opencode/schema/reference"
+ import { Schema, Struct } from "effect"
+ import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
++import { ServiceUnavailableError } from "../errors.js"
+ import { LocationQuery, locationQueryOpenApi } from "./location.js"
+ 
+ const PublicLocalSource = Schema.Struct(Struct.omit(Reference.LocalSource.fields, ["description", "hidden"])).annotate({
+@@ -24,6 +25,7 @@ export const ReferenceGroup = HttpApiGroup.make("server.reference")
+     HttpApiEndpoint.get("reference.list", "/api/reference", {
+       query: LocationQuery,
+       success: Location.response(Schema.Array(PublicInfo)),
++      error: ServiceUnavailableError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+diff --git a/packages/protocol/src/groups/vcs.ts b/packages/protocol/src/groups/vcs.ts
+index f9e74816d8..e388a5184a 100644
+--- a/packages/protocol/src/groups/vcs.ts
++++ b/packages/protocol/src/groups/vcs.ts
+@@ -53,6 +53,7 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
+     HttpApiEndpoint.get("vcs.get", "/api/vcs", {
+       query: LocationQuery,
+       success: Location.response(Vcs.Info),
++      error: ServiceUnavailableError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+@@ -83,6 +84,7 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
+     HttpApiEndpoint.get("vcs.status", "/api/vcs/status", {
+       query: LocationQuery,
+       success: Location.response(Schema.Array(Vcs.FileStatus)),
++      error: ServiceUnavailableError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+@@ -97,6 +99,7 @@ export const VcsGroup = HttpApiGroup.make("server.vcs")
+     HttpApiEndpoint.get("vcs.branch.list", "/api/vcs/branch", {
+       query: BranchesQuery,
+       success: Location.response(Vcs.BranchList),
++      error: ServiceUnavailableError,
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+diff --git a/packages/server/src/handlers/command.ts b/packages/server/src/handlers/command.ts
+index c540478fa5..c023e68547 100644
+--- a/packages/server/src/handlers/command.ts
++++ b/packages/server/src/handlers/command.ts
+@@ -1,8 +1,14 @@
+ import { Command } from "@opencode/core/command"
++import { Effect } from "effect"
+ import { HttpApiBuilder } from "effect/http-api"
+ import { Api } from "../api"
+-import { response } from "../location"
++import { awaitPlugins, response } from "../location"
+ 
+ export const CommandHandler = HttpApiBuilder.group(Api, "server.command", (handlers) =>
+-  handlers.handle("command.list", () => response(Command.Service.use((command) => command.list()))),
++  handlers.handle("command.list", () =>
++    Effect.gen(function* () {
++      yield* awaitPlugins
++      return yield* response(Command.Service.use((command) => command.list()))
++    }),
++  ),
+ )
+diff --git a/packages/server/src/handlers/reference.ts b/packages/server/src/handlers/reference.ts
+index aae02c9b1c..907af1149d 100644
+--- a/packages/server/src/handlers/reference.ts
++++ b/packages/server/src/handlers/reference.ts
+@@ -1,8 +1,14 @@
+ import { Reference } from "@opencode/core/reference"
++import { Effect } from "effect"
+ import { HttpApiBuilder } from "effect/http-api"
+ import { Api } from "../api"
+-import { response } from "../location"
++import { awaitPlugins, response } from "../location"
+ 
+ export const ReferenceHandler = HttpApiBuilder.group(Api, "server.reference", (handlers) =>
+-  handlers.handle("reference.list", () => response(Reference.Service.use((reference) => reference.list()))),
++  handlers.handle("reference.list", () =>
++    Effect.gen(function* () {
++      yield* awaitPlugins
++      return yield* response(Reference.Service.use((reference) => reference.list()))
++    }),
++  ),
+ )
+diff --git a/packages/server/src/handlers/vcs.ts b/packages/server/src/handlers/vcs.ts
+index 2d792578cb..5ce2e3da2b 100644
+--- a/packages/server/src/handlers/vcs.ts
++++ b/packages/server/src/handlers/vcs.ts
+@@ -10,7 +10,7 @@ import { VcsInitNotSupportedError } from "@opencode/protocol/groups/vcs"
+ import { Effect } from "effect"
+ import { HttpApiBuilder, HttpApiSchema } from "effect/http-api"
+ import { Api } from "../api"
+-import { response } from "../location"
++import { awaitPlugins, response } from "../location"
+ 
+ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+   Effect.gen(function* () {
+@@ -57,6 +57,7 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+       .handle("vcs.get", () =>
+         response(
+           Effect.gen(function* () {
++            yield* awaitPlugins
+             const vcs = yield* Vcs.Service
+             return yield* vcs.info()
+           }),
+@@ -65,6 +66,7 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+       .handle("vcs.base", () =>
+         response(
+           Effect.gen(function* () {
++            yield* awaitPlugins
+             const vcs = yield* Vcs.Service
+             return yield* vcs
+               .base()
+@@ -75,6 +77,7 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+       .handle("vcs.status", () =>
+         response(
+           Effect.gen(function* () {
++            yield* awaitPlugins
+             const vcs = yield* Vcs.Service
+             return yield* vcs.status()
+           }),
+@@ -83,6 +86,7 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+       .handle("vcs.branch.list", (ctx) =>
+         response(
+           Effect.gen(function* () {
++            yield* awaitPlugins
+             const vcs = yield* Vcs.Service
+             return yield* vcs.branches({ search: ctx.query.search, limit: Math.min(ctx.query.limit ?? 50, 100) })
+           }),
+@@ -91,6 +95,7 @@ export const VcsHandler = HttpApiBuilder.group(Api, "server.vcs", (handlers) =>
+       .handle("vcs.diff", (ctx) =>
+         response(
+           Effect.gen(function* () {
++            yield* awaitPlugins
+             const vcs = yield* Vcs.Service
+             return yield* vcs
+               .diff(ctx.query.mode, {
+diff --git a/packages/server/test/command.test.ts b/packages/server/test/command.test.ts
+new file mode 100644
+index 0000000000..519a0b3040
+--- /dev/null
++++ b/packages/server/test/command.test.ts
+@@ -0,0 +1,29 @@
++import fs from "node:fs/promises"
++import path from "node:path"
++import { expect } from "bun:test"
++import { Effect } from "effect"
++import { tmpdir } from "../../core/test/fixture/tmpdir"
++import { it } from "../../core/test/lib/effect"
++import { startServer } from "./fixture/server"
++
++it.live("waits for plugin initialization before listing commands", () =>
++  Effect.gen(function* () {
++    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-command-endpoint-")))
++    yield* Effect.promise(() =>
++      fs.writeFile(path.join(tmp.path, "opencode.json"), JSON.stringify({ commands: { demo: { template: "Demo" } } })),
++    )
++    const server = yield* startServer(tmp.path)
++    const url = new URL("/api/command", server.base)
++    url.searchParams.set("location[directory]", tmp.path)
++    const response = yield* Effect.promise(() => fetch(url, { headers: server.headers }))
++
++    expect(response.status).toBe(200)
++    const body: unknown = yield* Effect.promise(() => response.json())
++    if (!isRecord(body) || !Array.isArray(body["data"])) throw new Error("Expected a command list response")
++    expect(body["data"].some((command) => isRecord(command) && command["name"] === "demo")).toBeTrue()
++  }),
++)
++
++function isRecord(value: unknown): value is Record<string, unknown> {
++  return typeof value === "object" && value !== null && !Array.isArray(value)
++}

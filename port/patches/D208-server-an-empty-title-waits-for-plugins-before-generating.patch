@@ -1,0 +1,76 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:56:42 -0700
+Subject: [PATCH] D208 server: an empty title waits for plugins before
+ generating
+
+Upstream: PATCH /api/session/:id with title "" regenerates the title, but it does not wait for the session
+location's plugins. On a location that has not finished loading (its first request, or right after a restart) the
+title agent is not registered yet, so generation silently does nothing and the route still answers 204.
+Fixed: the route waits for plugin activation before generating, like the other routes that need plugin-provided
+state (503 ServiceUnavailableError when it times out).
+Scenarios: session-api-crud.test.ts "an empty title on a location's first request" (new)
+Upstream tests: none changed; client and openapi.json regenerated
+
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index 8b9574b9e1..aaad327362 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -724,7 +724,7 @@ export function make(options: ClientOptions) {
+               archived: input["archived"],
+             },
+             successStatus: 204,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: true,
+           },
+           requestOptions,
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index f8dd6141fe..60d85f2664 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -1661,6 +1661,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "Update mutable session properties.",
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index 2c3e1cc27d..d24747f176 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -311,7 +311,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+           }),
+         }),
+         success: HttpApiSchema.NoContent,
+-        error: [SessionNotFoundError, LocationNotFoundError],
++        error: [SessionNotFoundError, LocationNotFoundError, ServiceUnavailableError],
+       }).annotateMerge(
+         OpenApi.annotations({
+           identifier: "session.update",
+diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
+index ade68a8c99..a91f7ba246 100644
+--- a/packages/server/src/handlers/session.ts
++++ b/packages/server/src/handlers/session.ts
+@@ -274,7 +274,9 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+                 .rename({ sessionID: ctx.params.sessionID, title: ctx.payload.title })
+                 .pipe(Effect.catchTag("Session.NotFoundError", missingSession))
+             } else {
+-              yield* SessionTitle.Service.use((title) => title.generate(ctx.params.sessionID)).pipe(
++              // The title agent is registered by a plugin, so generating before activation would silently do nothing.
++              yield* awaitPlugins.pipe(
++                Effect.andThen(SessionTitle.Service.use((title) => title.generate(ctx.params.sessionID))),
+                 instances.provide(info),
+                 locationErrors,
+               )

@@ -26,6 +26,19 @@
             }
           ],
           "projectID": "<hash_1>",
+          "revert": {
+            "files": [
+              {
+                "additions": 1,
+                "deletions": 1,
+                "file": "notes.txt",
+                "patch": "@@ -1 +1 @@",
+                "status": "modified"
+              }
+            ],
+            "messageID": "<msg_1>",
+            "snapshot": "deadbeef"
+          },
           "time": {
             "archived": "<time>",
             "busy": "<time>",
@@ -663,6 +676,19 @@
             }
           ],
           "projectID": "<hash_1>",
+          "revert": {
+            "files": [
+              {
+                "additions": 1,
+                "deletions": 1,
+                "file": "notes.txt",
+                "patch": "@@ -1 +1 @@",
+                "status": "modified"
+              }
+            ],
+            "messageID": "<msg_1>",
+            "snapshot": "deadbeef"
+          },
           "time": {
             "archived": "<time>",
             "busy": "<time>",
@@ -1268,6 +1294,19 @@
               }
             ],
             "projectID": "<hash_1>",
+            "revert": {
+              "files": [
+                {
+                  "additions": 1,
+                  "deletions": 1,
+                  "file": "[redacted:revert-file:0]",
+                  "patch": "[redacted:revert-patch:0]",
+                  "status": "modified"
+                }
+              ],
+              "messageID": "<msg_1>",
+              "snapshot": "deadbeef"
+            },
             "time": {
               "archived": "<time>",
               "busy": "<time>",

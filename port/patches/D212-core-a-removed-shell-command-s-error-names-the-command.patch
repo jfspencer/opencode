@@ -1,0 +1,46 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:11:21 -0700
+Subject: [PATCH] D212 core: a removed shell command's error names the command
+
+Upstream: when a running shell command is removed (DELETE /api/shell/:id), the shell tool fails with
+Shell.NotFoundError, which has no message, so the model is told just "Shell.NotFoundError" (in the tool error and
+in a background command's notice).
+Fixed: Shell.NotFoundError has a message, "Shell command not found: <id>", the wording the HTTP API already uses
+for the same error.
+Scenarios: shell-tool.test.ts "remove the shell of a running command"; tui/session-running.test.ts "a long shell
+command moved to the background, viewed and killed"
+Upstream tests: packages/core/test/shell-retention.test.ts asserts the message
+
+diff --git a/packages/core/src/shell.ts b/packages/core/src/shell.ts
+index 98173850b6..520fabd29b 100644
+--- a/packages/core/src/shell.ts
++++ b/packages/core/src/shell.ts
+@@ -25,7 +25,11 @@ import { ShellResult } from "./shell/result.js"
+ 
+ export class NotFoundError extends Schema.TaggedError<NotFoundError>()("Shell.NotFoundError", {
+   id: Shell.ID,
+-}) {}
++}) {
++  override get message() {
++    return `Shell command not found: ${this.id}`
++  }
++}
+ 
+ // Keep recent exited processes observable in memory, including their file-backed output.
+ // The process-local cap complements the time-based sweep, which also cleans files left by restarts.
+diff --git a/packages/core/test/shell-retention.test.ts b/packages/core/test/shell-retention.test.ts
+index 3f776e4bb2..b82573ca32 100644
+--- a/packages/core/test/shell-retention.test.ts
++++ b/packages/core/test/shell-retention.test.ts
+@@ -81,7 +81,9 @@ it.live("eviction makes progress past an already-removed shell", () =>
+       const oldest = yield* complete
+       // Exceed the 25-entry retention cap with the removed ID at the head of exitOrder.
+       yield* Effect.forEach(Array.from({ length: 25 }), () => complete, { discard: true })
+-      expect(yield* shell.get(oldest.id).pipe(Effect.flip)).toBeInstanceOf(Shell.NotFoundError)
++      const evicted = yield* shell.get(oldest.id).pipe(Effect.flip)
++      expect(evicted).toBeInstanceOf(Shell.NotFoundError)
++      expect(evicted.message).toBe(`Shell command not found: ${oldest.id}`)
+ 
+       const survivor = yield* complete
+       expect(yield* shell.result(survivor)).toMatchObject({

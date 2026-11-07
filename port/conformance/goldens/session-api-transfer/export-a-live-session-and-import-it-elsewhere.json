@@ -1045,7 +1045,11 @@
       "url": "/api/experimental/session/import"
     },
     {
-      "body": null,
+      "body": {
+        "_tag": "ConflictError",
+        "message": "Message already exists: <msg_1>",
+        "resource": "<msg_1>"
+      },
       "kind": "http",
       "method": "POST",
       "request": {
@@ -1275,7 +1279,7 @@
           }
         ]
       },
-      "status": 500,
+      "status": 409,
       "url": "/api/experimental/session/import"
     },
     {

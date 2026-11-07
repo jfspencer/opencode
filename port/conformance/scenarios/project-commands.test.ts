@@ -38,6 +38,11 @@ async function listCommands(ctx: Ctx) {
 
 scenario("command list without custom commands", {}, listCommands)
 
+// The first request to a location boots it, and the listing waits for its plugins to register their commands.
+scenario("command list on a location's first request", { boot: false, config: { commands } }, async (ctx) => {
+  await ctx.http("GET", "/api/command")
+})
+
 scenario(
   "commands from config and markdown files",
   {

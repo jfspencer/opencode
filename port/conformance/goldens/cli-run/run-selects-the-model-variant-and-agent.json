@@ -96,7 +96,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "\u001b[91m\u001b[1mError: \u001b[0mAgent not found: \"no-such-agent\"",
+          "\u001b[91m\u001b[1mError: \u001b[0mAgent not found: no-such-agent",
           ""
         ],
         "stdout": ""

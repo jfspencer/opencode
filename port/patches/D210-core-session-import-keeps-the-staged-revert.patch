@@ -1,0 +1,45 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 14:05:53 -0700
+Subject: [PATCH] D210 core: session import keeps the staged revert
+
+Upstream: POST /api/experimental/session/import accepts info.revert (export includes it, and a sanitized export
+redacts its files and patches) but never stores it, so an imported session loses its staged revert.
+Fixed: the import stores info.revert with the rest of the session's state.
+Scenarios: session-api-transfer.test.ts "import a transcript with every message type"
+Upstream tests: packages/server/test/session-import.test.ts adds a test
+
+diff --git a/packages/core/src/session/transfer.ts b/packages/core/src/session/transfer.ts
+index f590d46081..1b37883861 100644
+--- a/packages/core/src/session/transfer.ts
++++ b/packages/core/src/session/transfer.ts
+@@ -192,6 +192,7 @@ const layer = Layer.effect(
+                       time_archived: input.data.info.time.archived
+                         ? DateTime.toEpochMillis(input.data.info.time.archived)
+                         : null,
++                      revert: input.data.info.revert ?? null,
+                     })
+                     .where(eq(SessionTable.id, sessionID))
+                     .run()
+diff --git a/packages/server/test/session-import.test.ts b/packages/server/test/session-import.test.ts
+index fe94590123..4f141709ef 100644
+--- a/packages/server/test/session-import.test.ts
++++ b/packages/server/test/session-import.test.ts
+@@ -166,3 +166,17 @@ it.live("rejects message IDs that already exist without creating the imported se
+     expect(yield* request(`/api/session/${id}`, undefined, 404)).toMatchObject({ _tag: "SessionNotFoundError" })
+   }).pipe(Effect.scoped),
+ )
++
++it.live("keeps the imported revert state", () =>
++  Effect.gen(function* () {
++    const request = yield* setup
++    const template = Schema.decodeUnknownSync(SessionResponse)(yield* request("/api/session", {}))
++    const id = Session.ID.create()
++    const revert = { messageID: "msg_reverted", snapshot: "deadbeef" }
++    yield* request("/api/experimental/session/import", {
++      info: { ...template.data, id, revert },
++      messages: [{ id: "msg_reverted", type: "user", text: "Undo this", time: { created: 1 } }],
++    })
++    expect(yield* request(`/api/session/${id}`)).toMatchObject({ data: { id, revert } })
++  }).pipe(Effect.scoped),
++)

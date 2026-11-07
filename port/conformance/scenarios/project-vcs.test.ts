@@ -66,6 +66,14 @@ scenario("vcs routes on a clean repository", { git: true, files }, async (ctx) =
   await inspect(ctx, ["working", "branch", "committed"])
 })
 
+// The first request to a location boots it, and the answers wait for its plugins to register the git provider.
+scenario("vcs routes on a location's first request", { boot: false, git: true, files }, async (ctx) => {
+  ctx.write("src/new.ts", "export const fresh = 1\n")
+  await ctx.http("GET", "/api/vcs")
+  await ctx.http("GET", "/api/vcs/status")
+  await ctx.http("GET", "/api/vcs/branch")
+})
+
 scenario("working copy status and diff", { git: true, files }, async (ctx) => {
   ctx.write("src/math.ts", "export function add(a: number, b: number) {\n  return b + a\n}\n\nexport const zero = 0\n")
   ctx.write("src/new.ts", "export const fresh = 1\n")

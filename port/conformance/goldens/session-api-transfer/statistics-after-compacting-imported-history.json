@@ -221,8 +221,8 @@
               "read": 10,
               "write": 2
             },
-            "input": 100,
-            "output": 20,
+            "input": 400,
+            "output": 60,
             "reasoning": 5
           },
           "tools": {
@@ -313,8 +313,8 @@
               "read": 10,
               "write": 2
             },
-            "input": 100,
-            "output": 20,
+            "input": 400,
+            "output": 60,
             "reasoning": 5
           },
           "tools": {

@@ -164,6 +164,23 @@
     {
       "body": {
         "data": {
+          "cursor": 4,
+          "output": "",
+          "size": 25,
+          "truncated": false
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/shell/<sh_1>/output?cursor=4&limit=0"
+    },
+    {
+      "body": {
+        "data": {
           "cursor": 25,
           "output": "",
           "size": 25,

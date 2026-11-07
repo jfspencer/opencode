@@ -165,9 +165,7 @@ scenario(
     ],
   },
   async (ctx) => {
-    // Titled sessions are renamed from the conversation; failed and blank generations keep the title. These turns
-    // also finish loading the location: title generation does not wait for plugins, so on a cold location it
-    // silently does nothing.
+    // Titled sessions are renamed from the conversation; failed and blank generations keep the title.
     for (const marker of ["FAIL-TITLE", "LONG-TITLE", "BLANK-TITLE", "follow-up"]) {
       const session = await ctx.session({ title: `before ${marker}` })
       await ctx.prompt(session, `${marker} please`)
