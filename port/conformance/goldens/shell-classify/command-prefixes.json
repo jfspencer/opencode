@@ -1312,7 +1312,7 @@
           ],
           "save": [
             "git config user.name *",
-            "git -C *",
+            "git -C src status",
             "docker compose up *",
             "kubectl get *"
           ],
@@ -1526,7 +1526,7 @@
           ],
           "save": [
             "bun x tsc *",
-            "python -m *",
+            "python -m http.server",
             "aws s3 ls *",
             "gh pr list *"
           ],

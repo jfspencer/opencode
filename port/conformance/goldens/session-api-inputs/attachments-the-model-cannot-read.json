@@ -233,7 +233,7 @@
               "role": "system"
             },
             {
-              "content": "Read theseERROR: Cannot read \"report.pdf\" (this model does not support pdf input). Inform the user.",
+              "content": "Read these\n\nERROR: Cannot read \"report.pdf\" (this model does not support pdf input). Inform the user.\n\nERROR: Cannot read \"voice.m4a\" (this model does not support audio input). Inform the user.\n\nERROR: Cannot read video (this model does not support video input). Inform the user.",
               "role": "user"
             }
           ],

@@ -1,0 +1,97 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:57:08 -0700
+Subject: [PATCH] D104 attachments: notes that replace or label an attachment
+ start their own paragraph
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: when a model cannot read an attachment, its media part is replaced by a text part ("ERROR: Cannot read …"), and a local image or PDF is preceded by an "Attached file: <path>" text part. Neither starts with a separator, and OpenAI-compatible chat requests join a user message's text parts, so the model received "Read theseERROR: Cannot read …" and "…Attached file: /path…" glued to the prompt. Text and directory attachments already start with a blank line for this reason.
+Fixed: both start with a blank line, like text attachments ("Read these\n\nERROR: Cannot read …"). Tool-result replacements are unchanged (their text items are joined with newlines).
+Scenarios: session-api-inputs.test.ts "attachments the model cannot read", "prompt with file and agent attachments"; agent-loop-agents.test.ts "prompt with a PDF attachment", "prompt with image attachments"; tui nav-paste.test.ts "paste a file path attaches the file" (re-recorded request text)
+Upstream tests: test/session-model-request.test.ts and test/session-runner-message.test.ts (asserted the unseparated text), test/session-compaction.test.ts (token estimates grow by one per replaced attachment)
+
+diff --git a/packages/core/src/session/model-request.ts b/packages/core/src/session/model-request.ts
+index b218f6f47d..5fc93d8032 100644
+--- a/packages/core/src/session/model-request.ts
++++ b/packages/core/src/session/model-request.ts
+@@ -167,9 +167,10 @@ const replaceMedia = (
+   messages: LLMRequest["messages"],
+   replace: (media: { mime: string; name: string | undefined; bytes: () => number }) => string | undefined,
+ ) => {
++  // Providers may join a message's text parts, so the replacement starts its own paragraph like text attachments.
+   const media = (part: MediaPart) => {
+     const text = replace({ mime: part.media.mediaType, name: part.filename, bytes: () => mediaBytes(part.media) })
+-    return text === undefined ? part : Message.text(text)
++    return text === undefined ? part : Message.text(`\n\n${text}`)
+   }
+   const toolResult = (part: ToolResultPart) => {
+     if (part.result.type !== "content") return part
+diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
+index 47c6fc4a14..db80374b4c 100644
+--- a/packages/core/src/session/runner/to-llm-message.ts
++++ b/packages/core/src/session/runner/to-llm-message.ts
+@@ -65,7 +65,7 @@ const attachmentContent = (file: FileAttachment): Array<TextPart | MediaPart> =>
+   if (file.mime === "application/x-directory") return [directoryAttachment(file)]
+   if (imageMimes.has(file.mime) || file.mime === "application/pdf") {
+     const location = attachmentLocation(file)
+-    return [...(location === undefined ? [] : [Message.text(`Attached file: ${location}`)]), media(file)]
++    return [...(location === undefined ? [] : [Message.text(`\n\nAttached file: ${location}`)]), media(file)]
+   }
+   return []
+ }
+diff --git a/packages/core/test/session-compaction.test.ts b/packages/core/test/session-compaction.test.ts
+index 14b1ab94a8..c19a7f6861 100644
+--- a/packages/core/test/session-compaction.test.ts
++++ b/packages/core/test/session-compaction.test.ts
+@@ -516,9 +516,9 @@ it.effect("auto compaction estimates current content against the buffered prompt
+     })
+     expect(SessionCompaction.estimateContext({ ...grown, messages: [...messages, user] })).toBe(96_000)
+     for (const [modalities, tokens, fallback] of [
+-      [["text", "image"], 92_040, 1_520],
+-      [["text", "pdf"], 93_042, 2_021],
+-      [["text"], 89_082, 41],
++      [["text", "image"], 92_041, 1_521],
++      [["text", "pdf"], 93_043, 2_022],
++      [["text"], 89_084, 43],
+     ] as const) {
+       const selected = {
+         ...grown,
+diff --git a/packages/core/test/session-model-request.test.ts b/packages/core/test/session-model-request.test.ts
+index a39ed2a1c9..00c104140c 100644
+--- a/packages/core/test/session-model-request.test.ts
++++ b/packages/core/test/session-model-request.test.ts
+@@ -19,8 +19,8 @@ describe("SessionModelRequest.unsupportedParts", () => {
+ 
+     expect(messages[0]?.content).toEqual([
+       Message.text("Describe these files"),
+-      Message.text('ERROR: Cannot read "logo.png" (this model does not support image input). Inform the user.'),
+-      Message.text('ERROR: Cannot read "document.pdf" (this model does not support pdf input). Inform the user.'),
++      Message.text('\n\nERROR: Cannot read "logo.png" (this model does not support image input). Inform the user.'),
++      Message.text('\n\nERROR: Cannot read "document.pdf" (this model does not support pdf input). Inform the user.'),
+     ])
+   })
+ 
+@@ -86,7 +86,7 @@ describe("SessionModelRequest.unsupportedParts", () => {
+ 
+     expect(result[0]?.content).toEqual([
+       ...user,
+-      Message.text('ERROR: Cannot read "d.gif" (this model does not support image/gif input). Inform the user.'),
++      Message.text('\n\nERROR: Cannot read "d.gif" (this model does not support image/gif input). Inform the user.'),
+     ])
+     expect(result[1]?.content[0]).toMatchObject({
+       type: "tool-result",
+diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
+index ffab21983e..832d6be75d 100644
+--- a/packages/core/test/session-runner-message.test.ts
++++ b/packages/core/test/session-runner-message.test.ts
+@@ -549,7 +549,7 @@ Earlier work
+ 
+     expect(messages[0]?.content).toEqual([
+       { type: "text", text: "Inspect this image" },
+-      { type: "text", text: `Attached file: ${location}` },
++      { type: "text", text: `\n\nAttached file: ${location}` },
+       { type: "media", media: Media.base64(data, "image/png"), filename: "IMG_3480.JPG" },
+     ])
+   })

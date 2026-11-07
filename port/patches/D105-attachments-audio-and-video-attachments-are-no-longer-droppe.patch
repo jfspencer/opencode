@@ -1,0 +1,74 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 13:58:23 -0700
+Subject: [PATCH] D105 attachments: audio and video attachments are no longer
+ dropped
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: a prompt's audio and video attachments were stored but left out of the model request, so the model never learned of them and the user was not told. Images and PDFs are forwarded, and a model that cannot read one gets "ERROR: Cannot read … Inform the user." in its place; that check already knows the audio and video modalities.
+Fixed: audio and video attachments are forwarded like images and PDFs, so a model without that input gets the same error text ("ERROR: Cannot read "voice.m4a" (this model does not support audio input). Inform the user.") and a model with it receives the media. Attachments of unknown type are still left out.
+Scenarios: session-api-inputs.test.ts "attachments the model cannot read"
+Upstream tests: test/session-runner-message.test.ts (new test)
+
+diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
+index db80374b4c..d0313f1652 100644
+--- a/packages/core/src/session/runner/to-llm-message.ts
++++ b/packages/core/src/session/runner/to-llm-message.ts
+@@ -63,7 +63,14 @@ const directoryAttachment = (file: FileAttachment): TextPart => ({
+ const attachmentContent = (file: FileAttachment): Array<TextPart | MediaPart> => {
+   if (file.mime === "text/plain") return [textAttachment(file)]
+   if (file.mime === "application/x-directory") return [directoryAttachment(file)]
+-  if (imageMimes.has(file.mime) || file.mime === "application/pdf") {
++  // Audio and video are forwarded like images and PDFs, so a model that cannot read them reports it instead of the
++  // attachment disappearing.
++  if (
++    imageMimes.has(file.mime) ||
++    file.mime === "application/pdf" ||
++    file.mime.startsWith("audio/") ||
++    file.mime.startsWith("video/")
++  ) {
+     const location = attachmentLocation(file)
+     return [...(location === undefined ? [] : [Message.text(`\n\nAttached file: ${location}`)]), media(file)]
+   }
+diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
+index 832d6be75d..5b03b90b75 100644
+--- a/packages/core/test/session-runner-message.test.ts
++++ b/packages/core/test/session-runner-message.test.ts
+@@ -524,6 +524,35 @@ Earlier work
+     ])
+   })
+ 
++  test("forwards audio and video attachments as provider media", () => {
++    const messages = toLLMMessages(
++      [
++        SessionMessage.User.make({
++          id: id("user-audio-video"),
++          type: "user",
++          text: "Transcribe these",
++          files: [
++            FileAttachment.make({
++              data: Base64.make("AAAA"),
++              mime: "audio/mp4",
++              source: { type: "inline" },
++              name: "voice.m4a",
++            }),
++            FileAttachment.make({ data: Base64.make("AAAA"), mime: "video/mp4", source: { type: "inline" } }),
++          ],
++          time: { created },
++        }),
++      ],
++      model,
++    )
++
++    expect(messages[0]?.content).toEqual([
++      { type: "text", text: "Transcribe these" },
++      { type: "media", media: Media.base64("AAAA", "audio/mp4"), filename: "voice.m4a" },
++      { type: "media", media: Media.base64("AAAA", "video/mp4"), filename: undefined },
++    ])
++  })
++
+   test("exposes admitted local image source paths before provider media", () => {
+     const data = Base64.make("AAECAw==")
+     const location = path.resolve("/project/IMG_3480.JPG")

@@ -275,7 +275,7 @@
                   "type": "image_url"
                 },
                 {
-                  "text": "Attached file: <project>/pixel.png",
+                  "text": "\n\nAttached file: <project>/pixel.png",
                   "type": "text"
                 },
                 {
