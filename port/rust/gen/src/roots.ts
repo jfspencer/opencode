@@ -1,0 +1,153 @@
+// The schemas the generator covers, collected from the TS reference at runtime, in declaration order:
+// every HttpApi endpoint (path params, query, headers, payloads, successes, errors), the SSE event union and
+// every event definition, and the v2 config file. Each root records the wire context it is read and written in.
+import { ClientApi } from "@opencode/protocol/client"
+import { OpenCodeEvent } from "@opencode/protocol/groups/event"
+import { EventManifest } from "@opencode/schema/event-manifest"
+import { Config } from "@opencode/schema/config"
+import { Context, SchemaAST } from "effect"
+import { HttpApi, HttpApiEndpoint, HttpApiSchema, OpenApi } from "effect/http-api"
+
+/**
+ * How a value travels:
+ * - `json`: an HTTP body. HttpApi has already applied `Schema.toCodecJson`; the encoded value goes through
+ *   `JSON.stringify` / `JSON.parse`.
+ * - `plain`: the plain encoded side through `JSON.stringify` / `JSON.parse`, without the JSON codec: SSE event
+ *   data (`Schema.fromJsonString`) and the config file (decoded from JSONC).
+ * - `tree`: path parameters, query and headers. HttpApi has applied `Schema.toCodecStringTree`; values are strings
+ *   or arrays of strings.
+ */
+export type Wire = "json" | "plain" | "tree"
+
+export interface Root {
+  /** Suggested Rust name, used when the schema has no identifier of its own. */
+  readonly hint: string
+  readonly ast: SchemaAST.AST
+  readonly wire: Wire
+  /** Where the root came from, for diagnostics and the route table. */
+  readonly origin: string
+}
+
+export interface Body {
+  readonly status: number
+  /** `json`, `none` (no content), `binary` (octet stream), `text`, `sse`, `upgrade` */
+  readonly kind: string
+  readonly contentType?: string
+  readonly root?: Root
+}
+
+export interface Endpoint {
+  readonly group: string
+  readonly name: string
+  readonly method: string
+  readonly path: string
+  readonly operationId: string
+  readonly params?: Root
+  readonly query?: Root
+  readonly headers?: Root
+  readonly payload: ReadonlyArray<Body>
+  readonly success: ReadonlyArray<Body>
+  readonly errors: ReadonlyArray<Body>
+}
+
+const pascal = (s: string) =>
+  s
+    .split(/[^A-Za-z0-9]+/)
+    .filter((p) => p.length > 0)
+    .map((p) => p[0].toUpperCase() + p.slice(1))
+    .join("")
+
+export function collect() {
+  const endpoints: Endpoint[] = []
+  const roots: Root[] = []
+  const add = (root: Root) => (roots.push(root), root)
+  HttpApi.reflect(ClientApi as never, {
+    onGroup() {},
+    onEndpoint({ group, endpoint }) {
+      const e = endpoint as HttpApiEndpoint.Top
+      const operationId = Context.getOrElse(e.annotations, OpenApi.Identifier, () => e.identifier)
+      const base = pascal(operationId)
+      const origin = `${e.method} ${e.path}`
+      const params = e.params && add({ hint: `${base}Params`, ast: e.params.ast, wire: "tree", origin: `${origin} params` })
+      const query = e.query && add({ hint: `${base}Query`, ast: e.query.ast, wire: "tree", origin: `${origin} query` })
+      const headers =
+        e.headers && add({ hint: `${base}Headers`, ast: e.headers.ast, wire: "tree", origin: `${origin} headers` })
+      const payload: Body[] = []
+      const hasBody = !["GET", "HEAD", "OPTIONS"].includes(e.method)
+      for (const [contentType, entry] of e.payload) {
+        for (const schema of entry.schemas) {
+          if (HttpApiSchema.isNoContent(schema.ast)) continue
+          const kind = entry.encoding._tag === "Json" ? "json" : entry.encoding._tag === "Uint8Array" ? "binary" : "text"
+          // GET-style payloads are query parameters (HttpApi decodes them from the query string).
+          const wire = hasBody ? (kind === "json" ? "json" : "plain") : "tree"
+          payload.push({
+            status: 0,
+            kind: hasBody ? kind : "query",
+            contentType,
+            root: kind === "json" || !hasBody ? add({ hint: `${base}Payload`, ast: schema.ast, wire, origin: `${origin} payload` }) : undefined,
+          })
+        }
+      }
+      const success = bodies(HttpApiEndpoint.getSuccessSchemas(e), HttpApiSchema.getStatusSuccessSchema, `${base}Response`, origin, add)
+      const errors = bodies(
+        HttpApiEndpoint.getErrorSchemas(e),
+        HttpApiSchema.getStatusErrorSchema,
+        `${base}Error`,
+        origin,
+        add,
+      )
+      endpoints.push({
+        group: group.identifier,
+        name: e.identifier,
+        method: e.method,
+        path: e.path,
+        operationId,
+        params,
+        query,
+        headers,
+        payload,
+        success,
+        errors,
+      })
+    },
+  })
+  const sse = add({ hint: "V2Event", ast: OpenCodeEvent.ast, wire: "plain", origin: "GET /api/event (SSE data)" })
+  const events = EventManifest.Definitions.map((definition) => {
+    const d = definition as unknown as { type: string; durable?: { version: number }; ast: SchemaAST.AST }
+    return {
+      type: d.type,
+      version: d.durable?.version,
+      root: add({ hint: pascal(d.type), ast: d.ast, wire: "plain", origin: `event ${d.type}` }),
+    }
+  })
+  const config = add({ hint: "ConfigInfo", ast: Config.Info.ast, wire: "plain", origin: "opencode.json" })
+  return { endpoints, roots, sse, events, config }
+}
+
+function bodies(
+  schemas: ReadonlyArray<{ readonly ast: SchemaAST.AST }>,
+  status: (schema: never) => number,
+  hint: string,
+  origin: string,
+  add: (root: Root) => Root,
+): Body[] {
+  return schemas.map((schema) => {
+    const s = schema as unknown as { ast: SchemaAST.AST; schema?: unknown; events?: { ast: SchemaAST.AST } }
+    const code = status(schema as never)
+    if (HttpApiSchema.isStreamSchema(s as never)) {
+      // SSE in "data" mode: each event's data is `Schema.fromJsonString(data)`; the generated type is `data`.
+      const stream = s as unknown as { _tag: string; events: { fields: { data: { ast: SchemaAST.AST } } } }
+      if (stream._tag !== "StreamSse") return { status: 200, kind: "stream" }
+      const data = stream.events.fields.data.ast
+      const links = data.encoding!
+      const inner = SchemaAST.replaceEncoding(data, links.length > 1 ? (links.slice(0, -1) as never) : undefined)
+      const root = add({ hint: `${hint}Event`, ast: inner, wire: "plain", origin: `${origin} SSE data` })
+      return { status: 200, kind: "sse", contentType: "text/event-stream", root }
+    }
+    if (HttpApiSchema.isUpgrade(s as never)) return { status: 101, kind: "upgrade" }
+    if (HttpApiSchema.isNoContent(s.ast)) return { status: code, kind: "none" }
+    const encoding = HttpApiSchema.getResponseEncodingSchema(schema as never)
+    if (encoding._tag !== "Json") return { status: code, kind: encoding._tag === "Uint8Array" ? "binary" : "text", contentType: encoding.contentType }
+    return { status: code, kind: "json", contentType: encoding.contentType, root: add({ hint, ast: s.ast, wire: "json", origin: `${origin} ${code}` }) }
+  })
+}

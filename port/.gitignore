@@ -3,3 +3,5 @@ __pycache__/
 .reference/
 conformance/ref
 .worktrees/
+rust/target/
+rust/gen/node_modules/
