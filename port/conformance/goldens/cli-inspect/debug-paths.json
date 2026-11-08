@@ -20,7 +20,7 @@
           "bin        <sandbox>/cache/opencode/bin",
           "log        <sandbox>/data/opencode/log",
           "repos      <sandbox>/data/opencode/repos",
-          "db         <sandbox>/data/opencode/opencode-local.db",
+          "db         <sandbox>/data/opencode/opencode-conformance.db",
           ""
         ]
       }
@@ -37,7 +37,7 @@
         "exit": 0,
         "stderr": "",
         "stdout": [
-          "<sandbox>/data/opencode/opencode-local.db",
+          "<sandbox>/data/opencode/opencode-conformance.db",
           ""
         ]
       }

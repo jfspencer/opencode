@@ -194,6 +194,9 @@ scenario(
     const id = await ctx.session()
     await ctx.prompt(id, "Turn one")
     await ctx.http("POST", `/api/session/${id}/move`, { directory: path.join(ctx.project, "sub") })
+    // The move is queued: let it run before the next prompt, which would otherwise race it.
+    await ctx.until((event) => event?.type === "session.moved" && event?.data?.sessionID === id)
+    await ctx.wait(id)
     await ctx.prompt(id, "Turn two")
     await ctx.http("GET", `/api/session/${id}`)
     await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === path.join(ctx.project, "sub"))

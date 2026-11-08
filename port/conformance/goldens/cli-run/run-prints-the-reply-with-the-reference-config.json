@@ -32,7 +32,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "c47d2510dd2259cda5b953b893abb630c131f5c27c53e6bf53643d2e55b81de3"
+                "<blob>": "af46c9e3fce778d6f66db5047516799e28c0572b7326c0e5ea17008827fb8205"
               },
               "role": "system"
             },
@@ -51,14 +51,13 @@
             "include_usage": true
           },
           "tools": {
-            "<blob>": "493cf7da0b609b09cfe9807b3108628bc500acb46f68dc62093cd7d8eaf1f519"
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
           },
           "usage": {
             "include": true
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },
@@ -94,7 +93,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },

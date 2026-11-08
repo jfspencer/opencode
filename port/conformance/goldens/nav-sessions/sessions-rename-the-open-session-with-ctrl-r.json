@@ -250,6 +250,22 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Current one renamed"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "type": "session.renamed"
+      }
+    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -269,25 +285,11 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_11>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.created"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Current one renamed"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 1,
-          "version": 1
-        },
-        "id": "<evt_12>",
-        "type": "session.renamed"
       }
     ]
   },

@@ -240,7 +240,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-second",
           "content-type": "application/json"
         },
@@ -300,7 +299,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-typed",
           "content-type": "application/json"
         },
@@ -336,7 +334,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-second",
           "content-type": "application/json"
         },
@@ -372,7 +369,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-typed",
           "content-type": "application/json"
         },

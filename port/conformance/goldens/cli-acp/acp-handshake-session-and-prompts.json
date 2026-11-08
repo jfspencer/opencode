@@ -40,7 +40,7 @@
                 },
                 "agentInfo": {
                   "name": "OpenCode",
-                  "version": "local"
+                  "version": "conformance"
                 },
                 "authMethods": [
                   {
@@ -141,10 +141,6 @@
                     {
                       "description": "keep working until an objective is met [pause|resume|clear]",
                       "name": "goal"
-                    },
-                    {
-                      "description": "schedule a prompt for later, or list, pause and delete this session's schedules",
-                      "name": "schedule"
                     },
                     {
                       "description": "Compact the session",
@@ -458,7 +454,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },
@@ -611,7 +606,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },
@@ -783,7 +777,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },
@@ -819,7 +812,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },

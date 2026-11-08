@@ -239,7 +239,10 @@ scenario(
   async (ctx) => {
     const id = await ctx.session({ title: "manual title" })
     await ctx.prompt(id, "Plan a refactor of the parser")
+    const from = ctx.events.length
     await ctx.http("PATCH", `/api/session/${id}`, { title: "" })
+    // Regeneration runs in the background: read the session once the new title is applied.
+    await ctx.until((event) => event?.type === "session.renamed" && event?.data?.title === "Planning the refactor", from)
     await ctx.http("GET", `/api/session/${id}`)
   },
 )

@@ -254,6 +254,25 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -278,7 +297,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_11>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -304,7 +323,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_13>",
         "location": {
           "directory": "<project>"
         },
@@ -320,7 +339,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_14>",
         "type": "session.execution.started"
       },
       {
@@ -339,7 +358,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_14>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -361,7 +380,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -385,7 +404,7 @@
           "seq": 5,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },
@@ -410,7 +429,7 @@
           "seq": 6,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -434,7 +453,7 @@
           "seq": 7,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_19>",
         "type": "session.execution.failed"
       },
       {
@@ -448,7 +467,7 @@
           "seq": 8,
           "version": 1
         },
-        "id": "<evt_19>",
+        "id": "<evt_20>",
         "type": "session.viewed"
       },
       {
@@ -466,25 +485,8 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_20>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 10,
-          "version": 1
-        },
         "id": "<evt_21>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
+        "type": "session.usage.updated"
       }
     ]
   },

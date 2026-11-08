@@ -120,8 +120,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 700,
-            "output": 70,
+            "input": 600,
+            "output": 60,
             "reasoning": 0
           }
         }
@@ -1513,6 +1513,61 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "title": "Code mode rename"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 12,
+          "version": 1
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Renamed from code"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
     "<ses_2>": [
       {
         "created": "<time>",
@@ -1531,7 +1586,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_31>",
+        "id": "<evt_34>",
         "location": {
           "directory": "<project>"
         },
@@ -1555,7 +1610,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_32>",
+        "id": "<evt_35>",
         "location": {
           "directory": "<project>"
         },
@@ -1571,7 +1626,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_33>",
+        "id": "<evt_36>",
         "type": "session.execution.started"
       },
       {
@@ -1590,7 +1645,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_34>",
+        "id": "<evt_37>",
         "location": {
           "directory": "<project>"
         },
@@ -1612,7 +1667,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_35>",
+        "id": "<evt_38>",
         "location": {
           "directory": "<project>"
         },
@@ -1636,7 +1691,7 @@
           "seq": 5,
           "version": 1
         },
-        "id": "<evt_36>",
+        "id": "<evt_39>",
         "location": {
           "directory": "<project>"
         },
@@ -1655,7 +1710,7 @@
           "seq": 6,
           "version": 1
         },
-        "id": "<evt_37>",
+        "id": "<evt_40>",
         "location": {
           "directory": "<project>"
         },
@@ -1671,30 +1726,13 @@
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 0,
+            "output": 0,
             "reasoning": 0
           }
         },
-        "id": "<evt_38>",
+        "id": "<evt_41>",
         "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_2>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_2>",
-          "seq": 8,
-          "version": 1
-        },
-        "id": "<evt_39>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -1709,7 +1747,7 @@
           "seq": 9,
           "version": 1
         },
-        "id": "<evt_40>",
+        "id": "<evt_42>",
         "location": {
           "directory": "<project>"
         },
@@ -1731,7 +1769,7 @@
           "seq": 10,
           "version": 1
         },
-        "id": "<evt_41>",
+        "id": "<evt_43>",
         "location": {
           "directory": "<project>"
         },
@@ -1748,28 +1786,11 @@
           "seq": 11,
           "version": 1
         },
-        "id": "<evt_42>",
+        "id": "<evt_44>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.step.streamed"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_2>",
-          "title": "Code mode rename"
-        },
-        "durable": {
-          "aggregateID": "<ses_2>",
-          "seq": 12,
-          "version": 1
-        },
-        "id": "<evt_43>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -1810,7 +1831,7 @@
           "seq": 13,
           "version": 2
         },
-        "id": "<evt_44>",
+        "id": "<evt_45>",
         "location": {
           "directory": "<project>"
         },
@@ -1839,7 +1860,7 @@
           "seq": 14,
           "version": 1
         },
-        "id": "<evt_45>",
+        "id": "<evt_46>",
         "location": {
           "directory": "<project>"
         },
@@ -1855,12 +1876,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 100,
+            "output": 10,
             "reasoning": 0
           }
         },
-        "id": "<evt_46>",
+        "id": "<evt_47>",
         "type": "session.usage.updated"
       },
       {
@@ -1881,7 +1902,7 @@
           "seq": 15,
           "version": 1
         },
-        "id": "<evt_47>",
+        "id": "<evt_48>",
         "location": {
           "directory": "<project>"
         },
@@ -1900,7 +1921,7 @@
           "seq": 16,
           "version": 1
         },
-        "id": "<evt_48>",
+        "id": "<evt_49>",
         "location": {
           "directory": "<project>"
         },
@@ -1919,7 +1940,7 @@
           "seq": 17,
           "version": 1
         },
-        "id": "<evt_49>",
+        "id": "<evt_50>",
         "location": {
           "directory": "<project>"
         },
@@ -1941,7 +1962,7 @@
           "seq": 18,
           "version": 1
         },
-        "id": "<evt_50>",
+        "id": "<evt_51>",
         "location": {
           "directory": "<project>"
         },
@@ -1958,7 +1979,7 @@
           "seq": 19,
           "version": 1
         },
-        "id": "<evt_51>",
+        "id": "<evt_52>",
         "location": {
           "directory": "<project>"
         },
@@ -2018,7 +2039,7 @@
           "seq": 20,
           "version": 2
         },
-        "id": "<evt_52>",
+        "id": "<evt_53>",
         "location": {
           "directory": "<project>"
         },
@@ -2047,7 +2068,7 @@
           "seq": 21,
           "version": 1
         },
-        "id": "<evt_53>",
+        "id": "<evt_54>",
         "location": {
           "directory": "<project>"
         },
@@ -2063,12 +2084,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 300,
-            "output": 30,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
-        "id": "<evt_54>",
+        "id": "<evt_55>",
         "type": "session.usage.updated"
       },
       {
@@ -2089,7 +2110,7 @@
           "seq": 22,
           "version": 1
         },
-        "id": "<evt_55>",
+        "id": "<evt_56>",
         "location": {
           "directory": "<project>"
         },
@@ -2108,7 +2129,7 @@
           "seq": 23,
           "version": 1
         },
-        "id": "<evt_56>",
+        "id": "<evt_57>",
         "location": {
           "directory": "<project>"
         },
@@ -2127,7 +2148,7 @@
           "seq": 24,
           "version": 1
         },
-        "id": "<evt_57>",
+        "id": "<evt_58>",
         "location": {
           "directory": "<project>"
         },
@@ -2149,7 +2170,7 @@
           "seq": 25,
           "version": 1
         },
-        "id": "<evt_58>",
+        "id": "<evt_59>",
         "location": {
           "directory": "<project>"
         },
@@ -2166,7 +2187,7 @@
           "seq": 26,
           "version": 1
         },
-        "id": "<evt_59>",
+        "id": "<evt_60>",
         "location": {
           "directory": "<project>"
         },
@@ -2233,7 +2254,7 @@
           "seq": 27,
           "version": 2
         },
-        "id": "<evt_60>",
+        "id": "<evt_61>",
         "location": {
           "directory": "<project>"
         },
@@ -2262,7 +2283,7 @@
           "seq": 28,
           "version": 1
         },
-        "id": "<evt_61>",
+        "id": "<evt_62>",
         "location": {
           "directory": "<project>"
         },
@@ -2278,12 +2299,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 400,
-            "output": 40,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
-        "id": "<evt_62>",
+        "id": "<evt_63>",
         "type": "session.usage.updated"
       },
       {
@@ -2304,7 +2325,7 @@
           "seq": 29,
           "version": 1
         },
-        "id": "<evt_63>",
+        "id": "<evt_64>",
         "location": {
           "directory": "<project>"
         },
@@ -2323,7 +2344,7 @@
           "seq": 30,
           "version": 1
         },
-        "id": "<evt_64>",
+        "id": "<evt_65>",
         "location": {
           "directory": "<project>"
         },
@@ -2342,7 +2363,7 @@
           "seq": 31,
           "version": 1
         },
-        "id": "<evt_65>",
+        "id": "<evt_66>",
         "location": {
           "directory": "<project>"
         },
@@ -2364,7 +2385,7 @@
           "seq": 32,
           "version": 1
         },
-        "id": "<evt_66>",
+        "id": "<evt_67>",
         "location": {
           "directory": "<project>"
         },
@@ -2381,7 +2402,7 @@
           "seq": 33,
           "version": 1
         },
-        "id": "<evt_67>",
+        "id": "<evt_68>",
         "location": {
           "directory": "<project>"
         },
@@ -2409,7 +2430,7 @@
           "seq": 34,
           "version": 1
         },
-        "id": "<evt_68>",
+        "id": "<evt_69>",
         "location": {
           "directory": "<project>"
         },
@@ -2446,7 +2467,7 @@
           "seq": 35,
           "version": 2
         },
-        "id": "<evt_69>",
+        "id": "<evt_70>",
         "location": {
           "directory": "<project>"
         },
@@ -2475,7 +2496,7 @@
           "seq": 36,
           "version": 1
         },
-        "id": "<evt_70>",
+        "id": "<evt_71>",
         "location": {
           "directory": "<project>"
         },
@@ -2491,12 +2512,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 500,
-            "output": 50,
+            "input": 400,
+            "output": 40,
             "reasoning": 0
           }
         },
-        "id": "<evt_71>",
+        "id": "<evt_72>",
         "type": "session.usage.updated"
       },
       {
@@ -2510,7 +2531,7 @@
           "seq": 37,
           "version": 1
         },
-        "id": "<evt_72>",
+        "id": "<evt_73>",
         "location": {
           "directory": "<project>"
         },
@@ -2531,7 +2552,7 @@
           "seq": 38,
           "version": 1
         },
-        "id": "<evt_73>",
+        "id": "<evt_74>",
         "location": {
           "directory": "<project>"
         },
@@ -2551,7 +2572,7 @@
           "seq": 39,
           "version": 2
         },
-        "id": "<evt_74>",
+        "id": "<evt_75>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2575,7 +2596,7 @@
           "seq": 40,
           "version": 1
         },
-        "id": "<evt_75>",
+        "id": "<evt_76>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2594,7 +2615,7 @@
           "seq": 41,
           "version": 1
         },
-        "id": "<evt_76>",
+        "id": "<evt_77>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2613,7 +2634,7 @@
           "seq": 42,
           "version": 1
         },
-        "id": "<evt_77>",
+        "id": "<evt_78>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2635,7 +2656,7 @@
           "seq": 43,
           "version": 1
         },
-        "id": "<evt_78>",
+        "id": "<evt_79>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2652,7 +2673,7 @@
           "seq": 44,
           "version": 1
         },
-        "id": "<evt_79>",
+        "id": "<evt_80>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2681,7 +2702,7 @@
           "seq": 45,
           "version": 2
         },
-        "id": "<evt_80>",
+        "id": "<evt_81>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2710,7 +2731,7 @@
           "seq": 46,
           "version": 1
         },
-        "id": "<evt_81>",
+        "id": "<evt_82>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2726,12 +2747,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 600,
-            "output": 60,
+            "input": 500,
+            "output": 50,
             "reasoning": 0
           }
         },
-        "id": "<evt_82>",
+        "id": "<evt_83>",
         "type": "session.usage.updated"
       },
       {
@@ -2752,7 +2773,7 @@
           "seq": 47,
           "version": 1
         },
-        "id": "<evt_83>",
+        "id": "<evt_84>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2770,7 +2791,7 @@
           "seq": 48,
           "version": 1
         },
-        "id": "<evt_84>",
+        "id": "<evt_85>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2784,7 +2805,7 @@
           "ordinal": 0,
           "sessionID": "<ses_2>"
         },
-        "id": "<evt_85>",
+        "id": "<evt_86>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2803,7 +2824,7 @@
           "seq": 49,
           "version": 1
         },
-        "id": "<evt_86>",
+        "id": "<evt_87>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2820,7 +2841,7 @@
           "seq": 50,
           "version": 1
         },
-        "id": "<evt_87>",
+        "id": "<evt_88>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2849,7 +2870,7 @@
           "seq": 51,
           "version": 1
         },
-        "id": "<evt_88>",
+        "id": "<evt_89>",
         "location": {
           "directory": "<project>/sub/dir"
         },
@@ -2865,12 +2886,12 @@
               "read": 0,
               "write": 0
             },
-            "input": 700,
-            "output": 70,
+            "input": 600,
+            "output": 60,
             "reasoning": 0
           }
         },
-        "id": "<evt_89>",
+        "id": "<evt_90>",
         "type": "session.usage.updated"
       },
       {
@@ -2883,7 +2904,7 @@
           "seq": 52,
           "version": 1
         },
-        "id": "<evt_90>",
+        "id": "<evt_91>",
         "type": "session.execution.succeeded"
       }
     ],
@@ -2906,28 +2927,11 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_91>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.created"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Renamed from code"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 1,
-          "version": 1
-        },
         "id": "<evt_92>",
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.created"
       },
       {
         "created": "<time>",

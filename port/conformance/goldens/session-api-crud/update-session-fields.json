@@ -343,6 +343,36 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "after"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "all at once"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "type": "session.renamed"
+      }
+    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -362,25 +392,11 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_11>",
+        "id": "<evt_13>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.created"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "after"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 1,
-          "version": 1
-        },
-        "id": "<evt_12>",
-        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -396,7 +412,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_14>",
         "type": "session.metadata.updated"
       },
       {
@@ -416,7 +432,7 @@
           "seq": 3,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_15>",
         "type": "session.permissions"
       },
       {
@@ -429,7 +445,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_16>",
         "type": "session.archived"
       },
       {
@@ -442,22 +458,8 @@
           "seq": 5,
           "version": 1
         },
-        "id": "<evt_16>",
-        "type": "session.unarchived"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "all at once"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
         "id": "<evt_17>",
-        "type": "session.renamed"
+        "type": "session.unarchived"
       },
       {
         "created": "<time>",

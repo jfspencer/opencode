@@ -14,7 +14,7 @@
           },
           {
             "content": {
-              "<blob>": "321e3a6087e21f07e5e556f02bb5a92cce5657bce71ac3fc5826db8ee94695d7"
+              "<blob>": "f3d1880ecdbf49502e639125167c46a854d5693779b0177d0d3b90b7045f73a4"
             },
             "description": "Use when the user wants to report an opencode issue or bug. Collect standard diagnostics, add user-specific reproduction context, and publish the issue with GitHub CLI.",
             "id": "report",
@@ -29,6 +29,20 @@
             "id": "browser",
             "name": "Browser",
             "path": "skill://browser/SKILL.md"
+          },
+          {
+            "content": "\nOne.\n",
+            "description": "Absolute skill.",
+            "id": "one",
+            "name": "one",
+            "path": "<project>/abs/one/SKILL.md"
+          },
+          {
+            "content": "\nHome.\n",
+            "description": "Home skill.",
+            "id": "homeskill",
+            "name": "homeskill",
+            "path": "<home>/conformance-skills/homeskill/SKILL.md"
           }
         ],
         "location": {
@@ -192,6 +206,15 @@
         "created": "<time>",
         "data": {},
         "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },

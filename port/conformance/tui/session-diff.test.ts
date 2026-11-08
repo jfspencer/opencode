@@ -2,6 +2,8 @@
 import { call, say, type Turn } from "../lib/openrouter"
 import { tuiScenario, type TuiCtx, type TuiOptions } from "../lib/tui"
 
+const LOADED = /src\/math\.ts {20,}\+2 -2/
+
 // Title generation runs concurrently with the first step, so its events would interleave with the step's at
 // random. Hold the first step until the session is renamed: the recorded order is then fixed.
 function scenario(name: string, options: TuiOptions, body: (t: TuiCtx) => Promise<void>) {
@@ -52,7 +54,8 @@ scenario(
   async (t) => {
     await ask(t, "Make some changes", "Changed three files.")
     await t.press("F8")
-    await t.waitFor("src/math.ts")
+    // The viewer's file row, once the diff has loaded ("src/math.ts" alone is already in the transcript).
+    await t.waitFor(LOADED)
     await t.frame("opened")
     await t.press("n")
     await t.frame("next-file")
@@ -80,7 +83,8 @@ scenario(
   async (t) => {
     await ask(t, "Make some changes", "Changed three files.")
     await t.press("F8")
-    await t.waitFor("src/math.ts")
+    // The viewer's file row, once the diff has loaded ("src/math.ts" alone is already in the transcript).
+    await t.waitFor(LOADED)
     await t.press("v")
     await t.frame("toggled-view")
     await t.press("b")
@@ -113,6 +117,7 @@ scenario(
     await ask(t, "Change nothing", "Nothing to change.")
     await t.type("/diff")
     await t.enter()
+    await t.waitFor("No changes to show")
     await t.frame("empty")
     await t.escape()
   },
@@ -124,7 +129,8 @@ scenario(
   async (t) => {
     await ask(t, "Make some changes", "Changed three files.")
     await t.press("F8")
-    await t.waitFor("src/math.ts")
+    // The viewer's file row, once the diff has loaded ("src/math.ts" alone is already in the transcript).
+    await t.waitFor(LOADED)
     await t.frame("opened")
     await t.press("\x1b[6~")
     await t.frame("page-down")

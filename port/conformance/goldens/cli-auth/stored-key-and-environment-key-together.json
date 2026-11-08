@@ -107,7 +107,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-work",
           "content-type": "application/json"
         },
@@ -143,7 +142,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-work",
           "content-type": "application/json"
         },

@@ -166,7 +166,8 @@ scenario("available shells", {}, async (ctx) => {
   await ctx.http("GET", "/api/config/shell")
 })
 
-scenario("patch the global config shell", {}, async (ctx) => {
+// The file watcher is off: its reload of the late .opencode directory would race the reload the patch triggers.
+scenario("patch the global config shell", { server: { filewatcher: false } }, async (ctx) => {
   resetGlobalConfig()
   try {
     const from = ctx.events.length

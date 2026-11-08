@@ -53,8 +53,18 @@ export const call = (tool: string, input: unknown, text?: string): Turn => ({
   finish: "tool_calls",
 })
 
+/**
+ * The default answer to title requests. Title generation runs alongside the session's own steps, so where its
+ * effects land among the step's events is timing. It reports no usage: usage events carry running session
+ * totals, which would then depend on which of the two finished first (title usage accounting has scenarios of
+ * its own, which order the two).
+ */
+const TITLE: Turn = { events: [{ text: "Conformance session" }], usage: false }
+
 export class FakeOpenRouter {
   readonly requests: ProviderRequest[] = []
+  /** Title requests answered with a title, by session (prompt_cache_key): the scenario waits for their renames. */
+  readonly titles: { readonly session: unknown; readonly answered: boolean }[] = []
   private readonly queue: Turn[] = []
   private counter = 0
 
@@ -80,7 +90,9 @@ export class FakeOpenRouter {
       method: request.method,
       url: `${url.origin}${url.pathname}${url.search}`,
       headers: Object.fromEntries(
-        [...request.headers].filter(([key]) => KEPT_HEADERS.includes(key.toLowerCase())).map(([k, v]) => [k.toLowerCase(), v]),
+        [...request.headers]
+          .filter(([key, value]) => KEPT_HEADERS.includes(key.toLowerCase()) && !isDefaultAccept(key, value))
+          .map(([k, v]) => [k.toLowerCase(), v]),
       ),
       body,
       kind: url.pathname !== CHAT_PATH ? "other" : isTitleRequest(body) ? "title" : "chat",
@@ -88,13 +100,22 @@ export class FakeOpenRouter {
     this.requests.push(recorded)
     for (const responder of this.responders) {
       const turn = responder(recorded)
-      if (turn) return this.respond(turn, body)
+      if (turn) return this.answer(recorded, turn, body)
     }
-    if (recorded.kind === "title") return this.respond(say("Conformance session"), body)
+    if (recorded.kind === "title") return this.answer(recorded, TITLE, body)
     if (recorded.kind === "other")
       return new Response(JSON.stringify({ error: "conformance: network access denied" }), { status: 599 })
     const turn = this.queue.shift()
     if (!turn) return this.respond({ status: 500, body: { error: { message: "conformance: script exhausted" } } }, body)
+    return this.respond(turn, body)
+  }
+
+  private answer(recorded: ProviderRequest, turn: Turn, body: unknown) {
+    if (recorded.kind === "title")
+      this.titles.push({
+        session: isRecord(body) ? body.prompt_cache_key : undefined,
+        answered: "events" in turn && !turn.truncate,
+      })
     return this.respond(turn, body)
   }
 
@@ -198,6 +219,10 @@ function isTitleRequest(body: unknown) {
   const system = body.messages.find((message) => isRecord(message) && message.role === "system")
   return isRecord(system) && typeof system.content === "string" && /\btitle\b/i.test(system.content.slice(0, 400))
 }
+
+// HTTP clients send `Accept: */*` when the caller sets none (Bun's fetch on the wire, reqwest); a request
+// handed over in-process has no header at all. Both mean the same (RFC 9110 §12.5.1).
+const isDefaultAccept = (key: string, value: string) => key.toLowerCase() === "accept" && value === "*/*"
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null
 

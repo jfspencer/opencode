@@ -293,7 +293,6 @@
           }
         },
         "headers": {
-          "accept": "*/*",
           "authorization": "Bearer sk-or-conformance",
           "content-type": "application/json"
         },

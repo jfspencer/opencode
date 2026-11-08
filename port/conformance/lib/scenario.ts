@@ -2,9 +2,9 @@
 // event stream, the fake OpenRouter, project files) and records everything observable into a transcript,
 // which is normalized and compared with a golden recorded from the TS reference.
 //
-// Implementations are pluggable. Today: the TS reference in-process (so `bun test --coverage` measures what
-// the scenarios reach). The CLI driver (lib/cli.ts) already runs real processes; the Rust implementation will
-// run the same way.
+// Implementations are pluggable (lib/server.ts, CONFORMANCE_IMPL): the TS reference in-process (the default, so
+// `bun test --coverage` measures what the scenarios reach), or a process started like `opencode serve` (the TS
+// reference's CLI, or the Rust build), configured only through its environment and reached over HTTP.
 import { test } from "bun:test"
 import { spawnSync } from "node:child_process"
 import {
@@ -33,6 +33,7 @@ import { matchGolden } from "./golden"
 import { config as makeConfig } from "./model"
 import { normalizer } from "./normalize"
 import { FakeOpenRouter, type Responder, type Turn } from "./openrouter"
+import { implementation, startProcess } from "./server"
 
 export interface ScenarioOptions {
   /** Config overrides merged into the base OpenRouter-only config. */
@@ -60,6 +61,16 @@ export interface ScenarioOptions {
    * whose subject is the first boot itself (project identity, location loading).
    */
   readonly boot?: boolean
+  /**
+   * The scenario drives processes of its own (lib/cli.ts): no server is started, and requests through the
+   * scenario's server (`http`, `session`, `prompt`...) fail.
+   */
+  readonly standalone?: boolean
+  /**
+   * Why the scenario can't drive an implementation running as a process (lib/server.ts); it is skipped there.
+   * Only for inputs a process can't be given through its public interface.
+   */
+  readonly inProcessOnly?: string
 }
 
 export interface HttpResult {
@@ -97,6 +108,7 @@ type Entry = { readonly kind: string } & Record<string, unknown>
 
 export function scenario(name: string, options: ScenarioOptions, body: (ctx: Ctx) => Promise<void>) {
   const file = callerFile()
+  if (options.inProcessOnly && implementation().kind === "process") return test.skip(name, () => {})
   test(name, () => run(file, name, options, body), options.timeout ?? 60_000)
 }
 
@@ -122,115 +134,130 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
   const transcript: Entry[] = []
   const events: unknown[] = []
 
-  await Effect.runPromise(
-    Effect.scoped(
-      Effect.gen(function* () {
-        const handler = yield* boot({
-          app: { version: "conformance" },
-          database: { path: ":memory:" },
-          config: { project: options.projectConfig ?? true, content: JSON.stringify(makeConfig(options.config)) },
-          // No model catalog (live or bundled snapshot): the only models are the ones defined in config.
-          models: { fetch: false, snapshot: false },
-          fs: { filewatcher: options.server?.filewatcher ?? true, fff: options.server?.fff ?? false },
-          fetch: provider.fetch,
-        })
-        const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
-          const response = await handler(
-            new Request(new URL(url, "http://opencode.local"), {
-              method,
-              headers: {
-                // Clients scope non-session requests to a project the same way.
-                "x-opencode-directory": encodeURIComponent(project),
-                ...(payload === undefined ? {} : { "content-type": "application/json" }),
-                ...headers,
-              },
-              body: payload === undefined ? undefined : JSON.stringify(payload),
-            }),
-          )
-          const text = await response.text()
-          return { status: response.status, body: parse(text) }
+  const settings = {
+    config: JSON.stringify(makeConfig(options.config)),
+    project: options.projectConfig ?? true,
+    filewatcher: options.server?.filewatcher ?? true,
+    fff: options.server?.fff ?? false,
+    standalone: options.standalone ?? false,
+  }
+  await withServer(
+    settings,
+    provider,
+    { file: path.relative(import.meta.dir + "/..", file), scenario: name },
+    async (handler) => {
+      const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
+        const response = await handler(
+          new Request(new URL(url, "http://opencode.local"), {
+            method,
+            headers: {
+              // Clients scope non-session requests to a project the same way.
+              "x-opencode-directory": encodeURIComponent(project),
+              ...(payload === undefined ? {} : { "content-type": "application/json" }),
+              ...headers,
+            },
+            body: payload === undefined ? undefined : JSON.stringify(payload),
+          }),
+        )
+        const text = await response.text()
+        return { status: response.status, body: parse(text) }
+      }
+      // Subscribe before anything happens, and only proceed once the stream is live.
+      const stream = options.standalone ? { cancel() {} } : await subscribe(handler, events)
+      const until = async (predicate: (event: any) => boolean, from = 0, timeout = 20_000) => {
+        const deadline = Date.now() + timeout
+        while (Date.now() < deadline) {
+          const found = events.slice(from).find(predicate)
+          if (found) return found
+          await new Promise((resolve) => setTimeout(resolve, 10))
         }
-        // Subscribe before anything happens, and only proceed once the stream is live.
-        const stream = yield* Effect.promise(() => subscribe(handler, events))
-        const until = async (predicate: (event: any) => boolean, from = 0, timeout = 20_000) => {
-          const deadline = Date.now() + timeout
-          while (Date.now() < deadline) {
-            const found = events.slice(from).find(predicate)
-            if (found) return found
-            await new Promise((resolve) => setTimeout(resolve, 10))
+        throw new Error("timed out waiting for event")
+      }
+      // Title generation is background work outside the session's busy period: settling also waits until every
+      // title the fake answered for the session has been applied (a rename), so it never races the scenario's
+      // next request. Bounded: an answered title that changes nothing renames nothing.
+      const titled = async (sessionID: string) => {
+        const deadline = Date.now() + 10_000
+        const expected = () => provider.titles.filter((title) => title.session === sessionID && title.answered).length
+        const renamed = () =>
+          events.filter((event: any) => event?.type === "session.renamed" && eventSession(event) === sessionID).length
+        while (renamed() < expected() && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10))
+      }
+      const quiesce = async (quiet = 150, max = 5_000) => {
+        const deadline = Date.now() + max
+        let seen = events.length
+        let since = Date.now()
+        while (Date.now() < deadline && Date.now() - since < quiet) {
+          await new Promise((resolve) => setTimeout(resolve, 10))
+          if (events.length !== seen) {
+            seen = events.length
+            since = Date.now()
           }
-          throw new Error("timed out waiting for event")
         }
-        const quiesce = async (quiet = 150, max = 5_000) => {
-          const deadline = Date.now() + max
-          let seen = events.length
-          let since = Date.now()
-          while (Date.now() < deadline && Date.now() - since < quiet) {
-            await new Promise((resolve) => setTimeout(resolve, 10))
-            if (events.length !== seen) {
-              seen = events.length
-              since = Date.now()
-            }
-          }
-        }
-        // Boot the project location and wait for its plugins (agents, commands, skills...) to finish loading,
-        // as a client would before using it. Unrecorded: it is setup, not part of the scenario.
-        yield* Effect.promise(async () => {
-          if (options.boot !== false) await call("GET", "/api/agent")
-          await quiesce()
-        })
-        const ctx: Ctx = {
-          project,
-          handler,
-          provider,
-          events,
-          until,
-          quiesce,
-          async http(method, url, payload, headers) {
-            const result = await call(method, url, payload, headers)
-            transcript.push({ kind: "http", method, url, ...(payload === undefined ? {} : { request: payload }), ...result })
-            return result
-          },
-          async settle(sessionID, from = events.length) {
-            // Idle, or blocked on a question to the user (permission request or form).
-            const blocked = until(
-              (event) =>
-                (event?.type === "permission.asked" || event?.type === "form.created") && eventSession(event) === sessionID,
-              from,
-              60_000,
-            ).then((event) => event.type as string)
-            const idle = call("POST", `/api/experimental/session/${sessionID}/wait`).then(() => "idle")
-            const state = await Promise.race([idle, blocked])
-            transcript.push({ kind: "settled", sessionID, state })
-            return state
-          },
-          note(label, value) {
-            transcript.push({ kind: "note", label, value })
-          },
-          write(rel, content) {
-            mkdirSync(path.dirname(path.join(project, rel)), { recursive: true })
-            writeFileSync(path.join(project, rel), content)
-          },
-          read: (rel) => readFileSync(path.join(project, rel), "utf8"),
-          async session(payload = {}) {
-            const result = await ctx.http("POST", "/api/session", { location: { directory: project }, ...payload })
-            if (result.status !== 200) throw new Error(`session.create failed: ${JSON.stringify(result.body)}`)
-            return result.body.data?.id ?? result.body.id
-          },
-          async prompt(sessionID, text, payload = {}) {
-            const from = events.length
-            const result = await ctx.http("POST", `/api/session/${sessionID}/prompt`, { text, ...payload })
-            await ctx.settle(sessionID, from)
-            return result
-          },
-          wait: (sessionID) => ctx.http("POST", `/api/experimental/session/${sessionID}/wait`),
-        }
-        yield* Effect.promise(() => body(ctx))
-        // Let background work (titles, snapshots, location loads) finish before recording and shutdown.
-        yield* Effect.promise(() => quiesce())
-        stream.cancel()
-      }),
-    ),
+      }
+      // Boot the project location and wait for its plugins (agents, commands, skills...) to finish loading,
+      // as a client would before using it. Unrecorded: it is setup, not part of the scenario.
+      if (options.boot !== false && !options.standalone) await call("GET", "/api/agent")
+      await quiesce()
+      const ctx: Ctx = {
+        project,
+        handler,
+        provider,
+        events,
+        until,
+        quiesce,
+        async http(method, url, payload, headers) {
+          const result = await call(method, url, payload, headers)
+          transcript.push({
+            kind: "http",
+            method,
+            url,
+            ...(payload === undefined ? {} : { request: payload }),
+            ...result,
+          })
+          return result
+        },
+        async settle(sessionID, from = events.length) {
+          // Idle, or blocked on a question to the user (permission request or form).
+          const blocked = until(
+            (event) =>
+              (event?.type === "permission.asked" || event?.type === "form.created") &&
+              eventSession(event) === sessionID,
+            from,
+            60_000,
+          ).then((event) => event.type as string)
+          const idle = call("POST", `/api/experimental/session/${sessionID}/wait`).then(() => "idle")
+          const state = await Promise.race([idle, blocked])
+          await titled(sessionID)
+          transcript.push({ kind: "settled", sessionID, state })
+          return state
+        },
+        note(label, value) {
+          transcript.push({ kind: "note", label, value })
+        },
+        write(rel, content) {
+          mkdirSync(path.dirname(path.join(project, rel)), { recursive: true })
+          writeFileSync(path.join(project, rel), content)
+        },
+        read: (rel) => readFileSync(path.join(project, rel), "utf8"),
+        async session(payload = {}) {
+          const result = await ctx.http("POST", "/api/session", { location: { directory: project }, ...payload })
+          if (result.status !== 200) throw new Error(`session.create failed: ${JSON.stringify(result.body)}`)
+          return result.body.data?.id ?? result.body.id
+        },
+        async prompt(sessionID, text, payload = {}) {
+          const from = events.length
+          const result = await ctx.http("POST", `/api/session/${sessionID}/prompt`, { text, ...payload })
+          await ctx.settle(sessionID, from)
+          return result
+        },
+        wait: (sessionID) => ctx.http("POST", `/api/experimental/session/${sessionID}/wait`),
+      }
+      await body(ctx)
+      // Let background work (titles, snapshots, location loads) finish before recording and shutdown.
+      await quiesce()
+      stream.cancel()
+    },
   )
 
   sandbox.__conformanceFetch = undefined
@@ -251,7 +278,9 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     "os-release": release(),
   })
   const normalizedTranscript = normalize.value(transcript)
-  const normalizedProvider = normalize.value(groupBy(provider.requests.filter(inScopeRequest), requestGroup, stripIndex))
+  const normalizedProvider = normalize.value(
+    groupBy(provider.requests.filter(inScopeRequest), requestGroup, stripIndex),
+  )
   const recorded = options.events === false ? [] : coalesce(events.filter(keepEvent))
   const normalizedEvents = normalize.value(groupBy(recorded, eventGroup, (event) => event))
   matchGolden(file, name, {
@@ -260,6 +289,49 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     events: normalizedEvents,
     files: normalize.value(snapshot(project)),
   })
+}
+
+/**
+ * Runs `body` against a fresh server of the implementation under test (lib/server.ts): the TS reference
+ * in-process, or a process started like `opencode serve`.
+ */
+async function withServer(
+  settings: { config: string; project: boolean; filewatcher: boolean; fff: boolean; standalone: boolean },
+  provider: FakeOpenRouter,
+  label: { file: string; scenario: string },
+  body: (handler: (request: Request) => Promise<Response>) => Promise<void>,
+) {
+  if (settings.standalone)
+    return body(async () => {
+      throw new Error("this scenario has no server (standalone)")
+    })
+  const impl = implementation()
+  if (impl.kind === "process") {
+    const server = await startProcess(impl, { ...settings, fetch: provider.fetch, label })
+    try {
+      await body(server.handler)
+    } finally {
+      await server.stop()
+    }
+    return
+  }
+  await Effect.runPromise(
+    Effect.scoped(
+      Effect.gen(function* () {
+        const handler = yield* boot({
+          // The oracle's build identity (lib/server.ts): experimental flags off, as in releases.
+          app: { name: "cli", version: "conformance", channel: "conformance" },
+          database: { path: ":memory:" },
+          config: { project: settings.project, content: settings.config },
+          // No model catalog (live or bundled snapshot): the only models are the ones defined in config.
+          models: { fetch: false, snapshot: false },
+          fs: { filewatcher: settings.filewatcher, fff: settings.fff },
+          fetch: provider.fetch,
+        })
+        yield* Effect.promise(() => body(handler))
+      }),
+    ),
+  )
 }
 
 /**
@@ -300,10 +372,17 @@ function eventSession(event: unknown): string | undefined {
   return typeof id === "string" ? id : undefined
 }
 
-const eventGroup = (event: unknown) => eventSession(event) ?? "global"
+// Renames are compared in a group of their own per session: generated titles are applied alongside the
+// session's steps, so their position among the step's events is timing (their order among renames is kept).
+const eventGroup = (event: unknown) =>
+  (event as { type?: unknown })?.type === "session.renamed"
+    ? `renamed:${eventSession(event)}`
+    : (eventSession(event) ?? "global")
 
 async function subscribe(handler: (request: Request) => Promise<Response>, events: unknown[]) {
-  const response = await handler(new Request("http://opencode.local/api/event", { headers: { accept: "text/event-stream" } }))
+  const response = await handler(
+    new Request("http://opencode.local/api/event", { headers: { accept: "text/event-stream" } }),
+  )
   const reader = response.body!.getReader()
   const decoder = new TextDecoder()
   const connected = Promise.withResolvers<void>()

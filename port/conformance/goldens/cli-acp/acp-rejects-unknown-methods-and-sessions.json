@@ -40,7 +40,7 @@
                 },
                 "agentInfo": {
                   "name": "OpenCode",
-                  "version": "local"
+                  "version": "conformance"
                 },
                 "authMethods": [
                   {

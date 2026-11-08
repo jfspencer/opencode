@@ -744,7 +744,7 @@
                     "name": "OpenRouter",
                     "package": "@opencode/ai/providers/openrouter",
                     "settings": {
-                      "baseURL": "<openrouter>/api/v1"
+                      "baseURL": "https://openrouter.ai/api/v1"
                     }
                   }
                 },

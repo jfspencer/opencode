@@ -34,7 +34,7 @@
       "label": "file",
       "value": {
         "content": null,
-        "path": "<sandbox>/state/opencode/service-local.json"
+        "path": "<sandbox>/state/opencode/service-conformance.json"
       }
     },
     {
@@ -79,7 +79,7 @@
             "port": "<service-port>"
           }
         },
-        "path": "<sandbox>/config/opencode/service-local.json"
+        "path": "<sandbox>/config/opencode/service-conformance.json"
       }
     },
     {
@@ -164,7 +164,7 @@
       "label": "file",
       "value": {
         "content": null,
-        "path": "<sandbox>/state/opencode/service-local.json"
+        "path": "<sandbox>/state/opencode/service-conformance.json"
       }
     },
     {

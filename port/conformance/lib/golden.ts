@@ -1,6 +1,8 @@
 // Recorded expected outputs. Goldens are always produced by the TS reference, never written by hand.
 //   UPDATE_GOLDENS=1   re-record every golden from the current run
 //   CONFORMANCE_STRICT=1  fail when a golden is missing instead of recording it
+//   CONFORMANCE_ACTUAL=<dir>  also write each mismatching result there (same layout as goldens/, blobs expanded),
+//                             for `bun diff.ts <dir>`
 //
 // Large values that repeat across goldens (the system prompt, the tool list) are stored once, content-addressed,
 // under goldens/_blobs/ and referenced by hash. Comparison always expands them, so equality is exact.
@@ -34,8 +36,15 @@ export function matchGolden(file: string, name: string, actual: unknown) {
     return
   }
   if (!existsSync(target)) throw new Error(`missing golden ${path.relative(process.cwd(), target)}`)
-  const expected = expand(JSON.parse(readFileSync(target, "utf8")))
-  expect(lenient(JSON.parse(JSON.stringify(actual)))).toEqual(lenient(expected))
+  const expected = lenient(expand(JSON.parse(readFileSync(target, "utf8"))))
+  const received = lenient(JSON.parse(JSON.stringify(actual)))
+  const out = process.env.CONFORMANCE_ACTUAL
+  if (out && !Bun.deepEquals(received, expected)) {
+    const file = path.join(out, path.relative(ROOT, target))
+    mkdirSync(path.dirname(file), { recursive: true })
+    writeFileSync(file, JSON.stringify(received, null, 2) + "\n")
+  }
+  expect(received).toEqual(expected)
 }
 
 /** Replace large strings and tool lists with references to content-addressed blobs. */

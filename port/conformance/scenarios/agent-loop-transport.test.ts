@@ -1,7 +1,13 @@
 // Transport failures below HTTP status codes: the connection is refused or the host does not resolve (the request
-// never reaches OpenRouter), the connection drops while the response is read, and the response stalls past the
-// provider's chunk or whole-request timeout. The fake model has no turn shape for these, so they are produced here:
-// a responder that throws stands for a failed connection, and a response body that errors stands for a dropped one.
+// never reaches OpenRouter), the connection closes before the response or drops while it is read, and the response
+// stalls past the provider's chunk or whole-request timeout. The fake model has no turn shape for these, so they
+// are produced here. In-process, a responder that throws stands for a connection that fails and a response body
+// that errors for one that drops, each throwing exactly what Bun's fetch throws for the real failure. Against a
+// process, the fake network turns both into the real thing (lib/network.ts: the connection is closed), so the
+// implementation's own HTTP client reports them.
+//
+// A client reaches the fake network through a proxy, so a refused connection or a name that does not resolve
+// can't be given to a process: those scenarios run in-process only.
 import { say, type ProviderRequest, type Turn } from "../lib/openrouter"
 import { scenario, type Ctx } from "../lib/scenario"
 
@@ -13,13 +19,24 @@ async function turn(ctx: Ctx, text: string) {
   return id
 }
 
-/** Fails the next `times` chat requests before any response, as a socket error with `code` would. */
-function connectionFailure(code: string, message: string, times = 1) {
+// What Bun's fetch throws for each failure (observed against real sockets).
+const failure = (code: string, message: string) => Object.assign(new TypeError(message), { code })
+const reset = () =>
+  failure(
+    "ECONNRESET",
+    "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+  )
+const refused = () => failure("ConnectionRefused", "Unable to connect. Is the computer able to access the url?")
+const unresolved = () => failure("ENOTFOUND", "getaddrinfo ENOTFOUND openrouter.ai")
+const PROXIED = "a client behind the fake network's proxy never sees a refused connection or a failed name lookup"
+
+/** Fails the next `times` chat requests before any response. */
+function failing(error: () => Error, times = 1) {
   let remaining = times
   return (request: ProviderRequest): Turn | undefined => {
     if (request.kind !== "chat" || remaining <= 0) return undefined
     remaining--
-    throw Object.assign(new Error(message), { code })
+    throw error()
   }
 }
 
@@ -40,7 +57,7 @@ function dropped(text: string): Turn {
   const body = new ReadableStream<Uint8Array>({
     // Error on the read after the text, so the text is delivered first.
     pull(controller) {
-      if (sent) return controller.error(Object.assign(new Error("socket hang up"), { code: "ECONNRESET" }))
+      if (sent) return controller.error(reset())
       sent = true
       controller.enqueue(encoder.encode(text))
     },
@@ -59,19 +76,19 @@ const RETRY = { timeout: 30_000 }
 
 scenario(
   "connection refused, then success",
-  { ...RETRY, turns: [say("Connected on the second attempt.")], responders: [connectionFailure("ECONNREFUSED", "connect ECONNREFUSED 127.0.0.1:443")] },
+  { ...RETRY, inProcessOnly: PROXIED, turns: [say("Connected on the second attempt.")], responders: [failing(refused)] },
   (ctx) => turn(ctx, "Answer please").then(() => undefined),
 )
 
 scenario(
   "host does not resolve, then success",
-  { ...RETRY, turns: [say("Resolved on the second attempt.")], responders: [connectionFailure("ENOTFOUND", "getaddrinfo ENOTFOUND openrouter.ai")] },
+  { ...RETRY, inProcessOnly: PROXIED, turns: [say("Resolved on the second attempt.")], responders: [failing(unresolved)] },
   (ctx) => turn(ctx, "Answer please").then(() => undefined),
 )
 
 scenario(
-  "connection failure without a code, then success",
-  { ...RETRY, turns: [say("Second attempt.")], responders: [connectionFailure(undefined as unknown as string, "fetch failed")] },
+  "connection closed before the response, then success",
+  { ...RETRY, turns: [say("Second attempt.")], responders: [failing(reset)] },
   (ctx) => turn(ctx, "Answer please").then(() => undefined),
 )
 
@@ -131,7 +148,15 @@ scenario(
 
 scenario(
   "one-shot generation retries a refused connection",
-  { ...RETRY, turns: [say("Generated after reconnecting.")], responders: [connectionFailure("ECONNREFUSED", "connect ECONNREFUSED 127.0.0.1:443")] },
+  { ...RETRY, inProcessOnly: PROXIED, turns: [say("Generated after reconnecting.")], responders: [failing(refused)] },
+  async (ctx) => {
+    await ctx.http("POST", "/api/experimental/generate/text", { prompt: "Write one line." })
+  },
+)
+
+scenario(
+  "one-shot generation and a connection closed before the response",
+  { ...RETRY, turns: [say("Generated after reconnecting.")], responders: [failing(reset)] },
   async (ctx) => {
     await ctx.http("POST", "/api/experimental/generate/text", { prompt: "Write one line." })
   },

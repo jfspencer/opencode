@@ -6,8 +6,9 @@ import { HIDDEN_TOOLS } from "../lib/model"
 import { call, say } from "../lib/openrouter"
 import { cliScenario } from "../lib/cli"
 
-const CONFIG = "config/opencode/service-local.json"
-const REGISTRATION = "state/opencode/service-local.json"
+// File names follow the build's channel (the oracle's is "conformance", see lib/server.ts).
+const CONFIG = "config/opencode/service-conformance.json"
+const REGISTRATION = "state/opencode/service-conformance.json"
 const rule = (action: string, resource: string, effect: string) => ({ action, resource, effect })
 const quiet = { permissions: [...HIDDEN_TOOLS.map((action) => rule(action, "*", "deny")), rule("*", "*", "deny")] }
 

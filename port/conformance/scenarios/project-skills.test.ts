@@ -71,7 +71,10 @@ scenario(
     mkdirSync(path.join(home, "homeskill"), { recursive: true })
     writeFileSync(path.join(home, "homeskill", "SKILL.md"), skill({ description: "Home skill." }, "Home."))
     try {
+      const from = ctx.events.length
       ctx.write("opencode.json", JSON.stringify({ skills: [path.join(ctx.project, "abs"), "~/conformance-skills"] }))
+      // The file watcher reloads the location: wait for it, or the reload races the end of the scenario.
+      await ctx.until((event) => event?.type === "skill.updated" && event?.location?.directory === ctx.project, from)
       await ctx.http("GET", "/api/skill")
     } finally {
       rmSync(home, { recursive: true, force: true })

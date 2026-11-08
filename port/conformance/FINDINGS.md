@@ -30,6 +30,9 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D111: a symlink inside the project pointing outside escaped `external_directory` rules; containment now uses
   real paths. Reverses a deliberate upstream choice (symlinks reached through an internal path kept internal
   semantics); six upstream tests updated.
+- D112: one-shot generations never retried a refused connection under Bun: the retry recognized Node's
+  `ECONNREFUSED` only, and Bun's fetch reports `ConnectionRefused`. Found by giving the transport scenarios the
+  errors Bun actually throws instead of Node-shaped ones.
 
 **HTTP API**
 - D201: a relative `location.directory` (create, import, `GET /api/session?directory=`) answered `500 null`; now 400.
@@ -139,16 +142,29 @@ The standard leaves these unspecified; scenarios avoid them:
 - Whether the TUI fetches a missing session's terminals before giving up.
 - Title generation races a CLI `run` process exiting.
 - A step starts with the first response chunk, after the request is sent; interrupting in between races.
+- Title generation runs beside the session's steps and outside its busy period: where the rename lands among
+  the step's events, whether it finishes before the scenario's next request (a location reload can interrupt
+  it, so the next prompt asks again), and the running usage totals if the title reports usage. Equality rule
+  plus harness waits (README); found by running the reference as a process.
+- A prompt sent while a session's queued move has not run yet; a config write racing the file watcher's
+  reload. Scenarios wait for the move or the reload.
 - Text/reasoning deltas and tool progress are batched on 100 ms timers (normalized, see README).
 
 ## Harness limits (what the oracle cannot yet prove)
+
+- **Process mode** (`CONFORMANCE_IMPL`, see README): server and CLI scenarios can drive any `opencode`
+  executable over its public interface; TUI scenarios still render the TS TUI in-process (against that
+  server). A Rust TUI needs a pseudo-terminal driver whose frames match the in-process ones.
 
 - **CLI line coverage**: the CLI runs as child processes, which Bun's coverage does not follow. Its behavior is
   recorded (70+ scenarios); coverage would need e.g. a Node build with `NODE_V8_COVERAGE`.
 - **TUI colors**: frames record characters only; selection, syntax highlighting and theme colors are invisible.
 - **Watcher-driven and schedule-firing behavior** has few dedicated scenarios.
-- **Restarts** within a scenario (session recovery), persisted events, transport-level failures as first-class
-  fake-model turns, and server disconnects are not yet expressible.
+- **Restarts** within a scenario (session recovery), persisted events and server disconnects are not yet
+  expressible. Transport failures are: a connection closed before the response or dropped while it is read
+  reaches a process as the real thing (the fake network closes the socket). A refused connection and a name
+  that does not resolve cannot reach a process behind the fake network's proxy, so those three scenarios run
+  in-process only (`inProcessOnly`).
 - **Host-specific goldens**: `/etc/shells`, `/usr/bin/sh`, dash/bash error text. The standard reproduces on this
   machine; CI needs the same shells.
 - **Sandbox location**: sandboxes must live in `/tmp` (`TMPDIR` unset). TUI frames truncate paths by length, and

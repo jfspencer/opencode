@@ -494,7 +494,7 @@
           "at": "<time>",
           "attempt": 2,
           "error": {
-            "message": "Transport error (POST https://openrouter.ai/api/v1/chat/completions)",
+            "message": "ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
             "type": "provider.transport"
           },
           "sessionID": "<ses_1>"

@@ -15,6 +15,10 @@ bun test scenarios/tools.test.ts          # one file
 UPDATE_GOLDENS=1 bun test <file>          # re-record (only when the behavior change is intended)
 CONFORMANCE_STRICT=1 bun test             # fail on missing goldens instead of recording them (CI)
 CONFORMANCE_EXPERIMENTAL=1 bun test       # also run scenarios for experimental flags (code-mode VM)
+CONFORMANCE_IMPL=ts bun test              # the TS reference as a separate `opencode serve` process
+CONFORMANCE_IMPL=/abs/path/opencode bun test   # an opencode executable (the Rust build)
+CONFORMANCE_ACTUAL=<dir> bun test; bun diff.ts <dir>   # write mismatching results, list differing JSON paths
+CONFORMANCE_MEMORY_LOG=m.jsonl CONFORMANCE_IMPL=ts bun test; bun memory.ts m.jsonl   # server peak memory
 ./determinism.sh [--record] [runs] [shards]   # every scenario, N runs, parallel shards: the gate
 LABEL=mine port/coverage/oracle.sh scenarios/x.test.ts   # coverage for a run (from repo root)
 python3 -I port/coverage/uncovered.py mine 'core/src/session/compaction' --source   # what it missed
@@ -40,6 +44,34 @@ application routes, resumption of interrupted sessions, the schedule runner, and
 defaults (file watcher on; per scenario: `server: { filewatcher, fff }`), except that fff search is off: the
 port omits fff, so file search is ripgrep + fuzzysort ranking, as with `OPENCODE_DISABLE_FFF=1`. Only the listening
 socket is replaced by an in-process handler, so `bun test --coverage` can measure the TS reference.
+
+### Implementations (`CONFORMANCE_IMPL`, `lib/server.ts`)
+
+By default the TS reference runs in-process. With `CONFORMANCE_IMPL=ts` (the TS reference's CLI from source) or
+an absolute path to an executable (the Rust build), every scenario starts its own `opencode serve --hostname
+127.0.0.1 --port 0` and talks to it over HTTP; CLI scenarios run that executable, and TUI scenarios connect the
+TUI to that server. A process is configured only through its public interface, so whatever passes here passes
+for a user:
+
+- the sandbox HOME/XDG directories and environment of `lib/preload.ts`, and its working directory;
+- the in-process boot options as the environment variables `opencode serve` reads (`OPENCODE_CONFIG_CONTENT`,
+  `OPENCODE_DISABLE_PROJECT_CONFIG`, `OPENCODE_DISABLE_MODELS_FETCH` + an empty `OPENCODE_MODELS_PATH`,
+  `OPENCODE_DISABLE_FILEWATCHER`, `OPENCODE_DISABLE_FFF`, `OPENCODE_DB=:memory:`); requests carry the
+  `OPENCODE_SERVER_PASSWORD` credentials;
+- the fake network (`lib/network.ts`) as a forward proxy (`HTTP(S)_PROXY`, empty `NO_PROXY`): plain HTTP is
+  answered from the request line, HTTPS through a `CONNECT` tunnel to a local TLS server whose certificate a
+  per-run CA signs (trusted through `NODE_EXTRA_CA_CERTS` and `SSL_CERT_FILE`). Requests keep their real
+  origins, so they are recorded exactly as in-process, and nothing reaches the real network;
+- the oracle's build identity: name `cli`, version `conformance`, channel `conformance`. Every channel but
+  `local` and `dev` keeps experimental flags off, as releases do. A release channel (`latest`) is avoided on
+  purpose: its default service port, 49374, is where an installed opencode service listens, and a process that
+  ignored the sandbox's pinned service port would reach it; `conformance` defaults to 39820. The channel also
+  names files (`service-conformance.json`, `opencode-conformance.db`). The in-process boot uses this identity,
+  TS processes get it as `--define`s, and a Rust build must be compiled with `OPENCODE_VERSION=conformance
+  OPENCODE_CHANNEL=conformance`.
+
+A process run proves the harness path: the TS reference must reproduce every golden as a process before a
+Rust build is measured against them. `CONFORMANCE_MEMORY_LOG` records each server's peak resident memory.
 
 ## Writing a scenario
 
@@ -121,6 +153,15 @@ Each rule states that the difference it hides is not observable behavior.
   whose message is entirely the engine's (`toFixed()` range, `String.fromCodePoint`, `Number(symbol)`) are
   recorded by error type only, in the scenario itself.
 - **Out of scope:** the startup probes of local model servers (LM Studio, Ollama, vLLM) are not recorded.
+- **Concurrent title generation:** a generated title is applied alongside the session's own steps, so
+  `session.renamed` events are compared in a group of their own per session (`renamed:<ses>`, in order),
+  not at their position among the step's events. Settling a session (`ctx.prompt`, `ctx.settle`) also waits
+  until every title the fake answered for it is applied, so title work never races the scenario's next
+  request. The fake answers title requests without usage: usage events carry running session totals, which
+  would otherwise depend on which of the two requests finished first.
+- **HTTP client defaults:** a provider request's `Accept: */*` is not recorded. HTTP clients send it on the
+  wire when the caller sets none, and a request handed over in-process has no header at all; the two are
+  equivalent (RFC 9110 §12.5.1).
 - **TUI frames** (`lib/tui.ts`): step timing and throughput, and the prompt's randomly chosen example text.
 - **CLI** (`lib/cli.ts`): ports, sandbox paths, secrets, locale times, stack frames (documented in the file).
 

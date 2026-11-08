@@ -494,7 +494,7 @@
           "at": "<time>",
           "attempt": 2,
           "error": {
-            "message": "connect ECONNREFUSED 127.0.0.1:443",
+            "message": "ConnectionRefused: Unable to connect. Is the computer able to access the url?",
             "type": "provider.transport"
           },
           "sessionID": "<ses_1>"

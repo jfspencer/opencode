@@ -351,6 +351,25 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Refactor math module"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      }
+    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -369,7 +388,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_11>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -393,7 +412,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_13>",
         "location": {
           "directory": "<project>"
         },
@@ -409,7 +428,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_14>",
         "type": "session.execution.started"
       },
       {
@@ -428,7 +447,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_14>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -450,7 +469,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -471,25 +490,8 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_16>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Refactor math module"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
         "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
+        "type": "session.usage.updated"
       },
       {
         "created": "<time>",

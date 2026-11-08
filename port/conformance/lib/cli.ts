@@ -11,9 +11,9 @@
 // XDG_STATE_HOME and is therefore invisible to these processes.
 //
 // How the CLI gets the reference configuration: as the user's global config file,
-// `<sandbox>/config/opencode/opencode.json` (XDG_CONFIG_HOME), holding `lib/model.ts`'s config with
-// `providers.openrouter.settings.baseURL` pointed at the fake OpenRouter (served with Bun.serve on a random
-// port). No model catalog: `OPENCODE_DISABLE_MODELS_FETCH=1` turns off the live fetch and
+// `<sandbox>/config/opencode/opencode.json` (XDG_CONFIG_HOME), holding `lib/model.ts`'s config unchanged. Its
+// requests reach the fake OpenRouter through the fake network's proxy (lib/network.ts; loopback, where the CLI
+// reaches the servers it starts, is direct). No model catalog: `OPENCODE_DISABLE_MODELS_FETCH=1` turns off the live fetch and
 // `OPENCODE_MODELS_PATH=<sandbox>/models.json` (an empty catalog, `{}`) replaces the bundled snapshot, so the
 // only model is the configured one, as in-process.
 //
@@ -31,8 +31,6 @@
 //
 // Equality rules (CLI records only, applied before `lib/normalize.ts`; each hides an address or a value that is
 // chosen at random by the OS or the CLI, not behavior):
-// - the fake OpenRouter's origin `http://127.0.0.1:<random port>` is written `<openrouter>`, and its requests
-//   are recorded against OpenRouter's real origin (as in-process);
 // - ports reserved by the scenario (`ctx.port()`) are written `<port-N>`, the service port `<service-port>`, and
 //   any other `127.0.0.1:<port>` (servers the CLI binds to port 0: `serve --port 0`, private servers)
 //   `127.0.0.1:<port>`; other hosts' ports are kept;
@@ -58,18 +56,16 @@
 // re-serializing it reproduces the output byte for byte; newline-delimited JSON as `{ ndjson }` under the same
 // condition; anything else as its exact lines (`text.split("\n")`, so a trailing newline shows as a final "").
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
-import { config as makeConfig, OPENROUTER_BASE_URL } from "./model"
+import { config as makeConfig } from "./model"
+import { fakeNetwork } from "./network"
 import { scenario, type Ctx, type ScenarioOptions } from "./scenario"
+import { ENTRY, opencodeCommand, REPO, runsTs, tsEnv } from "./server"
 
-// The TS reference being driven (port/conformance/ref, set by port/scripts/link-deps.sh).
-const REPO = realpathSync(path.resolve(import.meta.dir, "../ref"))
-const ENTRY = path.join(REPO, "packages/cli/src/index.ts")
-// The CLI's TUI modules (imported by its config layer) need the SolidJS transform that packages/cli/bunfig.toml
-// preloads; CLI processes run in the project directory, so the preload is passed through BUN_OPTIONS, which
-// processes spawned by the CLI inherit. A compiled opencode binary has the transform built in.
-const PRELOAD = Bun.resolveSync("@opentui/solid/preload", path.join(REPO, "packages/cli"))
+// The TS reference being driven (port/conformance/ref, set by port/scripts/link-deps.sh), or the executable named
+// by CONFORMANCE_IMPL (lib/server.ts). TS processes get tsEnv(): the SolidJS transform and a release build's
+// identity.
 
 export interface CliOptions extends ScenarioOptions {
   /** Environment for every CLI process of the scenario, on top of the sandbox's (`undefined` unsets). */
@@ -135,7 +131,7 @@ export interface CliCtx extends Ctx {
   fetch(method: string, url: string, body?: unknown, headers?: Record<string, string>): Promise<{ status: number; body: any }>
   /** Reserve a free local TCP port; it is recorded as `<port-N>`. */
   port(): Promise<number>
-  /** Record a file under the sandbox (e.g. "config/opencode/service-local.json"), or note its absence. */
+  /** Record a file under the sandbox (e.g. "config/opencode/service-conformance.json"), or note its absence. */
   file(relative: string): void
 }
 
@@ -159,7 +155,7 @@ export function cliScenario(name: string, options: CliOptions, body: (ctx: CliCt
 }
 
 function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Promise<void>) {
-  scenario(name, { timeout: 120_000, events: false, ...options }, async (ctx) => {
+  scenario(name, { timeout: 120_000, events: false, ...options, standalone: true }, async (ctx) => {
     const root = process.env.CONFORMANCE_ROOT!
     const sandbox = path.join(root, `cli-${path.basename(ctx.project)}`)
     for (const dir of ["home", "config", "data", "state", "cache", "tmp"]) mkdirSync(path.join(sandbox, dir), { recursive: true })
@@ -168,24 +164,11 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
     writeFileSync(path.join(sandbox, "models.json"), "{}\n")
     live.add(sandbox)
 
-    const upstream = new URL(OPENROUTER_BASE_URL)
-    const openrouter = Bun.serve({
-      hostname: "127.0.0.1",
-      port: 0,
-      idleTimeout: 0,
-      async fetch(request) {
-        const url = new URL(request.url)
-        const payload = request.method === "GET" || request.method === "HEAD" ? undefined : await request.arrayBuffer()
-        return ctx.provider.fetch(
-          new Request(upstream.origin + url.pathname + url.search, { method: request.method, headers: request.headers, body: payload }),
-        )
-      },
-    })
-    const fakeOrigin = `http://127.0.0.1:${openrouter.port}`
+    // Every request a CLI process sends off this machine reaches the scenario's fake network (lib/network.ts).
+    const network = await fakeNetwork(ctx.provider.fetch, { direct: ["127.0.0.1", "localhost", "::1"] })
 
     if (options.globalConfig !== false) {
-      const reference = makeConfig(options.config) as { providers: { openrouter: { settings: Record<string, unknown> } } }
-      reference.providers.openrouter.settings.baseURL = fakeOrigin + upstream.pathname
+      const reference = makeConfig(options.config)
       mkdirSync(path.join(sandbox, "config", "opencode"), { recursive: true })
       writeFileSync(path.join(sandbox, "config", "opencode", "opencode.json"), JSON.stringify(reference, null, 2) + "\n")
     }
@@ -205,8 +188,8 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       // The port omits fff file search (ripgrep + fuzzysort instead).
       OPENCODE_DISABLE_FFF: "1",
       OPENCODE_MODELS_PATH: path.join(sandbox, "models.json"),
-      BUN_OPTIONS: `--preload ${PRELOAD}`,
-      BUN_RUNTIME_TRANSPILER_CACHE_PATH: path.join(root, "bun-transpiler-cache"),
+      ...network.env,
+      ...(runsTs() ? tsEnv() : {}),
     }
     for (const [key, value] of Object.entries(process.env))
       if (key.startsWith("GIT_") && value !== undefined) env[key] = value
@@ -214,7 +197,6 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
 
     // Values replaced in every record, longest first.
     const replacements = new Map<string, string>([
-      [fakeOrigin, "<openrouter>"],
       [sandbox, "<sandbox>"],
       [REPO, "<repo>"],
     ])
@@ -269,7 +251,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       const cwd = options.cwd ?? ctx.project
       const childEnv = { ...env, PWD: cwd }
       applyEnv(childEnv, options.env)
-      const child = Bun.spawn([process.execPath, entry, ...args], {
+      const child = Bun.spawn([...opencodeCommand(entry), ...args], {
         cwd,
         env: childEnv,
         stdin: options.stdin !== undefined ? new TextEncoder().encode(options.stdin) : (options.stdinMode ?? "ignore"),
@@ -404,7 +386,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
         applyEnv(childEnv, options.env)
         let raw = ""
         const decoder = new TextDecoder()
-        const child = Bun.spawn([process.execPath, entry, ...args], {
+        const child = Bun.spawn([...opencodeCommand(entry), ...args], {
           cwd,
           env: childEnv,
           terminal: { cols: 80, rows: 24, data: (_terminal, data) => void (raw += decoder.decode(data, { stream: true })) },
@@ -499,7 +481,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       requests.splice(0, requests.length, ...requests.map(scrubPaths))
       await cleanup(sandbox, children)
       live.delete(sandbox)
-      await openrouter.stop(true)
+      network.stop()
     }
   })
 }
@@ -508,13 +490,30 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
 async function cleanup(sandbox: string, children: Set<number>) {
   for (const pid of children) killGroup(pid)
   const pattern = escapeRegex(path.join(sandbox, "opencode.ts"))
+  // TS processes carry the sandbox's entry module in their command line; any implementation's processes (a
+  // detached service included) inherit the sandbox directories in their environment.
+  const find = () => [...new Set([...pgrep(pattern), ...inSandbox(sandbox)])]
   for (let attempt = 0; attempt < 100; attempt++) {
-    const pids = pgrep(pattern)
+    const pids = find()
     if (pids.length === 0) return
     for (const pid of pids) killGroup(pid)
     await Bun.sleep(50)
   }
-  throw new Error(`processes left running: ${pgrep(pattern).join(", ")}`)
+  throw new Error(`processes left running: ${find().join(", ")}`)
+}
+
+/** Processes whose environment points HOME, an XDG directory or TMPDIR into the sandbox. */
+function inSandbox(sandbox: string) {
+  const markers = ["home", "config", "data", "state", "cache", "tmp"].map((dir) => `=${path.join(sandbox, dir)}\0`)
+  const out: number[] = []
+  for (const entry of readdirSync("/proc")) {
+    if (!/^\d+$/.test(entry) || Number(entry) === process.pid) continue
+    try {
+      const environ = readFileSync(`/proc/${entry}/environ`, "latin1")
+      if (markers.some((marker) => environ.includes(marker))) out.push(Number(entry))
+    } catch {}
+  }
+  return out
 }
 
 function killGroup(pid: number) {

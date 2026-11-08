@@ -438,6 +438,25 @@
         "type": "plugin.updated"
       }
     ],
+    "renamed:<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>/pkg"
+        },
+        "type": "session.renamed"
+      }
+    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -456,7 +475,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_23>",
+        "id": "<evt_24>",
         "location": {
           "directory": "<project>/pkg"
         },
@@ -480,7 +499,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_24>",
+        "id": "<evt_25>",
         "location": {
           "directory": "<project>/pkg"
         },
@@ -496,7 +515,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_25>",
+        "id": "<evt_26>",
         "type": "session.execution.started"
       },
       {
@@ -515,7 +534,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_26>",
+        "id": "<evt_27>",
         "location": {
           "directory": "<project>/pkg"
         },
@@ -537,7 +556,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_27>",
+        "id": "<evt_28>",
         "location": {
           "directory": "<project>/pkg"
         },
@@ -553,30 +572,13 @@
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 0,
+            "output": 0,
             "reasoning": 0
           }
         },
-        "id": "<evt_28>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
         "id": "<evt_29>",
-        "location": {
-          "directory": "<project>/pkg"
-        },
-        "type": "session.renamed"
+        "type": "session.usage.updated"
       },
       {
         "created": "<time>",
@@ -752,8 +754,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 100,
+            "output": 10,
             "reasoning": 0
           }
         },
@@ -894,8 +896,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 300,
-            "output": 30,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },

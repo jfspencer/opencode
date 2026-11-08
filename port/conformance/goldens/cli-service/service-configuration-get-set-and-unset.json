@@ -272,7 +272,7 @@
             "port": "<service-port>"
           }
         },
-        "path": "<sandbox>/config/opencode/service-local.json"
+        "path": "<sandbox>/config/opencode/service-conformance.json"
       }
     },
     {
@@ -491,7 +491,7 @@
             "port": "<service-port>"
           }
         },
-        "path": "<sandbox>/config/opencode/service-local.json"
+        "path": "<sandbox>/config/opencode/service-conformance.json"
       }
     },
     {
@@ -521,7 +521,7 @@
             "port": "<service-port>"
           }
         },
-        "path": "<sandbox>/config/opencode/service-local.json"
+        "path": "<sandbox>/config/opencode/service-conformance.json"
       }
     }
   ],
