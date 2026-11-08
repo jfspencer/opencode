@@ -1,0 +1,24 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sun, 8 Nov 2026 10:06:30 -0700
+Subject: [PATCH] D311 tui: a jump in a list dialog scrolls the selection into
+ view
+
+Upstream: list dialogs (settings, command palette, pickers) scroll the selection into view from the rows' last laid-out positions. Rows below the viewport may not have been laid out since the list last changed, and a terminal renderer draws (and lays out) only on demand, so a jump just after a dialog opens lands short: in the settings dialog, End right after opening it selects the last setting but scrolls only partway, leaving the selection off screen. Found by running the TUI in a real terminal; the headless test renderer's continuous render loop kept every row laid out.
+Fixed: a move scrolls again once the rows are laid out (after the next frame), as the dialog already does for its initial selection.
+Scenarios: tui/nav-settings.test.ts "settings: toggle commands" (process mode)
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/ui/dialog-select.tsx b/packages/tui/src/ui/dialog-select.tsx
+index 0599a7f83f..3e23669e00 100644
+--- a/packages/tui/src/ui/dialog-select.tsx
++++ b/packages/tui/src/ui/dialog-select.tsx
+@@ -427,6 +427,8 @@ export function DialogSelect<T>(props: DialogSelectProps<T>) {
+     }
+     if (option) props.onMove?.(option)
+     scrollToSelection(center)
++    // Rows below the viewport may not have been laid out since the list last changed: scroll again once they are.
++    if (option) scrollAfterLayout(center, option.value)
+   }
+ 
+   function scrollToSelection(center: boolean) {

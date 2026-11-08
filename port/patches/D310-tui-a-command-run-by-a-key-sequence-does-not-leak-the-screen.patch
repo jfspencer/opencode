@@ -1,0 +1,31 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sun, 8 Nov 2026 09:57:12 -0700
+Subject: [PATCH] D310 tui: a command run by a key sequence does not leak the
+ screen it opens
+
+Upstream: the keymap ends a completed key sequence (ctrl+x n, ctrl+x w) only after its command returns. When the command navigates, the components it disposes unregister their keymap layers, and the keymap revalidates the finished sequence against the remaining layers while Solid is still disposing them. The session view's layer conditions read its memos, so Solid re-runs the route being torn down and mounts a home screen that is cleaned up before its mount effects run; those effects then register listeners nothing removes. Each new session started from a session or tab closed this way leaves five terminal-resize listeners behind, and at 16 the runtime prints "MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 16 resize listeners added to [CliRenderer]" over the TUI. Found by running the TUI in a real terminal (a pseudo-terminal), where stderr is the screen.
+Fixed: commands clear the pending key sequence before they run.
+Scenarios: tui/nav-history.test.ts "history: up and down recall earlier prompts", tui/nav-model.test.ts "model picker: the session keeps its own model", tui/nav-sessions.test.ts "sessions: new session from a session", tui/nav-tabs.test.ts "tabs: a new session tab", tui/session-tabs.test.ts "a background tab finishing shows as unread" and "two sessions in tabs, switched, closed and reopened" (the warning was on the screen in process mode)
+Upstream tests: none changed
+
+diff --git a/packages/tui/src/context/keymap.tsx b/packages/tui/src/context/keymap.tsx
+index 15cfddea0b..e0efbd9f0d 100644
+--- a/packages/tui/src/context/keymap.tsx
++++ b/packages/tui/src/context/keymap.tsx
+@@ -232,7 +232,14 @@ function createLayer(input: () => KeymapLayer) {
+           ...definition,
+           name: id,
+           opencode: kept,
+-          run: (context: CommandContext<Renderable, KeyEvent>) => run(value.input(id), context.event),
++          run: (context: CommandContext<Renderable, KeyEvent>) => {
++            // The keymap ends a completed key sequence only after its command returns. A command that changes the
++            // view meanwhile (a navigation disposes components and their layers) makes it revalidate the finished
++            // sequence while Solid disposes them, and the layer conditions it reads re-run the route being torn
++            // down: what that mounts (a home screen) is never cleaned up.
++            value.keymap.clearPendingSequence()
++            return run(value.input(id), context.event)
++          },
+           ...(description === undefined ? {} : { desc: description }),
+           ...(group === undefined ? {} : { category: group }),
+           ...(palette === undefined ? {} : { namespace: "palette" }),
