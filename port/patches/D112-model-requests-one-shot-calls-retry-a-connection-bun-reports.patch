@@ -1,0 +1,92 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Sat, 7 Nov 2026 20:32:27 -0700
+Subject: [PATCH] D112 model requests: one-shot calls retry a connection Bun
+ reports as refused
+
+Upstream: one-shot generations (stateless text, images, decisions) retry only failures the provider never received, recognized by the transport codes ECONNREFUSED, ENOTFOUND and EAI_AGAIN. Bun's fetch reports a refused connection as ConnectionRefused ("Unable to connect. Is the computer able to access the url?"), so under Bun a refused connection failed the call at once with a 502 ProviderRequestError instead of retrying. The same file's network-error list already names ConnectionRefused as Bun's code.
+Fixed: ConnectionRefused counts as not sent, like ECONNREFUSED.
+Scenarios: agent-loop-transport.test.ts "one-shot generation retries a refused connection" (now throws the error Bun's fetch throws; it ran with Node's error shape before)
+Upstream tests: test/generate.test.ts ("retries a stateless call the provider never received" runs for both error shapes)
+
+diff --git a/packages/core/src/model-retry.ts b/packages/core/src/model-retry.ts
+index 9ec5dbd1d4..efe3ebb391 100644
+--- a/packages/core/src/model-retry.ts
++++ b/packages/core/src/model-retry.ts
+@@ -105,7 +105,8 @@ export const retry = <A, R>(effect: Effect.Effect<A, AIError, R>) =>
+ // the provider never ran, a few times, with the same backoff and retry-after handling.
+ const ONE_SHOT_RETRIES = 3
+ // Only codes that fail before a connection exists: a dropped interface or route can also fail a response already being read.
+-const NOT_SENT_CODES = new Set(["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN"])
++// Bun's fetch reports a refused connection as ConnectionRefused, Node's as ECONNREFUSED.
++const NOT_SENT_CODES = new Set(["ECONNREFUSED", "ConnectionRefused", "ENOTFOUND", "EAI_AGAIN"])
+ 
+ const notRun = (error: AIError) => {
+   const override = error.reason.http?.headers["x-should-retry"]
+diff --git a/packages/core/test/generate.test.ts b/packages/core/test/generate.test.ts
+index 77a3faa901..43afb810cc 100644
+--- a/packages/core/test/generate.test.ts
++++ b/packages/core/test/generate.test.ts
+@@ -101,34 +101,35 @@ it.effect("loads dynamic AI SDK models", () =>
+   }),
+ )
+ 
+-retryIt.effect("retries a stateless call the provider never received", () =>
+-  Effect.gen(function* () {
+-    const generate = yield* Generate.Service
+-    const llm = yield* TestLLM.Test
+-    yield* llm.push(
+-      TestLLM.failAfter(
+-        new AIError({
+-          reason: new TransportError({
+-            message: "connect ECONNREFUSED",
+-            transport: "http",
+-            operation: "request",
+-            code: "ECONNREFUSED",
++// A refused connection as Node reports it and as Bun's fetch does.
++for (const [code, message] of [
++  ["ECONNREFUSED", "connect ECONNREFUSED"],
++  ["ConnectionRefused", "Unable to connect. Is the computer able to access the url?"],
++] as const) {
++  retryIt.effect(`retries a stateless call the provider never received (${code})`, () =>
++    Effect.gen(function* () {
++      const generate = yield* Generate.Service
++      const llm = yield* TestLLM.Test
++      yield* llm.push(
++        TestLLM.failAfter(
++          new AIError({
++            reason: new TransportError({ message, transport: "http", operation: "request", code }),
+           }),
+-        }),
+-      ),
+-      TestLLM.text("Fresh answer", "success"),
+-    )
+-    const result = yield* generate
+-      .text({ prompt: "Answer privately", model: reference })
+-      .pipe(Effect.forkChild({ startImmediately: true }))
+-    yield* llm.wait(1)
+-    yield* TestClock.adjust("3 seconds")
+-    expect(yield* Fiber.join(result)).toBe("Fresh answer")
+-    const requests = yield* llm.requests()
+-    expect(requests).toHaveLength(2)
+-    expect(requests[1]).toBe(requests[0])
+-  }),
+-)
++        ),
++        TestLLM.text("Fresh answer", "success"),
++      )
++      const result = yield* generate
++        .text({ prompt: "Answer privately", model: reference })
++        .pipe(Effect.forkChild({ startImmediately: true }))
++      yield* llm.wait(1)
++      yield* TestClock.adjust("3 seconds")
++      expect(yield* Fiber.join(result)).toBe("Fresh answer")
++      const requests = yield* llm.requests()
++      expect(requests).toHaveLength(2)
++      expect(requests[1]).toBe(requests[0])
++    }),
++  )
++}
+ 
+ // The provider may already have run (and billed) these, so a one-shot call doesn't repeat them.
+ for (const reason of [
