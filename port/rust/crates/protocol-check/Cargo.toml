@@ -1,0 +1,11 @@
+[package]
+name = "protocol-check"
+description = "Round-trip harness for opencode-protocol, driven by port/rust/gen/src/roundtrip.ts"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+opencode-protocol.workspace = true
