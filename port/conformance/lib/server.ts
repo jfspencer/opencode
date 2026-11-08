@@ -27,7 +27,7 @@
 // no authentication layer, and no scenario observes it.
 //
 // Records nothing itself. When CONFORMANCE_MEMORY_LOG names a file, the peak resident memory of every server
-// process is appended to it as one JSON line per scenario.
+// process (and every TUI process, lib/tui.ts) is appended to it as one JSON line per scenario.
 import { appendFileSync, existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fakeNetwork } from "./network"
@@ -196,14 +196,15 @@ export async function startProcess(
       if (log && memory)
         appendFileSync(
           log,
-          JSON.stringify({ impl: impl.name, ...settings.label, peakKiB: memory.peak, rssKiB: memory.rss }) + "\n",
+          JSON.stringify({ impl: impl.name, role: "server", ...settings.label, peakKiB: memory.peak, rssKiB: memory.rss }) +
+            "\n",
         )
     },
   }
 }
 
 /** Peak and current resident memory (KiB) of a live process. */
-function status(pid: number) {
+export function status(pid: number) {
   try {
     const text = readFileSync(`/proc/${pid}/status`, "utf8")
     const field = (name: string) => Number(text.match(new RegExp(`^${name}:\\s+(\\d+) kB`, "m"))?.[1])

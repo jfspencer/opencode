@@ -50,9 +50,9 @@ socket is replaced by an in-process handler, so `bun test --coverage` can measur
 
 By default the TS reference runs in-process. With `CONFORMANCE_IMPL=ts` (the TS reference's CLI from source) or
 an absolute path to an executable (the Rust build), every scenario starts its own `opencode serve --hostname
-127.0.0.1 --port 0` and talks to it over HTTP; CLI scenarios run that executable, and TUI scenarios connect the
-TUI to that server. A process is configured only through its public interface, so whatever passes here passes
-for a user:
+127.0.0.1 --port 0` and talks to it over HTTP; CLI scenarios run that executable, and TUI scenarios run its TUI
+(`opencode --server <url>`) in a pseudo-terminal against that server (see TUI scenarios). A process is configured
+only through its public interface, so whatever passes here passes for a user:
 
 - the sandbox HOME/XDG directories and environment of `lib/preload.ts`, and its working directory;
 - the in-process boot options as the environment variables `opencode serve` reads (`OPENCODE_CONFIG_CONTENT`,
@@ -72,7 +72,8 @@ for a user:
   OPENCODE_CHANNEL=conformance`.
 
 A process run proves the harness path: the TS reference must reproduce every golden as a process before a
-Rust build is measured against them. `CONFORMANCE_MEMORY_LOG` records each server's peak resident memory.
+Rust build is measured against them. `CONFORMANCE_MEMORY_LOG=<file>` records the peak resident memory of each
+server and TUI process; `bun memory.ts <file>...` summarizes it per implementation and role.
 
 ## Writing a scenario
 
@@ -205,16 +206,43 @@ tuiScenario("prompt and reply", { turns: [say("Hello.")], width: 100, height: 30
 })
 ```
 
-The real TUI (`packages/tui`) renders in a headless terminal and talks to the scenario's server over HTTP.
-`t` has everything `ctx` has, plus `type`, `press(key)` (characters, KeyCodes names, raw sequences, or names
-such as `pageup`, `f2`, `space`), `enter`, `escape`, `tab`, `arrow`, `paste`, `click(x, y)`, `scroll`, `mouse`,
-`waitFor(text | regex, timeout)`, `resize(w, h)` and `frame(label)`, which records the settled screen.
-`options` adds `width`, `height`, `args` (model, agent, prompt, continue, sessionID), `tui` (TUI config) and
-`setup(ctx)` (runs against the server before the TUI starts; its result is merged into `args`). Recordings
-also list the endpoints the TUI wrote to (`tui-requests`: every method but GET). Reads are not recorded: the
-client's data layer refetches on bursts of events and reconciles events that overtake responses, so which
-reads it makes is timing, and the frames show what it loaded.
+The real TUI talks to the scenario's server over HTTP (through a local proxy that notes which endpoints it
+calls), in a real terminal: Ghostty's terminal core (libghostty-vt as WASM, from the `ghostty-web` package the
+reference already depends on; `lib/terminal.ts`). The TUI's output is interpreted by it; its queries (device
+attributes, modes, kitty keyboard flags, dark/light scheme) get Ghostty's answers; keys arrive as Ghostty's key
+encoder writes them for the keyboard protocol the TUI turned on, mouse events as the reports it asked for (SGR),
+pastes bracketed when it asked for that; frames are read from Ghostty's screen, and where the screen shows a
+hyperlink its target is recorded beside the frame (`links:<label>`). Where the TUI runs follows `CONFORMANCE_IMPL`:
 
-Known limits: frames record characters, not colors or attributes; module-level TUI state (prompt drafts,
-"--prompt applied once") persists across scenarios in one bun process, so scenarios start by clearing the
-prompt.
+- **in-process** (default): `packages/tui`'s `run` on an opentui test renderer created with the TUI's own renderer
+  options and attached to the terminal, inside the test process, so coverage measures it. Like the TUI's own
+  renderer it draws on demand (no continuous render loop, no forced frames). It is given what
+  `opencode --server <url>` gives it (`packages/cli/src/commands/handlers/default.ts`), including an updater that
+  never checks on its own.
+- **a process** (`ts`, or the Rust build): the implementation's CLI, `opencode --server <url>`, in a pseudo-terminal
+  attached to the terminal; resizes reach it as a window resize (SIGWINCH), and the end of a scenario as a closed
+  terminal (SIGHUP). Its inputs reach it through its public interface: `--continue`, `--session <id>`, `--prompt`,
+  `--auto`; the TUI config as `<XDG_CONFIG_HOME>/opencode/cli.json`; `OPENCODE_DISABLE_AUTOUPDATE=1`;
+  per-scenario XDG directories; the fake network. Whatever it writes to the terminal is on the screen, stderr
+  included.
+
+`t` has everything `ctx` has, plus `type`, `press(key, modifiers?)` (characters, opentui KeyCodes names, key names
+such as `pageup`, `f2`, `space`, or the legacy sequence of one of those keys; modifiers `shift`, `ctrl`, `meta`
+(alt), `super`), `enter`, `escape`, `tab`, `arrow`, `paste`, `click(x, y)`, `scroll`, `waitFor(text | regex,
+timeout)`, `resize(w, h)` and `frame(label)`, which records the settled screen (and throws once the TUI has
+exited). `options` adds `width`, `height`, `args` (`continue`, `sessionID` of an existing session,
+`newSessionID`, `prompt`, `auto`; in-process also `model`, `agent`, `fork`, which no CLI flag reaches), `tui`
+(TUI config) and `setup(ctx)` (runs against the server before the TUI starts; its result is merged into
+`args`). Recordings also list the endpoints the TUI wrote to (`tui-requests`: every method but GET). Reads are
+not recorded: the client's data layer refetches on bursts of events and reconciles events that overtake
+responses, so which reads it makes is timing, and the frames show what it loaded.
+
+Known limits: frames record characters, not colors or attributes; in-process, module-level TUI state (prompt
+drafts, "--prompt applied once") persists across scenarios in one bun process, so scenarios start by clearing
+the prompt, and the console overlay is off (it would capture the whole test process's console). The terminal is
+libghostty-vt's: it does not answer OSC 10/11 color queries, XTWINOPS size reports or XTGETTCAP, as the full Ghostty
+application would.
+
+Debugging: `CONFORMANCE_TUI_RAW=<dir>` keeps everything the TUI wrote to its terminal and every input it was
+sent (in-process, the terminal's answers too), per scenario; `CONFORMANCE_TUI_LOG=1` prints each request the TUI
+makes.

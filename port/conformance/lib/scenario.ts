@@ -80,6 +80,8 @@ export interface HttpResult {
 
 export interface Ctx {
   readonly project: string
+  /** The scenario's file (relative to port/conformance) and name, for logs that are not recorded. */
+  readonly label: { readonly file: string; readonly scenario: string }
   /** The implementation's raw request handler (for drivers that need a real HTTP endpoint, like the TUI). */
   readonly handler: (request: Request) => Promise<Response>
   readonly provider: FakeOpenRouter
@@ -142,10 +144,11 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     fff: options.server?.fff ?? false,
     standalone: options.standalone ?? false,
   }
+  const label = { file: path.relative(import.meta.dir + "/..", file), scenario: name }
   await withServer(
     settings,
     provider,
-    { file: path.relative(import.meta.dir + "/..", file), scenario: name },
+    label,
     async (handler, origin) => {
       serverOrigin = origin
       const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
@@ -241,6 +244,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
       await quiesce()
       const ctx: Ctx = {
         project,
+        label,
         handler,
         provider,
         events,

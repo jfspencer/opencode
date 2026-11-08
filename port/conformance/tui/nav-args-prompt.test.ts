@@ -35,7 +35,7 @@ const absent = (text: string) => ({ test: (frame: string) => !frame.includes(tex
 
 scenario(
   "args: --prompt is submitted on start",
-  { width: 100, height: 30, args: { prompt: "Started with a prompt", agent: "plan" }, turns: [say("Answered the start prompt.")] },
+  { width: 100, height: 30, args: { prompt: "Started with a prompt" }, turns: [say("Answered the start prompt.")] },
   async (t) => {
     await waitLong(t, "Answered the start prompt.")
     await t.frame("answered")

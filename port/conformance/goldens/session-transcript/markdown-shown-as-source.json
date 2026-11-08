@@ -39,6 +39,14 @@
     },
     {
       "kind": "note",
+      "label": "links:source",
+      "value": [
+        "a link -> https://example.com",
+        "https://example.com -> https://example.com"
+      ]
+    },
+    {
+      "kind": "note",
       "label": "tui-requests",
       "value": [
         "POST /api/rpc/opencode.goal/get",

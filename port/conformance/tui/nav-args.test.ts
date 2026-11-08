@@ -55,6 +55,11 @@ const models = {
 
 const MISSING = "ses_0000000000conformanceMissing"
 
+// The TUI takes model, agent and fork arguments and a session ID that may not exist, but the CLI's root command has
+// no --model, --agent or --fork flag, and passes a missing --session as the ID of the first new session (as in "the
+// first new session takes the given ID" below): those scenarios document TUI code no command reaches.
+const UNREACHABLE = "no CLI flag reaches this TUI argument (the root command has no --model, --agent or --fork, and a missing --session becomes a new session's ID)"
+
 // Arguments are applied at startup, and their warning or error toasts (3-5s) can be over before a slow startup
 // (plugins loading) has finished: these scenarios record the screen once any such toast is gone. --agent and --model
 // are applied once the agents and models have loaded, which the prompt footer shows (agent · model).
@@ -66,7 +71,7 @@ async function afterStartupToasts(t: TuiCtx) {
 }
 const NEW = "ses_0000000000conformanceNewOne1"
 
-scenario("args: --model picks the starting model", { width: 100, height: 30, config: models, args: { model: "openrouter/acme/plain-1" } }, async (t) => {
+scenario("args: --model picks the starting model", { width: 100, height: 30, config: models, args: { model: "openrouter/acme/plain-1" }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await waitLong(t, "Build · Plain One")
   await t.frame("home")
@@ -76,34 +81,34 @@ scenario("args: --model picks the starting model", { width: 100, height: 30, con
   await t.frame("it is a recent model")
 })
 
-scenario("args: --model with an invalid format", { width: 100, height: 30, args: { model: "not-a-model" } }, async (t) => {
+scenario("args: --model with an invalid format", { width: 100, height: 30, args: { model: "not-a-model" }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await t.frame("default model")
 })
 
-scenario("args: --model that doesn't exist", { width: 100, height: 30, args: { model: "openrouter/acme/unknown" } }, async (t) => {
+scenario("args: --model that doesn't exist", { width: 100, height: 30, args: { model: "openrouter/acme/unknown" }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await t.frame("default model")
 })
 
-scenario("args: --agent picks the starting agent", { width: 100, height: 30, args: { agent: "plan" } }, async (t) => {
+scenario("args: --agent picks the starting agent", { width: 100, height: 30, args: { agent: "plan" }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await waitLong(t, "Plan · DeepSeek")
   await t.frame("home")
 })
 
-scenario("args: --agent that doesn't exist", { width: 100, height: 30, args: { agent: "ghost" } }, async (t) => {
+scenario("args: --agent that doesn't exist", { width: 100, height: 30, args: { agent: "ghost" }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await t.frame("default agent")
 })
 
 // Whether the TUI fetches the missing session's terminals before giving up races in the TUI itself.
-scenario("args: --session that doesn't exist", { width: 100, height: 30, args: { sessionID: MISSING }, requests: false }, async (t) => {
+scenario("args: --session that doesn't exist", { width: 100, height: 30, args: { sessionID: MISSING }, requests: false, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await t.frame("home")
 })
 
-scenario("args: --session --fork of a session that doesn't exist", { width: 100, height: 30, args: { sessionID: MISSING, fork: true } }, async (t) => {
+scenario("args: --session --fork of a session that doesn't exist", { width: 100, height: 30, args: { sessionID: MISSING, fork: true }, inProcessOnly: UNREACHABLE }, async (t) => {
   await afterStartupToasts(t)
   await t.frame("home")
 })

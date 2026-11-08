@@ -62,7 +62,8 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D301: `@` completion of a directory gave `@src/util//`.
 - D302: `--continue` with no sessions opened a placeholder session "dummy" with a validation-error toast.
 - D303: `--agent`/`--model` were applied before agents and models loaded (`--agent plan` reported "Agent not
-  found"; `--model` was ignored).
+  found"; `--model` was ignored). The CLI's root command no longer has these flags (nor `--fork`): the TUI still
+  takes them as arguments, but no command passes them, so their scenarios run in-process only.
 - D304: a theme that failed to load stayed saved in config.
 - D305: the documented `session.tab.history.back/forward` keybinds had no command behind them.
 - D306: keys typed in one burst read a stale cursor (`wow!` entered shell mode and dropped the `!`).
@@ -70,6 +71,12 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D308: a failed attempt's retry notice stayed after a successful retry (also in `GET /message`: core and client
   projections kept `retry`).
 - D309: a session whose directory is gone showed the raw model ID.
+- D310: a command run by a key sequence (ctrl+x n, ctrl+x w) that navigated made the keymap revalidate the
+  finished sequence while Solid disposed the old view; the layer conditions it read re-ran the route mid-disposal
+  and the home screen that mounted was never cleaned up. Each new session or closed tab leaked five
+  terminal-resize listeners, and at 16 the runtime printed `MaxListenersExceededWarning` over the TUI.
+- D311: a jump in a list dialog (End right after opening settings) scrolled from stale row positions and left the
+  selection off screen: a renderer that draws on demand had not laid out the rows below the viewport.
 
 **CLI**
 - D401: `run --archived` sessions still appeared in `session list`.
@@ -162,9 +169,14 @@ The standard leaves these unspecified; scenarios avoid them:
 
 ## Harness limits (what the oracle cannot yet prove)
 
-- **Process mode** (`CONFORMANCE_IMPL`, see README): server and CLI scenarios can drive any `opencode`
-  executable over its public interface; TUI scenarios still render the TS TUI in-process (against that
-  server). A Rust TUI needs a pseudo-terminal driver whose frames match the in-process ones.
+- **Process mode** (`CONFORMANCE_IMPL`, see README): every scenario can drive any `opencode` executable over
+  its public interface; TUI scenarios run its TUI (`opencode --server`) in a pseudo-terminal. Both modes put
+  the TUI in the same terminal (Ghostty's core) and send it the same bytes. What still differs: in-process the
+  TUI shares an event loop with the server (timing), its file system is a no-op (`FileSystem.layerNoop`), and
+  the console overlay is off; a process's stderr is on its screen.
+- **The terminal** is libghostty-vt: OSC 10/11 color queries, XTWINOPS size reports and XTGETTCAP go
+  unanswered (the full Ghostty application answers some of them); behavior that depends on those answers is
+  what a terminal without them gets.
 
 - **CLI line coverage**: the CLI runs as child processes, which Bun's coverage does not follow. Its behavior is
   recorded (70+ scenarios); coverage would need e.g. a Node build with `NODE_V8_COVERAGE`.

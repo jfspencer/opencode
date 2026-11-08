@@ -12,7 +12,7 @@
         "",
         "     Summary",
         "",
-        "     Use bold, emphasis, code, strike and a link (https://example.com).",
+        "     Use bold, emphasis, code, strike and a link.",
         "",
         "     - done task",
         "     - open task",
@@ -35,6 +35,13 @@
         "  <project>                              110 (0%)  ctrl+p commands",
         "",
         ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "links:rendered",
+      "value": [
+        "a link -> https://example.com"
       ]
     },
     {

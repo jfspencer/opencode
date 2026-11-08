@@ -12,7 +12,7 @@
         "",
         "     Release notes",
         "",
-        "     Some bold, some italic, some inline code and a link (https://example.com/docs).",
+        "     Some bold, some italic, some inline code and a link.",
         "",
         "     Changes",
         "",
@@ -53,6 +53,13 @@
         "  <project>                              110 (0%)  ctrl+p commands",
         "",
         ""
+      ]
+    },
+    {
+      "kind": "note",
+      "label": "links:markdown",
+      "value": [
+        "link -> https://example.com/docs"
       ]
     },
     {
