@@ -511,7 +511,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+                      "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
                       "type": "text"
                     }
                   ],
@@ -600,12 +600,12 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+                      "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
                       "type": "text"
                     }
                   ],
                   "input": {
-                    "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+                    "code": "// HTTP framing headers belong to the transport, not to the response the program reads.\nconst FRAMING = [\"date\", \"connection\", \"keep-alive\", \"transfer-encoding\", \"content-length\"]\nconst text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
                   },
                   "metadata": {
                     "toolCalls": [
@@ -764,7 +764,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -773,7 +773,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -822,7 +822,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -831,7 +831,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -850,7 +850,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -899,7 +899,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -908,7 +908,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -927,7 +927,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -995,7 +995,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -1004,7 +1004,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1023,7 +1023,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1110,7 +1110,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -1119,7 +1119,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1138,7 +1138,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1782,25 +1782,6 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 8,
-          "version": 1
-        },
-        "id": "<evt_11>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -1819,7 +1800,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -1843,7 +1824,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -1859,7 +1840,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_13>",
         "type": "session.execution.started"
       },
       {
@@ -1878,7 +1859,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_15>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -1900,11 +1881,46 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -1921,10 +1937,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -1940,10 +1956,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
+          "seq": 8,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -1952,28 +1968,10 @@
       {
         "created": "<time>",
         "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 0,
-            "output": 0,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_19>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
           "assistantMessageID": "<msg_8>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}"
+          "text": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -1993,7 +1991,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+            "code": "// HTTP framing headers belong to the transport, not to the response the program reads.\nconst FRAMING = [\"date\", \"connection\", \"keep-alive\", \"transfer-encoding\", \"content-length\"]\nconst text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
           },
           "sessionID": "<ses_1>"
         },
@@ -2031,7 +2029,7 @@
           "assistantMessageID": "<msg_8>",
           "content": [
             {
-              "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "type": "text"
             }
           ],
@@ -2134,8 +2132,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
@@ -2249,7 +2247,7 @@
           "assistantMessageID": "<msg_7>",
           "content": [
             {
-              "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "type": "text"
             }
           ],
@@ -2344,8 +2342,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
@@ -2610,8 +2608,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 300,
-            "output": 30,
+            "input": 400,
+            "output": 40,
             "reasoning": 0
           }
         },
@@ -2884,8 +2882,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 400,
-            "output": 40,
+            "input": 500,
+            "output": 50,
             "reasoning": 0
           }
         },
@@ -3086,8 +3084,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 500,
-            "output": 50,
+            "input": 600,
+            "output": 60,
             "reasoning": 0
           }
         },
@@ -3225,8 +3223,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 600,
-            "output": 60,
+            "input": 700,
+            "output": 70,
             "reasoning": 0
           }
         },

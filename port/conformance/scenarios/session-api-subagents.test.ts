@@ -150,9 +150,9 @@ scenario(
         prompt: "FAILING-CHILD: try",
         background: true,
       }),
-      // The parent's next step holds until the child's failure has been reported, so the report always lands
-      // while the parent is busy and is picked up at its next step boundary.
-      { events: [{ text: "Started the child." }, { until: parentGate.promise }] },
+      // The parent's next step holds, before its first output, until the child's failure has been reported, so
+      // the report always lands while the parent is busy and is picked up at its next step boundary.
+      { events: [{ until: parentGate.promise }, { text: "Started the child." }] },
       say("The child failed; noted."),
     ],
     responders: [

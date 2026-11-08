@@ -607,25 +607,6 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 8,
-          "version": 1
-        },
-        "id": "<evt_31>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -644,7 +625,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_32>",
+        "id": "<evt_31>",
         "location": {
           "directory": "<project>"
         },
@@ -668,7 +649,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_33>",
+        "id": "<evt_32>",
         "location": {
           "directory": "<project>"
         },
@@ -684,7 +665,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_34>",
+        "id": "<evt_33>",
         "type": "session.execution.started"
       },
       {
@@ -704,7 +685,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_35>",
+        "id": "<evt_34>",
         "location": {
           "directory": "<project>"
         },
@@ -726,11 +707,46 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_36>",
+        "id": "<evt_35>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_36>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -747,10 +763,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_37>",
+        "id": "<evt_38>",
         "location": {
           "directory": "<project>"
         },
@@ -765,32 +781,14 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
+          "seq": 8,
           "version": 1
         },
-        "id": "<evt_38>",
+        "id": "<evt_39>",
         "location": {
           "directory": "<project>"
         },
         "type": "session.text.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 0,
-            "output": 0,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_39>",
-        "type": "session.usage.updated"
       },
       {
         "created": "<time>",
@@ -881,8 +879,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
@@ -1107,8 +1105,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
@@ -1333,8 +1331,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 300,
-            "output": 30,
+            "input": 400,
+            "output": 40,
             "reasoning": 0
           }
         },

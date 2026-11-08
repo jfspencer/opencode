@@ -115,45 +115,17 @@
       "kind": "note",
       "label": "tui-requests",
       "value": [
-        "GET /api/agent",
-        "GET /api/command",
-        "GET /api/config",
-        "GET /api/event",
-        "GET /api/experimental/migration/v1",
-        "GET /api/experimental/session/<ses_1>/terminal",
-        "GET /api/form",
-        "GET /api/fs/list",
-        "GET /api/info",
-        "GET /api/integration",
-        "GET /api/location",
-        "GET /api/mcp",
-        "GET /api/mcp/resource",
-        "GET /api/model",
-        "GET /api/plugin",
-        "GET /api/project",
-        "GET /api/provider",
-        "GET /api/reference",
-        "GET /api/session/active",
-        "GET /api/session/<ses_2>",
-        "GET /api/session/<ses_2>/form",
-        "GET /api/session/<ses_2>/permission",
-        "GET /api/session/<ses_1>",
-        "GET /api/session/<ses_1>/form",
-        "GET /api/session/<ses_1>/permission",
-        "GET /api/shell",
-        "GET /api/skill",
-        "GET /api/vcs",
         "POST /api/rpc/opencode.goal/get",
         "POST /api/session",
-        "POST /api/session/<ses_2>/permission/<per_1>/reply",
-        "POST /api/session/<ses_1>/model",
-        "POST /api/session/<ses_1>/prompt",
-        "POST /api/session/<ses_1>/view"
+        "POST /api/session/<ses_1>/permission/<per_1>/reply",
+        "POST /api/session/<ses_2>/model",
+        "POST /api/session/<ses_2>/prompt",
+        "POST /api/session/<ses_2>/view"
       ]
     }
   ],
   "provider": {
-    "chat:<ses_1>": [
+    "chat:<ses_2>": [
       {
         "body": {
           "max_completion_tokens": 256000,
@@ -170,7 +142,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
+          "prompt_cache_key": "<ses_2>",
           "reasoning": {
             "effort": "max"
           },
@@ -209,7 +181,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
+          "prompt_cache_key": "<ses_2>",
           "reasoning": {
             "effort": "max"
           },
@@ -261,13 +233,13 @@
               ]
             },
             {
-              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"Subagent cancelled (sessionID: <ses_2>)\"},\"content\":[]}",
+              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"Subagent cancelled (sessionID: <ses_1>)\"},\"content\":[]}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
+          "prompt_cache_key": "<ses_2>",
           "reasoning": {
             "effort": "max"
           },
@@ -291,7 +263,7 @@
         "url": "https://openrouter.ai/api/v1/chat/completions"
       }
     ],
-    "title:<ses_1>": [
+    "title:<ses_2>": [
       {
         "body": {
           "messages": [
@@ -305,7 +277,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
+          "prompt_cache_key": "<ses_2>",
           "reasoning": {
             "effort": "max"
           },
@@ -429,26 +401,7 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_11>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
-    "<ses_2>": [
+    "<ses_1>": [
       {
         "created": "<time>",
         "data": {
@@ -461,20 +414,20 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "parentID": "<ses_1>",
+          "parentID": "<ses_2>",
           "projectID": "<hash_1>",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "slug": "<slug>",
           "subpath": "",
           "title": "Clean up",
           "version": "conformance"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -491,14 +444,14 @@
             },
             "type": "user"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -507,14 +460,14 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_13>",
         "type": "session.execution.started"
       },
       {
@@ -526,14 +479,14 @@
             "core/environment": "<hash_4>",
             "core/skill-guidance": "<hash_5>"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_15>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -548,14 +501,14 @@
         "created": "<time>",
         "data": {
           "inboxID": "<msg_1>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -571,15 +524,15 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 5,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -591,14 +544,14 @@
           "assistantMessageID": "<msg_2>",
           "id": "call_conformance_0",
           "name": "shell",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 6,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },
@@ -609,15 +562,15 @@
         "data": {
           "assistantMessageID": "<msg_2>",
           "id": "call_conformance_0",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "text": "{\"command\":\"rm -rf build\"}"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 7,
           "version": 1
         },
-        "id": "<evt_19>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -632,14 +585,14 @@
           "input": {
             "command": "rm -rf build"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
-        "id": "<evt_20>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -649,14 +602,14 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_2>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 9,
           "version": 1
         },
-        "id": "<evt_21>",
+        "id": "<evt_20>",
         "location": {
           "directory": "<project>"
         },
@@ -673,14 +626,14 @@
           "save": [
             "rm *"
           ],
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "source": {
             "id": "call_conformance_0",
             "messageID": "<msg_2>",
             "type": "tool"
           }
         },
-        "id": "<evt_22>",
+        "id": "<evt_21>",
         "location": {
           "directory": "<project>"
         },
@@ -691,9 +644,9 @@
         "data": {
           "reply": "reject",
           "requestID": "<per_1>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
-        "id": "<evt_23>",
+        "id": "<evt_22>",
         "location": {
           "directory": "<project>"
         },
@@ -709,14 +662,14 @@
           },
           "executed": false,
           "id": "call_conformance_0",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 10,
           "version": 2
         },
-        "id": "<evt_24>",
+        "id": "<evt_23>",
         "location": {
           "directory": "<project>"
         },
@@ -732,7 +685,7 @@
             "type": "aborted"
           },
           "rawFinish": "tool_calls",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -744,11 +697,11 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 11,
           "version": 1
         },
-        "id": "<evt_25>",
+        "id": "<evt_24>",
         "location": {
           "directory": "<project>"
         },
@@ -758,7 +711,7 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -769,25 +722,25 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_26>",
+        "id": "<evt_25>",
         "type": "session.usage.updated"
       },
       {
         "created": "<time>",
         "data": {
           "reason": "user",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 12,
           "version": 1
         },
-        "id": "<evt_27>",
+        "id": "<evt_26>",
         "type": "session.execution.interrupted"
       }
     ],
-    "<ses_1>": [
+    "<ses_2>": [
       {
         "created": "<time>",
         "data": {
@@ -801,17 +754,17 @@
             "variant": "max"
           },
           "projectID": "<hash_1>",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_28>",
+        "id": "<evt_27>",
         "location": {
           "directory": "<project>"
         },
@@ -830,14 +783,14 @@
             },
             "type": "user"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_29>",
+        "id": "<evt_28>",
         "location": {
           "directory": "<project>"
         },
@@ -846,14 +799,14 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_30>",
+        "id": "<evt_29>",
         "type": "session.execution.started"
       },
       {
@@ -865,14 +818,14 @@
             "core/environment": "<hash_4>",
             "core/skill-guidance": "<hash_5>"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_31>",
+        "id": "<evt_30>",
         "location": {
           "directory": "<project>"
         },
@@ -887,14 +840,14 @@
         "created": "<time>",
         "data": {
           "inboxID": "<msg_3>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_32>",
+        "id": "<evt_31>",
         "location": {
           "directory": "<project>"
         },
@@ -904,19 +857,36 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 0,
-            "output": 0,
+            "input": 100,
+            "output": 10,
             "reasoning": 0
           }
         },
-        "id": "<evt_33>",
+        "id": "<evt_32>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -928,11 +898,11 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 7,
           "version": 1
         },
@@ -948,10 +918,10 @@
           "assistantMessageID": "<msg_4>",
           "id": "call_conformance_0",
           "name": "subagent",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 8,
           "version": 1
         },
@@ -966,11 +936,11 @@
         "data": {
           "assistantMessageID": "<msg_4>",
           "id": "call_conformance_0",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "text": "{\"agent\":\"general\",\"description\":\"Clean up\",\"prompt\":\"Delete the build directory\"}"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 9,
           "version": 1
         },
@@ -991,10 +961,10 @@
             "description": "Clean up",
             "prompt": "Delete the build directory"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 10,
           "version": 1
         },
@@ -1008,10 +978,10 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_4>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 11,
           "version": 1
         },
@@ -1027,10 +997,10 @@
           "assistantMessageID": "<msg_4>",
           "id": "call_conformance_0",
           "metadata": {
-            "sessionID": "<ses_2>",
+            "sessionID": "<ses_1>",
             "status": "running"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "id": "<evt_39>",
         "location": {
@@ -1043,19 +1013,19 @@
         "data": {
           "assistantMessageID": "<msg_4>",
           "error": {
-            "message": "Subagent cancelled (sessionID: <ses_2>)",
+            "message": "Subagent cancelled (sessionID: <ses_1>)",
             "type": "tool.execution"
           },
           "executed": false,
           "id": "call_conformance_0",
           "metadata": {
-            "sessionID": "<ses_2>",
+            "sessionID": "<ses_1>",
             "status": "running"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 12,
           "version": 2
         },
@@ -1072,7 +1042,7 @@
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1084,7 +1054,7 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 13,
           "version": 1
         },
@@ -1098,14 +1068,14 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
@@ -1122,11 +1092,11 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 14,
           "version": 1
         },
@@ -1141,10 +1111,10 @@
         "data": {
           "assistantMessageID": "<msg_5>",
           "ordinal": 0,
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 15,
           "version": 1
         },
@@ -1160,7 +1130,7 @@
           "assistantMessageID": "<msg_5>",
           "delta": "The subagent was stopped.",
           "ordinal": 0,
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "id": "<evt_45>",
         "location": {
@@ -1173,11 +1143,11 @@
         "data": {
           "assistantMessageID": "<msg_5>",
           "ordinal": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "text": "The subagent was stopped."
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 16,
           "version": 1
         },
@@ -1191,10 +1161,10 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_5>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 17,
           "version": 1
         },
@@ -1211,7 +1181,7 @@
           "cost": 0,
           "finish": "stop",
           "rawFinish": "stop",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1223,7 +1193,7 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 18,
           "version": 1
         },
@@ -1237,14 +1207,14 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
@@ -1254,10 +1224,10 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 19,
           "version": 1
         },
@@ -1268,10 +1238,10 @@
         "created": "<time>",
         "data": {
           "idle": "<time>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 20,
           "version": 1
         },

@@ -6,7 +6,7 @@
         "project": {
           "canonical": "<project>",
           "directory": "<project>",
-          "id": "<hash_1>"
+          "id": "global"
         }
       },
       "kind": "http",
@@ -17,7 +17,10 @@
     {
       "body": {
         "data": {
-          "branch": {}
+          "branch": {
+            "current": "trunk"
+          },
+          "provider": "git"
         },
         "location": {
           "directory": "<project>"
@@ -42,7 +45,14 @@
     },
     {
       "body": {
-        "data": [],
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "draft.txt",
+            "status": "added"
+          }
+        ],
         "location": {
           "directory": "<project>"
         }
@@ -66,7 +76,15 @@
     },
     {
       "body": {
-        "data": [],
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "draft.txt",
+            "patch": "diff --git a/draft.txt b/draft.txt\nnew file mode 100644\nindex 0000000..f3d4377\n--- /dev/null\n+++ b/draft.txt\n@@ -0,0 +1 @@\n+draft\n",
+            "status": "added"
+          }
+        ],
         "location": {
           "directory": "<project>"
         }
@@ -78,7 +96,15 @@
     },
     {
       "body": {
-        "data": [],
+        "data": [
+          {
+            "additions": 1,
+            "deletions": 0,
+            "file": "draft.txt",
+            "patch": "diff --git a/draft.txt b/draft.txt\nnew file mode 100644\nindex 0000000..f3d4377\n--- /dev/null\n+++ b/draft.txt\n@@ -0,0 +1 @@\n+draft\n",
+            "status": "added"
+          }
+        ],
         "location": {
           "directory": "<project>"
         }
@@ -95,16 +121,32 @@
       {
         "created": "<time>",
         "data": {
+          "directory": "<project>",
+          "previous": "global",
+          "projectID": "global"
+        },
+        "durable": {
+          "aggregateID": "global",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_1>",
+        "type": "worktree.resolved"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "canonical": "<project>",
-          "id": "<hash_1>",
+          "id": "global",
           "sandboxes": [],
           "time": {
             "active": "<time>",
             "created": "<time>",
             "updated": "<time>"
-          }
+          },
+          "vcs": "git"
         },
-        "id": "<evt_1>",
+        "id": "<evt_2>",
         "location": {
           "directory": "<project>"
         },
@@ -113,7 +155,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_2>",
+        "id": "<evt_3>",
         "location": {
           "directory": "<project>"
         },
@@ -122,7 +164,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_3>",
+        "id": "<evt_4>",
         "location": {
           "directory": "<project>"
         },
@@ -131,7 +173,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_4>",
+        "id": "<evt_5>",
         "location": {
           "directory": "<project>"
         },
@@ -139,21 +181,14 @@
       },
       {
         "created": "<time>",
-        "data": {},
-        "id": "<evt_5>",
-        "location": {
-          "directory": "<project>"
+        "data": {
+          "branch": "trunk"
         },
-        "type": "agent.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
         "id": "<evt_6>",
         "location": {
           "directory": "<project>"
         },
-        "type": "command.updated"
+        "type": "vcs.branch.updated"
       },
       {
         "created": "<time>",
@@ -162,7 +197,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "skill.updated"
+        "type": "agent.updated"
       },
       {
         "created": "<time>",
@@ -171,7 +206,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "websearch.updated"
+        "type": "command.updated"
       },
       {
         "created": "<time>",
@@ -180,12 +215,30 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "reference.updated"
+        "type": "skill.updated"
       },
       {
         "created": "<time>",
         "data": {},
         "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },

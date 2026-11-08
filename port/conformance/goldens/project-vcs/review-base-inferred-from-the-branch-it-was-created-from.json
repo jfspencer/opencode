@@ -18,7 +18,7 @@
       "body": {
         "data": {
           "branch": {
-            "current": "main",
+            "current": "feature/api",
             "default": "main"
           },
           "provider": "git"
@@ -156,7 +156,7 @@
       {
         "created": "<time>",
         "data": {
-          "branch": "main"
+          "branch": "feature/api"
         },
         "id": "<evt_6>",
         "location": {
@@ -217,29 +217,6 @@
           "directory": "<project>"
         },
         "type": "plugin.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "event": "change",
-          "file": "<project>/.git/HEAD"
-        },
-        "id": "<evt_13>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "filesystem.changed"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "branch": "feature/api"
-        },
-        "id": "<evt_14>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "vcs.branch.updated"
       }
     ]
   },

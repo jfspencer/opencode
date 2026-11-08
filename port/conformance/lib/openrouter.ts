@@ -3,6 +3,8 @@
 // the TS reference gets it as its `fetch` option in-process, and the Rust implementation will get the same
 // handler served over HTTP. Every outbound request is recorded, including ones the script doesn't expect.
 
+import { STATUS_CODES } from "node:http"
+
 export type StreamEvent =
   | { readonly reasoning: string }
   | { readonly text: string }
@@ -53,20 +55,26 @@ export const call = (tool: string, input: unknown, text?: string): Turn => ({
   finish: "tool_calls",
 })
 
-/**
- * The default answer to title requests. Title generation runs alongside the session's own steps, so where its
- * effects land among the step's events is timing. It reports no usage: usage events carry running session
- * totals, which would then depend on which of the two finished first (title usage accounting has scenarios of
- * its own, which order the two).
- */
-const TITLE: Turn = { events: [{ text: "Conformance session" }], usage: false }
+/** The default answer to title requests. */
+const TITLE = say("Conformance session")
+const EXHAUSTED: Turn = { status: 500, body: { error: { message: "conformance: script exhausted" } } }
 
 export class FakeOpenRouter {
   readonly requests: ProviderRequest[] = []
   /** Title requests answered with a title, by session (prompt_cache_key): the scenario waits for their renames. */
   readonly titles: { readonly session: unknown; readonly answered: boolean }[] = []
+  /**
+   * Title generation runs beside a session's steps, so its events and its usage would land among the step's at
+   * random. Set by the scenario (lib/scenario.ts), this orders it first: a session's first model response is
+   * held until the session's generated title has been applied (or its title request failed). `expects` asks
+   * the server whether the session is untitled, so the order holds for any implementation, whichever request
+   * it sends first. Unset (CLI scenarios), nothing is held.
+   */
+  titleOrder?: { expects(session: string): Promise<boolean>; applied(session: string): Promise<void> }
   private readonly queue: Turn[] = []
   private counter = 0
+  private readonly firstChat = new Set<string>()
+  private readonly titleFailed = new Map<string, PromiseWithResolvers<void>>()
 
   constructor(
     turns: readonly Turn[] = [],
@@ -98,37 +106,62 @@ export class FakeOpenRouter {
       kind: url.pathname !== CHAT_PATH ? "other" : isTitleRequest(body) ? "title" : "chat",
     }
     this.requests.push(recorded)
-    for (const responder of this.responders) {
-      const turn = responder(recorded)
-      if (turn) return this.answer(recorded, turn, body)
+    const session = isRecord(body) && typeof body.prompt_cache_key === "string" ? body.prompt_cache_key : undefined
+    const scripted = this.script(recorded, session)
+    if (!scripted) return new Response(JSON.stringify({ error: "conformance: network access denied" }), { status: 599 })
+    if (recorded.kind === "title") {
+      const answered = "events" in scripted && !scripted.truncate
+      this.titles.push({ session, answered })
+      if (!answered) this.titleFailure(session)?.resolve()
     }
-    if (recorded.kind === "title") return this.answer(recorded, TITLE, body)
-    if (recorded.kind === "other")
-      return new Response(JSON.stringify({ error: "conformance: network access denied" }), { status: 599 })
-    const turn = this.queue.shift()
-    if (!turn) return this.respond({ status: 500, body: { error: { message: "conformance: script exhausted" } } }, body)
-    return this.respond(turn, body)
+    if (recorded.kind === "chat" && session) await this.titleFirst(session)
+    return this.respond(scripted, body, request.method)
   }
 
-  private answer(recorded: ProviderRequest, turn: Turn, body: unknown) {
-    if (recorded.kind === "title")
-      this.titles.push({
-        session: isRecord(body) ? body.prompt_cache_key : undefined,
-        answered: "events" in turn && !turn.truncate,
-      })
-    return this.respond(turn, body)
+  /** The turn for a request: a responder's, the default title, or the next scripted turn; none for other hosts. */
+  private script(recorded: ProviderRequest, session: string | undefined): Turn | undefined {
+    try {
+      for (const responder of this.responders) {
+        const turn = responder(recorded)
+        if (turn) return turn
+      }
+    } catch (error) {
+      // A responder that throws stands for a failed connection.
+      if (recorded.kind === "title") this.titleFailure(session)?.resolve()
+      throw error
+    }
+    if (recorded.kind === "title") return TITLE
+    if (recorded.kind === "other") return undefined
+    return this.queue.shift() ?? EXHAUSTED
   }
 
-  private respond(turn: Turn, body: unknown): Response {
+  private async titleFirst(session: string) {
+    if (!this.titleOrder || this.firstChat.has(session)) return
+    this.firstChat.add(session)
+    if (!(await this.titleOrder.expects(session))) return
+    // Bounded: a configuration may keep a title from being generated at all.
+    await Promise.race([this.titleOrder.applied(session), this.titleFailure(session)!.promise, Bun.sleep(15_000)])
+  }
+
+  private titleFailure(session: string | undefined) {
+    if (!session) return undefined
+    const existing = this.titleFailed.get(session)
+    if (existing) return existing
+    const created = Promise.withResolvers<void>()
+    this.titleFailed.set(session, created)
+    return created
+  }
+
+  private respond(turn: Turn, body: unknown, method = "POST"): Response {
+    // What a real server sends: the standard reason phrase, and no body for HEAD.
+    const init = (status: number, headers: Record<string, string>) => ({ status, statusText: STATUS_CODES[status] ?? "", headers })
     if ("status" in turn && !("events" in turn) && !("raw" in turn))
-      return new Response(turn.body === undefined ? null : JSON.stringify(turn.body), {
-        status: turn.status,
-        headers: { "content-type": "application/json", ...turn.headers },
+      return new Response(method === "HEAD" || turn.body === undefined ? null : JSON.stringify(turn.body), {
+        ...init(turn.status, { "content-type": "application/json", ...turn.headers }),
       })
     if ("raw" in turn)
-      return new Response(turn.raw, {
-        status: turn.status ?? 200,
-        headers: { "content-type": "text/event-stream", ...turn.headers },
+      return new Response(method === "HEAD" ? null : turn.raw, {
+        ...init(turn.status ?? 200, { "content-type": "text/event-stream", ...turn.headers }),
       })
     const id = `gen-conformance-${++this.counter}`
     const model = isRecord(body) && typeof body.model === "string" ? body.model : "unknown"
@@ -210,7 +243,7 @@ export class FakeOpenRouter {
         controller.close()
       },
     })
-    return new Response(stream, { status: 200, headers: { "content-type": "text/event-stream" } })
+    return new Response(stream, { status: 200, statusText: "OK", headers: { "content-type": "text/event-stream" } })
   }
 }
 

@@ -98,6 +98,8 @@ export interface ServerSettings {
 
 export interface ServerProcess {
   readonly handler: (request: Request) => Promise<Response>
+  /** Where the process listens (it reports this in server info). */
+  readonly origin: string
   stop(): Promise<void>
 }
 
@@ -181,6 +183,7 @@ export async function startProcess(
 
   return {
     handler,
+    origin,
     async stop() {
       const memory = status(child.pid)
       const tree = descendants(child.pid)

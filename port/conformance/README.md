@@ -19,6 +19,7 @@ CONFORMANCE_IMPL=ts bun test              # the TS reference as a separate `open
 CONFORMANCE_IMPL=/abs/path/opencode bun test   # an opencode executable (the Rust build)
 CONFORMANCE_ACTUAL=<dir> bun test; bun diff.ts <dir>   # write mismatching results, list differing JSON paths
 CONFORMANCE_MEMORY_LOG=m.jsonl CONFORMANCE_IMPL=ts bun test; bun memory.ts m.jsonl   # server peak memory
+CONFORMANCE_TUI_LOG=1 bun test <tui file>   # every request the TUI makes, with its status, on stderr
 ./determinism.sh [--record] [runs] [shards]   # every scenario, N runs, parallel shards: the gate
 LABEL=mine port/coverage/oracle.sh scenarios/x.test.ts   # coverage for a run (from repo root)
 python3 -I port/coverage/uncovered.py mine 'core/src/session/compaction' --source   # what it missed
@@ -153,15 +154,23 @@ Each rule states that the difference it hides is not observable behavior.
   whose message is entirely the engine's (`toFixed()` range, `String.fromCodePoint`, `Number(symbol)`) are
   recorded by error type only, in the scenario itself.
 - **Out of scope:** the startup probes of local model servers (LM Studio, Ollama, vLLM) are not recorded.
-- **Concurrent title generation:** a generated title is applied alongside the session's own steps, so
-  `session.renamed` events are compared in a group of their own per session (`renamed:<ses>`, in order),
-  not at their position among the step's events. Settling a session (`ctx.prompt`, `ctx.settle`) also waits
-  until every title the fake answered for it is applied, so title work never races the scenario's next
-  request. The fake answers title requests without usage: usage events carry running session totals, which
-  would otherwise depend on which of the two requests finished first.
+- **Settling waits for the event stream:** the stream reaches the harness on its own connection and can lag
+  an HTTP response. Once a session has settled (`ctx.prompt`, `ctx.settle`, `ctx.wait`), the harness reads the
+  session's durable log and waits until the stream has delivered its last event, so `ctx.events` is complete.
+- **Title generation first:** a generated title runs beside the session's first step, so its events would
+  land among the step's at random. The fake model holds an untitled session's first response until the title
+  is applied (or its request failed): title events always come first, for any implementation. Settling a
+  session (`ctx.prompt`, `ctx.settle`) also waits for every title the fake answered for it. CLI scenarios,
+  whose servers are the CLI's own, hold nothing.
+- **Concurrent tools:** tools called in one step run concurrently, so consecutive tool results of one step
+  are compared in call order (by call ID), their durable sequence numbers in arrival order.
+- **Server address:** a process's `http://127.0.0.1:<port>` and the in-process stand-in
+  `http://opencode.local` (listed in server info as a real server lists its address) are both `<server>`.
 - **HTTP client defaults:** a provider request's `Accept: */*` is not recorded. HTTP clients send it on the
   wire when the caller sets none, and a request handed over in-process has no header at all; the two are
-  equivalent (RFC 9110 §12.5.1).
+  equivalent (RFC 9110 §12.5.1). The fake's responses are what a real server sends either way: a reason
+  phrase, no body for `HEAD`. On the wire they also carry framing (`transfer-encoding: chunked`,
+  `connection: close`); scenarios that print response headers leave framing headers out.
 - **TUI frames** (`lib/tui.ts`): step timing and throughput, and the prompt's randomly chosen example text.
 - **CLI** (`lib/cli.ts`): ports, sandbox paths, secrets, locale times, stack frames (documented in the file).
 
@@ -202,7 +211,9 @@ such as `pageup`, `f2`, `space`), `enter`, `escape`, `tab`, `arrow`, `paste`, `c
 `waitFor(text | regex, timeout)`, `resize(w, h)` and `frame(label)`, which records the settled screen.
 `options` adds `width`, `height`, `args` (model, agent, prompt, continue, sessionID), `tui` (TUI config) and
 `setup(ctx)` (runs against the server before the TUI starts; its result is merged into `args`). Recordings
-also list the endpoints the TUI called (`tui-requests`).
+also list the endpoints the TUI wrote to (`tui-requests`: every method but GET). Reads are not recorded: the
+client's data layer refetches on bursts of events and reconciles events that overtake responses, so which
+reads it makes is timing, and the frames show what it loaded.
 
 Known limits: frames record characters, not colors or attributes; module-level TUI state (prompt drafts,
 "--prompt applied once") persists across scenarios in one bun process, so scenarios start by clearing the

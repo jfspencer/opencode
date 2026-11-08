@@ -23,7 +23,7 @@ async function sh(ctx: Ctx, command: string) {
   if (result.status !== 0) throw new Error(`${command} failed: ${result.stderr}`)
 }
 
-/** Rebuild loaded locations so branch information is re-read (the oracle runs without a file watcher). */
+/** Rebuild loaded locations so branch information is re-read. */
 async function reload(ctx: Ctx) {
   await ctx.until((event) => event?.type === "plugin.updated")
   const from = ctx.events.length
@@ -108,7 +108,7 @@ scenario("binary, empty and special file names in the diff", { git: true, files 
   await ctx.http("GET", "/api/vcs/diff?mode=working")
 })
 
-scenario("feature branch review base and diffs", { git: true, files }, async (ctx) => {
+scenario("feature branch review base and diffs", { boot: false, git: true, files }, async (ctx) => {
   await sh(ctx, "git checkout -q -b feature/login")
   ctx.write("src/login.ts", "export const login = () => true\n")
   ctx.write("README.md", "# Demo\n\nA small project with login.\n")
@@ -123,7 +123,7 @@ scenario("feature branch review base and diffs", { git: true, files }, async (ct
   await ctx.http("GET", "/api/vcs/diff?mode=sideways")
 })
 
-scenario("review base inferred from the branch it was created from", { git: true, files }, async (ctx) => {
+scenario("review base inferred from the branch it was created from", { boot: false, git: true, files }, async (ctx) => {
   await sh(ctx, "git branch develop main && git checkout -q -b feature/api develop")
   ctx.write("src/api.ts", "export const api = 1\n")
   await sh(ctx, "git add -A && git commit -q -m api")
@@ -158,7 +158,10 @@ scenario("branch listing with search and limit", { git: true, files }, async (ct
   await ctx.http("GET", "/api/vcs/branch?search=nothing-matches")
 })
 
-scenario("detached head and branch switches", { git: true, files }, async (ctx) => {
+// Scenarios that change the repository before `boot` start unbooted, so the location first reads the repository
+// as the scenario left it (booted earlier, it would read it again only when the file watcher catches up).
+// The file watcher is off here: the scenario reloads after each checkout, and the watcher's events would race it.
+scenario("detached head and branch switches", { boot: false, git: true, files, server: { filewatcher: false } }, async (ctx) => {
   ctx.write("second.txt", "2\n")
   await sh(ctx, "git add -A && git commit -q -m second && git checkout -q --detach HEAD~1")
   await boot(ctx)
@@ -169,7 +172,7 @@ scenario("detached head and branch switches", { git: true, files }, async (ctx) 
   await ctx.http("GET", "/api/vcs/base")
 })
 
-scenario("repository without commits", { files: { "draft.txt": "draft\n" } }, async (ctx) => {
+scenario("repository without commits", { boot: false, files: { "draft.txt": "draft\n" } }, async (ctx) => {
   await sh(ctx, "git init -q -b trunk")
   await boot(ctx)
   await inspect(ctx, ["working", "branch"])

@@ -5,6 +5,11 @@ import { tuiScenario, type TuiCtx, type TuiOptions } from "../lib/tui"
 
 // Title generation runs concurrently with the first step, so its events would interleave with the step's at
 // random. Hold the first step until the session is renamed: the recorded order is then fixed.
+// The TS TUI shows a subagent's shell command ("$ rm -rf build") only when its client happens to hold the call it
+// names; otherwise it lists the permission pattern ("- rm -rf build"). In-process that is always the case; against
+// a slower server it never is. Open item (FINDINGS.md).
+const SUBAGENT_PROMPT = "the TS TUI's prompt for a subagent's request depends on client timing (FINDINGS.md)"
+
 function scenario(name: string, options: TuiOptions, body: (t: TuiCtx) => Promise<void>) {
   const titled = Promise.withResolvers<void>()
   const [first, ...rest] = options.turns ?? []
@@ -240,6 +245,7 @@ scenario(
 scenario(
   "permission requested by a subagent is rejected with a message",
   {
+    inProcessOnly: SUBAGENT_PROMPT,
     files,
     height: 40,
     config: ask(["shell", "*", "ask"]),
@@ -252,6 +258,8 @@ scenario(
   },
   async (t) => {
     await prompt(t, "Delegate the cleanup")
+    // The request shows the command once the subagent's tool call has loaded ("- " before, "$ " after).
+    await t.waitFor("$ rm -rf build")
     await t.frame("asked")
     await t.escape()
     await t.waitFor("Reject permission")

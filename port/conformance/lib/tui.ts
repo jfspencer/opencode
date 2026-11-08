@@ -70,9 +70,20 @@ const NAMED_KEYS: Record<string, string> = {
   pageup: "\x1b[5~",
   pagedown: "\x1b[6~",
   ...Object.fromEntries(
-    ["\x1bOP", "\x1bOQ", "\x1bOR", "\x1bOS", "\x1b[15~", "\x1b[17~", "\x1b[18~", "\x1b[19~", "\x1b[20~", "\x1b[21~", "\x1b[23~", "\x1b[24~"].map(
-      (sequence, index) => [`f${index + 1}`, sequence],
-    ),
+    [
+      "\x1bOP",
+      "\x1bOQ",
+      "\x1bOR",
+      "\x1bOS",
+      "\x1b[15~",
+      "\x1b[17~",
+      "\x1b[18~",
+      "\x1b[19~",
+      "\x1b[20~",
+      "\x1b[21~",
+      "\x1b[23~",
+      "\x1b[24~",
+    ].map((sequence, index) => [`f${index + 1}`, sequence]),
   ),
 }
 
@@ -81,18 +92,29 @@ export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx)
     const requests: string[] = []
     const server = Bun.serve({
       port: 0,
-      fetch: (request) => {
+      // The TUI holds its event stream (and long requests) open for as long as the scenario runs.
+      idleTimeout: 0,
+      fetch: async (request) => {
         const url = new URL(request.url)
         requests.push(`${request.method} ${url.pathname}`)
-        return ctx.handler(request)
+        const response = await ctx.handler(request)
+        // CONFORMANCE_TUI_LOG=1: every request the TUI makes, with its status, on stderr (debugging).
+        if (process.env.CONFORMANCE_TUI_LOG)
+          console.error(`tui ${request.method} ${url.pathname}${url.search} -> ${response.status}`)
+        return response
       },
     })
-    const setup = await createTestRenderer({ width: options.width ?? 100, height: options.height ?? 30, kittyKeyboard: true })
+    const setup = await createTestRenderer({
+      width: options.width ?? 100,
+      height: options.height ?? 30,
+      kittyKeyboard: true,
+    })
     await setup.renderer.setupTerminal()
     setup.renderer.start()
     const { run } = await import("../ref/packages/tui/src/app")
     const state = path.join(process.env.CONFORMANCE_ROOT!, "tui", path.basename(ctx.project))
-    for (const dir of ["home", "data", "cache", "config", "state", "tmp"]) mkdirSync(path.join(state, dir), { recursive: true })
+    for (const dir of ["home", "data", "cache", "config", "state", "tmp"])
+      mkdirSync(path.join(state, dir), { recursive: true })
     let config: Record<string, unknown> = structuredClone({ ...options.tui, animations: false })
     const ready = Promise.withResolvers<void>()
     const args = { ...options.args, ...((options.setup ? await options.setup(ctx) : undefined) ?? {}) }
@@ -136,7 +158,9 @@ export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx)
     const stable = async () => {
       let last = ""
       let same = 0
-      for (let i = 0; i < 200 && same < 3; i++) {
+      // Five identical captures (~75 ms): asynchronous rendering (markdown, a reloaded transcript) can pause longer
+      // than a shorter window under load.
+      for (let i = 0; i < 200 && same < 5; i++) {
         await setup.renderOnce()
         await new Promise((resolve) => setTimeout(resolve, 15))
         const frame = setup.captureCharFrame()
@@ -179,7 +203,10 @@ export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx)
       },
       async frame(label) {
         const frame = await stable()
-        ctx.note(`frame:${label}`, frame.split("\n").map((line) => untimed(line).trimEnd()))
+        ctx.note(
+          `frame:${label}`,
+          frame.split("\n").map((line) => untimed(line).trimEnd()),
+        )
         return frame
       },
       resize: (width, height) => after(() => setup.resize(width, height)),
@@ -197,8 +224,11 @@ export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx)
       await server.stop(true)
       process.chdir(previous)
     }
-    // Which endpoints the TUI used is part of its contract with the server; concurrent order is not.
-    if (options.requests !== false) ctx.note("tui-requests", [...new Set(requests)].sort())
+    // Which endpoints the TUI writes to is part of its contract with the server; concurrent order is not. Reads
+    // are not recorded: the client's data layer refetches on bursts of events and reconciles events that
+    // overtake responses, so which reads it makes is timing (and the frames show what it loaded).
+    if (options.requests !== false)
+      ctx.note("tui-requests", [...new Set(requests.filter((request) => !request.startsWith("GET ")))].sort())
   })
 }
 

@@ -133,31 +133,6 @@
       "kind": "note",
       "label": "tui-requests",
       "value": [
-        "GET /api/agent",
-        "GET /api/command",
-        "GET /api/config",
-        "GET /api/event",
-        "GET /api/experimental/migration/v1",
-        "GET /api/experimental/session/<ses_1>/terminal",
-        "GET /api/form",
-        "GET /api/fs/list",
-        "GET /api/info",
-        "GET /api/integration",
-        "GET /api/location",
-        "GET /api/mcp",
-        "GET /api/mcp/resource",
-        "GET /api/model",
-        "GET /api/plugin",
-        "GET /api/project",
-        "GET /api/provider",
-        "GET /api/reference",
-        "GET /api/session/active",
-        "GET /api/session/<ses_1>",
-        "GET /api/session/<ses_1>/form",
-        "GET /api/session/<ses_1>/permission",
-        "GET /api/shell",
-        "GET /api/skill",
-        "GET /api/vcs",
         "POST /api/rpc/opencode.goal/get",
         "POST /api/session",
         "POST /api/session/<ses_1>/model",
@@ -373,25 +348,6 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Count tokens session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_13>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -416,7 +372,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_13>",
         "location": {
           "directory": "<project>"
         },
@@ -442,7 +398,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -458,7 +414,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_15>",
         "type": "session.execution.started"
       },
       {
@@ -477,7 +433,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_17>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -499,7 +455,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },
@@ -520,8 +476,25 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_19>",
+        "id": "<evt_18>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Count tokens session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",

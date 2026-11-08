@@ -41,35 +41,6 @@
       "kind": "note",
       "label": "tui-requests",
       "value": [
-        "GET /api/agent",
-        "GET /api/command",
-        "GET /api/config",
-        "GET /api/event",
-        "GET /api/experimental/migration/v1",
-        "GET /api/experimental/session/<ses_1>/terminal",
-        "GET /api/experimental/session/<ses_2>/terminal",
-        "GET /api/form",
-        "GET /api/fs/list",
-        "GET /api/info",
-        "GET /api/integration",
-        "GET /api/location",
-        "GET /api/mcp",
-        "GET /api/mcp/resource",
-        "GET /api/model",
-        "GET /api/plugin",
-        "GET /api/project",
-        "GET /api/provider",
-        "GET /api/reference",
-        "GET /api/session/active",
-        "GET /api/session/<ses_1>",
-        "GET /api/session/<ses_1>/form",
-        "GET /api/session/<ses_1>/permission",
-        "GET /api/session/<ses_2>",
-        "GET /api/session/<ses_2>/form",
-        "GET /api/session/<ses_2>/permission",
-        "GET /api/shell",
-        "GET /api/skill",
-        "GET /api/vcs",
         "POST /api/rpc/opencode.goal/get",
         "POST /api/session",
         "POST /api/session/<ses_1>/model",
@@ -337,44 +308,6 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Beta session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_11>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
-    "renamed:<ses_2>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_2>",
-          "title": "Alpha session"
-        },
-        "durable": {
-          "aggregateID": "<ses_2>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_12>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -399,7 +332,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -425,7 +358,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -441,7 +374,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_15>",
+        "id": "<evt_13>",
         "type": "session.execution.started"
       },
       {
@@ -460,7 +393,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_16>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -482,7 +415,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -503,8 +436,25 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_18>",
+        "id": "<evt_16>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Beta session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -524,7 +474,7 @@
           "seq": 7,
           "version": 1
         },
-        "id": "<evt_19>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -542,7 +492,7 @@
           "seq": 8,
           "version": 1
         },
-        "id": "<evt_20>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -556,7 +506,7 @@
           "ordinal": 0,
           "sessionID": "<ses_1>"
         },
-        "id": "<evt_21>",
+        "id": "<evt_20>",
         "location": {
           "directory": "<project>"
         },
@@ -575,7 +525,7 @@
           "seq": 9,
           "version": 1
         },
-        "id": "<evt_22>",
+        "id": "<evt_21>",
         "location": {
           "directory": "<project>"
         },
@@ -592,7 +542,7 @@
           "seq": 10,
           "version": 1
         },
-        "id": "<evt_23>",
+        "id": "<evt_22>",
         "location": {
           "directory": "<project>"
         },
@@ -621,7 +571,7 @@
           "seq": 11,
           "version": 1
         },
-        "id": "<evt_24>",
+        "id": "<evt_23>",
         "location": {
           "directory": "<project>"
         },
@@ -642,7 +592,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_25>",
+        "id": "<evt_24>",
         "type": "session.usage.updated"
       },
       {
@@ -655,7 +605,7 @@
           "seq": 12,
           "version": 1
         },
-        "id": "<evt_26>",
+        "id": "<evt_25>",
         "type": "session.execution.succeeded"
       },
       {
@@ -669,7 +619,7 @@
           "seq": 13,
           "version": 1
         },
-        "id": "<evt_27>",
+        "id": "<evt_26>",
         "type": "session.viewed"
       }
     ],
@@ -697,7 +647,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_28>",
+        "id": "<evt_27>",
         "location": {
           "directory": "<project>"
         },
@@ -723,7 +673,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_29>",
+        "id": "<evt_28>",
         "location": {
           "directory": "<project>"
         },
@@ -739,7 +689,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_30>",
+        "id": "<evt_29>",
         "type": "session.execution.started"
       },
       {
@@ -758,7 +708,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_31>",
+        "id": "<evt_30>",
         "location": {
           "directory": "<project>"
         },
@@ -780,7 +730,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_32>",
+        "id": "<evt_31>",
         "location": {
           "directory": "<project>"
         },
@@ -801,8 +751,25 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_33>",
+        "id": "<evt_32>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "title": "Alpha session"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",

@@ -51,13 +51,20 @@ const chunk = (delta: Record<string, unknown>, finish: string | null = null) =>
     choices: [{ index: 0, delta, finish_reason: finish, native_finish_reason: finish }],
   })}\n\n`
 
-/** A response whose body delivers `text`, then fails as a reset connection would. */
-function dropped(text: string): Turn {
+/**
+ * A response whose body delivers `text`, then fails as a reset connection would. With `received`, the failure
+ * waits for it: a client may drop bytes it has not read yet when the connection ends, so a scenario about output
+ * before the drop waits until the implementation has taken the output in.
+ */
+function dropped(text: string, received?: Promise<unknown>): Turn {
   let sent = false
   const body = new ReadableStream<Uint8Array>({
     // Error on the read after the text, so the text is delivered first.
-    pull(controller) {
-      if (sent) return controller.error(reset())
+    async pull(controller) {
+      if (sent) {
+        await received
+        return controller.error(reset())
+      }
       sent = true
       controller.enqueue(encoder.encode(text))
     },
@@ -98,10 +105,18 @@ scenario(
   (ctx) => turn(ctx, "Answer please").then(() => undefined),
 )
 
+const firstHalf = gate()
 scenario(
   "connection dropped after output, then continued",
-  { ...RETRY, turns: [dropped(chunk({ content: "The first half", role: "assistant" })), say(" and the rest.")] },
-  (ctx) => turn(ctx, "Answer please").then(() => undefined),
+  {
+    ...RETRY,
+    turns: [dropped(chunk({ content: "The first half", role: "assistant" }), firstHalf.promise), say(" and the rest.")],
+  },
+  (ctx) => {
+    // The text has been taken in once its part starts.
+    void ctx.until((event) => event?.type === "session.text.started", 0, 30_000).then(firstHalf.open, firstHalf.open)
+    return turn(ctx, "Answer please").then(() => undefined)
+  },
 )
 
 const stalled = gate()

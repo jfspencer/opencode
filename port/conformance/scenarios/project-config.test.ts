@@ -56,9 +56,12 @@ scenario(
     },
   },
   async (ctx) => {
-    const nested = { "x-opencode-directory": encodeURIComponent(path.join(ctx.project, "packages/app/src")) }
+    const directory = path.join(ctx.project, "packages/app/src")
+    const nested = { "x-opencode-directory": encodeURIComponent(directory) }
     await ctx.http("GET", "/api/config", undefined, nested)
     await ctx.http("GET", "/api/location", undefined, nested)
+    // The nested location's plugins finish loading after the response: wait for the last of its boot events.
+    await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === directory)
   },
 )
 

@@ -10,7 +10,9 @@
           "tmp": "<root>/tmp/opencode"
         },
         "pid": "<pid>",
-        "urls": [],
+        "urls": [
+          "<server>"
+        ],
         "version": "conformance"
       },
       "kind": "http",

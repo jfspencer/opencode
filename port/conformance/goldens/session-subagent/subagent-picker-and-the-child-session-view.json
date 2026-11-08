@@ -152,46 +152,16 @@
       "kind": "note",
       "label": "tui-requests",
       "value": [
-        "GET /api/agent",
-        "GET /api/command",
-        "GET /api/config",
-        "GET /api/event",
-        "GET /api/experimental/migration/v1",
-        "GET /api/experimental/session/<ses_1>/terminal",
-        "GET /api/experimental/session/<ses_2>/terminal",
-        "GET /api/form",
-        "GET /api/fs/list",
-        "GET /api/info",
-        "GET /api/integration",
-        "GET /api/location",
-        "GET /api/mcp",
-        "GET /api/mcp/resource",
-        "GET /api/model",
-        "GET /api/plugin",
-        "GET /api/project",
-        "GET /api/provider",
-        "GET /api/reference",
-        "GET /api/session",
-        "GET /api/session/active",
-        "GET /api/session/<ses_1>",
-        "GET /api/session/<ses_1>/form",
-        "GET /api/session/<ses_1>/permission",
-        "GET /api/session/<ses_2>",
-        "GET /api/session/<ses_2>/form",
-        "GET /api/session/<ses_2>/permission",
-        "GET /api/shell",
-        "GET /api/skill",
-        "GET /api/vcs",
         "POST /api/rpc/opencode.goal/get",
         "POST /api/session",
-        "POST /api/session/<ses_2>/model",
-        "POST /api/session/<ses_2>/prompt",
-        "POST /api/session/<ses_2>/view"
+        "POST /api/session/<ses_1>/model",
+        "POST /api/session/<ses_1>/prompt",
+        "POST /api/session/<ses_1>/view"
       ]
     }
   ],
   "provider": {
-    "chat:<ses_2>": [
+    "chat:<ses_1>": [
       {
         "body": {
           "max_completion_tokens": 256000,
@@ -208,7 +178,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -245,7 +215,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -301,7 +271,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -376,7 +346,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -428,13 +398,13 @@
               ]
             },
             {
-              "content": "<subagent sessionID=\"<ses_1>\" state=\"completed\">\nThe docs contain a single guide.\n</subagent>",
+              "content": "<subagent sessionID=\"<ses_2>\" state=\"completed\">\nThe docs contain a single guide.\n</subagent>",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -458,7 +428,7 @@
         "url": "https://openrouter.ai/api/v1/chat/completions"
       }
     ],
-    "title:<ses_2>": [
+    "title:<ses_1>": [
       {
         "body": {
           "messages": [
@@ -472,7 +442,7 @@
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_2>",
+          "prompt_cache_key": "<ses_1>",
           "reasoning": {
             "effort": "max"
           },
@@ -596,26 +566,7 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_2>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_2>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_2>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_11>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
-    "<ses_1>": [
+    "<ses_2>": [
       {
         "created": "<time>",
         "data": {
@@ -628,20 +579,20 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "parentID": "<ses_2>",
+          "parentID": "<ses_1>",
           "projectID": "<hash_1>",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "slug": "<slug>",
           "subpath": "",
           "title": "Survey the docs",
           "version": "conformance"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -658,14 +609,14 @@
             },
             "type": "user"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_13>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -674,14 +625,14 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_14>",
+        "id": "<evt_13>",
         "type": "session.execution.started"
       },
       {
@@ -691,14 +642,14 @@
             "core/date": "<hash_2>",
             "core/environment": "<hash_3>"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_15>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -713,14 +664,14 @@
         "created": "<time>",
         "data": {
           "inboxID": "<msg_1>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -736,15 +687,15 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 5,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -756,14 +707,14 @@
           "assistantMessageID": "<msg_2>",
           "id": "call_conformance_0",
           "name": "glob",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 6,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },
@@ -774,15 +725,15 @@
         "data": {
           "assistantMessageID": "<msg_2>",
           "id": "call_conformance_0",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "text": "{\"pattern\":\"docs/**\"}"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 7,
           "version": 1
         },
-        "id": "<evt_19>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -797,14 +748,14 @@
           "input": {
             "pattern": "docs/**"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 8,
           "version": 1
         },
-        "id": "<evt_20>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -814,14 +765,14 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_2>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 9,
           "version": 1
         },
-        "id": "<evt_21>",
+        "id": "<evt_20>",
         "location": {
           "directory": "<project>"
         },
@@ -843,14 +794,14 @@
             "count": 1,
             "truncated": false
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 10,
           "version": 2
         },
-        "id": "<evt_22>",
+        "id": "<evt_21>",
         "location": {
           "directory": "<project>"
         },
@@ -863,7 +814,7 @@
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -875,11 +826,11 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 11,
           "version": 1
         },
-        "id": "<evt_23>",
+        "id": "<evt_22>",
         "location": {
           "directory": "<project>"
         },
@@ -889,7 +840,7 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -900,7 +851,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_24>",
+        "id": "<evt_23>",
         "type": "session.usage.updated"
       },
       {
@@ -913,15 +864,15 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 12,
           "version": 1
         },
-        "id": "<evt_25>",
+        "id": "<evt_24>",
         "location": {
           "directory": "<project>"
         },
@@ -933,14 +884,14 @@
           "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
           "name": "read",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 13,
           "version": 1
         },
-        "id": "<evt_26>",
+        "id": "<evt_25>",
         "location": {
           "directory": "<project>"
         },
@@ -951,15 +902,15 @@
         "data": {
           "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "text": "{\"path\":\"docs/guide.md\"}"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 14,
           "version": 1
         },
-        "id": "<evt_27>",
+        "id": "<evt_26>",
         "location": {
           "directory": "<project>"
         },
@@ -974,14 +925,14 @@
           "input": {
             "path": "docs/guide.md"
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 15,
           "version": 1
         },
-        "id": "<evt_28>",
+        "id": "<evt_27>",
         "location": {
           "directory": "<project>"
         },
@@ -991,14 +942,14 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_3>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 16,
           "version": 1
         },
-        "id": "<evt_29>",
+        "id": "<evt_28>",
         "location": {
           "directory": "<project>"
         },
@@ -1019,14 +970,14 @@
           "metadata": {
             "truncated": false
           },
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 17,
           "version": 2
         },
-        "id": "<evt_30>",
+        "id": "<evt_29>",
         "location": {
           "directory": "<project>"
         },
@@ -1039,7 +990,7 @@
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1051,11 +1002,11 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 18,
           "version": 1
         },
-        "id": "<evt_31>",
+        "id": "<evt_30>",
         "location": {
           "directory": "<project>"
         },
@@ -1065,7 +1016,7 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1076,7 +1027,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_32>",
+        "id": "<evt_31>",
         "type": "session.usage.updated"
       },
       {
@@ -1089,15 +1040,15 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 19,
           "version": 1
         },
-        "id": "<evt_33>",
+        "id": "<evt_32>",
         "location": {
           "directory": "<project>"
         },
@@ -1108,14 +1059,14 @@
         "data": {
           "assistantMessageID": "<msg_4>",
           "ordinal": 0,
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 20,
           "version": 1
         },
-        "id": "<evt_34>",
+        "id": "<evt_33>",
         "location": {
           "directory": "<project>"
         },
@@ -1127,9 +1078,9 @@
           "assistantMessageID": "<msg_4>",
           "delta": "The docs contain a single guide.",
           "ordinal": 0,
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
-        "id": "<evt_35>",
+        "id": "<evt_34>",
         "location": {
           "directory": "<project>"
         },
@@ -1140,15 +1091,15 @@
         "data": {
           "assistantMessageID": "<msg_4>",
           "ordinal": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "text": "The docs contain a single guide."
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 21,
           "version": 1
         },
-        "id": "<evt_36>",
+        "id": "<evt_35>",
         "location": {
           "directory": "<project>"
         },
@@ -1158,14 +1109,14 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_4>",
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 22,
           "version": 1
         },
-        "id": "<evt_37>",
+        "id": "<evt_36>",
         "location": {
           "directory": "<project>"
         },
@@ -1178,7 +1129,7 @@
           "cost": 0,
           "finish": "stop",
           "rawFinish": "stop",
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1190,11 +1141,11 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 23,
           "version": 1
         },
-        "id": "<evt_38>",
+        "id": "<evt_37>",
         "location": {
           "directory": "<project>"
         },
@@ -1204,7 +1155,7 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_1>",
+          "sessionID": "<ses_2>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1215,24 +1166,24 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_39>",
+        "id": "<evt_38>",
         "type": "session.usage.updated"
       },
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_1>"
+          "sessionID": "<ses_2>"
         },
         "durable": {
-          "aggregateID": "<ses_1>",
+          "aggregateID": "<ses_2>",
           "seq": 24,
           "version": 1
         },
-        "id": "<evt_40>",
+        "id": "<evt_39>",
         "type": "session.execution.succeeded"
       }
     ],
-    "<ses_2>": [
+    "<ses_1>": [
       {
         "created": "<time>",
         "data": {
@@ -1246,17 +1197,17 @@
             "variant": "max"
           },
           "projectID": "<hash_1>",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_41>",
+        "id": "<evt_40>",
         "location": {
           "directory": "<project>"
         },
@@ -1275,14 +1226,14 @@
             },
             "type": "user"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_42>",
+        "id": "<evt_41>",
         "location": {
           "directory": "<project>"
         },
@@ -1291,14 +1242,14 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_43>",
+        "id": "<evt_42>",
         "type": "session.execution.started"
       },
       {
@@ -1310,14 +1261,14 @@
             "core/environment": "<hash_3>",
             "core/skill-guidance": "<hash_5>"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_44>",
+        "id": "<evt_43>",
         "location": {
           "directory": "<project>"
         },
@@ -1332,14 +1283,14 @@
         "created": "<time>",
         "data": {
           "inboxID": "<msg_5>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_45>",
+        "id": "<evt_44>",
         "location": {
           "directory": "<project>"
         },
@@ -1349,19 +1300,36 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 0,
-            "output": 0,
+            "input": 100,
+            "output": 10,
             "reasoning": 0
           }
         },
-        "id": "<evt_46>",
+        "id": "<evt_45>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -1373,11 +1341,11 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 7,
           "version": 1
         },
@@ -1393,10 +1361,10 @@
           "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "name": "subagent",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -1411,11 +1379,11 @@
         "data": {
           "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "text": "{\"agent\":\"explore\",\"description\":\"Survey the docs\",\"prompt\":\"List and read the docs\"}"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 9,
           "version": 1
         },
@@ -1436,10 +1404,10 @@
             "description": "Survey the docs",
             "prompt": "List and read the docs"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 10,
           "version": 1
         },
@@ -1453,10 +1421,10 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_6>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 11,
           "version": 1
         },
@@ -1472,10 +1440,10 @@
           "assistantMessageID": "<msg_6>",
           "id": "call_conformance_0",
           "metadata": {
-            "sessionID": "<ses_1>",
+            "sessionID": "<ses_2>",
             "status": "running"
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "id": "<evt_52>",
         "location": {
@@ -1489,21 +1457,21 @@
           "assistantMessageID": "<msg_6>",
           "content": [
             {
-              "text": "<subagent sessionID=\"<ses_1>\" state=\"completed\">\nThe docs contain a single guide.\n</subagent>",
+              "text": "<subagent sessionID=\"<ses_2>\" state=\"completed\">\nThe docs contain a single guide.\n</subagent>",
               "type": "text"
             }
           ],
           "executed": false,
           "id": "call_conformance_0",
           "metadata": {
-            "sessionID": "<ses_1>",
+            "sessionID": "<ses_2>",
             "status": "completed",
             "truncated": false
           },
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 12,
           "version": 2
         },
@@ -1520,7 +1488,7 @@
           "cost": 0,
           "finish": "tool-calls",
           "rawFinish": "tool_calls",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1532,7 +1500,7 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 13,
           "version": 1
         },
@@ -1546,14 +1514,14 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
@@ -1570,11 +1538,11 @@
             "providerID": "openrouter",
             "variant": "max"
           },
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "started": "<time>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 14,
           "version": 1
         },
@@ -1589,10 +1557,10 @@
         "data": {
           "assistantMessageID": "<msg_7>",
           "ordinal": 0,
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 15,
           "version": 1
         },
@@ -1608,7 +1576,7 @@
           "assistantMessageID": "<msg_7>",
           "delta": "The subagent found one guide.",
           "ordinal": 0,
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "id": "<evt_58>",
         "location": {
@@ -1621,11 +1589,11 @@
         "data": {
           "assistantMessageID": "<msg_7>",
           "ordinal": 0,
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "text": "The subagent found one guide."
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 16,
           "version": 1
         },
@@ -1639,10 +1607,10 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_7>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 17,
           "version": 1
         },
@@ -1659,7 +1627,7 @@
           "cost": 0,
           "finish": "stop",
           "rawFinish": "stop",
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
@@ -1671,7 +1639,7 @@
           }
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 18,
           "version": 1
         },
@@ -1685,14 +1653,14 @@
         "created": "<time>",
         "data": {
           "cost": 0,
-          "sessionID": "<ses_2>",
+          "sessionID": "<ses_1>",
           "tokens": {
             "cache": {
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
@@ -1702,10 +1670,10 @@
       {
         "created": "<time>",
         "data": {
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 19,
           "version": 1
         },
@@ -1716,10 +1684,10 @@
         "created": "<time>",
         "data": {
           "idle": "<time>",
-          "sessionID": "<ses_2>"
+          "sessionID": "<ses_1>"
         },
         "durable": {
-          "aggregateID": "<ses_2>",
+          "aggregateID": "<ses_1>",
           "seq": 20,
           "version": 1
         },

@@ -149,6 +149,8 @@ const rules = (changed?: number) =>
 scenario(
   "instruction changes between turns",
   {
+    // The file watcher is off: the scenario reloads after each write, and the watcher's reload would race it.
+    server: { filewatcher: false },
     files: { "AGENTS.md": rules(), "OLD.md": "Old rules.\n" },
     config: { instructions: ["OLD.md", "NEW.md"] },
     turns: [say("First."), say("Second."), say("Third.")],
@@ -171,6 +173,8 @@ scenario(
 scenario(
   "all instructions removed between turns",
   {
+    // The file watcher is off: the scenario reloads after each write, and the watcher's reload would race it.
+    server: { filewatcher: false },
     files: { "AGENTS.md": "Temporary rules.\n" },
     turns: [say("First."), say("Second.")],
   },
@@ -218,7 +222,8 @@ scenario("global AGENTS.md from the config directory", { files: { "AGENTS.md": "
 
 scenario(
   "unreadable AGENTS.md blocks instruction initialization",
-  { files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
+  // The file watcher is off: the scenario reloads after the change, and the watcher's reload would race it.
+  { server: { filewatcher: false }, files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
   async (ctx) => {
     chmodSync(path.join(ctx.project, "AGENTS.md"), 0o000)
     try {

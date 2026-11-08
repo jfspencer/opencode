@@ -132,6 +132,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
   const sandbox = globalThis as { __conformanceFetch?: typeof fetch }
   sandbox.__conformanceFetch = provider.fetch as typeof fetch
   const transcript: Entry[] = []
+  let serverOrigin = IN_PROCESS
   const events: unknown[] = []
 
   const settings = {
@@ -145,10 +146,11 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     settings,
     provider,
     { file: path.relative(import.meta.dir + "/..", file), scenario: name },
-    async (handler) => {
+    async (handler, origin) => {
+      serverOrigin = origin
       const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
         const response = await handler(
-          new Request(new URL(url, "http://opencode.local"), {
+          new Request(new URL(url, IN_PROCESS), {
             method,
             headers: {
               // Clients scope non-session requests to a project the same way.
@@ -183,6 +185,44 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
           events.filter((event: any) => event?.type === "session.renamed" && eventSession(event) === sessionID).length
         while (renamed() < expected() && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10))
       }
+      // The event stream reaches the harness on its own connection, so it can lag an HTTP response (a process's
+      // does). Once a session has settled, wait until the stream has delivered every durable event the session's
+      // log holds: a barrier, so `ctx.events.length` afterwards counts everything that turn published.
+      const caughtUp = async (sessionID: string) => {
+        const response = await handler(
+          new Request(`${IN_PROCESS}/api/experimental/session/${sessionID}/log`, {
+            headers: { accept: "text/event-stream", "x-opencode-directory": encodeURIComponent(project) },
+          }),
+        )
+        if (response.status !== 200) return void (await response.text())
+        const last = Math.max(
+          -1,
+          ...[...(await response.text()).matchAll(/"seq":(\d+)/g)].map((match) => Number(match[1])),
+        )
+        const deadline = Date.now() + 10_000
+        const received = () =>
+          events.some((event: any) => event?.durable?.aggregateID === sessionID && Number(event?.durable?.seq) >= last)
+        while (last >= 0 && !received() && Date.now() < deadline)
+          await new Promise((resolve) => setTimeout(resolve, 10))
+      }
+      // Title generation first (lib/openrouter.ts, titleOrder): the server says whether a session is untitled.
+      if (!options.standalone)
+        provider.titleOrder = {
+          async expects(session) {
+            const result = await call("GET", `/api/session/${session}`)
+            const info = result.body?.data ?? result.body
+            return (
+              result.status === 200 &&
+              info?.parentID === undefined &&
+              (info?.title === undefined || UNTITLED.test(String(info.title)))
+            )
+          },
+          applied: (session) =>
+            until((event) => event?.type === "session.renamed" && eventSession(event) === session, 0, 60_000).then(
+              () => undefined,
+              () => undefined,
+            ),
+        }
       const quiesce = async (quiet = 150, max = 5_000) => {
         const deadline = Date.now() + max
         let seen = events.length
@@ -228,6 +268,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
           ).then((event) => event.type as string)
           const idle = call("POST", `/api/experimental/session/${sessionID}/wait`).then(() => "idle")
           const state = await Promise.race([idle, blocked])
+          await caughtUp(sessionID)
           await titled(sessionID)
           transcript.push({ kind: "settled", sessionID, state })
           return state
@@ -251,7 +292,11 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
           await ctx.settle(sessionID, from)
           return result
         },
-        wait: (sessionID) => ctx.http("POST", `/api/experimental/session/${sessionID}/wait`),
+        async wait(sessionID) {
+          const result = await ctx.http("POST", `/api/experimental/session/${sessionID}/wait`)
+          await caughtUp(sessionID)
+          return result
+        },
       }
       await body(ctx)
       // Let background work (titles, snapshots, location loads) finish before recording and shutdown.
@@ -276,13 +321,17 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     "real-home": homedir(),
     hostname: hostname(),
     "os-release": release(),
+    // The server's own address: a process's 127.0.0.1:<port>, or the in-process stand-in.
+    server: serverOrigin,
   })
   const normalizedTranscript = normalize.value(transcript)
   const normalizedProvider = normalize.value(
     groupBy(provider.requests.filter(inScopeRequest), requestGroup, stripIndex),
   )
   const recorded = options.events === false ? [] : coalesce(events.filter(keepEvent))
-  const normalizedEvents = normalize.value(groupBy(recorded, eventGroup, (event) => event))
+  const grouped = groupBy(recorded, eventGroup, (event) => event)
+  for (const key of Object.keys(grouped)) grouped[key] = orderConcurrentResults(grouped[key])
+  const normalizedEvents = normalize.value(grouped)
   matchGolden(file, name, {
     transcript: normalizedTranscript,
     provider: normalizedProvider,
@@ -299,17 +348,17 @@ async function withServer(
   settings: { config: string; project: boolean; filewatcher: boolean; fff: boolean; standalone: boolean },
   provider: FakeOpenRouter,
   label: { file: string; scenario: string },
-  body: (handler: (request: Request) => Promise<Response>) => Promise<void>,
+  body: (handler: (request: Request) => Promise<Response>, origin: string) => Promise<void>,
 ) {
   if (settings.standalone)
     return body(async () => {
       throw new Error("this scenario has no server (standalone)")
-    })
+    }, IN_PROCESS)
   const impl = implementation()
   if (impl.kind === "process") {
     const server = await startProcess(impl, { ...settings, fetch: provider.fetch, label })
     try {
-      await body(server.handler)
+      await body(server.handler, server.origin)
     } finally {
       await server.stop()
     }
@@ -328,7 +377,7 @@ async function withServer(
           fs: { filewatcher: settings.filewatcher, fff: settings.fff },
           fetch: provider.fetch,
         })
-        yield* Effect.promise(() => body(handler))
+        yield* Effect.promise(() => body(handler, IN_PROCESS))
       }),
     ),
   )
@@ -340,7 +389,8 @@ async function withServer(
  */
 const boot = Effect.fn("Conformance.boot")(function* (options: ServerOptions) {
   const context = yield* Layer.build(
-    createRoutes(options, () => [], []).pipe(Layer.provide(HttpServer.layerServices)),
+    // The in-process server's address (what its requests use), listed in server info as a real server's is.
+    createRoutes(options, () => [IN_PROCESS], []).pipe(Layer.provide(HttpServer.layerServices)),
   ).pipe(withoutParentSpan)
   yield* Effect.forkDetach(Context.get(context, SessionRestart.Service).resumeSuspendedSessions)
   yield* Context.get(context, Schedule.Service).run.pipe(Effect.forkScoped)
@@ -372,17 +422,15 @@ function eventSession(event: unknown): string | undefined {
   return typeof id === "string" ? id : undefined
 }
 
-// Renames are compared in a group of their own per session: generated titles are applied alongside the
-// session's steps, so their position among the step's events is timing (their order among renames is kept).
-const eventGroup = (event: unknown) =>
-  (event as { type?: unknown })?.type === "session.renamed"
-    ? `renamed:${eventSession(event)}`
-    : (eventSession(event) ?? "global")
+const eventGroup = (event: unknown) => eventSession(event) ?? "global"
+
+const IN_PROCESS = "http://opencode.local"
+
+// An untitled session's title (packages/util/src/session-title-fallback.ts): none, or the root fallback.
+const UNTITLED = /^New session - \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
 
 async function subscribe(handler: (request: Request) => Promise<Response>, events: unknown[]) {
-  const response = await handler(
-    new Request("http://opencode.local/api/event", { headers: { accept: "text/event-stream" } }),
-  )
+  const response = await handler(new Request(`${IN_PROCESS}/api/event`, { headers: { accept: "text/event-stream" } }))
   const reader = response.body!.getReader()
   const decoder = new TextDecoder()
   const connected = Promise.withResolvers<void>()
@@ -456,6 +504,36 @@ function coalesce(events: readonly unknown[]) {
     }
     out.push(e)
   })
+  return out
+}
+
+/**
+ * Equality rule: tools called in one step run concurrently, so the order in which their results arrive is timing.
+ * Consecutive results of one step are compared in call order (by call ID); their durable sequence numbers keep
+ * the order of arrival.
+ */
+function orderConcurrentResults(list: readonly unknown[]) {
+  const RESULT = /^session\.tool\.(success|failed)$/
+  const out = [...list] as Record<string, any>[]
+  let start = 0
+  while (start < out.length) {
+    const step = out[start]?.data?.assistantMessageID
+    let end = start
+    while (end < out.length && RESULT.test(out[end]?.type) && out[end]?.data?.assistantMessageID === step) end++
+    if (end - start > 1) {
+      const run = out.slice(start, end)
+      const seqs = run.map((event) => event.durable?.seq).sort((a, b) => a - b)
+      run
+        .sort((a, b) => String(a.data?.id).localeCompare(String(b.data?.id)))
+        .forEach((event, index) => {
+          out[start + index] =
+            event.durable && seqs[index] !== undefined
+              ? { ...event, durable: { ...event.durable, seq: seqs[index] } }
+              : event
+        })
+    }
+    start = Math.max(end, start + 1)
+  }
   return out
 }
 

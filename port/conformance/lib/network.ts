@@ -15,9 +15,9 @@
 //   (`https://openrouter.ai/...`) and are recorded exactly as in-process.
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import http from "node:http"
-import https from "node:https"
+import { STATUS_CODES } from "node:http"
 import net from "node:net"
+import tls from "node:tls"
 import path from "node:path"
 
 export interface FakeNetwork {
@@ -34,46 +34,68 @@ export async function fakeNetwork(
   handler: (request: Request) => Promise<Response>,
   options: { readonly direct?: readonly string[] } = {},
 ): Promise<FakeNetwork> {
-  // node:http rather than Bun.serve: a failure must reach the client as a closed connection, which needs the
-  // socket. A handler that throws stands for a connection that fails before any response (the client sees it
-  // close); a response body that errors stands for one that drops while the response is read.
-  const serve = (scheme: "http" | "https") => async (req: http.IncomingMessage, res: http.ServerResponse) => {
-    const chunks: Buffer[] = []
-    for await (const chunk of req) chunks.push(chunk as Buffer)
-    const target = req.url?.startsWith("http") ? req.url : `${scheme}://${req.headers.host}${req.url}`
-    const headers = new Headers()
-    for (const [key, value] of Object.entries(req.headers))
-      for (const item of Array.isArray(value) ? value : value === undefined ? [] : [value]) headers.append(key, item)
-    const body = req.method === "GET" || req.method === "HEAD" ? undefined : Buffer.concat(chunks)
-    const response = await handler(new Request(target, { method: req.method, headers, body })).catch(() => undefined)
-    if (!response) return req.socket.destroy()
-    res.writeHead(response.status, response.statusText, [...response.headers].flat())
-    try {
-      // Each chunk is handed to the socket before the next is read, so what was sent before a failure arrives.
-      if (response.body)
-        for await (const chunk of response.body) await new Promise<void>((resolve) => res.write(chunk, () => resolve()))
-      res.end()
-    } catch {
-      res.socket?.destroy()
-    }
+  // A minimal HTTP/1.1 server on raw sockets, so the client receives exactly the status line and headers the
+  // handler gave (plus the framing: a chunked body, one response per connection), and a failure reaches it as a
+  // connection that ends with every byte sent before it delivered. A handler that throws stands for a
+  // connection that fails before any response; a response body that errors, for one that drops while the
+  // response is read. Ended, not reset: a reset can make the client discard bytes it has received but not
+  // read yet.
+  const exchange = (scheme: "http" | "https") => (socket: net.Socket) => {
+    sockets.add(socket)
+    socket.on("close", () => sockets.delete(socket))
+    socket.on("error", () => socket.destroy())
+    void readRequest(socket).then(async (parsed) => {
+      if (!parsed) return socket.end()
+      const target = parsed.target.startsWith("http")
+        ? parsed.target
+        : `${scheme}://${parsed.headers.get("host")}${parsed.target}`
+      const bodyless = parsed.method === "GET" || parsed.method === "HEAD"
+      const request = new Request(target, {
+        method: parsed.method,
+        headers: parsed.headers,
+        body: bodyless ? undefined : parsed.body,
+      })
+      const response = await handler(request).catch(() => undefined)
+      if (!response) return socket.end()
+      const send = (data: string | Uint8Array) => new Promise<void>((resolve) => socket.write(data, () => resolve()))
+      const empty = parsed.method === "HEAD" || response.status === 204 || response.status === 304
+      const reason = response.statusText || STATUS_CODES[response.status] || ""
+      await send(
+        [
+          `HTTP/1.1 ${response.status} ${reason}`,
+          ...[...response.headers].map(([key, value]) => `${key}: ${value}`),
+          ...(empty ? [] : ["transfer-encoding: chunked"]),
+          "connection: close",
+          "",
+          "",
+        ].join("\r\n"),
+      )
+      try {
+        if (!empty && response.body)
+          for await (const chunk of response.body)
+            if (chunk.length)
+              await send(Buffer.concat([Buffer.from(`${chunk.length.toString(16)}\r\n`), chunk, Buffer.from("\r\n")]))
+        if (!empty) await send("0\r\n\r\n")
+      } catch {
+        // Mid-body: the connection ends before the body does.
+      }
+      socket.end()
+    })
   }
-  const listen = async (server: http.Server) => {
-    // Scripted responses may wait on a scenario (an `until` gate) for as long as it takes.
-    server.requestTimeout = 0
-    server.headersTimeout = 0
-    server.timeout = 0
+  const listen = async (server: net.Server) => {
     await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve))
     return (server.address() as net.AddressInfo).port
   }
-  const servers: http.Server[] = []
-  const plain = http.createServer(serve("http"))
+  const sockets = new Set<net.Socket>()
+  const servers: net.Server[] = []
+  const plain = net.createServer(exchange("http"))
   servers.push(plain)
   const plainPort = await listen(plain)
   const secure = new Map<string, Promise<number>>()
   const tlsPort = (host: string) => {
     let port = secure.get(host)
     if (!port) {
-      const server = https.createServer(leaf(host), serve("https"))
+      const server = tls.createServer(leaf(host), exchange("https"))
       servers.push(server)
       port = listen(server)
       secure.set(host, port)
@@ -81,7 +103,6 @@ export async function fakeNetwork(
     return port
   }
 
-  const sockets = new Set<net.Socket>()
   const proxy = net.createServer((socket) => {
     sockets.add(socket)
     socket.on("close", () => sockets.delete(socket))
@@ -111,7 +132,7 @@ export async function fakeNetwork(
       sockets.add(upstream)
       upstream.on("close", () => {
         sockets.delete(upstream)
-        socket.destroy()
+        socket.end()
       })
       upstream.on("error", () => socket.destroy())
       socket.on("close", () => upstream.destroy())
@@ -136,12 +157,59 @@ export async function fakeNetwork(
     stop() {
       proxy.close()
       for (const socket of sockets) socket.destroy()
-      for (const server of servers) {
-        server.closeAllConnections()
-        server.close()
-      }
+      for (const server of servers) server.close()
     },
   }
+}
+
+/** One request from a client connection: the head, then a body framed by content-length or chunked. */
+async function readRequest(socket: net.Socket) {
+  let buffer = Buffer.alloc(0)
+  let ended = false
+  const waiters: (() => void)[] = []
+  const wake = () => waiters.splice(0).forEach((resolve) => resolve())
+  socket.on("data", (chunk: Buffer) => {
+    buffer = Buffer.concat([buffer, chunk])
+    wake()
+  })
+  socket.on("end", () => {
+    ended = true
+    wake()
+  })
+  const until = async (ready: () => boolean) => {
+    while (!ready()) {
+      if (ended) return false
+      await new Promise<void>((resolve) => waiters.push(resolve))
+    }
+    return true
+  }
+  if (!(await until(() => buffer.includes("\r\n\r\n")))) return undefined
+  const end = buffer.indexOf("\r\n\r\n")
+  const [line, ...fields] = buffer.subarray(0, end).toString("latin1").split("\r\n")
+  buffer = buffer.subarray(end + 4)
+  const [method, target] = line.split(" ")
+  const headers = new Headers()
+  for (const field of fields) {
+    const colon = field.indexOf(":")
+    if (colon > 0) headers.append(field.slice(0, colon).trim(), field.slice(colon + 1).trim())
+  }
+  if (headers.get("transfer-encoding")?.toLowerCase().includes("chunked")) {
+    const parts: Buffer[] = []
+    while (true) {
+      if (!(await until(() => buffer.includes("\r\n")))) return undefined
+      const size = Number.parseInt(buffer.subarray(0, buffer.indexOf("\r\n")).toString("latin1"), 16)
+      const start = buffer.indexOf("\r\n") + 2
+      if (!(await until(() => buffer.length >= start + size + 2))) return undefined
+      if (size === 0) break
+      parts.push(buffer.subarray(start, start + size))
+      buffer = buffer.subarray(start + size + 2)
+    }
+    headers.delete("transfer-encoding")
+    return { method, target, headers, body: Buffer.concat(parts) }
+  }
+  const length = Number(headers.get("content-length") ?? 0)
+  if (!(await until(() => buffer.length >= length))) return undefined
+  return { method, target, headers, body: buffer.subarray(0, length) }
 }
 
 /** `host:port` or `[v6]:port` from a CONNECT target. */

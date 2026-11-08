@@ -245,25 +245,6 @@
         "type": "plugin.updated"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Named on a cold location"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 3,
-          "version": 1
-        },
-        "id": "<evt_11>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -282,7 +263,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_12>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -303,8 +284,25 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_13>",
+        "id": "<evt_12>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Named on a cold location"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       }
     ]
   },

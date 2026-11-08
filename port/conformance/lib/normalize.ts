@@ -2,7 +2,8 @@
 // that the difference it hides is not observable behavior; keep the list short and explicit.
 
 // Generated IDs (ses_…, msg_…), including forked copies that carry a sequence suffix (msg_…_3).
-const ID = /\b([a-z]{2,8})_([0-9A-Za-z]{16,40})(_\d+)?\b/g
+// IDs, and IDs derived from another (a scheduled prompt's inbox item is `msg_sch_<schedule>_<run>`).
+const ID = /\b([a-z]{2,8})_(?:[a-z]{2,8}_)?([0-9A-Za-z]{16,40})(_\d+)?\b/g
 const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi
 const HASH = /\b(?:[0-9a-f]{64}|[0-9a-f]{40})\b/g
 const B64_JSON = /^[A-Za-z0-9_-]{16,}={0,2}$/
@@ -14,7 +15,8 @@ export const DATE = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Ju
 export const PID_KEY = /^pid$/
 const HOSTNAME_KEY = /^hostname$/
 const ISO = /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\b/g
-const TIME_KEY = /^(time|created|updated|completed|started|ended|start|end|timestamp|at|lastUsed|modified|mtime|expires(At)?|.*At)$/i
+const TIME_KEY =
+  /^(time|created|updated|completed|started|ended|start|end|timestamp|at|lastUsed|modified|mtime|expires(At)?|.*At)$/i
 const DURATION_KEY = /(duration|elapsed|latency)(Ms)?$/i
 
 // Diagnostics written by the JavaScript engine that opencode passes through inside its own messages: JSON.parse,
@@ -22,7 +24,8 @@ const DURATION_KEY = /(duration|elapsed|latency)(Ms)?$/i
 // The standard specifies opencode's message around them, not the engine's wording: a Rust implementation
 // brings its own parsers. Each rule is anchored on opencode's text, so whatever an implementation writes there
 // masks the same way. A diagnostic must be a single line.
-const ENGINE_TAIL = /JSON\.parse received invalid JSON: |received malformed URI data: |Invalid regular expression (?=\\*")/g
+const ENGINE_TAIL =
+  /JSON\.parse received invalid JSON: |received malformed URI data: |Invalid regular expression (?=\\*")/g
 const ENGINE_BETWEEN = [
   /(, which is not a valid regular expression pattern \()(.*?)(\)\. To match special characters)/g,
   /( received invalid flags \S+ \()(.*?)(\)\. Valid flags are)/g,
@@ -32,7 +35,8 @@ export const ENGINE_MESSAGE = "<engine message>"
 /** Masks engine diagnostics; see ENGINE_TAIL. */
 export function engine(input: string): string {
   let out = input
-  for (const rule of ENGINE_BETWEEN) out = out.replace(rule, (_, before: string, _reason: string, after: string) => before + ENGINE_MESSAGE + after)
+  for (const rule of ENGINE_BETWEEN)
+    out = out.replace(rule, (_, before: string, _reason: string, after: string) => before + ENGINE_MESSAGE + after)
   // A tail runs to the end of the message that contains it: the quote that closes the enclosing string literal
   // (as escaped as the quote that opened it, when the message sits inside JSON text), a newline, or the end.
   const quoteLevel = (at: number): number => {
@@ -61,7 +65,16 @@ export function engine(input: string): string {
       let slashes = 0
       while (out[start + slashes] === "\\") slashes++
       let end = start + slashes + 1
-      while (end < out.length && !(out[end] === '"' && out.slice(end - slashes, end) === "\\".repeat(slashes) && out[end - slashes - 1] !== "\\" && out.startsWith(": ", end + 1))) end++
+      while (
+        end < out.length &&
+        !(
+          out[end] === '"' &&
+          out.slice(end - slashes, end) === "\\".repeat(slashes) &&
+          out[end - slashes - 1] !== "\\" &&
+          out.startsWith(": ", end + 1)
+        )
+      )
+        end++
       if (end >= out.length) {
         from = start
         continue

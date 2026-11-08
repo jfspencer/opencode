@@ -215,7 +215,8 @@ scenario(
 
 scenario(
   "skill list changes between turns",
-  { files: { ".opencode/skills/first/SKILL.md": skill({ description: "First skill." }, "First.") }, turns: [say("One."), say("Two.")] },
+  // The file watcher is off: the scenario reloads after each write, and the watcher's reload would race it.
+  { server: { filewatcher: false }, files: { ".opencode/skills/first/SKILL.md": skill({ description: "First skill." }, "First.") }, turns: [say("One."), say("Two.")] },
   async (ctx) => {
     const id = await ctx.session()
     await ctx.prompt(id, "Turn one")
@@ -271,6 +272,8 @@ scenario(
 scenario(
   "reference changes between turns",
   {
+    // The file watcher is off: the scenario reloads after each write, and the watcher's reload would race it.
+    server: { filewatcher: false },
     files: {
       "a/x.txt": "a\n",
       "b/y.txt": "b\n",

@@ -275,7 +275,8 @@ cliScenario(
       if (Date.now() > deadline) throw new Error("the run never reached the model")
       await Bun.sleep(25)
     }
-    await Bun.sleep(200)
+    // Interrupt once the run has printed its header.
+    await run.line((line) => line.includes("> build"), "stderr")
     await run.stop("SIGTERM")
     released.resolve()
     await ctx.cli(["run", "-c", "Continue"])

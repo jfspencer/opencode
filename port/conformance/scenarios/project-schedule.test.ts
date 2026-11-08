@@ -2,6 +2,7 @@
 // validation errors, conditions (shell and code checks, if/until, evaluated at creation), and the lifecycle routes
 // (get, list, pause, resume, delete).
 import { baseConfig } from "../lib/model"
+import { say } from "../lib/openrouter"
 import { type Ctx, type ScenarioOptions, scenario as base } from "../lib/scenario"
 
 // Location boot publishes its inventory events asynchronously; wait for the last one (plugin.updated) so the recorded
@@ -68,7 +69,7 @@ scenario("schedule validation errors", { config: enabled }, async (ctx) => {
   await ctx.http("POST", "/api/experimental/schedule", { sessionID: "ses_00000000000000000000000000", when: { in: "1 hour" }, prompt: "x" })
 })
 
-scenario("schedule lifecycle routes", { config: enabled }, async (ctx) => {
+scenario("schedule lifecycle routes", { config: enabled, turns: [say("Done.")] }, async (ctx) => {
   const sessionID = await ctx.session()
   const one = await ctx.http("POST", "/api/experimental/schedule", {
     sessionID,
@@ -98,11 +99,15 @@ scenario("schedule lifecycle routes", { config: enabled }, async (ctx) => {
   await ctx.http("POST", `/api/experimental/schedule/${id}/resume`)
   await ctx.http("GET", `/api/experimental/schedule?sessionID=${sessionID}`)
   await ctx.http("GET", "/api/experimental/schedule?sessionID=ses_00000000000000000000000000")
-  // A one-shot that fell due while paused keeps its due time when resumed (nothing fires it in the oracle).
+  // A one-shot that fell due while paused fires once when resumed (the tool's documented behavior): let it run
+  // before deleting the session, which would otherwise race it.
   const due = await ctx.http("POST", "/api/experimental/schedule", { sessionID, name: "due soon", when: { in: "1 second" }, prompt: "Now" })
   await ctx.http("POST", `/api/experimental/schedule/${due.body.data.id}/pause`)
   await new Promise((resolve) => setTimeout(resolve, 1200))
+  const from = ctx.events.length
   await ctx.http("POST", `/api/experimental/schedule/${due.body.data.id}/resume`)
+  await ctx.until((event) => event?.type === "session.inbox.enqueued" && event?.data?.sessionID === sessionID, from)
+  await ctx.settle(sessionID, from)
   // A schedule whose session is gone reads as missing.
   await ctx.http("DELETE", `/api/session/${sessionID}`)
   await ctx.http("GET", `/api/experimental/schedule/${every.body.data.id}`)

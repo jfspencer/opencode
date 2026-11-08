@@ -92,6 +92,7 @@ scenario("fork the whole session", { height: 30 }, async (t) => {
   await t.type("/fork")
   await t.enter()
   await t.waitFor("Fork session")
+  await t.waitFor("Answer 3, line 8.")
   await t.frame("choices")
   await t.enter()
   await t.waitFor("Forked session")

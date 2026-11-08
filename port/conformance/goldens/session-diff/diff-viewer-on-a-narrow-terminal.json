@@ -152,34 +152,6 @@
       "kind": "note",
       "label": "tui-requests",
       "value": [
-        "GET /api/agent",
-        "GET /api/command",
-        "GET /api/config",
-        "GET /api/event",
-        "GET /api/experimental/migration/v1",
-        "GET /api/experimental/session/<ses_1>/terminal",
-        "GET /api/form",
-        "GET /api/fs/list",
-        "GET /api/info",
-        "GET /api/integration",
-        "GET /api/location",
-        "GET /api/mcp",
-        "GET /api/mcp/resource",
-        "GET /api/model",
-        "GET /api/plugin",
-        "GET /api/project",
-        "GET /api/provider",
-        "GET /api/reference",
-        "GET /api/session/active",
-        "GET /api/session/<ses_1>",
-        "GET /api/session/<ses_1>/form",
-        "GET /api/session/<ses_1>/permission",
-        "GET /api/shell",
-        "GET /api/shell/<sh_1>/output",
-        "GET /api/skill",
-        "GET /api/vcs",
-        "GET /api/vcs/base",
-        "GET /api/vcs/diff",
         "POST /api/rpc/opencode.goal/get",
         "POST /api/session",
         "POST /api/session/<ses_1>/model",
@@ -778,25 +750,6 @@
         "type": "shell.exited"
       }
     ],
-    "renamed:<ses_1>": [
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_15>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      }
-    ],
     "<ses_1>": [
       {
         "created": "<time>",
@@ -821,7 +774,7 @@
           "seq": 0,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -847,7 +800,7 @@
           "seq": 1,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -863,7 +816,7 @@
           "seq": 2,
           "version": 1
         },
-        "id": "<evt_18>",
+        "id": "<evt_17>",
         "type": "session.execution.started"
       },
       {
@@ -882,7 +835,7 @@
           "seq": 3,
           "version": 2
         },
-        "id": "<evt_19>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -904,7 +857,7 @@
           "seq": 4,
           "version": 1
         },
-        "id": "<evt_20>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -920,13 +873,30 @@
               "read": 0,
               "write": 0
             },
-            "input": 0,
-            "output": 0,
+            "input": 100,
+            "output": 10,
             "reasoning": 0
           }
         },
-        "id": "<evt_21>",
+        "id": "<evt_20>",
         "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
       },
       {
         "created": "<time>",
@@ -1112,8 +1082,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 100,
-            "output": 10,
+            "input": 200,
+            "output": 20,
             "reasoning": 0
           }
         },
@@ -1304,8 +1274,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 200,
-            "output": 20,
+            "input": 300,
+            "output": 30,
             "reasoning": 0
           }
         },
@@ -1486,8 +1456,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 300,
-            "output": 30,
+            "input": 400,
+            "output": 40,
             "reasoning": 0
           }
         },
@@ -1685,8 +1655,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 400,
-            "output": 40,
+            "input": 500,
+            "output": 50,
             "reasoning": 0
           }
         },
@@ -1827,8 +1797,8 @@
               "read": 0,
               "write": 0
             },
-            "input": 500,
-            "output": 50,
+            "input": 600,
+            "output": 60,
             "reasoning": 0
           }
         },

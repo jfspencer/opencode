@@ -178,6 +178,7 @@ scenario("markdown shown as source", { turns: [say(MARKDOWN)], tui: { session: {
 
 scenario("markdown rendered", { turns: [say(MARKDOWN)] }, async (t) => {
   await ask(t, "Summarize", "plain fenced block")
+  await t.waitFor("open task")
   await t.frame("rendered")
 })
 

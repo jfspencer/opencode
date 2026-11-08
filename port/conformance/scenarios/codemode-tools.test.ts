@@ -485,7 +485,9 @@ for (const engine of engines) {
       const id = await ctx.session()
       ctx.provider.push(
         ...programs(
-          `const text = await fetch("https://api.example.com/text")
+          `// HTTP framing headers belong to the transport, not to the response the program reads.
+const FRAMING = ["date", "connection", "keep-alive", "transfer-encoding", "content-length"]
+const text = await fetch("https://api.example.com/text")
 const json = await fetch("https://api.example.com/echo?q=1#fragment")
 const bytes = await fetch("https://api.example.com/bytes")
 const created = await fetch(new URL("https://api.example.com/created"))
@@ -493,7 +495,7 @@ const missing = await fetch("https://api.example.com/missing")
 return {
   text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),
     contentType: text.headers.get("Content-Type"), custom: text.headers.get("x-custom"), has: [text.headers.has("x-custom"), text.headers.has("nope")],
-    none: text.headers.get("nope"), entries: text.headers.entries().filter(([k]) => k !== "date") },
+    none: text.headers.get("nope"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },
   json: await json.json(),
   bytes: Array.from(await bytes.bytes()),
   created: [created.status, await created.json()],

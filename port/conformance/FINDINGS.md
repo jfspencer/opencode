@@ -124,6 +124,11 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D302 leaves the `"dummy"` placeholder sentinel in place (harmless).
 - D105/D110 risk: a model configured with audio input on OpenRouter would receive audio the OpenAI-chat request
   builder rejects. The reference config has no such model.
+- TUI: a subagent's permission request is attributed to the parent session, and its prompt shows the shell
+  command (`$ rm -rf build`) only when the client happens to hold the tool call the request names; otherwise
+  it lists the permission pattern (`- rm -rf build`). In-process it always shows the command; against a
+  slower server, sometimes not. Not yet diagnosed (loading the requesting session's messages did not change
+  it), so not patched; its two scenarios run in-process only.
 
 ## Text that is not part of the standard
 
@@ -142,12 +147,17 @@ The standard leaves these unspecified; scenarios avoid them:
 - Whether the TUI fetches a missing session's terminals before giving up.
 - Title generation races a CLI `run` process exiting.
 - A step starts with the first response chunk, after the request is sent; interrupting in between races.
-- Title generation runs beside the session's steps and outside its busy period: where the rename lands among
-  the step's events, whether it finishes before the scenario's next request (a location reload can interrupt
-  it, so the next prompt asks again), and the running usage totals if the title reports usage. Equality rule
-  plus harness waits (README); found by running the reference as a process.
+- Title generation runs beside the session's first step and outside its busy period: where its events land
+  among the step's, the running usage totals, and whether it finishes before the scenario's next request (a
+  location reload can interrupt it, so the next prompt asks again). The fake model orders it first (README,
+  equality rules); found by running the reference as a process.
+- Tools called in one step run concurrently; their results arrive in either order (equality rule).
+- A background subagent's failure report against the parent's next step.
 - A prompt sent while a session's queued move has not run yet; a config write racing the file watcher's
-  reload. Scenarios wait for the move or the reload.
+  reload; repository changes made after the location booted (the branch read is the old one until the
+  watcher catches up); a CLI signal sent before the CLI printed its header; a request rendered before a
+  subagent's tool call loaded. Scenarios wait, boot later, or turn the watcher off.
+- Which reads the TUI's data layer makes (it refetches on event bursts): writes only are recorded.
 - Text/reasoning deltas and tool progress are batched on 100 ms timers (normalized, see README).
 
 ## Harness limits (what the oracle cannot yet prove)

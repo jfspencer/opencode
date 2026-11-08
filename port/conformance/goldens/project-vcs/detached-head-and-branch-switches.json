@@ -18,7 +18,6 @@
       "body": {
         "data": {
           "branch": {
-            "current": "main",
             "default": "main"
           },
           "provider": "git"
@@ -196,19 +195,8 @@
       },
       {
         "created": "<time>",
-        "data": {
-          "branch": "main"
-        },
-        "id": "<evt_6>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "vcs.branch.updated"
-      },
-      {
-        "created": "<time>",
         "data": {},
-        "id": "<evt_7>",
+        "id": "<evt_6>",
         "location": {
           "directory": "<project>"
         },
@@ -217,7 +205,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_8>",
+        "id": "<evt_7>",
         "location": {
           "directory": "<project>"
         },
@@ -226,7 +214,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_9>",
+        "id": "<evt_8>",
         "location": {
           "directory": "<project>"
         },
@@ -235,7 +223,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_10>",
+        "id": "<evt_9>",
         "location": {
           "directory": "<project>"
         },
@@ -244,7 +232,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_11>",
+        "id": "<evt_10>",
         "location": {
           "directory": "<project>"
         },
@@ -253,7 +241,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_12>",
+        "id": "<evt_11>",
         "location": {
           "directory": "<project>"
         },
@@ -261,29 +249,8 @@
       },
       {
         "created": "<time>",
-        "data": {
-          "event": "change",
-          "file": "<project>/.git/HEAD"
-        },
-        "id": "<evt_13>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "filesystem.changed"
-      },
-      {
-        "created": "<time>",
         "data": {},
-        "id": "<evt_14>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "vcs.branch.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_15>",
+        "id": "<evt_12>",
         "location": {
           "directory": "<project>"
         },
@@ -292,7 +259,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_16>",
+        "id": "<evt_13>",
         "location": {
           "directory": "<project>"
         },
@@ -301,7 +268,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_17>",
+        "id": "<evt_14>",
         "location": {
           "directory": "<project>"
         },
@@ -310,7 +277,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_18>",
+        "id": "<evt_15>",
         "location": {
           "directory": "<project>"
         },
@@ -321,7 +288,7 @@
         "data": {
           "branch": "topic"
         },
-        "id": "<evt_19>",
+        "id": "<evt_16>",
         "location": {
           "directory": "<project>"
         },
@@ -330,7 +297,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_20>",
+        "id": "<evt_17>",
         "location": {
           "directory": "<project>"
         },
@@ -339,7 +306,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_21>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -348,7 +315,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_22>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -357,7 +324,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_23>",
+        "id": "<evt_20>",
         "location": {
           "directory": "<project>"
         },
@@ -366,7 +333,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_24>",
+        "id": "<evt_21>",
         "location": {
           "directory": "<project>"
         },
@@ -375,7 +342,7 @@
       {
         "created": "<time>",
         "data": {},
-        "id": "<evt_25>",
+        "id": "<evt_22>",
         "location": {
           "directory": "<project>"
         },
