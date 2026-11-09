@@ -17,7 +17,7 @@ const MODEL = { providerID: "openrouter", id: "deepseek/deepseek-v4.1-flash-1017
 const TOKENS = { input: 10, output: 5, reasoning: 0, cache: { read: 0, write: 0 } }
 
 export class Generator {
-  private random: Random
+  random: Random
   private remaining: number
   private now = 1_000
   private counter = 0
@@ -86,7 +86,7 @@ export class Generator {
 
   // ---- answers --------------------------------------------------------------------------------------------
 
-  private answer(pending: { request: Pending; index: number }[]): Step {
+  answer(pending: { request: Pending; index: number }[]): Step {
     // Mostly the oldest requests, sometimes a later one first (a response that overtakes another).
     const entry = this.random.bool(0.7) ? pending[0] : this.random.pick(pending)
     const { method, url } = entry.request.recorded
@@ -116,6 +116,8 @@ export class Generator {
     const session = segments[1]
     if (method === "GET" && path === "/api/session/active")
       return this.json(index, 200, { data: Object.fromEntries(SESSIONS.filter(() => this.random.bool(0.3)).map((id) => [id, { type: "busy" }])) })
+    if (location.directory === "/gone" && path !== "/api/session/active")
+      return this.json(index, 404, { _tag: "LocationNotFoundError", directory: "/gone", message: "Location not found: /gone" })
     if (method === "GET" && path === "/api/location")
       return this.json(index, 200, { directory: location.directory, project: { id: PROJECT, worktree: location.directory } })
     if (method === "GET" && path === "/api/vcs") return this.json(index, 200, { location, data: { branch: this.random.pick(["main", "dev"]), default: "main" } })
@@ -253,7 +255,7 @@ export class Generator {
     return { id: this.id("evt"), created: this.now, type, data, ...extra }
   }
 
-  private event(): Record<string, unknown> {
+  event(): Record<string, unknown> {
     const session = this.session()
     const roll = this.random.int(30)
     const assistant = this.assistant[session]
