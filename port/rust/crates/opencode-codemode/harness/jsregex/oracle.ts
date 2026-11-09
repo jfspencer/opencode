@@ -213,6 +213,7 @@ const curated: string[] = [
   "[\\p{ASCII}--\\p{L}]", "[\\q{😀|👍🏽}\\p{Emoji}]", "[[\\q{ab}a]&&[\\q{ab}]]", "[\\q{ab|a}]b",
   "[[^\\q{}]]", "[[^\\q{}a]]", "[[^!\\q{}]]", "[^[^\\q{}]]", "[^\\p{RGI_Emoji}&&a]", "[^a&&\\p{RGI_Emoji}]", "[^\\q{}&&a]",
   "[^a--\\q{ab}]", "[^\\q{ab}--a]", "[^[\\q{ab}--\\q{ab}]]", "[[^\\q{}][^\\q{}]]", "[a-\\q{b}]", "[a-\\q{", "[\\d-\\q{}]",
+  "[^a\\p{RGI_Emoji}[a]&&[a]]", "[^\\p{RGI_Emoji}a&&[a]]", "[^[a]\\q{ab}--a]", "[^\\q{ab}[a]--a]",
   // Annex B
   "]", "}", "{", "a{", "a{1", "a{,1}", "a{1,", "x{1}{2}", "{1}", "{1,2}", "a{2,1}", "a{1}?", "a{1}??", "^*", "$*",
   "(?:a){2}?", "\\c\\d", "a\\", "\\", "\\]",
@@ -424,6 +425,15 @@ for (let k = 0; k < Math.round(20000 * scale); k++) {
     if (depth > 0) for (const t of tokens) walk(prefix + t, depth - 1)
   }
   walk("", 4)
+  // Which negated classes "may contain strings" depends on the operand order and on nesting.
+  const stringOperands = ["\\q{ab}", "\\p{RGI_Emoji}", "[\\q{ab}]", "\\q{}", "\\q{a|}", "a"]
+  const orders = ["X&&a", "a&&X", "X&&[a]", "aX&&[a]", "X[a]&&[a]", "[a]X&&[a]", "X--a", "a--X", "aX--[a]", "X[a]--[a]",
+    "X&&", "X--", "X[a]&&", "X", "aX", "X[a]", "a&&X&&a", "a--X--a", "X\\d&&a", "\\dX--a", "X&&[a][a]", "X&&a[a]"]
+  for (const operand of stringOperands)
+    for (const order of orders) {
+      const body = order.replaceAll("X", operand)
+      for (const pattern of [`[^${body}]`, `[[^${body}]]`, `[^[^${body}]]`, `[${body}]`]) regex(pattern, "v", ["ab", "a", ""], false)
+    }
   // A nested class starts in the state its parent was in, so nested classes get their own walk.
   const nestedTokens = ["a", "\\d", "[a]", "\\q{ab}", "&&", "--", "-", "&", "!", "(", "]", "\\-"]
   const parents = ["", "a", "\\d", "[a]", "\\q{ab}", "ab", "a&&b", "a&&\\d", "a-b", "\\-", "a&&"]

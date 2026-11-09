@@ -286,7 +286,8 @@ impl ClassValue {
         self.may_contain_strings |= other.may_contain_strings;
     }
 
-    /// JSC takes "may contain strings" from the first operand of an intersection, as of a subtraction.
+    /// "May contain strings" stays the left operand's (JSC narrows it only for a nested class operand, see
+    /// SetLevel::nested), as for a subtraction.
     fn intersect(&mut self, other: ClassValue) {
         self.set = self.set.intersect(&other.set);
         self.strings.retain(|s| other.strings.contains(s));
@@ -1432,13 +1433,17 @@ impl<'a> Parser<'a> {
     /// string (when actually present) only for the outermost class, and a negated nested class keeps it.
     fn end_set_level(&self, level: SetLevel, top: bool) -> Result<ClassValue, Fail> {
         let negate = level.negate;
-        let value = level.end(top)?;
+        let dangling = top && level.op != SetOp::Union && level.state == SetState::Operator;
+        let value = level.end()?;
+        let has_empty = value.strings.iter().any(|s| s.is_empty());
+        if negate && (value.may_contain_strings || (top && has_empty)) {
+            return Err(NEGATED_MAY_CONTAIN_STRINGS);
+        }
+        if dangling {
+            return Err(INVALID_CLASS_SET_CHARACTER);
+        }
         if !negate {
             return Ok(value);
-        }
-        let has_empty = value.strings.iter().any(|s| s.is_empty());
-        if value.may_contain_strings || (top && has_empty) {
-            return Err(NEGATED_MAY_CONTAIN_STRINGS);
         }
         let strings = if has_empty { vec![Vec::new()] } else { Vec::new() };
         Ok(ClassValue { set: self.complement_v(&value.set), strings, may_contain_strings: false })
@@ -1663,6 +1668,10 @@ impl SetLevel {
     }
 
     fn nested(&mut self, value: ClassValue) {
+        // "May contain strings" survives an intersection with anything but a nested class.
+        if self.op == SetOp::Intersect {
+            self.value.may_contain_strings &= value.may_contain_strings;
+        }
         self.apply(value);
         self.state = SetState::Nested;
     }
@@ -1697,11 +1706,10 @@ impl SetLevel {
         Ok(())
     }
 
-    fn end(mut self, top: bool) -> Result<ClassValue, Fail> {
-        match self.state {
-            SetState::CharHyphen(_) | SetState::ClassHyphen => return Err(INVALID_CLASS_SET_CHARACTER),
-            SetState::Operator if top && self.op != SetOp::Union => return Err(INVALID_CLASS_SET_CHARACTER),
-            _ => {}
+    /// The level's value at its `]` (a dangling operator is the caller's to judge).
+    fn end(mut self) -> Result<ClassValue, Fail> {
+        if self.in_range() {
+            return Err(INVALID_CLASS_SET_CHARACTER);
         }
         self.flush();
         Ok(self.value)
