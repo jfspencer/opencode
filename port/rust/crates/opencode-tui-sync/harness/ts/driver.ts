@@ -199,6 +199,29 @@ async function runConnection(spec: Case) {
   })
 }
 
+async function runPty(spec: Case) {
+  const { decodePersistentPtyMessage, persistentPtyFrame, createPersistentPtyClient } = await import(path.join(client, "solid/pty.ts"))
+  const decoded = (spec.texts as string[]).map((text) => {
+    const option = decodePersistentPtyMessage(text)
+    return option._tag === "Some" ? option.value : null
+  })
+  const frames = (spec.frames as { cols: number; rows: number; data?: number[] }[]).map((frame) => [
+    ...persistentPtyFrame({ cols: frame.cols, rows: frame.rows }, frame.data ? Uint8Array.from(frame.data) : undefined),
+  ])
+  const connect = spec.connect as { ptyID: string; cursor: number; attachmentID: string; takeover: boolean; url: string; ticket: string }
+  const api = OpenCode.make({ baseUrl: connect.url, fetch: env.fetch })
+  const opened: string[] = []
+  const pty = createPersistentPtyClient(api, { url: connect.url, openSocket: (url: URL) => (opened.push(url.toString()), {}) as WebSocket })
+  let error: unknown
+  const pending = pty
+    .connect({ ptyID: connect.ptyID, cursor: connect.cursor, attachmentID: connect.attachmentID, takeover: connect.takeover })
+    .catch((e: unknown) => (error = env.failure(e)))
+  await env.drain()
+  if (env.requests[0]) env.respond(0, { status: 200, headers: [["content-type", "application/json"]], chunks: [JSON.stringify(connect.ticket === "missing" ? {} : { data: { ticket: connect.ticket } })] })
+  await pending
+  return { decoded, frames, request: recorded(0), url: opened[0] ?? null, error: error ?? null }
+}
+
 const cases = readFileSync(casesFile, "utf8")
   .split("\n")
   .filter(Boolean)
@@ -214,6 +237,7 @@ for (const spec of cases) {
     else if (spec.kind === "connection") result = await runConnection(spec)
     else if (spec.kind === "data") result = await runData(spec, { OpenCode, solid, reference })
     else if (spec.kind === "context") result = await runContext(spec, { OpenCode, solid, reference })
+    else if (spec.kind === "pty") result = await runPty(spec)
     else throw new Error(`unknown case kind ${spec.kind}`)
   } catch (error) {
     result = { crashed: String(error instanceof Error ? error.stack : error) }

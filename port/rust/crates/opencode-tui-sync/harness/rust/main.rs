@@ -41,6 +41,7 @@ fn main() {
                 "connection" => run_connection(&spec, &script).await,
                 "data" => data::run(&spec, &script).await,
                 "context" => context::run(&spec, &script).await,
+                "pty" => run_pty(&spec, &script).await,
                 other => obj(vec![("crashed", Json::String(format!("unknown case kind {other}")))]),
             };
             env::advance(120_000.0).await;
@@ -216,6 +217,70 @@ async fn run_sse(spec: &Json, script: &Rc<Script>) -> Json {
         ("reads", Json::Array(results)),
         ("activity", Json::Number(activity.get() as f64)),
         ("closed", Json::Bool(script.get(0).is_some_and(|p| p.closed.get()))),
+    ])
+}
+
+async fn run_pty(spec: &Json, script: &Rc<Script>) -> Json {
+    use opencode_tui_sync::pty::{decode_persistent_pty_message, persistent_pty_frame, PersistentPtyClient, PersistentPtyConnectInput};
+    let decoded: Vec<Json> = array(spec, "texts")
+        .iter()
+        .map(|text| match text {
+            Json::String(text) => decode_persistent_pty_message(text).map(|m| m.to_json()).unwrap_or(Json::Null),
+            _ => Json::Null,
+        })
+        .collect();
+    let frames: Vec<Json> = array(spec, "frames")
+        .iter()
+        .map(|frame| {
+            let data: Option<Vec<u8>> = match get(frame, "data") {
+                Some(Json::Array(items)) => Some(items.iter().filter_map(num).map(|b| b as u8).collect()),
+                _ => None,
+            };
+            let bytes = persistent_pty_frame(
+                get(frame, "cols").and_then(num).unwrap_or(0.0),
+                get(frame, "rows").and_then(num).unwrap_or(0.0),
+                data.as_deref(),
+            );
+            Json::Array(bytes.into_iter().map(|b| Json::Number(b as f64)).collect())
+        })
+        .collect();
+    let connect = get(spec, "connect").cloned().unwrap_or_default();
+    let url = get_str(&connect, "url").unwrap_or("").to_owned();
+    let client = make_client(&obj(vec![("baseUrl", Json::String(url.clone()))]), script);
+    let pty = PersistentPtyClient::new(client, url);
+    let pending = pty.connect_url(&PersistentPtyConnectInput {
+        pty_id: get_str(&connect, "ptyID").unwrap_or("").to_owned(),
+        cursor: get(&connect, "cursor").and_then(num).unwrap_or(0.0),
+        attachment_id: get_str(&connect, "attachmentID").unwrap_or("").to_owned(),
+        takeover: get(&connect, "takeover") == Some(&Json::Bool(true)),
+    });
+    env::drain().await;
+    if script.get(0).is_some() {
+        let ticket = get_str(&connect, "ticket").unwrap_or("").to_owned();
+        let body = if ticket == "missing" {
+            "{}".to_owned()
+        } else {
+            opencode_tui_sync::client::stringify(&obj(vec![("data", obj(vec![("ticket", Json::String(ticket))]))]))
+        };
+        script.respond(
+            0,
+            &obj(vec![
+                ("status", Json::Number(200.0)),
+                ("headers", Json::Array(vec![Json::Array(vec![Json::String("content-type".into()), Json::String("application/json".into())])])),
+                ("chunks", Json::Array(vec![Json::String(body)])),
+            ]),
+        );
+    }
+    let (url, error) = match pending.wait().await {
+        Ok(url) => (Json::String(url), Json::Null),
+        Err(error) => (Json::Null, failure(&error)),
+    };
+    obj(vec![
+        ("decoded", Json::Array(decoded)),
+        ("frames", Json::Array(frames)),
+        ("request", requests_from(script, 0)),
+        ("url", url),
+        ("error", error),
     ])
 }
 

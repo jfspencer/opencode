@@ -177,7 +177,15 @@ impl PersistentPtyClient {
         let base = self.url.clone();
         let input = input.clone();
         Deferred::spawn(async move {
-            let token = call.await?.json();
+            let token = match call.await? {
+                crate::client::Value::Json(token) => token,
+                _ => {
+                    return Err(Error::Other(crate::abort::Reason {
+                        name: "TypeError".into(),
+                        message: "undefined is not an object (evaluating 'token.ticket')".into(),
+                    }));
+                }
+            };
             let ticket = token.get("ticket").map(js::string).unwrap_or_else(|| "undefined".into());
             let mut url = url::Url::parse(&base).map_err(|e| Error::Other(crate::abort::Reason { name: "TypeError".into(), message: e.to_string() }))?;
             if !url.path().ends_with('/') {

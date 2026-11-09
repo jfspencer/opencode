@@ -12,6 +12,7 @@ import path from "node:path"
 import { connectionCases, randomConnectionCases, requestCases, sseCases } from "./cases/client"
 import { contextCases } from "./cases/context"
 import { dataCases } from "./cases/data"
+import { ptyCases } from "./cases/pty"
 import { Random } from "./cases/random"
 
 const args = process.argv.slice(2)
@@ -51,6 +52,7 @@ const wants = (kind: string) => !only || only.includes(kind)
 if (wants("request")) cases.push(...requestCases(random, 600 * count))
 if (wants("sse")) cases.push(...sseCases(random, 400 * count))
 if (wants("connection")) cases.push(...connectionCases(), ...randomConnectionCases(random, 150 * count))
+if (wants("pty")) cases.push(...ptyCases(random, 100 * count))
 /** Runs generated cases against TS once, keeping the concrete steps it took, for both drivers to replay. */
 async function concrete(generated: unknown[], label: string) {
   const file = path.join(work, `generate-${label}.jsonl`)
