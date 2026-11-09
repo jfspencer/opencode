@@ -6,7 +6,9 @@
 //! location boots and kept; `vcs.branch.updated` announces a change of the current branch.
 //!
 //! TODO(port): refreshing the branch when the repository's HEAD changes (the file watcher's `filesystem.changed`
-//! events); providers registered by external plugins.
+//! events); providers registered by external plugins; snapshots (packages/core/src/snapshot.ts over the index,
+//! tree and object operations of git.ts: `Git.tree.capture/files/diff/restore`, `Git.index.refresh/ignored`,
+//! `Git.objects.pack`), which the execution loop records per step.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;

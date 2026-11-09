@@ -6,6 +6,10 @@
 //! announces them in the order the TS server's built-in plugins do. What they register is the location's
 //! [`crate::inventory::Inventory`]. Shutting a location down (`LocationLifecycle.shutdown`) announces
 //! `location.shutdown`; TODO(port): it also closes the location's permission requests, forms and RPC clients.
+//! TODO(port): the idle sweep (location-activity.ts: a location unused for an hour, or its configured
+//! `experimental.location_idle_timeout`, is evicted); the location watcher (filesystem/location-watcher.ts: the
+//! repository's HEAD is watched, its changes announced as `filesystem.changed` and the VCS branch re-read). A
+//! spawned watcher needs a `'static` handle to the bus, which handlers do not have yet.
 
 use std::sync::{Arc, Mutex};
 
