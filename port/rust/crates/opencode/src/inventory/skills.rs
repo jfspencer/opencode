@@ -14,7 +14,12 @@
 //! version is replaced as a whole when its version changes (and kept when the new one fails to download); one
 //! without is completed file by file. Unsafe names and files skip the skill.
 //!
-//! TODO(port): the file watcher that rescans skill roots; downloads run one at a time (TS: 4 skills, 8 files at once).
+//! Every source is watched while it loads (its tree, or the first missing directory on the way to it); a change
+//! rescans the sources (pulling the URLs again) after 100 ms of quiet and announces `skill.updated` when the skills
+//! changed ([`crate::inventory::Shared`]).
+//!
+//! TODO(port): watches of symlinked skill files outside their roots; downloads run one at a time (TS: 4 skills, 8
+//! files at once).
 
 use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};
@@ -87,16 +92,63 @@ fn configured_sources(entries: &[Entry], location: &str) -> Vec<Source> {
 /// The skill directories each configured URL pulled into the cache, by URL.
 pub type Pulled = Vec<(String, Vec<String>)>;
 
-/// Pulls every configured skill URL (`SkillDiscovery.pull`), in source order.
-pub async fn pull_all(entries: &[Entry], location: &str) -> Pulled {
-    let mut out = Pulled::new();
-    for source in configured_sources(entries, location) {
-        if let Source::Url(url) = source {
-            let directories = pull(&url).await;
-            out.push((url, directories));
+/// `SkillScan.ignore` for directory watches: ignored directories and hidden entries anywhere below the root.
+fn watch_ignored(relative: &str) -> bool {
+    relative.split('/').any(|c| c.starts_with('.') || IGNORED.contains(&c))
+}
+
+/// The first missing directory on the way to `target` (`firstMissing`): the entry whose creation brings it closer.
+fn first_missing(target: &str) -> Option<String> {
+    let parent = config::dirname(target);
+    if parent == target {
+        return None;
+    }
+    if config::is_dir(&parent) { Some(target.to_owned()) } else { first_missing(&parent) }
+}
+
+/// `watchDirectory`: the directory's real path (and the path itself when it is a link), or, when it does not exist,
+/// the first missing directory on the way to it.
+fn watch_directory(directory: &str, send: &crate::watch::Sender, watches: &mut Vec<crate::watch::Watch>) {
+    let target = crate::project::normalize(directory);
+    match std::fs::canonicalize(&target).map(|p| p.to_string_lossy().into_owned()) {
+        Ok(resolved) => {
+            watches.extend(crate::watch::directory(&resolved, watch_ignored, send));
+            if resolved != target {
+                watches.extend(crate::watch::file(&target, send));
+            }
+        }
+        Err(_) => {
+            if let Some(missing) = first_missing(&target) {
+                watches.extend(crate::watch::file(&missing, send));
+            }
         }
     }
-    out
+}
+
+/// Pulls every configured skill URL (`SkillDiscovery.pull`) in source order, watching each source as it is loaded
+/// when `send` is given (`ConfigSkillPlugin.refresh`).
+pub async fn pull_all(entries: &[Entry], location: &str, send: Option<&crate::watch::Sender>) -> (Pulled, Vec<crate::watch::Watch>) {
+    let mut out = Pulled::new();
+    let mut watches = Vec::new();
+    for source in configured_sources(entries, location) {
+        match source {
+            Source::Directory(path) => {
+                if let Some(send) = send {
+                    watch_directory(&path, send, &mut watches);
+                }
+            }
+            Source::Url(url) => {
+                let directories = pull(&url).await;
+                if let Some(send) = send {
+                    for directory in &directories {
+                        watch_directory(directory, send, &mut watches);
+                    }
+                }
+                out.push((url, directories));
+            }
+        }
+    }
+    (out, watches)
 }
 
 /// The skills of a location (`location`: its directory, which relative config paths resolve against; `pulled`: the

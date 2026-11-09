@@ -14,8 +14,10 @@
 //!   session has not been given yet, injected as one synthetic message (`SessionInstructions.load`). This is the
 //!   read tool's entry point.
 //!
-//! TODO(port): the file watcher's rescans (on an `AGENTS.md` or configured file change, debounced 100 ms) and the
-//! plugin-provided instruction files (OpenCode Console's).
+//! The files [`watched`] names are watched: a change rediscovers the instructions after 100 ms of quiet
+//! ([`crate::inventory::Shared`]).
+//!
+//! TODO(port): the plugin-provided instruction files (OpenCode Console's).
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
@@ -82,7 +84,12 @@ fn is_file(path: &str) -> bool {
 /// `ConfigInstructionPlugin.read`: `Ok(None)` for a missing file, `Err(())` for a denied one.
 fn read(path: &str) -> Result<Option<File>, ()> {
     match std::fs::read(path) {
-        Ok(_) => Ok(config::read(path).map(|content| File { path: path.to_owned(), content })),
+        Ok(bytes) => {
+            // As `TextDecoder` decodes: invalid UTF-8 replaced, a leading byte order mark dropped.
+            let text = String::from_utf8_lossy(&bytes);
+            let content = text.strip_prefix('\u{feff}').unwrap_or(&text).to_owned();
+            Ok(Some(File { path: path.to_owned(), content }))
+        }
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
         Err(error) if error.kind() == std::io::ErrorKind::PermissionDenied => Err(()),
         // Other failures (a directory, I/O errors) surface as a failed source.
@@ -201,25 +208,73 @@ pub fn discover(directory: &str, project_directory: &str, entries: &[Entry], rem
         }
     }
     // Configured.
-    let mut watched = HashSet::new();
+    for item in configured_files(&scope, entries) {
+        match item {
+            Configured::Url(url) => files.extend(remote.iter().find(|file| file.path == url).cloned()),
+            Configured::File(path) => {
+                if let Ok(Some(file)) = read(&path) {
+                    files.push(file);
+                }
+            }
+        }
+    }
+    Discovered::Available(files)
+}
+
+enum Configured {
+    Url(String),
+    /// A matched file, resolved (each once).
+    File(String),
+}
+
+/// `configuredSource`'s items in order: URLs, and the files each path or glob matches (sorted, resolved, unique).
+fn configured_files(scope: &Scope, entries: &[Entry]) -> Vec<Configured> {
+    let mut out = Vec::new();
+    let mut seen = HashSet::new();
     for source in configured(entries) {
         if crate::url::is_http(&source) {
-            files.extend(remote.iter().find(|file| file.path == source).cloned());
+            out.push(Configured::Url(source));
             continue;
         }
         let mut matched = scope.matches(&source);
         matched.sort_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
         for item in matched {
             let resolved = resolve(&item);
-            if !watched.insert(resolved.clone()) {
-                continue;
-            }
-            if let Ok(Some(file)) = read(&resolved) {
-                files.push(file);
+            if seen.insert(resolved.clone()) {
+                out.push(Configured::File(resolved));
             }
         }
     }
-    Discovered::Available(files)
+    out
+}
+
+/// The files whose changes rescan a location's instructions (config/plugin/instruction.ts's watches): the global
+/// `AGENTS.md`, every `AGENTS.md` the project walk could find (present or not), and the configured files.
+pub fn watched(directory: &str, project_directory: &str, entries: &[Entry]) -> Vec<String> {
+    let scope = Scope::new(directory, project_directory);
+    let mut out = vec![scope.global_file.clone()];
+    if scope.project {
+        let mut current = scope.start.clone();
+        loop {
+            out.push(config::join(&current, "AGENTS.md"));
+            if current == scope.stop {
+                break;
+            }
+            let parent = config::dirname(&current);
+            if parent == current {
+                break;
+            }
+            current = parent;
+        }
+    }
+    for item in configured_files(&scope, entries) {
+        if let Configured::File(path) = item {
+            out.push(path);
+        }
+    }
+    let mut seen = HashSet::new();
+    out.retain(|path| seen.insert(path.clone()));
+    out
 }
 
 /// `reconfigure`: fetches the configured URLs (keeping a previous copy when a fetch fails).

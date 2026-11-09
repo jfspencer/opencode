@@ -27,6 +27,7 @@ mod text;
 mod tool;
 mod url;
 mod vcs;
+mod watch;
 mod worktree;
 
 use std::net::SocketAddr;
