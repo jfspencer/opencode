@@ -93,6 +93,7 @@ async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Select
     }
     let mut tools = crate::tool::registry().snapshot(&rules);
     tools.code_mode_catalog = crate::tool::schedule::code_mode_catalog(&inventory, tools.code_mode_catalog.take());
+    crate::tool::subagent::describe(&mut tools, &inventory, &agent_id);
     let git = location.vcs.as_ref().is_some_and(|vcs| vcs.kind == "git");
     let sources = {
         let db = app.db.lock().unwrap();

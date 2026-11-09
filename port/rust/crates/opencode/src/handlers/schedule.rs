@@ -51,15 +51,10 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(Response::no_content())
         }
         "experimental.job.list" => {
-            let query = &decoded.query;
-            let session_id = json::get_str(query, "sessionID");
-            if let Some(session_id) = session_id {
-                crate::session::require(&app.db.lock().unwrap(), session_id)?;
-            }
-            let descendants = matches!(json::get(query, "descendants"), Some(Json::Bool(true)))
-                || json::get_str(query, "descendants") == Some("true");
-            let items = crate::job::list(app, session_id, json::get_str(query, "kind"), json::get_str(query, "status"), descendants);
-            Ok(data(request, Json::Array(items)))
+            let jobs = crate::session::subagent::list_jobs(app, &decoded.query)?;
+            let mut body = crate::json::Obj::new();
+            body.set("data", opencode_protocol::Json::Array(jobs));
+            Ok(super::encoded(request, &body.done()))
         }
         _ => super::fallback(app, request),
     }
