@@ -494,7 +494,7 @@
           "at": "<time>",
           "attempt": 2,
           "error": {
-            "message": "Connection lost while reading the response: ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+            "message": "Connection lost while reading the response: ECONNRESET: <runtime message>",
             "status": 200,
             "type": "provider.transport"
           },

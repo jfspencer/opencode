@@ -12,7 +12,8 @@
 
 use opencode_protocol::Json;
 
-use super::{Definition, Failure, ToolError};
+use super::arguments::Issue;
+use super::{Definition, Failure};
 use crate::json;
 
 /// `repair` of tool-input-repair.ts for a root object schema.
@@ -215,51 +216,6 @@ fn check(value: &Json, property: &Json, wording: Option<Wording>) -> Vec<String>
     issues
 }
 
-/// `formatInputIssues`.
-fn invalid(tool: &str, issues: &[(String, String)], value: &Json) -> String {
-    let mut details: Vec<String> = issues.iter().take(5).map(|(path, message)| format!("- {path}: {message}")).collect();
-    if issues.len() > 5 {
-        let more = issues.len() - 5;
-        details.push(format!("- ...and {more} more {}", if more == 1 { "issue" } else { "issues" }));
-    }
-    let mut provided = String::new();
-    pretty(value, 0, &mut provided);
-    format!(
-        "Invalid arguments for tool \"{tool}\":\n{}\n\nArguments provided:\n{provided}\n\nUpdate the arguments and call the tool again.",
-        details.join("\n")
-    )
-}
-
-/// `JSON.stringify(value, null, 2)`.
-pub fn pretty(value: &Json, indent: usize, out: &mut String) {
-    let pad = |n: usize| "  ".repeat(n);
-    match value {
-        Json::Array(items) if !items.is_empty() => {
-            out.push_str("[\n");
-            for (i, item) in items.iter().enumerate() {
-                out.push_str(&pad(indent + 1));
-                pretty(item, indent + 1, out);
-                out.push_str(if i + 1 < items.len() { ",\n" } else { "\n" });
-            }
-            out.push_str(&pad(indent));
-            out.push(']');
-        }
-        Json::Object(fields) if !fields.is_empty() => {
-            out.push_str("{\n");
-            for (i, (key, item)) in fields.iter().enumerate() {
-                out.push_str(&pad(indent + 1));
-                out.push_str(&json::text(&json::string(key)));
-                out.push_str(": ");
-                pretty(item, indent + 1, out);
-                out.push_str(if i + 1 < fields.len() { ",\n" } else { "\n" });
-            }
-            out.push_str(&pad(indent));
-            out.push('}');
-        }
-        other => out.push_str(&json::text(other)),
-    }
-}
-
 /// Repairs and decodes a call's input against the tool's definition: the decoded (repaired) input, or the
 /// "Invalid arguments" tool error. `wording` names the fields TS words differently.
 pub fn decode(definition: &Definition, input: &Json, wording: &[(&str, Wording)]) -> Result<Json, Failure> {
@@ -286,12 +242,13 @@ pub fn decode(definition: &Definition, input: &Json, wording: &[(&str, Wording)]
                 }
             }
         }
-        _ => issues.push(("root".into(), "Expected object".into())),
+        _ => issues.push((String::new(), "Expected object".into())),
     }
     if issues.is_empty() {
         return Ok(value);
     }
-    Err(Failure::Error(ToolError::new(invalid(&definition.name, &issues, &value))))
+    let issues: Vec<Issue> = issues.iter().map(|(path, message)| Issue::new(path, message.as_str())).collect();
+    Err(Failure::Error(super::arguments::invalid(&definition.name, &issues, &value)))
 }
 
 #[cfg(test)]

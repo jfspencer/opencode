@@ -8,7 +8,6 @@
 //! Shutting the location down (`close`) cancels every pending form, and a form created after that is cancelled as
 //! soon as it is announced.
 
-mod date;
 mod formats;
 mod validate;
 

@@ -12,6 +12,7 @@ publish = false
 
 [workspace.dependencies]
 opencode-protocol = { path = "crates/opencode-protocol" }
+opencode-html = { path = "crates/opencode-html" }
 indexmap = "2"
 ryu = "1"
 regex = { version = "1", default-features = false, features = ["std", "perf", "unicode-perl", "unicode-case"] }
@@ -30,6 +31,8 @@ tokio-rustls = { version = "0.26.5", default-features = false, features = ["ring
 rustls-native-certs = "0.8.4"
 unicode-normalization = "0.1.25"
 sha2 = "0.10.9"
+# inotify for the file watcher (already a dependency of tokio and the TLS stack).
+libc = "0.2"
 
 [profile.dev]
 # The generated crate is large; debug info for it is rarely useful and slows linking.

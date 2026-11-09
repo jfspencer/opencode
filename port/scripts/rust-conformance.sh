@@ -85,9 +85,18 @@ if [ -n "$added" ]; then
   printf '%s\n' "$added" | head -50 | sed 's/^/  /'
 fi
 if [ "$update" = 1 ]; then
-  { grep -v -F -f <(printf '%s ›\n' $ran) "$ledger"; cat "$log/pass.txt"; } | sed '/^$/d' | sort -u >"$ledger.tmp"
+  # Passes are added; nothing is removed, so a regression stays visible (a renamed or deleted scenario's line is
+  # removed by hand, see "not run" below).
+  { cat "$ledger"; cat "$log/pass.txt"; } | sed '/^$/d' | sort -u >"$ledger.tmp"
   mv "$ledger.tmp" "$ledger"
   echo "ledger updated: $(wc -l <"$ledger") scenarios"
+fi
+# Ledgered scenarios of the files that ran which neither passed, failed nor were skipped: renamed or deleted.
+results skip >"$log/skip.txt"
+stale=$(comm -23 <(printf '%s\n' "$expected" | sed '/^$/d') <(sort -u "$log/pass.txt" "$log/fail.txt" "$log/skip.txt"))
+if [ -n "$stale" ]; then
+  echo "in the ledger but not run (renamed or removed? edit the ledger by hand):"
+  printf '%s\n' "$stale" | sed 's/^/  /'
 fi
 if [ -n "$regressed" ]; then
   echo "REGRESSED: in the ledger but failing ($(printf '%s\n' "$regressed" | wc -l)):"

@@ -184,7 +184,8 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
 | `job.rs`, `session/subagent.rs`, `tool/subagent.rs` | `core/src/job.ts`, `job/*`, `session/subagent-job.ts`, `subagent-completion.ts`, `background.ts`, `tool/plugin/subagent.ts`, subagent commands: a process-local job registry (one generation per job; block, background, cancel; backgrounded work kept in the durable `job` table until its completion notice is admitted); a subagent is a job running a child session, whose last answer is the tool's result or a synthetic notice that wakes the parent |
 | `snapshot.rs`, `session/revert.rs`, `session/diff.rs` | `core/src/snapshot.ts` over `git.ts`'s store operations, through the git CLI: each project worktree gets a git store under `$XDG_DATA_HOME/opencode/snapshot` that borrows the source's objects and starts from its index; captures go through a temporary index and the source's ignore rules filter what callers see. Steps record their start and end snapshots and changed files; `session/revert.ts` stages, clears and commits reverts (the next prompt or compaction commits a staged one); `session/diff.ts` diffs a turn |
-| `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
+| `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
+| `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated with the JS engine's pattern, URL and date rules (`form/formats.rs`, `form/date.rs`, checked against the engine on generated inputs), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
 Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
 system, version control, worktrees, config, agents, providers and models, and the execution loop (prompts, streaming
@@ -196,7 +197,8 @@ endpoint without a handler answers 501 (after the 404 of an unknown session, whi
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
-`--update` records them.
+`--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
+as not run.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)

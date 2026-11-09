@@ -101,6 +101,7 @@ fn create(app: &App, request: &Request, decoded: &Decoded, location: &Location) 
         session_id: request.param("sessionID").to_owned(),
         agent: json::get_str(payload, "agent").map(str::to_owned),
         source,
+        unattended: None,
     };
     let ask = Ask {
         action: json::get_str(payload, "action").unwrap_or_default().to_owned(),

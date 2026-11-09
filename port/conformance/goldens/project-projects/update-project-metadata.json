@@ -122,6 +122,20 @@
     },
     {
       "body": {
+        "_tag": "InvalidRequestError",
+        "field": "canonical",
+        "message": "canonical must be an absolute path"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "canonical": "relative"
+      },
+      "status": 400,
+      "url": "/api/project/<hash_1>"
+    },
+    {
+      "body": {
         "_tag": "ProjectNotFoundError",
         "message": "Project not found: does-not-exist",
         "projectID": "does-not-exist"
@@ -132,6 +146,20 @@
         "name": "x"
       },
       "status": 404,
+      "url": "/api/project/does-not-exist"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "canonical",
+        "message": "canonical must be an absolute path"
+      },
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "canonical": "relative"
+      },
+      "status": 400,
       "url": "/api/project/does-not-exist"
     },
     {

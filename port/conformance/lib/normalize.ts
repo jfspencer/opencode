@@ -32,11 +32,33 @@ const ENGINE_BETWEEN = [
 ]
 export const ENGINE_MESSAGE = "<engine message>"
 
-/** Masks engine diagnostics; see ENGINE_TAIL. */
-export function engine(input: string): string {
+// The HTTP client's own words for a failed connection (Bun's fetch: "The socket connection was closed unexpectedly.
+// For more information, pass `verbose: true` in the second argument to fetch()", "Unable to connect. Is the
+// computer able to access the url?"), which opencode passes through after its own: a provider transport failure
+// reads `[Connection lost while reading the response: ]<code>: <message>` (packages/ai/src/route/executor.ts), the
+// CLI's `Could not reach server at <url>: <message>`. The standard specifies opencode's words and the error code,
+// which opencode's retry decisions read (core/src/model-retry.ts); the message is the client's. The codes are the
+// runtime network codes opencode knows (core/src/aisdk.ts NETWORK_ERROR_CODES), so other `<code>: ` text (`ENOENT:
+// no such file or directory`) is kept.
+const TRANSPORT_CODE =
+  "(?:ECONNRESET|ECONNREFUSED|ETIMEDOUT|EPIPE|ENOTFOUND|EAI_AGAIN|ENETUNREACH|EHOSTUNREACH|ENETDOWN|ConnectionRefused|ConnectionClosed|FailedToOpenSocket|UND_ERR_[A-Z_]+)"
+const RUNTIME_TAIL = new RegExp(
+  `Connection lost while reading the response: (?:${TRANSPORT_CODE}: )?|\\b${TRANSPORT_CODE}: |Could not reach server at \\S+: `,
+  "g",
+)
+export const RUNTIME_MESSAGE = "<runtime message>"
+
+/** Masks engine diagnostics (see ENGINE_TAIL) and HTTP client messages (see RUNTIME_TAIL). */
+export function diagnostics(input: string): string {
   let out = input
   for (const rule of ENGINE_BETWEEN)
     out = out.replace(rule, (_, before: string, _reason: string, after: string) => before + ENGINE_MESSAGE + after)
+  return tails(tails(out, ENGINE_TAIL, ENGINE_MESSAGE), RUNTIME_TAIL, RUNTIME_MESSAGE)
+}
+
+/** Replaces the rest of the message after each match of `anchor` with `mask`. */
+function tails(input: string, anchor: RegExp, mask: string): string {
+  let out = input
   // A tail runs to the end of the message that contains it: the quote that closes the enclosing string literal
   // (as escaped as the quote that opened it, when the message sits inside JSON text), a newline, or the end.
   const quoteLevel = (at: number): number => {
@@ -55,8 +77,8 @@ export function engine(input: string): string {
   }
   let from = 0
   for (;;) {
-    ENGINE_TAIL.lastIndex = from
-    const match = ENGINE_TAIL.exec(out)
+    anchor.lastIndex = from
+    const match = anchor.exec(out)
     if (!match) break
     const level = quoteLevel(match.index)
     let start = match.index + match[0].length
@@ -83,8 +105,8 @@ export function engine(input: string): string {
     }
     let end = start
     while (end < out.length && !closes(end, level)) end++
-    out = out.slice(0, start) + ENGINE_MESSAGE + out.slice(end)
-    from = start + ENGINE_MESSAGE.length
+    out = out.slice(0, start) + mask + out.slice(end)
+    from = start + mask.length
   }
   return out
 }
@@ -130,7 +152,7 @@ export function normalizer(paths: Record<string, string>): Normalizer {
     out = out.replace(HASH, (raw) => placeholder("hash", raw))
     out = out.replace(ISO, "<iso-time>")
     out = out.replace(DATE, "<date>")
-    return engine(out)
+    return diagnostics(out)
   }
   // Paging cursors are base64url JSON that embeds IDs: compare their decoded, normalized content.
   const cursor = (input: string): unknown => {

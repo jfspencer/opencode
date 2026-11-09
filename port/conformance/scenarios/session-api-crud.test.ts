@@ -385,6 +385,8 @@ scenario("session routes reject unknown and malformed session IDs", {}, async (c
 // The location must load for the first time after `git init`, so the harness must not boot it beforehand.
 scenario("sessions follow their directory into a new git project", { files: { "a.txt": "a\n" }, boot: false }, async (ctx) => {
   const session = await ctx.session({ title: "before git" })
+  // The project's session list below is ordered by update time (see tick).
+  await tick()
   const child = (await ctx.http("POST", "/api/session", { parentID: session, title: "child" })).body.data.id
   await ctx.http("GET", `/api/session/${session}`)
   for (const args of [
