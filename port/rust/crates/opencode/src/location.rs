@@ -124,13 +124,15 @@ fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         return Err(not_found(&key.directory));
     }
     let branch = resolved.vcs.as_ref().filter(|v| v.kind == "git").and_then(|_| crate::project::branch(&resolved.directory));
+    // Read the config and plugin sources before taking the database.
+    let inventory = crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?);
     let mut db = app.db.lock().unwrap();
     app.projects.persist(&mut db, &app.bus, &resolved).map_err(crate::app::fatal)?;
     let location = Location {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),
         project: ProjectRef { id: resolved.id.clone(), directory: resolved.directory, canonical: resolved.canonical },
-        inventory: crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?),
+        inventory,
     };
     // LocationLifecycle activates the project when the location boots.
     app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;

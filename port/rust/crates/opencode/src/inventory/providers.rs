@@ -65,6 +65,28 @@ impl Catalog {
     }
 }
 
+/// `ModelResolver.withVariant`: the model with a variant's request overlays applied (settings deep-merged without
+/// `cache` or the provider-only keys, headers by case-insensitive name, body deep-merged). `None` and `"default"`
+/// select no variant; `Err(())` is `VariantUnavailableError` (the model has no such variant).
+pub fn with_variant(model: &t::ModelInfo, variant: Option<&str>) -> Result<t::ModelInfo, ()> {
+    let Some(id) = variant.filter(|v| *v != "default") else { return Ok(model.clone()) };
+    let Some(selected) = model.variants.iter().find(|v| v.id == id) else { return Err(()) };
+    let selected = json::of(selected);
+    let Json::Object(mut merged) = json::of(model) else { unreachable!("a model is an object") };
+    let variant_settings = json::get(&selected, "settings").map(|s| {
+        let Json::Object(mut s) = s.clone() else { return s.clone() };
+        s.shift_remove("cache");
+        Json::Object(s)
+    });
+    let settings = merge_overlay(merged.get("settings"), model_settings(variant_settings.as_ref()).as_ref());
+    set_opt(&mut merged, "settings", settings);
+    let headers = merge_headers(merged.get("headers"), json::get(&selected, "headers"));
+    set_opt(&mut merged, "headers", headers);
+    let body = merge_overlay(merged.get("body"), json::get(&selected, "body"));
+    set_opt(&mut merged, "body", body);
+    t::ModelInfo::decode(&Json::Object(merged)).map_err(|_| ())
+}
+
 /// `Model.supportsText`.
 pub fn supports_text(capabilities: &t::ModelCapabilities) -> bool {
     (capabilities.input.is_empty() || capabilities.input.iter().any(|i| i.starts_with("text")))
@@ -663,5 +685,13 @@ mod tests {
             r#"[{"id":"deepseek/deepseek-v4.1-flash-1017","modelID":"deepseek/deepseek-v4.1-flash-1017","providerID":"openrouter","family":"deepseek-flash","name":"DeepSeek V4.1 Flash 1017","package":"@opencode/ai/providers/openrouter","settings":{"baseURL":"https://openrouter.ai/api/v1"},"capabilities":{"tools":true,"input":["text","image/jpeg","image/png","image/gif","image/webp"],"output":["text"],"temperature":true},"variants":[{"id":"none","settings":{"reasoning":{"effort":"none"}}},{"id":"low","settings":{"reasoning":{"effort":"low"}}},{"id":"high","settings":{"reasoning":{"effort":"high"}}},{"id":"max","settings":{"reasoning":{"effort":"max"}}}],"time":{"released":0},"cost":[],"status":"active","enabled":true,"limit":{"context":1048576,"output":393216}}]"#
         );
         assert_eq!(catalog.default_model().map(|m| m.id.as_str()), Some("deepseek/deepseek-v4.1-flash-1017"));
+        let model = &catalog.models[0];
+        let max = with_variant(model, Some("max")).expect("a variant");
+        assert_eq!(
+            opencode_protocol::to_string(max.settings.as_ref().unwrap()),
+            r#"{"baseURL":"https://openrouter.ai/api/v1","reasoning":{"effort":"max"}}"#
+        );
+        assert_eq!(with_variant(model, Some("default")).as_ref(), Ok(model));
+        assert!(with_variant(model, Some("missing")).is_err());
     }
 }

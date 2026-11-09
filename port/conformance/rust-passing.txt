@@ -32,3 +32,4 @@ scenarios/session-api-crud.test.ts › session routes reject unknown and malform
 scenarios/session-api-crud.test.ts › sessions follow their directory into a new git project
 scenarios/session-api-crud.test.ts › update session fields
 scenarios/session-basic.test.ts › provider and model listing
+scenarios/shell-api.test.ts › list available shells

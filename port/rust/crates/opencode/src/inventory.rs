@@ -30,7 +30,12 @@
 //!   first one set). A provider request is built from: the provider's `settings.baseURL`, the key, headers = provider
 //!   headers < model headers < variant headers (case-insensitive names, `Provider.mergeHeaders`), body = provider body <
 //!   model body < variant body (deep merge, [`providers::merge_overlay`]), and settings = model settings < variant
-//!   settings (e.g. OpenRouter's `reasoning`, `usage`, `provider`, `transforms`, `user`).
+//!   settings (e.g. OpenRouter's `reasoning`, `usage`, `provider`, `transforms`, `user`): [`providers::with_variant`]
+//!   applies a variant (`ModelResolver.withVariant`, failing for an unknown one). The provider's own timeouts
+//!   (`timeout`, `headerTimeout` default 300000 ms, `chunkTimeout` default 900000 ms) are read from the provider's
+//!   settings, not the model's. Non-chat models are in `catalog.other` (listed by type only).
+//! - Reloads: [`Shared::reload`] rediscovers the config and announces what changed (`PATCH /api/experimental/config`
+//!   calls it). `location.reload` shuts the location down and boots it again, which rebuilds the inventory with it.
 //! - Commands: [`Inventory::command`] / [`Inventory::commands`] (`Command.get` / `Command.list`); a
 //!   [`commands::Command`] is a built-in (`init`, `review`, `goal`) or a config/markdown command with its template,
 //!   agent, model and subagent flag. Running one is the execution loop's.
