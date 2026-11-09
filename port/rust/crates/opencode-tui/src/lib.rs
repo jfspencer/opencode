@@ -49,6 +49,8 @@
 //! `<For>` (rows keyed by `key`; each row gets its item as a signal, so a changed item with the same key updates in
 //! place, as a store proxy would), `index` for `<Index>`, `switch(vec![when(cond, children), ...], fallback)` for
 //! `<Switch>/<Match>`. A `cond ? a : b` in JSX is `memo_view(move || if cond() { a } else { b })`.
+//! `<Portal ref>{children}</Portal>` is `portal(None, Some(on_ref), Rc::new(children))`: the children go into a box
+//! appended to the root.
 //!
 //! **State**: `create_signal` / `create_memo` / `create_effect` / `create_render_effect` / `create_computed` / `on`
 //! / `batch` / `untrack` / `on_mount` / `on_cleanup` (snake_case, same semantics; signals compare with
@@ -59,7 +61,9 @@
 //! **Reaching renderables**: every intrinsic constructor returns an [`Element`](opencode_tui_core::tree::Element)
 //! (`Copy`), the handle the TS keeps as a ref: geometry (`x`, `y`, `width`, `height`), `focus`/`blur`,
 //! `children`, `find_descendant_by_id`, the kind's setters (`set_content`, `set_wrap_mode`, `textarea_text`,
-//! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`.
+//! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`. A custom renderable
+//! (`extend({ name: XRenderable })`) is a `Kind` made with `tree::create`; a TextRenderable subclass is
+//! `renderables::text::create_text_with(|text| Box::new(Sub { text, .. }))`, delegating to the inner `TextKind`.
 //!
 //! **Keybinds** ([`keymap`], `context/keymap.tsx` over `opencode-tui-input`'s `@opentui/keymap`): a layer is
 //! `keymap::create_layer(move || Layer { mode, enabled, target, priority, commands, bindings, .. })`, re-run in an
@@ -81,11 +85,18 @@
 //! `tui()` and `use_context` return nothing there, so take what a handler needs (`tui().toast`, signals, the data)
 //! when the component is created, and move it into the closure.
 //!
+//! **Config**: `tui().config` is the config at startup; toggles that commands change read
+//! `tui().config_context.data()` (tracked) and write with `tui().config_context.update(|draft| ..)`, which edits
+//! cli.json through the CLI config service and resolves it again ([`config_context`], config/index.tsx).
+//!
 //! **Toasts**: `tui().toast.show(ToastInput::new(Variant::Info, "...").duration(3000))`, `tui().toast.error(..)`
 //! ([`toast`], ui/toast.tsx); App draws `<Toast>` last.
 //!
 //! **Timers and ticks**: `renderer::set_timeout(ms, f)` / `clear_timeout`, `renderer::next_tick(f)` (also
 //! `queueMicrotask`); the renderer draws on demand, so anything that changes a renderable asks for a frame itself.
+//! `renderer::on_animation_tick(fps, f)` / `off_animation_tick` is the renderer's shared animation clock, and
+//! `el.set_animation_fps(Some(fps))` (`animationFps`) ticks a kind's `Kind::on_animation_tick` on it while drawn.
+//! `renderer::on_terminal_focus(f)` / `off_terminal_focus` are the renderer's `focus`/`blur` events.
 //!
 //! **Plugins**: only the built-in feature plugins are in scope, so a `<Slot path>` renders the built-in plugin's
 //! content for that path directly (see [`home`] and [`prompt`]).
@@ -94,6 +105,7 @@
 pub mod app;
 pub mod commands;
 pub mod config;
+pub mod config_context;
 pub mod ctx;
 pub mod data;
 pub mod fuzzysort;

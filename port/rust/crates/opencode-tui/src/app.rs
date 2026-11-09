@@ -47,7 +47,8 @@ pub async fn run(input: TuiInput) -> i32 {
     let config_dir = xdg("XDG_CONFIG_HOME", ".config");
     let state_dir = xdg("XDG_STATE_HOME", ".local/state");
     let cli_config = crate::config::CliConfig::new(&config_dir, &state_dir);
-    let info = tokio::task::spawn_blocking(move || cli_config.get()).await.unwrap_or_default();
+    // A small file read at startup (TS awaits `input.config.get()` here too).
+    let info = cli_config.get();
     let resolved = match crate::config::resolve(&info, &crate::config::ResolveOptions::default()) {
         Ok(resolved) => resolved,
         Err(message) => {
@@ -104,7 +105,8 @@ pub async fn run(input: TuiInput) -> i32 {
             theme: theme_signal(theme),
             dimensions,
             data,
-            config: resolved,
+            config: resolved.clone(),
+            config_context: crate::config_context::ConfigContext::new(cli_config, resolved),
             prompt: Rc::new(RefCell::new(None)),
             exit: Rc::new(|| renderer::destroy()),
             toast: crate::toast::Toasts::new(),
