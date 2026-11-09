@@ -24,8 +24,9 @@ pub struct Inventory {
 
 impl Inventory {
     /// Loads the inventory of a location whose project is resolved.
-    pub fn load(_location: &LocationRef) -> Result<Inventory, Failure> {
-        Ok(Inventory { config: Json::Object(Default::default()), agents: vec![], providers: vec![], models: vec![] })
+    pub fn load(location: &LocationRef) -> Result<Inventory, Failure> {
+        // STAND-IN (session execution slice): the reference configuration only, until the real inventory lands.
+        Ok(crate::inventory_standin::load(location))
     }
 
     pub fn agent(&self, id: &str) -> Option<&t::AgentInfo> {

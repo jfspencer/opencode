@@ -7,12 +7,15 @@ mod bus;
 mod db;
 mod handlers;
 mod inventory;
+mod inventory_standin;
 mod http;
 mod id;
 mod json;
+mod llm;
 mod location;
 mod project;
 mod session;
+mod tool;
 
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -127,7 +130,8 @@ fn serve(options: Serve) {
         let password = environment_password.clone().unwrap_or_else(random_password);
         let db = db::open(&database_path()).unwrap_or_else(|e| usage(&e));
         let cwd = project::absolutize(".");
-        let app = Arc::new(App {
+        let app = Arc::new_cyclic(|me| App {
+            me: me.clone(),
             password: Some(password.clone()),
             cwd,
             db: Mutex::new(db),

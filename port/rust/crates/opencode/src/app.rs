@@ -20,6 +20,8 @@ pub const CHANNEL: &str = match option_env!("OPENCODE_CHANNEL") {
 };
 
 pub struct App {
+    /// The server itself, for work that outlives a request (session execution, title generation).
+    pub me: std::sync::Weak<App>,
     pub password: Option<String>,
     /// The server's working directory: where requests without a location are placed.
     pub cwd: String,
@@ -28,6 +30,12 @@ pub struct App {
     pub projects: Projects,
     pub locations: Locations,
     pub sessions: crate::session::Sessions,
+}
+
+impl App {
+    pub fn arc(&self) -> std::sync::Arc<App> {
+        self.me.upgrade().expect("the server outlives its work")
+    }
 }
 
 /// An unexpected storage failure: the TS server dies on these (`Effect.orDie`), answering 500.

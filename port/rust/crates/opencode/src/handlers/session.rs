@@ -28,8 +28,76 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         "session.update" => session_update(app, request, &decoded).await,
         "session.remove" => session::remove(app, request.param("sessionID")).map(|_| Response::no_content()),
         "session.active" => {
-            // TODO(port): execution; nothing runs yet.
-            Ok(data(Obj::new().done()))
+            let mut active = Obj::new();
+            for id in app.sessions.executions.active() {
+                let mut running = Obj::new();
+                running.str("type", "running");
+                active.set(&id, running.done());
+            }
+            Ok(data(active.done()))
+        }
+        "session.prompt" => prompt(app, request, &decoded).await,
+        "session.synthetic" => synthetic(app, request, &decoded),
+        "session.message.list" => messages(app, request, &decoded),
+        "session.message.get" => {
+            let session_id = request.param("sessionID");
+            let message_id = request.param("messageID");
+            let db = app.db.lock().unwrap();
+            session::require(&db, session_id)?;
+            match session::message::get(&db, message_id).map_err(fatal)? {
+                Some((owner, message)) if owner == session_id => Ok(data(session::message::wire(&message))),
+                _ => {
+                    let mut o = Obj::new();
+                    o.str("_tag", "MessageNotFoundError").str("sessionID", session_id).str("messageID", message_id);
+                    o.str("message", &format!("Message not found: {message_id}"));
+                    Err(Failure::new(404, o.done()))
+                }
+            }
+        }
+        "session.interrupt" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            let resume = matches!(json::get(&decoded.query, "resume"), Some(Json::Bool(true)))
+                || json::get_str(&decoded.query, "resume") == Some("true");
+            let interrupted = app.sessions.executions.interrupt(session_id, "user");
+            if resume {
+                // Resume steering input and between-turn controls of the interrupted intent; queued prompts stay parked.
+                let next = session::inbox::next_promotable(&app.db.lock().unwrap(), session_id, session::inbox::Promotable::Input)
+                    .map_err(fatal)?;
+                if next.is_some_and(|n| n.delivery == "steer" || n.control()) {
+                    app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Steer);
+                }
+            }
+            let mut o = Obj::new();
+            o.set("interrupted", Json::Bool(interrupted));
+            Ok(Response::value(200, &o.done()))
+        }
+        "session.inbox.list" => {
+            let session_id = request.param("sessionID");
+            let db = app.db.lock().unwrap();
+            session::require(&db, session_id)?;
+            let items = session::inbox::list(&db, session_id).map_err(fatal)?;
+            Ok(data(Json::Array(items.iter().map(wire_inbox).collect())))
+        }
+        "session.inbox.cancel" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            let _ = session::inbox::mutate(app, session_id, request.param("inboxID"), "session.inbox.cancelled", None);
+            Ok(Response::no_content())
+        }
+        "session.inbox.update" => {
+            let session_id = request.param("sessionID");
+            let inbox_id = request.param("inboxID");
+            let delivery = json::get_str(&decoded.payload, "delivery").unwrap_or("steer").to_owned();
+            let result = session::inbox::mutate(app, session_id, inbox_id, "session.inbox.delivery.changed", Some(&delivery));
+            if result.is_err() {
+                session::require(&app.db.lock().unwrap(), session_id)?;
+                return Err(conflict(format!("Pending input cannot change to {delivery}: {inbox_id}"), inbox_id));
+            }
+            if delivery == "steer" {
+                app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
+            }
+            Ok(Response::no_content())
         }
         "session.view" => {
             let idle = match json::get(&decoded.payload, "idle") {
@@ -39,8 +107,9 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             session::view(app, request.param("sessionID"), idle).map(|_| Response::no_content())
         }
         "experimental.session.wait" => {
-            // TODO(port): execution; a session is always idle.
-            session::require(&app.db.lock().unwrap(), request.param("sessionID"))?;
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            app.sessions.executions.await_idle(session_id).await;
             Ok(Response::no_content())
         }
         "experimental.session.log" => session_log(app, request, &decoded),
@@ -179,7 +248,7 @@ async fn session_update(app: &App, request: &Request, decoded: &Decoded) -> Resu
         if title.is_empty() {
             // The title is generated from the conversation once the location's plugins (the title agent) are up.
             app.locations.get(app, &info.location).await?;
-            // TODO(port): title generation; a session without messages generates nothing.
+            session::title::generate(&app.arc(), id).await;
         } else {
             session::rename(app, id, &title)?;
         }
@@ -194,4 +263,168 @@ async fn session_update(app: &App, request: &Request, decoded: &Decoded) -> Resu
         session::archive(app, id, archived)?;
     }
     Ok(Response::no_content())
+}
+
+fn conflict(message: String, resource: &str) -> Failure {
+    let mut o = Obj::new();
+    o.str("_tag", "ConflictError").str("message", &message).str("resource", resource);
+    Failure::new(409, o.done())
+}
+
+/// `Session.prompt`: admits the input (idempotently by ID), then wakes the session unless `resume` is `false`.
+async fn prompt(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+    let session_id = request.param("sessionID");
+    let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+    let payload = &decoded.payload;
+    let present = |key: &str| json::get(payload, key).filter(|v| !matches!(v, Json::Null)).cloned();
+    let message_id = json::get_str(payload, "id").map(str::to_owned).unwrap_or_else(session::message::create_id);
+    let delivery = json::get_str(payload, "delivery").unwrap_or("steer").to_owned();
+    let existing =
+        session::inbox::reconcile(&app.db.lock().unwrap(), &message_id, session_id, "user", &delivery).map_err(fatal)?;
+    let admitted = match existing {
+        Err(_) => {
+            return Err(conflict(
+                format!("Prompt message ID conflicts with an existing durable record: {message_id}"),
+                &message_id,
+            ));
+        }
+        Ok(Some(existing)) => existing,
+        Ok(None) => {
+            // Preparation runs in the session's location (its plugins hook the prompt).
+            app.locations.get(app, &stored.location).await?;
+            // TODO(port): attachments (files, agents, skills), the `session.prompt` hook, committing a staged revert.
+            let mut item_payload = Obj::new();
+            item_payload.str("text", json::get_str(payload, "text").unwrap_or_default());
+            item_payload.opt("agents", present("agents"));
+            item_payload.opt("metadata", present("metadata"));
+            let mut item = Obj::new();
+            item.str("type", "user").set("payload", item_payload.done()).str("delivery", &delivery);
+            match session::inbox::admit(app, &message_id, session_id, item.done(), Some(stored.location.clone()))? {
+                Ok(admitted) => admitted,
+                Err(_) => {
+                    return Err(conflict(
+                        format!("Prompt message ID conflicts with an existing durable record: {message_id}"),
+                        &message_id,
+                    ));
+                }
+            }
+        }
+    };
+    if json::get_bool(payload, "resume") != Some(false) {
+        app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
+    }
+    Ok(data(wire_inbox(&admitted)))
+}
+
+/// An inbox item through the response schema.
+fn wire_inbox(item: &Json) -> Json {
+    match t::SessionInboxInfo::decode(item) {
+        Ok(info) => json::of(&info),
+        Err(_) => item.clone(),
+    }
+}
+
+/// `Session.synthetic`: synthetic input admitted like a prompt (wakes unless `resume` is `false` or a revert is
+/// staged).
+fn synthetic(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+    let session_id = request.param("sessionID");
+    let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+    let payload = &decoded.payload;
+    let present = |key: &str| json::get(payload, key).filter(|v| !matches!(v, Json::Null)).cloned();
+    let input_id = json::get_str(payload, "id").map(str::to_owned).unwrap_or_else(session::message::create_id);
+    let mut item_payload = Obj::new();
+    item_payload.str("text", json::get_str(payload, "text").unwrap_or_default());
+    item_payload.opt("description", present("description"));
+    item_payload.opt("metadata", present("metadata"));
+    let mut item = Obj::new();
+    item.str("type", "synthetic").set("payload", item_payload.done());
+    item.str("delivery", json::get_str(payload, "delivery").unwrap_or("steer"));
+    let admitted = match session::inbox::admit(app, &input_id, session_id, item.done(), Some(stored.location.clone()))? {
+        Ok(admitted) => admitted,
+        Err(_) => {
+            return Err(conflict(
+                format!("Synthetic input ID conflicts with an existing durable record: {input_id}"),
+                &input_id,
+            ));
+        }
+    };
+    let reverted =
+        session::get(&app.db.lock().unwrap(), session_id).map_err(fatal)?.is_some_and(|s| json::get(&s.info, "revert").is_some());
+    if json::get_bool(payload, "resume") != Some(false) && !reverted {
+        app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
+    }
+    Ok(data(wire_inbox(&admitted)))
+}
+
+const DEFAULT_MESSAGES_LIMIT: i64 = 50;
+
+fn invalid_cursor(message: &str) -> Failure {
+    let mut o = Obj::new();
+    o.str("_tag", "InvalidCursorError").str("message", message);
+    Failure::new(400, o.done())
+}
+
+/// A message page cursor (`{id, order, direction}` as base64url JSON).
+fn message_cursor(id: &str, order: &str, direction: &str) -> String {
+    use base64::Engine;
+    let mut o = Obj::new();
+    o.str("id", id).str("order", order).str("direction", direction);
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(json::text(&o.done()))
+}
+
+fn parse_message_cursor(text: &str) -> Option<(String, String, String)> {
+    use base64::Engine;
+    use base64::engine::{DecodePaddingMode, GeneralPurpose, GeneralPurposeConfig};
+    const LENIENT: GeneralPurpose = GeneralPurpose::new(
+        &base64::alphabet::URL_SAFE,
+        GeneralPurposeConfig::new().with_decode_padding_mode(DecodePaddingMode::Indifferent),
+    );
+    let bytes = LENIENT.decode(text).ok()?;
+    let value = json::parse(&String::from_utf8_lossy(&bytes))?;
+    let id = json::get_str(&value, "id").filter(|id| id.starts_with("msg_"))?.to_owned();
+    let order = json::get_str(&value, "order").filter(|o| *o == "asc" || *o == "desc")?.to_owned();
+    let direction = json::get_str(&value, "direction").filter(|d| *d == "previous" || *d == "next")?.to_owned();
+    Some((id, order, direction))
+}
+
+/// `GET /api/session/:id/message`: one page of messages in order, with cursors to move through the timeline.
+fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+    let session_id = request.param("sessionID");
+    let query = &decoded.query;
+    let cursor = json::get_str(query, "cursor").filter(|c| !c.is_empty());
+    let requested_order = json::get_str(query, "order");
+    if cursor.is_some() && requested_order.is_some() {
+        return Err(invalid_cursor("Cursor cannot be combined with order"));
+    }
+    let decoded_cursor = match cursor {
+        Some(text) => Some(parse_message_cursor(text).ok_or_else(|| invalid_cursor("Invalid cursor"))?),
+        None => None,
+    };
+    let order =
+        decoded_cursor.as_ref().map(|c| c.1.clone()).or(requested_order.map(str::to_owned)).unwrap_or_else(|| "desc".into());
+    let limit = match json::get(query, "limit") {
+        Some(Json::String(s)) => s.parse::<f64>().ok().map(|n| n as i64),
+        Some(Json::Number(n)) => Some(*n as i64),
+        _ => None,
+    }
+    .unwrap_or(DEFAULT_MESSAGES_LIMIT);
+    let db = app.db.lock().unwrap();
+    session::require(&db, session_id)?;
+    let input = session::message::ListInput {
+        session: session_id.to_owned(),
+        limit: Some(limit),
+        order: order.clone(),
+        ty: json::get_str(query, "type").map(str::to_owned),
+        cursor: decoded_cursor.map(|(id, _, direction)| (id, direction)),
+    };
+    let rows = session::message::list(&db, &input).map_err(fatal)?;
+    drop(db);
+    let id = |m: &Json| json::get_str(m, "id").unwrap_or_default().to_owned();
+    let mut cursors = Obj::new();
+    cursors.set("previous", rows.first().map(|m| Json::String(message_cursor(&id(m), &order, "previous"))).unwrap_or(Json::Null));
+    cursors.set("next", rows.last().map(|m| Json::String(message_cursor(&id(m), &order, "next"))).unwrap_or(Json::Null));
+    let mut o = Obj::new();
+    o.set("data", Json::Array(rows.iter().map(session::message::wire).collect()));
+    o.set("cursor", cursors.done());
+    Ok(Response::value(200, &o.done()))
 }
