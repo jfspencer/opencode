@@ -13,6 +13,8 @@ use crate::layout::Value;
 use crate::tree::Element;
 
 struct InputState {
+    /// The editor view, which reads while the node's kind is borrowed (from inside its own callbacks).
+    view: Option<Rc<opencode_tui_text::EditorView>>,
     max_length: usize,
     on_input: Option<Rc<dyn Fn(String)>>,
     on_enter: Option<Rc<dyn Fn(String)>>,
@@ -22,10 +24,19 @@ thread_local! {
     static INPUTS: RefCell<HashMap<Element, InputState>> = RefCell::new(HashMap::new());
 }
 
+/// `plainText`.
+fn value_of(el: Element) -> String {
+    let view = INPUTS.with(|i| i.borrow().get(&el).and_then(|s| s.view.clone()));
+    match view {
+        Some(view) => view.get_text(),
+        None => el.textarea_text(),
+    }
+}
+
 fn emit_input(el: Element) {
     let listener = INPUTS.with(|i| i.borrow().get(&el).and_then(|s| s.on_input.clone()));
     if let Some(listener) = listener {
-        listener(el.textarea_text());
+        listener(value_of(el));
     }
 }
 
@@ -43,10 +54,11 @@ fn inserts_newline(key: &KeyEvent) -> bool {
 pub fn create_input() -> Element {
     let el = crate::renderables::textarea::create_textarea();
     el.set_height(Some(Value::Point(1.0)));
-    if let Some(view) = el.editor_view() {
+    let view = el.editor_view();
+    if let Some(view) = &view {
         view.set_wrap_mode(opencode_tui_text::WrapMode::None);
     }
-    INPUTS.with(|i| i.borrow_mut().insert(el, InputState { max_length: 1000, on_input: None, on_enter: None }));
+    INPUTS.with(|i| i.borrow_mut().insert(el, InputState { view, max_length: 1000, on_input: None, on_enter: None }));
     el.on(
         "destroyed",
         Rc::new(move || {
@@ -58,7 +70,7 @@ pub fn create_input() -> Element {
             key.prevent_default();
             let listener = INPUTS.with(|i| i.borrow().get(&el).and_then(|s| s.on_enter.clone()));
             if let Some(listener) = listener {
-                listener(el.textarea_text());
+                listener(value_of(el));
             }
             return;
         }
@@ -71,7 +83,7 @@ pub fn create_input() -> Element {
         let printable = !modified && !key.sequence.is_empty() && key.sequence.chars().all(|c| !c.is_control());
         if printable {
             let max = INPUTS.with(|i| i.borrow().get(&el).map(|s| s.max_length)).unwrap_or(1000);
-            if el.textarea_text().encode_utf16().count() >= max {
+            if value_of(el).encode_utf16().count() >= max {
                 key.prevent_default();
             }
         }
@@ -79,7 +91,7 @@ pub fn create_input() -> Element {
     el.set_on_paste(Some(Rc::new(move |event: &mut crate::input::PasteEvent| {
         let text: String = event.text().chars().filter(|c| *c != '\n' && *c != '\r').collect();
         let max = INPUTS.with(|i| i.borrow().get(&el).map(|s| s.max_length)).unwrap_or(1000);
-        let remaining = max.saturating_sub(el.textarea_text().encode_utf16().count());
+        let remaining = max.saturating_sub(value_of(el).encode_utf16().count());
         let kept: String = text.chars().scan(0usize, |units, c| {
             *units += c.len_utf16();
             (*units <= remaining).then_some(c)
@@ -102,7 +114,7 @@ impl Element {
 
     /// `value`.
     pub fn input_value(self) -> String {
-        self.textarea_text()
+        value_of(self)
     }
 
     /// `value = v`: newlines stripped, at most `maxLength`; the cursor at the end; `input` when it changed.
