@@ -2,4 +2,5 @@
 //! packages/codemode (the default AST interpreter, `src/interpreter`, and its standard library). See README.md.
 
 pub mod jsstr;
+pub mod numconv;
 pub mod parser;
