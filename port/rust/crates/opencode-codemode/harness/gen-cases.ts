@@ -2,7 +2,7 @@
 // hooks, scanTools, and value matrices that cross every operator, coercion, and common built-in with a spread of
 // values. Deterministic.
 //
-// usage: bun harness/gen-cases.ts <async|tools|extensions|hooks|scan|chains|deep|matrix> > corpus/<name>.jsonl
+// usage: bun harness/gen-cases.ts <async|tools|extensions|hooks|interrupts|scan|chains|deep|matrix> > corpus/<name>.jsonl
 const kind = process.argv[2]
 const out: Array<Record<string, unknown>> = []
 const add = (name: string, code: string, extra: Record<string, unknown> = {}) => out.push({ name: `${kind}/${name}`, code, ...extra })
@@ -493,6 +493,65 @@ if (kind === "matrix") {
   add("getters builtin", `const re = /a/g; re.lastIndex = "3"; const m = new Map([[1, 2]]); return [re.lastIndex, m.size, re.source, re.flags, [].length, "abc".length]`)
   add("flat and concat", `${T}const a = [1, [2, [3, [4, , 5]]], , 6]; let c = [0]; for (let i = 0; i < 13000; i++) c = [c]; return [a.flat(), a.flat(2), a.flat(Infinity), a.flat(0), a.flat(NaN), a.flat(-1), a.flat("2"), [, 1].flat(), t(() => c.flat(Infinity)), c.flat(3).length, [1].concat(2, [3, , 4], [[5]], new Array(2)), [].concat.length, [, ,].concat([, 1]), Object.keys([1, , 2].concat([, 3])), t(() => new Array(9999999).concat([1, 2])), t(() => [new Array(9999999).fill(1), [1, 2]].flat()).slice(0, 30), new Array(9999999).concat([1]).length]`)
   add("regex", `${T}const re = /(?<y>\\d{4})-(?<m>\\d{2})/g; const s = "2020-01 and 2021-12"; return [s.replace(re, "$<m>/$<y>"), [...s.matchAll(re)].map((m) => [m.index, m.groups.y]), re.exec(s), re.lastIndex, s.split(/(\\d)/, 4), "aBc".replace(/b/i, (m) => m.toUpperCase() + "!"), t(() => new RegExp("[")), t(() => new RegExp("a", "gg")), /\\u{1F600}/u.test("😀"), "x".replace(/(?:)/g, "-"), RegExp.escape("a.b*c")]`)
+}
+
+// Host work interrupted on its own (core's `CodeModeDecline.stop` ends a declined call this way): the program cannot
+// observe it, and once it reaches the body the execution is interrupted.
+if (kind === "interrupts") {
+  const tools = [
+    { path: "echo", input: { type: "object", properties: { x: {} } }, output: { type: "object" } },
+    { path: "slow", input: { type: "object", properties: { x: {} } }, output: { type: "object" }, timing: "yield" },
+    { path: "stop", behavior: { kind: "interrupt" } },
+    { path: "stopLater", behavior: { kind: "interrupt" }, timing: "yield" },
+    { path: "fail", behavior: { kind: "fail", message: "nope" } },
+  ]
+  const extensions = [
+    {
+      name: "web",
+      globals: {
+        later: { kind: "echo", async: true },
+        keep: { kind: "echo" },
+        halt: { kind: "interrupt" },
+        fs: { kind: "object", members: { halt: { kind: "interrupt" }, read: { kind: "echo", async: true } } },
+      },
+    },
+  ]
+  const guarded = (call: string) =>
+    `try { await ${call} } catch (e) { await tools.echo({ x: "catch" }) } finally { await tools.echo({ x: "finally" }) }\nreturn await tools.echo({ x: "after" })`
+  const programs: Record<string, string> = {
+    tool: guarded("tools.stop()"),
+    toolLater: guarded("tools.stopLater()"),
+    extension: guarded("halt()"),
+    extensionMember: guarded("fs.halt()"),
+    bareCatch: `try { await tools.stop() } catch { return "caught" }`,
+    allSettled: `const settled = await Promise.allSettled([tools.stop(), tools.echo({ x: 1 })])\nawait tools.echo({ x: settled[0].status })`,
+    allSettledExtension: `const settled = await Promise.allSettled([later(1), halt()])\nreturn settled`,
+    all: `try { return await Promise.all([tools.slow({ x: 1 }), tools.stopLater()]) } catch (e) { return "caught" }`,
+    allFailedFirst: `try { return await Promise.all([tools.fail(), tools.stopLater()]) } catch (e) { return e.message }`,
+    any: `try { return await Promise.any([tools.stopLater(), Promise.reject(new Error("x"))]) } catch (e) { return e.name }`,
+    anyFulfilled: `return await Promise.any([tools.stopLater(), tools.slow({ x: 1 }), tools.echo({ x: 2 })])`,
+    race: `try { return await Promise.race([tools.slow({ x: 1 }), tools.stop()]) } catch (e) { return "caught" }`,
+    raceWon: `return await Promise.race([tools.echo({ x: 1 }), tools.stopLater()])`,
+    then: `await tools.stop().then(() => tools.echo({ x: "fulfilled" }), () => tools.echo({ x: "rejected" }))\nreturn 1`,
+    catchMethod: `await halt().catch(() => tools.echo({ x: "caught" }))\nreturn 1`,
+    finallyMethod: `await halt().finally(() => tools.echo({ x: "finally" }))\nreturn 1`,
+    unobserved: `tools.stop()\nreturn await tools.slow({ x: 1 })`,
+    unobservedExtension: `halt()\nkeep(1)\nreturn await later(2)`,
+    unobservedChain: `tools.stop().then(() => 1).catch(() => 2).finally(() => 3)\nreturn await tools.slow({ x: 1 })`,
+    awaitedLater: `const pending = tools.stop()\nawait tools.slow({ x: 1 })\ntry { await pending } catch { return "caught" }\nreturn "after"`,
+    asyncFunction: `async function f() { try { return await tools.stop() } catch { return "inner" } finally { await tools.echo({ x: "inner finally" }) } }\ntry { return await f() } catch { return "outer" }`,
+    asyncArrow: `const f = async () => { await halt(); return "unreachable" }\nconst results = await Promise.allSettled([f(), f()])\nreturn results`,
+    generator: `async function* g() { try { yield await halt(); yield 2 } finally { await tools.echo({ x: "finally" }) } }\nconst seen = []\nfor await (const v of g()) seen.push(v)\nreturn seen`,
+    forAwait: `const seen = []\nfor await (const v of [tools.echo({ x: 1 }), tools.stop(), tools.echo({ x: 3 })]) seen.push(v)\nreturn seen`,
+    resolved: `return await Promise.resolve(tools.stop())`,
+    thenable: `return await { then(resolve) { resolve(tools.stop()) } }`,
+    executor: `return await new Promise((resolve, reject) => { tools.stop().then(resolve, reject) })`,
+    executorAwait: `return await new Promise(async (resolve, reject) => { try { resolve(await tools.stop()) } catch (e) { reject(e) } })`,
+    concurrent: `const a = tools.slow({ x: 1 })\nconst b = fs.read("p")\nconst c = tools.stopLater()\nreturn [await a, await b, await c]`,
+    afterReturn: `const p = tools.stopLater()\nreturn await tools.echo({ x: 1 })`,
+    logs: `console.log("before")\ntry { await tools.stop() } finally { console.log("finally") }`,
+  }
+  for (const [name, code] of Object.entries(programs)) add(name, code, { tools, extensions, hooks: true })
 }
 
 for (const item of out) process.stdout.write(JSON.stringify(item) + "\n")

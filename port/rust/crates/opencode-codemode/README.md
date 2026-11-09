@@ -51,7 +51,8 @@ match execution {
         result.format_output(); // the model's text (core's formatResult)
         result.ok();            // core sets `error: true` when this is false
     }
-    // A handler returned ToolOutcome::Interrupted. TS fails the effect with an interrupt.
+    // A handler returned ToolOutcome::Interrupted (or a host call HostOutcome::Interrupted) and the interruption
+    // reached the program's body. TS fails the effect with an interrupt.
     Execution::Interrupted => {}
 }
 ```
@@ -68,7 +69,10 @@ match execution {
   The handler is `Rc<dyn Fn(path, Option<Json>) -> Fut<ToolOutcome>>`. It returns one of:
   - `ToolOutcome::Ok(value)`, where `None` is `undefined`.
   - `ToolOutcome::Err(message)`: the program catches it as the tool's failure with exactly that text.
-  - `ToolOutcome::Interrupted`.
+  - `ToolOutcome::Interrupted`: the host ended the call on its own (core: the user declined it). The call's promise
+    settles uncatchably: no `catch`, `finally` or rejection handler runs, the combinators (`all`, `allSettled`,
+    `any`, `race`) reject with it instead of observing it, an unobserved one is not reported, and reaching the
+    program's body it ends the run as `Execution::Interrupted`.
 
   Output decoding, the JSON round trip, `toolCalls`, and the call limit all work as in TS.
 - **Hooks.** `Hooks { tool_start, tool_end, extension_start, extension_end }` correspond to `tool.before`/`after`
@@ -78,7 +82,8 @@ match execution {
 - **Extensions.** `Extension { name, globals: [(name, HostValue)] }` corresponds to `Extension.make`.
   - A global is a `HostValue::Function(HostFunction { name, length, asynchronous, call })` or an `Object` of them.
   - `asynchronous` is TS's `Extension.async`/`AsyncFunction`: a call always returns a promise.
-  - `call` returns `HostReturn::Value(Ok | Err)` now, or `HostReturn::Async(future)`.
+  - `call` returns `HostReturn::Value(Ok | Err)` now, or `HostReturn::Async(future)`, whose `HostOutcome` is
+    `Value`, `Throw`, or `Interrupted` (as `ToolOutcome::Interrupted`; the call ends `Interrupted`).
 
   Values cross as TS converts them: data, Date, RegExp, Uint8Array, URL, URLSearchParams, Headers, Map, Set,
   errors with their fields, and functions. Depth, circularity, and opaque-value errors carry TS's text.
@@ -110,6 +115,9 @@ This section maps core/src/codemode/tool.ts onto the crate:
   - It returns `ToolOutcome::Ok(Some(resultValue(executed)))`: the structured `output` if it has one, otherwise the
     text parts joined with `"\n"`, or `null` when that is empty.
   - A failure returns `ToolOutcome::Err(toSessionError(error).message)`.
+  - A decline (`CodeModeDecline.stop`: the user's plain "no", or a dismissed question) is recorded for the execute
+    call and returns `ToolOutcome::Interrupted`; `fetch` does the same with `HostOutcome::Interrupted`. However the
+    run ends, the execute call then fails with the recorded decline (`CodeModeDecline.resume`).
   - The handler also collects output files in call order, as core's `files` ref does.
 - **Hooks.** The progress rows (`progressHooks`) map to the hooks:
   - `tool_start` adds a `running` row with `displayInput(input)`.
@@ -156,7 +164,8 @@ The evaluator in `interp/`:
 - An `await`, a `yield`, a blocking host call, or a time slice suspends the future with a `Signal`. The nearest
   boundary that can handle the signal takes it, at the points where TS splits its explicit activation stack.
 - `runner.rs` is TS's `Runner`. It keeps the job queue, the inbox of host completions in completion order,
-  stuck-await detection, and unhandled rejections.
+  stuck-await detection, and unhandled rejections. As in TS, host work is polled again only once the queue and the
+  inbox are empty (or at a time slice), so a completion settles before host work that is still running advances.
 - JavaScriptCore's host-stack overflow is emulated with budgets: call depth, native nesting, and expression
   nesting. Programs that overflow in TS fail with the same "maximum nesting depth" diagnostic.
 - `dispose` breaks object cycles at the end of a run. Freeing an object does not recurse.

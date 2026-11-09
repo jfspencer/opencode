@@ -403,6 +403,56 @@ export function wildcardPair(rand: Random): [string, string] {
   return [input, pattern]
 }
 
+/** Wildcard pairs around astral characters and lone surrogates, which the `u`-flag regex reads as code points. */
+export function astralWildcardPair(rand: Random): [string, string] {
+  const tokens = Array.from({ length: 1 + int(rand, 8) }, () =>
+    pick(rand, ["a", " ", "*", "?", "[?]", " *", "😀", "\ud83d", "\ude00", "𝐀", "é"]),
+  )
+  // The input follows the pattern, a token at a time, with now and then a lookalike in a literal's place.
+  const stand = (token: string) => {
+    if (token === "*") return pick(rand, ["", "😀", "\ud83d", "\ude00x", "a😀"])
+    if (token === "?") return pick(rand, ["q", "😀", "\ud83d", "\ude00", "😀😀", ""])
+    if (token === "[?]") return "?"
+    if (token === " *") return pick(rand, ["", " ", " 😀", " \ud83d"])
+    return chance(rand, 0.2) ? pick(rand, ["\ud83d", "\ude00", "\ud83e", "😀", "�", "a"]) : token
+  }
+  const input = chance(rand, 0.75)
+    ? tokens.map(stand).join("")
+    : soup(rand, ["a", " ", "?", "😀", "\ud83d", "\ude00", "𝐀", "x"])
+  return [input, tokens.join("")]
+}
+
+// Command names and options written quoted, escaped or with a path: the wrapper, eval, option, arity and directory
+// rules read the words' values, and the arity table the command's basename.
+const SPELLED = [
+  "sudo", "env", "timeout", "nohup", "command", "builtin", "exec", "xargs", "eval", "git", "npm", "docker", "bun",
+  "cargo", "kubectl", "aws", "ls", "rm", "cd", "pushd", "popd", "chdir", "toString", "terraform", "ip", "compose",
+]
+const SPELLED_OPERANDS = [...SUBCOMMANDS, "5", "-u", "-C", "-p", "-v", "-V", "-pv", "--", "/tmp", "~", "..", "x=1", "A=b", "a b"]
+
+function spell(rand: Random, word: string): string {
+  if (chance(rand, 0.4)) return word
+  const at = 1 + int(rand, Math.max(1, word.length - 1))
+  return pick(rand, [
+    `'${word}'`,
+    `"${word}"`,
+    `\\${word}`,
+    `${word.slice(0, at)}''${word.slice(at)}`,
+    `${word.slice(0, at)}\\${word.slice(at)}`,
+    `${word.slice(0, at)}"${word.slice(at)}"`,
+    `$'${word}'`,
+    `${pick(rand, ["/usr/bin/", "/bin/", "./", "x/", "~/bin/", "/", "$x/"])}${word}`,
+  ])
+}
+
+export function spelledTargeted(rand: Random): string {
+  const words = Array.from({ length: 1 + int(rand, 5) }, (_, index) =>
+    spell(rand, index === 0 || chance(rand, 0.4) ? pick(rand, SPELLED) : pick(rand, SPELLED_OPERANDS)),
+  )
+  const command = `${chance(rand, 0.1) ? "FOO=1 " : ""}${words.join(" ")}`
+  return chance(rand, 0.3) ? `${command}${pick(rand, ["; ", " && ", "\n"])}${simpleCommand(rand, 1)}` : command
+}
+
 /** A random path for the path.posix functions. */
 export function pathText(rand: Random): string {
   return soup(rand, ["/", "/", ".", "..", "a", "b", "~", "//", "./", "../", "é", " "])

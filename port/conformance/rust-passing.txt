@@ -278,6 +278,7 @@ scenarios/codemode-tools.test.ts › codemode search
 scenarios/codemode-tools.test.ts › codemode session move outside the project
 scenarios/codemode-tools.test.ts › codemode session move outside the project asks when external directories ask
 scenarios/codemode-tools.test.ts › codemode session tools
+scenarios/codemode-tools.test.ts › codemode tool call rejected
 scenarios/codemode-tools.test.ts › codemode tool references and failures
 scenarios/codemode-tools.test.ts › codemode tool scan scopes
 scenarios/codemode-tools.test.ts › codemode worktree tools
@@ -285,6 +286,7 @@ scenarios/codemode-tools.test.ts › codemode worktree tools outside a repositor
 scenarios/permissions.test.ts › always approve a shell command prefix
 scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
 scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
+scenarios/permissions.test.ts › always on a quoted or path-qualified command
 scenarios/permissions.test.ts › always on a wrapped command approves only the wrapped command
 scenarios/permissions.test.ts › always saves approvals and settles other pending requests they now allow
 scenarios/permissions.test.ts › approve a shell command once
@@ -586,6 +588,17 @@ scenarios/shell-tool.test.ts › the environment of shell commands
 scenarios/shell-tool.test.ts › timeouts
 scenarios/shell-tool.test.ts › working directories
 scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
+scenarios/tools-patch.test.ts › patch: a bom file
+scenarios/tools-patch.test.ts › patch: a missing file
+scenarios/tools-patch.test.ts › patch: add update delete and move
+scenarios/tools-patch.test.ts › patch: asks for the edit
+scenarios/tools-patch.test.ts › patch: bad envelope
+scenarios/tools-patch.test.ts › patch: delete then update
+scenarios/tools-patch.test.ts › patch: empty patch
+scenarios/tools-patch.test.ts › patch: empty text
+scenarios/tools-patch.test.ts › patch: lines that are not there
+scenarios/tools-patch.test.ts › patch: outside the project
+scenarios/tools-patch.test.ts › todowrite: update and clear
 scenarios/tools-question.test.ts › question answered with a custom answer
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools-question.test.ts › question dismissed by the user

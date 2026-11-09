@@ -48,10 +48,30 @@ pub struct HostError {
     pub fields: Vec<(JsStr, HostValue)>,
 }
 
-/// What a host function hands back: a value or a throw now, or later.
+/// What a host function hands back: a value or a throw now, or how its work ends later.
 pub enum HostReturn {
     Value(Result<HostValue, HostValue>),
-    Async(Fut<Result<HostValue, HostValue>>),
+    Async(Fut<HostOutcome>),
+}
+
+/// How an asynchronous host call ended.
+pub enum HostOutcome {
+    /// Resolves the call's promise.
+    Value(HostValue),
+    /// Rejects it with a copy of what the host threw.
+    Throw(HostValue),
+    /// Interrupted by the host on its own (TS: the Effect is interrupted): the promise settles uncatchably and
+    /// interrupts the execution, as `ToolOutcome::Interrupted` does, and the call ends `Interrupted`.
+    Interrupted,
+}
+
+impl From<Result<HostValue, HostValue>> for HostOutcome {
+    fn from(result: Result<HostValue, HostValue>) -> HostOutcome {
+        match result {
+            Ok(value) => HostOutcome::Value(value),
+            Err(reason) => HostOutcome::Throw(reason),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -390,7 +410,9 @@ fn wrap(ctx: &Ctx, function: &HostFunction, label: &str, hooks: Option<Rc<Extens
             let end = CallEnd { hooks: hooks.clone(), id, label: label.clone(), done: false };
             // An asynchronous global settles its promise in a later job even when the host answers at once.
             let returned = match (function.call)(args) {
-                HostReturn::Value(outcome) if function.asynchronous => HostReturn::Async(boxed(async move { outcome })),
+                HostReturn::Value(outcome) if function.asynchronous => {
+                    HostReturn::Async(boxed(async move { HostOutcome::from(outcome) }))
+                }
                 other => other,
             };
             match returned {
@@ -408,27 +430,27 @@ fn wrap(ctx: &Ctx, function: &HostFunction, label: &str, hooks: Option<Rc<Extens
                     let label = label.clone();
                     let host_end = end;
                     // The host's outcome is carried as is and converted when it settles, in a job.
-                    let outcome: Rc<RefCell<Option<Result<HostValue, HostValue>>>> = Rc::new(RefCell::new(None));
+                    let outcome: Rc<RefCell<Option<HostOutcome>>> = Rc::new(RefCell::new(None));
                     let written = outcome.clone();
                     ctx.runner.host(
                         ctx,
                         boxed(async move {
                             let result = work.await;
-                            host_end.end(if result.is_ok() {
-                                crate::tools::CallStatus::Success
-                            } else {
-                                crate::tools::CallStatus::Failure
+                            host_end.end(match &result {
+                                HostOutcome::Value(_) => crate::tools::CallStatus::Success,
+                                HostOutcome::Throw(_) => crate::tools::CallStatus::Failure,
+                                HostOutcome::Interrupted => crate::tools::CallStatus::Interrupted,
                             });
                             *written.borrow_mut() = Some(result);
                             Ok(Value::Undefined)
                         }),
                         move |ctx, _| match outcome.borrow_mut().take() {
-                            Some(Ok(value)) => match from_host(ctx, &value, &label, 0, None) {
+                            Some(HostOutcome::Value(value)) => match from_host(ctx, &value, &label, 0, None) {
                                 Ok(value) => resolving.resolve(ctx, value),
                                 Err(error) => resolving.reject(ctx, error),
                             },
-                            Some(Err(reason)) => resolving.reject(ctx, thrown(ctx, &reason, &label)),
-                            None => resolving.reject(ctx, Fail::Interrupt),
+                            Some(HostOutcome::Throw(reason)) => resolving.reject(ctx, thrown(ctx, &reason, &label)),
+                            Some(HostOutcome::Interrupted) | None => resolving.reject(ctx, Fail::Interrupt),
                         },
                     );
                     Ok(NOut::Val(Value::Obj(promise)))

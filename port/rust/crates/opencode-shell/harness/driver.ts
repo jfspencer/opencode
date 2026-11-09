@@ -16,6 +16,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, wri
 import os from "node:os"
 import path from "node:path"
 import {
+  astralWildcardPair,
   directoryCommand,
   escapeTargeted,
   labelTargeted,
@@ -29,6 +30,7 @@ import {
   random,
   shellCommand,
   sinkTargeted,
+  spelledTargeted,
   wildcardPair,
   zshTargeted,
   type Random,
@@ -254,6 +256,14 @@ function generated() {
   for (let i = 0; i < casesPerFamily / 4; i++) {
     const bytes = Array.from({ length: Math.floor(rand() * 12) }, () => pick(rand, [0x41, 0x0a, 0x80, 0xbf, 0xc2, 0xc0, 0xe0, 0xe2, 0x82, 0xac, 0xed, 0xa0, 0xf0, 0x9f, 0x98, 0x80, 0xf4, 0x90, 0xff, Math.floor(rand() * 256)]))
     add({ fn: "utf8", bytes })
+  }
+  // Families added after the others, so the corpus before them stays as earlier mutation sweeps checked it.
+  for (let i = 0; i < casesPerFamily / 2; i++) {
+    const command = spelledTargeted(rand)
+    addCommand(command, rand)
+    add({ fn: "parse", command, shell: "/bin/bash", cwd: pick(rand, CWDS) })
+    const [input, pattern] = astralWildcardPair(rand)
+    add({ fn: "match", input, pattern })
   }
 }
 

@@ -5,8 +5,8 @@
 
 use opencode_codemode::json::{self, Json, JsonObj};
 use opencode_codemode::{
-    ExecuteOptions, Execution, Extension, HostError, HostFunction, HostReturn, HostValue, Hooks, JsStr, Limits, Runtime,
-    ToolDef, ToolOutcome, ToolOutput,
+    ExecuteOptions, Execution, Extension, HostError, HostFunction, HostOutcome, HostReturn, HostValue, Hooks, JsStr,
+    Limits, Runtime, ToolDef, ToolOutcome, ToolOutput,
 };
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -29,6 +29,7 @@ enum Behavior {
     Value(Json),
     Fail(String),
     Sequence(Vec<Result<Json, String>>),
+    Interrupt,
 }
 
 struct ToolSpec {
@@ -42,6 +43,7 @@ fn behavior(spec: Option<&Json>) -> Behavior {
     match text(obj.get("kind")).as_str() {
         "value" => Behavior::Value(obj.get("value").cloned().unwrap_or(Json::Null)),
         "fail" | "die" => Behavior::Fail(text(obj.get("message"))),
+        "interrupt" => Behavior::Interrupt,
         "sequence" => {
             let values = match obj.get("values") {
                 Some(Json::Arr(items)) => items
@@ -99,7 +101,7 @@ fn settle(asynchronous: bool, outcome: Result<HostValue, HostValue>) -> HostRetu
     }
     HostReturn::Async(Box::pin(async move {
         Turns(1).await;
-        outcome
+        outcome.into()
     }))
 }
 
@@ -182,6 +184,8 @@ fn build_global(spec: &JsonObj) -> HostValue {
                 settle(true, Ok(response))
             })
         }
+        // An Effect interrupted on its own, which settles as it starts.
+        "interrupt" => function("", 0, true, |_| HostReturn::Async(Box::pin(async { HostOutcome::Interrupted }))),
         "object" => match spec.get("members") {
             Some(Json::Obj(members)) => HostValue::Object(
                 members.iter().filter_map(|(k, v)| v.as_obj().map(|member| (k.clone(), build_global(member)))).collect(),
@@ -291,6 +295,7 @@ async fn run_case(case: &JsonObj) -> Json {
                 Behavior::Echo => ToolOutcome::Ok(input),
                 Behavior::Value(value) => ToolOutcome::Ok(Some(value.clone())),
                 Behavior::Fail(message) => ToolOutcome::Err(message.clone()),
+                Behavior::Interrupt => ToolOutcome::Interrupted,
                 Behavior::Sequence(values) => {
                     let index = spec.calls.get().min(values.len().saturating_sub(1));
                     spec.calls.set(spec.calls.get() + 1);
@@ -335,6 +340,9 @@ async fn run_case(case: &JsonObj) -> Json {
             let mut line = JsonObj::new();
             line.insert_str("name", case.get("name").cloned().unwrap_or(Json::Null));
             line.insert_str("interrupted", Json::Bool(true));
+            if recording {
+                line.insert_str("events", Json::Arr(events.borrow().clone()));
+            }
             Json::Obj(line)
         }
     }

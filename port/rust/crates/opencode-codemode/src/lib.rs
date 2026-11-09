@@ -14,7 +14,7 @@ pub mod scan;
 pub mod stdlib;
 pub mod tools;
 
-pub use extensions::{Extension, ExtensionEndHook, ExtensionHook, HostError, HostFunction, HostReturn, HostValue};
+pub use extensions::{Extension, ExtensionEndHook, ExtensionHook, HostError, HostFunction, HostOutcome, HostReturn, HostValue};
 pub use api::{CodeResult, ExecuteOptions, Execution, Limits, Runtime};
 pub use interp::errors::{Diagnostic, DiagnosticKind};
 pub use json::{Json, JsonObj};
