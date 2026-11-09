@@ -210,6 +210,9 @@ scenarios/cli-inspect.test.ts › models lists only the configured model
 scenarios/cli-inspect.test.ts › models with a second configured model
 scenarios/cli-inspect.test.ts › stats after some runs
 scenarios/cli-inspect.test.ts › stats with no activity
+scenarios/cli-legacy-credentials.test.ts › a legacy file that is not JSON is skipped
+scenarios/cli-legacy-credentials.test.ts › a legacy file that is not a JSON object is skipped
+scenarios/cli-legacy-credentials.test.ts › legacy credentials are imported when the database is created
 scenarios/cli-meta.test.ts › command groups without a subcommand
 scenarios/cli-meta.test.ts › help of each in-scope command
 scenarios/cli-meta.test.ts › missing required arguments
@@ -217,6 +220,12 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-project-archive.test.ts › projects whose directories are gone are archived or moved
+scenarios/cli-project-archive.test.ts › recently active projects are not swept
+scenarios/cli-references.test.ts › a cache directory of another repository is replaced
+scenarios/cli-references.test.ts › git references are checked out and refreshed daily
+scenarios/cli-ripgrep.test.ts › a ripgrep download that fails verification is not used
+scenarios/cli-ripgrep.test.ts › an unanswered ripgrep download fails the search
 scenarios/cli-run.test.ts › run --auto approves permission requests
 scenarios/cli-run.test.ts › run --auto does not approve denied actions
 scenarios/cli-run.test.ts › run --format json streams events
@@ -394,6 +403,7 @@ scenarios/project-fs.test.ts › read files
 scenarios/project-fs.test.ts › read with byte ranges
 scenarios/project-fs.test.ts › watch and unwatch files
 scenarios/project-fs.test.ts › write files
+scenarios/project-idle.test.ts › idle locations are unloaded at the sweep
 scenarios/project-instructions.test.ts › AGENTS.md files from a nested location up to the git root
 scenarios/project-instructions.test.ts › AGENTS.md in the project root
 scenarios/project-instructions.test.ts › absolute and home instruction paths
@@ -430,6 +440,7 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-schedule-tick.test.ts › schedules due together fire in one tick
 scenarios/project-schedule.test.ts › code conditions at creation
 scenarios/project-schedule.test.ts › create schedules of every kind
 scenarios/project-schedule.test.ts › denied shell conditions
@@ -476,6 +487,13 @@ scenarios/project-vcs.test.ts › vcs routes on a clean repository
 scenarios/project-vcs.test.ts › vcs routes on a location's first request
 scenarios/project-vcs.test.ts › vcs routes outside a repository
 scenarios/project-vcs.test.ts › working copy status and diff
+scenarios/project-watch.test.ts › a markerless location watches no HEAD
+scenarios/project-watch.test.ts › a nested location watches the repository's HEAD
+scenarios/project-watch.test.ts › a watched file announces its changes and its removal
+scenarios/project-watch.test.ts › branch switches announce the new branch
+scenarios/project-watch.test.ts › watcher.ignore turns the HEAD watch off
+scenarios/project-watch.test.ts › watches of a nested location announce on that location
+scenarios/project-watch.test.ts › watching needs the file watcher
 scenarios/project-worktree.test.ts › create a worktree at a ref and from a linked worktree
 scenarios/project-worktree.test.ts › create, list and remove worktrees
 scenarios/project-worktree.test.ts › refresh discovers and forgets worktrees

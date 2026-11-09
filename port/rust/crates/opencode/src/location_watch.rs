@@ -96,7 +96,8 @@ impl Watcher {
             .filter(|t| !t.aliases.iter().any(|alias| ignore.contains(alias)))
             .map(|t| t.path.clone());
         let mut active = self.active.lock().unwrap();
-        if active.as_ref().map(|a| &a.path) == next.as_ref() {
+        // A shutdown while the target resolved wins: `stop` takes the watch under this lock after setting the flag.
+        if self.stopped.load(Ordering::SeqCst) || active.as_ref().map(|a| &a.path) == next.as_ref() {
             return;
         }
         let previous = active.take();
