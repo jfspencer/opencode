@@ -1,0 +1,59 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:10:16 -0700
+Subject: [PATCH] D122 tools: grep on a path that is neither a file nor a
+ directory fails instead of searching its parent
+
+Upstream: the grep tool searches a directory path as a directory and a file path as that file; any other kind of
+path (a FIFO, a socket, a device) falls through to `path.dirname`, so grep searches the whole directory around it
+and reports matches from other files.
+Fixed: such a path fails as glob's wrong-kind path does: "Search path is not a file or directory: <path>".
+Found by the Rust file-tools slice.
+Scenarios: tools-read.test.ts "grep on a special file" (new)
+Upstream tests: packages/core/test/tool-search.test.ts adds a test
+
+diff --git a/packages/core/src/tool/plugin/grep.ts b/packages/core/src/tool/plugin/grep.ts
+index c3e73ebba3..9cf71a9d3a 100644
+--- a/packages/core/src/tool/plugin/grep.ts
++++ b/packages/core/src/tool/plugin/grep.ts
+@@ -101,6 +101,11 @@ export const Plugin = {
+               })
+               const root = target.absolute
+               const type = yield* ToolSearch.pathType(environment.files, root, input.path ?? ".")
++              // Anything else (a FIFO, a socket) would otherwise search the directory around it.
++              if (type !== "file" && type !== "directory")
++                return yield* Effect.fail(
++                  new ToolFailure({ message: `Search path is not a file or directory: ${input.path ?? "."}` }),
++                )
+               const cwd = type === "directory" ? root : path.dirname(root)
+               const result = yield* ToolSearch.bounded(input.limit ?? FileSystem.DEFAULT_SEARCH_LIMIT, (limit) =>
+                 ripgrep.grep({
+diff --git a/packages/core/test/tool-search.test.ts b/packages/core/test/tool-search.test.ts
+index 66c43c1127..c742de8c72 100644
+--- a/packages/core/test/tool-search.test.ts
++++ b/packages/core/test/tool-search.test.ts
+@@ -327,6 +327,24 @@ describe("search tools", () => {
+     ),
+   )
+ 
++  it.live("reports a special file used as the grep search path", () =>
++    withTempDir((tmp) =>
++      Effect.sync(() => Bun.spawnSync(["mkfifo", path.join(tmp.path, "pipe")])).pipe(
++        Effect.andThen(
++          withTools(tmp.path, (registry) => executeTool(registry, call("grep", { path: "pipe", pattern: "needle" }))),
++        ),
++        Effect.tap((result) =>
++          Effect.sync(() => {
++            expect(result).toEqual({
++              status: "error",
++              error: { type: "tool.execution", message: "Search path is not a file or directory: pipe" },
++            })
++          }),
++        ),
++      ),
++    ),
++  )
++
+   it.live("requires external_directory approval for an explicit external glob path", () =>
+     Effect.acquireUseRelease(
+       Effect.promise(() => Promise.all([tmpdir(), tmpdir()])),

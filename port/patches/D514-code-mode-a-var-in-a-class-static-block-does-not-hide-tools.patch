@@ -1,0 +1,74 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:00:44 -0700
+Subject: [PATCH] D514 code mode: a var in a class static block does not hide
+ tools from the scan
+
+Upstream: scanTools lists the `tools.<path>` calls a program makes, skipping a `tools` that a local binding
+shadows. It collects `var` declarations up to the nearest function, but not up to a class static block, which is a
+var scope of its own: `await tools.danger({}); x = class { static { var tools } }` scans as no tools. Both code-mode
+engines reject classes when they run a program, so the miss shows where the scan is used on its own: schedule-check
+validation passes a forbidden tool hidden this way, and the permission requests it makes leave the tool out.
+Fixed: a static block is a var scope: its declarations shadow `tools` inside the block only.
+Found by the Rust opencode-codemode crate.
+Scenarios: none (no scenario validates a check with classes); the crate's harness and the upstream test pin it
+Upstream tests: packages/codemode/test/scan.test.ts adds a test
+
+diff --git a/packages/codemode/src/scan.ts b/packages/codemode/src/scan.ts
+index 5069413437..283794fe7e 100644
+--- a/packages/codemode/src/scan.ts
++++ b/packages/codemode/src/scan.ts
+@@ -1,4 +1,4 @@
+-import type { AnyNode, BlockStatement, ModuleDeclaration, Pattern, Program, Statement } from "acorn"
++import type { AnyNode, BlockStatement, ModuleDeclaration, Pattern, Program, Statement, StaticBlock } from "acorn"
+ import { Result } from "effect"
+ import type { Diagnostic } from "./codemode.js"
+ import { parseProgram } from "./interpreter/execute.js"
+@@ -140,6 +140,8 @@ function enterNodeScope(node: AnyNode): Set<string> | undefined {
+     return names
+   }
+   if (node.type === "BlockStatement") return collectScope(node, false)
++  // A class static block is a var scope of its own, like a function body.
++  if (node.type === "StaticBlock") return collectScope(node, true)
+   if (node.type === "CatchClause") {
+     const names = new Set<string>()
+     if (node.param) collectPattern(node.param, names)
+@@ -162,7 +164,7 @@ function enterNodeScope(node: AnyNode): Set<string> | undefined {
+   return undefined
+ }
+ 
+-function collectScope(container: Program | BlockStatement, includeVar: boolean): Set<string> {
++function collectScope(container: Program | BlockStatement | StaticBlock, includeVar: boolean): Set<string> {
+   const names = new Set<string>()
+   for (const statement of container.body) {
+     if (statement.type === "FunctionDeclaration" && statement.id) names.add(statement.id.name)
+@@ -181,7 +183,8 @@ function collectNestedVars(statements: ReadonlyArray<Statement | ModuleDeclarati
+     if (
+       node.type === "FunctionDeclaration" ||
+       node.type === "FunctionExpression" ||
+-      node.type === "ArrowFunctionExpression"
++      node.type === "ArrowFunctionExpression" ||
++      node.type === "StaticBlock"
+     ) {
+       return
+     }
+diff --git a/packages/codemode/test/scan.test.ts b/packages/codemode/test/scan.test.ts
+index e4327f019e..7d87bdb4d0 100644
+--- a/packages/codemode/test/scan.test.ts
++++ b/packages/codemode/test/scan.test.ts
+@@ -31,6 +31,15 @@ describe("CodeMode.scanTools", () => {
+     expect(scanned).toEqual(Result.succeed([]))
+   })
+ 
++  test("keeps a var in a class static block to that block", () => {
++    expect(CodeMode.scanTools("await tools.danger({}); x = class { static { var tools } }")).toEqual(
++      Result.succeed(["danger"]),
++    )
++    expect(CodeMode.scanTools("x = class { static { var tools; tools.inner() } }; await tools.outer()")).toEqual(
++      Result.succeed(["outer"]),
++    )
++  })
++
+   test("rejects empty code, syntax errors, dynamic bracket access, and aliasing tools", () => {
+     expect(Result.isFailure(CodeMode.scanTools("   "))).toBe(true)
+     expect(Result.isFailure(CodeMode.scanTools("const x = {"))).toBe(true)

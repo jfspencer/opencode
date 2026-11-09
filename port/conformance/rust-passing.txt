@@ -295,7 +295,7 @@ scenarios/permissions.test.ts › session rules allow and deny shell commands
 scenarios/permissions.test.ts › web fetch redirects are checked against deny rules
 scenarios/project-agents.test.ts › a custom agent shapes the provider request
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
-scenarios/project-agents.test.ts › agent and provider lookups on a location's first request
+scenarios/project-agents.test.ts › agent lookups on a location's first request
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
 scenarios/project-agents.test.ts › custom agents from config

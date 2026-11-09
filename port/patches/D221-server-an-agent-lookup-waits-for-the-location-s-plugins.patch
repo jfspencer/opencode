@@ -1,16 +1,16 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
 Date: Mon, 9 Nov 2026 00:33:04 -0700
-Subject: [PATCH] D221 server: agent and provider lookups wait for plugins
+Subject: [PATCH] D221 server: an agent lookup waits for the location's plugins
 
-Upstream: GET /api/agent/:agentID and GET /api/provider/:providerID answer as soon as the location is built, before
-its plugins have registered agents and providers, while their list routes wait (D207, #62569). As a location's
-first request, GET /api/agent/general and GET /api/provider/openrouter answer 404 (AgentNotFoundError,
-ProviderNotFoundError), and GET /api/agent/build answers a half-built agent: the built-in definition without the
-config's model, description or color.
-Fixed: both lookups wait for plugin activation like the list routes (503 ServiceUnavailableError when it times
-out; agent.get now declares it, provider.get already did).
-Scenarios: project-agents.test.ts "agent and provider lookups on a location's first request" (new)
+Upstream: GET /api/agent/:agentID answers as soon as the location is built, before its plugins have registered the
+agents and applied the config to them, while GET /api/agent waits (#59082). As a location's first request,
+GET /api/agent/general answers 404 AgentNotFoundError, and GET /api/agent/build answers a half-built agent: the
+built-in definition without the config's model, description or color.
+Fixed: the lookup waits for plugin activation like the list (503 ServiceUnavailableError when it times out,
+now declared). GET /api/provider/:providerID stays nonblocking: upstream kept it so on purpose in #59082, and its
+test asserts it ("single provider reads stay nonblocking").
+Scenarios: project-agents.test.ts "agent lookups on a location's first request" (new)
 Upstream tests: packages/server/test/agent-get.test.ts (new); client and openapi.json regenerated
 
 diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
@@ -72,18 +72,6 @@ index eff3bb9497..72220b3cbb 100644
          const agent = yield* Agent.Service.use((service) => service.get(ctx.params.agentID))
          if (!agent)
            return yield* new AgentNotFoundError({
-diff --git a/packages/server/src/handlers/provider.ts b/packages/server/src/handlers/provider.ts
-index 3b0bdf4a49..0bb1d183e2 100644
---- a/packages/server/src/handlers/provider.ts
-+++ b/packages/server/src/handlers/provider.ts
-@@ -19,6 +19,7 @@ export const ProviderHandler = HttpApiBuilder.group(Api, "server.provider", (han
-       .handle(
-         "provider.get",
-         Effect.fn(function* (ctx) {
-+          yield* awaitPlugins
-           const providers = yield* Provider.Service
-           const provider = yield* providers.get(ctx.params.providerID)
-           if (!provider)
 diff --git a/packages/server/test/agent-get.test.ts b/packages/server/test/agent-get.test.ts
 new file mode 100644
 index 0000000000..3a729a3388

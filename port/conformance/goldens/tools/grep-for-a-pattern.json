@@ -132,7 +132,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n\n  Line 2: export const shout = (s: string) => s.toUpperCase()\n",
+                      "text": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n  Line 2: export const shout = (s: string) => s.toUpperCase()",
                       "type": "text"
                     }
                   ],
@@ -265,7 +265,7 @@
               ]
             },
             {
-              "content": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n\n  Line 2: export const shout = (s: string) => s.toUpperCase()\n",
+              "content": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n  Line 2: export const shout = (s: string) => s.toUpperCase()",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -681,7 +681,7 @@
           "assistantMessageID": "<msg_4>",
           "content": [
             {
-              "text": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n\n  Line 2: export const shout = (s: string) => s.toUpperCase()\n",
+              "text": "Found 2 matches\n<project>/src/strings.ts:\n  Line 1: export const greet = (name: string) => `hello ${name}`\n  Line 2: export const shout = (s: string) => s.toUpperCase()",
               "type": "text"
             }
           ],

@@ -310,7 +310,7 @@
               ]
             },
             {
-              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 1: export function add(a: number, b: number) {\n",
+              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 1: export function add(a: number, b: number) {",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -990,7 +990,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "Found 1 matches\n<project>/src/math.ts:\n  Line 1: export function add(a: number, b: number) {\n",
+              "text": "Found 1 matches\n<project>/src/math.ts:\n  Line 1: export function add(a: number, b: number) {",
               "type": "text"
             }
           ],

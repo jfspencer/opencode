@@ -1,0 +1,60 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:09:29 -0700
+Subject: [PATCH] D121 tools: a CRLF file reads the same whether or not the
+ read pages
+
+Upstream: the read tool drops each line's trailing CR when it reads a page (an offset or a limit, or a large file),
+but not when it reads a small file whole, so the model sees `1: one\r` for an unpaged read of a CRLF file and
+`2: two` for a read with offset 2, and the structured output differs the same way.
+Fixed: the whole-file read drops the CR too, before clamping long lines, as pages do.
+Found by the Rust file-tools slice.
+Scenarios: tools-read.test.ts "read long lines and paging" (re-recorded)
+Upstream tests: packages/core/test/tool-read-filesystem.test.ts adds a test
+
+diff --git a/packages/core/src/tool/read-filesystem.ts b/packages/core/src/tool/read-filesystem.ts
+index 9d20315047..96b571140d 100644
+--- a/packages/core/src/tool/read-filesystem.ts
++++ b/packages/core/src/tool/read-filesystem.ts
+@@ -156,7 +156,12 @@ export const read = Effect.fn("ReadTool.read")(function* (
+       type: "file" as const,
+       uri: virtual ? resource : pathToFileURL(input).href,
+       name: virtual ? path.posix.basename(input) : path.basename(input),
+-      content: new TextDecoder().decode(first.bytes).split("\n").map(clampLine).join("\n"),
++      // Lines end without their CR, as in pages.
++      content: new TextDecoder()
++        .decode(first.bytes)
++        .split("\n")
++        .map((line) => clampLine(line.endsWith("\r") ? line.slice(0, -1) : line))
++        .join("\n"),
+       encoding: "utf8" as const,
+       mime: mimeType(input),
+     }
+diff --git a/packages/core/test/tool-read-filesystem.test.ts b/packages/core/test/tool-read-filesystem.test.ts
+index 1410f92de8..8355cb5cfb 100644
+--- a/packages/core/test/tool-read-filesystem.test.ts
++++ b/packages/core/test/tool-read-filesystem.test.ts
+@@ -242,6 +242,23 @@ describe("ReadToolFileSystem", () => {
+     }),
+   )
+ 
++  it.effect("drops CRLF carriage returns whether or not it pages", () =>
++    Effect.gen(function* () {
++      const { environment, files, directory } = yield* fixture
++      const file = path.join(directory, "crlf.txt")
++      yield* files.writeFileString(file, "one\r\ntwo\r\n")
++
++      expect(yield* ReadToolFileSystem.read(environment, absolute(file), "crlf.txt")).toMatchObject({
++        type: "file",
++        content: "one\ntwo\n",
++      })
++      expect(yield* ReadToolFileSystem.read(environment, absolute(file), "crlf.txt", { offset: 1 })).toMatchObject({
++        type: "text-page",
++        content: "one\ntwo",
++      })
++    }),
++  )
++
+   it.effect("truncates long lines", () =>
+     Effect.gen(function* () {
+       const { environment, files, directory } = yield* fixture

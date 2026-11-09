@@ -175,26 +175,6 @@
       "method": "GET",
       "status": 200,
       "url": "/api/agent/general"
-    },
-    {
-      "body": {
-        "data": {
-          "activation": "enabled",
-          "id": "openrouter",
-          "name": "OpenRouter",
-          "package": "@opencode/ai/providers/openrouter",
-          "settings": {
-            "baseURL": "https://openrouter.ai/api/v1"
-          }
-        },
-        "location": {
-          "directory": "<project>/other"
-        }
-      },
-      "kind": "http",
-      "method": "GET",
-      "status": 200,
-      "url": "/api/provider/openrouter"
     }
   ],
   "provider": {},
@@ -397,110 +377,10 @@
           "directory": "<project>/sub"
         },
         "type": "plugin.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "canonical": "<project>/other",
-          "id": "<hash_3>",
-          "sandboxes": [],
-          "time": {
-            "active": "<time>",
-            "created": "<time>",
-            "updated": "<time>"
-          }
-        },
-        "id": "<evt_21>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "project.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_22>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "integration.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_23>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "provider.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_24>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "model.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_25>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "agent.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_26>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "command.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_27>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "skill.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_28>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "websearch.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_29>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "reference.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {},
-        "id": "<evt_30>",
-        "location": {
-          "directory": "<project>/other"
-        },
-        "type": "plugin.updated"
       }
     ]
   },
   "files": {
-    "other/b.txt": "b\n",
     "sub/a.txt": "a\n"
   }
 }

@@ -305,7 +305,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -314,7 +314,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -434,7 +434,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -443,7 +443,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -582,7 +582,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -591,7 +591,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -749,7 +749,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -758,7 +758,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -935,7 +935,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -944,7 +944,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1140,7 +1140,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -1149,7 +1149,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1364,7 +1364,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"echo out; echo err >&2; echo again\"}",
+                    "arguments": "{\"command\":\"echo err >&2; echo again >&2\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -1373,7 +1373,7 @@
               ]
             },
             {
-              "content": "out\nagain\nerr\n",
+              "content": "err\nagain\n",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1714,7 +1714,7 @@
         "created": "<time>",
         "data": {
           "info": {
-            "command": "echo out; echo err >&2; echo again",
+            "command": "echo err >&2; echo again >&2",
             "cwd": "<project>",
             "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
             "id": "<sh_2>",
@@ -2300,7 +2300,7 @@
           "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"command\":\"echo out; echo err >&2; echo again\"}"
+          "text": "{\"command\":\"echo err >&2; echo again >&2\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -2320,7 +2320,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "command": "echo out; echo err >&2; echo again"
+            "command": "echo err >&2; echo again >&2"
           },
           "sessionID": "<ses_1>"
         },
@@ -2358,7 +2358,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "out\nagain\nerr\n",
+              "text": "err\nagain\n",
               "type": "text"
             }
           ],

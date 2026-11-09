@@ -169,6 +169,40 @@ scenario(
   },
 )
 
+// Pages that end inside a tag or a character reference. One is served as `Text/HTML`: media types are
+// case-insensitive.
+scenario(
+  "webfetch markup cut off at the end of a page",
+  {
+    responders: [
+      site("https://cut.example.com", {
+        "/closing": page("<p>kept</p></div foo", "Text/HTML"),
+        "/emoji": page("a</b \u{1f600}"),
+        "/self-closing": page("<p>kept</p><div/"),
+        "/script": page("<p>kept</p>x<s"),
+        "/title": page("<p>kept</p>x<t"),
+        "/reference": page("<p>hello world &#x"),
+        "/list": page("<ul><li>a<b "),
+        "/emphasis": page("<p>a<em "),
+      }),
+    ],
+    turns: fetches(
+      "https://cut.example.com/closing",
+      { url: "https://cut.example.com/closing", format: "text" },
+      { url: "https://cut.example.com/emoji", format: "text" },
+      "https://cut.example.com/self-closing",
+      "https://cut.example.com/script",
+      "https://cut.example.com/title",
+      { url: "https://cut.example.com/reference", format: "text" },
+      "https://cut.example.com/list",
+      "https://cut.example.com/emphasis",
+    ),
+  },
+  async (ctx) => {
+    await run(ctx, "Fetch the cut-off pages")
+  },
+)
+
 scenario(
   "webfetch deeply nested HTML",
   {

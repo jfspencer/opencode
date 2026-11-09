@@ -1,0 +1,110 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:54:54 -0700
+Subject: [PATCH] D116 permissions: a quoted, escaped or path-qualified command
+ name is saved like the plain name
+
+Upstream: the saved prefix for "always" looks wrappers and the arity table up by the word as written. Bash's
+`'sudo' ls` (or `\sudo ls`) is not recognized as sudo and saves `'sudo' *`, which then approves `'sudo' rm -rf /`;
+`'git' status` saves `'git' *`, which approves `'git' push --force`; `/usr/bin/git status` saves `/usr/bin/git *`.
+The subcommand rule (D106) is bypassed the same way: `git '-C' x status` saved `git '-C' *`.
+Fixed: wrappers, `eval`, options and arity keys are read from the words' values (the scanner's unquoted words), and
+the arity table is keyed by the command's basename, as the wrapper table already was. The saved prefix keeps the
+words as written: `'sudo' ls *`, `'git' status *`, `/usr/bin/git status *`, and `git '-C' x status` exactly.
+Found by the Rust opencode-shell crate's differential harness.
+Scenarios: permissions.test.ts "always on a quoted or path-qualified command" (new)
+Upstream tests: packages/core/test/shell-parse-compatibility.test.ts: two cases asserted the broad prefix
+(`g""it *`, `npm "run" *`); updated, and quoted, escaped and path-qualified cases added
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index d3d328264a..0247ff09f1 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -243,7 +243,12 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+         output.directories.push(...resolved.directories)
+         if (directoryCommand === parts && resolved.complete) continue
+       }
+-      const selected = powershell ? prefix(words) : bashPrefix(words)
++      const selected = powershell
++        ? prefix(words)
++        : bashPrefix(
++            words,
++            words.map((raw, index) => item.words[index] ?? raw),
++          )
+       // Command text is escaped, so only the added trailing `*` is a wildcard: `r? x` must not approve `rm`.
+       const prefixed = selected && `${Wildcard.escape(selected.join(" "))} *`
+       // A command that only the shell can identify is saved exactly as approved. So is one whose resource starts with
+@@ -627,10 +632,10 @@ function environment(key: string) {
+   return name ? process.env[name] : undefined
+ }
+ 
+-function prefix(words: string[]) {
++function prefix(words: string[], values = words) {
+   const tokens = words.slice(0, PREFIX_LENGTH)
+   for (let length = tokens.length; length > 0; length--) {
+-    const key = tokens.slice(0, length).join(" ")
++    const key = values.slice(0, length).join(" ")
+     // Own keys only: a command named like an Object.prototype member (`toString`) has no arity entry.
+     if (Object.hasOwn(ARITY, key)) return tokens.slice(0, ARITY[key])
+   }
+@@ -639,21 +644,24 @@ function prefix(words: string[]) {
+ 
+ /**
+  * The prefix of a POSIX command that names what it runs, or undefined when that depends on the shell: a dynamic
+- * command name, `eval`, or options that hide where the wrapped command or the subcommand starts.
++ * command name, `eval`, or options that hide where the wrapped command or the subcommand starts. Words are looked
++ * up by their values, so a quoted or escaped name (`'sudo'`, `\git`) is the command it names, while the prefix
++ * keeps the words as written.
+  */
+-function bashPrefix(words: string[]): string[] | undefined {
++function bashPrefix(words: string[], values: string[]): string[] | undefined {
+   const head = words[0]
+-  if (head === undefined || head === "eval" || !isStaticBashWord(head)) return
+-  const name = path.basename(head)
++  if (head === undefined || values[0] === "eval" || !isStaticBashWord(head)) return
++  const name = path.basename(values[0])
+   const operands = Object.hasOwn(WRAPPERS, name) ? WRAPPERS[name] : undefined
+   if (operands === undefined) {
+-    const selected = prefix(words)
++    // The arity table names commands, not paths: `/usr/bin/git status` is git's `status`.
++    const selected = prefix(words, [name, ...values.slice(1)])
+     // An option where a subcommand belongs hides which subcommand runs: `git -C *` would approve every git command.
+-    return selected.slice(1).some((word) => word.startsWith("-")) ? undefined : selected
++    return values.slice(1, selected.length).some((word) => word.startsWith("-")) ? undefined : selected
+   }
+   // Wrappers like env and sudo take assignments before the command; they stay part of the prefix.
+   const command = words.findIndex((word, index) => index > 0 && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word))
+-  if (command === -1 || words[command].startsWith("-")) return
+-  const wrapped = bashPrefix(words.slice(command + operands))
++  if (command === -1 || values[command].startsWith("-")) return
++  const wrapped = bashPrefix(words.slice(command + operands), values.slice(command + operands))
+   return wrapped && [...words.slice(0, command + operands), ...wrapped]
+ }
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index c3036442d4..acac61e86a 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -90,12 +90,21 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       {},
+       { commands: [], directories: ["$HOME", path.join(os.homedir(), "outside")] },
+     ],
+-    ["bash", 'g""it status', {}, { commands: [{ resource: 'g""it status', save: 'g""it *' }], directories: [] }],
++    // Quoted names are looked up as the command they name.
++    ["bash", 'g""it status', {}, { commands: [{ resource: 'g""it status', save: 'g""it status *' }], directories: [] }],
++    ["bash", "'sudo' ls", {}, { commands: [{ resource: "'sudo' ls", save: "'sudo' ls *" }], directories: [] }],
++    ["bash", "\\sudo ls", {}, { commands: [{ resource: "\\sudo ls", save: "\\sudo ls *" }], directories: [] }],
++    [
++      "bash",
++      "/usr/bin/git status",
++      {},
++      { commands: [{ resource: "/usr/bin/git status", save: "/usr/bin/git status *" }], directories: [] },
++    ],
+     [
+       "bash",
+       'npm "run" test',
+       {},
+-      { commands: [{ resource: 'npm "run" test', save: 'npm "run" *' }], directories: [] },
++      { commands: [{ resource: 'npm "run" test', save: 'npm "run" test *' }], directories: [] },
+     ],
+     ["bash", "git '*'", {}, { commands: [{ resource: "git '*'", save: "git '[*]' *" }], directories: [] }],
+     [

@@ -358,6 +358,34 @@ scenario(
   },
 )
 
+// A quoted command name is the command it names: "always" on `'git' status --short` approves git's `status`, not
+// every git command. A quoted cd still moves to its directory, which external_directory rules check (denied here).
+scenario(
+  "always on a quoted or path-qualified command",
+  {
+    git: true,
+    files: { "a.txt": "a\n" },
+    config: { permissions: shellAsks },
+    turns: [
+      call("shell", { command: "'git' status --short" }),
+      call("shell", { command: "'git' status" }),
+      call("shell", { command: "'git' diff --stat" }),
+      call("shell", { command: "\\env echo one" }),
+      call("shell", { command: "/usr/bin/env echo two" }),
+      call("shell", { command: "'cd' /tmp && echo moved" }),
+      say("Done."),
+    ],
+  },
+  async (ctx) => {
+    const id = await ctx.session({ title: "quoted" })
+    const approved = new Set(["'git' status --short", "\\env echo one"])
+    await prompt(ctx, id, "Run the quoted commands", (request) =>
+      approved.has(request.resources[0]) ? { decision: "always" } : { decision: "reject", message: "Not that one." },
+    )
+    await ctx.http("GET", "/api/permission/saved")
+  },
+)
+
 scenario(
   "always on a command with an environment assignment approves it under that assignment only",
   {

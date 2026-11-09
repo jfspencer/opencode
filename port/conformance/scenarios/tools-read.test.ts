@@ -359,3 +359,17 @@ scenario(
     unlinkSync(path.join(ctx.project, "pipe"))
   },
 )
+
+// Neither a file nor a directory: grep fails rather than search the directory around it (README.md has a match).
+scenario(
+  "grep on a special file",
+  {
+    files: { "README.md": "needle here\n" },
+    turns: [call("grep", { pattern: "needle", path: "pipe" }), say("Searched.")],
+  },
+  async (ctx) => {
+    spawnSync("mkfifo", [path.join(ctx.project, "pipe")])
+    await drive(ctx, "Search the named pipe")
+    unlinkSync(path.join(ctx.project, "pipe"))
+  },
+)
