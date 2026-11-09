@@ -336,6 +336,28 @@ fn miss_hint(source: &str, old: &str, new: &str) -> Option<String> {
     Some(out.join("\n"))
 }
 
+/// The edit applied to the source: how many matches there are, and the text with the first (or every) one
+/// replaced.
+fn apply(source: &str, old: &str, new: &str, replace_all: bool) -> (usize, String) {
+    let endings_only = old.replace('\r', "") == new.replace('\r', "");
+    let (matches, replacement) =
+        if endings_only { (find_occurrences(source, old), None) } else { let (m, r) = match_view(source, old, new); (m, Some(r)) };
+    let file_ending = line_ending(source, "\n");
+    let replace = |m: &Match| match &replacement {
+        None => new.to_owned(),
+        Some(replacement) => {
+            let region = &source[m.start..m.end];
+            with_region_endings(region, replacement, line_ending(region, file_ending))
+        }
+    };
+    let applied: &[Match] = if replace_all { &matches } else { &matches[..matches.len().min(1)] };
+    let mut replaced = source.to_owned();
+    for m in applied.iter().rev() {
+        replaced = format!("{}{}{}", &replaced[..m.start], replace(m), &replaced[m.end..]);
+    }
+    (matches.len(), replaced)
+}
+
 fn failure(message: impl Into<String>) -> Failure {
     Failure::Error(ToolError::new(message))
 }
@@ -363,22 +385,7 @@ impl Edit {
             Err(_) => return Err(unable()),
         };
         let endings_only = old.replace('\r', "") == new.replace('\r', "");
-        let (matches, replacement) =
-            if endings_only { (find_occurrences(&source, &old), None) } else { let (m, r) = match_view(&source, &old, &new); (m, Some(r)) };
-        let file_ending = line_ending(&source, "\n");
-        let replace = |m: &Match| match &replacement {
-            None => new.clone(),
-            Some(replacement) => {
-                let region = &source[m.start..m.end];
-                with_region_endings(region, replacement, line_ending(region, file_ending))
-            }
-        };
-        let replacements = matches.len();
-        let applied: &[Match] = if replace_all { &matches } else { &matches[..matches.len().min(1)] };
-        let mut replaced = source.clone();
-        for m in applied.iter().rev() {
-            replaced = format!("{}{}{}", &replaced[..m.start], replace(m), &replaced[m.end..]);
-        }
+        let (replacements, replaced) = apply(&source, &old, &new, replace_all);
         let preview = (replacements > 0 && (replacements == 1 || replace_all)).then(|| file_diff(&target.resource, &source, &replaced, "modified"));
         file_write::authorize(&context, "edit", &target, preview.as_ref()).await?;
         if replacements == 0 {
@@ -454,6 +461,29 @@ mod tests {
         assert_eq!(apply("  value = 1   \nnext\n", "  value = 1\nnext", "  value = 2\nnext"), "  value = 2\nnext\n");
         let (matches, _) = match_view("caf\u{e9} \u{2014} x", "caf\u{e9} - x", "y");
         assert_eq!(matches, vec![Match { start: 0, end: "caf\u{e9} \u{2014} x".len() }]);
+    }
+
+    /// Cases recorded from edit.ts's matching (`EDIT_CASES=<file>`: `[{source, old, new, replaceAll, count, replaced,
+    /// hint}]`).
+    #[test]
+    #[ignore]
+    fn recorded() {
+        let path = std::env::var("EDIT_CASES").expect("EDIT_CASES names the recorded cases");
+        let cases = json::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let mut failures = 0;
+        for case in json::array(&cases).unwrap() {
+            let get = |key: &str| json::get_str(case, key).unwrap_or_default();
+            let (count, replaced) = super::apply(get("source"), get("old"), get("new"), json::get_bool(case, "replaceAll") == Some(true));
+            let hint = if count == 0 { miss_hint(get("source"), get("old"), get("new")) } else { None };
+            let want = (json::get_num(case, "count").unwrap() as usize, get("replaced").to_owned(), json::get_str(case, "hint").map(str::to_owned));
+            if (count, replaced.clone(), hint.clone()) != want {
+                failures += 1;
+                if failures < 4 {
+                    eprintln!("case {}\nwant {want:?}\ngot  {:?}", json::text(case), (count, replaced, hint));
+                }
+            }
+        }
+        assert_eq!(failures, 0);
     }
 
     #[test]
