@@ -752,6 +752,21 @@ impl<F: Future<Output = R<T>> + Unpin, T> Future for Nested<F> {
     }
 }
 
+/// Polls a future with room on the stack. Program structure that is not an expression (nested statements,
+/// destructuring patterns) recurses through polls too, as deep as the parser allows, which is deeper than a 2 MiB
+/// stack holds; TS runs those to the depth acorn parses.
+pub struct Grown<F>(pub F);
+
+impl<F: Future> Future for Grown<F> {
+    type Output = F::Output;
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<F::Output> {
+        // SAFETY: the inner future is structurally pinned: `Grown` neither moves it nor hands it out unpinned, and
+        // has no `Drop` of its own.
+        let inner = unsafe { self.map_unchecked_mut(|grown| &mut grown.0) };
+        stacker::maybe_grow(128 * 1024, 2 * 1024 * 1024, || inner.poll(cx))
+    }
+}
+
 pub fn nested<F: Future<Output = R<T>> + Unpin, T>(ctx: &Ctx, cost: usize, fut: F) -> Nested<F> {
     Nested { ctx: ctx.clone(), cost, fut }
 }

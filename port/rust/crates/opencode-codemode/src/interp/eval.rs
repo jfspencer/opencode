@@ -58,6 +58,10 @@ fn loop_exit(result: Completion, labels: Option<&[Rc<str>]>) -> Option<Completio
 }
 
 pub fn collect_pattern_names(pattern: &Pat, out: &mut Vec<Rc<str>>) {
+    stacker::maybe_grow(64 * 1024, 1024 * 1024, || collect_pattern_names_inner(pattern, out))
+}
+
+fn collect_pattern_names_inner(pattern: &Pat, out: &mut Vec<Rc<str>>) {
     match pattern {
         Pat::Identifier(id) => out.push(id.name.clone()),
         Pat::Assignment(node) => collect_pattern_names(&node.left, out),
@@ -87,6 +91,10 @@ fn pattern_names(pattern: &Pat) -> Vec<Rc<str>> {
 
 // `var` names declared anywhere in a function body except inside nested functions.
 fn collect_var_names(node: &Stmt, out: &mut Vec<Rc<str>>) {
+    stacker::maybe_grow(64 * 1024, 1024 * 1024, || collect_var_names_inner(node, out))
+}
+
+fn collect_var_names_inner(node: &Stmt, out: &mut Vec<Rc<str>>) {
     match node {
         Stmt::Variable(decl) => {
             if decl.kind == VarKind::Var {
@@ -285,7 +293,7 @@ impl Frame {
     }
 
     pub fn exec<'a>(&'a self, node: &'a Stmt) -> LFut<'a, R<Completion>> {
-        Box::pin(self.exec_inner(node))
+        Box::pin(crate::interp::runner::Grown(self.exec_inner(node)))
     }
 
     async fn exec_inner(&self, node: &Stmt) -> R<Completion> {
@@ -961,7 +969,7 @@ impl Frame {
         loc: Loc,
         initialize: bool,
     ) -> LFut<'a, R<()>> {
-        Box::pin(async move {
+        Box::pin(crate::interp::runner::Grown(async move {
             match pattern {
                 Pat::Identifier(id) => {
                     if initialize {
@@ -1014,11 +1022,11 @@ impl Frame {
                 other => Err(type_error(format!("Unsupported binding pattern '{}'.", other.type_name()))
                     .at(Some(loc_of(other.span())))),
             }
-        })
+        }))
     }
 
     pub fn assign_pattern<'a>(&'a self, pattern: &'a Pat, value: Value, loc: Loc) -> LFut<'a, R<()>> {
-        Box::pin(async move {
+        Box::pin(crate::interp::runner::Grown(async move {
             match pattern {
                 Pat::Identifier(id) => {
                     self.scopes.set(&id.name, value, loc_of(id.span))?;
@@ -1068,7 +1076,7 @@ impl Frame {
                 }
                 Pat::Rest(_) => Err(type_error("Unsupported assignment pattern 'RestElement'.").at(Some(loc))),
             }
-        })
+        }))
     }
 
     async fn eval_default(&self, node: &AssignmentPattern) -> R<Value> {
