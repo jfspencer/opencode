@@ -94,9 +94,10 @@
 //!
 //! `harness/run.sh` runs operation programs on `@opentui/core` 0.8.1's own classes (`TextBuffer`,
 //! `TextBufferView`, `EditBuffer`, `EditorView` and its `extmarks`, `SyntaxStyle`, `OptimizedBuffer.drawTextBuffer`
-//! and `drawEditorView` over the reference's `libopentui.so`) and on this crate, and compares every result: random
-//! Unicode-heavy programs, hand-picked edge cases, and exhaustive tables (every code point's width under each
-//! method, and grapheme probes for every code point below U+30000).
+//! and `drawEditorView` over the reference's `libopentui.so`, and a `TextRenderable` in a test renderer for the
+//! scene Text node) and on this crate, and compares every result: random Unicode-heavy programs, hand-picked edge
+//! cases, and exhaustive tables (every code point's width under each method, and grapheme probes for every code
+//! point below U+30000).
 //!
 //! # Divergences
 //!

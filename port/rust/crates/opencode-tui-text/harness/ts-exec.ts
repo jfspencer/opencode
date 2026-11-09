@@ -20,7 +20,7 @@ const {
 } = core
 
 export type Op = [string, ...any[]]
-export type Case = { m: string; ops: Op[]; k?: "edit"; w?: number; h?: number }
+export type Case = { m: string; ops: Op[]; k?: "edit" | "scene"; w?: number; h?: number; sw?: number; sh?: number; props?: any }
 
 const color = (c: number[] | null | undefined) => (c ? RGBA.fromInts(c[0], c[1], c[2], c[3]) : undefined)
 

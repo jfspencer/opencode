@@ -12,6 +12,7 @@ use std::io::{BufRead, Write};
 
 mod draw;
 mod edit;
+mod scene;
 
 pub mod json {
     #[derive(Clone, Debug)]
@@ -491,8 +492,10 @@ fn text_op(state: &mut TextState, op: &[Value], out: &mut String) {
 }
 
 fn run_case(case: &Value, out: &mut String) {
-    if case.get("k").is_some() {
-        return edit::run_edit_case(case, out);
+    match case.get("k").map(|k| k.str()) {
+        Some("scene") => return scene::run_scene_case(case, out),
+        Some(_) => return edit::run_edit_case(case, out),
+        None => {}
     }
     let method = WidthMethod::parse(case.get("m").unwrap().str()).unwrap();
     let ctx = TextContext::new();
