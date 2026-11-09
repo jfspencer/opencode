@@ -4,8 +4,11 @@
 //! root commit; a repository with none of these is the `global` project. A directory outside any repository is its
 //! own project, identified by the SHA-1 of `directory:<path>`.
 //!
-//! TODO(port): Mercurial identity, project icons, the archive sweep, the fingerprint cache of git discovery (it only
-//! saves spawning git).
+//! A Mercurial checkout is identified by the ID cached in `.hg/opencode`, else its first root changeset (`hg log`).
+//! Icons are discovered when a project is resolved (`crate::project_icon`).
+//!
+//! TODO(port): the archive sweep, the fingerprint cache of git discovery (it only saves spawning git), remote-derived
+//! Mercurial identity (also missing upstream).
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -35,6 +38,7 @@ pub struct Resolved {
 #[derive(Debug, Clone)]
 pub struct Vcs {
     pub kind: &'static str,
+    /// The repository's store (git's common directory, `.hg`). TODO(port): the location watcher watches its HEAD.
     #[allow(dead_code)]
     pub store: String,
 }
@@ -142,18 +146,20 @@ fn git(cwd: &str, args: &[&str]) -> Option<Output> {
     Some(Output { code: output.status.code().unwrap_or(1), text: String::from_utf8_lossy(&output.stdout).into_owned() })
 }
 
-/// The checked-out branch (`git symbolic-ref --short HEAD`); none when HEAD is detached.
-pub fn branch(worktree: &str) -> Option<String> {
-    git(worktree, &["symbolic-ref", "--quiet", "--short", "HEAD"])
-        .filter(|r| r.code == 0)
-        .map(|r| r.text.trim().to_owned())
-        .filter(|b| !b.is_empty())
+/// `Git.Repository`: a checkout, its git directory and the directory its linked worktrees share.
+#[derive(Debug, Clone)]
+pub struct Repository {
+    pub worktree: String,
+    #[allow(dead_code)]
+    pub git_directory: String,
+    pub common_directory: String,
 }
 
-struct Repository {
-    worktree: String,
-    git_directory: String,
-    common_directory: String,
+/// `Git.repo.discover`: the repository whose `.git` is found walking up from `input`. It spawns git: call it off
+/// the runtime's thread.
+pub fn repository(input: &str) -> Option<Repository> {
+    let dot_git = up(&[".git"], input, None)?;
+    discover_repository(&dot_git)
 }
 
 fn discover_repository(dot_git: &str) -> Option<Repository> {
@@ -215,10 +221,7 @@ fn remote_identity(input: &str) -> Option<String> {
 
 fn discover_git(dot_git: &str) -> Option<Resolved> {
     let repo = discover_repository(dot_git)?;
-    let previous = std::fs::read_to_string(Path::new(&repo.common_directory).join("opencode"))
-        .ok()
-        .map(|v| v.trim().to_owned())
-        .filter(|v| !v.is_empty());
+    let previous = cached(&repo.common_directory);
     let remote = git(&repo.worktree, &["remote", "get-url", "origin"])
         .filter(|r| r.code == 0)
         .and_then(|r| Some(r.text.trim().to_owned()).filter(|t| !t.is_empty()))
@@ -254,29 +257,157 @@ fn discover_git(dot_git: &str) -> Option<Resolved> {
     })
 }
 
-impl Projects {
-    /// The project owning `input`, without touching the database (it spawns git for repositories).
-    pub fn discover(&self, input: &str) -> Resolved {
-        let directory = resolve_path(input);
-        if let Some(native) = up(&[".git", ".hg"], &directory, None) {
-            if native.ends_with("/.git") {
-                if let Some(resolved) = discover_git(&native) {
-                    return resolved;
-                }
+/// The project owning `input`, without touching the database (`Project.resolve` without `persist`). It spawns git or
+/// hg for repositories: off the runtime's thread, call it through `tokio::task::spawn_blocking`.
+pub fn discover(input: &str) -> Resolved {
+    let directory = resolve_path(input);
+    if let Some(native) = up(&[".git", ".hg"], &directory, None) {
+        if native.ends_with("/.git") {
+            if let Some(resolved) = discover_git(&native) {
+                return resolved;
             }
-            // TODO(port): Mercurial repositories.
+        } else {
+            return discover_hg(&native);
         }
-        Resolved {
-            previous: None,
-            id: hash(&format!("directory:{directory}")),
-            directory: directory.clone(),
-            canonical: directory,
-            vcs: None,
-        }
+    }
+    Resolved {
+        previous: None,
+        id: hash(&format!("directory:{directory}")),
+        directory: directory.clone(),
+        canonical: directory,
+        vcs: None,
+    }
+}
+
+/// `cached`: the project ID stored in a repository's `opencode` file.
+fn cached(store: &str) -> Option<String> {
+    std::fs::read_to_string(Path::new(store).join("opencode")).ok().map(|v| v.trim().to_owned()).filter(|v| !v.is_empty())
+}
+
+/// `hgDiscover`: the cached ID, else the first root changeset.
+fn discover_hg(dot_hg: &str) -> Resolved {
+    let worktree = Path::new(dot_hg).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|| "/".into());
+    let previous = cached(dot_hg);
+    let root = || {
+        let output = Command::new("hg")
+            .args(["log", "-r", "roots(all())", "-T", "{node}\n"])
+            .current_dir(&worktree)
+            .env("HGPLAIN", "1")
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .output()
+            .ok()
+            .filter(|o| o.status.success())?;
+        let mut nodes: Vec<String> =
+            String::from_utf8_lossy(&output.stdout).split('\n').map(|l| l.trim().to_owned()).filter(|l| !l.is_empty()).collect();
+        nodes.sort();
+        nodes.into_iter().next()
+    };
+    let id = previous.clone().or_else(root).unwrap_or_else(|| GLOBAL.to_owned());
+    Resolved { previous, id, directory: worktree.clone(), canonical: worktree, vcs: Some(Vcs { kind: "hg", store: dot_hg.to_owned() }) }
+}
+
+/// A project row's fields the server reads besides `Project.Info`.
+pub struct ProjectRow {
+    pub canonical: String,
+    pub start: Option<String>,
+}
+
+/// The project row, if any.
+pub fn row(db: &Connection, id: &str) -> rusqlite::Result<Option<ProjectRow>> {
+    db.query_row("SELECT worktree, commands FROM project WHERE id = ?1", params![id], |row| {
+        let commands: Option<String> = row.get(1)?;
+        let start = commands
+            .and_then(|text| crate::json::parse(&text))
+            .and_then(|json| crate::json::get_str(&json, "start").map(str::to_owned));
+        Ok(ProjectRow { canonical: row.get(0)?, start })
+    })
+    .optional()
+}
+
+/// `Project.list`: by recent activity, then ID; archived projects only when asked for.
+pub fn list(db: &Connection, archived: bool) -> rusqlite::Result<Vec<Json>> {
+    let sql = if archived {
+        "SELECT * FROM project ORDER BY time_active DESC, id ASC"
+    } else {
+        "SELECT * FROM project WHERE time_archived IS NULL ORDER BY time_active DESC, id ASC"
+    };
+    let mut statement = db.prepare(sql)?;
+    let rows = statement.query_map([], info_from_row)?.collect();
+    rows
+}
+
+/// What `Project.update` changes (`Project.UpdateInput`): an empty text clears its field.
+#[derive(Default)]
+pub struct Update {
+    pub canonical: Option<String>,
+    pub name: Option<String>,
+    pub icon_override: Option<String>,
+    pub icon_color: Option<String>,
+    pub start: Option<String>,
+}
+
+/// `Project.update`: the updated project, announced; `None` when there is no such project.
+pub fn update(db: &Connection, bus: &Bus, id: &str, input: Update) -> rusqlite::Result<Option<Json>> {
+    let blank = |value: String| if value.is_empty() { rusqlite::types::Value::Null } else { rusqlite::types::Value::Text(value) };
+    let mut sets = vec![];
+    let mut values: Vec<rusqlite::types::Value> = vec![];
+    let mut set = |column: &str, value: rusqlite::types::Value| {
+        values.push(value);
+        sets.push(format!("{column} = ?{}", values.len()));
+    };
+    if let Some(canonical) = input.canonical {
+        set("worktree", rusqlite::types::Value::Text(canonical));
+    }
+    if let Some(name) = input.name {
+        set("name", blank(name));
+    }
+    if let Some(value) = input.icon_override {
+        set("icon_url_override", blank(value));
+    }
+    if let Some(value) = input.icon_color {
+        set("icon_color", blank(value));
+    }
+    if let Some(start) = input.start {
+        let mut commands = Obj::new();
+        commands.str("start", &start);
+        let value = if start.is_empty() {
+            rusqlite::types::Value::Null
+        } else {
+            rusqlite::types::Value::Text(crate::json::text(&commands.done()))
+        };
+        set("commands", value);
+    }
+    set("time_updated", rusqlite::types::Value::Integer(crate::id::now()));
+    values.push(rusqlite::types::Value::Text(id.to_owned()));
+    let sql = format!("UPDATE project SET {} WHERE id = ?{} RETURNING *", sets.join(", "), values.len());
+    let Some(info) = db.query_row(&sql, rusqlite::params_from_iter(values), info_from_row).optional()? else {
+        return Ok(None);
+    };
+    bus.emit("project.updated", info.clone(), PublishOptions::default());
+    Ok(Some(info))
+}
+
+impl Projects {
+    /// [`discover`].
+    pub fn discover(&self, input: &str) -> Resolved {
+        discover(input)
     }
 
     /// Persists a resolution (`Project.resolve` with `persist`).
     pub fn persist(&self, db: &mut Connection, bus: &Bus, project: &Resolved) -> rusqlite::Result<()> {
+        self.persist_at(db, bus, project, None)
+    }
+
+    /// [`Projects::persist`] from inside a location (a request placed in it): its events carry the location.
+    pub fn persist_at(
+        &self,
+        db: &mut Connection,
+        bus: &Bus,
+        project: &Resolved,
+        location: Option<LocationRef>,
+    ) -> rusqlite::Result<()> {
         let now = crate::id::now();
         let previous: Option<String> = db
             .query_row("SELECT worktree FROM project WHERE id = ?1", params![project.id], |row| row.get(0))
@@ -315,7 +446,7 @@ impl Projects {
             _ => None,
         };
         if let Some(changed) = replaced.or(unarchived) {
-            bus.emit("project.updated", changed, PublishOptions::default());
+            bus.emit("project.updated", changed, PublishOptions { id: None, location: location.clone() });
         }
         let Some(vcs) = &project.vcs else { return Ok(()) };
         let mut directories = vec![(project.canonical.clone(), None::<&str>)];
@@ -327,7 +458,7 @@ impl Projects {
             if !self.announcing.lock().unwrap().insert(key.clone()) {
                 continue;
             }
-            let result = announce(db, bus, project, &directory, strategy);
+            let result = announce(db, bus, project, &directory, strategy, location.clone());
             self.announcing.lock().unwrap().remove(&key);
             result?;
         }
@@ -362,7 +493,14 @@ impl Projects {
 
 /// A directory's first resolution to a repository project is a durable fact (`worktree.resolved`): sessions of its
 /// previous identity follow it, and markerless projects inside it are adopted.
-fn announce(db: &mut Connection, bus: &Bus, project: &Resolved, directory: &str, strategy: Option<&str>) -> rusqlite::Result<()> {
+fn announce(
+    db: &mut Connection,
+    bus: &Bus,
+    project: &Resolved,
+    directory: &str,
+    strategy: Option<&str>,
+    location: Option<LocationRef>,
+) -> rusqlite::Result<()> {
     let stored: Option<String> = db
         .query_row(
             "SELECT directory FROM worktree WHERE project_id = ?1 AND directory = ?2",
@@ -401,7 +539,7 @@ fn announce(db: &mut Connection, bus: &Bus, project: &Resolved, directory: &str,
         data.set("adopted", Json::Array(adopted.into_iter().map(Json::String).collect()));
     }
     let (project_id, directory, strategy) = (project.id.clone(), directory.to_owned(), strategy.map(str::to_owned));
-    bus.publish(db, "worktree.resolved", data.done(), PublishOptions::default(), move |tx, event| {
+    bus.publish(db, "worktree.resolved", data.done(), PublishOptions { id: None, location }, move |tx, event| {
         crate::session::project(tx, event)?;
         tx.execute(
             "INSERT INTO worktree (project_id, directory, strategy, time_created) VALUES (?1, ?2, ?3, ?4) ON CONFLICT DO NOTHING",

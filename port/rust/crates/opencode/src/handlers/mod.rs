@@ -64,9 +64,10 @@ pub fn data(value: opencode_protocol::Json) -> Response {
     Response::value(200, &o.done())
 }
 
-/// `{location, data}`: the envelope of a located endpoint's answer.
+/// `{location, data}`: the envelope of a located endpoint's answer (`response` in server/src/location.ts). Its
+/// `Location.Info` is encoded as the public reference (`{directory, workspaceID?}`).
 pub fn located_data(location: &Location, value: opencode_protocol::Json) -> Response {
     let mut o = crate::json::Obj::new();
-    o.set("location", location.info()).set("data", value);
+    o.set("location", location.reference().to_json()).set("data", value);
     Response::value(200, &o.done())
 }

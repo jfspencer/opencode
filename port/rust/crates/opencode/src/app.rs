@@ -32,9 +32,25 @@ pub struct App {
 
 /// An unexpected storage failure: the TS server dies on these (`Effect.orDie`), answering 500.
 pub fn fatal(error: rusqlite::Error) -> Failure {
-    eprintln!("database error: {error}");
+    defect(format!("database error: {error}"))
+}
+
+/// Any failure the TS server dies on (`Effect.orDie`): 500.
+pub fn defect(error: impl std::fmt::Display) -> Failure {
+    eprintln!("{error}");
     let mut o = crate::json::Obj::new();
     o.str("_tag", "UnknownError");
     o.str("message", "Internal server error");
     Failure::new(500, o.done())
+}
+
+static URLS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+
+/// Records the addresses the server listens on (`ServerInfo.urls`), once it is bound.
+pub fn set_urls(urls: Vec<String>) {
+    let _ = URLS.set(urls);
+}
+
+pub fn urls() -> Vec<String> {
+    URLS.get().cloned().unwrap_or_default()
 }
