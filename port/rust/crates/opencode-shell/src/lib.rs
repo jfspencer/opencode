@@ -11,9 +11,10 @@
 //! | [`result`] | `core/src/shell/result.ts`, the output capture of `Shell.result`, the shell tool's results |
 //! | [`path`] | Node's `path.posix` |
 //!
-//! Strings are UTF-16 inside, as in TS, so every offset and every `?` wildcard counts UTF-16 units. The `_units`
-//! functions take and return them; the others take `&str` and return `String`, replacing a lone surrogate (which
-//! only a PowerShell `` `u{d800} `` escape can produce) with U+FFFD.
+//! Strings are UTF-16 inside, as in TS, so every offset counts UTF-16 units; a `?` wildcard matches one code point,
+//! as the TS regex does in Unicode mode. The `_units` functions take and return them; the others take `&str` and
+//! return `String`, replacing a lone surrogate (which only a PowerShell `` `u{d800} `` escape can produce) with
+//! U+FFFD.
 //!
 //! Verified against the TS reference by `harness/check.sh` (see README.md).
 
@@ -144,6 +145,10 @@ impl Host for SystemHost {
     }
 
     fn env(&self, name: &str) -> Option<String> {
+        // `process.env`'s keys end at the first `=` of an entry, while getenv("a=b") would read the variable `a`.
+        if name.contains('=') {
+            return None;
+        }
         std::env::var_os(name).map(|value| value.to_string_lossy().into_owned())
     }
 }

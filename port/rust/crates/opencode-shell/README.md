@@ -21,9 +21,17 @@ the regex it implements (several backtrack; the comments say where and why the h
 `unicode.rs` is generated from the TS runtime itself (`bun harness/gen-unicode.ts`), so `\p{L}` and `\p{Nl}` follow
 the same Unicode version as JavaScriptCore.
 
-Strings are UTF-16 inside, as in TS: every offset (`wordEnds`, `redirectPrefixEnd`) and every `?` wildcard counts
-UTF-16 units. The `_units` functions take and return `Vec<u16>`; the `&str` ones convert at the boundary, replacing
-a lone surrogate (only a PowerShell `` `u{d800} `` escape can make one) with U+FFFD.
+Strings are UTF-16 inside, as in TS: every offset (`wordEnds`, `redirectPrefixEnd`) counts UTF-16 units. A `?`
+wildcard matches one code point (the TS regex has the `u` flag), so an astral character is one and a lone surrogate
+is one of its own. The `_units` functions take and return `Vec<u16>`; the `&str` ones convert at the boundary,
+replacing a lone surrogate (only a PowerShell `` `u{d800} `` escape can make one) with U+FFFD.
+
+The saved prefix of a Bash command is looked up by the words' values, as the scanner unquotes them, and kept as
+written. So `'sudo' ls`, `\sudo ls` and `/usr/bin/sudo ls` are sudo running `ls` (`'sudo' ls *`), and
+`/usr/bin/git status` is git's `status` (`/usr/bin/git status *`), because the arity table is keyed by the command's
+basename. A quoted option (`git '-C' x status`) still hides the subcommand, so that command is saved exactly.
+Directory commands are recognized by value too: `'cd' /tmp` and `c\d /tmp` report `/tmp`, and they stay a `shell`
+resource (`'cd' *`), where a plain `cd` is dropped.
 
 ## How the server uses it
 
@@ -61,8 +69,8 @@ are the arguments a shell runs a command with.
 ## Verification
 
 ```sh
-port/rust/crates/opencode-shell/harness/check.sh                        # the standard run: ~395,000 cases, ~35 s
-port/rust/crates/opencode-shell/harness/check.sh --cases 30000 --seed 7 # a deeper one: ~1,000,000 cases, ~1 min
+port/rust/crates/opencode-shell/harness/check.sh                        # the standard run: ~416,000 cases, ~45 s
+port/rust/crates/opencode-shell/harness/check.sh --cases 30000 --seed 7 # a deeper one: ~1,110,000 cases, ~70 s
 port/rust/crates/opencode-shell/harness/check.sh --no-upstream --only parse --show 20
 ```
 
@@ -82,7 +90,9 @@ byte-identical; differences go to `port/rust/target/shell-harness/differences.js
    `cd`-family commands with tilde, environment and path forms; wildcard patterns, paths, rulesets, shell results
    and byte sequences. Targeted families add what a random grammar reaches too rarely: nesting across the
    32-level limit, inputs at the 64 KiB limit, Zsh glob qualifiers and flag groups, escapes and bound values that
-   reach arithmetic sinks (also through heredocs and `[[ ]]`), PowerShell labels, member chains and here-strings;
+   reach arithmetic sinks (also through heredocs and `[[ ]]`), PowerShell labels, member chains and here-strings,
+   command names and options written quoted, escaped or with a path (wrappers, `eval`, arity commands, `cd` and
+   its `builtin`/`command` forms), and wildcard pairs around astral characters and lone surrogates;
 4. `Shell.result`'s capture and `Shell.output` pages (no pure TS function): the TS `Shell` service itself, built
    with upstream's test fixtures, runs `cat` on generated output files under several `tool_output` limits
    (`harness/capture.ts`);
@@ -118,20 +128,18 @@ the LF goes with the escape or not. One is not caught: the work budget's off-by-
   checked; `result_messages`, `tool_metadata`, `job_text` and `tool_timeout` only through the scenarios.
 - `SystemHost` is not run by the harness (it passes TS's own home, user and environment instead).
 
-## TS defects reproduced (to be fixed in the reference by a deviation patch)
+## TS defects this crate found
 
-The port matches TS in each case; each needs the deviation patch, then the port follows the fixed behavior.
+The harness found these in upstream. Each is fixed in the reference by a deviation patch (`port/patches/`), and the
+crate follows the fixed behavior:
 
-- **Quoted wrapper names escape the wrapper rule** (`bashPrefix`, parse.ts). The wrapper table is looked up by
-  the *raw* word, so `'sudo' ls` (or `\sudo ls`, `"sudo" ls`, `s''udo ls`) saves `'sudo' *`, which matches
-  `'sudo' rm -rf /`. Unquoted, `sudo ls` saves `sudo ls *`, as the comment on `WRAPPERS` intends.
-- **Quoted command names escape the arity table** (`prefix`, same cause): `'git' status` saves `'git' *`, which
-  matches `'git' push --force`; `git status` saves `git status *`.
-- **A quoted `cd` escapes directory tracking** (`unwrapDirectoryCommand`, same cause): `'cd' /tmp && touch x`
-  reports no directories, so no `external_directory` access is asked, while `cd /tmp && touch x` reports `/tmp`.
-  (`c\d /tmp` likewise.)
-- **`$env:<Object.prototype member>`** (`environment`, parse.ts): PowerShell `$env:NAME` reads `process.env[NAME]`
-  with a plain property access, so `cd $env:toString` under pwsh reports the directory
-  `function toString() { [native code] }` (`$env:__proto__` gives `[object Object]`, `$env:constructor`
-  `function Object() { [native code] }`). Reproduced in `parse.rs` (`environment`).
-- Minor: `Wildcard.match`'s `?` matches one UTF-16 unit (the regex has no `u` flag), so `a?` does not match `a😀`.
+- **D116**: wrappers, `eval`, options and the arity table were looked up by the raw word. So `'sudo' ls` (or
+  `\sudo ls`) saved `'sudo' *`, which approves `'sudo' rm -rf /`. Likewise `'git' status` saved `'git' *`,
+  `/usr/bin/git status` saved `/usr/bin/git *`, and `git '-C' x status` slipped past the option rule (D106).
+- **D117**: a quoted or escaped `cd` (`'cd' /tmp && touch x`, `c\d /tmp`) reported no directory, so no
+  `external_directory` access was asked.
+- **D118**: PowerShell `$env:NAME` read `process.env[NAME]` with a plain property access. So `cd $env:toString`
+  reported the directory `function toString() { [native code] }`, and `$env:__proto__` and `$env:constructor`
+  did the same. Only the environment's own keys resolve now. `SystemHost::env` also refuses a name with `=`,
+  which `getenv` would read as a prefix.
+- **D119**: `Wildcard.match`'s `?` matched one UTF-16 unit (the regex had no `u` flag), so `a?` missed `a😀`.
