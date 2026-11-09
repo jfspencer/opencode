@@ -167,6 +167,14 @@ scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
+scenarios/cli-auth-flows.test.ts › OAuth login in the browser
+scenarios/cli-auth-flows.test.ts › a well-known source's command login
+scenarios/cli-auth-flows.test.ts › account pickers for switching and logging out
+scenarios/cli-auth-flows.test.ts › auth login picks an integration from the list
+scenarios/cli-auth-flows.test.ts › form answers on the command line
+scenarios/cli-auth-flows.test.ts › form fields that depend on earlier answers
+scenarios/cli-auth-flows.test.ts › login method picker and an external login with a form
+scenarios/cli-auth-flows.test.ts › the integration picker's search and cancel
 scenarios/cli-auth.test.ts › auth import from a file and its errors
 scenarios/cli-auth.test.ts › auth list with the API key from the environment
 scenarios/cli-auth.test.ts › auth list without credentials
@@ -283,6 +291,16 @@ scenarios/codemode-tools.test.ts › codemode tool references and failures
 scenarios/codemode-tools.test.ts › codemode tool scan scopes
 scenarios/codemode-tools.test.ts › codemode worktree tools
 scenarios/codemode-tools.test.ts › codemode worktree tools outside a repository
+scenarios/integration-api.test.ts › API keys with labels and form answers
+scenarios/integration-api.test.ts › OAuth attempts that do not exist
+scenarios/integration-api.test.ts › a browser OAuth login
+scenarios/integration-api.test.ts › a well-known source's command login
+scenarios/integration-api.test.ts › command logins without a command method
+scenarios/integration-api.test.ts › external credential references are validated
+scenarios/integration-api.test.ts › failed and cancelled command logins
+scenarios/integration-api.test.ts › integration catalog entries and unknown integrations
+scenarios/integration-api.test.ts › integrations a policy does not allow to connect
+scenarios/integration-api.test.ts › well-known sources that cannot be added
 scenarios/permissions.test.ts › always approve a shell command prefix
 scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
 scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
