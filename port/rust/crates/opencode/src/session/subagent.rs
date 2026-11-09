@@ -133,6 +133,22 @@ fn final_text(app: &App, child: &str) -> String {
 
 /// `SubagentCompletion.deliver`: the finished job's notice, admitted into the parent session (which it wakes).
 fn deliver(app: &App, info: &Info, spawned: &Spawned) {
+    deliver_with(app, info, spawned, true, true);
+}
+
+/// The text of the child's last complete answer in its history (`store.context`), for a recovered job.
+pub fn history_text(app: &App, child: &str) -> String {
+    let history = message::history(&app.db.lock().unwrap(), child).unwrap_or_default();
+    let answer = history.iter().rev().find(|m| {
+        json::get_str(m, "type") == Some("assistant")
+            && json::get(m, "time").and_then(|t| json::get(t, "completed")).is_some()
+            && json::get(m, "error").is_none()
+    });
+    completion_text(answer)
+}
+
+/// [`deliver`] that wakes the parent only when `resume`, published in the parent's location when `located`.
+pub fn deliver_with(app: &App, info: &Info, spawned: &Spawned, resume: bool, located: bool) {
     let text = match info.status {
         Status::Running => return,
         Status::Completed => info.output.clone().unwrap_or_else(|| NO_TEXT.into()),
@@ -151,8 +167,8 @@ fn deliver(app: &App, info: &Info, spawned: &Spawned) {
         ),
         description: Some(spawned.description.clone()),
         metadata: Some(metadata.done()),
-        resume: true,
-        located: true,
+        resume,
+        located,
     };
     if synthetic(app, notice).is_ok() {
         if let Some(notification) = &info.notification_id {

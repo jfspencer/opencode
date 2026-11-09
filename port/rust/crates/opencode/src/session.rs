@@ -19,6 +19,7 @@ pub mod moves;
 pub mod parts;
 pub mod plan;
 pub mod prompt;
+pub mod restart;
 pub mod retry;
 pub mod revert;
 pub mod runner;
