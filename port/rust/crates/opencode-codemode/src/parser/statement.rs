@@ -124,7 +124,6 @@ impl<'a> Parser<'a> {
         if self.has_line_break(self.pos, next) {
             return false;
         }
-        let mut next = next;
         if is_await_using {
             let await_end_pos = next + 5;
             if !self.slice_is(next, "using") || await_end_pos == self.input.len() {
@@ -138,8 +137,7 @@ impl<'a> Parser<'a> {
             if self.has_line_break(await_end_pos, skip_after_using) {
                 return false;
             }
-            // acorn keeps looking at the token after `await`, not after `using`
-            let _ = &mut next;
+            // acorn goes on to look at `next`, still the `using` after `await`, not the token after `using`
         }
         if is_for {
             let of_end_pos = next + 2;
