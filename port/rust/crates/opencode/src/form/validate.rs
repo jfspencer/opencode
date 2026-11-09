@@ -170,7 +170,7 @@ fn validate_field(field: &Json, value: &Json) -> Option<String> {
             if let Some(pattern) = json::get_str(field, "pattern") {
                 match formats::js_regex(pattern) {
                     None => return Some(format!("Form field has invalid pattern: {name}")),
-                    Some(regex) if !regex.is_match(text) => return Some(format!("Form field does not match pattern: {name}")),
+                    Some(regex) if !formats::test(&regex, text) => return Some(format!("Form field does not match pattern: {name}")),
                     Some(_) => {}
                 }
             }
