@@ -171,6 +171,7 @@ scenarios/cli-inspect.test.ts › debug agents and config
 scenarios/cli-inspect.test.ts › debug paths
 scenarios/cli-inspect.test.ts › models lists only the configured model
 scenarios/cli-inspect.test.ts › models with a second configured model
+scenarios/cli-inspect.test.ts › stats after some runs
 scenarios/cli-inspect.test.ts › stats with no activity
 scenarios/cli-meta.test.ts › command groups without a subcommand
 scenarios/cli-meta.test.ts › help of each in-scope command
@@ -181,6 +182,7 @@ scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
 scenarios/cli-run.test.ts › run --auto approves permission requests
 scenarios/cli-run.test.ts › run --auto does not approve denied actions
+scenarios/cli-run.test.ts › run --format json streams events
 scenarios/cli-run.test.ts › run --thinking shows reasoning
 scenarios/cli-run.test.ts › run --worktree starts the session in a new git worktree
 scenarios/cli-run.test.ts › run --yolo and --dangerously-skip-permissions are --auto
@@ -194,6 +196,7 @@ scenarios/cli-run.test.ts › run reads the message from stdin
 scenarios/cli-run.test.ts › run reports model failures
 scenarios/cli-run.test.ts › run selects the model, variant and agent
 scenarios/cli-run.test.ts › run sets the title and archives
+scenarios/cli-run.test.ts › run with a failing tool call
 scenarios/cli-run.test.ts › run with attached files
 scenarios/cli-serve.test.ts › serve argument errors
 scenarios/cli-serve.test.ts › serve generates a password when none is given
