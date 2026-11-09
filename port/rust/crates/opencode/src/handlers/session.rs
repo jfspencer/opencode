@@ -88,14 +88,20 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
                 )),
             }
         }
-        "session.message.list" => messages(app, request, &decoded),
+        "session.message.list" => messages(app, request, &decoded).await,
         "session.message.get" => {
             let session_id = request.param("sessionID");
             let message_id = request.param("messageID");
+            let refs = media_refs(app, request, session_id).await?;
             let db = app.db.lock().unwrap();
             session::require(&db, session_id)?;
             match session::message::get(&db, message_id).map_err(fatal)? {
-                Some((owner, message)) if owner == session_id => Ok(data(session::message::wire(&message))),
+                Some((owner, message)) if owner == session_id => {
+                    let mut read = [message];
+                    session::blob::prepare(&db, &mut read, refs).map_err(fatal)?;
+                    let [message] = read;
+                    Ok(data(session::message::wire(&message)))
+                }
                 _ => {
                     let mut o = Obj::new();
                     o.str("_tag", "MessageNotFoundError").str("sessionID", session_id).str("messageID", message_id);
@@ -226,7 +232,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
                     json::set(&mut payload, "messages", Json::Array(upgraded));
                 }
             }
-            let stored = session::transfer::import(app, &payload, location)?;
+            let stored = session::transfer::import(app, &payload, location).await?;
             Ok(data(stored.wire()))
         }
         "experimental.session.export" => {
@@ -262,7 +268,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "session.fork" => {
             let before = json::get_str(&decoded.payload, "before");
-            let stored = session::transfer::fork(app, request.param("sessionID"), before)?;
+            let stored = session::transfer::fork(app, request.param("sessionID"), before).await?;
             Ok(data(stored.wire()))
         }
         "session.revert.stage" => {
@@ -458,6 +464,16 @@ fn synthetic(app: &App, request: &Request, decoded: &Decoded) -> Result<Response
 
 const DEFAULT_MESSAGES_LIMIT: i64 = 50;
 
+/// Whether a read keeps `media:` refs: the client opted in (`wantsMediaRefs`) and the session's location stores media
+/// as blobs (`Session.messagesWithRefs`, which reads the location's config).
+async fn media_refs(app: &App, request: &Request, session_id: &str) -> Result<bool> {
+    if !session::blob::wants_refs(request.header("x-opencode-capabilities")) {
+        return Ok(false);
+    }
+    let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+    Ok(session::blob::enabled_for(app, &stored.location).await)
+}
+
 fn invalid_cursor(message: &str) -> Failure {
     let mut o = Obj::new();
     o.str("_tag", "InvalidCursorError").str("message", message);
@@ -488,7 +504,7 @@ fn parse_message_cursor(text: &str) -> Option<(String, String, String)> {
 }
 
 /// `GET /api/session/:id/message`: one page of messages in order, with cursors to move through the timeline.
-fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+async fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
     let session_id = request.param("sessionID");
     let query = &decoded.query;
     let cursor = json::get_str(query, "cursor").filter(|c| !c.is_empty());
@@ -508,6 +524,7 @@ fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response>
         _ => None,
     }
     .unwrap_or(DEFAULT_MESSAGES_LIMIT);
+    let refs = media_refs(app, request, session_id).await?;
     let db = app.db.lock().unwrap();
     session::require(&db, session_id)?;
     let input = session::message::ListInput {
@@ -517,7 +534,8 @@ fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response>
         ty: json::get_str(query, "type").map(str::to_owned),
         cursor: decoded_cursor.map(|(id, _, direction)| (id, direction)),
     };
-    let rows = session::message::list(&db, &input).map_err(fatal)?;
+    let mut rows = session::message::list(&db, &input).map_err(fatal)?;
+    session::blob::prepare(&db, &mut rows, refs).map_err(fatal)?;
     drop(db);
     let id = |m: &Json| json::get_str(m, "id").unwrap_or_default().to_owned();
     let mut cursors = Obj::new();

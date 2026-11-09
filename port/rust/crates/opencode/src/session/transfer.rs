@@ -19,7 +19,7 @@ use crate::app::{App, fatal};
 use crate::bus::{Event, LocationRef};
 use crate::http::{Failure, Result};
 use crate::json::{self, Obj};
-use crate::session::{self, message};
+use crate::session::{self, blob, message};
 
 fn conflict(message: String, resource: &str) -> Failure {
     let mut o = Obj::new();
@@ -41,7 +41,9 @@ pub fn export(app: &App, session_id: &str, sanitized: bool) -> Result<Json> {
     let db = app.db.lock().unwrap();
     let stored = session::require(&db, session_id)?;
     let input = message::ListInput { session: session_id.to_owned(), limit: None, order: "asc".into(), ty: None, cursor: None };
-    let messages: Vec<Json> = message::list(&db, &input).map_err(fatal)?.into_iter().filter(settled).collect();
+    let mut messages: Vec<Json> = message::list(&db, &input).map_err(fatal)?;
+    session::blob::prepare(&db, &mut messages, false).map_err(fatal)?;
+    let messages: Vec<Json> = messages.into_iter().filter(settled).collect();
     drop(db);
     let mut o = Obj::new();
     if sanitized {
@@ -77,7 +79,7 @@ fn millis(value: Option<&Json>) -> Option<i64> {
 
 /// `SessionTransfer.import`: the session as `data.info` describes it, at `location`, with `data.messages`' settled
 /// history. Returns the stored session.
-pub fn import(app: &App, data: &Json, location: LocationRef) -> Result<session::Stored> {
+pub async fn import(app: &App, data: &Json, location: LocationRef) -> Result<session::Stored> {
     let info = json::get(data, "info").cloned().unwrap_or(Json::Null);
     let session_id = json::get_str(&info, "id").unwrap_or_default().to_owned();
     let already = || conflict(format!("Session already exists: {session_id}"), &session_id);
@@ -113,13 +115,29 @@ pub fn import(app: &App, data: &Json, location: LocationRef) -> Result<session::
     app.projects.persist(&mut app.db.lock().unwrap(), &app.bus, &project).map_err(fatal)?;
     let imported_at = crate::id::now();
     let subpath = session::relative(&project.directory, &location.directory).replace('\\', "/");
-    let rows: Vec<(String, String, String, i64)> = messages
+    let mut rows: Vec<(String, String, String, i64)> = messages
         .iter()
         .map(|m| {
             let (ty, data, created) = stored(m);
             (json::get_str(m, "id").unwrap_or_default().to_owned(), ty, data, created)
         })
         .collect();
+    // Only inline media the import carries becomes blobs, and only its blobs get refs: refs it carried in could
+    // otherwise keep or expose blobs it never held. The destination's config is read only when needed.
+    let split: Vec<(String, Vec<blob::Pending>)> = rows
+        .iter()
+        .map(|(_, _, data, _)| {
+            let mut value = json::parse(data).unwrap_or(Json::Null);
+            let pending = blob::split(&mut value);
+            (json::text(&value), pending)
+        })
+        .collect();
+    let media = split.iter().any(|(_, pending)| !pending.is_empty()) && blob::enabled_for(app, &location).await;
+    if media {
+        for (row, (data, _)) in rows.iter_mut().zip(&split) {
+            row.2 = data.clone();
+        }
+    }
 
     let mut event = Obj::new();
     event.str("sessionID", &session_id);
@@ -137,12 +155,23 @@ pub fn import(app: &App, data: &Json, location: LocationRef) -> Result<session::
     let idle = at("idle");
     let commit = |tx: &Transaction, event: &Event| -> rusqlite::Result<()> {
         if !rows.is_empty() {
+            if media {
+                for (_, pending) in &split {
+                    blob::save(tx, pending)?;
+                }
+            }
             for (index, (id, ty, data, created)) in rows.iter().enumerate() {
                 tx.execute(
                     "INSERT INTO session_message (id, session_id, type, seq, time_created, time_updated, data) \
                      VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                     params![id, session_id, ty, index as i64 + 1, created, imported_at, data],
                 )?;
+            }
+            if media {
+                for (index, ((id, ..), (_, pending))) in rows.iter().zip(&split).enumerate() {
+                    let hashes = pending.iter().map(|p| p.hash.clone()).collect();
+                    blob::record_hashes(tx, &session_id, id, index as i64 + 1, &hashes)?;
+                }
             }
             let seq = event.durable.as_ref().map_or(0, |d| d.seq) + rows.len() as i64;
             reserve_sequence(tx, &session_id, seq)?;
@@ -200,9 +229,14 @@ fn missing_message(session_id: &str, message_id: &str) -> Failure {
     Failure::new(404, o.done())
 }
 
+thread_local! {
+    /// `SessionBlob.ForkMedia`: set while a fork is published, so its projection stores the copy's media as blobs.
+    static FORK_MEDIA: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
 /// `Session.fork`: a new session with the parent's settled history through its last message, or up to (not
 /// including) `before`.
-pub fn fork(app: &App, session_id: &str, before: Option<&str>) -> Result<session::Stored> {
+pub async fn fork(app: &App, session_id: &str, before: Option<&str>) -> Result<session::Stored> {
     let (parent, boundary, instructions, entries) = {
         let db = app.db.lock().unwrap();
         let parent = session::require(&db, session_id)?;
@@ -240,9 +274,58 @@ pub fn fork(app: &App, session_id: &str, before: Option<&str>) -> Result<session
     data.str("sessionID", &id).str("parentID", parent.id()).set("boundary", point.done());
     data.opt("instructions", instructions.as_deref().and_then(json::parse));
     data.set("instructionEntries", entries);
-    // TODO(port): `SessionBlob.ForkMedia` (the parent's location decides whether the copy's media becomes blobs).
-    session::publish_event(app, "session.forked", data.done(), None, None).map_err(fatal)?;
+    // The parent's location, not the caller's, decides whether the copy's media is stored as blobs.
+    let media = blob::enabled_for(app, &parent.location).await;
+    FORK_MEDIA.with(|cell| cell.set(media));
+    let published = session::publish_event(app, "session.forked", data.done(), None, None);
+    FORK_MEDIA.with(|cell| cell.set(false));
+    published.map_err(fatal)?;
     session::require(&app.db.lock().unwrap(), &id)
+}
+
+/// The `session_part` rows of a copied assistant message, with their media stored as blobs when `media` is on and
+/// their refs recorded for the copy.
+fn copy_parts(tx: &Transaction, parent: &str, original: &str, child: &str, message: &str, seq: i64, media: bool) -> rusqlite::Result<()> {
+    type Part = (i64, String, Option<String>, i64, i64, String);
+    let parts: Vec<Part> = {
+        let mut statement = tx.prepare(
+            "SELECT ordinal, type, call_id, time_created, time_updated, data FROM session_part \
+             WHERE session_id = ?1 AND message_id = ?2 ORDER BY ordinal ASC",
+        )?;
+        statement
+            .query_map(params![parent, original], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)))?
+            .collect::<rusqlite::Result<_>>()?
+    };
+    if parts.is_empty() {
+        return Ok(());
+    }
+    let mut content = Vec::with_capacity(parts.len());
+    for (ordinal, ty, call, created, updated, text) in parts {
+        let mut value = json::parse(&text).unwrap_or(Json::Null);
+        let mut stored = text;
+        if media {
+            let mut wrapper = Obj::new();
+            wrapper.set("content", Json::Array(vec![value.clone()]));
+            let mut wrapper = wrapper.done();
+            let pending = blob::split(&mut wrapper);
+            if !pending.is_empty() {
+                blob::save(tx, &pending)?;
+                if let Some(Json::Array(mut items)) = json::remove(&mut wrapper, "content") {
+                    value = items.remove(0);
+                    stored = json::text(&value);
+                }
+            }
+        }
+        tx.execute(
+            "INSERT INTO session_part (message_id, session_id, ordinal, type, call_id, time_created, time_updated, data) \
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![message, child, ordinal, ty, call, created, updated, stored],
+        )?;
+        content.push(value);
+    }
+    let mut owner = Obj::new();
+    owner.set("content", Json::Array(content));
+    blob::record_refs(tx, child, message, seq, &owner.done())
 }
 
 /// `InstructionEntry.snapshot`: every entry of a session, removed ones included, in key order.
@@ -335,8 +418,18 @@ pub fn project_fork(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
                 .query_map(params![parent_id, copied], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)))?
                 .collect::<rusqlite::Result<_>>()?
         };
+        let media = FORK_MEDIA.with(|cell| cell.get());
         for (original, ty, seq, created, updated, text) in &rows {
             let mut data_text = text.clone();
+            if media {
+                // Split parents' envelopes carry no content, so only unsplit parents' inline media moves here.
+                let mut value = json::parse(text).unwrap_or(Json::Null);
+                let pending = blob::split(&mut value);
+                if !pending.is_empty() {
+                    blob::save(tx, &pending)?;
+                    data_text = json::text(&value);
+                }
+            }
             // A summary references the first message it kept, which the fork copied under a new ID.
             if ty == "compaction" {
                 if let Some(mut value) = json::parse(text) {
@@ -356,13 +449,9 @@ pub fn project_fork(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
                 "INSERT INTO session_message (id, session_id, type, seq, time_created, time_updated, data) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
                 params![forked(*seq), id, ty, seq, created, updated, data_text],
             )?;
+            blob::record_refs(tx, id, &forked(*seq), *seq, &json::parse(&data_text).unwrap_or(Json::Null))?;
             if ty == "assistant" {
-                tx.execute(
-                    "INSERT INTO session_part (message_id, session_id, ordinal, type, call_id, time_created, time_updated, data) \
-                     SELECT ?1, ?2, ordinal, type, call_id, time_created, time_updated, data FROM session_part \
-                     WHERE session_id = ?3 AND message_id = ?4 ORDER BY ordinal ASC",
-                    params![forked(*seq), id, parent_id, original],
-                )?;
+                copy_parts(tx, parent_id, original, id, &forked(*seq), *seq, media)?;
             }
         }
         reserve_sequence(tx, id, copied)?;
@@ -424,7 +513,7 @@ fn legacy_content(mut data: Json) -> Json {
 }
 
 /// `SessionLegacy.part`: an assistant content part written before v2.1.
-fn legacy_part(value: Json) -> Json {
+pub fn legacy_part(value: Json) -> Json {
     if !matches!(value, Json::Object(_)) {
         return value;
     }

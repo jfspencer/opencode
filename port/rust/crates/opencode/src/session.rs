@@ -5,6 +5,7 @@
 //! [`retry`], [`title`].
 
 pub mod attachment;
+pub mod blob;
 pub mod command;
 pub mod context;
 pub mod entries;
@@ -223,7 +224,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.deleted" => {
-            // TODO(port): SessionBlob.releaseSession.
+            blob::release_session(tx, id)?;
             tx.execute("DELETE FROM session_v2 WHERE id = ?1", params![id])?;
         }
         "session.renamed" => set_session(
