@@ -1,0 +1,10 @@
+[package]
+name = "opencode-tui-input"
+description = "OpenTUI 0.8.1's input layer for the Rust TUI: the stdin parser, keypress, Kitty keyboard and mouse decoding, paste helpers, and @opentui/keymap"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
