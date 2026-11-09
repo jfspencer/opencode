@@ -10,6 +10,7 @@
 //!
 //! Divergences: `renderNode` is not ported (see the model's module doc); `treeSitterClient` is the shared client.
 use std::any::Any;
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use opencode_tui_markup::js::JsString;
@@ -175,6 +176,11 @@ impl MarkdownKind {
                 if code.applies != mirror.version {
                     mirror.version = code.applies;
                     self.apply_code(mirror, code);
+                } else if code.markdown_hooks.is_some() && code.markdown_hooks != mirror.hooks {
+                    // handleCapabilities: a new link highlighter (hyperlink support changed).
+                    mirror.hooks = code.markdown_hooks;
+                    let (highlight, _) = self.hooks();
+                    mirror.el.set_on_highlight(Some(highlight), false);
                 }
                 // A list child's top margin changes without an apply.
                 margins(mirror.el, code.margin_top, code.margin_bottom);
@@ -299,15 +305,51 @@ impl MarkdownKind {
     }
 }
 
+thread_local! {
+    /// `_capabilitySubscriptions`: the live markdown renderables and the hyperlink support last seen.
+    static SUBSCRIPTION: RefCell<Option<(Vec<Element>, bool)>> = const { RefCell::new(None) };
+}
+
+fn hyperlinks_supported() -> bool {
+    crate::renderer::capabilities().is_some_and(|c| c.hyperlinks)
+}
+
+/// The shared capabilities listener: when hyperlink support flips, every markdown renderable re-highlights.
+fn subscribe(el: Element) {
+    let first = SUBSCRIPTION.with(|s| {
+        let mut s = s.borrow_mut();
+        let first = s.is_none();
+        let (list, _) = s.get_or_insert_with(|| (Vec::new(), hyperlinks_supported()));
+        list.retain(|e| e.is_alive());
+        list.push(el);
+        first
+    });
+    if first {
+        crate::renderer::on_capabilities(|capabilities| {
+            let changed = SUBSCRIPTION.with(|s| {
+                let mut s = s.borrow_mut();
+                let (list, seen) = s.as_mut()?;
+                if *seen == capabilities.hyperlinks {
+                    return None;
+                }
+                *seen = capabilities.hyperlinks;
+                list.retain(|e| e.is_alive());
+                Some(list.clone())
+            });
+            for el in changed.unwrap_or_default() {
+                el.with_markdown(|m| m.set_hyperlinks(capabilities.hyperlinks));
+            }
+        });
+    }
+}
+
 /// `new MarkdownRenderable(ctx, { id })`: flexDirection column, flexShrink 0, no content yet.
 pub fn create_markdown() -> Element {
-    let el = tree::create(
-        Box::new(MarkdownKind { model: Markdown::new(MarkdownOptions::default()), mirrors: Vec::new() }),
-        "markdown",
-        false,
-    );
+    let options = MarkdownOptions { hyperlinks: hyperlinks_supported(), ..MarkdownOptions::default() };
+    let el = tree::create(Box::new(MarkdownKind { model: Markdown::new(options), mirrors: Vec::new() }), "markdown", false);
     el.set_flex_direction(FlexDirection::Column);
     el.set_flex_shrink(Some(0.0));
+    subscribe(el);
     el
 }
 
