@@ -3,11 +3,7 @@
 //!
 //! Prompts redraw their whole frame (cursor up over the previous frame, erase down, the new frame) where clack
 //! rewrites only the lines that changed: a terminal shows the same screen after either. Frames are not wrapped at
-//! the terminal's width (clack hard-wraps them with wrap-ansi), and the spinner draws no animation frames (it
-//! settles on the same line; the frames only appear when an operation outlasts a tick).
-
-// Not every handler uses every prompt yet.
-#![allow(dead_code)]
+//! the terminal's width (clack hard-wraps them with wrap-ansi). The spinner draws a frame every 80 ms, as clack's does.
 
 use std::time::Duration;
 
@@ -160,27 +156,11 @@ impl Clack {
     pub fn info(&self, message: &str) {
         self.message_with(message, &self.blue(self.symbol("●", "•")));
     }
-    pub fn success(&self, message: &str) {
-        self.message_with(message, &self.green(self.symbol("◆", "*")));
-    }
-    pub fn step(&self, message: &str) {
-        self.message_with(message, &self.green(self.symbol("◇", "o")));
-    }
     pub fn warn(&self, message: &str) {
         self.message_with(message, &self.yellow(self.symbol("▲", "!")));
     }
     pub fn error(&self, message: &str) {
         self.message_with(message, &self.red(self.symbol("■", "x")));
-    }
-
-    /// `spinner().start(message)` for an operation too short to animate (no frames are drawn).
-    pub fn spinner_start(&self) {
-        self.write(&format!("\x1b[?25l{}\n", self.gray(self.bar())));
-    }
-
-    /// `spinner().stop(message, code)` after `spinner_start`.
-    pub fn spinner_stop(&self, message: &str, code: u8) {
-        self.write(&format!("{}  {message}\n\x1b[?25h", self.step_symbol(code)));
     }
 
     fn step_symbol(&self, code: u8) -> String {
