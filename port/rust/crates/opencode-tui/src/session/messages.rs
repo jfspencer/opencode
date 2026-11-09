@@ -173,7 +173,9 @@ pub fn user_message(message: Message) -> View {
                 inner.set_on_mouse(
                     Some(MouseEventType::Up),
                     Some(Rc::new(move |_| {
-                        // TODO(port-tui): the renderer's selection (`renderer.getSelection()?.getSelectedText()`).
+                        if super::render_context::has_selected_text() {
+                            return;
+                        }
                         if untrack(|| delivery.get()).as_deref() == Some("steer") {
                             (ctx.open_pending_steer)(str_of(&untrack(|| message()), "id"));
                         }
@@ -743,6 +745,9 @@ fn notice_message(message: Message) -> View {
                 wrap.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| set_hover.set(false))));
                 let c2 = child_id.clone();
                 wrap.set_on_mouse(Some(MouseEventType::Up), Some(Rc::new(move |_| {
+                    if super::render_context::has_selected_text() {
+                        return;
+                    }
                     if let Some(id) = c2() {
                         route.set(crate::ctx::Route::Session { session_id: id });
                     }

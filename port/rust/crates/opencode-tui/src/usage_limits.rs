@@ -169,6 +169,7 @@ pub(crate) struct LocalTime {
     pub day: u32,
     pub hours: u32,
     pub minutes: u32,
+    pub seconds: u32,
 }
 
 /// `new Date(at)` in the process's time zone (`TZ`), or `None` for an invalid date.
@@ -191,6 +192,7 @@ pub(crate) fn local_time(at_ms: f64) -> Option<LocalTime> {
         day: tm.tm_mday as u32,
         hours: tm.tm_hour as u32,
         minutes: tm.tm_min as u32,
+        seconds: tm.tm_sec as u32,
     })
 }
 

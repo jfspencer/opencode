@@ -34,6 +34,7 @@ pub mod pending;
 pub mod render_context;
 pub mod route;
 pub mod rows;
+pub mod transcript;
 
 pub fn submit_from_home(t: &Tui, value: String) {
     let trimmed = value.trim();

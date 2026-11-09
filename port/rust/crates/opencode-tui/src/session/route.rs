@@ -273,8 +273,9 @@ impl State {
             let away = preserve || this.is_away_from_bottom();
             this.away_from_bottom.set(away);
             if !away {
-                // TODO(port-tui): the renderer's selection (`renderer.getSelection()`).
-                this.hidden_rows.set(None);
+                if opencode_tui_core::selection::get_selection().is_none() {
+                    this.hidden_rows.set(None);
+                }
                 scroll.set_sticky_scroll(true);
             }
             this.save_scroll_anchor(false);
@@ -1294,10 +1295,113 @@ pub fn session(props: SessionProps) -> View {
                 Command::new("session.message.previous", move || n2.scroll_to_message(false, false)).title("Previous message").group("Session").bind(Bind::Off),
                 Command::new("session.message.user.next", move || n3.scroll_to_message(true, true)).title("Next user message").group("Session").bind(Bind::Off),
                 Command::new("session.message.user.previous", move || n4.scroll_to_message(false, true)).title("Previous user message").group("Session").bind(Bind::Off),
-                // TODO(port-tui): the clipboard context and the export dialogs.
-                session_command("messages.copy", "Copy last assistant message").slash("copy", &[]),
-                session_command("session.copy.id", "Copy session ID"),
-                session_command("session.copy", "Copy session transcript"),
+                Command::new("messages.copy", {
+                    let (data, sid, dialog, toast) = (data.clone(), sid.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let messages = untrack(|| data.store.session.message.list(&sid));
+                        // `messagesBeforeRevert()`.
+                        let revert = untrack(|| session.get()).and_then(|s| s.get("revert").and_then(|r| r.str("messageID")).map(str::to_string));
+                        let end = revert.and_then(|id| messages.iter().position(|m| m.str("id") == Some(id.as_str()))).unwrap_or(messages.len());
+                        let last = messages[..end].iter().rev().find(|m| {
+                            m.str("type") == Some("assistant")
+                                || (m.str("type") == Some("compaction")
+                                    && m.str("status") == Some("completed")
+                                    && !m.str("summary").unwrap_or_default().trim().is_empty())
+                        });
+                        let Some(last) = last else {
+                            toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "No assistant messages found"));
+                            dialog.clear();
+                            return;
+                        };
+                        let text = if last.str("type") == Some("assistant") {
+                            last.arr("content")
+                                .map(Vec::as_slice)
+                                .unwrap_or_default()
+                                .iter()
+                                .filter(|part| part.str("type") == Some("text"))
+                                .map(|part| part.str("text").unwrap_or_default())
+                                .collect::<Vec<_>>()
+                                .join("\n")
+                                .trim()
+                                .to_string()
+                        } else {
+                            last.str("summary").unwrap_or_default().trim().to_string()
+                        };
+                        if text.is_empty() {
+                            toast.show(crate::toast::ToastInput::new(
+                                crate::toast::Variant::Error,
+                                "No text content found in last assistant message",
+                            ));
+                            dialog.clear();
+                            return;
+                        }
+                        let toast = toast.clone();
+                        tokio::task::spawn_local(async move {
+                            match crate::selection::write_clipboard(&text).await {
+                                Ok(()) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Success, "Message copied to clipboard!")),
+                                Err(_) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy to clipboard")),
+                            }
+                        });
+                        dialog.clear();
+                    }
+                })
+                .title("Copy last assistant message")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off)
+                .slash("copy", &[]),
+                Command::new("session.copy.id", {
+                    let (sid, dialog, toast) = (sid.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let (sid, toast) = (sid.clone(), toast.clone());
+                        tokio::task::spawn_local(async move {
+                            match crate::selection::write_clipboard(&sid).await {
+                                Ok(()) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Success, "Session ID copied to clipboard!")),
+                                Err(_) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy session ID")),
+                            }
+                        });
+                        dialog.clear();
+                    }
+                })
+                .title("Copy session ID")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off),
+                Command::new("session.copy", {
+                    let (client, dialog, toast) = (data.client.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let Some(info) = untrack(|| session.get()) else { return };
+                        let (client, dialog, toast) = (client.clone(), dialog.clone(), toast.clone());
+                        tokio::task::spawn_local(async move {
+                            let input = opencode_tui_sync::obj! { "sessionID" => info.str("id").unwrap_or_default() };
+                            let copied = match client.call_named("experimental.session.export", &input, Default::default()).await {
+                                Ok(response) => {
+                                    let transcript = response.json();
+                                    let messages = transcript.arr("messages").cloned().unwrap_or_default();
+                                    let content = super::transcript::format_session_transcript(
+                                        transcript.get("info").unwrap_or(&Json::Null),
+                                        &messages,
+                                        true,
+                                        true,
+                                    );
+                                    crate::selection::write_clipboard(&content).await.is_ok()
+                                }
+                                Err(_) => false,
+                            };
+                            toast.show(if copied {
+                                crate::toast::ToastInput::new(crate::toast::Variant::Success, "Session transcript copied to clipboard!")
+                            } else {
+                                crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy session transcript")
+                            });
+                            dialog.clear();
+                        });
+                    }
+                })
+                .title("Copy session transcript")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off),
+                // TODO(port-tui): DialogExportOptions and DialogExportResult (ui/dialog-export-*.tsx).
                 session_command("session.export", "Export session transcript").slash("export", &[]),
                 background,
                 // TODO(port-tui): the prompt slice's composer (subagent picker) and the queued prompts dialog.

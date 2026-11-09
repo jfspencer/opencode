@@ -135,7 +135,9 @@ pub fn revert_message(count: Rc<dyn Fn() -> usize>, files: Rc<dyn Fn() -> Vec<Js
         outer.set_on_mouse(
             Some(MouseEventType::Up),
             Some(Rc::new(move |_| {
-                // TODO(port-tui): the renderer's selection (`renderer.getSelection()?.getSelectedText()`).
+                if super::render_context::has_selected_text() {
+                    return;
+                }
                 let (client, session_id, toast) = (client.clone(), session_id.clone(), toast.clone());
                 tokio::task::spawn_local(async move {
                     let input = Json::Object([("sessionID".to_string(), Json::String(session_id))].into_iter().collect());
@@ -425,8 +427,15 @@ pub fn turn_token_usage(message_ids: Vec<String>, previous_cache: Option<super::
             header.set_flex_direction(FlexDirection::Row);
             header.set_on_mouse(Some(MouseEventType::Over), Some(Rc::new(move |_| set_hover.set(true))));
             header.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| set_hover.set(false))));
-            // TODO(port-tui): the renderer's selection (a selection leaves the table as it is).
-            header.set_on_mouse(Some(MouseEventType::Up), Some(Rc::new(move |_| set_expanded.update(|e| *e = !*e))));
+            header.set_on_mouse(
+                Some(MouseEventType::Up),
+                Some(Rc::new(move |_| {
+                    if super::render_context::has_selected_text() {
+                        return;
+                    }
+                    set_expanded.update(|e| *e = !*e)
+                })),
+            );
             let label = text();
             insert_node(header, label, None);
             bind_always(move || rgba(theme.with(|th| if hover.get() { th.text.base } else { th.text.muted })), move |c| label.set_fg(Some(c)));

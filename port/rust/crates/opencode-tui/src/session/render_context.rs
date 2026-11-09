@@ -102,3 +102,9 @@ pub fn context() -> Context<RenderCtx> {
 pub fn use_ctx() -> RenderCtx {
     use_context(context()).expect("useContext must be used within a Session component")
 }
+
+/// `renderer.getSelection()?.getSelectedText()` is not empty: the release that ends a selection does not act as a
+/// click.
+pub fn has_selected_text() -> bool {
+    opencode_tui_core::selection::get_selection().is_some_and(|s| !s.selected_text().is_empty())
+}

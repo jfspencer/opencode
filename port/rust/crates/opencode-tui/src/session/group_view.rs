@@ -103,8 +103,10 @@ fn use_disclosure(props: &GroupProps) -> Disclosure {
     });
     let e = expanded.clone();
     let set = ctx.set_group_expanded.clone();
-    // TODO(port-tui): the renderer's selection (`renderer.getSelection()?.getSelectedText()`).
     let toggle: Rc<dyn Fn(Option<Element>)> = Rc::new(move |anchor| {
+        if super::render_context::has_selected_text() {
+            return;
+        }
         if let Some(key) = id.get_untracked() {
             set(&key, !untrack(|| e()), anchor);
         }
