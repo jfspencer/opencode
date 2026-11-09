@@ -30,4 +30,7 @@ cargo test -q --manifest-path "$manifest" -p opencode-tui >"$work/unit-tests.log
   exit 1
 }
 cargo build -q --manifest-path "$manifest" -p opencode-tui --example tui-driver
-OPENCODE_TUI_REFERENCE="$reference" exec bun "$crate/harness/diff.ts" --driver "$port/rust/target/debug/examples/tui-driver" "$@"
+mkdir -p "$work/files"
+# The TUI's config module has JSX: load it with the SolidJS transform, as the TUI is loaded.
+preload=$(cd "$reference/packages/tui" && bun -e 'console.log(Bun.resolveSync("@opentui/solid/preload", process.cwd()))')
+OPENCODE_TUI_REFERENCE="$reference" OPENCODE_TUI_WORK="$work/files" exec bun --preload "$preload" "$crate/harness/diff.ts" --driver "$port/rust/target/debug/examples/tui-driver" "$@"

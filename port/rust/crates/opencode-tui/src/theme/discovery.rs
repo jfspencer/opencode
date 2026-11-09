@@ -50,6 +50,12 @@ fn normalize(path: &Path) -> PathBuf {
     if out.as_os_str().is_empty() { PathBuf::from(".") } else { out }
 }
 
+/// `createThemeSource(config).discover()`: the custom themes of the global config directory and of every
+/// `.opencode` from the root down to `cwd`.
+pub fn discover(config: &Path, cwd: &Path) -> Result<Vec<(String, Json)>, DiscoverError> {
+    discover_themes(&config_directories(config, cwd))
+}
+
 /// Why discovery failed (TS rejects; the theme context then falls back to `opencode`).
 #[derive(Debug)]
 pub enum DiscoverError {

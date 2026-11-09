@@ -99,6 +99,29 @@ pub struct Selected {
     pub error: Option<(String, ThemeError)>,
 }
 
+/// The theme context's store as `ThemeProvider` initializes it (context/theme.tsx): `lock` from a configured
+/// `dark`/`light` mode, `mode` from the lock, else the renderer's detected mode, else the provider's, `active` from
+/// the configured name (default `opencode`).
+#[derive(Clone, Debug, PartialEq)]
+pub struct ThemeState {
+    pub mode: Mode,
+    pub lock: Option<Mode>,
+    pub active: String,
+    pub ready: bool,
+}
+
+impl ThemeState {
+    pub fn initial(config_mode: Option<&str>, config_name: Option<&str>, renderer_mode: Option<Mode>, props_mode: Mode) -> ThemeState {
+        let lock = config_mode.and_then(Mode::parse);
+        ThemeState {
+            mode: lock.or(renderer_mode).unwrap_or(props_mode),
+            lock,
+            active: config_name.unwrap_or("opencode").to_owned(),
+            ready: false,
+        }
+    }
+}
+
 /// The theme list (module state of theme/index.ts).
 pub struct ThemeRegistry {
     defaults: Vec<(String, ThemeSource)>,

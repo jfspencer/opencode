@@ -29,7 +29,7 @@ pub mod system;
 pub mod v1;
 pub mod value;
 
-pub use registry::{LoadedTheme, Selected, ThemeRegistry, ThemeSource};
+pub use registry::{LoadedTheme, Selected, ThemeRegistry, ThemeSource, ThemeState};
 pub use resolve::{ThemeError, parse_theme_document, resolve_theme_document};
 pub use resolved::{ActionStates, HueScale, ResolvedTheme, StatefulColor, SurfaceName, Tokens};
 pub use rgba::RGBA;
