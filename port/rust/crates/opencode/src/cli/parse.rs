@@ -234,7 +234,6 @@ impl Input {
             _ => None,
         }
     }
-    #[allow(dead_code)] // `run --worktree`, next
     /// A `CliFlag.optionalValue` flag: `Some(None)` for the bare flag, `Some(Some(value))` with a value.
     pub fn optional_value(&self, name: &str) -> Option<Option<&str>> {
         match self.get(name) {

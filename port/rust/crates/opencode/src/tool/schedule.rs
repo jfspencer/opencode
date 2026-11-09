@@ -1,24 +1,20 @@
 //! The schedule tools (packages/core/src/tool/plugin/schedule.ts): `schedule_create`, `schedule_list`,
 //! `schedule_pause`, `schedule_resume` and `schedule_delete`, Code Mode tools of the `opencode` namespace registered
-//! while `experimental.schedules` is on in the location.
+//! while `experimental.schedules` is on in the location. Their definitions are recorded from the reference
+//! (`definitions/schedule.json`); the snapshot adds them to the Code Mode inventory, and so to its catalog.
 //!
-//! STAND-IN: the reference configuration's Code Mode catalog with the schedule tools in it
-//! (`codemode-catalog-schedules.json`, recorded from the reference with `experimental.schedules` on), until the Code
-//! Mode tools are registered and summarized here. TODO(port): the tools' execution (through `execute`).
+//! TODO(port): the tools' execution (a call fails as not yet supported).
 
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
-use opencode_protocol::Json;
-
+use super::Tool;
 use crate::inventory::Inventory;
-use crate::json;
 
-/// The Code Mode catalog with the schedule tools when the location has schedules on, else `catalog` as it is.
-pub fn code_mode_catalog(inventory: &Inventory, catalog: Option<Json>) -> Option<Json> {
-    static CATALOG: OnceLock<Json> = OnceLock::new();
-    let catalog = catalog?;
+/// The schedule tools when the location has schedules on, in registration order (after the `opencode.tools` plugin's).
+pub fn tools(inventory: &Inventory) -> Vec<Arc<dyn Tool>> {
+    static TOOLS: OnceLock<Vec<Arc<dyn Tool>>> = OnceLock::new();
     if !crate::flag::enabled(&inventory.entries, "schedules") {
-        return Some(catalog);
+        return Vec::new();
     }
-    Some(CATALOG.get_or_init(|| json::parse(include_str!("codemode-catalog-schedules.json")).expect("catalog is JSON")).clone())
+    TOOLS.get_or_init(|| super::opencode::recorded(include_str!("definitions/schedule.json"))).clone()
 }

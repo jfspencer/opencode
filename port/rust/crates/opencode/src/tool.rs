@@ -12,14 +12,17 @@
 //! direct tools are sorted by name, then `execute` comes last when Code Mode is not denied; the snapshot keeps the
 //! Code Mode catalog (`core/codemode` instructions) and executes calls against the tools it advertised.
 //!
-//! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error. The
-//! Code Mode catalog is the reference configuration's (`codemode-catalog.json`, the `opencode.*` tools), until the
-//! Code Mode tools are registered here (the subagent description is live; the skill tool's is static in TS). Plugin
-//! `tool.execute.before/after` hooks, input repair. The loop bounds every
-//! successful result with [`output::truncate`].
+//! Code Mode tools (`options.codemode`) are reachable only through `execute` ([`execute`], [`crate::codemode`]): the
+//! snapshot gives `execute` the Code Mode inventory (its tools and the registered namespaces), whose catalog summary
+//! feeds the `core/codemode` instructions.
+//!
+//! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error.
+//! The subagent description is live; the skill tool's is static in TS. Plugin
+//! `tool.execute.before/after` hooks, input repair. The loop bounds every successful result with [`output::truncate`].
 
 pub mod arguments;
 pub mod edit;
+pub mod execute;
 pub mod file_diff;
 pub mod file_input;
 pub mod file_media;
@@ -28,6 +31,7 @@ pub mod file_search;
 pub mod file_write;
 pub mod glob;
 pub mod grep;
+pub mod opencode;
 pub mod output;
 pub mod shell;
 mod question;
@@ -106,7 +110,8 @@ impl ToolError {
 
 #[allow(dead_code)] // The tools' (the tools slice).
 impl Context {
-    fn requester(&self) -> crate::permission::Requester {
+    /// The requester of this call's permission requests (`Permission.invocation(context)`).
+    pub fn requester(&self) -> crate::permission::Requester {
         crate::permission::Requester {
             id: None,
             session_id: self.session_id.clone(),
@@ -160,6 +165,9 @@ pub enum Failure {
 
 pub type Execution<'a> = Pin<Box<dyn Future<Output = Result<Output, Failure>> + Send + 'a>>;
 
+/// A call from a Code Mode program: the result and, when the tool declares an output schema, its structured output.
+pub type CodeModeExecution<'a> = Pin<Box<dyn Future<Output = Result<(Output, Option<Json>), Failure>> + Send + 'a>>;
+
 /// A registered tool.
 pub trait Tool: Send + Sync {
     fn definition(&self) -> &Definition;
@@ -173,6 +181,24 @@ pub trait Tool: Send + Sync {
     }
     /// Runs one call: check permissions (asking the user where the rules say so), then do the work.
     fn execute<'a>(&'a self, context: Context, input: Json) -> Execution<'a>;
+    /// Code Mode's path for the tool under `tools` (`qualifiedName`: `<namespace>.<name>`).
+    fn code_mode_path(&self) -> String {
+        self.definition().name.clone()
+    }
+    /// The JSON schema of the tool's structured output (`definition(tool).outputSchema`), when it declares one.
+    fn output_schema(&self) -> Option<&Json> {
+        None
+    }
+    /// `options.pinned`: always listed in the Code Mode catalog the instructions show.
+    fn pinned(&self) -> bool {
+        false
+    }
+    /// A call from a Code Mode program (codemode/tool.ts `executeTool`): the input may be `undefined` (`None`), and the
+    /// structured output the program receives comes with the result.
+    fn execute_code_mode<'a>(&'a self, context: Context, input: Option<Json>) -> CodeModeExecution<'a> {
+        let execution = self.execute(context, input.unwrap_or(Json::Null));
+        Box::pin(async move { execution.await.map(|output| (output, None)) })
+    }
 }
 
 /// A built-in tool whose execution is not ported yet.
@@ -212,7 +238,7 @@ const DEFINITIONS: &[(&str, &str)] =
 
 /// The built-in tools. A ported tool replaces its [`Unported`] entry here.
 fn builtin() -> Vec<Arc<dyn Tool>> {
-    DEFINITIONS
+    let mut tools: Vec<Arc<dyn Tool>> = DEFINITIONS
         .iter()
         .map(|(name, text)| {
             let definition = definition(name, text);
@@ -230,17 +256,28 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
                 _ => Arc::new(Unported { definition }),
             }
         })
-        .collect()
+        .collect();
+    // The `opencode.tools` plugin's (tool/plugin/opencode.ts), registered after the built-in tools.
+    tools.extend(opencode::tools());
+    tools
 }
 
 pub struct Registry {
     tools: Vec<Arc<dyn Tool>>,
+    /// The registered namespaces (`Tool.Namespace`), in registration order.
+    namespaces: Vec<(String, String)>,
+    /// The Code Mode catalog of the last visible Code Mode tool set (TS caches it per registry revision and names).
+    catalog: std::sync::Mutex<Option<(String, Json)>>,
 }
 
 /// The process-wide registry (the built-in tools are the same for every location).
 pub fn registry() -> &'static Registry {
     static REGISTRY: OnceLock<Registry> = OnceLock::new();
-    REGISTRY.get_or_init(|| Registry { tools: builtin() })
+    REGISTRY.get_or_init(|| Registry {
+        tools: builtin(),
+        namespaces: crate::codemode::namespaces(),
+        catalog: std::sync::Mutex::new(None),
+    })
 }
 
 /// `Permission.evaluate`'s effect: the last rule matching the action and resource, `ask` without one.
@@ -289,55 +326,63 @@ impl Snapshot {
 
 impl Registry {
     /// `Tool.snapshot(permissions)`.
+    #[allow(dead_code)] // For callers without location plugins; the loop uses `snapshot_with`.
     pub fn snapshot(&self, rules: &[Json]) -> Snapshot {
+        self.snapshot_with(rules, &[])
+    }
+
+    /// `Tool.snapshot(permissions)` of a location whose plugins also registered `extra` tools (after the built-in
+    /// ones, such as the schedule tools while schedules are on).
+    pub fn snapshot_with(&self, rules: &[Json], extra: &[Arc<dyn Tool>]) -> Snapshot {
         let code_mode = !wholly_disabled("execute", rules);
-        let mut direct: Vec<Arc<dyn Tool>> = self
+        let active: Vec<&Arc<dyn Tool>> = self
             .tools
             .iter()
+            .chain(extra)
             .filter(|tool| tool.definition().name != "execute")
             .filter(|tool| !wholly_disabled(tool.permission(), rules))
-            .filter(|tool| !(code_mode && tool.code_mode()))
-            .cloned()
             .collect();
+        // Without Code Mode its tools would be unreachable, so they are direct tools instead.
+        let mut direct: Vec<Arc<dyn Tool>> =
+            active.iter().filter(|tool| !(code_mode && tool.code_mode())).map(|tool| (*tool).clone()).collect();
         direct.sort_by(|a, b| a.definition().name.cmp(&b.definition().name));
-        let execute = self.tools.iter().find(|tool| tool.definition().name == "execute").cloned();
+        let mut code_mode_catalog = None;
         if code_mode {
-            direct.extend(execute);
+            let inventory = self.code_mode_inventory(rules, extra, None);
+            code_mode_catalog = Some(self.catalog(&inventory));
+            let execute = self.tools.iter().find(|tool| tool.definition().name == "execute");
+            direct.extend(execute.map(|tool| execute::Execute::new(tool.definition().clone(), Arc::new(inventory))));
         }
-        Snapshot { tools: direct, code_mode_catalog: code_mode.then(|| code_mode_catalog(rules)) }
+        Snapshot { tools: direct, code_mode_catalog }
     }
-}
 
-/// The permission action of a stand-in catalog entry (`options.permission ?? name`, the name namespaced).
-fn catalog_permission(path: &str) -> String {
-    match path {
-        "opencode.worktree_remove" => "edit".to_owned(),
-        _ => path.replace('.', "_"),
-    }
-}
-
-/// STAND-IN: the reference configuration's Code Mode catalog (the `opencode.*` tools of
-/// packages/core/src/tool/plugin/opencode.ts, summarized by `CodeModeCatalog.summarize`).
-/// Its tools whose action the ruleset wholly denies are left out, as `Tool.snapshot` leaves them out of the inventory.
-fn code_mode_catalog(rules: &[Json]) -> Json {
-    static CATALOG: OnceLock<Json> = OnceLock::new();
-    let mut catalog =
-        CATALOG.get_or_init(|| json::parse(include_str!("tool/codemode-catalog.json")).expect("catalog is JSON")).clone();
-    let mut total = 0;
-    if let Some(Json::Array(namespaces)) = json::get_mut(&mut catalog, "namespaces") {
-        for namespace in namespaces.iter_mut() {
-            if let Some(Json::Array(entries)) = json::get_mut(namespace, "entries") {
-                entries.retain(|entry| !wholly_disabled(&catalog_permission(json::get_str(entry, "path").unwrap_or_default()), rules));
-                let count = entries.len();
-                total += count;
-                json::set(namespace, "count", Json::Number(count as f64));
-            }
+    /// The Code Mode tools the ruleset leaves visible (the registry's, then `extra`), in registration order (only those
+    /// at `paths` when given, as `Tool.check` takes them), with the registered namespaces.
+    pub fn code_mode_inventory(&self, rules: &[Json], extra: &[Arc<dyn Tool>], paths: Option<&[String]>) -> crate::codemode::Inventory {
+        crate::codemode::Inventory {
+            tools: self
+                .tools
+                .iter()
+                .chain(extra)
+                .filter(|tool| tool.code_mode() && !wholly_disabled(tool.permission(), rules))
+                .filter(|tool| paths.is_none_or(|paths| paths.contains(&tool.code_mode_path())))
+                .cloned()
+                .collect(),
+            namespaces: self.namespaces.clone(),
         }
-        namespaces.retain(|namespace| json::get_num(namespace, "count").is_some_and(|count| count > 0.0));
     }
-    json::set(&mut catalog, "total", Json::Number(total as f64));
-    json::set(&mut catalog, "shown", Json::Number(total as f64));
-    catalog
+
+    /// `CodeModeTool.catalog`, summarized (`CodeModeCatalog.summarize`), reused while the visible tools stay the same.
+    fn catalog(&self, inventory: &crate::codemode::Inventory) -> Json {
+        let names = inventory.tools.iter().map(|tool| tool.definition().name.as_str()).collect::<Vec<_>>().join("\0");
+        let mut cached = self.catalog.lock().unwrap();
+        if let Some((_, catalog)) = cached.as_ref().filter(|(key, _)| *key == names) {
+            return catalog.clone();
+        }
+        let catalog = crate::codemode::catalog(inventory);
+        *cached = Some((names, catalog.clone()));
+        catalog
+    }
 }
 
 #[cfg(test)]

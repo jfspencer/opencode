@@ -77,6 +77,12 @@ impl Runtime {
         Ok(Runtime { prepared: Rc::new(Prepared::new(tools)?) })
     }
 
+    /// `new`, with namespace registrations `(path, description)` placed before the tools (see
+    /// `Prepared::with_namespaces`): a namespace with no visible tools is still a key of `tools`.
+    pub fn with_namespaces(namespaces: &[(String, String)], tools: &[ToolDef]) -> Result<Runtime, String> {
+        Ok(Runtime { prepared: Rc::new(Prepared::with_namespaces(namespaces, tools)?) })
+    }
+
     /// Structured descriptions of every visible tool: `(path, description, signature)`.
     pub fn catalog(&self) -> Vec<(String, String, String)> {
         self.prepared

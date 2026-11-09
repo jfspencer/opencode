@@ -192,10 +192,33 @@ fn url_argument(value: &Value) -> String {
 }
 
 fn parse_url(input: &str, base: Option<&str>) -> Option<url::Url> {
-    match base {
-        None => url::Url::parse(input).ok(),
-        Some(base) => url::Url::parse(base).ok()?.join(input).ok(),
+    let url = match base {
+        None => url::Url::parse(input).ok()?,
+        Some(base) => url::Url::parse(base).ok()?.join(input).ok()?,
+    };
+    (url.cannot_be_a_base() || url.is_special() || opaque_authority(input)).then_some(url)
+}
+
+/// Two WHATWG rules the `url` crate does not apply to a non-special URL's authority, which ends at `/`, `?` or `#`
+/// (a backslash is part of it): credentials need a host (`foo://@`, `sc://:@/`), and a port is digits only
+/// (`foo://-:\x`). The same check as the server's form formats (`URL.canParse`).
+fn opaque_authority(text: &str) -> bool {
+    let input: String =
+        text.trim_matches(|c: char| c <= ' ').chars().filter(|c| !matches!(c, '\t' | '\n' | '\r')).collect();
+    let Some(authority) = input.split_once(':').and_then(|(_, rest)| rest.strip_prefix("//")) else { return true };
+    let authority = &authority[..authority.find(['/', '?', '#']).unwrap_or(authority.len())];
+    let (credentials, host_port) = match authority.rfind('@') {
+        Some(at) => (true, &authority[at + 1..]),
+        None => (false, authority),
+    };
+    if credentials && host_port.is_empty() {
+        return false;
     }
+    let port = match host_port.rfind(']') {
+        Some(end) => host_port[end + 1..].strip_prefix(':'),
+        None => host_port.rfind(':').map(|colon| &host_port[colon + 1..]),
+    };
+    port.is_none_or(|port| port.chars().all(|c| c.is_ascii_digit()))
 }
 
 pub fn new_url(ctx: &Ctx, proto: Obj, parsed: url::Url) -> Obj {

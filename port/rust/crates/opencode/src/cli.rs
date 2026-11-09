@@ -7,8 +7,10 @@
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
 //! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
-//! default command), `--wizard`; see each handler's TODO(port).
+//! default command), `--wizard`; see `dispatch`.
 
+mod auth;
+mod acp;
 mod client;
 mod commands;
 mod connection;
@@ -16,9 +18,12 @@ mod help;
 mod out;
 mod parse;
 mod paths;
+mod run;
 mod serve;
 mod service;
 mod spec;
+mod stats;
+mod tool;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -35,7 +40,6 @@ pub fn stdin_tty() -> bool {
 }
 
 /// `process.stdout.isTTY`.
-#[allow(dead_code)] // `run`, next
 pub fn stdout_tty() -> bool {
     // SAFETY: as above.
     unsafe { libc::isatty(1) == 1 }
@@ -171,19 +175,24 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
     match names.as_slice() {
         [] => default(input).await,
         ["serve"] => serve::run(input).await,
+        ["run"] => run::command(globals, input).await,
+        ["stats"] => stats::command(globals, input).await,
         ["service", name] => service::command(name, input).await,
         ["models"] => commands::models(globals).await,
         ["reload"] => commands::reload(globals).await,
         ["debug", "paths"] => commands::paths(input),
         ["debug", "agents"] => commands::agents(globals).await,
         ["debug", "config"] => commands::config(globals).await,
+        ["debug", "heap-dump"] => commands::heap_dump(globals, input).await,
         ["session", "list"] => commands::session_list(globals, input).await,
         ["session", "delete"] => commands::session_delete(globals, input).await,
         ["session", "export"] => commands::session_export(globals, input).await,
         ["session", "import"] => commands::session_import(globals, input).await,
         ["api"] => commands::api(globals, input).await,
+        ["auth", name] => auth::command(name, globals, input).await,
+        ["acp"] => acp::command(globals, input).await,
         // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
-        // uninstall, pair, debug heap-dump).
+        // uninstall, pair).
         _ => unavailable(path),
     }
 }
