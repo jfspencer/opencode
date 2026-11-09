@@ -197,7 +197,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
 | `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
-Status (2026-11-09): 659 of the 673 server scenarios pass (the ledger), including 66 of the 70 CLI scenarios: session
+Status (2026-11-09): 662 of the 677 server scenarios pass (the ledger), including 66 of the 70 CLI scenarios: session
 CRUD, projects, locations, the file system, version control, worktrees, config, agents, providers and models, the
 execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots and reverts, schedules,
 session transfer, webfetch, skills and instructions, shell, the file tools, and the CLI (`run`, `serve`, `service`,
