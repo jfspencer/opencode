@@ -299,12 +299,8 @@ impl Data {
         let Some(location) = self.directory.get_untracked().map(|d| object(vec![("directory", Json::String(d))])) else {
             return;
         };
-        let loads = [
-            self.store.location.agent.sync(Some(&location)),
-            self.store.location.provider.sync(Some(&location)),
-            self.store.location.model.sync(Some(&location)),
-            self.store.location.config.sync(Some(&location)),
-        ];
+        // context/data.tsx: `Promise.all([data.location.sync(ref), data.location.config.sync(ref)])`.
+        let loads = [self.store.location.sync(Some(&location)), self.store.location.config.sync(Some(&location))];
         for load in loads {
             let _ = load.wait().await;
         }
