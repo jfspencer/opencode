@@ -80,6 +80,11 @@ fn moved(session_id: &str, payload: &Json) -> Json {
 
 /// `SessionMove.move` (`POST /session/:id/move`).
 pub async fn request(app: &App, session_id: &str, input: &Json) -> Result<()> {
+    request_in(app, session_id, input, None).await
+}
+
+/// `SessionMove.move` from a location (a tool call), whose events carry it.
+pub async fn request_in(app: &App, session_id: &str, input: &Json, location: Option<LocationRef>) -> Result<()> {
     let stored = session::require(&app.db.lock().unwrap(), session_id)?;
     let payload = destination(app, &stored, input).await?;
     let unavailable = source_unavailable(app, &stored, session_id).await;
@@ -90,15 +95,15 @@ pub async fn request(app: &App, session_id: &str, input: &Json) -> Result<()> {
         for id in pending {
             let mut data = Obj::new();
             data.str("sessionID", session_id).str("inboxID", &id);
-            session::publish_event(app, "session.inbox.cancelled", data.done(), None, None).map_err(fatal)?;
+            session::publish_event(app, "session.inbox.cancelled", data.done(), location.clone(), None).map_err(fatal)?;
         }
-        session::publish_event(app, "session.moved", moved(session_id, &payload), None, None).map_err(fatal)?;
+        session::publish_event(app, "session.moved", moved(session_id, &payload), location, None).map_err(fatal)?;
     } else {
         let delivery = json::get_str(input, "delivery").unwrap_or("steer");
         let mut item = Obj::new();
         item.str("type", "move").set("payload", payload).str("delivery", delivery);
         let id = session::message::create_id();
-        if inbox::admit(app, &id, session_id, item.done(), None)?.is_err() {
+        if inbox::admit(app, &id, session_id, item.done(), location)?.is_err() {
             return Err(fatal(rusqlite::Error::QueryReturnedNoRows));
         }
     }

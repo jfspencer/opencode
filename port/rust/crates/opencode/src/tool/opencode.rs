@@ -315,7 +315,12 @@ fn session_rename(context: &Context, input: &Json) -> Done {
     if title.is_empty() {
         return Err(curated("Session title must not be empty"));
     }
-    if crate::session::rename(&context.app, &session_id, &title).is_err() {
+    let exists = crate::session::require(&context.app.db.lock().unwrap(), &session_id).is_ok();
+    // Published in the caller's location, as the plugin's `session.update` is.
+    let mut data = Obj::new();
+    data.str("sessionID", &session_id).str("title", &title);
+    let location = Some(context.location.reference());
+    if !exists || crate::session::publish_event(&context.app, "session.renamed", data.done(), location, None).is_err() {
         return Err(curated(format!("Unable to rename session {session_id}")));
     }
     let mut output = Obj::new();
@@ -341,7 +346,9 @@ async fn session_move(context: &Context, input: &Json) -> Done {
     }
     let mut request = Obj::new();
     request.str("directory", &directory).str("delivery", "steer");
-    if crate::session::moves::request(&context.app, &session_id, &request.done()).await.is_err() {
+    let request = request.done();
+    let moved = crate::session::moves::request_in(&context.app, &session_id, &request, Some(context.location.reference()));
+    if moved.await.is_err() {
         return Err(curated(failed()));
     }
     let mut output = Obj::new();
@@ -353,7 +360,7 @@ async fn session_move(context: &Context, input: &Json) -> Done {
 
 async fn worktree_create(context: &Context, input: &Json) -> Done {
     let name = string(input, "name").unwrap_or_default().to_owned();
-    let created = crate::worktree::create(
+    let created = crate::worktree::create_in(
         &context.app,
         crate::worktree::CreateInput {
             project_id: context.location.project.id.clone(),
@@ -362,6 +369,7 @@ async fn worktree_create(context: &Context, input: &Json) -> Done {
             from: None,
             branch: None,
         },
+        Some(&context.location.reference()),
     )
     .await
     .map_err(|_| curated(format!("Unable to create worktree {name}")))?;
@@ -386,7 +394,9 @@ async fn worktree_remove(context: &Context, input: &Json) -> Done {
     context.assert(ask).await.map_err(|failure| wrap(format!("Unable to remove worktree {written}"), failure))?;
     let force = json::get_bool(input, "force").unwrap_or(false);
     let directory = target.absolute;
-    if let Err(error) = crate::worktree::remove(&context.app, &context.location.project.id, &directory, force).await {
+    let location = context.location.reference();
+    let removed = crate::worktree::remove_in(&context.app, &context.location.project.id, &directory, force, Some(&location));
+    if let Err(error) = removed.await {
         return Err(curated(remove_failure(&directory, error)));
     }
     let mut output = Obj::new();

@@ -139,11 +139,12 @@ fn forget(db: &Connection, project_id: &str, directory: &str) -> rusqlite::Resul
         .is_some())
 }
 
-fn changed(app: &App, project_id: &str, update: bool) {
+/// `worktree.updated`, in the location the change was made from (none for the HTTP API).
+fn changed(app: &App, project_id: &str, update: bool, location: Option<&crate::bus::LocationRef>) {
     if update {
         let mut data = Obj::new();
         data.str("projectID", project_id);
-        app.bus.emit("worktree.updated", data.done(), PublishOptions::default());
+        app.bus.emit("worktree.updated", data.done(), PublishOptions { id: None, location: location.cloned() });
     }
 }
 
@@ -218,6 +219,11 @@ pub struct CreateInput {
 /// `Worktree.create`: a linked worktree of the source checkout (the canonical one unless `from` names another known
 /// checkout), at `<directory>/<name>` (`-2`, `-3`, ... when taken), then the project's start command in it.
 pub async fn create(app: &App, input: CreateInput) -> Result<String, Error> {
+    create_in(app, input, None).await
+}
+
+/// `create`, from a location (a tool call), whose events carry it.
+pub async fn create_in(app: &App, input: CreateInput, location: Option<&crate::bus::LocationRef>) -> Result<String, Error> {
     let row = project_row(app, &input.project_id)?;
     let settings = load(app, &row.canonical).await?;
     let directory = input.directory.unwrap_or(settings.directory);
@@ -246,7 +252,7 @@ pub async fn create(app: &App, input: CreateInput) -> Result<String, Error> {
     }
     let created = canonical(&canonical(&target)?)?;
     let updated = store(&app.db.lock().unwrap(), &input.project_id, &created, Some("git"), true, crate::id::now())?;
-    changed(app, &input.project_id, updated);
+    changed(app, &input.project_id, updated, location);
     if let Some(command) = row.start.as_deref().map(crate::text::trim).filter(|c| !c.is_empty()) {
         let process = Command::new("bash", &created)
             .args(["-lc", command])
@@ -266,6 +272,17 @@ pub async fn create(app: &App, input: CreateInput) -> Result<String, Error> {
 
 /// `Worktree.remove`: only worktrees a strategy owns; git refuses a dirty one unless forced.
 pub async fn remove(app: &App, project_id: &str, directory: &str, force: bool) -> Result<(), Error> {
+    remove_in(app, project_id, directory, force, None).await
+}
+
+/// `remove`, from a location (a tool call), whose events carry it.
+pub async fn remove_in(
+    app: &App,
+    project_id: &str,
+    directory: &str,
+    force: bool,
+    location: Option<&crate::bus::LocationRef>,
+) -> Result<(), Error> {
     let row = project_row(app, project_id)?;
     let target = canonical(directory)?;
     let stored = find(&app.db.lock().unwrap(), project_id, &target)?;
@@ -282,7 +299,7 @@ pub async fn remove(app: &App, project_id: &str, directory: &str, force: bool) -
     args.push(target.clone());
     git(&repository.common_directory, args, "remove").await?;
     let removed = forget(&app.db.lock().unwrap(), project_id, &target)?;
-    changed(app, project_id, removed);
+    changed(app, project_id, removed, location);
     Ok(())
 }
 
@@ -327,6 +344,6 @@ pub async fn refresh(app: &App, project_id: &str) -> Result<(), Error> {
         }
         tx.commit()?;
     }
-    changed(app, project_id, changes);
+    changed(app, project_id, changes, None);
     Ok(())
 }

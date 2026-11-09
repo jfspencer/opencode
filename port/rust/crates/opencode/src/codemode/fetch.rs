@@ -8,7 +8,11 @@
 //!
 //! TODO(port): Bun's wording for network failures (connection refused, DNS, TLS) is approximated.
 
+use std::cell::{Cell, RefCell};
+use std::future::Future;
+use std::pin::Pin;
 use std::rc::Rc;
+use std::task::{Poll, Waker};
 use std::time::Duration;
 
 use opencode_codemode::{self as cm, HostError, HostFunction, HostReturn, HostValue, JsStr};
@@ -26,13 +30,76 @@ const REDIRECT_STATUSES: [u16; 5] = [301, 302, 303, 307, 308];
 /// The `fetch` extension of one `execute` call, acting for its session.
 pub fn extension(context: tool::Context) -> cm::Extension {
     let context = Rc::new(context);
+    let order = Rc::new(Order::default());
     let call = move |args: Vec<HostValue>| {
-        let context = context.clone();
-        HostReturn::Async(Box::pin(async move { fetch(&context, args).await }))
+        let (context, order) = (context.clone(), order.clone());
+        HostReturn::Async(Box::pin(async move { fetch(&context, &order, args).await }))
     };
     cm::Extension {
         name: "fetch".into(),
         globals: vec![("fetch".into(), function("fetch", 1, true, call))],
+    }
+}
+
+/// The requests of one execution leave in the order they were made: each waits for the one before it to have been
+/// written (as Bun's fetch, which queues them on one thread, sends them), then they run concurrently.
+#[derive(Default)]
+struct Order {
+    next: Cell<u64>,
+    serving: Cell<u64>,
+    /// Tickets given up before their turn (a timed-out request), skipped when they come up.
+    abandoned: RefCell<Vec<u64>>,
+    waiting: RefCell<Vec<Waker>>,
+}
+
+/// A request's place in the order, given up once it has been written (or has failed, or was dropped).
+struct Turn<'a> {
+    order: &'a Order,
+    ticket: u64,
+}
+
+impl Order {
+    fn turn(&self) -> Turn<'_> {
+        let ticket = self.next.get();
+        self.next.set(ticket + 1);
+        Turn { order: self, ticket }
+    }
+
+    fn advance(&self) {
+        let mut serving = self.serving.get() + 1;
+        let mut abandoned = self.abandoned.borrow_mut();
+        while let Some(index) = abandoned.iter().position(|ticket| *ticket == serving) {
+            abandoned.remove(index);
+            serving += 1;
+        }
+        self.serving.set(serving);
+        drop(abandoned);
+        for waker in self.waiting.take() {
+            waker.wake();
+        }
+    }
+}
+
+impl Turn<'_> {
+    async fn wait(&self) {
+        std::future::poll_fn(|cx| {
+            if self.order.serving.get() == self.ticket {
+                return Poll::Ready(());
+            }
+            self.order.waiting.borrow_mut().push(cx.waker().clone());
+            Poll::Pending
+        })
+        .await
+    }
+}
+
+impl Drop for Turn<'_> {
+    fn drop(&mut self) {
+        if self.order.serving.get() == self.ticket {
+            self.order.advance();
+        } else {
+            self.order.abandoned.borrow_mut().push(self.ticket);
+        }
     }
 }
 
@@ -210,7 +277,9 @@ fn body(value: &HostValue) -> Body {
             }
             Body { bytes, content_type: None }
         }
-        other => Body { bytes: js_string(other).into_bytes(), content_type: Some("text/plain;charset=UTF-8") },
+        HostValue::Str(text) => Body { bytes: text.to_rust_lossy().into_bytes(), content_type: Some("text/plain;charset=UTF-8") },
+        // Anything else is sent as its string, with no type.
+        other => Body { bytes: js_string(other).into_bytes(), content_type: None },
     }
 }
 
@@ -247,7 +316,7 @@ struct Fetched {
     redirects: usize,
 }
 
-async fn fetch(context: &tool::Context, args: Vec<HostValue>) -> Result<HostValue, HostValue> {
+async fn fetch(context: &tool::Context, order: &Order, args: Vec<HostValue>) -> Result<HostValue, HostValue> {
     let input = args.first().cloned().unwrap_or(HostValue::Undefined);
     let init = args.get(1).cloned().unwrap_or(HostValue::Undefined);
     // Rules match the URL as written; the fragment is never sent and would keep a rule for the exact URL from matching.
@@ -281,7 +350,7 @@ async fn fetch(context: &tool::Context, args: Vec<HostValue>) -> Result<HostValu
     }
     let request = request(&init)?;
     let run = async {
-        let fetched = follow(context, &requester, &init, &url, request).await?;
+        let fetched = follow(context, order, &requester, &init, &url, request).await?;
         read(fetched).await
     };
     match tokio::time::timeout(TIMEOUT, run).await {
@@ -293,6 +362,7 @@ async fn fetch(context: &tool::Context, args: Vec<HostValue>) -> Result<HostValu
 /// Sends the request and follows redirects, each new URL meeting the same deny rules as the webfetch tool's hops.
 async fn follow(
     context: &tool::Context,
+    order: &Order,
     requester: &permission::Requester,
     init: &HostValue,
     url: &str,
@@ -301,7 +371,7 @@ async fn follow(
     let mut target = url.to_owned();
     let mut redirects = 0;
     loop {
-        let (response, reason) = send(&target, &request).await?;
+        let (response, reason) = send(order, &target, &request).await?;
         let location = response.headers.iter().find(|(name, _)| name == "location").map(|(_, value)| value.clone());
         let Some(location) = location.filter(|_| REDIRECT_STATUSES.contains(&response.status)) else {
             return Ok(Fetched { response, reason, url: target, redirects });
@@ -332,7 +402,7 @@ async fn follow(
 }
 
 /// One hop, without following redirects.
-async fn send(target: &str, request: &Request) -> Result<(http::Response, String), HostValue> {
+async fn send(order: &Order, target: &str, request: &Request) -> Result<(http::Response, String), HostValue> {
     let url = url::Url::parse(target).map_err(|_| error("TypeError", format!("fetch() URL is invalid: {target}")))?;
     let method = normalize_method(request.method.as_deref().unwrap_or("GET"));
     let mut headers = request.headers.clone();
@@ -345,7 +415,20 @@ async fn send(target: &str, request: &Request) -> Result<(http::Response, String
         }
         _ => None,
     };
-    http::request(&method, url.as_str(), &headers, body).await.map_err(|failure| {
+    let turn = order.turn();
+    turn.wait().await;
+    let mut turn = Some(turn);
+    let (written, mut sent) = tokio::sync::oneshot::channel();
+    let mut response = std::pin::pin!(http::request(&method, url.as_str(), &headers, body, Some(written)));
+    let response = std::future::poll_fn(|cx| {
+        if turn.is_some() && Pin::new(&mut sent).poll(cx).is_ready() {
+            turn = None;
+        }
+        response.as_mut().poll(cx)
+    })
+    .await;
+    drop(turn);
+    response.map_err(|failure| {
         let message = match failure.kind {
             http::FailureKind::Refused | http::FailureKind::Unresolved => {
                 "Unable to connect. Is the computer able to access the url?".to_owned()

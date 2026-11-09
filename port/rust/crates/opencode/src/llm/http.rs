@@ -310,12 +310,14 @@ pub async fn send(method: &str, url: &str, headers: &[(String, String)], body: S
 }
 
 /// Sends a request with any method and an optional binary body (Code Mode's `fetch`), returning once the response
-/// head arrives, with the status line's reason phrase. `Accept: */*` is added unless the headers name one.
+/// head arrives, with the status line's reason phrase. `Accept: */*` is added unless the headers name one. `written`
+/// is signalled once the request has been flushed to the connection (dropped unsignalled if it never is).
 pub async fn request(
     method: &str,
     url: &str,
     headers: &[(String, String)],
     body: Option<Vec<u8>>,
+    written: Option<tokio::sync::oneshot::Sender<()>>,
 ) -> Result<(Response, String), Failure> {
     let target = parse(url).ok_or_else(|| Failure::new(FailureKind::Other, format!("invalid URL {url}")))?;
     let via = proxy(&target);
@@ -335,11 +337,12 @@ pub async fn request(
             .connect(name, stream)
             .await
             .map_err(|e| Failure::new(FailureKind::Tls, e.to_string()))?;
-        let (sender, connection) = handshake(tls).await?;
+        let (sender, connection) = handshake(Flushed { inner: tls, wrote: false, written }).await?;
         (sender, connection, target.path.clone())
     } else {
         let (host, port) = via.as_ref().map(|proxy| (proxy.host.as_str(), proxy.port)).unwrap_or((&target.host, target.port));
-        let (sender, connection) = handshake(connect(host, port).await?).await?;
+        let stream = connect(host, port).await?;
+        let (sender, connection) = handshake(Flushed { inner: stream, wrote: false, written }).await?;
         (sender, connection, if via.is_some() { url.to_owned() } else { target.path.clone() })
     };
     let mut builder = hyper::Request::builder().method(method).uri(uri);
@@ -367,4 +370,65 @@ pub async fn request(
         .collect();
     let body = Body { incoming: response.into_body(), _connection: connection };
     Ok((Response { status: status.as_u16(), headers, body }, reason))
+}
+
+/// A connection that signals the first flush after a write: the request has left.
+struct Flushed<I> {
+    inner: I,
+    wrote: bool,
+    written: Option<tokio::sync::oneshot::Sender<()>>,
+}
+
+impl<I: tokio::io::AsyncRead + Unpin> tokio::io::AsyncRead for Flushed<I> {
+    fn poll_read(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> std::task::Poll<std::io::Result<()>> {
+        std::pin::Pin::new(&mut self.inner).poll_read(cx, buf)
+    }
+}
+
+impl<I: tokio::io::AsyncWrite + Unpin> tokio::io::AsyncWrite for Flushed<I> {
+    fn poll_write(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        buf: &[u8],
+    ) -> std::task::Poll<std::io::Result<usize>> {
+        let polled = std::pin::Pin::new(&mut self.inner).poll_write(cx, buf);
+        if matches!(polled, std::task::Poll::Ready(Ok(n)) if n > 0) {
+            self.wrote = true;
+        }
+        polled
+    }
+
+    fn poll_write_vectored(
+        mut self: std::pin::Pin<&mut Self>,
+        cx: &mut std::task::Context<'_>,
+        bufs: &[std::io::IoSlice<'_>],
+    ) -> std::task::Poll<std::io::Result<usize>> {
+        let polled = std::pin::Pin::new(&mut self.inner).poll_write_vectored(cx, bufs);
+        if matches!(polled, std::task::Poll::Ready(Ok(n)) if n > 0) {
+            self.wrote = true;
+        }
+        polled
+    }
+
+    fn is_write_vectored(&self) -> bool {
+        self.inner.is_write_vectored()
+    }
+
+    fn poll_flush(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<std::io::Result<()>> {
+        let polled = std::pin::Pin::new(&mut self.inner).poll_flush(cx);
+        if self.wrote && matches!(polled, std::task::Poll::Ready(Ok(()))) {
+            if let Some(written) = self.written.take() {
+                let _ = written.send(());
+            }
+        }
+        polled
+    }
+
+    fn poll_shutdown(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<std::io::Result<()>> {
+        std::pin::Pin::new(&mut self.inner).poll_shutdown(cx)
+    }
 }
