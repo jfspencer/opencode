@@ -7,6 +7,8 @@
 //! - [`mouse`] (`parse.mouse.ts`): SGR and X10 mouse reports.
 //! - [`paste`] (`paste.ts`): paste metadata, decoding and ANSI stripping.
 //! - [`events`] (`KeyHandler.ts`): `KeyEvent`, `PasteEvent` and the renderer's key dispatch.
+//! - [`keymap`] (`@opentui/keymap`): layers, bindings, sequences, the leader, precedence and command dispatch, as
+//!   the TUI configures them.
 //!
 //! Strings follow JavaScript where the TS depends on it (UTF-16 lengths, `parseInt`, `ToInt32`; see [`js`]). The
 //! one divergence: a JS string can hold a lone surrogate and a Rust one cannot, so a Kitty or modifyOtherKeys
@@ -16,6 +18,7 @@
 
 pub mod events;
 pub mod js;
+pub mod keymap;
 pub mod keypress;
 pub mod kitty;
 pub mod mouse;
