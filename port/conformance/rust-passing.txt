@@ -1,15 +1,19 @@
 scenarios/agent-loop-agents.test.ts › PDF attachment to a model that reads PDFs
 scenarios/agent-loop-agents.test.ts › agent with a custom system prompt
+scenarios/agent-loop-agents.test.ts › attachments are replayed on later steps
 scenarios/agent-loop-agents.test.ts › binary attachment of an unsupported type is reported to the model
 scenarios/agent-loop-agents.test.ts › generate text fails
 scenarios/agent-loop-agents.test.ts › generate text from session context
 scenarios/agent-loop-agents.test.ts › generate text from session context fails
 scenarios/agent-loop-agents.test.ts › generate text without a session
 scenarios/agent-loop-agents.test.ts › instruction entries change between prompts
+scenarios/agent-loop-agents.test.ts › instruction update after an image tool result
 scenarios/agent-loop-agents.test.ts › instruction update right after a prompt
+scenarios/agent-loop-agents.test.ts › maximum steps reached
 scenarios/agent-loop-agents.test.ts › maximum steps reset on the next prompt
 scenarios/agent-loop-agents.test.ts › model settings become OpenRouter request options
 scenarios/agent-loop-agents.test.ts › no model available
+scenarios/agent-loop-agents.test.ts › plan agent cannot edit
 scenarios/agent-loop-agents.test.ts › plan agent request
 scenarios/agent-loop-agents.test.ts › prompt with a PDF attachment
 scenarios/agent-loop-agents.test.ts › prompt with a directory attachment
@@ -17,6 +21,7 @@ scenarios/agent-loop-agents.test.ts › prompt with a missing attachment
 scenarios/agent-loop-agents.test.ts › prompt with a text file attachment
 scenarios/agent-loop-agents.test.ts › prompt with image attachments
 scenarios/agent-loop-agents.test.ts › prompt with inline attachments
+scenarios/agent-loop-agents.test.ts › reading an image file sends it after the tool result
 scenarios/agent-loop-agents.test.ts › reasoning from an earlier variant is replayed
 scenarios/agent-loop-agents.test.ts › reasoning variants change the request
 scenarios/agent-loop-agents.test.ts › repeated inline images are sent once
@@ -30,6 +35,7 @@ scenarios/agent-loop-agents.test.ts › title generated for an untitled session
 scenarios/agent-loop-agents.test.ts › title generation fails
 scenarios/agent-loop-agents.test.ts › title is the first non-empty line of the reply
 scenarios/agent-loop-agents.test.ts › title skips think blocks written into the reply
+scenarios/agent-loop-agents.test.ts › tool call after the maximum steps
 scenarios/agent-loop-errors.test.ts › client error marked retryable, then success
 scenarios/agent-loop-errors.test.ts › comments and blank frames are ignored
 scenarios/agent-loop-errors.test.ts › content after the finish reason
@@ -72,6 +78,7 @@ scenarios/agent-loop-interrupt.test.ts › interrupt while reasoning
 scenarios/agent-loop-interrupt.test.ts › interrupt while text is streaming
 scenarios/agent-loop-interrupt.test.ts › prompt admitted without resuming
 scenarios/agent-loop-interrupt.test.ts › queued prompt runs after the turn
+scenarios/agent-loop-interrupt.test.ts › steering prompt joins at the next step
 scenarios/agent-loop-interrupt.test.ts › synthetic message runs the loop
 scenarios/agent-loop-transport.test.ts › connection closed before the response, then success
 scenarios/agent-loop-transport.test.ts › connection dropped after output, then continued
@@ -81,6 +88,7 @@ scenarios/agent-loop-transport.test.ts › one-shot generation does not retry a 
 scenarios/agent-loop-transport.test.ts › response exceeds the whole-request timeout, then success
 scenarios/agent-loop-transport.test.ts › response stalls after output past the chunk timeout, then continued
 scenarios/agent-loop-transport.test.ts › response stalls past the chunk timeout, then success
+scenarios/agent-loop.test.ts › conversation continues across prompts
 scenarios/agent-loop.test.ts › empty reply
 scenarios/agent-loop.test.ts › encrypted reasoning without readable text
 scenarios/agent-loop.test.ts › finish reason content_filter during a tool call
@@ -91,14 +99,23 @@ scenarios/agent-loop.test.ts › finish reason length continues the response
 scenarios/agent-loop.test.ts › finish reason length cuts a tool call
 scenarios/agent-loop.test.ts › finish reason length three times fails the turn
 scenarios/agent-loop.test.ts › finish reason network_error, then success
+scenarios/agent-loop.test.ts › multi-step tool loop
+scenarios/agent-loop.test.ts › parallel tool calls in one step
+scenarios/agent-loop.test.ts › reasoning details with signature and encrypted parts
+scenarios/agent-loop.test.ts › reasoning in the reasoning_content field
+scenarios/agent-loop.test.ts › reasoning is echoed back on the next request
 scenarios/agent-loop.test.ts › reasoning-only reply
 scenarios/agent-loop.test.ts › refusal text
 scenarios/agent-loop.test.ts › reply without usage
 scenarios/agent-loop.test.ts › summary reasoning details beside reasoning text
+scenarios/agent-loop.test.ts › text and tool call in one step
+scenarios/agent-loop.test.ts › tool call streamed without indexes
+scenarios/agent-loop.test.ts › tool call whose name arrives late
 scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/project-agents.test.ts › a custom agent shapes the provider request
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
@@ -121,6 +138,7 @@ scenarios/project-config.test.ts › available shells
 scenarios/project-config.test.ts › config documents with project config disabled
 scenarios/project-config.test.ts › config documents without project files
 scenarios/project-config.test.ts › config from parent directories of a nested location
+scenarios/project-config.test.ts › configured formatters run after a write
 scenarios/project-config.test.ts › env and file substitution in config
 scenarios/project-config.test.ts › invalid fields are dropped while valid ones are kept
 scenarios/project-config.test.ts › invalid native config sections
@@ -193,6 +211,8 @@ scenarios/session-api-control.test.ts › a slash command that fails to run
 scenarios/session-api-control.test.ts › activate skills and attach them to prompts
 scenarios/session-api-control.test.ts › generate text from session context
 scenarios/session-api-control.test.ts › instruction entries reach the model and announce changes
+scenarios/session-api-control.test.ts › move a busy session at the next step boundary
+scenarios/session-api-control.test.ts › move a session to another directory
 scenarios/session-api-control.test.ts › move a session to the home directory
 scenarios/session-api-control.test.ts › move a session whose directory is gone
 scenarios/session-api-control.test.ts › move to a directory with an invalid configuration
@@ -242,6 +262,16 @@ scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
 scenarios/tools-question.test.ts › question denied by permission rules
+scenarios/tools-read.test.ts › read a special file
+scenarios/tools-read.test.ts › read absolute and home paths
+scenarios/tools-read.test.ts › read binary files
+scenarios/tools-read.test.ts › read directories
+scenarios/tools-read.test.ts › read images and PDFs as attachments
+scenarios/tools-read.test.ts › read large files across chunks
+scenarios/tools-read.test.ts › read long lines and paging
+scenarios/tools-read.test.ts › read media over the ingestion limit
+scenarios/tools-read.test.ts › read with near-miss names and missing paths
+scenarios/tools-skill.test.ts › skill URI of a directory skill
 scenarios/tools-skill.test.ts › skill activated by the user
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
 scenarios/tools-subagent.test.ts › subagent child interrupted while the parent waits
@@ -249,13 +279,31 @@ scenarios/tools-subagent.test.ts › subagent continuation of a session that is 
 scenarios/tools-subagent.test.ts › subagent continued by sessionID
 scenarios/tools-subagent.test.ts › subagent denied by permission rules
 scenarios/tools-subagent.test.ts › subagent depth limit
+scenarios/tools-subagent.test.ts › subagent explore in the foreground
 scenarios/tools-subagent.test.ts › subagent failure in the child
+scenarios/tools-subagent.test.ts › subagent general in the foreground
 scenarios/tools-subagent.test.ts › subagent in the background
 scenarios/tools-subagent.test.ts › subagent moved to the background while running
 scenarios/tools-subagent.test.ts › subagent nested within a raised depth limit
 scenarios/tools-subagent.test.ts › subagent parent interrupted while the child runs
+scenarios/tools-subagent.test.ts › subagent that finishes without text
 scenarios/tools-subagent.test.ts › subagent with empty optional arguments
 scenarios/tools-subagent.test.ts › subagent with model overrides
 scenarios/tools-subagent.test.ts › subagent with unknown and primary agents
+scenarios/tools.test.ts › edit a file with a unique match
+scenarios/tools.test.ts › edit with a string that does not occur
+scenarios/tools.test.ts › edit with an ambiguous match, then replaceAll
+scenarios/tools.test.ts › edit without reading first
+scenarios/tools.test.ts › glob for files
+scenarios/tools.test.ts › grep for a pattern
+scenarios/tools.test.ts › grep with no matches
+scenarios/tools.test.ts › invalid tool input
 scenarios/tools.test.ts › malformed tool arguments
+scenarios/tools.test.ts › overwrite an existing file
+scenarios/tools.test.ts › read a directory
+scenarios/tools.test.ts › read a file
+scenarios/tools.test.ts › read a file with offset and limit
+scenarios/tools.test.ts › read a missing file
+scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
+scenarios/tools.test.ts › write a new file
