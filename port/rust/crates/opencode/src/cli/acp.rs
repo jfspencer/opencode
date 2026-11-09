@@ -1,25 +1,38 @@
 //! `opencode acp` (packages/cli/src/commands/handlers/acp.ts, acp/*.ts): the Agent Client Protocol over stdio,
-//! newline-delimited JSON-RPC 2.0, against a private server. Sessions, prompts (text, resources, images, slash
-//! commands, compaction), the turn's events translated to `session/update` notifications, usage, cancellation,
-//! config options (model, effort, mode), list, fork, resume, close and delete.
+//! newline-delimited JSON-RPC 2.0, against a private server. Sessions (new, load with its history replayed,
+//! resume, fork, list, close, delete, additional directories), prompts (text, resources, images, slash commands,
+//! compaction), the turn's events translated to `session/update` notifications (with child sessions' updates,
+//! retries, compactions, completed-edit diffs and usage), permission requests and forms asked of the client,
+//! cancellation, and config options (model, effort, mode) that follow the server's catalog and selections.
 //!
-//! TODO(port): permission requests and forms are answered on the client's behalf (rejected, cancelled) instead of
-//! through `session/request_permission` and elicitation; `session/load` attaches without replaying history; child
-//! session updates, MCP server registration, and completed-edit diffs are not sent.
+//! Out of scope: the MCP servers a client names are checked but not registered (`experimental.mcp.add`), since MCP
+//! is dropped from the port; the SDK's schema validation of request parameters (zod's error format) is not
+//! reproduced.
+
+mod elicitation;
+mod permission;
+mod prompt;
+mod replay;
+mod tool;
+mod translate;
+mod turn;
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use opencode_protocol::Json;
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, oneshot, watch};
+use tokio::task::JoinHandle;
 
-use super::client::{Client, ClientError, Events};
+use super::client::{Client, ClientError};
 use super::connection;
 use super::out::Result;
 use super::parse::Input;
 use crate::json::{self, Obj, get, get_num, get_str};
 
 const AUTH_METHOD: &str = "opencode-login";
+const DIRECTORIES_KEY: &str = "opencode.acp.additionalDirectories";
 
 /// A JSON-RPC error (`RequestError`).
 #[derive(Debug)]
@@ -61,6 +74,15 @@ impl RpcError {
         data.opt_str("service", service).opt_str("errorName", name);
         Self::internal(data.done(), message)
     }
+    fn invalid(key: &str, value: &str, message: String) -> Self {
+        let mut data = Obj::new();
+        data.str(key, value);
+        Self::invalid_params(data.done(), &message)
+    }
+    /// The `ACPInvalidModelError`, `ACPInvalidModeError` and `ACPInvalidEffortError` a catalog reload may fix.
+    fn reloadable(&self) -> bool {
+        self.code == -32602 && ["model not found: ", "mode not found: ", "effort not found: "].iter().any(|p| self.message.starts_with(&format!("Invalid params: {p}")))
+    }
 }
 
 /// `ACPClient.classify` for a failed server call.
@@ -79,13 +101,19 @@ fn classify(error: ClientError) -> RpcError {
 
 type Reply = std::result::Result<Json, RpcError>;
 
-/// Writes one message per line on stdout.
-#[derive(Clone)]
-struct Out(Arc<Mutex<()>>);
+/// The connection to the client: one message per line on stdout, and the requests the agent sends the client.
+struct Connection {
+    write: Mutex<()>,
+    next: AtomicI64,
+    /// Requests awaiting the client's answer; a withdrawn one stays (as `None`) until its late answer arrives.
+    pending: Mutex<HashMap<i64, Option<oneshot::Sender<std::result::Result<Json, Json>>>>>,
+    /// The client's requests that `$/cancel_request` can cancel, by their ID's JSON text.
+    incoming: Mutex<HashMap<String, watch::Sender<bool>>>,
+}
 
-impl Out {
+impl Connection {
     fn send(&self, message: &Json) {
-        let _guard = self.0.lock().unwrap();
+        let _guard = self.write.lock().unwrap();
         super::out::stdout(&format!("{}\n", json::text(message)));
     }
     fn notify(&self, method: &str, params: Json) {
@@ -113,10 +141,77 @@ impl Out {
         }
         self.send(&o.done());
     }
+
+    /// A request to the client; its answer's result or error. Dropped before the answer, it is withdrawn.
+    async fn request(self: &Arc<Self>, method: &str, params: Json) -> std::result::Result<Json, Json> {
+        let id = self.next.fetch_add(1, Ordering::SeqCst);
+        let (tx, rx) = oneshot::channel();
+        self.pending.lock().unwrap().insert(id, Some(tx));
+        let mut withdraw = Withdraw { conn: self.clone(), id, answered: false };
+        let mut o = Obj::new();
+        o.str("jsonrpc", "2.0").int("id", id).str("method", method).set("params", params);
+        self.send(&o.done());
+        let answer = rx.await.unwrap_or(Err(Json::Null));
+        withdraw.answered = true;
+        answer
+    }
+
+    /// An answer from the client to one of the agent's requests.
+    fn answered(&self, message: &Json) {
+        let id = match get(message, "id") {
+            Some(Json::Number(n)) => *n as i64,
+            Some(other) => {
+                super::out::stderr(&format!("Got response to unknown request {}\n", json::text(other)));
+                return;
+            }
+            None => return,
+        };
+        let entry = self.pending.lock().unwrap().remove(&id);
+        match entry {
+            Some(Some(tx)) => {
+                let answer = match (get(message, "result"), get(message, "error")) {
+                    (Some(result), _) => Ok(result.clone()),
+                    (None, Some(error)) => Err(error.clone()),
+                    (None, None) => Err(Json::Null),
+                };
+                let _ = tx.send(answer);
+            }
+            Some(None) => {}
+            None => super::out::stderr(&format!("Got response to unknown request {id}\n")),
+        }
+    }
+}
+
+struct Withdraw {
+    conn: Arc<Connection>,
+    id: i64,
+    answered: bool,
+}
+
+impl Drop for Withdraw {
+    fn drop(&mut self) {
+        if self.answered {
+            return;
+        }
+        if let Some(entry) = self.conn.pending.lock().unwrap().get_mut(&self.id) {
+            *entry = None;
+        }
+        let mut params = Obj::new();
+        params.int("requestId", self.id);
+        self.conn.notify("$/cancel_request", params.done());
+    }
+}
+
+/// `ACPCapabilities`: what the client said it supports.
+#[derive(Clone, Copy, Default)]
+struct Capabilities {
+    child_updates: bool,
+    form_elicitation: bool,
+    compaction: bool,
 }
 
 /// The models, modes and commands of a directory (`ACPCatalog.Catalog`).
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 struct Catalog {
     models: Vec<Json>,
     default_model: Json,
@@ -131,18 +226,53 @@ struct Selection {
     mode: Option<String>,
 }
 
+impl Selection {
+    fn patched(&self, patch: &Selection) -> Selection {
+        Selection { model: patch.model.clone().or_else(|| self.model.clone()), mode: patch.mode.clone().or_else(|| self.mode.clone()) }
+    }
+}
+
+/// How an attached session follows its catalog and the server's selections (`ACPSessions.attach`'s fold): from
+/// the response that attached it, until it is detached.
+#[derive(Default)]
+struct Follow {
+    active: bool,
+    catalog: Option<Catalog>,
+    queued: Vec<Selection>,
+}
+
 struct Attached {
+    id: String,
     cwd: String,
     selection: Mutex<Selection>,
+    follow: Mutex<Follow>,
+    tasks: Mutex<Vec<JoinHandle<()>>>,
+}
+
+impl Attached {
+    fn stop(&self) {
+        for task in self.tasks.lock().unwrap().drain(..) {
+            task.abort();
+        }
+    }
+}
+
+struct TurnEntry {
+    token: u64,
+    cancel: watch::Sender<bool>,
+    done: watch::Receiver<bool>,
 }
 
 struct Agent {
     client: Client,
-    out: Out,
+    conn: Arc<Connection>,
     catalogs: tokio::sync::Mutex<HashMap<String, Catalog>>,
     sessions: Mutex<HashMap<String, Arc<Attached>>>,
-    turns: Mutex<HashMap<String, tokio::sync::watch::Sender<bool>>>,
+    turns: Mutex<HashMap<String, TurnEntry>>,
+    next_turn: AtomicI64,
     unprompted: Mutex<Vec<String>>,
+    capabilities: Mutex<Capabilities>,
+    connected: watch::Receiver<bool>,
 }
 
 fn location(directory: &str) -> Json {
@@ -302,61 +432,80 @@ impl Catalog {
 
 fn select_variant(variant: Option<&str>, variants: &[String]) -> String {
     match variant {
-        None | Some("default") => "default".into(),
+        None | Some("default") | Some("") => "default".into(),
         Some(v) if variants.iter().any(|x| x == v) => v.into(),
         _ if variants.iter().any(|x| x == "default") => "default".into(),
         _ => variants.first().cloned().unwrap_or_else(|| "default".into()),
     }
 }
 
-fn absolute(path: &str) -> bool {
-    path.starts_with('/')
-}
-
 fn parse_cwd(cwd: &str) -> std::result::Result<(), RpcError> {
-    if !absolute(cwd) {
+    if !cwd.starts_with('/') {
         return Err(RpcError::invalid_request(&format!("cwd must be an absolute path: {cwd}"), Some("cwd")));
     }
     Ok(())
 }
 
-/// `ACPDirectories.parse`: the additional directories, absolute and without glob characters.
+/// `ACPDirectories.parse`: the additional directories, absolute and without glob characters, other than the cwd.
 fn parse_directories(cwd: &str, params: &Json) -> std::result::Result<Vec<String>, RpcError> {
     parse_cwd(cwd)?;
+    let directories: Vec<&str> = get(params, "additionalDirectories").and_then(json::array).unwrap_or(&[]).iter().map(|d| json::as_str(d).unwrap_or("")).collect();
+    if let Some(invalid) = directories.iter().find(|d| !d.starts_with('/') || d.contains(['*', '?'])) {
+        let mut data = Obj::new();
+        data.str("additionalDirectory", invalid);
+        return Err(RpcError::invalid_params(data.done(), &format!("additional directory must be an absolute path without glob characters: {invalid}")));
+    }
+    let root = crate::project::resolve_path(cwd);
     let mut out: Vec<String> = vec![];
-    for directory in get(params, "additionalDirectories").and_then(json::array).unwrap_or(&[]) {
-        let directory = json::as_str(directory).unwrap_or("");
-        if !absolute(directory) || directory.contains(['*', '?']) {
-            let mut data = Obj::new();
-            data.str("additionalDirectory", directory);
-            return Err(RpcError::invalid_params(
-                data.done(),
-                &format!("additional directory must be an absolute path without glob characters: {directory}"),
-            ));
-        }
+    for directory in directories {
         let resolved = crate::project::absolutize(directory);
-        if resolved != crate::project::absolutize(cwd) && !out.contains(&resolved) {
+        if !out.contains(&resolved) {
             out.push(resolved);
         }
     }
-    Ok(out)
+    Ok(out.into_iter().filter(|d| crate::project::resolve_path(d) != root).collect())
 }
 
+/// `rules`: tools compare the written path without following symlinks, so both spellings of a root are granted.
+fn directory_rules(directories: &[String]) -> Vec<Json> {
+    let mut roots: Vec<String> = vec![];
+    for directory in directories {
+        for root in [directory.clone(), crate::project::resolve_path(directory)] {
+            if !roots.contains(&root) {
+                roots.push(root);
+            }
+        }
+    }
+    roots
+        .iter()
+        .map(|d| {
+            let mut o = Obj::new();
+            o.str("action", "external_directory").str("resource", &crate::project::normalize(&format!("{d}/*"))).str("effect", "allow");
+            o.done()
+        })
+        .collect()
+}
+
+fn directory_list(directories: &[String]) -> Json {
+    Json::Array(directories.iter().map(|d| Json::String(d.clone())).collect())
+}
+
+/// `ACPDirectories.grant`.
 fn grant(directories: &[String], body: &mut Obj) {
     if directories.is_empty() {
         return;
     }
-    let rules: Vec<Json> = directories
-        .iter()
-        .map(|d| {
-            let mut o = Obj::new();
-            o.str("action", "external_directory").str("resource", &format!("{d}/*")).str("effect", "allow");
-            o.done()
-        })
-        .collect();
     let mut metadata = Obj::new();
-    metadata.set("opencode.acp.additionalDirectories", Json::Array(directories.iter().map(|d| Json::String(d.clone())).collect()));
-    body.set("permissions", Json::Array(rules)).set("metadata", metadata.done());
+    metadata.set(DIRECTORIES_KEY, directory_list(directories));
+    body.set("permissions", Json::Array(directory_rules(directories))).set("metadata", metadata.done());
+}
+
+/// `ACPDirectories.list`: the directories a session was granted.
+fn granted(session: &Json) -> Vec<String> {
+    match get(session, "metadata").and_then(|m| get(m, DIRECTORIES_KEY)) {
+        Some(Json::Array(items)) if items.iter().all(|i| matches!(i, Json::String(_))) => items.iter().filter_map(json::as_str).map(String::from).collect(),
+        _ => vec![],
+    }
 }
 
 fn check_mcp(params: &Json) -> std::result::Result<(), RpcError> {
@@ -368,15 +517,54 @@ fn check_mcp(params: &Json) -> std::result::Result<(), RpcError> {
 }
 
 impl Agent {
+    fn capabilities(&self) -> Capabilities {
+        *self.capabilities.lock().unwrap()
+    }
+
+    /// Waits for the agent's own event stream, so no selection or catalog event is missed.
+    async fn connected(&self) {
+        let mut connected = self.connected.clone();
+        let _ = connected.wait_for(|c| *c).await;
+    }
+
     async fn catalog(&self, cwd: &str) -> std::result::Result<Catalog, RpcError> {
-        let key = crate::project::absolutize(cwd);
+        let key = crate::project::resolve_path(cwd);
         let mut catalogs = self.catalogs.lock().await;
         if let Some(found) = catalogs.get(&key) {
             return Ok(found.clone());
         }
+        self.connected().await;
         let loaded = self.load_catalog(cwd).await?;
         catalogs.insert(key, loaded.clone());
         Ok(loaded)
+    }
+
+    /// `ACPCatalog.reload`: the directory's catalog read again; attached sessions follow the change.
+    async fn reload(&self, cwd: &str) {
+        let key = crate::project::resolve_path(cwd);
+        let next = {
+            let mut catalogs = self.catalogs.lock().await;
+            if !catalogs.contains_key(&key) {
+                return;
+            }
+            let Ok(next) = self.load_catalog(cwd).await else { return };
+            catalogs.insert(key.clone(), next.clone());
+            next
+        };
+        let attached: Vec<Arc<Attached>> =
+            self.sessions.lock().unwrap().values().filter(|a| crate::project::resolve_path(&a.cwd) == key).cloned().collect();
+        for session in attached {
+            let previous = {
+                let mut follow = session.follow.lock().unwrap();
+                if !follow.active {
+                    continue;
+                }
+                follow.catalog.replace(next.clone())
+            };
+            if let Some(previous) = previous {
+                self.changed(&session, &previous, &next, &Selection::default());
+            }
+        }
     }
 
     async fn load_catalog(&self, cwd: &str) -> std::result::Result<Catalog, RpcError> {
@@ -440,17 +628,108 @@ impl Agent {
         self.sessions.lock().unwrap().get(id).cloned().ok_or_else(|| RpcError::session_not_found(id))
     }
 
-    /// `ACPSessions.attach`: the session's selection, and (after the response) its commands.
-    async fn attach(&self, session: &Json, cwd: &str) -> std::result::Result<(String, Json, Json), RpcError> {
+    fn current(&self, attached: &Arc<Attached>) -> bool {
+        self.sessions.lock().unwrap().get(&attached.id).is_some_and(|a| Arc::ptr_eq(a, attached))
+    }
+
+    /// `ACPSessions.attach`: the session's selection; after the response, its commands and the changes it follows.
+    async fn attach(&self, session: &Json, cwd: &str) -> std::result::Result<(Arc<Attached>, Catalog, Json), RpcError> {
+        self.connected().await;
         let catalog = self.catalog(cwd).await?;
         let id = get_str(session, "id").unwrap_or("").to_owned();
         let selection = Selection { model: get(session, "model").cloned(), mode: get_str(session, "agent").map(String::from) };
         let options = catalog.options(&selection);
-        self.sessions
-            .lock()
-            .unwrap()
-            .insert(id.clone(), Arc::new(Attached { cwd: cwd.to_owned(), selection: Mutex::new(selection) }));
-        Ok((id, options, catalog.available_commands()))
+        let attached = Arc::new(Attached {
+            id: id.clone(),
+            cwd: cwd.to_owned(),
+            selection: Mutex::new(selection),
+            follow: Mutex::new(Follow::default()),
+            tasks: Mutex::new(vec![]),
+        });
+        let replaced = self.sessions.lock().unwrap().insert(id, attached.clone());
+        if let Some(replaced) = replaced {
+            replaced.stop();
+        }
+        Ok((attached, catalog, options))
+    }
+
+    /// After a successful response that attached a session: its commands, then the changes since attaching.
+    async fn activate(&self, attached: &Arc<Attached>, catalog: Catalog) {
+        if !self.current(attached) {
+            return;
+        }
+        self.conn.update(&attached.id, commands_update(catalog.available_commands()));
+        let latest = self.catalog(&attached.cwd).await.unwrap_or_else(|_| catalog.clone());
+        let queued = {
+            let mut follow = attached.follow.lock().unwrap();
+            follow.active = true;
+            follow.catalog = Some(latest.clone());
+            std::mem::take(&mut follow.queued)
+        };
+        if latest != catalog {
+            self.changed(attached, &catalog, &latest, &Selection::default());
+        }
+        for patch in queued {
+            self.changed(attached, &latest, &latest, &patch);
+        }
+    }
+
+    /// `changed`: a selection or catalog change the client is told about when it shows.
+    fn changed(&self, attached: &Attached, previous: &Catalog, next: &Catalog, patch: &Selection) {
+        let selection = {
+            let mut current = attached.selection.lock().unwrap();
+            let before = current.clone();
+            *current = before.patched(patch);
+            before
+        };
+        let options = next.options(&selection.patched(patch));
+        if options != previous.options(&selection) {
+            let mut update = Obj::new();
+            update.str("sessionUpdate", "config_option_update").set("configOptions", options);
+            self.conn.update(&attached.id, update.done());
+        }
+        if next.commands != previous.commands {
+            self.conn.update(&attached.id, commands_update(next.available_commands()));
+        }
+    }
+
+    /// A selection the server reports for an attached session (`session.model.selected`, `session.agent.selected`).
+    fn selected(&self, session: &str, patch: Selection) {
+        let Some(attached) = self.sessions.lock().unwrap().get(session).cloned() else { return };
+        let catalog = {
+            let mut follow = attached.follow.lock().unwrap();
+            if !follow.active {
+                follow.queued.push(patch);
+                return;
+            }
+            follow.catalog.clone()
+        };
+        if let Some(catalog) = catalog {
+            self.changed(&attached, &catalog, &catalog, &patch);
+        }
+    }
+
+    fn detach(&self, id: &str) {
+        if let Some(attached) = self.sessions.lock().unwrap().remove(id) {
+            attached.stop();
+        }
+    }
+
+    /// `ACPSessions.release`: only this attachment, not one that replaced it.
+    fn release(&self, attached: &Arc<Attached>) {
+        let mut sessions = self.sessions.lock().unwrap();
+        if sessions.get(&attached.id).is_some_and(|a| Arc::ptr_eq(a, attached)) {
+            sessions.remove(&attached.id);
+            attached.stop();
+        }
+    }
+
+    /// `ACPSessions.fork`: work that lives as long as the attachment.
+    fn fork(&self, attached: &Arc<Attached>, work: impl std::future::Future<Output = ()> + Send + 'static) {
+        if !self.current(attached) {
+            return;
+        }
+        attached.tasks.lock().unwrap().push(tokio::spawn(work));
     }
 
     async fn get_session(&self, id: &str, cwd: &str) -> std::result::Result<Json, RpcError> {
@@ -460,7 +739,7 @@ impl Agent {
         let found = self.client.call("session.get", &[("sessionID", id)], None, None).await.map_err(classify)?;
         let session = get(&found, "data").cloned().unwrap_or(Json::Null);
         let directory = get(&session, "location").and_then(|l| get_str(l, "directory")).unwrap_or("");
-        if crate::project::absolutize(cwd) != crate::project::absolutize(directory) {
+        if crate::project::resolve_path(cwd) != crate::project::resolve_path(directory) {
             let mut data = Obj::new();
             data.str("sessionId", id).str("cwd", cwd);
             return Err(RpcError::invalid_params(data.done(), &format!("session {id} does not belong to cwd: {cwd}")));
@@ -468,14 +747,56 @@ impl Agent {
         Ok(session)
     }
 
-    /// One request; the `after` notifications go out once the response is written.
-    async fn request(self: &Arc<Self>, method: &str, params: &Json) -> (Reply, Vec<(String, Json)>) {
+    /// `ACPDirectories.activate`: the request's directories replace the ones the session was granted before.
+    async fn activate_directories(&self, session: &Json, directories: &[String]) -> std::result::Result<(), RpcError> {
+        let previous = granted(session);
+        let owned = directory_rules(&previous);
+        let current: Vec<Json> = get(session, "permissions").and_then(json::array).map(<[Json]>::to_vec).unwrap_or_default();
+        let permissions: Vec<Json> = directory_rules(directories).into_iter().chain(current.iter().filter(|rule| !owned.contains(rule)).cloned()).collect();
+        let permissions_changed = permissions != current;
+        let metadata_changed = previous != directories;
+        if !permissions_changed && !metadata_changed {
+            return Ok(());
+        }
+        let mut body = Obj::new();
+        if permissions_changed {
+            body.set("permissions", Json::Array(permissions));
+        }
+        if metadata_changed {
+            let mut metadata = Obj::new();
+            if let Some(Json::Object(entries)) = get(session, "metadata") {
+                for (key, value) in entries.iter().filter(|(key, _)| key.as_str() != DIRECTORIES_KEY) {
+                    metadata.set(key, value.clone());
+                }
+            }
+            if !directories.is_empty() {
+                metadata.set(DIRECTORIES_KEY, directory_list(directories));
+            }
+            body.set("metadata", metadata.done());
+        }
+        let id = get_str(session, "id").unwrap_or("");
+        self.client.call("session.update", &[("sessionID", id)], None, Some(body.done())).await.map_err(classify)?;
+        Ok(())
+    }
+
+    /// One request; `After` work runs once its successful response is written.
+    async fn request(self: &Arc<Self>, method: &str, params: &Json, cancelled: watch::Receiver<bool>) -> (Reply, Option<After>) {
         let cwd = get_str(params, "cwd").unwrap_or("").to_owned();
         let session_id = get_str(params, "sessionId").unwrap_or("").to_owned();
-        let mut after = vec![];
+        let mut after = None;
         let reply: Reply = async {
             match method {
-                "initialize" => Ok(initialize(params)),
+                "initialize" => {
+                    let client = get(params, "clientCapabilities");
+                    let meta = client.and_then(|c| get(c, "_meta"));
+                    let present = |value: Option<&Json>| value.is_some_and(|v| !matches!(v, Json::Null));
+                    *self.capabilities.lock().unwrap() = Capabilities {
+                        child_updates: meta.and_then(|m| json::get_bool(m, translate_child_capability())) == Some(true),
+                        form_elicitation: present(client.and_then(|c| get(c, "elicitation")).and_then(|e| get(e, "form"))),
+                        compaction: present(client.and_then(|c| get(c, "session")).and_then(|s| get(s, "compaction"))),
+                    };
+                    Ok(initialize(params))
+                }
                 "authenticate" => {
                     let method = get_str(params, "methodId").unwrap_or("");
                     if method != AUTH_METHOD {
@@ -488,6 +809,7 @@ impl Agent {
                 "session/new" => {
                     let directories = parse_directories(&cwd, params)?;
                     check_mcp(params)?;
+                    // Load first so a catalog failure leaves no session.
                     self.catalog(&cwd).await?;
                     let mut body = Obj::new();
                     let mut at = Obj::new();
@@ -496,42 +818,55 @@ impl Agent {
                     grant(&directories, &mut body);
                     let created = self.client.call("session.create", &[], None, Some(body.done())).await.map_err(classify)?;
                     let session = get(&created, "data").cloned().unwrap_or(Json::Null);
-                    let (id, options, commands) = self.attach(&session, &cwd).await?;
-                    self.unprompted.lock().unwrap().push(id.clone());
-                    after.push((id.clone(), commands_update(commands)));
+                    let (attached, catalog, options) = self.attach(&session, &cwd).await?;
+                    self.unprompted.lock().unwrap().push(attached.id.clone());
                     let mut o = Obj::new();
-                    o.str("sessionId", &id).set("configOptions", options);
+                    o.str("sessionId", &attached.id).set("configOptions", options);
+                    after = Some(After::Activate(attached, catalog));
                     Ok(o.done())
                 }
                 "session/load" | "session/resume" => {
-                    parse_directories(&cwd, params)?;
+                    let directories = parse_directories(&cwd, params)?;
                     check_mcp(params)?;
                     let session = self.get_session(&session_id, &cwd).await?;
+                    self.activate_directories(&session, &directories).await?;
                     let directory = get(&session, "location").and_then(|l| get_str(l, "directory")).unwrap_or(&cwd).to_owned();
-                    let (id, options, commands) = self.attach(&session, &directory).await?;
-                    after.push((id, commands_update(commands)));
+                    let (attached, catalog, options) = self.attach(&session, &directory).await?;
+                    after = Some(After::Activate(attached.clone(), catalog));
                     let mut o = Obj::new();
-                    o.set("configOptions", options);
+                    if method == "session/resume" {
+                        o.set("configOptions", options);
+                        return Ok(o.done());
+                    }
+                    if let Err(error) = replay::history(self, &attached.id, &attached.cwd, self.capabilities().compaction).await {
+                        self.release(&attached);
+                        return Err(error);
+                    }
+                    let catalog = self.catalog(&attached.cwd).await?;
+                    let selection = attached.selection.lock().unwrap().clone();
+                    o.set("configOptions", catalog.options(&selection));
                     Ok(o.done())
                 }
                 "session/fork" => {
-                    parse_directories(&cwd, params)?;
+                    let directories = parse_directories(&cwd, params)?;
                     check_mcp(params)?;
                     let session = self.get_session(&session_id, &cwd).await?;
                     let id = get_str(&session, "id").unwrap_or("").to_owned();
                     let forked = self.client.call("session.fork", &[("sessionID", &id)], None, Some(json::object())).await.map_err(classify)?;
                     let forked = get(&forked, "data").cloned().unwrap_or(Json::Null);
+                    // Forks inherit the source's grants; replace them with this request's.
+                    self.activate_directories(&forked, &directories).await?;
                     let directory = get(&forked, "location").and_then(|l| get_str(l, "directory")).unwrap_or(&cwd).to_owned();
-                    let (id, options, commands) = self.attach(&forked, &directory).await?;
-                    after.push((id.clone(), commands_update(commands)));
+                    let (attached, catalog, options) = self.attach(&forked, &directory).await?;
                     let mut o = Obj::new();
-                    o.str("sessionId", &id).set("configOptions", options);
+                    o.str("sessionId", &attached.id).set("configOptions", options);
+                    after = Some(After::Activate(attached, catalog));
                     Ok(o.done())
                 }
                 "session/list" => self.list(params).await,
                 "session/delete" => {
                     self.unprompted.lock().unwrap().retain(|s| *s != session_id);
-                    self.cancel(&session_id);
+                    self.cancel(&session_id).await;
                     if session_id.starts_with("ses") {
                         match self.client.call("session.remove", &[("sessionID", &session_id)], None, None).await {
                             Ok(_) => {}
@@ -539,30 +874,19 @@ impl Agent {
                             Err(error) => return Err(classify(error)),
                         }
                     }
-                    self.sessions.lock().unwrap().remove(&session_id);
+                    self.detach(&session_id);
                     Ok(json::object())
                 }
                 "session/close" => {
-                    let running = self.cancel(&session_id);
-                    if !running && session_id.starts_with("ses") {
-                        let _ = self.client.call("session.interrupt", &[("sessionID", &session_id)], None, None).await;
-                    }
-                    self.sessions.lock().unwrap().remove(&session_id);
-                    let unprompted = {
-                        let mut list = self.unprompted.lock().unwrap();
-                        let had = list.contains(&session_id);
-                        list.retain(|s| *s != session_id);
-                        had
-                    };
-                    if unprompted {
-                        let mut query = Obj::new();
-                        query.int("limit", 1);
-                        if let Ok(messages) = self.client.call("session.message.list", &[("sessionID", &session_id)], Some(query.done()), None).await {
-                            if data(&messages).is_empty() {
-                                let _ = self.client.call("session.remove", &[("sessionID", &session_id)], None, None).await;
-                            }
+                    if !self.cancel(&session_id).await && session_id.starts_with("ses") {
+                        match self.client.call("session.interrupt", &[("sessionID", &session_id)], None, None).await {
+                            Ok(_) => {}
+                            Err(error) if error.tag() == Some("SessionNotFoundError") => {}
+                            Err(error) => return Err(classify(error)),
                         }
                     }
+                    self.detach(&session_id);
+                    self.discard_unprompted(&session_id).await;
                     Ok(json::object())
                 }
                 "session/set_config_option" | "session/set_mode" => {
@@ -577,7 +901,14 @@ impl Agent {
                         data.str("configId", &config);
                         return Err(RpcError::invalid_params(data.done(), &format!("unknown config option: {config}")));
                     };
-                    self.select(&attached, &session_id, &config, &value).await?;
+                    // A catalog reload may know the model, mode or effort.
+                    match self.select(&attached, &config, &value).await {
+                        Err(error) if error.reloadable() => {
+                            self.reload(&attached.cwd).await;
+                            self.select(&attached, &config, &value).await?;
+                        }
+                        other => other?,
+                    }
                     if method == "session/set_mode" {
                         return Ok(json::object());
                     }
@@ -589,13 +920,34 @@ impl Agent {
                 }
                 "session/prompt" => {
                     self.unprompted.lock().unwrap().retain(|s| *s != session_id);
-                    self.prompt(params).await
+                    self.prompt(params, cancelled).await
                 }
                 _ => Err(RpcError::method_not_found(method)),
             }
         }
         .await;
         (reply, after)
+    }
+
+    /// `discardUnprompted`: clients often open a session and close it without prompting; closing removes those.
+    async fn discard_unprompted(&self, session_id: &str) {
+        let had = {
+            let mut list = self.unprompted.lock().unwrap();
+            let had = list.iter().any(|s| s == session_id);
+            list.retain(|s| s != session_id);
+            had
+        };
+        if !had || !session_id.starts_with("ses") {
+            return;
+        }
+        let mut query = Obj::new();
+        query.int("limit", 1);
+        // Another client of the same server may have used it.
+        if let Ok(messages) = self.client.call("session.message.list", &[("sessionID", session_id)], Some(query.done()), None).await {
+            if data(&messages).is_empty() {
+                let _ = self.client.call("session.remove", &[("sessionID", session_id)], None, None).await;
+            }
+        }
     }
 
     async fn list(&self, params: &Json) -> Reply {
@@ -605,7 +957,7 @@ impl Agent {
             query.str("directory", cwd);
         }
         query.str("order", "desc").int("limit", 100);
-        if let Some(cursor) = get_str(params, "cursor") {
+        if let Some(cursor) = get_str(params, "cursor").filter(|c| !c.is_empty()) {
             query.str("cursor", cursor);
         }
         let page = self.client.call("session.list", &[], Some(query.done()), None).await.map_err(classify)?;
@@ -621,10 +973,9 @@ impl Agent {
                 let mut o = Obj::new();
                 o.opt("sessionId", get(session, "id").cloned())
                     .opt("cwd", get(session, "location").and_then(|l| get(l, "directory")).cloned());
-                if let Some(Json::Array(extra)) = get(session, "metadata").and_then(|m| get(m, "opencode.acp.additionalDirectories")) {
-                    if !extra.is_empty() {
-                        o.set("additionalDirectories", Json::Array(extra.clone()));
-                    }
+                let extra = granted(session);
+                if !extra.is_empty() {
+                    o.set("additionalDirectories", directory_list(&extra));
                 }
                 o.str("title", &title).str("updatedAt", &iso(updated));
                 o.done()
@@ -632,44 +983,21 @@ impl Agent {
             .collect();
         let mut o = Obj::new();
         o.set("sessions", Json::Array(sessions));
-        if let Some(next) = get(&page, "cursor").and_then(|c| get_str(c, "next")) {
+        if let Some(next) = get(&page, "cursor").and_then(|c| get_str(c, "next")).filter(|n| !n.is_empty()) {
             o.str("nextCursor", next);
         }
         Ok(o.done())
     }
 
-    async fn select(&self, attached: &Attached, session_id: &str, config: &str, value: &str) -> std::result::Result<(), RpcError> {
+    async fn select(&self, attached: &Attached, config: &str, value: &str) -> std::result::Result<(), RpcError> {
         let catalog = self.catalog(&attached.cwd).await?;
         let current = catalog.current(&attached.selection.lock().unwrap());
-        let invalid = |key: &str, value: &str, message: String| {
-            let mut data = Obj::new();
-            data.str(key, value);
-            RpcError::invalid_params(data.done(), &message)
-        };
         let change = match config {
-            "model" => {
-                let model = catalog
-                    .models
-                    .iter()
-                    .find(|m| advertised(m) == value)
-                    .ok_or_else(|| {
-                        let mut data = Obj::new();
-                        data.str("providerId", value.split('/').next().unwrap_or("")).str("modelId", value);
-                        RpcError::invalid_params(data.done(), &format!("model not found: {value}"))
-                    })?
-                    .clone();
-                let mut reference = Obj::new();
-                reference.opt("providerID", get(&model, "providerID").cloned()).opt("id", get(&model, "id").cloned());
-                let same = get_str(&current, "providerID") == get_str(&model, "providerID") && get_str(&current, "id") == get_str(&model, "id");
-                if let Some(variant) = get_str(&current, "variant").filter(|v| same && (*v == "default" || variants(Some(&model)).iter().any(|x| x == v))) {
-                    reference.str("variant", variant);
-                }
-                Selection { model: Some(reference.done()), mode: None }
-            }
+            "model" => Selection { model: Some(require_model(&catalog, value, &current)?), mode: None },
             "effort" => {
                 let model = find_model(&catalog.models, &current);
                 if model.is_none() || (value != "default" && !variants(model).iter().any(|v| v == value)) {
-                    return Err(invalid("effort", value, format!("effort not found: {value}")));
+                    return Err(RpcError::invalid("effort", value, format!("effort not found: {value}")));
                 }
                 let mut next = current.clone();
                 json::set(&mut next, "variant", Json::String(value.into()));
@@ -677,20 +1005,16 @@ impl Agent {
             }
             "mode" => {
                 if !catalog.modes.iter().any(|m| get_str(m, "id") == Some(value)) {
-                    return Err(invalid("mode", value, format!("mode not found: {value}")));
+                    return Err(RpcError::invalid("mode", value, format!("mode not found: {value}")));
                 }
                 Selection { model: None, mode: Some(value.into()) }
             }
-            other => return Err(invalid("configId", other, format!("unknown config option: {other}"))),
+            other => return Err(RpcError::invalid("configId", other, format!("unknown config option: {other}"))),
         };
+        // The selection changes before the switch, so the server's echo of it changes nothing.
         {
             let mut selection = attached.selection.lock().unwrap();
-            if let Some(model) = &change.model {
-                selection.model = Some(model.clone());
-            }
-            if let Some(mode) = &change.mode {
-                selection.mode = Some(mode.clone());
-            }
+            *selection = selection.patched(&change);
         }
         let mut body = Obj::new();
         let operation = match (&change.model, &change.mode) {
@@ -704,149 +1028,103 @@ impl Agent {
             }
             _ => return Ok(()),
         };
-        self.client.call(operation, &[("sessionID", session_id)], None, Some(body.done())).await.map_err(classify)?;
+        self.client.call(operation, &[("sessionID", &attached.id)], None, Some(body.done())).await.map_err(classify)?;
         Ok(())
     }
 
-    /// Ends a session's running prompt; whether there was one.
-    fn cancel(&self, session_id: &str) -> bool {
-        match self.turns.lock().unwrap().remove(session_id) {
-            Some(cancel) => {
-                let _ = cancel.send(true);
-                true
-            }
-            None => false,
-        }
+    /// Ends a session's running prompt and waits until it has answered; whether there was one.
+    async fn cancel(&self, session_id: &str) -> bool {
+        let entry = self.turns.lock().unwrap().remove(session_id);
+        let Some(entry) = entry else { return false };
+        let _ = entry.cancel.send(true);
+        let mut done = entry.done;
+        let _ = done.wait_for(|d| *d).await;
+        true
     }
 
-    async fn prompt(&self, params: &Json) -> Reply {
+    /// `ACPTurn.prompt`: one prompt per session at a time; a cancel of its request cancels its turn.
+    async fn prompt(self: &Arc<Self>, params: &Json, mut aborted: watch::Receiver<bool>) -> Reply {
         let session_id = get_str(params, "sessionId").unwrap_or("").to_owned();
-        let attached = self.attached(&session_id)?;
-        let catalog = self.catalog(&attached.cwd).await?;
-        let prepared = prepare(&catalog, get(params, "prompt").and_then(json::array).unwrap_or(&[]))?;
-        let (cancel, cancelled) = tokio::sync::watch::channel(false);
+        let (cancel, cancelled) = watch::channel(false);
+        let (done_tx, done) = watch::channel(false);
+        let token = self.next_turn.fetch_add(1, Ordering::SeqCst) as u64;
         {
             let mut turns = self.turns.lock().unwrap();
             if turns.contains_key(&session_id) {
                 return Err(RpcError::service(&format!("Session already has an active ACP prompt: {session_id}"), Some("session"), None));
             }
-            turns.insert(session_id.clone(), cancel);
+            turns.insert(session_id.clone(), TurnEntry { token, cancel: cancel.clone(), done });
         }
-        let result = self.turn(&session_id, &attached, &catalog, &prepared, cancelled).await;
-        self.turns.lock().unwrap().remove(&session_id);
-        result
-    }
-
-    async fn submit(&self, session_id: &str, prepared: &Prepared) -> std::result::Result<(), RpcError> {
-        if !prepared.synthetic.is_empty() {
-            let mut body = Obj::new();
-            body.str("text", &prepared.synthetic.join("\n\n"))
-                .str("description", "ACP embedded context")
-                .str("delivery", "steer")
-                .set("resume", Json::Bool(false));
-            self.client.call("session.synthetic", &[("sessionID", session_id)], None, Some(body.done())).await.map_err(classify)?;
-        }
-        if prepared.compaction {
-            let mut body = Obj::new();
-            body.str("id", &prepared.id);
-            self.client.call("session.compact", &[("sessionID", session_id)], None, Some(body.done())).await.map_err(classify)?;
-            return Ok(());
-        }
-        if let Some((name, args)) = prepared.command.as_ref() {
-            let mut body = Obj::new();
-            body.str("name", name).str("text", args).set("files", Json::Array(prepared.files.clone())).str("delivery", "steer");
-            self.client.call("session.command", &[("sessionID", session_id)], None, Some(body.done())).await.map_err(classify)?;
-            return Ok(());
-        }
-        let mut body = Obj::new();
-        body.str("id", &prepared.id).str("text", &prepared.text).set("files", Json::Array(prepared.files.clone())).str("delivery", "steer");
-        self.client.call("session.prompt", &[("sessionID", session_id)], None, Some(body.done())).await.map_err(classify)?;
-        Ok(())
-    }
-
-    async fn turn(
-        &self,
-        session_id: &str,
-        attached: &Attached,
-        catalog: &Catalog,
-        prepared: &Prepared,
-        mut cancelled: tokio::sync::watch::Receiver<bool>,
-    ) -> Reply {
-        let mut events = self.client.events().await.map_err(classify)?;
-        match events.next().await {
-            Some(Ok(event)) if get_str(&event, "type") == Some("server.connected") => {}
-            _ => return Err(RpcError::unavailable()),
-        }
-        let state = Arc::new(Mutex::new(Turn { start: prepared.id.clone(), ..Turn::default() }));
-        let (done_tx, mut done_rx) = mpsc::channel::<std::result::Result<&'static str, RpcError>>(1);
-        let consumer = {
-            let state = state.clone();
-            let out = self.out.clone();
-            let client = self.client.clone();
-            let session = session_id.to_owned();
-            let cwd = attached.cwd.clone();
-            tokio::spawn(async move {
-                let result = consume(&mut events, &state, &out, &client, &session, &cwd).await;
-                let _ = done_tx.send(result).await;
-            })
-        };
-        self.submit(session_id, prepared).await?;
-        let terminal = if prepared.command.is_some() {
-            consumer.abort();
-            Ok("succeeded")
-        } else {
-            tokio::select! {
-                result = done_rx.recv() => result.unwrap_or(Err(RpcError::unavailable())),
-                _ = async { let _ = cancelled.wait_for(|c| *c).await; } => {
-                    let _ = self.client.call("session.interrupt", &[("sessionID", session_id)], None, None).await;
-                    if state.lock().unwrap().started {
-                        let _ = tokio::time::timeout(std::time::Duration::from_secs(5), done_rx.recv()).await;
-                    }
-                    consumer.abort();
-                    Ok("interrupted")
-                }
+        let forward = tokio::spawn(async move {
+            if aborted.wait_for(|a| *a).await.is_ok() {
+                let _ = cancel.send(true);
             }
-        };
-        let terminal = terminal?;
-        let current = std::mem::take(&mut *state.lock().unwrap());
-        if terminal != "interrupted" {
-            if let Some(error) = current.step_error.as_ref().or(current.execution_error.as_ref()) {
-                let kind = get_str(error, "type").unwrap_or("");
-                if kind == "provider.auth" {
-                    return Err(RpcError { code: -32000, message: "Authentication required: provider authentication required".into(), data: Some(json::object()) });
-                }
-                if kind != "aborted" && kind != "provider.content-filter" {
-                    let message = get_str(error, "message").filter(|m| !m.is_empty()).unwrap_or("OpenCode prompt failed");
-                    return Err(RpcError::service(message, Some("session"), Some(kind)));
-                }
+        });
+        let reply = turn::run(self, params, cancelled).await;
+        forward.abort();
+        {
+            let mut turns = self.turns.lock().unwrap();
+            if turns.get(&session_id).is_some_and(|t| t.token == token) {
+                turns.remove(&session_id);
             }
         }
-        self.usage_update(session_id, attached, catalog, &current).await;
-        Ok(response(&current, session_id, terminal))
+        let _ = done_tx.send(true);
+        reply
     }
+}
 
-    /// `sendUsageUpdate`: the last step's tokens against the model's context.
-    async fn usage_update(&self, session_id: &str, attached: &Attached, catalog: &Catalog, state: &Turn) {
-        let used = state.last.as_ref().map(total).unwrap_or(0.0);
-        if used == 0.0 {
-            return;
-        }
-        let selection = attached.selection.lock().unwrap().clone();
-        let Some(model) = find_model(&catalog.models, &catalog.current(&selection)) else { return };
-        let Some(size) = get(model, "limit").and_then(|l| get_num(l, "context")).filter(|c| *c > 0.0) else { return };
-        let Ok(info) = self.client.call("session.get", &[("sessionID", session_id)], None, None).await else { return };
-        let mut cost = Obj::new();
-        cost.set("amount", get(&info, "data").and_then(|d| get(d, "cost")).cloned().unwrap_or(Json::Number(0.0))).str("currency", "USD");
-        let mut update = Obj::new();
-        update.str("sessionUpdate", "usage_update").set("used", Json::Number(used)).set("size", Json::Number(size)).set("cost", cost.done());
-        self.out.update(session_id, update.done());
-    }
+fn translate_child_capability() -> &'static str {
+    "opencode/child-session-updates"
+}
+
+/// Work after a successful response.
+enum After {
+    Activate(Arc<Attached>, Catalog),
 }
 
 fn commands_update(commands: Json) -> Json {
     let mut o = Obj::new();
     o.str("sessionUpdate", "available_commands_update").set("availableCommands", commands);
     o.done()
+}
+
+/// `parseModelSelection` and `requireModel`: an advertised model, optionally with `/<effort>`.
+fn require_model(catalog: &Catalog, value: &str, current: &Json) -> std::result::Result<Json, RpcError> {
+    let models = &catalog.models;
+    let has_variant = |model: &Json, variant: &str| variants(Some(model)).iter().any(|v| v == variant);
+    let (provider, id, variant) = if let Some(exact) = models.iter().find(|m| advertised(m) == value) {
+        (get_str(exact, "providerID").unwrap_or("").to_owned(), get_str(exact, "id").unwrap_or("").to_owned(), None)
+    } else {
+        // `lastIndexOf("/")`; without one, JS's `slice(0, -1)` drops the last character.
+        let (base, variant) = match value.rfind('/') {
+            Some(at) => (&value[..at], &value[at + 1..]),
+            None => (value.get(..value.len().saturating_sub(value.chars().last().map_or(0, char::len_utf8))).unwrap_or(""), value),
+        };
+        match models.iter().find(|m| advertised(m) == base && has_variant(m, variant)) {
+            Some(model) => (get_str(model, "providerID").unwrap_or("").to_owned(), get_str(model, "id").unwrap_or("").to_owned(), Some(variant.to_owned())),
+            None => match value.split_once('/') {
+                Some((provider, id)) => (provider.to_owned(), id.to_owned(), None),
+                None => (value.to_owned(), String::new(), None),
+            },
+        }
+    };
+    let mut reference = Obj::new();
+    reference.str("providerID", &provider).str("id", &id);
+    let Some(model) = find_model(models, &reference.done()) else {
+        let mut data = Obj::new();
+        data.str("providerId", &provider).str("modelId", value);
+        return Err(RpcError::invalid_params(data.done(), &format!("model not found: {value}")));
+    };
+    if let Some(variant) = &variant {
+        if !has_variant(model, variant) {
+            return Err(RpcError::invalid("effort", variant, format!("effort not found: {variant}")));
+        }
+    }
+    let same = get_str(current, "providerID") == get_str(model, "providerID") && get_str(current, "id") == get_str(model, "id");
+    let kept = get_str(current, "variant").filter(|v| same && (*v == "default" || has_variant(model, v))).map(String::from);
+    let mut out = Obj::new();
+    out.opt("providerID", get(model, "providerID").cloned()).opt("id", get(model, "id").cloned()).opt_str("variant", variant.or(kept).as_deref());
+    Ok(out.done())
 }
 
 fn iso(ms: f64) -> String {
@@ -888,416 +1166,41 @@ fn initialize(params: &Json) -> Json {
     o.done()
 }
 
-struct Prepared {
-    id: String,
-    text: String,
-    files: Vec<Json>,
-    synthetic: Vec<String>,
-    command: Option<(String, String)>,
-    compaction: bool,
-}
-
-fn file_name(uri: &str) -> Option<String> {
-    let path = uri.split(['?', '#']).next().unwrap_or(uri);
-    path.rsplit('/').next().filter(|n| !n.is_empty()).map(|n| crate::http::percent_decode(n))
-}
-
-/// `ACPPrompt.prepare` over `promptContentToParts`.
-fn prepare(catalog: &Catalog, content: &[Json]) -> std::result::Result<Prepared, RpcError> {
-    let mut visible_text = vec![];
-    let mut files = vec![];
-    let mut synthetic = vec![];
-    for block in content {
-        match get_str(block, "type") {
-            Some("text") => {
-                let text = get_str(block, "text").unwrap_or("").to_owned();
-                let audience: Vec<&str> =
-                    get(block, "annotations").and_then(|a| get(a, "audience")).and_then(json::array).unwrap_or(&[]).iter().filter_map(json::as_str).collect();
-                match audience.as_slice() {
-                    ["assistant"] => synthetic.push(text),
-                    ["user"] => {}
-                    _ => visible_text.push(text),
-                }
+/// The agent's own event stream (`ACPSessions` and `ACPCatalog` subscribe before serving): selections the server
+/// reports for attached sessions, and model, agent and command changes that reload a directory's catalog.
+async fn follow_events(agent: Arc<Agent>, connected: watch::Sender<bool>) {
+    let mut events = match agent.client.events().await {
+        Ok(events) => events,
+        Err(_) => {
+            let _ = connected.send(true);
+            return;
+        }
+    };
+    while let Some(Ok(event)) = events.next().await {
+        let kind = get_str(&event, "type").unwrap_or("");
+        let data = get(&event, "data").cloned().unwrap_or(Json::Null);
+        match kind {
+            "server.connected" => {
+                let _ = connected.send(true);
             }
-            Some("image") => {
-                let data = get_str(block, "data").filter(|d| !d.is_empty());
-                let uri = get_str(block, "uri").filter(|u| !u.is_empty());
-                if data.is_none() && uri.is_none() {
-                    return Err(RpcError::invalid_request("image content has no data or uri", Some("prompt")));
-                }
-                let mime = get_str(block, "mimeType").unwrap_or("");
-                let url = data.map(|d| format!("data:{mime};base64,{d}")).or(uri.map(String::from)).unwrap_or_default();
-                let mut file = Obj::new();
-                file.str("uri", &url).str("name", &uri.and_then(file_name).unwrap_or_else(|| "image".into()));
-                files.push(file.done());
+            "session.model.selected" => agent.selected(get_str(&data, "sessionID").unwrap_or(""), Selection { model: get(&data, "model").cloned(), mode: None }),
+            "session.agent.selected" => {
+                agent.selected(get_str(&data, "sessionID").unwrap_or(""), Selection { model: None, mode: get_str(&data, "agent").map(String::from) })
             }
-            Some("resource_link") => {
-                let uri = get_str(block, "uri").unwrap_or("");
-                let mut file = Obj::new();
-                file.str("uri", uri).str("name", get_str(block, "name").unwrap_or(""));
-                files.push(file.done());
-            }
-            Some("resource") => {
-                let resource = get(block, "resource").cloned().unwrap_or(Json::Null);
-                let uri = get_str(&resource, "uri").unwrap_or("");
-                if let Some(text) = get_str(&resource, "text") {
-                    let label = match uri.strip_prefix("file://") {
-                        Some(path) => {
-                            let (path, hash) = path.split_once('#').unwrap_or((path, ""));
-                            let line = hash.strip_prefix('L').map(|l| l.chars().take_while(|c| c.is_ascii_digit()).collect::<String>()).filter(|l| !l.is_empty());
-                            let path = crate::http::percent_decode(path);
-                            match line {
-                                Some(line) => format!("{path}:{line}"),
-                                None => path,
-                            }
-                        }
-                        None => uri.to_owned(),
-                    };
-                    visible_text.push(format!("[{label}]\n{text}"));
-                } else if let Some(mime) = get_str(&resource, "mimeType") {
-                    let url = if uri.starts_with("data:") {
-                        uri.to_owned()
-                    } else {
-                        format!("data:{mime};base64,{}", get_str(&resource, "blob").unwrap_or(""))
-                    };
-                    let mut file = Obj::new();
-                    file.str("uri", &url).str("name", &file_name(uri).unwrap_or_else(|| "file".into()));
-                    files.push(file.done());
+            "model.updated" | "agent.updated" | "command.updated" => {
+                let directories: Vec<String> = match get(&event, "location").and_then(|l| get_str(l, "directory")) {
+                    Some(directory) => vec![directory.to_owned()],
+                    None => agent.catalogs.lock().await.keys().cloned().collect(),
+                };
+                for directory in directories {
+                    let agent = agent.clone();
+                    tokio::spawn(async move { agent.reload(&directory).await });
                 }
             }
             _ => {}
         }
     }
-    let text = visible_text.join("\n");
-    let trimmed = text.trim();
-    let slash = trimmed.strip_prefix('/').and_then(|rest| {
-        let mut words = rest.split_whitespace();
-        let name = words.next()?.to_owned();
-        Some((name, words.collect::<Vec<_>>().join(" ")))
-    });
-    let compaction = slash.as_ref().is_some_and(|(name, _)| name == "compact");
-    let command = slash.filter(|(name, _)| catalog.commands.iter().any(|c| get_str(c, "name") == Some(name.as_str())));
-    Ok(Prepared { id: format!("msg_{}", crate::id::ascending()), text, files, synthetic, command, compaction })
-}
-
-/// `ACPTranslate.TurnState`, for the root session.
-#[derive(Default)]
-struct Turn {
-    start: String,
-    started: bool,
-    tools: HashMap<String, (String, Json)>,
-    finish: Option<String>,
-    usage: Option<Json>,
-    last: Option<Json>,
-    step_error: Option<Json>,
-    execution_error: Option<Json>,
-}
-
-fn total(tokens: &Json) -> f64 {
-    let cache = get(tokens, "cache");
-    ["input", "output", "reasoning"].iter().map(|k| get_num(tokens, k).unwrap_or(0.0)).sum::<f64>()
-        + cache.map_or(0.0, |c| get_num(c, "read").unwrap_or(0.0) + get_num(c, "write").unwrap_or(0.0))
-}
-
-fn add_tokens(a: &Json, b: &Json) -> Json {
-    let n = |v: &Json, k: &str| get_num(v, k).unwrap_or(0.0);
-    let c = |v: &Json, k: &str| get(v, "cache").and_then(|c| get_num(c, k)).unwrap_or(0.0);
-    let mut cache = Obj::new();
-    cache.set("read", Json::Number(c(a, "read") + c(b, "read"))).set("write", Json::Number(c(a, "write") + c(b, "write")));
-    let mut o = Obj::new();
-    o.set("input", Json::Number(n(a, "input") + n(b, "input")))
-        .set("output", Json::Number(n(a, "output") + n(b, "output")))
-        .set("reasoning", Json::Number(n(a, "reasoning") + n(b, "reasoning")))
-        .set("cache", cache.done());
-    o.done()
-}
-
-fn response(state: &Turn, _session: &str, terminal: &str) -> Json {
-    let mut o = Obj::new();
-    let error = state.step_error.as_ref().or(state.execution_error.as_ref()).and_then(|e| get_str(e, "type"));
-    let stop = if terminal == "interrupted" || error == Some("aborted") {
-        "cancelled"
-    } else if state.finish.as_deref() == Some("length") {
-        "max_tokens"
-    } else if state.finish.as_deref() == Some("content-filter") || error == Some("provider.content-filter") {
-        "refusal"
-    } else {
-        "end_turn"
-    };
-    o.str("stopReason", stop);
-    if let Some(tokens) = &state.usage {
-        let n = |k: &str| get_num(tokens, k).unwrap_or(0.0);
-        let c = |k: &str| get(tokens, "cache").and_then(|c| get_num(c, k)).unwrap_or(0.0);
-        let mut usage = Obj::new();
-        usage.set("inputTokens", Json::Number(n("input"))).set("outputTokens", Json::Number(n("output"))).set("totalTokens", Json::Number(total(tokens)));
-        if n("reasoning") > 0.0 {
-            usage.set("thoughtTokens", Json::Number(n("reasoning")));
-        }
-        if c("read") > 0.0 {
-            usage.set("cachedReadTokens", Json::Number(c("read")));
-        }
-        if c("write") > 0.0 {
-            usage.set("cachedWriteTokens", Json::Number(c("write")));
-        }
-        o.set("usage", usage.done());
-    }
-    o.set("_meta", json::object());
-    o.done()
-}
-
-fn canonical(name: &str) -> String {
-    match name.to_lowercase().as_str() {
-        "bash" => "shell".into(),
-        "task" => "subagent".into(),
-        "apply_patch" => "patch".into(),
-        other => other.to_owned(),
-    }
-}
-
-fn tool_kind(name: &str) -> &'static str {
-    match canonical(name).as_str() {
-        "shell" => "execute",
-        "webfetch" => "fetch",
-        "edit" | "patch" | "write" => "edit",
-        "grep" | "glob" | "context" | "context7_resolve_library_id" | "context7_get_library_docs" => "search",
-        "read" => "read",
-        "subagent" => "think",
-        _ => "other",
-    }
-}
-
-fn locations(name: &str, input: &Json, cwd: &str) -> Json {
-    let value = |key: &str| get_str(input, key).map(String::from);
-    let paths: Vec<String> = match canonical(name).as_str() {
-        "shell" => vec![value("workdir").or_else(|| value("cwd")).unwrap_or_else(|| cwd.to_owned())],
-        "read" | "edit" | "write" => value("path").or_else(|| value("filePath")).into_iter().collect(),
-        "external_directory" => value("filepath").into_iter().collect(),
-        "grep" | "glob" | "context" | "context7_resolve_library_id" | "context7_get_library_docs" => value("path").into_iter().collect(),
-        _ => vec![],
-    };
-    let mut out: Vec<String> = vec![];
-    for path in paths.into_iter().filter(|p| !p.is_empty()) {
-        let absolute = if path.starts_with('/') { path } else { crate::project::absolutize(&format!("{cwd}/{path}")) };
-        if !out.contains(&absolute) {
-            out.push(absolute);
-        }
-    }
-    Json::Array(
-        out.into_iter()
-            .map(|p| {
-                let mut o = Obj::new();
-                o.str("path", &p);
-                o.done()
-            })
-            .collect(),
-    )
-}
-
-fn title(name: &str, input: &Json) -> String {
-    if canonical(name) == "shell" {
-        return get_str(input, "command").or_else(|| get_str(input, "cmd")).unwrap_or(name).to_owned();
-    }
-    name.to_owned()
-}
-
-fn raw_input(name: &str, input: &Json, cwd: &str) -> Json {
-    if canonical(name) != "shell" || get(input, "cwd").is_some() || get(input, "workdir").is_some() {
-        return input.clone();
-    }
-    let mut out = input.clone();
-    json::set(&mut out, "cwd", Json::String(cwd.into()));
-    out
-}
-
-fn tool_content(content: &[Json]) -> Vec<Json> {
-    content
-        .iter()
-        .filter_map(|part| {
-            let inner = match get_str(part, "type") {
-                Some("text") => {
-                    let mut o = Obj::new();
-                    o.str("type", "text").str("text", get_str(part, "text").unwrap_or(""));
-                    o.done()
-                }
-                _ => {
-                    let uri = get_str(part, "uri")?;
-                    let rest = uri.strip_prefix("data:")?;
-                    let (header, data) = rest.split_once(',')?;
-                    let mime = header.split(';').next()?;
-                    if !mime.starts_with("image/") || !header.ends_with(";base64") {
-                        return None;
-                    }
-                    let mut o = Obj::new();
-                    o.str("type", "image").str("mimeType", mime).str("data", data);
-                    o.done()
-                }
-            };
-            let mut o = Obj::new();
-            o.str("type", "content").set("content", inner);
-            Some(o.done())
-        })
-        .collect()
-}
-
-/// Folds the root session's events into updates until the turn ends (`ACPTranslate.fold`).
-async fn consume(events: &mut Events, state: &Mutex<Turn>, out: &Out, client: &Client, session: &str, cwd: &str) -> std::result::Result<&'static str, RpcError> {
-    loop {
-        let event = match events.next().await {
-            Some(Ok(event)) => event,
-            _ => return Err(RpcError::unavailable()),
-        };
-        let kind = get_str(&event, "type").unwrap_or("").to_owned();
-        let data = get(&event, "data").cloned().unwrap_or(Json::Null);
-        // TODO(port): asks go to the client (`session/request_permission`, elicitation).
-        if kind == "permission.asked" && get_str(&data, "sessionID") == Some(session) {
-            let mut body = Obj::new();
-            body.str("decision", "reject");
-            let id = get_str(&data, "id").unwrap_or("").to_owned();
-            let _ = client.call("session.permission.reply", &[("sessionID", session), ("requestID", &id)], None, Some(body.done())).await;
-            continue;
-        }
-        if kind == "form.created" {
-            let form = get(&data, "form").cloned().unwrap_or(Json::Null);
-            if get_str(&form, "sessionID") == Some(session) {
-                let id = get_str(&form, "id").unwrap_or("").to_owned();
-                let _ = client.call("session.form.cancel", &[("sessionID", session), ("formID", &id)], Some(json::object()), None).await;
-            }
-            continue;
-        }
-        if get_str(&data, "sessionID") != Some(session) {
-            continue;
-        }
-        let mut turn = state.lock().unwrap();
-        if kind == "session.inbox.delivered" && get_str(&data, "inboxID") == Some(turn.start.as_str()) {
-            turn.started = true;
-            continue;
-        }
-        if !turn.started {
-            continue;
-        }
-        let message = get_str(&data, "assistantMessageID").unwrap_or("").to_owned();
-        let call = get_str(&data, "id").unwrap_or("").to_owned();
-        let mut update = Obj::new();
-        match kind.as_str() {
-            "session.step.started" => {
-                turn.step_error = None;
-                continue;
-            }
-            "session.step.ended" | "session.step.failed" => {
-                if let Some(tokens) = get(&data, "tokens") {
-                    turn.usage = Some(match &turn.usage {
-                        Some(previous) => add_tokens(previous, tokens),
-                        None => tokens.clone(),
-                    });
-                    turn.last = Some(tokens.clone());
-                }
-                if kind == "session.step.ended" {
-                    turn.finish = get_str(&data, "finish").map(String::from);
-                } else {
-                    turn.step_error = get(&data, "error").cloned();
-                }
-                continue;
-            }
-            "session.execution.succeeded" => return Ok("succeeded"),
-            "session.execution.interrupted" => return Ok("interrupted"),
-            "session.execution.failed" => {
-                turn.execution_error = get(&data, "error").cloned();
-                return Ok("failed");
-            }
-            "session.text.delta" | "session.reasoning.delta" => {
-                let text = kind == "session.text.delta";
-                let id = if text { message } else { format!("{message}:reasoning:{}", json::text(get(&data, "ordinal").unwrap_or(&Json::Number(0.0)))) };
-                let mut content = Obj::new();
-                content.str("type", "text").str("text", get_str(&data, "delta").unwrap_or(""));
-                update
-                    .str("sessionUpdate", if text { "agent_message_chunk" } else { "agent_thought_chunk" })
-                    .str("messageId", &id)
-                    .set("content", content.done());
-            }
-            "session.tool.input.started" => {
-                let name = get_str(&data, "name").unwrap_or("tool").to_owned();
-                turn.tools.insert(call.clone(), (name.clone(), json::object()));
-                let input = json::object();
-                update
-                    .str("sessionUpdate", "tool_call")
-                    .str("toolCallId", &call)
-                    .str("name", &name)
-                    .str("title", &title(&name, &input))
-                    .str("kind", tool_kind(&name))
-                    .str("status", "pending")
-                    .set("locations", locations(&name, &input, cwd))
-                    .set("rawInput", raw_input(&name, &input, cwd));
-            }
-            "session.tool.called" | "session.tool.progress" => {
-                if kind == "session.tool.called" {
-                    let name = turn.tools.get(&call).map(|t| t.0.clone()).unwrap_or_else(|| "tool".into());
-                    turn.tools.insert(call.clone(), (name, get(&data, "input").cloned().unwrap_or_else(json::object)));
-                }
-                let Some((name, input)) = turn.tools.get(&call).cloned() else { continue };
-                update
-                    .str("sessionUpdate", "tool_call_update")
-                    .str("toolCallId", &call)
-                    .str("status", "in_progress")
-                    .str("kind", tool_kind(&name))
-                    .str("title", &title(&name, &input))
-                    .set("locations", locations(&name, &input, cwd))
-                    .set("rawInput", raw_input(&name, &input, cwd));
-            }
-            "session.tool.success" => {
-                let (name, input) = turn.tools.remove(&call).unwrap_or_else(|| ("tool".into(), json::object()));
-                let content = get(&data, "content").and_then(json::array).unwrap_or(&[]).to_vec();
-                let mut primary = tool_content(&content);
-                if canonical(&name) == "read" {
-                    let first = content.iter().find(|c| get_str(c, "type") == Some("text")).and_then(|c| get_str(c, "text"));
-                    if let Some(shown) = first.and_then(super::tool::read_display_text) {
-                        {
-                            let mut inner = Obj::new();
-                            inner.str("type", "text").str("text", &shown);
-                            let mut part = Obj::new();
-                            part.str("type", "content").set("content", inner.done());
-                            let images: Vec<Json> = primary.iter().filter(|p| get(p, "content").and_then(|c| get_str(c, "type")) == Some("image")).cloned().collect();
-                            primary = std::iter::once(part.done()).chain(images).collect();
-                        }
-                    }
-                }
-                let mut raw = Obj::new();
-                raw.opt("metadata", get(&data, "metadata").cloned());
-                update
-                    .str("sessionUpdate", "tool_call_update")
-                    .str("toolCallId", &call)
-                    .str("status", "completed")
-                    .set("locations", locations(&name, &input, cwd))
-                    .set("content", Json::Array(primary))
-                    .set("rawOutput", raw.done());
-            }
-            "session.tool.failed" => {
-                let (name, input) = turn.tools.remove(&call).unwrap_or_else(|| ("tool".into(), json::object()));
-                let content = get(&data, "content").and_then(json::array).unwrap_or(&[]).to_vec();
-                let error = get(&data, "error").and_then(|e| get_str(e, "message")).unwrap_or("").to_owned();
-                let mut parts = tool_content(&content);
-                let mut inner = Obj::new();
-                inner.str("type", "text").str("text", &error);
-                let mut part = Obj::new();
-                part.str("type", "content").set("content", inner.done());
-                parts.push(part.done());
-                let mut raw = Obj::new();
-                raw.opt("metadata", get(&data, "metadata").cloned()).str("error", &error);
-                update
-                    .str("sessionUpdate", "tool_call_update")
-                    .str("toolCallId", &call)
-                    .str("status", "failed")
-                    .str("kind", tool_kind(&name))
-                    .str("title", &title(&name, &input))
-                    .set("locations", locations(&name, &input, cwd))
-                    .set("rawInput", raw_input(&name, &input, cwd))
-                    .set("content", Json::Array(parts))
-                    .set("rawOutput", raw.done());
-            }
-            _ => continue,
-        }
-        drop(turn);
-        out.update(session, update.done());
-    }
+    let _ = connected.send(true);
 }
 
 /// The handler: `--login` is `auth login`; otherwise serve ACP on stdio until stdin ends.
@@ -1308,14 +1211,19 @@ pub async fn command(globals: &super::parse::Globals, input: &Input) -> Result {
     // SAFETY: no other thread reads the environment yet.
     unsafe { std::env::set_var("OPENCODE_CLIENT", "acp") };
     let (endpoint, mut private) = connection::standalone().await?;
+    let (connected_tx, connected) = watch::channel(false);
     let agent = Arc::new(Agent {
         client: Client::new(&endpoint),
-        out: Out(Arc::new(Mutex::new(()))),
+        conn: Arc::new(Connection { write: Mutex::new(()), next: AtomicI64::new(0), pending: Mutex::new(HashMap::new()), incoming: Mutex::new(HashMap::new()) }),
         catalogs: tokio::sync::Mutex::new(HashMap::new()),
         sessions: Mutex::new(HashMap::new()),
         turns: Mutex::new(HashMap::new()),
+        next_turn: AtomicI64::new(0),
         unprompted: Mutex::new(vec![]),
+        capabilities: Mutex::new(Capabilities::default()),
+        connected,
     });
+    tokio::spawn(follow_events(agent.clone(), connected_tx));
     let (lines_tx, mut lines) = mpsc::unbounded_channel::<String>();
     std::thread::spawn(move || {
         use std::io::BufRead;
@@ -1356,23 +1264,47 @@ fn dispatch(agent: &Arc<Agent>, line: &str) {
         let mut error = Obj::new();
         error.int("code", -32700).str("message", "Parse error");
         o.str("jsonrpc", "2.0").set("id", Json::Null).set("error", error.done());
-        agent.out.send(&o.done());
+        agent.conn.send(&o.done());
         return;
     };
-    let Some(method) = get_str(&message, "method").map(String::from) else { return };
+    let Some(method) = get_str(&message, "method").map(String::from) else {
+        if get(&message, "id").is_some() {
+            agent.conn.answered(&message);
+        }
+        return;
+    };
     let params = get(&message, "params").cloned().unwrap_or_else(json::object);
     let id = get(&message, "id").cloned();
-    if method == "session/cancel" {
-        agent.cancel(get_str(&params, "sessionId").unwrap_or(""));
+    if id.is_none() {
+        match method.as_str() {
+            "$/cancel_request" => {
+                let target = get(&params, "requestId").map(json::text);
+                if let Some(cancel) = target.and_then(|t| agent.conn.incoming.lock().unwrap().get(&t).cloned()) {
+                    let _ = cancel.send(true);
+                }
+            }
+            "session/cancel" => {
+                let agent = agent.clone();
+                let session = get_str(&params, "sessionId").unwrap_or("").to_owned();
+                tokio::spawn(async move { agent.cancel(&session).await });
+            }
+            _ => {}
+        }
         return;
     }
-    let Some(id) = id else { return };
+    let id = id.unwrap();
+    let key = json::text(&id);
+    let (cancel, cancelled) = watch::channel(false);
+    agent.conn.incoming.lock().unwrap().insert(key.clone(), cancel);
     let agent = agent.clone();
     tokio::spawn(async move {
-        let (reply, after) = agent.request(&method, &params).await;
-        agent.out.respond(&id, reply);
-        for (session, update) in after {
-            agent.out.update(&session, update);
+        let (reply, after) = agent.request(&method, &params, cancelled).await;
+        let succeeded = reply.is_ok();
+        agent.conn.respond(&id, reply);
+        agent.conn.incoming.lock().unwrap().remove(&key);
+        match after {
+            Some(After::Activate(attached, catalog)) if succeeded => agent.activate(&attached, catalog).await,
+            _ => {}
         }
     });
 }

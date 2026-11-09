@@ -277,6 +277,320 @@ fn format_patch(file: &str, old: &str, new: &str, headers: Option<(&str, &str)>,
     out.join("\n") + "\n"
 }
 
+/// One hunk of a parsed patch (`StructuredPatchHunk`): its lines keep their `+`, `-`, ` ` or `\` prefix.
+#[derive(Debug, Clone, PartialEq)]
+pub struct PatchHunk {
+    pub old_start: i64,
+    pub old_lines: i64,
+    pub new_start: i64,
+    pub new_lines: i64,
+    pub lines: Vec<String>,
+}
+
+/// `parsePatch(uniDiff)`: each file's hunks; `Err` is the thrown message.
+pub fn parse_patch(uni_diff: &str) -> Result<Vec<Vec<PatchHunk>>, String> {
+    let lines: Vec<&str> = uni_diff.split('\n').collect();
+    let starts_ws = |line: &str, prefixes: &[&str]| {
+        prefixes.iter().any(|p| line.strip_prefix(p).and_then(|rest| rest.chars().next()).is_some_and(crate::text::is_js_whitespace))
+    };
+    let mut list = vec![];
+    let mut i = 0;
+    while i < lines.len() {
+        while i < lines.len() && !starts_ws(lines[i], &["---", "+++", "@@"]) {
+            i += 1;
+        }
+        for _ in 0..2 {
+            if i < lines.len() && starts_ws(lines[i], &["---", "+++"]) {
+                i += 1;
+            }
+        }
+        let mut hunks = vec![];
+        while i < lines.len() {
+            let line = lines[i];
+            if starts_ws(line, &["Index:", "diff", "---", "+++"]) || line.starts_with("===================================================================") {
+                break;
+            } else if line.starts_with("@@") {
+                hunks.push(parse_hunk(&lines, &mut i)?);
+            } else if !line.is_empty() {
+                return Err(format!("Unknown line {} {}", i + 1, crate::json::text(&crate::json::string(line))));
+            } else {
+                i += 1;
+            }
+        }
+        list.push(hunks);
+    }
+    Ok(list)
+}
+
+fn parse_hunk(lines: &[&str], i: &mut usize) -> Result<PatchHunk, String> {
+    let header_index = *i;
+    let header = lines[*i];
+    *i += 1;
+    let numbers = parse_hunk_header(header).ok_or_else(|| format!("Hunk at line {} contained invalid line {header}", header_index + 1))?;
+    let mut hunk = PatchHunk {
+        old_start: numbers.0,
+        old_lines: numbers.1.unwrap_or(1),
+        new_start: numbers.2,
+        new_lines: numbers.3.unwrap_or(1),
+        lines: vec![],
+    };
+    if hunk.old_lines == 0 {
+        hunk.old_start += 1;
+    }
+    if hunk.new_lines == 0 {
+        hunk.new_start += 1;
+    }
+    let (mut added, mut removed) = (0i64, 0i64);
+    while *i < lines.len() && (removed < hunk.old_lines || added < hunk.new_lines || lines[*i].starts_with('\\')) {
+        let line = lines[*i];
+        let operation = if line.is_empty() && *i != lines.len() - 1 { Some(' ') } else { line.chars().next() };
+        match operation {
+            Some('+') => added += 1,
+            Some('-') => removed += 1,
+            Some(' ') => {
+                added += 1;
+                removed += 1;
+            }
+            Some('\\') => {}
+            _ => return Err(format!("Hunk at line {} contained invalid line {line}", header_index + 1)),
+        }
+        hunk.lines.push(line.to_owned());
+        *i += 1;
+    }
+    if added == 0 && hunk.new_lines == 1 {
+        hunk.new_lines = 0;
+    }
+    if removed == 0 && hunk.old_lines == 1 {
+        hunk.old_lines = 0;
+    }
+    if added != hunk.new_lines {
+        return Err(format!("Added line count did not match for hunk at line {}", header_index + 1));
+    }
+    if removed != hunk.old_lines {
+        return Err(format!("Removed line count did not match for hunk at line {}", header_index + 1));
+    }
+    Ok(hunk)
+}
+
+/// `@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@` anywhere in the line.
+fn parse_hunk_header(line: &str) -> Option<(i64, Option<i64>, i64, Option<i64>)> {
+    let digits = |text: &str| -> Option<(i64, usize)> {
+        let count = text.bytes().take_while(u8::is_ascii_digit).count();
+        (count > 0).then(|| (text[..count].parse().unwrap_or(i64::MAX), count))
+    };
+    for (at, _) in line.match_indices("@@ -") {
+        let rest = &line[at + 4..];
+        let Some((old_start, n)) = digits(rest) else { continue };
+        let mut rest = &rest[n..];
+        let mut old_lines = None;
+        if let Some(after) = rest.strip_prefix(',') {
+            let Some((value, n)) = digits(after) else { continue };
+            old_lines = Some(value);
+            rest = &after[n..];
+        }
+        let Some(rest) = rest.strip_prefix(" +") else { continue };
+        let Some((new_start, n)) = digits(rest) else { continue };
+        let mut rest = &rest[n..];
+        let mut new_lines = None;
+        if let Some(after) = rest.strip_prefix(',') {
+            let Some((value, n)) = digits(after) else { continue };
+            new_lines = Some(value);
+            rest = &after[n..];
+        }
+        if rest.starts_with(" @@") {
+            return Some((old_start, old_lines, new_start, new_lines));
+        }
+    }
+    None
+}
+
+/// `reversePatch(patch)` of one file's hunks.
+pub fn reverse_patch(hunks: &[PatchHunk]) -> Vec<PatchHunk> {
+    hunks
+        .iter()
+        .map(|hunk| PatchHunk {
+            old_start: hunk.new_start,
+            old_lines: hunk.new_lines,
+            new_start: hunk.old_start,
+            new_lines: hunk.old_lines,
+            lines: hunk
+                .lines
+                .iter()
+                .map(|line| match line.chars().next() {
+                    Some('-') => format!("+{}", &line[1..]),
+                    Some('+') => format!("-{}", &line[1..]),
+                    _ => line.clone(),
+                })
+                .collect(),
+        })
+        .collect()
+}
+
+/// `applyPatch(source, patch)` with the default options (no fuzz, line endings converted to the source's);
+/// `None` when a hunk does not fit (`false`).
+pub fn apply_patch(source: &str, hunks: &[PatchHunk]) -> Option<String> {
+    let mut hunks = hunks.to_vec();
+    let only_win = source.contains("\r\n") && !source.starts_with('\n') && !source.as_bytes().windows(2).any(|w| w[0] != b'\r' && w[1] == b'\n');
+    let only_unix = !source.contains("\r\n") && source.contains('\n');
+    let is_unix = !hunks.iter().any(|h| h.lines.iter().any(|l| !l.starts_with('\\') && l.ends_with('\r')));
+    let win_line = |h: &PatchHunk, i: usize| h.lines[i].starts_with('\\') || h.lines[i].ends_with('\r') || h.lines.get(i + 1).is_some_and(|n| n.starts_with('\\'));
+    let is_win = hunks.iter().any(|h| h.lines.iter().any(|l| l.ends_with('\r'))) && hunks.iter().all(|h| (0..h.lines.len()).all(|i| win_line(h, i)));
+    if only_win && is_unix {
+        for hunk in &mut hunks {
+            let converted: Vec<String> = (0..hunk.lines.len()).map(|i| if win_line(hunk, i) { hunk.lines[i].clone() } else { format!("{}\r", hunk.lines[i]) }).collect();
+            hunk.lines = converted;
+        }
+    } else if only_unix && is_win {
+        for hunk in &mut hunks {
+            for line in &mut hunk.lines {
+                if line.ends_with('\r') {
+                    line.pop();
+                }
+            }
+        }
+    }
+    let mut lines: Vec<String> = source.split('\n').map(String::from).collect();
+    let Some(last_hunk) = hunks.last() else { return Some(source.to_owned()) };
+    let (mut remove_eofnl, mut add_eofnl) = (false, false);
+    let mut previous = "";
+    for line in &last_hunk.lines {
+        if line.starts_with('\\') {
+            if previous.starts_with('+') {
+                remove_eofnl = true;
+            } else if previous.starts_with('-') {
+                add_eofnl = true;
+            }
+        }
+        previous = line;
+    }
+    let last_empty = lines.last().is_some_and(|l| l.is_empty());
+    if remove_eofnl {
+        if add_eofnl {
+            if last_empty {
+                return None;
+            }
+        } else if last_empty {
+            lines.pop();
+        } else {
+            return None;
+        }
+    } else if add_eofnl {
+        if !last_empty {
+            lines.push(String::new());
+        } else {
+            return None;
+        }
+    }
+    let line_at = |at: i64| if at >= 0 { lines.get(at as usize).map(String::as_str) } else { None };
+    // `applyHunk` without fuzz: the patched lines and the last old line used, or nothing.
+    let apply_hunk = |hunk_lines: &[String], mut to: i64| -> Option<(Vec<String>, i64)> {
+        let mut patched: Vec<String> = vec![];
+        let mut trailing_context = 0i64;
+        for hunk_line in hunk_lines {
+            let operation = hunk_line.chars().next().unwrap_or(' ');
+            let content = if hunk_line.is_empty() { "" } else { &hunk_line[operation.len_utf8()..] };
+            match operation {
+                '-' => {
+                    if line_at(to) != Some(content) {
+                        return None;
+                    }
+                    to += 1;
+                    trailing_context = 0;
+                }
+                '+' => {
+                    patched.push(content.to_owned());
+                    trailing_context = 0;
+                }
+                ' ' => {
+                    trailing_context += 1;
+                    if line_at(to) != Some(content) {
+                        return None;
+                    }
+                    patched.push(content.to_owned());
+                    to += 1;
+                }
+                _ => {}
+            }
+        }
+        patched.truncate(patched.len() - trailing_context as usize);
+        Some((patched, to - trailing_context - 1))
+    };
+    let mut result: Vec<String> = vec![];
+    let mut min_line = 0i64;
+    let mut previous_offset = 0i64;
+    for hunk in &hunks {
+        let max_line = lines.len() as i64 - hunk.old_lines;
+        let start = hunk.old_start + previous_offset - 1;
+        let mut iterator = Distance::new(start, min_line, max_line);
+        let mut to = Some(start);
+        let mut fitted = None;
+        while let Some(position) = to {
+            if let Some(found) = apply_hunk(&hunk.lines, position) {
+                fitted = Some((position, found));
+                break;
+            }
+            to = iterator.next();
+        }
+        let (position, (patched, last)) = fitted?;
+        for i in min_line..position {
+            result.push(line_at(i).unwrap_or_default().to_owned());
+        }
+        result.extend(patched);
+        min_line = last + 1;
+        previous_offset = position + 1 - hunk.old_start;
+    }
+    for i in min_line.max(0)..lines.len() as i64 {
+        result.push(lines[i as usize].clone());
+    }
+    Some(result.join("\n"))
+}
+
+/// jsdiff's `distanceIterator`: positions in `[min, max]` by distance from `start`, forward first.
+struct Distance {
+    start: i64,
+    min: i64,
+    max: i64,
+    want_forward: bool,
+    backward_done: bool,
+    forward_done: bool,
+    offset: i64,
+}
+
+impl Distance {
+    fn new(start: i64, min: i64, max: i64) -> Self {
+        Self { start, min, max, want_forward: true, backward_done: false, forward_done: false, offset: 1 }
+    }
+
+    fn next(&mut self) -> Option<i64> {
+        loop {
+            if self.want_forward && !self.forward_done {
+                if self.backward_done {
+                    self.offset += 1;
+                } else {
+                    self.want_forward = false;
+                }
+                if self.start + self.offset <= self.max {
+                    return Some(self.start + self.offset);
+                }
+                self.forward_done = true;
+            }
+            if !self.backward_done {
+                if !self.forward_done {
+                    self.want_forward = true;
+                }
+                if self.min <= self.start - self.offset {
+                    let at = self.start - self.offset;
+                    self.offset += 1;
+                    return Some(at);
+                }
+                self.backward_done = true;
+                continue;
+            }
+            return None;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
