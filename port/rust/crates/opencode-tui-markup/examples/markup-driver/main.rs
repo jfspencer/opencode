@@ -6,12 +6,16 @@ mod json;
 
 use json::J;
 use opencode_tui_markup::js::JsString;
+use opencode_tui_markup::links;
 use opencode_tui_markup::markdown::{
-    BorderStyle, BoxRole, ColumnFitter, ColumnWidthMode, InternalBlockMode, Markdown, MarkdownOptions, MarkdownTableOptions,
+    BorderStyle, BoxRole, CodeNode, ColumnFitter, ColumnWidthMode, InternalBlockMode, Markdown, MarkdownOptions, MarkdownTableOptions,
     MarkdownTableStyle, Node, WrapMode,
 };
 use opencode_tui_markup::marked::{self, Align, ListStart, Nullable, TableCell, Token};
+use opencode_tui_markup::code::{self, HighlightOptions, HighlightOutcome};
+use opencode_tui_markup::highlight::SimpleHighlight;
 use opencode_tui_markup::style::{Rgba, StyleDefinition, SyntaxStyle, TextChunk};
+use opencode_tui_markup::tree_sitter::{self, TreeSitterClient};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::{BufRead, Write};
@@ -320,6 +324,151 @@ fn markdown_case(case: &Value) -> J {
     J::Arr(out)
 }
 
+fn highlight_json(h: &SimpleHighlight) -> J {
+    let mut items = vec![J::Num(h.start as f64), J::Num(h.end as f64), J::s(&h.group)];
+    if let Some(m) = &h.meta {
+        let mut f: Vec<(&'static str, J)> = Vec::new();
+        if let Some(v) = m.is_injection {
+            f.push(("isInjection", J::Bool(v)));
+        }
+        if let Some(v) = &m.injection_lang {
+            f.push(("injectionLang", J::s(v)));
+        }
+        if let Some(v) = m.contains_injection {
+            f.push(("containsInjection", J::Bool(v)));
+        }
+        if let Some(v) = nullable(&m.conceal) {
+            f.push(("conceal", v));
+        }
+        if let Some(v) = nullable(&m.conceal_lines) {
+            f.push(("concealLines", v));
+        }
+        items.push(J::Obj(f));
+    }
+    J::Arr(items)
+}
+
+fn client() -> &'static TreeSitterClient {
+    static CLIENT: std::sync::OnceLock<TreeSitterClient> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        tree_sitter::add_default_parsers(tree_sitter::tui_parsers());
+        TreeSitterClient::new()
+    })
+}
+
+fn highlight_case(case: &Value) -> J {
+    let result = client().highlight_once(&s(case, "content"), case["filetype"].as_str().unwrap());
+    J::Obj(vec![
+        ("highlights", J::opt(result.highlights.as_ref(), |h| J::Arr(h.iter().map(highlight_json).collect()))),
+        ("warning", J::opt(result.warning.as_deref(), J::s)),
+        ("error", J::opt(result.error.as_deref(), J::s)),
+    ])
+}
+
+fn outcome_json(outcome: &HighlightOutcome) -> J {
+    match outcome {
+        HighlightOutcome::Plain => J::Obj(vec![("chunks", J::s("plain")), ("lineSources", J::Null)]),
+        HighlightOutcome::Styled { text, rendered_line_sources } => J::Obj(vec![
+            ("chunks", chunks(&text.chunks)),
+            (
+                "lineSources",
+                J::opt(rendered_line_sources.as_ref(), |l| J::Arr(l.iter().map(|&n| J::Num(n as f64)).collect())),
+            ),
+        ]),
+    }
+}
+
+fn code_case(case: &Value) -> J {
+    // CodeRenderable (scheduleHighlights) runs no pass for empty content: its text buffer is never handed text.
+    if s(case, "content").is_empty() {
+        return J::Obj(vec![("chunks", J::Null), ("lineSources", J::Null)]);
+    }
+    let style = theme();
+    let base = case.get("baseHighlight").and_then(|v| v.as_str());
+    let outcome = code::highlight(
+        client(),
+        &s(case, "content"),
+        case["filetype"].as_str().unwrap(),
+        &style,
+        &HighlightOptions {
+            conceal: case.get("conceal").and_then(|v| v.as_bool()).unwrap_or(true),
+            base_highlight: base,
+            on_highlight: None,
+            on_chunks: None,
+        },
+    );
+    outcome_json(&outcome)
+}
+
+/// What each code child of a markdown render ends up showing, as a renderer runs the pipeline for it.
+fn markdown_render_case(case: &Value) -> J {
+    let style = Rc::new(theme());
+    let color = |k: &str| case.get(k).and_then(|v| v.as_str()).map(Rgba::from_hex);
+    let md = Markdown::new(MarkdownOptions {
+        id: "md".into(),
+        content: s(case, "content"),
+        syntax_style: Some(style.clone()),
+        fg: color("fg"),
+        bg: color("bg"),
+        conceal: case.get("conceal").and_then(|v| v.as_bool()).unwrap_or(true),
+        conceal_code: false,
+        streaming: false,
+        table_options: case.get("tableOptions").and_then(table_options),
+        internal_block_mode: if case.get("internalBlockMode").and_then(|v| v.as_str()) == Some("top-level") {
+            InternalBlockMode::TopLevel
+        } else {
+            InternalBlockMode::Coalesced
+        },
+        hyperlinks: case.get("hyperlinks").and_then(|v| v.as_bool()).unwrap_or(false),
+    });
+    let mut out = Vec::new();
+    fn walk<'a>(node: &'a Node, out: &mut Vec<&'a CodeNode>) {
+        match node {
+            Node::Code(c) => out.push(c),
+            Node::Box(b) => b.children.iter().for_each(|c| walk(c, out)),
+            _ => {}
+        }
+    }
+    let mut codes = Vec::new();
+    for node in md.children() {
+        walk(node, &mut codes);
+    }
+    let (conceal, hyperlinks) = (md.conceal(), md.hyperlinks());
+    let on_highlight = |h: &[SimpleHighlight], content: &JsString, _: &str| {
+        Some(links::add_markdown_link_highlights(h, content, conceal, hyperlinks))
+    };
+    let on_chunks = |chunks: Vec<TextChunk>, ctx: &code::ChunkContext<'_>| {
+        links::detect_links(chunks, ctx.content, ctx.highlights, ctx.source_ranges, Some(ctx.syntax_style))
+    };
+    for node in codes {
+        let chunks = if node.content.is_empty() {
+            J::Null
+        } else if let Some(filetype) = &node.filetype {
+            let hooks = node.markdown_hooks.is_some();
+            let outcome = code::highlight(
+                client(),
+                &node.content,
+                filetype,
+                &style,
+                &HighlightOptions {
+                    conceal: node.conceal,
+                    base_highlight: node.base_highlight.as_deref(),
+                    on_highlight: if hooks { Some(&on_highlight) } else { None },
+                    on_chunks: if hooks { Some(&on_chunks) } else { None },
+                },
+            );
+            match outcome {
+                HighlightOutcome::Plain => J::s("plain"),
+                HighlightOutcome::Styled { text, .. } => chunks(&text.chunks),
+            }
+        } else {
+            J::s("plain")
+        };
+        out.push(J::Obj(vec![("id", J::s(&node.id)), ("chunks", chunks)]));
+    }
+    J::Arr(out)
+}
+
 fn s(v: &Value, key: &str) -> JsString {
     JsString::from(v[key].as_str().unwrap_or_else(|| panic!("case field {key}")))
 }
@@ -352,6 +501,9 @@ fn answer(case: &Value) -> J {
             Err(e) => J::Obj(vec![("error", J::s(&e.0))]),
         },
         "markdown" => markdown_case(case),
+        "highlight" => highlight_case(case),
+        "code" => code_case(case),
+        "markdownRender" => markdown_render_case(case),
         other => panic!("unknown op {other}"),
     }
 }

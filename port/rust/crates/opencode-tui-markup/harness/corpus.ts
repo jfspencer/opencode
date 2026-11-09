@@ -229,6 +229,25 @@ export function randomMarkdown(rng: Rng): string {
   return text
 }
 
+/** Code samples per filetype: the grammars' own test corpora (corpus/code) and hand-written ones (code-extra.json,
+ * where `*` applies to every filetype). */
+export function codeSamples(): { filetype: string; name: string; code: string }[] {
+  const dir = join(here, "corpus/code")
+  const extra = JSON.parse(readFileSync(join(here, "corpus/code-extra.json"), "utf8"))
+  const out: { filetype: string; name: string; code: string }[] = []
+  for (const file of readdirSync(dir).sort()) {
+    const filetype = file.replace(/\.json$/, "")
+    const samples: string[] = [...JSON.parse(readFileSync(join(dir, file), "utf8")), ...(extra[filetype] ?? []), ...extra["*"]]
+    samples.forEach((code, i) => out.push({ filetype, name: `${filetype}#${i}`, code }))
+  }
+  // Aliases and a filetype with no parser.
+  for (const [alias, of] of [["javascriptreact", "javascript"], ["udiff", "diff"], ["patch", "diff"], ["makefile", "make"], ["nolang", "python"]]) {
+    const samples: string[] = JSON.parse(readFileSync(join(dir, `${of}.json`), "utf8")).slice(0, 6)
+    samples.forEach((code, i) => out.push({ filetype: alias!, name: `${alias}#${i}`, code }))
+  }
+  return out
+}
+
 /** Cut points for streaming a text: prefixes as a model would emit them. */
 export function streamSteps(rng: Rng, text: string): string[] {
   const steps: string[] = []

@@ -7,7 +7,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
-import { goldenTexts, markedDocuments, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
+import { codeSamples, goldenTexts, markedDocuments, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
 import { dispose, run } from "./ts-driver"
 
 const argv = process.argv.slice(2)
@@ -56,6 +56,42 @@ for (const doc of documents) {
     steps.push({ streaming: false })
     add(`markdown-stream/${doc.corpus}`, doc.name, { op: "markdown", ...tui, conceal: caseRng.chance(0.8), steps })
   }
+}
+
+// Code in every bundled language (and aliases, and one with no parser), with and without conceal.
+// tree-sitter-agda's layout scanner reads an empty indent stack (`VEC_BACK` of length 0 after `deserialize` with an
+// empty buffer), so in TS its result depends on the heap of the parser's earlier parses: compare those cases with a
+// fresh TS client (what the first parse in the TUI gives) rather than the shared one.
+const FRESH_FILETYPES = new Set(["agda"])
+for (const sample of codeSamples()) {
+  const { filetype, name, code } = sample
+  const fresh = FRESH_FILETYPES.has(filetype)
+  add(`highlight/${filetype}`, name, { op: "highlight", content: code, filetype, fresh })
+  add(`code/${filetype}`, name, { op: "code", content: code, filetype, conceal: true, fresh })
+  add(`code-noconceal/${filetype}`, name, { op: "code", content: code, filetype, conceal: false, fresh })
+  if (caseRng.chance(0.15))
+    add(`code-base/${filetype}`, name, { op: "code", content: code, filetype, conceal: true, baseHighlight: "markup.quote", fresh })
+  if (code.length > 4 && caseRng.chance(0.3)) {
+    const cut = 1 + caseRng.int(code.length - 1)
+    const prefix = /[\ud800-\udbff]/.test(code[cut - 1]!) ? code.slice(0, cut + 1) : code.slice(0, cut)
+    add(`highlight-prefix/${filetype}`, name, { op: "highlight", content: prefix, filetype, fresh })
+  }
+}
+// Rendered markdown as the TUI shows it: every code child of the block model highlighted with the markdown link
+// hooks, conceal on (rendered) and off (source), with and without hyperlink support.
+for (const doc of documents) {
+  const text = doc.markdown.trim()
+  if (!text || text.length > 6000) continue
+  add(`render/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: true, content: text })
+  if (caseRng.chance(0.3)) add(`render-source/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: false, content: text })
+  if (caseRng.chance(0.2) && text.includes("]("))
+    add(`render-hyperlinks/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: true, hyperlinks: true, content: text })
+}
+// Markdown highlighting of whole documents (the conceal path frames depend on).
+for (const doc of documents) {
+  if (doc.markdown.length > 6000) continue
+  add(`highlight-md/${doc.corpus}`, doc.name, { op: "highlight", content: doc.markdown, filetype: "markdown" })
+  add(`code-md/${doc.corpus}`, doc.name, { op: "code", content: doc.markdown, filetype: "markdown", conceal: caseRng.chance(0.7) })
 }
 
 for (const doc of documents) {

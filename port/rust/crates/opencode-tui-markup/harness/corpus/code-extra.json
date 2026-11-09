@@ -1,0 +1,17 @@
+{
+  "zig": [
+    "const std = @import(\"std\");\n\npub fn main() !void {\n    const stdout = std.io.getStdOut().writer();\n    try stdout.print(\"Hello, {s}!\\n\", .{\"world\"});\n}",
+    "fn add(a: i32, b: i32) i32 {\n    return a + b; // sum\n}\n\ntest \"add\" {\n    try std.testing.expect(add(1, 2) == 3);\n}",
+    "const Point = struct {\n    x: f32 = 0,\n    y: f32 = 0,\n\n    pub fn len(self: Point) f32 {\n        return @sqrt(self.x * self.x + self.y * self.y);\n    }\n};",
+    "var list = std.ArrayList(u8).init(allocator);\ndefer list.deinit();\nfor (items, 0..) |item, i| {\n    if (item == 'x') break else continue;\n}\nconst c = switch (x) { 0 => 'a', else => 'b' };",
+    "/// doc comment\nconst E = enum(u8) { a = 1, b, _ };\nconst U = union(enum) { int: i64, float: f64 };\nconst s = \\\\multi\n    \\\\line\n;\nconst e: ?*u8 = null;\n"
+  ],
+  "*": [
+    "",
+    "\n",
+    "naïve 日本語 😀 é \t tab",
+    "// über café\nx = \"ünïcödé ☃\"",
+    "\"unterminated",
+    "/* unterminated comment"
+  ]
+}

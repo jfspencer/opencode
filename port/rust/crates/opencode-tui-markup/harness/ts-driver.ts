@@ -39,8 +39,93 @@ export const renderer = setup.renderer
 const theme = JSON.parse(await Bun.file(join(import.meta.dir, "theme.json")).text())
 export const syntaxStyle = core.SyntaxStyle.fromStyles(theme, renderer.nativeScene)
 
+// ---- tree-sitter: OpenTUI's default parsers plus the TUI's (parsers-config.ts), read from local copies of what
+// the TUI downloads: the WASMs fetched by run.sh and the bundled query files (the same bytes as the URLs serve).
+const crate = join(import.meta.dir, "..")
+const work = process.env.MARKUP_WORK ?? join(port, "rust/target/opencode-tui-markup")
+const parsersConfig = (await import(join(port, ".reference/packages/tui/src/parsers-config.ts"))).default
+core.addDefaultParsers(
+  parsersConfig.parsers.map((p: any) => ({
+    filetype: p.filetype,
+    ...(p.aliases ? { aliases: p.aliases } : {}),
+    wasm: join(work, "wasm", p.wasm.split("/").pop()),
+    queries: {
+      highlights: p.queries.highlights.map((_: string, i: number) => join(crate, "queries", p.filetype, `highlights-${i}.scm`)),
+      ...(p.queries.injections
+        ? { injections: p.queries.injections.map((_: string, i: number) => join(crate, "queries", p.filetype, `injections-${i}.scm`)) }
+        : {}),
+    },
+  })),
+)
+export const client = new core.TreeSitterClient({ dataPath: join(work, "ts-data") })
+await client.initialize()
+
 export async function dispose() {
+  await client.destroy()
   await setup.dispose()
+}
+
+const highlightJson = (h: any[]) => (h.length > 3 ? [h[0], h[1], h[2], plain(h[3])] : [h[0], h[1], h[2]])
+
+/** The shared client, or for `fresh` cases a new one: some grammar scanners read uninitialised state, so their
+ * results depend on what the same parser parsed before (FRESH_FILETYPES in diff.ts). */
+async function withClient<T>(c: any, f: (client: any) => Promise<T>): Promise<T> {
+  if (!c.fresh) return f(client)
+  const own = new core.TreeSitterClient({ dataPath: join(work, "ts-data") })
+  await own.initialize()
+  try {
+    return await f(own)
+  } finally {
+    await own.destroy()
+  }
+}
+
+export async function highlight(c: any) {
+  const result: any = await withClient(c, (client) => client.highlightOnce(c.content, c.filetype))
+  return {
+    highlights: result.highlights ? result.highlights.map(highlightJson) : null,
+    warning: result.warning ?? null,
+    error: result.error ?? null,
+  }
+}
+
+/** Runs a CodeRenderable to the end of its highlighting and returns what it last gave its text buffer. */
+export async function code(c: any) {
+  return withClient(c, (client) => runCode(c, client))
+}
+
+async function runCode(c: any, client: any) {
+  const r = new core.CodeRenderable(renderer, {
+    content: c.content,
+    filetype: c.filetype,
+    syntaxStyle,
+    conceal: c.conceal,
+    baseHighlight: c.baseHighlight,
+    treeSitterClient: client,
+    drawUnstyledText: true,
+  })
+  let captured: unknown = null
+  const buffer = r.textBuffer
+  const setStyledText = buffer.setStyledText.bind(buffer)
+  const setText = buffer.setText.bind(buffer)
+  buffer.setStyledText = (st: any) => {
+    captured = st.chunks.map(chunk)
+    return setStyledText(st)
+  }
+  buffer.setText = (t: string) => {
+    captured = "plain"
+    return setText(t)
+  }
+  renderer.root.add(r)
+  try {
+    for (let i = 0; i < 200 && (r._highlightsDirty || r.isHighlighting || i === 0); i++) {
+      await setup.renderOnce()
+      await r.highlightingDone
+    }
+    return { chunks: captured, lineSources: r._renderedLineSources ?? null }
+  } finally {
+    r.destroyRecursively()
+  }
 }
 
 const rgba = (c: any) => (c ? Array.from(c.buffer as Uint16Array) : null)
@@ -163,6 +248,55 @@ export function markdown(c: any) {
   return out
 }
 
+/** Renders markdown with highlighting until every code child is done, and returns what each code child last gave
+ * its text buffer, in tree order. */
+export async function markdownRender(c: any) {
+  renderer._capabilities = { ...(renderer._capabilities ?? {}), hyperlinks: !!c.hyperlinks }
+  const md = new core.MarkdownRenderable(renderer, {
+    id: "md",
+    syntaxStyle,
+    content: c.content,
+    streaming: false,
+    internalBlockMode: c.internalBlockMode,
+    tableOptions: c.tableOptions,
+    conceal: c.conceal,
+    fg: c.fg,
+    bg: c.bg,
+    treeSitterClient: client,
+  })
+  const codes: { r: any; captured: unknown }[] = []
+  const walk = (r: any) => {
+    if (r instanceof core.CodeRenderable) {
+      const entry = { r, captured: null as unknown }
+      const buffer = r.textBuffer
+      const setStyledText = buffer.setStyledText.bind(buffer)
+      const setText = buffer.setText.bind(buffer)
+      buffer.setStyledText = (st: any) => {
+        entry.captured = st.chunks.map(chunk)
+        return setStyledText(st)
+      }
+      buffer.setText = (t: string) => {
+        entry.captured = "plain"
+        return setText(t)
+      }
+      codes.push(entry)
+    }
+    for (const child of r.getChildren()) walk(child)
+  }
+  walk(md)
+  renderer.root.add(md)
+  try {
+    for (let i = 0; i < 200; i++) {
+      await setup.renderOnce()
+      await Promise.all(codes.map((e) => e.r.highlightingDone))
+      if (i > 0 && codes.every((e) => !e.r._highlightsDirty && !e.r.isHighlighting)) break
+    }
+    return codes.map((e) => ({ id: e.r.id, chunks: e.captured }))
+  } finally {
+    md.destroyRecursively()
+  }
+}
+
 export async function run(c: any): Promise<unknown> {
   switch (c.op) {
     case "lex":
@@ -171,6 +305,12 @@ export async function run(c: any): Promise<unknown> {
       return lexInline(c.src)
     case "markdown":
       return markdown(c)
+    case "highlight":
+      return highlight(c)
+    case "code":
+      return code(c)
+    case "markdownRender":
+      return markdownRender(c)
     default:
       throw new Error(`unknown op ${c.op}`)
   }

@@ -1,0 +1,16 @@
+[
+ "diff --git a/tree-sitter-gitdiff.wasm b/tree-sitter-gitdiff.wasm\nindex 0e9e828..3e32290 100755\nBinary files a/tree-sitter-gitdiff.wasm and b/tree-sitter-gitdiff.wasm differ",
+ "diff --git a/docs/playground.png b/docs/playground.png\ndeleted file mode 100644\nindex 9cf2a44..0000000\nBinary files a/docs/playground.png and /dev/null differ",
+ "diff --git a/grammar.js b/grammar.js\nindex dc36969..f37fde0 100644\n--- a/grammar.js\n+++ b/grammar.js\n@@ -6,6 +6,8 @@ module.exports = grammar({\n   extras: ($) => [],\n \n   rules: {\n-    source: ($) => \"hello\",\n+    source: ($) => repeat($._line),\n+\n+    _line: ($) => choice(),\n   },\n });",
+ "diff --git a/tmp.txt b/tmp.txt\nnew file mode 100644\nindex 0000000..e69de29",
+ "diff --git a/tmp.txt b/tmp.txt\ndeleted file mode 100644\nindex e69de29..0000000",
+ "diff --git a/tmp.txt b/tmp.md\nsimilarity index 100%\nrename from tmp.txt\nrename to tmp.md",
+ "@@ -0,0 +1 @@",
+ "diff --git a/tmp.txt b/tmp.txt\nnew file mode 100644\nindex 00000000..ee9808dc\n--- /dev/null\n+++ b/tmp.txt\n@@ -0,0 +1 @@\n+aaa\n\\ No newline at end of file",
+ "--- /dev/null",
+ "diff --git a/runtime/queries/elixir/highlights.scm b/runtime/queries/elixir/highlights.scm\nindex 76fd2af..308ff34 100644\n--- a/runtime/queries/elixir/highlights.scm\n+++ b/runtime/queries/elixir/highlights.scm\n@@ -125,7 +125,8 @@\n (sigil\n   (sigil_name) @__name__\n   quoted_start: _ @string.special\n-  quoted_end: _ @string.special) @string.special\n+  quoted_end: _ @string.special\n+  (#not-eq? @__name__ \"H\")) @string.special\n \n ; Calls\n \ndiff --git a/runtime/queries/elixir/injections.scm b/runtime/queries/elixir/injections.scm\nindex 321c90a..b4a5cba 100644\n--- a/runtime/queries/elixir/injections.scm\n+++ b/runtime/queries/elixir/injections.scm\n@@ -1,2 +1,8 @@\n ((comment) @injection.content\n  (#set! injection.language \"comment\"))\n+\n+((sigil\n+  (sigil_name) @_sigil_name\n+  (quoted_content) @injection.content)\n+ (#eq? @_sigil_name \"H\")\n+ (#set! injection.language \"heex\"))",
+ "--123",
+ "++123\n++\n++++1234\n+++++1234",
+ "diff --git a/LICENSE b/LICENSE\nold mode 100644\nnew mode 100755",
+ "# Some comment\n # This is not a comment\n# But this is\n context\n# Empty comment\n#\n more contex"
+]
