@@ -69,6 +69,57 @@ pub fn parse(text: &str) -> Option<Json> {
     opencode_protocol::wire::parse(text).ok()
 }
 
+pub fn as_str(value: &Json) -> Option<&str> {
+    match value {
+        Json::String(s) => Some(s),
+        _ => None,
+    }
+}
+
+pub fn get_num(value: &Json, key: &str) -> Option<f64> {
+    match get(value, key) {
+        Some(Json::Number(n)) => Some(*n),
+        _ => None,
+    }
+}
+
+pub fn get_bool(value: &Json, key: &str) -> Option<bool> {
+    match get(value, key) {
+        Some(Json::Bool(b)) => Some(*b),
+        _ => None,
+    }
+}
+
+pub fn get_mut<'a>(value: &'a mut Json, key: &str) -> Option<&'a mut Json> {
+    match value {
+        Json::Object(o) => o.get_mut(key),
+        _ => None,
+    }
+}
+
+/// `object[key] = value` (a new key goes last, an existing one keeps its place, as in JS).
+pub fn set(value: &mut Json, key: &str, item: Json) {
+    if let Json::Object(o) = value {
+        o.insert(key.to_owned(), item);
+    }
+}
+
+/// `delete object[key]`, keeping the order of the other keys.
+pub fn remove(value: &mut Json, key: &str) -> Option<Json> {
+    match value {
+        Json::Object(o) => o.shift_remove(key),
+        _ => None,
+    }
+}
+
+pub fn string(text: &str) -> Json {
+    Json::String(text.to_owned())
+}
+
+pub fn object() -> Json {
+    Json::Object(Default::default())
+}
+
 pub fn array(value: &Json) -> Option<&[Json]> {
     match value {
         Json::Array(items) => Some(items),
