@@ -679,6 +679,13 @@ name = "opencode-shell"
 version = "0.1.0"
 
 [[package]]
+name = "opencode-tui-text"
+version = "0.1.0"
+dependencies = [
+ "indexmap",
+]
+
+[[package]]
 name = "opencode-yoga"
 version = "0.1.0"
 dependencies = [
