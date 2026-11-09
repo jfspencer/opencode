@@ -67,6 +67,7 @@ scenarios/agent-loop-interrupt.test.ts › interrupt an idle session
 scenarios/agent-loop-interrupt.test.ts › interrupt and resume with a steering prompt
 scenarios/agent-loop-interrupt.test.ts › interrupt before any output
 scenarios/agent-loop-interrupt.test.ts › interrupt keeps queued prompts parked
+scenarios/agent-loop-interrupt.test.ts › interrupt while a shell command runs
 scenarios/agent-loop-interrupt.test.ts › interrupt while a tool call is streaming
 scenarios/agent-loop-interrupt.test.ts › interrupt while reasoning
 scenarios/agent-loop-interrupt.test.ts › interrupt while text is streaming
@@ -99,13 +100,22 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/permissions.test.ts › always approve a shell command prefix
+scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
+scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
+scenarios/permissions.test.ts › always on a wrapped command approves only the wrapped command
 scenarios/permissions.test.ts › always saves approvals and settles other pending requests they now allow
+scenarios/permissions.test.ts › approve a shell command once
+scenarios/permissions.test.ts › configured denies win over saved shell approvals
+scenarios/permissions.test.ts › decline a shell command with feedback
+scenarios/permissions.test.ts › decline a shell command without feedback
 scenarios/permissions.test.ts › edit and remove saved approvals
 scenarios/permissions.test.ts › evaluate permission requests against agent, config and session rules
 scenarios/permissions.test.ts › evaluate permission requests for an explicit agent
 scenarios/permissions.test.ts › pending permission request lifecycle
 scenarios/permissions.test.ts › rejecting a request rejects the other pending requests of its session
 scenarios/permissions.test.ts › rule patterns match actions and resources
+scenarios/permissions.test.ts › session rules allow and deny shell commands
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
@@ -209,6 +219,7 @@ scenarios/session-api-control.test.ts › move a session whose directory is gone
 scenarios/session-api-control.test.ts › move to a directory with an invalid configuration
 scenarios/session-api-control.test.ts › read the durable session log
 scenarios/session-api-control.test.ts › run slash commands
+scenarios/session-api-control.test.ts › run user shell commands in a session
 scenarios/session-api-control.test.ts › switch the agent
 scenarios/session-api-control.test.ts › switch the model and its reasoning variant
 scenarios/session-api-crud.test.ts › active sessions while idle
@@ -219,6 +230,7 @@ scenarios/session-api-crud.test.ts › create a session with every optional fiel
 scenarios/session-api-crud.test.ts › create a session with invalid payloads
 scenarios/session-api-crud.test.ts › create a session without a location uses the server directory
 scenarios/session-api-crud.test.ts › create get update and remove a session
+scenarios/session-api-crud.test.ts › environment variables reach session shell commands
 scenarios/session-api-crud.test.ts › list sessions page by page with cursors
 scenarios/session-api-crud.test.ts › list sessions with filters
 scenarios/session-api-crud.test.ts › list sessions with invalid queries
@@ -233,6 +245,8 @@ scenarios/session-api-failures.test.ts › interrupt a session while it waits to
 scenarios/session-api-failures.test.ts › provider failures become session errors
 scenarios/session-api-inputs.test.ts › an inline attachment over the size limit
 scenarios/session-api-inputs.test.ts › attachments the model cannot read
+scenarios/session-api-inputs.test.ts › background a blocking shell tool
+scenarios/session-api-inputs.test.ts › background jobs of a session and its subagents
 scenarios/session-api-inputs.test.ts › forms of a session whose location is not loaded
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
@@ -253,9 +267,70 @@ scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
 scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
+scenarios/session-api-subagents.test.ts › background jobs of a child session listed from its ancestors
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
+scenarios/shell-api.test.ts › configured shell: a missing shell
+scenarios/shell-api.test.ts › configured shell: an absolute path
+scenarios/shell-api.test.ts › configured shell: an incompatible shell
+scenarios/shell-api.test.ts › configured shell: sh
 scenarios/shell-api.test.ts › list available shells
+scenarios/shell-api.test.ts › page through the output of a finished command
+scenarios/shell-api.test.ts › run commands in a session as the user
+scenarios/shell-api.test.ts › shell routes for unknown commands
+scenarios/shell-api.test.ts › the model sees commands the user ran
+scenarios/shell-classify.test.ts › assignments and declarations
+scenarios/shell-classify.test.ts › command names shared with object properties
+scenarios/shell-classify.test.ts › command prefixes
+scenarios/shell-classify.test.ts › compound commands
+scenarios/shell-classify.test.ts › directory changes
+scenarios/shell-classify.test.ts › heredocs
+scenarios/shell-classify.test.ts › lists and pipelines
+scenarios/shell-classify.test.ts › posix sh
+scenarios/shell-classify.test.ts › powershell commands
+scenarios/shell-classify.test.ts › powershell expressions and blocks
+scenarios/shell-classify.test.ts › quoting and escaping
+scenarios/shell-classify.test.ts › redirections
+scenarios/shell-classify.test.ts › substitutions and expansions
+scenarios/shell-classify.test.ts › wildcard characters in commands
+scenarios/shell-classify.test.ts › wrappers
+scenarios/shell-scan.test.ts › bash: assignments and declarations
+scenarios/shell-scan.test.ts › bash: command prefixes
+scenarios/shell-scan.test.ts › bash: comments and blank lines
+scenarios/shell-scan.test.ts › bash: compound commands
+scenarios/shell-scan.test.ts › bash: directory changes
+scenarios/shell-scan.test.ts › bash: expansions and substitutions
+scenarios/shell-scan.test.ts › bash: globs
+scenarios/shell-scan.test.ts › bash: heredocs
+scenarios/shell-scan.test.ts › bash: lists and pipelines
+scenarios/shell-scan.test.ts › bash: quoting and escaping
+scenarios/shell-scan.test.ts › bash: redirections
+scenarios/shell-scan.test.ts › bash: scanner edge cases
+scenarios/shell-scan.test.ts › bash: wrappers and nested shells
+scenarios/shell-scan.test.ts › posix sh
+scenarios/shell-scan.test.ts › powershell: cmdlets and pipelines
+scenarios/shell-scan.test.ts › powershell: control flow
+scenarios/shell-scan.test.ts › powershell: directory changes
+scenarios/shell-scan.test.ts › powershell: expressions and variables
+scenarios/shell-scan.test.ts › powershell: parser corner cases
+scenarios/shell-scan.test.ts › powershell: refused
+scenarios/shell-scan.test.ts › zsh
+scenarios/shell-tool.test.ts › a session environment replaces the environment of shell commands
+scenarios/shell-tool.test.ts › background commands notify the session when they finish
+scenarios/shell-tool.test.ts › commands the scanner cannot analyze are refused
+scenarios/shell-tool.test.ts › commands without permission resources run without asking
+scenarios/shell-tool.test.ts › external directory rules from config
+scenarios/shell-tool.test.ts › interrupt a session while a command runs
+scenarios/shell-tool.test.ts › invalid shell inputs
+scenarios/shell-tool.test.ts › large output uses the default line limit
+scenarios/shell-tool.test.ts › output truncated by line count
+scenarios/shell-tool.test.ts › output truncated by size
+scenarios/shell-tool.test.ts › output, stderr and exit status
+scenarios/shell-tool.test.ts › remove the shell of a running command
+scenarios/shell-tool.test.ts › the environment of shell commands
+scenarios/shell-tool.test.ts › timeouts
+scenarios/shell-tool.test.ts › working directories
+scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
 scenarios/tools-question.test.ts › question answered with a custom answer
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools-question.test.ts › question dismissed by the user
@@ -283,4 +358,5 @@ scenarios/tools-subagent.test.ts › subagent with empty optional arguments
 scenarios/tools-subagent.test.ts › subagent with model overrides
 scenarios/tools-subagent.test.ts › subagent with unknown and primary agents
 scenarios/tools.test.ts › malformed tool arguments
+scenarios/tools.test.ts › shell command
 scenarios/tools.test.ts › unknown tool
