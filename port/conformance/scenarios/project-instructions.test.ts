@@ -225,8 +225,9 @@ scenario("global AGENTS.md from the config directory", { boot: false, files: { "
 
 scenario(
   "unreadable AGENTS.md blocks instruction initialization",
-  // The file watcher is off: the scenario reloads after the change, and the watcher's reload would race it.
-  { server: { filewatcher: false }, files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
+  // The file is made unreadable before the location's first request, which reads it. The file watcher is off: the
+  // scenario reloads after the change, and the watcher's reload would race it.
+  { boot: false, server: { filewatcher: false }, files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
   async (ctx) => {
     chmodSync(path.join(ctx.project, "AGENTS.md"), 0o000)
     try {
