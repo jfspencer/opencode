@@ -12,6 +12,7 @@ opencode-tui-core = { path = "../opencode-tui-core" }
 opencode-tui-input = { path = "../opencode-tui-input" }
 opencode-tui-text = { path = "../opencode-tui-text" }
 opencode-tui-sync = { path = "../opencode-tui-sync" }
+opencode-tui-markup = { path = "../opencode-tui-markup" }
 tokio.workspace = true
 # JSON values with JS semantics (insertion order, JSON.parse/JSON.stringify): themes and cli.json.
 opencode-protocol.workspace = true

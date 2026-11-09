@@ -64,6 +64,10 @@
 //! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`. A custom renderable
 //! (`extend({ name: XRenderable })`) is a `Kind` made with `tree::create`; a TextRenderable subclass is
 //! `renderables::text::create_text_with(|text| Box::new(Sub { text, .. }))`, delegating to the inner `TextKind`.
+//! A subclass kind returns its superclass part from `Kind::base_kind`, so `with_kind::<Super, _>` (and the
+//! superclass's setters, e.g. `set_fg` on a `<code>`) reach it. `<markdown>` and `<code>` are
+//! `elements::markdown()` / `elements::code()` with `set_markdown_*` / `set_code_content`, `set_filetype`, ...; the
+//! theme's syntax style is `syntax::current_syntax()`.
 //!
 //! **Keybinds** ([`keymap`], `context/keymap.tsx` over `opencode-tui-input`'s `@opentui/keymap`): a layer is
 //! `keymap::create_layer(move || Layer { mode, enabled, target, priority, commands, bindings, .. })`, re-run in an
@@ -103,6 +107,7 @@
 //!
 //! Divergences and stand-ins are listed at the top of each module and marked `TODO(port-tui)`.
 pub mod app;
+pub mod border;
 pub mod commands;
 pub mod config;
 pub mod config_context;
@@ -113,7 +118,10 @@ pub mod interactivity;
 pub mod keymap;
 pub mod local;
 pub mod prompt;
+pub mod reconnecting;
 pub mod session;
+pub mod spinner;
+pub mod syntax;
 pub mod theme;
 pub mod toast;
 pub mod util;
