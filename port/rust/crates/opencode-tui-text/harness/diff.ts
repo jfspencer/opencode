@@ -8,8 +8,8 @@
 //   --case    run only case I (an index into the generated list) and print its ops
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { Rng, edgeCases, tableCases, textCase } from "./cases.ts"
-import { runCase, type Case } from "./ts-exec.ts"
+import { Rng, editCase, editEdgeCases, edgeCases, tableCases, textCase } from "./cases.ts"
+import { runCase, runEditCase, type Case } from "./ts-exec.ts"
 
 const args = process.argv.slice(2)
 const opt = (name: string, fallback?: string) => {
@@ -19,6 +19,7 @@ const opt = (name: string, fallback?: string) => {
 const driver = opt("driver")!
 const work = opt("work")!
 const count = Number(opt("count", "3000"))
+const editCount = Number(opt("edit-count", opt("count", "3000")))
 const seed = Number(opt("seed", "1"))
 const show = Number(opt("show", "5"))
 const only = opt("case")
@@ -26,15 +27,18 @@ const tables = !args.includes("--no-tables")
 mkdirSync(work, { recursive: true })
 
 const rng = new Rng(seed)
-let cases: Case[] = [...edgeCases(), ...(tables ? tableCases() : [])]
+let cases: Case[] = [...edgeCases(), ...editEdgeCases(), ...(tables ? tableCases() : [])]
 for (let i = 0; i < count; i++) cases.push(textCase(rng))
+const editRng = new Rng(seed * 7919 + 1)
+for (let i = 0; i < editCount; i++) cases.push(editCase(editRng))
 if (only !== undefined) {
   cases = [cases[Number(only)]]
   writeFileSync(join(work, "case.json"), JSON.stringify(cases[0], null, 1))
 }
 
 const started = performance.now()
-const expected = cases.map((c) => runCase(c))
+const expected: unknown[][] = []
+for (const c of cases) expected.push(c.k === "edit" ? await runEditCase(c) : runCase(c))
 const tsMs = performance.now() - started
 
 const input = join(work, "cases.jsonl")

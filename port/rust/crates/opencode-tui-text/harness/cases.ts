@@ -324,3 +324,127 @@ export function tableCases(): Case[] {
   }
   return cases
 }
+
+/**
+ * Hand-picked editing: each special sequence typed one code point at a time between other text, then walked over
+ * with the cursor, deleted grapheme by grapheme, undone and redone, under every width method.
+ */
+export function editEdgeCases(): Case[] {
+  const cases: Case[] = []
+  for (const m of METHODS) {
+    for (const special of SPECIALS) {
+      const ops: Op[] = [["eSetText", "ab\ncd"], ["eSetCursor", 0, 1]]
+      for (const c of Array.from(special)) ops.push(["eInsert", c], ["eInfo"])
+      ops.push(["eText"], ["vVisual"], ["eLeft"], ["eInfo"], ["eLeft"], ["eInfo"], ["eRight"], ["eInfo"], ["eRight"], ["eInfo"])
+      ops.push(["eNextWord"], ["ePrevWord"], ["eDown"], ["eInfo"], ["eUp"], ["eInfo"], ["vVEol"], ["vSol"])
+      ops.push(["eSetCursor", 0, 100], ["eBackspace"], ["eInfo"], ["eText"], ["eBackspace"], ["eInfo"], ["eText"])
+      ops.push(["eSetCursor", 0, 0], ["eDelChar"], ["eInfo"], ["eText"], ["eDelChar"], ["eText"])
+      for (let i = 0; i < 6; i++) ops.push(["eUndo"], ["eText"], ["eInfo"])
+      for (let i = 0; i < 6; i++) ops.push(["eRedo"], ["eText"], ["eInfo"])
+      ops.push(["eTabWidth", 4], ["eUndo"], ["eInfo"], ["eEvents"])
+      ops.push(["vWrapMode", "char"], ["vViewportSize", 3, 4], ["eSetText", `x${special}${special}y`], ["eCursorOffset", 2])
+      ops.push(["vVisual"], ["vDown"], ["vVisual"], ["vUp"], ["vVisual"], ["vGotoEnd"], ["vVisual"], ["vLineInfo"], ["vDraw", 6, 5, 0, 0])
+      ops.push(["vSel", 1, 3], ["vSelinfo"], ["vReplaceSel", special], ["eText"], ["eInfo"], ["vSelinfo"])
+      cases.push({ k: "edit", m, w: 10, h: 4, ops })
+    }
+    // A placeholder over an emptied buffer.
+    cases.push({
+      k: "edit",
+      m,
+      w: 12,
+      h: 3,
+      ops: [
+        ["vPlaceholder", [{ text: "Type here… 你好", fg: COLORS[0], attributes: 2 }]],
+        ["vLineInfo"],
+        ["vDraw", 14, 3, 0, 0],
+        ["eInsert", "x"],
+        ["vLineInfo"],
+        ["eBackspace"],
+        ["vLogical"],
+        ["vVisual"],
+        ["vDown"],
+        ["vVisual"],
+        ["vMeasure", 5, 3],
+        ["vDraw", 14, 3, 0, 0],
+        ["vPlaceholder", []],
+        ["vLineInfo"],
+        ["eEvents"],
+      ],
+    })
+  }
+  return cases
+}
+
+/** A random program over an edit buffer and its editor view. */
+export function editCase(r: Rng): Case {
+  const ops: Op[] = []
+  const m = r.pick(METHODS)
+  const w = r.chance(0.1) ? r.int(3) : r.range(1, 40)
+  const h = r.chance(0.1) ? r.int(3) : r.range(1, 12)
+  if (r.chance(0.3)) {
+    for (const name of ["keyword", "string"]) ops.push(["registerStyle", name, { fg: r.pick(COLORS), bold: r.chance(0.5) }])
+    ops.push(["eSyntaxStyle", true])
+  }
+  if (r.chance(0.5)) ops.push(["vWrapMode", r.pick(["none", "char", "word", "word"])])
+  if (r.chance(0.8)) ops.push([r.pick(["eSetText", "eReplaceText"]), text(r)])
+  const coord = () => r.range(0, 8)
+  const opCount = r.range(5, 60)
+  for (let i = 0; i < opCount; i++) {
+    const roll = r.int(100)
+    if (roll < 10) ops.push(["eInsert", r.chance(0.3) ? text(r) : piece(r)])
+    else if (roll < 12) ops.push(["eNewLine"])
+    else if (roll < 17) ops.push([r.pick(["eDelChar", "eBackspace", "eBackspace"])])
+    else if (roll < 19) ops.push(["eDelRange", coord(), r.range(0, 20), coord(), r.range(0, 20)])
+    else if (roll < 20) ops.push(["eDelLine"])
+    else if (roll < 30) ops.push([r.pick(["eLeft", "eRight", "eUp", "eDown", "eLeft", "eRight"])])
+    else if (roll < 35) ops.push([r.pick(["vUp", "vDown"])])
+    else if (roll < 37) ops.push(["eSetCursor", coord(), r.range(0, 30)])
+    else if (roll < 38) ops.push(["eGotoLine", coord()])
+    else if (roll < 39) ops.push([r.pick(["eCursorOffset", "vCursorOffset"]), r.range(0, 80)])
+    else if (roll < 42) ops.push([r.pick(["eUndo", "eUndo", "eRedo"])])
+    else if (roll < 43) ops.push([r.pick(["eClear", "eClearHistory", "eSetText", "eReplaceText"]), text(r)])
+    else if (roll < 44) ops.push(["eTabWidth", r.pick([2, 3, 4, 8, 0, 300])])
+    else if (roll < 46) ops.push(["vViewportSize", r.range(0, 40), r.range(0, 12)])
+    else if (roll < 47) ops.push(["vViewport", r.int(10), r.int(10), r.range(1, 40), r.range(1, 12), r.chance(0.5)])
+    else if (roll < 48) ops.push(["vScrollMargin", r.pick([0, 0.1, 0.15, 0.25, 0.5, 0.9])])
+    else if (roll < 50) ops.push(["vWrapMode", r.pick(["none", "char", "word"])])
+    else if (roll < 53) ops.push(["vSel", r.int(60), r.int(60)])
+    else if (roll < 54) ops.push([r.pick(["vUSel", "vSelInclusive"]), r.int(60), r.int(60)])
+    else if (roll < 55) ops.push([r.pick(["vRSel", "vRLSel", "vCell"])])
+    else if (roll < 59)
+      ops.push([
+        r.pick(["vLSel", "vULSel"]),
+        r.range(-2, 30),
+        r.range(-2, 12),
+        r.range(-2, 30),
+        r.range(-2, 12),
+        r.chance(0.6),
+        r.chance(0.4),
+        r.pick(["cell", "word", "line"]),
+      ])
+    else if (roll < 60) ops.push(["vOcc", r.pick(["cell", "boundary"])])
+    else if (roll < 62) ops.push([r.pick(["vDelSel", "vReplaceSel"]), piece(r)])
+    else if (roll < 63) ops.push(["vGotoEnd"])
+    else if (roll < 66) ops.push([r.pick(["vNextWord", "vPrevWord", "vEol", "vSol", "vVEol"])])
+    else if (roll < 69) ops.push([r.pick(["eNextWord", "ePrevWord", "eEol", "eEof", "ePrevChar"])])
+    else if (roll < 71) ops.push([r.pick(["eOffsetToPos", "eLineStart"]), r.range(0, 80)])
+    else if (roll < 72) ops.push(["ePosToOffset", coord(), r.range(0, 20)])
+    else if (roll < 74) ops.push([r.pick(["eRange", "eRangeCoords"]), r.int(40), r.int(40), r.int(4), r.int(20)])
+    else if (roll < 75) ops.push(["eMeasure", line(r, 4)])
+    else if (roll < 76) ops.push(["eMeasureStatic", text(r), r.pick([0, 2, 4, 5])])
+    else if (roll < 78)
+      ops.push(["vPlaceholder", r.chance(0.2) ? [] : styledChunks(r).map((c) => ({ text: c.text, fg: c.fg, bg: c.bg, attributes: c.attributes ?? 0 }))])
+    else if (roll < 79) ops.push(["vTabIndicator", r.pick([0, 0x2192, 0x41])])
+    else if (roll < 81) ops.push(["eAddHlRange", highlight(r, 40)])
+    else if (roll < 82) ops.push(["eAddHl", r.int(4), highlight(r, 20)])
+    else if (roll < 83) ops.push(["eDefaults", r.chance(0.5) ? r.pick(COLORS) : null, r.chance(0.5) ? r.pick(COLORS) : null, r.chance(0.5) ? r.int(64) : null])
+    else if (roll < 85) ops.push(["vMeasure", r.range(0, 40), r.range(0, 10)])
+    else if (roll < 88) ops.push(["eEvents"])
+    else if (roll < 89) ops.push(["vNewView", r.range(1, 40), r.range(1, 12)])
+    else if (roll < 91) ops.push(["vDraw", r.range(1, 40), r.range(1, 12), r.range(-2, 3), r.range(-2, 3)])
+    else ops.push([r.pick(["eInfo", "vVisual", "vGetViewport", "vLineInfo", "vVcount", "vTotal", "vSelinfo", "vCursor", "eText", "vLogical"])])
+  }
+  ops.push(["eEvents"], ["eText"], ["eInfo"], ["vVisual"], ["vGetViewport"], ["vLineInfo"], ["vLogical"], ["vSelinfo"], ["vVcount"], ["vTotal"])
+  ops.push(["vDraw", r.range(1, 40), r.range(1, 12), 0, 0])
+  return { k: "edit", m, w, h, ops }
+}
