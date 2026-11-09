@@ -9,3 +9,11 @@ publish.workspace = true
 
 [dependencies]
 opencode-tui-core = { path = "../opencode-tui-core" }
+# JSON values with JS semantics (insertion order, JSON.parse/JSON.stringify): themes and cli.json.
+opencode-protocol.workspace = true
+indexmap.workspace = true
+regex.workspace = true
+# The CLI config lock (packages/util/src/flock.ts: sha1 lock names, random tokens, the host name).
+sha1.workspace = true
+getrandom.workspace = true
+libc.workspace = true
