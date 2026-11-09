@@ -638,6 +638,7 @@ dependencies = [
  "rustls-native-certs",
  "sha1",
  "sha2",
+ "stacker",
  "tokio",
  "tokio-rustls",
  "unicode-normalization",

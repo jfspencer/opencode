@@ -10,10 +10,10 @@
 //! TODO(port): MCP prompts as commands (MCP is out of scope).
 
 use opencode_protocol::types as t;
-use opencode_protocol::wire::Object;
-use opencode_protocol::{Json, Wire};
+use opencode_protocol::Wire;
 
 use super::config::{self, Entry};
+use super::jsvalue::{self, Shape, Value};
 use super::{markdown, scan};
 
 /// `plugin/command/initialize.txt` (`${path}` is the project directory).
@@ -99,24 +99,37 @@ pub fn build(entries: &[Entry]) -> Vec<Command> {
     commands
 }
 
+/// `ConfigCommand.Info` as Effect decodes it from a frontmatter's values (see [`jsvalue::lower`]).
+const COMMAND: Shape = Shape::Struct(&[
+    ("template", Shape::Leaf),
+    ("description", Shape::Leaf),
+    ("agent", Shape::Leaf),
+    ("model", Shape::Selection),
+    ("subagent", Shape::Leaf),
+    ("subtask", Shape::Leaf),
+]);
+
 /// The commands of a config directory's markdown files: the name is the path below the commands directory, the body
 /// the template; a file whose frontmatter does not decode is skipped.
 fn markdown_commands(directory: &str) -> Vec<(String, t::ConfigCommand)> {
     let mut out = vec![];
     for file in scan::markdown_all(directory, &["command", "commands"]) {
         let Some(content) = config::read(&file) else { continue };
-        let Some(parsed) = markdown::parse_option(&content) else { continue };
-        let mut data = match parsed.data {
-            Json::Object(o) => o,
-            _ => Object::new(),
-        };
-        data.insert("template".into(), Json::String(config::js_trim(&parsed.content).to_owned()));
-        let Ok(command) = t::ConfigCommand::decode(&Json::Object(data)) else { continue };
+        let Some(command) = markdown_command(&content) else { continue };
         let relative = file.strip_prefix(directory).unwrap_or(&file).trim_start_matches('/');
         let name = ["command/", "commands/"].iter().find_map(|p| relative.strip_prefix(p)).unwrap_or(relative);
         out.push((name.strip_suffix(".md").unwrap_or(name).to_owned(), command));
     }
     out
+}
+
+/// One markdown command file: `decodeCommand({ ...markdown.data, template })`.
+pub(super) fn markdown_command(content: &str) -> Option<t::ConfigCommand> {
+    let parsed = markdown::parse_option(content)?;
+    let input = jsvalue::spread(&parsed.data.root);
+    input.define("template", Value::string(config::js_trim(&parsed.content)));
+    let lowered = jsvalue::lower(&Value::Object(input), &COMMAND).ok()??;
+    t::ConfigCommand::decode(&lowered).ok()
 }
 
 /// `parseArguments`: words, `"double"` or `'single'` quoted runs (quotes trimmed), and `[Image N]` placeholders.

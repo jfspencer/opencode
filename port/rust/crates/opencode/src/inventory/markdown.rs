@@ -7,25 +7,30 @@
 //! (whatever follows on that line), else at the end of the input, which then leaves no content; the content after
 //! the closing delimiter drops one leading `\r` and then one leading `\n`. A frontmatter that is blank once lines
 //! of comments are removed (`/^\s*#[^\n]+/gm`) is `{}` without being parsed; otherwise the language's engine parses
-//! it, and a `null` result is `{}`.
+//! it, and a `null` or `undefined` result is `{}`.
 //!
 //! Without frontmatter the data is `{}` and the content the whole input (less a BOM).
 //!
-//! Engines: `yaml` (also `yml`, any case) is [`yaml::load`] (js-yaml's `safeLoad`); `json` (lower case only) is
-//! `JSON.parse`. Any other language is an [`Error`] where gray-matter throws (`coffee`, `toml`, `JSON`, ...).
-//! TODO(port): gray-matter's `javascript`/`js` engine `eval`s the frontmatter, and names of `Object.prototype`
-//! members (`constructor`, `toString`, ...) resolve to those functions; both are an [`Error`] here.
+//! The data is a JS value ([`jsvalue::Value`]): what the consumers make of a `Date`, a `Buffer`, an array, a string or
+//! a value that contains itself is theirs to reproduce (inventory/agents.rs, commands.rs, skills.rs).
+//!
+//! Engines (lib/engine.js): `options.engines[name] || options.engines[aliase(name)]`, where the engines are an
+//! ordinary object, so a name is looked up as written, then lower-cased for the aliases (`js`, `javascript`, `yaml`,
+//! `yml`). `yaml` is [`yaml::load`] (js-yaml's `safeLoad`); `json` (lower case only) is `JSON.parse`; `javascript` is
+//! [`frontmatter_js::evaluate`]. A name of an `Object.prototype` member finds that member: a function engine is
+//! called as `{ parse: member }.parse(matter, options)` (`constructor` makes a `String` object of the frontmatter,
+//! `toString` gives `"[object Object]"`, `valueOf` the engine object itself, `hasOwnProperty` `false`, and so on),
+//! and `__proto__` is no function. Any other language is an [`Error`] where gray-matter throws (`coffee`, `toml`,
+//! `JSON`, ...).
 
-use indexmap::IndexMap;
-use opencode_protocol::Json;
 use opencode_protocol::wire::number::{is_js_whitespace, js_trim};
 
-use super::yaml;
+use super::jsvalue::{self, Arena, Class, Graph, Obj, Value};
+use super::{frontmatter_js, yaml};
 
 /// gray-matter's result: `file.data` (what the frontmatter parsed to; `{}` without frontmatter) and `file.content`.
-#[derive(Debug, Clone, PartialEq)]
 pub struct Markdown {
-    pub data: Json,
+    pub data: Graph,
     pub content: String,
 }
 
@@ -65,9 +70,13 @@ pub fn sanitize(content: &str) -> String {
     content.replacen(frontmatter, &lines.join("\n"), 1)
 }
 
+fn empty_object() -> Graph {
+    Graph::of(Value::Object(Obj::plain()))
+}
+
 /// `matter(input, {})`.
 fn matter(input: &str) -> Result<Markdown, Error> {
-    let none = |content: &str| Markdown { data: Json::Object(IndexMap::new()), content: content.to_owned() };
+    let none = |content: &str| Markdown { data: empty_object(), content: content.to_owned() };
     if input.is_empty() {
         return Ok(none(""));
     }
@@ -105,25 +114,51 @@ fn matter(input: &str) -> Result<Markdown, Error> {
         }
         None => (rest, ""),
     };
-    let data = if js_trim(&strip_comment_lines(block)).is_empty() { Json::Null } else { engine(language, block)? };
-    // `excerpt()`: `if (file.data == null) file.data = {}`
-    let data = if data == Json::Null { Json::Object(IndexMap::new()) } else { data };
+    let data = if js_trim(&strip_comment_lines(block)).is_empty() { empty_object() } else { engine(language, block)? };
+    // `excerpt()`: `if (file.data == null) file.data = {}`; then a truthy `data.excerpt_separator` is looked for in
+    // the content (`content.indexOf(separator)`), which throws where the separator has no string form.
+    let data = if matches!(data.root, Value::Null | Value::Undefined) { empty_object() } else { data };
+    if jsvalue::get(&data.root, "excerpt_separator").is_some_and(|sep| sep.truthy() && jsvalue::to_string_throws(&sep)) {
+        return Err(Error { message: "Cannot convert object to primitive value".to_owned() });
+    }
     Ok(Markdown { data, content: content.to_owned() })
 }
 
-/// lib/engine.js `getEngine(name)`, then its `parse`.
-fn engine(name: &str, block: &str) -> Result<Json, Error> {
+/// lib/engine.js `getEngine(name)`, then its `parse(str, opts)` (lib/parse.js).
+fn engine(name: &str, block: &str) -> Result<Graph, Error> {
     let alias = match name.to_lowercase().as_str() {
         "js" | "javascript" => "javascript",
+        "coffee" | "coffeescript" | "cson" => "coffee",
         "yaml" | "yml" => "yaml",
         _ => name,
     };
-    let engine = [name, alias].into_iter().find(|n| matches!(*n, "yaml" | "json" | "javascript"));
+    let found = |key: &str| matches!(key, "yaml" | "json" | "javascript") || jsvalue::OBJECT_PROTOTYPE.contains(&key);
+    let Some(engine) = [name, alias].into_iter().find(|n| found(n)) else {
+        return Err(not_registered(name));
+    };
+    let thrown = |message: &str| Err(Error { message: message.to_owned() });
     match engine {
-        Some("yaml") => yaml::load(block).map_err(|e| Error { message: e.to_string() }),
-        Some("json") => opencode_protocol::wire::parse(block).map_err(|e| Error { message: e.to_string() }),
-        Some(_) => Err(Error { message: "TODO(port): gray-matter's javascript engine is not supported".to_owned() }),
-        None => Err(not_registered(name)),
+        "yaml" => yaml::load(block).map_err(|e| Error { message: e.to_string() }),
+        "json" => opencode_protocol::wire::parse(block)
+            .map(|json| Graph::of(jsvalue::from_json(&json)))
+            .map_err(|e| Error { message: e.to_string() }),
+        "javascript" => frontmatter_js::evaluate(block).map_err(|message| Error { message }),
+        // An `Object.prototype` member: a function is `{ parse: member }.parse(block, options)`.
+        "__proto__" => thrown("expected \"__proto__.parse\" to be a function"),
+        "toString" | "toLocaleString" => Ok(Graph::of(Value::string("[object Object]"))),
+        "valueOf" => {
+            let arena = Arena::default();
+            let engine = arena.object(Class::Plain);
+            engine.define("parse", Value::Object(arena.object(Class::Function)));
+            Ok(Graph::new(Value::Object(engine), arena))
+        }
+        "hasOwnProperty" | "propertyIsEnumerable" => Ok(Graph::of(Value::Bool(block == "parse"))),
+        "isPrototypeOf" => Ok(Graph::of(Value::Bool(false))),
+        "__defineGetter__" => thrown("invalid getter usage"),
+        "__defineSetter__" => thrown("invalid setter usage"),
+        "__lookupGetter__" | "__lookupSetter__" => Ok(Graph::of(Value::Undefined)),
+        // `constructor`: `Object(block)`.
+        _ => Ok(Graph::of(Value::Object(Obj::new(Class::Boxed(Value::string(block)))))),
     }
 }
 
@@ -347,7 +382,7 @@ mod tests {
     fn file(result: Result<Markdown, Error>) -> Option<(String, String)> {
         result.ok().map(|m| {
             let mut out = Out::new();
-            out.json(&m.data);
+            out.json(&jsvalue::stringify(&m.data.root).unwrap().unwrap_or_default());
             (out.finish(), m.content)
         })
     }
@@ -379,11 +414,29 @@ mod tests {
         assert!(failures.is_empty(), "{} differences:\n{}", failures.len(), failures.join("\n"));
     }
 
-    // gray-matter `eval`s a `js`/`javascript` frontmatter: from the same run, `matter("---js\n{}\n---\n", {})` has
-    // data `{}` and content `""`. The port does not run it (see the module docs).
+    // From the same run: the engines of `Object.prototype` members (`String(data)` of their result in a JSON array, or
+    // `null` where gray-matter throws).
     #[test]
-    fn javascript_frontmatter_is_not_evaluated() {
-        assert!(parse_option("---js\n{}\n---\n").is_none());
-        assert!(parse_option("---javascript\n({a: 1})\n---\n").is_none());
+    fn object_prototype_names_are_engines() {
+        let data = |name: &str| -> Option<String> {
+            let parsed = matter(&format!("---{name}\na: 1\n---\nbody")).ok()?;
+            Some(match &parsed.data.root {
+                Value::String(s) => format!("string {s}"),
+                Value::Bool(b) => format!("boolean {b}"),
+                Value::Object(o) => format!("{:?} {:?}", o.class(), jsvalue::keys(&parsed.data.root)),
+                other => format!("{other:?}"),
+            })
+        };
+        assert_eq!(data("toString").as_deref(), Some("string [object Object]"));
+        assert_eq!(data("toLocaleString").as_deref(), Some("string [object Object]"));
+        assert_eq!(data("valueOf").as_deref(), Some("Plain [\"parse\"]"));
+        assert_eq!(data("hasOwnProperty").as_deref(), Some("boolean false"));
+        assert_eq!(data("propertyIsEnumerable").as_deref(), Some("boolean false"));
+        assert_eq!(data("isPrototypeOf").as_deref(), Some("boolean false"));
+        assert_eq!(data("__lookupGetter__").as_deref(), Some("Plain []"));
+        assert_eq!(data("__defineGetter__"), None);
+        assert_eq!(data("__proto__"), None);
+        assert_eq!(data("constructor").as_deref(), Some("Boxed(String(\"\\na: 1\")) [\"0\", \"1\", \"2\", \"3\", \"4\"]"));
+        assert_eq!(data("Constructor"), None);
     }
 }

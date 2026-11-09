@@ -6,25 +6,25 @@
 //! `1:30` is 90, merge keys (`<<`) and `%YAML`/`%TAG` directives work, duplicate keys fail, and a tab is white
 //! space but never indentation (`a:\n\tb: 1` is `{"a": null, "b": 1}`; in a block scalar's indentation it fails).
 //!
-//! Values become [`Json`] the way `JSON.stringify` would see them:
-//! - Empty input, or input of only whitespace, is `undefined` in js-yaml; a document of only comments or blank
-//!   lines is `null`. Both are [`Json::Null`] here.
+//! The document is a JS value ([`jsvalue::Value`]), as js-yaml makes it:
+//! - Empty input, or input of only whitespace, is `undefined`; a document of only comments or blank lines is `null`.
 //! - Numbers are `f64` as in JS (integers parse like JavaScriptCore's `parseInt`, which bun runs); `.inf`/`.nan`
 //!   are kept as non-finite numbers.
-//! - A `!!timestamp` (implicit for `2001-12-14` and friends) is a JS `Date` in js-yaml; it is the string of its
-//!   `Date#toISOString()` here (what `JSON.stringify` writes), so code that checks for a string accepts it where
-//!   TS would see a `Date`. Used as a mapping key it is `Date#toString()` as in a UTC process.
-//! - A `!!binary` is a Node `Buffer`; it is `{"type": "Buffer", "data": [bytes]}` here (its `toJSON`).
+//! - A `!!timestamp` (implicit for `2001-12-14` and friends) is a `Date`, a `!!binary` a Node `Buffer`. Used as a
+//!   mapping key a timestamp is `Date#toString()` as in a UTC process.
 //! - Mapping keys are coerced with `String(key)` as js-yaml does (`1.0` is `"1"`, `[a, b]` is `"a,b"`, a mapping
-//!   is `"[object Object]"`).
+//!   is `"[object Object]"`); a `__proto__` key is an own property.
+//! - An alias is the anchored node itself: aliases share nodes, and a node can contain itself (`&a [*a]`).
+//! - A double-quoted escape that yields a lone UTF-16 surrogate (`"\uD800"`) is U+FFFD (see [`jsvalue`]'s module docs:
+//!   the server's strings cannot hold one; JS keeps it, which only its JSON output shows, as `\ud800`).
 //!
-//! Divergences, all on input real frontmatter does not have:
-//! - TODO(port): a value that contains itself through an alias (`&a [*a]`) is a cyclic JS object; JSON cannot
-//!   hold it, so it is an [`Error`].
-//! - TODO(port): nesting deeper than [`MAX_DEPTH`] levels is an [`Error`] (JS fails only when its stack runs out),
-//!   and so are aliases that expand to more than [`MAX_NODES`] values (JS shares the nodes instead of copying them).
-//! - TODO(port): a double-quoted escape that yields a lone UTF-16 surrogate (`"\uD800"`) is U+FFFD: a Rust
-//!   string cannot hold it.
+//! Nesting: loader.js recurses (`composeNode` into a collection reader into `composeNode`), so a document nested deep
+//! enough overflows JavaScriptCore's stack and js-yaml throws a RangeError. Where depends on the collections' frames:
+//! measured in the TS server (bun 1.4.2), its first parse of a frontmatter loads at most about 7,750 to 8,000 nested
+//! flow sequences, 9,000 to 9,250 flow mappings and 9,250 to 9,500 block sequences (block mappings past 8,500 levels
+//! make files of tens of megabytes; they are taken to cost what flow mappings do), and the bounds move with JIT
+//! warm-up. Each collection here charges its share of a budget ([`STACK`]) while its entries load, so a document
+//! fails where it fails in TS, mixed nesting included, within those bands.
 //!
 //! Error messages are js-yaml's reasons with a line and column; the snippet js-yaml appends is left out.
 
@@ -34,16 +34,23 @@ use std::fmt;
 use std::rc::Rc;
 
 use indexmap::IndexMap;
-use opencode_protocol::Json;
 use opencode_protocol::wire::number::js_number_string;
 
-/// The deepest nesting of nodes loaded (see the module docs). The reader recurses like loader.js; a level of block
-/// mapping takes several KiB of stack in a debug build, and this keeps the deepest document within a 2 MiB thread.
-pub const MAX_DEPTH: usize = 100;
-/// The most values one document may expand to through aliases (see the module docs).
-pub const MAX_NODES: usize = 1_000_000;
+use super::jsvalue::{Arena, Class, Graph, Obj, Value};
 
-/// The input is not YAML js-yaml loads: where it throws, and the divergences listed in the module docs.
+/// The JS stack a frontmatter parse may use, in the units the collections' costs are given in (see the module docs).
+pub const STACK: u64 = 1_000_000_000_000;
+/// The stack an entry of each kind of collection takes while it loads (loader.js's `composeNode` call from that
+/// collection's reader), calibrated on the documents the TS server was measured with: `x:\n  y: ` then 7,875 nested
+/// flow sequences or 9,125 nested flow mappings, and `x:\n ` then 9,375 nested block sequences, load and one more
+/// level fails. A block mapping's key is composed as a node too (any node in block context starts as one), which is
+/// where the extra block mapping entries of those documents come from.
+const BLOCK_MAP: u64 = STACK / 9_125;
+const FLOW_SEQ: u64 = (STACK - 2 * BLOCK_MAP) / 7_874;
+const FLOW_MAP: u64 = (STACK - 2 * BLOCK_MAP) / 9_125;
+const BLOCK_SEQ: u64 = (STACK - 2 * BLOCK_MAP) / 9_375;
+
+/// The input is not YAML js-yaml loads: where it throws.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Error {
     message: String,
@@ -57,8 +64,8 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// `yaml.safeLoad(text)`: the single document of `text` (see the module docs for how values map to JSON).
-pub fn load(text: &str) -> Result<Json, Error> {
+/// `yaml.safeLoad(text)`: the single document of `text`, as a JS value (see the module docs).
+pub fn load(text: &str) -> Result<Graph, Error> {
     let mut input = text.to_owned();
     if !input.is_empty() {
         if !input.ends_with(['\n', '\r']) {
@@ -81,8 +88,12 @@ pub fn load(text: &str) -> Result<Json, Error> {
         state.read_document()?;
     }
     match state.documents.as_slice() {
-        [] => Ok(Json::Null),
-        [document] => Converter { path: Vec::new(), budget: MAX_NODES }.convert(document),
+        [] => Ok(Graph::of(Value::Undefined)),
+        [document] => {
+            let arena = Arena::default();
+            let root = Converter { arena: &arena, made: HashMap::new() }.convert(document);
+            Ok(Graph::new(root, arena))
+        }
         _ => Err(Error { message: "expected a single document in the stream, but found more".to_owned() }),
     }
 }
@@ -101,7 +112,7 @@ enum V {
     Num(f64),
     Str(String),
     /// A JS `Date`: milliseconds since the epoch (always a valid time here).
-    Date(i64),
+    Date(Rc<i64>),
     /// A Node `Buffer`.
     Bin(Rc<Vec<u8>>),
     Seq(Seq),
@@ -239,7 +250,8 @@ struct State {
     line_start: usize,
     line_indent: i64,
     total_merge_keys: usize,
-    depth: usize,
+    /// The share of the JS stack the collections being read take (see [`STACK`]).
+    stack: u64,
     documents: Vec<V>,
     version: Option<String>,
     tag_map: HashMap<String, String>,
@@ -274,7 +286,7 @@ impl State {
             line_start: 0,
             line_indent: 0,
             total_merge_keys: 0,
-            depth: 0,
+            stack: 0,
             documents: Vec::new(),
             version: None,
             tag_map: HashMap::new(),
@@ -718,7 +730,7 @@ impl State {
                 self.skip_separation_space(true);
             }
             let line = self.line;
-            self.compose_node(node_indent, CONTEXT_FLOW_IN, false, true)?;
+            self.compose_child(if is_mapping { FLOW_MAP } else { FLOW_SEQ }, node_indent, CONTEXT_FLOW_IN, false, true)?;
             let key_tag = self.tag.clone();
             let key_node = std::mem::take(&mut self.result);
             self.skip_separation_space(true);
@@ -727,7 +739,7 @@ impl State {
                 is_pair = true;
                 self.position += 1;
                 self.skip_separation_space(true);
-                self.compose_node(node_indent, CONTEXT_FLOW_IN, false, true)?;
+                self.compose_child(if is_mapping { FLOW_MAP } else { FLOW_SEQ }, node_indent, CONTEXT_FLOW_IN, false, true)?;
                 value_node = std::mem::take(&mut self.result);
             }
             if let V::Map(map) = &result {
@@ -889,7 +901,7 @@ impl State {
                 continue;
             }
             let line = self.line;
-            self.compose_node(node_indent, CONTEXT_BLOCK_IN, false, true)?;
+            self.compose_child(BLOCK_SEQ, node_indent, CONTEXT_BLOCK_IN, false, true)?;
             let item = std::mem::take(&mut self.result);
             result.borrow_mut().push(item);
             self.skip_separation_space(true);
@@ -948,7 +960,7 @@ impl State {
                 }
                 self.position += 1;
                 ch = following;
-            } else if self.compose_node(flow_indent, CONTEXT_FLOW_OUT, false, true)? {
+            } else if self.compose_child(BLOCK_MAP, flow_indent, CONTEXT_FLOW_OUT, false, true)? {
                 // Implicit notation: a flow-style key, `:`, then the value.
                 if self.line != line {
                     if detected {
@@ -994,7 +1006,7 @@ impl State {
 
             if self.line == line || self.line_indent > node_indent {
                 let mut value_node = V::Null;
-                if self.compose_node(node_indent, CONTEXT_BLOCK_OUT, true, allow_compact)? {
+                if self.compose_child(BLOCK_MAP, node_indent, CONTEXT_BLOCK_OUT, true, allow_compact)? {
                     if at_explicit_key {
                         key_node = std::mem::take(&mut self.result);
                     } else {
@@ -1152,6 +1164,25 @@ impl State {
         self.slice(start, self.position)
     }
 
+    /// `composeNode` for an entry of a collection, whose reader's frame costs `cost` of the [`STACK`] (see the module
+    /// docs): past the budget, JavaScriptCore's stack overflow.
+    fn compose_child(
+        &mut self,
+        cost: u64,
+        parent_indent: i64,
+        context: u8,
+        allow_to_seek: bool,
+        allow_compact: bool,
+    ) -> Result<bool, Error> {
+        if self.stack + cost > STACK {
+            return Err(Error { message: "Maximum call stack size exceeded.".to_owned() });
+        }
+        self.stack += cost;
+        let composed = self.compose_node(parent_indent, context, allow_to_seek, allow_compact);
+        self.stack -= cost;
+        composed
+    }
+
     fn compose_node(
         &mut self,
         parent_indent: i64,
@@ -1159,13 +1190,11 @@ impl State {
         allow_to_seek: bool,
         allow_compact: bool,
     ) -> Result<bool, Error> {
-        if self.depth >= MAX_DEPTH {
-            return Err(self.error(format!("nesting deeper than {MAX_DEPTH} levels is not supported")));
-        }
-        self.depth += 1;
-        let composed = self.compose_node_at_depth(parent_indent, context, allow_to_seek, allow_compact);
-        self.depth -= 1;
-        composed
+        // The reader recurses like loader.js; the stack grows on demand, so any thread can load the deepest document
+        // the budget allows.
+        stacker::maybe_grow(128 * 1024, 2 * 1024 * 1024, || {
+            self.compose_node_at_depth(parent_indent, context, allow_to_seek, allow_compact)
+        })
     }
 
     fn compose_node_at_depth(
@@ -1449,7 +1478,7 @@ impl State {
             },
             Type::Timestamp => match data {
                 V::Null => None,
-                other => parse_timestamp(&js_string(other)).map(V::Date),
+                other => parse_timestamp(&js_string(other)).map(|t| V::Date(Rc::new(t))),
             },
             Type::Merge => match data {
                 V::Null => Some(V::Null),
@@ -1649,7 +1678,7 @@ fn js_string(v: &V) -> String {
         V::Bool(b) => b.to_string(),
         V::Num(n) => js_number_string(*n),
         V::Str(s) => s.clone(),
-        V::Date(t) => date_to_string(*t),
+        V::Date(t) => date_to_string(**t),
         V::Bin(b) => String::from_utf8_lossy(b).into_owned(),
         V::Seq(_) | V::Map(_) => "[object Object]".to_owned(),
     }
@@ -2039,17 +2068,6 @@ fn date_parts(t: i64) -> DateParts {
     }
 }
 
-/// `Date#toISOString()`.
-fn date_to_iso(t: i64) -> String {
-    let p = date_parts(t);
-    let year = if (0..=9999).contains(&p.year) {
-        format!("{:04}", p.year)
-    } else {
-        format!("{}{:06}", if p.year < 0 { '-' } else { '+' }, p.year.abs())
-    };
-    format!("{year}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z", p.month, p.day, p.hour, p.minute, p.second, p.ms)
-}
-
 /// `Date#toString()` in a process whose time zone is UTC.
 fn date_to_string(t: i64) -> String {
     const WEEKDAYS: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -2110,69 +2128,80 @@ fn construct_binary(data: &str) -> Vec<u8> {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
-// The loaded document as JSON.
+// The loaded document as a JS value graph.
 
-struct Converter {
-    /// The arrays and objects being converted, outermost first.
-    path: Vec<*const ()>,
-    budget: usize,
+struct Converter<'a> {
+    arena: &'a Arena,
+    /// The objects made so far, by the loader's node they stand for: an alias is the same object again.
+    made: HashMap<*const (), Obj>,
 }
 
-impl Converter {
-    fn convert(&mut self, v: &V) -> Result<Json, Error> {
-        if self.budget == 0 {
-            return Err(Error { message: format!("the document expands to more than {MAX_NODES} values") });
+impl Converter<'_> {
+    fn convert(&mut self, v: &V) -> Value {
+        match v {
+            V::Null => Value::Null,
+            V::Bool(b) => Value::Bool(*b),
+            V::Num(n) => Value::Number(*n),
+            V::Str(s) => Value::string(s),
+            V::Date(t) => self.shared(Rc::as_ptr(t) as *const (), |arena| arena.object(Class::Date(**t as f64)), |_, _| {}),
+            V::Bin(bytes) => self.shared(
+                Rc::as_ptr(bytes) as *const (),
+                |arena| arena.object(Class::Bytes { data: bytes.to_vec(), buffer: true }),
+                |_, _| {},
+            ),
+            V::Seq(items) => self.shared(
+                Rc::as_ptr(items) as *const (),
+                |arena| arena.object(Class::Array(RefCell::new(Vec::new()))),
+                |this, array| {
+                    let values: Vec<Option<Value>> = items.borrow().iter().map(|item| Some(this.convert(item))).collect();
+                    if let Class::Array(slots) = array.class() {
+                        *slots.borrow_mut() = values;
+                    }
+                },
+            ),
+            V::Map(entries) => self.shared(
+                Rc::as_ptr(entries) as *const (),
+                |arena| arena.object(Class::Plain),
+                |this, object| {
+                    for (key, value) in entries.borrow().iter() {
+                        let value = this.convert(value);
+                        object.define(key, value);
+                    }
+                },
+            ),
         }
-        self.budget -= 1;
-        Ok(match v {
-            V::Null => Json::Null,
-            V::Bool(b) => Json::Bool(*b),
-            V::Num(n) => Json::Number(*n),
-            V::Str(s) => Json::String(s.clone()),
-            V::Date(t) => Json::String(date_to_iso(*t)),
-            V::Bin(bytes) => Json::Object(IndexMap::from([
-                ("type".to_owned(), Json::String("Buffer".to_owned())),
-                ("data".to_owned(), Json::Array(bytes.iter().map(|&b| Json::Number(b as f64)).collect())),
-            ])),
-            V::Seq(items) => {
-                self.enter(Rc::as_ptr(items) as *const ())?;
-                let items = items.borrow().iter().map(|item| self.convert(item)).collect::<Result<_, _>>()?;
-                self.path.pop();
-                Json::Array(items)
-            }
-            V::Map(entries) => {
-                self.enter(Rc::as_ptr(entries) as *const ())?;
-                let mut out = IndexMap::with_capacity(entries.borrow().len());
-                for (key, value) in entries.borrow().iter() {
-                    out.insert(key.clone(), self.convert(value)?);
-                }
-                self.path.pop();
-                Json::Object(out)
-            }
-        })
     }
 
-    fn enter(&mut self, container: *const ()) -> Result<(), Error> {
-        if self.path.contains(&container) {
-            return Err(Error { message: "the document contains itself through an alias".to_owned() });
+    /// The object for a loader node: made once, then filled (after it is registered, so a node inside itself finds
+    /// it).
+    fn shared(&mut self, node: *const (), make: impl FnOnce(&Arena) -> Obj, fill: impl FnOnce(&mut Self, &Obj)) -> Value {
+        if let Some(made) = self.made.get(&node) {
+            return Value::Object(made.clone());
         }
-        if self.path.len() >= MAX_DEPTH {
-            return Err(Error { message: format!("nesting deeper than {MAX_DEPTH} levels is not supported") });
-        }
-        self.path.push(container);
-        Ok(())
+        let object = make(self.arena);
+        self.made.insert(node, object.clone());
+        stacker::maybe_grow(64 * 1024, 1024 * 1024, || fill(self, &object));
+        Value::Object(object)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use opencode_protocol::Json;
     use opencode_protocol::wire::Out;
+    use crate::inventory::jsvalue;
 
     fn json_text(v: &Json) -> String {
         let mut out = Out::new();
         out.json(v);
         out.finish()
+    }
+
+    /// `JSON.stringify(yaml.safeLoad(text))` (`undefined` as `null`); a value it cannot serialize is an error.
+    fn load(text: &str) -> Result<Json, String> {
+        let graph = super::load(text).map_err(|e| e.to_string())?;
+        jsvalue::stringify(&graph.root).map(|j| j.unwrap_or(Json::Null)).map_err(|e| e.to_string())
     }
 
     /// Every case: `JSON.stringify(yaml.safeLoad(input))` (`undefined` as `null`), or `None` where it throws.
@@ -2779,52 +2808,72 @@ mod tests {
         assert!(failures.is_empty(), "{} of {} cases differ:\n{}", failures.len(), CASES.len(), failures.join("\n"));
     }
 
+
     #[test]
     fn numbers_are_the_same_doubles() {
         for &(input, expected) in NUMBERS {
-            let Ok(Json::Number(n)) = load(input) else { panic!("{input:?} is not a number") };
+            let graph = super::load(input).unwrap();
+            let Value::Number(n) = graph.root else { panic!("{input:?} is not a number") };
             let got = if n == 0.0 && n.is_sign_negative() { "-0".to_owned() } else { js_number_string(n) };
             assert_eq!(got, expected, "{input:?}");
         }
     }
 
-    // Where the port differs from js-yaml on purpose (see the module docs). js-yaml, from the same run:
-    // `&a [*a]` loads an array containing itself (JSON.stringify throws), `"\uD83D"`, `a: "\uDE00x"` and
-    // `"\U00110000"` (JSON.stringify: `"\udc00\udc00"`) keep their lone surrogates, and 600 nested `[` load fine.
+    // js-yaml, from the same run: `&a [*a]` loads an array containing itself (JSON.stringify throws); `"\uD83D"`,
+    // `a: "\uDE00x"` and `"\U00110000"` keep lone surrogates (JSON.stringify: `"\udc00\udc00"`), U+FFFD here.
     #[test]
-    fn documented_divergences() {
-        assert!(load("&a [*a]").is_err());
+    fn aliases_share_and_contain_themselves() {
+        let graph = super::load("&a [*a]").unwrap();
+        let Value::Object(array) = &graph.root else { panic!() };
+        let Class::Array(items) = array.class() else { panic!() };
+        assert!(matches!(&items.borrow()[0], Some(Value::Object(inner)) if inner.same(array)));
+        assert_eq!(jsvalue::stringify(&graph.root).unwrap_err().name, "TypeError");
         assert!(load("a: &a\n  b: [*a]").is_err());
         assert_eq!(load("\"\\uD83D\""), Ok(Json::String("\u{fffd}".to_owned())));
         let object = |k: &str, v: &str| Json::Object(IndexMap::from([(k.to_owned(), Json::String(v.to_owned()))]));
         assert_eq!(load("a: \"\\uDE00x\""), Ok(object("a", "\u{fffd}x")));
         assert_eq!(load("\"\\U00110000\""), Ok(Json::String("\u{fffd}\u{fffd}".to_owned())));
-        let deep = format!("{}{}", "[".repeat(600), "]".repeat(600));
-        assert!(load(&deep).is_err());
     }
 
     #[test]
-    fn deep_nesting_within_the_limit_fits_a_small_stack() {
-        let depth = MAX_DEPTH - 1;
-        let flow = format!("{}{}", "[".repeat(depth), "]".repeat(depth));
-        let block: String = (0..depth).map(|i| format!("{}k:\n", " ".repeat(i))).collect();
-        let loaded = std::thread::Builder::new()
+    fn nesting_fails_where_the_js_stack_runs_out() {
+        // The documents the TS server was measured with (see the module docs).
+        let flow_seq = |n: usize| format!("x:\n  y: {}{}", "[".repeat(n), "]".repeat(n));
+        let flow_map = |n: usize| format!("x:\n  y: {}1{}", "{a: ".repeat(n), "}".repeat(n));
+        let block_seq = |n: usize| format!("x:\n {}z", "- ".repeat(n));
+        let block_map = |n: usize| (0..n).map(|i| format!("{}k:\n", " ".repeat(i))).collect::<String>();
+        // Mixed nesting adds up: half the levels of each.
+        let mixed = |n: usize| format!("x:\n  y: {}1{}", "[{a: ".repeat(n), "}]".repeat(n));
+        // On a small stack: the reader grows its own.
+        let results = std::thread::Builder::new()
             .stack_size(2 << 20)
-            .spawn(move || (load(&flow).is_ok(), load(&block).is_ok()))
+            .spawn(move || {
+                let ok = |text: String| super::load(&text).is_ok();
+                [
+                    (ok(flow_seq(7875)), ok(flow_seq(7876))),
+                    (ok(flow_map(9125)), ok(flow_map(9126))),
+                    (ok(block_seq(9375)), ok(block_seq(9376))),
+                    (ok(block_map(1000)), ok(mixed(3000))),
+                    (ok(mixed(4200)), ok(mixed(4300))),
+                ]
+            })
             .expect("spawn")
             .join()
             .expect("no stack overflow");
-        assert_eq!(loaded, (true, true));
+        assert_eq!(results, [(true, false), (true, false), (true, false), (true, true), (true, false)]);
     }
 
     #[test]
-    fn alias_expansion_is_bounded() {
-        // 10 levels of 10 aliases each: 10^10 values once copied.
+    fn alias_bombs_load_shared() {
+        // 10 levels of 10 aliases each: 10^10 values once copied. js-yaml shares them; JSON.stringify runs out of
+        // string length.
         let mut doc = "a0: &a0 [x]\n".to_owned();
         for i in 1..=10 {
             let p = i - 1;
             doc += &format!("a{i}: &a{i} [*a{p}, *a{p}, *a{p}, *a{p}, *a{p}, *a{p}, *a{p}, *a{p}, *a{p}, *a{p}]\n");
         }
-        assert!(load(&doc).is_err());
+        let graph = super::load(&doc).unwrap();
+        assert!(jsvalue::is_json(&graph.root));
+        assert_eq!(jsvalue::stringify(&graph.root).unwrap_err().message, "Out of memory");
     }
 }

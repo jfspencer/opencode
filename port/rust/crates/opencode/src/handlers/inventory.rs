@@ -132,7 +132,19 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             o.str("_tag", "InvalidRequestError").str("message", "Web search is disabled").str("kind", "websearch_disabled");
             Err(Failure::new(400, o.done()))
         }
-        "plugin.list" => Ok(located_data(&location, json::parse(PLUGINS).unwrap_or_default())),
+        "plugin.list" => {
+            let mut plugins = json::parse(PLUGINS).unwrap_or_default();
+            // A config agent plugin whose load died is listed failed, with `Cause.pretty` of the defect: the
+            // error's own line here (the JS stack trace TS appends is the engine's).
+            if let (Some(failure), Json::Array(items)) = (&inventory.agent_failure, &mut plugins) {
+                for item in items.iter_mut().filter(|item| json::get_str(item, "id") == Some("opencode.config.agent")) {
+                    let mut state = Obj::new();
+                    state.str("status", "failed").str("error", &failure.0);
+                    json::set(item, "state", state.done());
+                }
+            }
+            Ok(located_data(&location, plugins))
+        }
         "plugin.gui" => {
             let id = json::get_str(&decoded.query, "id").unwrap_or_default();
             Err(not_found("PluginNotFoundError", "pluginID", id, format!("No active plugin with a ./gui-experimental bundle: {id}")))
