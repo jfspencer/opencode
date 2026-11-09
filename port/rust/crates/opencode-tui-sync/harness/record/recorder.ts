@@ -51,10 +51,10 @@ globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const body = new Uint8Array(await response.arrayBuffer())
     const text = new TextDecoder().decode(body)
     const headers = [...response.headers].filter(([name]) => name === "content-type")
-    log({ op: "respond", request: { match }, status: response.status, headers, chunks: text ? [text] : [] })
+    log({ op: "respond", request: { match, exact: true }, status: response.status, headers, chunks: text ? [text] : [] })
     return new Response(body, { status: response.status, statusText: response.statusText, headers: response.headers })
   } catch (error) {
-    log({ op: "fail", request: { match }, error: { name: (error as Error).name, message: (error as Error).message } })
+    log({ op: "fail", request: { match, exact: true }, error: { name: (error as Error).name, message: (error as Error).message } })
     throw error
   }
 }) as typeof fetch
@@ -82,8 +82,26 @@ function tag<T extends object>(target: T): T {
 const CALLS = new Set(["sync", "invalidate", "create", "compact", "prompt", "evict", "remember", "forget", "setStatus", "loadMore", "reply", "cancel", "refresh", "syncInfo"])
 let calling = 0
 
+// An AbortSignal passed in is `{ $signal: n }`, and its abort a step of its own, logged before the data layer's
+// listeners (added during the call, after this one) react to it.
+const signals = new WeakMap<AbortSignal, number>()
+let lastSignal = 0
+function signal(value: AbortSignal) {
+  let id = signals.get(value)
+  if (id === undefined) {
+    const assigned = ++lastSignal
+    id = assigned
+    signals.set(value, assigned)
+    const reason = () => ({ name: (value.reason as Error)?.name, message: (value.reason as Error)?.message })
+    if (value.aborted) return { $signal: id, aborted: reason() }
+    value.addEventListener("abort", () => log({ op: "abort", signal: assigned, reason: reason() }), { once: true })
+  }
+  return { $signal: id }
+}
+
 function plain(value: unknown): unknown {
   if (typeof value === "function") return undefined
+  if (value instanceof AbortSignal) return signal(value)
   if (Array.isArray(value)) return value.map(plain)
   if (value && typeof value === "object")
     return Object.fromEntries(Object.entries(value).flatMap(([k, v]) => (typeof v === "function" || v instanceof Promise ? [] : [[k, plain(v)]])))

@@ -20,6 +20,9 @@
 //!     directory (reconciled into it) or a `session.moved` (merged into it) moves the default location too.
 //! - A key of a record set to `undefined` keeps its place in a JS object (and JSON drops it); a JSON value cannot hold
 //!   it, so such a key comes back at the end when it is set again. Only key order inside records differs.
+//! - Responses are trusted to have the shapes the server's schemas give them, as in TS (neither side decodes them),
+//!   but a response of another shape is read leniently here (a list that is not an array is empty), where TS fails
+//!   the read with a `TypeError` (`snapshot.map is not a function`). The server cannot send one.
 
 mod api;
 mod events;

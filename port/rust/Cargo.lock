@@ -745,7 +745,6 @@ dependencies = [
  "hyper",
  "hyper-util",
  "indexmap",
- "libc",
  "opencode-protocol",
  "rustls",
  "rustls-native-certs",
