@@ -1,9 +1,9 @@
 //! Locations (packages/core/src/location*.ts): the services of one directory, booted on first use and kept.
 //!
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
-//! what they registered. TODO(port): the services themselves (config, agents, commands, skills, ...): the boot
-//! announces them in the order the TS server's built-in plugins do. What they register is the location's
-//! [`crate::inventory::Inventory`].
+//! what they registered, in the order the TS server's built-in plugins do. What they register (config, agents,
+//! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
+//! the announcements.
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -20,8 +20,8 @@ pub struct Location {
     pub directory: String,
     pub workspace_id: Option<String>,
     pub project: ProjectRef,
-    #[allow(dead_code)]
-    pub inventory: crate::inventory::Inventory,
+    /// What the location's config and plugins register (replaced as a whole when its config changes).
+    pub inventory: crate::inventory::Shared,
 }
 
 #[derive(Debug, Clone)]
@@ -32,7 +32,19 @@ pub struct ProjectRef {
 }
 
 impl Location {
-    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`).
+    /// The current inventory snapshot (see [`crate::inventory`]).
+    pub fn inventory(&self) -> std::sync::Arc<crate::inventory::Inventory> {
+        self.inventory.get()
+    }
+
+    /// The location's reference on events.
+    pub fn reference(&self) -> LocationRef {
+        LocationRef { directory: self.directory.clone(), workspace_id: self.workspace_id.clone() }
+    }
+
+    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`), for `location.get` (TODO(port)); located
+    /// answers carry only `Location.PublicRef`.
+    #[allow(dead_code)]
     pub fn info(&self) -> Json {
         let mut project = Obj::new();
         project.str("id", &self.project.id).str("directory", &self.project.directory).str("canonical", &self.project.canonical);
@@ -118,7 +130,7 @@ fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),
         project: ProjectRef { id: resolved.id.clone(), directory: resolved.directory, canonical: resolved.canonical },
-        inventory: crate::inventory::Inventory::load(key)?,
+        inventory: crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?),
     };
     // LocationLifecycle activates the project when the location boots.
     app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;

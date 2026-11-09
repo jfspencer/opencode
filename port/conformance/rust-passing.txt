@@ -1,3 +1,23 @@
+scenarios/project-agents.test.ts › agents from markdown files
+scenarios/project-agents.test.ts › built-in agents
+scenarios/project-agents.test.ts › custom agents from config
+scenarios/project-agents.test.ts › default agent from config
+scenarios/project-agents.test.ts › default agent that is a subagent falls back to build
+scenarios/project-agents.test.ts › no selectable primary agent
+scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
+scenarios/project-commands.test.ts › command list on a location's first request
+scenarios/project-config.test.ts › available shells
+scenarios/project-config.test.ts › config documents with project config disabled
+scenarios/project-config.test.ts › config documents without project files
+scenarios/project-config.test.ts › env and file substitution in config
+scenarios/project-config.test.ts › invalid fields are dropped while valid ones are kept
+scenarios/project-config.test.ts › invalid native config sections
+scenarios/project-config.test.ts › malformed and non-object config documents are rejected
+scenarios/project-config.test.ts › patch the global config shell
+scenarios/project-config.test.ts › project config files layer in priority order
+scenarios/project-skills.test.ts › built-in skills
+scenarios/project-skills.test.ts › references on a location's first request
+scenarios/project-skills.test.ts › skills from config directories and compatibility roots
 scenarios/session-api-crud.test.ts › active sessions while idle
 scenarios/session-api-crud.test.ts › an empty title on a session without messages generates nothing
 scenarios/session-api-crud.test.ts › create a child session inherits from its parent
@@ -11,3 +31,4 @@ scenarios/session-api-crud.test.ts › remove a session with its descendants
 scenarios/session-api-crud.test.ts › session routes reject unknown and malformed session IDs
 scenarios/session-api-crud.test.ts › sessions follow their directory into a new git project
 scenarios/session-api-crud.test.ts › update session fields
+scenarios/session-basic.test.ts › provider and model listing
