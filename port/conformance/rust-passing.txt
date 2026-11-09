@@ -188,6 +188,20 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-pair.test.ts › pair URL validation
+scenarios/cli-pair.test.ts › pair refuses conflicting flags and a disabled service
+scenarios/cli-pair.test.ts › pair through an external URL
+scenarios/cli-pair.test.ts › pair with the local service
+scenarios/cli-pair.test.ts › remote pairing consent on a terminal
+scenarios/cli-pair.test.ts › remote pairing needs consent off a terminal
+scenarios/cli-remote.test.ts › remote access creates the device's tunnel
+scenarios/cli-remote.test.ts › remote access fails when the certificate cannot be checked
+scenarios/cli-remote.test.ts › remote access keeps an unexpired certificate while the API is unavailable
+scenarios/cli-remote.test.ts › remote access resumes an interrupted certificate issuance
+scenarios/cli-remote.test.ts › remote access saves a renewed certificate
+scenarios/cli-remote.test.ts › remote access when the tunnel cannot be created
+scenarios/cli-remote.test.ts › remote access with an incomplete tunnel identity
+scenarios/cli-remote.test.ts › remote access with the device's tunnel
 scenarios/cli-run.test.ts › run --auto approves permission requests
 scenarios/cli-run.test.ts › run --auto does not approve denied actions
 scenarios/cli-run.test.ts › run --format json streams events
