@@ -8,7 +8,7 @@
 // With --scan, each case's code goes through `CodeMode.scanTools` instead, printing `{"name", "scan"}` where `scan` is
 // `{"ok": true, "paths"}` or `{"ok": false, "error"}`.
 import { CodeMode, Extension, Tool } from "../../../../.reference/packages/codemode/src/index.ts"
-import { Effect, Schema } from "../../../../.reference/packages/codemode/node_modules/effect/dist/index.js"
+import { Cause, Effect, Exit, Schema } from "../../../../.reference/packages/codemode/node_modules/effect/dist/index.js"
 
 type Behavior =
   | { kind: "echo" }
@@ -16,6 +16,7 @@ type Behavior =
   | { kind: "fail"; message: string }
   | { kind: "die"; message: string }
   | { kind: "sequence"; values: Array<{ ok: unknown } | { fail: string }> }
+  | { kind: "interrupt" }
 
 type ToolSpec = {
   path: string
@@ -35,6 +36,7 @@ type GlobalSpec =
   | { kind: "value"; value: unknown; async?: boolean }
   | { kind: "throw"; name?: string; message: string; fields?: Record<string, unknown>; async?: boolean }
   | { kind: "response"; body: string }
+  | { kind: "interrupt" }
   | { kind: "object"; members: Record<string, GlobalSpec> }
 
 const hostError = (spec: { name?: string; message: string; fields?: Record<string, unknown> }) => {
@@ -70,6 +72,9 @@ const buildGlobal = (spec: GlobalSpec): unknown => {
           sync: () => "sync",
         }
       })
+    // An asynchronous call whose work is interrupted on its own (core's `CodeModeDecline.stop`).
+    case "interrupt":
+      return Extension.async(() => Effect.interrupt)
     case "object":
       return Object.fromEntries(Object.entries(spec.members).map(([name, member]) => [name, buildGlobal(member)]))
   }
@@ -105,6 +110,8 @@ const behave = (spec: ToolSpec) => {
         if (step === undefined) return Effect.succeed(null)
         return "fail" in step ? Effect.fail(new Error(step.fail)) : Effect.succeed(step.ok)
       }
+      case "interrupt":
+        return Effect.interrupt
     }
   }
   return (input: unknown) =>
@@ -186,7 +193,7 @@ for (const line of lines) {
       begin(call, ["extension.before", call.extension, call.name, call.args.length]),
     "extension.after": (call: object, result: { status: string }) => finish("extension.after", call, result),
   }
-  const result = await Effect.runPromise(
+  const exit = await Effect.runPromiseExit(
     CodeMode.execute({
       code: item.code,
       tools: buildTools(item.tools ?? []) as never,
@@ -205,6 +212,10 @@ for (const line of lines) {
         : {}),
     } as never),
   )
-  const record = { name: item.name, result, output: formatResult(result), ...(item.hooks ? { events } : {}) }
+  // Host work interrupted on its own interrupts the execution once it reaches the program's body.
+  if (Exit.isFailure(exit) && !Cause.hasInterruptsOnly(exit.cause)) throw Cause.squash(exit.cause)
+  const record = Exit.isSuccess(exit)
+    ? { name: item.name, result: exit.value, output: formatResult(exit.value), ...(item.hooks ? { events } : {}) }
+    : { name: item.name, interrupted: true, ...(item.hooks ? { events } : {}) }
   process.stdout.write(JSON.stringify(record) + "\n")
 }
