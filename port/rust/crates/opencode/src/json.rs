@@ -68,3 +68,10 @@ pub fn text(value: &Json) -> String {
 pub fn parse(text: &str) -> Option<Json> {
     opencode_protocol::wire::parse(text).ok()
 }
+
+pub fn array(value: &Json) -> Option<&[Json]> {
+    match value {
+        Json::Array(items) => Some(items),
+        _ => None,
+    }
+}

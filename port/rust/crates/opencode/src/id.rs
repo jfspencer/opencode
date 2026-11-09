@@ -81,6 +81,16 @@ pub fn slug() -> String {
     format!("{}-{}", ADJECTIVES[random_below(ADJECTIVES.len())], NOUNS[random_below(NOUNS.len())])
 }
 
+/// `crypto.randomUUID()`: a version 4 UUID.
+pub fn uuid() -> String {
+    let mut bytes = [0u8; 16];
+    random(&mut bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    let hex: String = bytes.iter().map(|b| format!("{b:02x}")).collect();
+    format!("{}-{}-{}-{}-{}", &hex[..8], &hex[8..12], &hex[12..16], &hex[16..20], &hex[20..])
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

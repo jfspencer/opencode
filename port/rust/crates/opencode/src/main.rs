@@ -4,15 +4,23 @@ mod api;
 mod app;
 mod auth;
 mod bus;
+mod collate;
 mod db;
+mod fs;
+mod fuzzysort;
 mod handlers;
 mod inventory;
 mod http;
 mod id;
 mod json;
 mod location;
+mod process;
 mod project;
+mod project_icon;
 mod session;
+mod text;
+mod vcs;
+mod worktree;
 
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -146,6 +154,8 @@ fn serve(options: Serve) {
             Err(e) => usage(&e.to_string()),
         };
         let address = http::local_address(&listener).expect("bound address");
+        // TODO(port): `connectionURLs` lists every interface's address when bound to 0.0.0.0 or ::.
+        app::set_urls(vec![format_address(address)]);
         println!("server listening on {}", format_address(address));
         if environment_password.is_none() {
             println!("server password {password}");

@@ -31,7 +31,7 @@ pub fn request_location(app: &App, request: &Request) -> LocationRef {
         .query_value("location[directory]")
         .filter(|d| !d.is_empty())
         .map(str::to_owned)
-        .or_else(|| request.header("x-opencode-directory").map(crate::http::percent_decode))
+        .or_else(|| request.header("x-opencode-directory").map(|h| crate::text::decode_uri_component(h).unwrap_or_else(|| h.to_owned())))
         .unwrap_or_else(|| app.cwd.clone());
     LocationRef::directory(directory)
 }
@@ -84,6 +84,21 @@ fn decode(request: &Request) -> Result<Decoded> {
     }
     let params = decode_part("Params", route.params, params.done())?;
     let query = decode_part("Query", route.query, request.query_tree())?;
+    // HttpApiBuilder `decodePayload`: the payload schema is chosen by the request's media type (JSON when it has
+    // none); a body of any other type is refused.
+    if !route.payload.is_empty() {
+        let has_body = !matches!(route.method, "GET" | "HEAD" | "OPTIONS" | "TRACE");
+        let content_type = if has_body {
+            let raw = request.header("content-type").unwrap_or("application/json").to_lowercase();
+            let raw = raw.trim();
+            raw.split(';').next().unwrap_or(raw).trim().to_owned()
+        } else {
+            "application/x-www-form-urlencoded".to_owned()
+        };
+        if !route.payload.iter().any(|body| body.content_type.is_some_and(|ct| ct == content_type)) {
+            return Err(Failure::text(415, format!("Unsupported content-type: {content_type}")));
+        }
+    }
     let payload = match route.payload.first() {
         Some(body) if body.kind == BodyKind::Json => {
             let text = std::str::from_utf8(&request.body).unwrap_or("");

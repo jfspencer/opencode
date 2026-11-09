@@ -22,6 +22,8 @@ use crate::app::App;
 use crate::json::Obj;
 
 pub struct Request {
+    /// The URL's path as it was sent (not decoded).
+    pub path: String,
     /// The query string's pairs, percent-decoded, in order.
     pub query: Vec<(String, String)>,
     pub headers: HeaderMap,
@@ -65,6 +67,10 @@ impl Request {
 pub enum Body {
     Empty,
     Json(String),
+    /// Raw bytes; the response's headers say what they are.
+    Bytes(Bytes),
+    /// Raw bytes as they are produced (a file); the response's headers say what they are and how long.
+    Stream(mpsc::Receiver<Bytes>),
     /// Server-sent events: each message is one already-framed chunk.
     Events(mpsc::Receiver<Bytes>),
 }
@@ -129,7 +135,28 @@ impl Failure {
         Self::invalid(truncate_reason(&issue.to_string()), None, Some(kind))
     }
 
+    /// A defect: HttpApi answers a request that died with an empty 500.
+    pub fn defect() -> Self {
+        Self::new(500, Json::Null)
+    }
+
+    /// A plain-text answer of HttpApi itself (`415 Unsupported content-type: ...`).
+    pub fn text(status: u16, text: impl Into<String>) -> Self {
+        Self::new(status, Json::String(text.into()))
+    }
+
     pub fn into_response(self) -> Response {
+        match self.body {
+            Json::Null => return Response { status: self.status, headers: vec![], body: Body::Empty },
+            Json::String(text) => {
+                return Response {
+                    status: self.status,
+                    headers: vec![("content-type", "text/plain".into())],
+                    body: Body::Bytes(Bytes::from(text)),
+                };
+            }
+            _ => {}
+        }
         Response::value(self.status, &self.body)
     }
 }
@@ -173,7 +200,7 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
     let query = parts.uri.query().map(parse_query).unwrap_or_default();
     let headers = parts.headers;
 
-    if !crate::auth::authorized(&app, &headers, &query) {
+    if !crate::auth::authorized(&app, &raw_path, &headers, &query) {
         return finish(crate::auth::unauthorized(&headers));
     }
 
@@ -184,7 +211,7 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
         Ok(collected) => collected.to_bytes(),
         Err(_) => Bytes::new(),
     };
-    let request = Request { query, headers, body, route, params };
+    let request = Request { path: raw_path, query, headers, body, route, params };
     let response = crate::api::dispatch(&app, request).await;
     finish(response)
 }
@@ -202,6 +229,8 @@ fn finish(response: Response) -> Out {
             builder = builder.header("content-type", "application/json");
             Full::new(Bytes::from(text)).boxed()
         }
+        Body::Bytes(bytes) => Full::new(bytes).boxed(),
+        Body::Stream(receiver) => BodyExt::boxed(futures_stream(receiver)),
         Body::Events(receiver) => {
             builder = builder.header("content-type", "text/event-stream");
             BodyExt::boxed(futures_stream(receiver))
@@ -260,6 +289,25 @@ pub fn percent_decode(text: &str) -> String {
     String::from_utf8(out).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned())
 }
 
+/// Whether FindMyWay's `safeDecodeURI` accepts a path: escapes of the characters `decodeURI` keeps (`#$&+,/:;=?@`)
+/// are left alone; any other escape makes it `decodeURI` the path, which fails on a malformed escape or UTF-8.
+fn uri_decodable(path: &str) -> bool {
+    const KEPT: &[&str] = &["25", "23", "24", "26", "2B", "2b", "2C", "2c", "2F", "2f", "3A", "3a", "3B", "3b", "3D", "3d", "3F", "3f", "40"];
+    let bytes = path.as_bytes();
+    let mut decode = false;
+    let mut index = 1;
+    while index < bytes.len() {
+        if bytes[index] == b'%' {
+            match path.get(index + 1..index + 3) {
+                Some(escape) if KEPT.contains(&escape) => index += 2,
+                _ => decode = true,
+            }
+        }
+        index += 1;
+    }
+    !decode || crate::text::decode_uri_component(path).is_some()
+}
+
 fn hex(b: u8) -> Option<u8> {
     match b {
         b'0'..=b'9' => Some(b - b'0'),
@@ -272,6 +320,12 @@ fn hex(b: u8) -> Option<u8> {
 /// The route for a request: static segments win over parameters, parameters over a trailing wildcard (the
 /// router's precedence).
 fn find(method: &str, path: &str) -> Option<(&'static Route, HashMap<&'static str, String>)> {
+    // FindMyWay (effect/http): `;` starts a query string, and a path whose escapes `decodeURI` rejects matches
+    // nothing.
+    let path = path.split(';').next().unwrap_or(path);
+    if !uri_decodable(path) {
+        return None;
+    }
     let segments: Vec<&str> = path.split('/').collect();
     let mut best: Option<(Vec<u8>, &'static Route, HashMap<&'static str, String>)> = None;
     for route in ROUTES {
