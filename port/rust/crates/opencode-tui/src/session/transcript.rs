@@ -104,3 +104,36 @@ pub fn format_session_transcript(session: &Json, messages: &[Json], thinking: bo
         body.join("\n\n---\n\n")
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn json(text: &str) -> Json {
+        opencode_protocol::wire::json::parse(text).unwrap()
+    }
+
+    #[test]
+    fn transcript_reads_as_markdown() {
+        let session = json(r#"{"id":"ses_1","title":"Demo","time":{"created":0,"updated":0}}"#);
+        let messages = [
+            json(r#"{"type":"user","text":"Hi"}"#),
+            json(r#"{"type":"shell","command":"ls","output":{"output":"a.txt"}}"#),
+            json(
+                r#"{"type":"assistant","content":[{"type":"reasoning","text":"Plan"},{"type":"text","text":"Done."},
+                {"type":"tool","name":"read","state":{"status":"completed","input":{"path":"a.txt"},"content":[{"type":"text","text":"x"},{"type":"file","uri":"file:///a"}]}},
+                {"type":"tool","name":"bash","state":{"status":"error","input":"ls -l","error":{"message":"boom"}}}]}"#,
+            ),
+            json(r#"{"type":"compaction"}"#),
+        ];
+        let text = format_session_transcript(&session, &messages, false, true);
+        let body = text.split_once("\n\n---\n\n").unwrap().1;
+        assert_eq!(
+            body,
+            "## User\n\nHi\n\n---\n\n## Shell\n\n```\n$ ls\na.txt\n```\n\n---\n\n## Assistant\n\nDone.\n\n**Tool: read**\n\n**Input:**\n```json\n{\n  \"path\": \"a.txt\"\n}\n```\n\nx\nfile:///a\n\n**Tool: bash**\n\n**Input:**\n```json\nls -l\n```\n\nboom\n"
+        );
+        assert!(text.starts_with("# Demo\n\n**Session ID:** ses_1\n**Created:** "));
+        let thinking = format_session_transcript(&session, &messages[2..3], true, false);
+        assert!(thinking.ends_with("## Assistant\n\n_Thinking:_\n\nPlan\n\nDone.\n"));
+    }
+}
