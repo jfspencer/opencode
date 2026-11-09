@@ -696,6 +696,7 @@ dependencies = [
  "libc",
  "opencode-protocol",
  "opencode-tui-core",
+ "opencode-tui-input",
  "opencode-tui-sync",
  "opencode-tui-text",
  "regex",
