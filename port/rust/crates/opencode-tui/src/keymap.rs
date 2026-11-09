@@ -9,14 +9,17 @@
 //! Divergences: one keymap state version signal is shared by every selector (TS gives each `useKeymapSelector` its
 //! own, bumped on mount too). The host's platform metadata reports super and hyper as unknown (the renderer does
 //! not expose the kitty keyboard capability; only `primaryModifier` bindings read it, and the TUI has none).
-//! `registerManagedTextareaLayer` (the textarea's own keys through the keymap) is the prompt slice's.
+//! The textarea's keys go through the keymap: `registerManagedTextareaLayer` (`opencode_tui_core::
+//! edit_buffer_bindings`) with the `input.*` keybinds, enabled while a textarea is the focused editor.
 use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 
 use opencode_protocol::Json;
+use opencode_tui_core::edit_buffer_bindings;
 use opencode_tui_core::input::{KeyEvent, KeyEventType, ParsedKey};
+use opencode_tui_core::renderables::textarea::TextareaAction;
 use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderer;
 use opencode_tui_core::tree::{self, Element};
@@ -472,6 +475,21 @@ pub fn install(t: &Tui) {
         km::addons::register_base_layout_fallback(&keymap),
         km::addons::register_escape_clears_pending_sequence(&keymap, true, 0),
         km::addons::register_backspace_pops_pending_sequence(&keymap, true, 0),
+        edit_buffer_bindings::register_managed_textarea_layer(
+            &keymap,
+            km::Layer {
+                fields: vec![(
+                    "enabled".into(),
+                    km::Field::Fn(Rc::new(|| renderer::current_focused_editor().is_some())),
+                )],
+                bindings: TextareaAction::ALL
+                    .iter()
+                    .flat_map(|&action| t.config.keybinds.get(edit_buffer_bindings::edit_buffer_command_name(action)))
+                    .filter_map(config_binding)
+                    .collect(),
+                ..km::Layer::default()
+            },
+        ),
     ];
     if let Some(trigger) = &leader {
         if let Ok(off) = km::addons::register_timed_leader(&keymap, trigger, Some("leader"), Some(t.config.leader.timeout)) {
