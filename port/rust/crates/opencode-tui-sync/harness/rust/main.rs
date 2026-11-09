@@ -4,6 +4,7 @@
 //! usage: sync-driver <cases.jsonl>
 
 mod data;
+mod tracker;
 mod env;
 
 use std::cell::{Cell, RefCell};
