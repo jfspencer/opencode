@@ -54,22 +54,52 @@ function syncSnapshot(state: Map<string, unknown>) {
   )
 }
 
-/** The request a respond step names: an index, "last", or the first unsettled one matching `METHOD path`. */
+/**
+ * The request a respond step names: an index, "last", or the first unsettled one whose `METHOD path?query` starts
+ * with `match` (or is `match`, with `exact`).
+ */
 export function requestIndex(target: unknown) {
   if (typeof target === "number") return target
   if (target === "last") return env.requests.length - 1
   if (target && typeof target === "object" && "match" in target) {
-    const match = (target as { match: string }).match
+    const { match, exact } = target as { match: string; exact?: boolean }
     return env.requests.findIndex((request) => {
       if (request.settled) return false
       const url = new URL(request.recorded.url)
-      return `${request.recorded.method} ${url.pathname}${url.search}`.startsWith(match)
+      const key = `${request.recorded.method} ${url.pathname}${url.search}`
+      return exact ? key === match : key.startsWith(match)
     })
   }
   return -1
 }
 
+/** Recorded calls name AbortSignals `{ $signal: n }`; an `abort` step aborts one. */
+const signals = new Map<number, AbortController>()
+function controller(id: number) {
+  let found = signals.get(id)
+  if (!found) signals.set(id, (found = new AbortController()))
+  return found
+}
+function abortReason(reason: { name?: string; message?: string } | undefined) {
+  if (!reason || reason.name === "AbortError") return undefined
+  return Object.assign(new Error(reason.message), { name: reason.name })
+}
+function withSignals(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withSignals)
+  if (value && typeof value === "object") {
+    if ("$signal" in value) {
+      const { $signal, aborted } = value as { $signal: number; aborted?: { name?: string; message?: string } }
+      const found = controller($signal)
+      if (aborted && !found.signal.aborted) found.abort(abortReason(aborted))
+      return found.signal
+    }
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, withSignals(item)]))
+  }
+  return value
+}
+
 export async function runData(spec: Case, deps: { OpenCode: any; solid: any; reference: string }) {
+  signals.clear()
   const { syncStates } = instrument(deps.reference)
   const client = path.join(deps.reference, "packages/client/src")
   const { createData } = await import(path.join(client, "solid/data.ts"))
@@ -147,7 +177,7 @@ export async function runData(spec: Case, deps: { OpenCode: any; solid: any; ref
           const owner = (step.path as string).split(".").slice(0, -1).reduce((node: any, key) => node?.[key], data)
           let returned: unknown
           try {
-            returned = target.apply(owner, (step.args as unknown[]) ?? [])
+            returned = target.apply(owner, withSignals((step.args as unknown[]) ?? []) as unknown[])
           } catch (error) {
             value = { threw: env.failure(error) }
             break
@@ -173,6 +203,9 @@ export async function runData(spec: Case, deps: { OpenCode: any; solid: any; ref
         }
         case "status":
           setStatus(step.value as string)
+          break
+        case "abort":
+          controller(step.signal as number).abort(abortReason(step.reason as never))
           break
         case "retain":
           solid.runWithOwner(root, () =>

@@ -172,6 +172,60 @@ function fixed() {
         { op: "call", path: "session.message.more", args: ["ses_a"] },
       ],
     },
+    // The TUI's jump to the first message pages with a signal it aborts when the view moves on.
+    ...[
+      { name: "a history jump aborted while its page is in flight", reason: { name: "AbortError" } },
+      { name: "a history jump aborted with a reason of its own", reason: { name: "Error", message: "moved on" } },
+    ].map(({ name, reason }) => ({
+      name,
+      initialMessageLimit: 2,
+      steps: [
+        { op: "call", path: "session.message.sync", args: ["ses_a"] },
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [{ id: "msg_3", type: "user", text: "c", time: { created: 3 } }], cursor: { next: "older" } }),
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { all: true, signal: { $signal: 1 } }] },
+        { op: "call", path: "session.message.loading", args: ["ses_a"] },
+        { op: "abort", signal: 1, reason },
+        { op: "call", path: "session.message.loading", args: ["ses_a"] },
+        { op: "call", path: "session.message.more", args: ["ses_a"] },
+        // A later jump pages again from the same cursor.
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { all: true, signal: { $signal: 2 } }] },
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [{ id: "msg_2", type: "user", text: "b", time: { created: 2 } }], cursor: { next: "oldest" } }),
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [{ id: "msg_1", type: "user", text: "a", time: { created: 1 } }], cursor: {} }),
+      ],
+    })),
+    {
+      name: "a history jump aborted while it waits for the first page",
+      steps: [
+        { op: "call", path: "session.message.sync", args: ["ses_a"] },
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { all: true, signal: { $signal: 1 } }] },
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { signal: { $signal: 2 } }] },
+        { op: "abort", signal: 1, reason: { name: "AbortError" } },
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [{ id: "msg_3", type: "user", text: "c", time: { created: 3 } }], cursor: { next: "older" } }),
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [{ id: "msg_2", type: "user", text: "b", time: { created: 2 } }], cursor: {} }),
+        { op: "abort", signal: 2, reason: { name: "AbortError" } },
+      ],
+    },
+    {
+      name: "a history jump whose signal is already aborted",
+      steps: [
+        { op: "call", path: "session.message.sync", args: ["ses_a"] },
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [], cursor: { next: "older" } }),
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { all: true, signal: { $signal: 1, aborted: { name: "AbortError" } } }] },
+        { op: "call", path: "session.message.loading", args: ["ses_a"] },
+      ],
+    },
+    {
+      name: "a failed page while a jump is aborted",
+      steps: [
+        { op: "call", path: "session.message.sync", args: ["ses_a"] },
+        ok({ match: "GET /api/session/ses_a/message" }, { data: [], cursor: { next: "older" } }),
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { signal: { $signal: 1 } }] },
+        { op: "call", path: "session.message.loadMore", args: ["ses_a", { all: true, signal: { $signal: 2 } }] },
+        { op: "abort", signal: 2, reason: { name: "AbortError" } },
+        { op: "respond", request: { match: "GET /api/session/ses_a/message" }, status: 500, headers: SSE_JSON, chunks: [JSON.stringify({ _tag: "UnknownError", message: "boom" })] },
+        { op: "call", path: "session.message.loading", args: ["ses_a"] },
+      ],
+    },
     {
       name: "tool file data omitted",
       omitToolFileData: true,

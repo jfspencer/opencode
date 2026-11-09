@@ -14,6 +14,11 @@ for (const file of readdirSync(raw).filter((f) => f.endsWith(".jsonl")).sort()) 
   const init = steps.findIndex((step) => step.op === "init")
   if (init < 0) continue
   const body = steps.slice(init + 1)
+  // A recorded response names its request's whole path and query: it answers that request, not one the path is a
+  // prefix of (older recordings did not say so).
+  for (const step of body)
+    if ((step.op === "respond" || step.op === "fail") && step.request && typeof step.request === "object")
+      (step.request as { exact?: boolean }).exact = true
   // The status the data layer starts from is its first recorded one.
   const first = body.findIndex((step) => step.op === "status")
   const status = first >= 0 ? (body[first].value as string) : "connecting"
