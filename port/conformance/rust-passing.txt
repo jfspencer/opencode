@@ -160,13 +160,21 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/cli-acp.test.ts › acp --login without a terminal
+scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
+scenarios/cli-auth.test.ts › auth list with the API key from the environment
+scenarios/cli-auth.test.ts › auth list without credentials
+scenarios/cli-auth.test.ts › auth login without a terminal
+scenarios/cli-auth.test.ts › auth logout without stored credentials
 scenarios/cli-inspect.test.ts › debug agents and config
 scenarios/cli-inspect.test.ts › debug paths
 scenarios/cli-inspect.test.ts › models lists only the configured model
 scenarios/cli-inspect.test.ts › models with a second configured model
+scenarios/cli-inspect.test.ts › stats after some runs
+scenarios/cli-inspect.test.ts › stats with no activity
 scenarios/cli-meta.test.ts › command groups without a subcommand
 scenarios/cli-meta.test.ts › help of each in-scope command
 scenarios/cli-meta.test.ts › missing required arguments
@@ -174,11 +182,31 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-run.test.ts › run --auto approves permission requests
+scenarios/cli-run.test.ts › run --auto does not approve denied actions
+scenarios/cli-run.test.ts › run --format json streams events
+scenarios/cli-run.test.ts › run --thinking shows reasoning
+scenarios/cli-run.test.ts › run --worktree starts the session in a new git worktree
+scenarios/cli-run.test.ts › run --yolo and --dangerously-skip-permissions are --auto
+scenarios/cli-run.test.ts › run argument errors
+scenarios/cli-run.test.ts › run auto-rejects permission requests without --auto
+scenarios/cli-run.test.ts › run cancels questions it cannot ask
+scenarios/cli-run.test.ts › run continues sessions with --continue, --session and --fork
+scenarios/cli-run.test.ts › run interrupted by SIGTERM
+scenarios/cli-run.test.ts › run prints the reply with the reference config
+scenarios/cli-run.test.ts › run reads the message from stdin
+scenarios/cli-run.test.ts › run reports model failures
+scenarios/cli-run.test.ts › run selects the model, variant and agent
+scenarios/cli-run.test.ts › run sets the title and archives
+scenarios/cli-run.test.ts › run with a failing tool call
+scenarios/cli-run.test.ts › run with attached files
 scenarios/cli-serve.test.ts › serve argument errors
 scenarios/cli-serve.test.ts › serve generates a password when none is given
 scenarios/cli-serve.test.ts › serve over stdio ends when stdin closes
+scenarios/cli-serve.test.ts › serve with a password
 scenarios/cli-serve.test.ts › serve with an allowed CORS origin
 scenarios/cli-service.test.ts › changing service settings stops the running service
+scenarios/cli-service.test.ts › commands start the service on demand and run reuses it
 scenarios/cli-service.test.ts › disabled service makes commands use a private server
 scenarios/cli-service.test.ts › reload configuration
 scenarios/cli-service.test.ts › server flag addresses a running server
@@ -186,7 +214,15 @@ scenarios/cli-service.test.ts › service configuration errors
 scenarios/cli-service.test.ts › service configuration get, set and unset
 scenarios/cli-service.test.ts › service lifecycle
 scenarios/cli-service.test.ts › standalone flag keeps the service stopped
+scenarios/cli-service.test.ts › tools in a run see the environment of the run, not the service's
+scenarios/cli-session.test.ts › session delete
+scenarios/cli-session.test.ts › session export
+scenarios/cli-session.test.ts › session import
 scenarios/cli-session.test.ts › session import errors
+scenarios/cli-session.test.ts › session import from a URL
+scenarios/cli-session.test.ts › session import into another directory
+scenarios/cli-session.test.ts › session list formats and limits
+scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
 scenarios/codemode-lang-async.test.ts › async delegation and settlement edge cases
 scenarios/codemode-lang-async.test.ts › async functions and await ordering
