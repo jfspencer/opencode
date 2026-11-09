@@ -542,6 +542,11 @@ impl Service {
             *done = Some(Err(()));
             true
         });
+        // The waiters just failed run before the remover goes on, as TS's fibers resume on microtasks before the
+        // unlink's callback: a blocked `session.shell` is answered before the `DELETE` that ended it.
+        for _ in 0..4 {
+            tokio::task::yield_now().await;
+        }
         let file = command.info.lock().unwrap().file.clone();
         let _ = tokio::task::spawn_blocking(move || std::fs::remove_file(file)).await;
         // Every command reports exactly one exit; removing a running one ends it as killed.
