@@ -181,6 +181,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
 | `session/`, `llm.rs`, `llm/` | `core/src/session/*` (runner, execution, step, inbox, context, prompt, command, instructions, retry, title, move) and the OpenRouter chat-completions transport (`llm/http.rs`: proxy-aware rustls) |
 | `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
+| `job.rs`, `session/subagent.rs`, `tool/subagent.rs` | `core/src/job.ts`, `job/*`, `session/subagent-job.ts`, `subagent-completion.ts`, `background.ts`, `tool/plugin/subagent.ts`, subagent commands: a process-local job registry (one generation per job; block, background, cancel; backgrounded work kept in the durable `job` table until its completion notice is admitted); a subagent is a job running a child session, whose last answer is the tool's result or a synthetic notice that wakes the parent |
 | `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
 
 Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
