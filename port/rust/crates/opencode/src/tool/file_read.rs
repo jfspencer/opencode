@@ -479,6 +479,53 @@ mod tests {
         assert_eq!(page(read(&files, "/a.txt", "a.txt", Page { offset: Some(2), limit: None })), ("\n".into(), 2, None));
     }
 
+    /// Cases recorded from `ReadToolFileSystem.read` (`READ_CASES=<file>`: `[{bytes, page, output | error}]`).
+    #[test]
+    #[ignore]
+    fn recorded() {
+        use base64::Engine;
+        use crate::json;
+        let path = std::env::var("READ_CASES").expect("READ_CASES names the recorded cases");
+        let cases = json::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let mut failures = 0;
+        for (index, case) in json::array(&cases).unwrap().iter().enumerate() {
+            let bytes = base64::engine::general_purpose::STANDARD.decode(json::get_str(case, "bytes").unwrap()).unwrap();
+            let page_of = json::get(case, "page").unwrap();
+            let page = Page {
+                offset: json::get_num(page_of, "offset").map(|n| n as usize),
+                limit: json::get_num(page_of, "limit").map(|n| n as usize),
+            };
+            let files = Memory { files: vec![("/f.txt".into(), bytes)] };
+            let got = match read(&files, "/f.txt", "f.txt", page) {
+                Ok(Content::TextPage { content, offset, next }) => format!("text-page {offset} {next:?} {content}"),
+                Ok(Content::File { content, .. }) => format!("file {content}"),
+                Ok(Content::ListPage { .. }) => "list".into(),
+                Err(ReadError::Message(message)) => format!("error {message}"),
+                Err(other) => format!("error {other:?}"),
+            };
+            let want = match json::get(case, "output") {
+                Some(output) => match json::get_str(output, "type") {
+                    Some("text-page") => format!(
+                        "text-page {} {:?} {}",
+                        json::get_num(output, "offset").unwrap(),
+                        json::get_num(output, "next").map(|n| n as usize),
+                        json::get_str(output, "content").unwrap()
+                    ),
+                    _ => format!("file {}", json::get_str(output, "content").unwrap()),
+                },
+                None => format!("error {}", json::get_str(case, "error").unwrap()),
+            };
+            if got != want {
+                failures += 1;
+                if failures < 4 {
+                    let cut = |s: &str| s.chars().take(300).collect::<String>();
+                    eprintln!("case {index} {}\nwant {}\ngot  {}", json::text(page_of), cut(&want), cut(&got));
+                }
+            }
+        }
+        assert_eq!(failures, 0);
+    }
+
     #[test]
     fn chunks() {
         let text: String = (1..=80000).map(|i| format!("line {i:05}\n")).collect();
