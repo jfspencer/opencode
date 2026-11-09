@@ -49,6 +49,8 @@
 //! `<For>` (rows keyed by `key`; each row gets its item as a signal, so a changed item with the same key updates in
 //! place, as a store proxy would), `index` for `<Index>`, `switch(vec![when(cond, children), ...], fallback)` for
 //! `<Switch>/<Match>`. A `cond ? a : b` in JSX is `memo_view(move || if cond() { a } else { b })`.
+//! `<Portal ref>{children}</Portal>` is `portal(None, Some(on_ref), Rc::new(children))`: the children go into a box
+//! appended to the root.
 //!
 //! **State**: `create_signal` / `create_memo` / `create_effect` / `create_render_effect` / `create_computed` / `on`
 //! / `batch` / `untrack` / `on_mount` / `on_cleanup` (snake_case, same semantics; signals compare with
