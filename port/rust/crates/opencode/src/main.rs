@@ -6,6 +6,7 @@ mod auth;
 mod bus;
 mod collate;
 mod db;
+mod formatter;
 mod fs;
 mod fuzzysort;
 mod generate;

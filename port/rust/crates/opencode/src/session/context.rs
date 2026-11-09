@@ -437,28 +437,56 @@ const XAI_IMAGE_MIMES: &[&str] = &["image/png", "image/jpeg", "image/webp"];
 /// `unsupportedParts`: media the model cannot read (of a kind it does not take, an image type providers reject, or a
 /// file of unknown kind) become a note, in its own paragraph, asking the model to tell the user.
 ///
-/// TODO(port): `boundImages` (dropping the oldest images past 25 MiB of inline payload), media in tool results.
+/// A tool result's files (`toolResult` of `replaceMedia`) are replaced the same way, by a text item of the note.
+///
+/// TODO(port): `boundImages` (dropping the oldest images past 25 MiB of inline payload).
 pub fn unsupported_parts(messages: &mut [Message], input: &[String], provider: &str) {
+    let note = |mime: &str, filename: Option<&str>| -> Option<String> {
+        let modality = modality(mime);
+        let images = if provider == "xai" { XAI_IMAGE_MIMES } else { IMAGE_MIMES };
+        let unsupported = match modality {
+            None => mime.to_owned(),
+            Some(modality) if !input.iter().any(|item| item.starts_with(modality)) => modality.to_owned(),
+            Some("image") if !images.contains(&mime.to_lowercase().as_str()) => mime.to_owned(),
+            Some(_) => return None,
+        };
+        let subject =
+            filename.filter(|n| !n.is_empty()).map(|n| format!("\"{n}\"")).unwrap_or_else(|| modality.unwrap_or("file").to_owned());
+        Some(format!("ERROR: Cannot read {subject} (this model does not support {unsupported} input). Inform the user."))
+    };
+    let tool_result = |result: &mut crate::llm::ToolResult| {
+        let crate::llm::ToolResultValue::Content(content) = &mut result.value else { return };
+        for item in content.iter_mut() {
+            if json::get_str(item, "type") != Some("file") {
+                continue;
+            }
+            if let Some(text) = note(json::get_str(item, "mime").unwrap_or_default(), json::get_str(item, "name")) {
+                let mut o = Obj::new();
+                o.str("type", "text").str("text", &text);
+                *item = o.done();
+            }
+        }
+    };
     for message in messages {
-        let Message::User(parts) = message else { continue };
-        for part in parts.iter_mut() {
-            let UserPart::Media { mime, filename, .. } = part else { continue };
-            let modality = modality(mime);
-            let images = if provider == "xai" { XAI_IMAGE_MIMES } else { IMAGE_MIMES };
-            let unsupported = match modality {
-                None => mime.clone(),
-                Some(modality) if !input.iter().any(|item| item.starts_with(modality)) => modality.to_owned(),
-                Some("image") if !images.contains(&mime.to_lowercase().as_str()) => mime.clone(),
-                Some(_) => continue,
-            };
-            let subject = filename
-                .as_ref()
-                .filter(|n| !n.is_empty())
-                .map(|n| format!("\"{n}\""))
-                .unwrap_or_else(|| modality.unwrap_or("file").to_owned());
-            *part = UserPart::Text(format!(
-                "\n\nERROR: Cannot read {subject} (this model does not support {unsupported} input). Inform the user."
-            ));
+        match message {
+            Message::User(parts) => {
+                for part in parts.iter_mut() {
+                    let UserPart::Media { mime, filename, .. } = part else { continue };
+                    if let Some(text) = note(mime, filename.as_deref()) {
+                        // Providers may join a message's text parts, so the note starts its own paragraph.
+                        *part = UserPart::Text(format!("\n\n{text}"));
+                    }
+                }
+            }
+            Message::Tool(results) => results.iter_mut().for_each(tool_result),
+            Message::Assistant(parts) => {
+                for part in parts.iter_mut() {
+                    if let crate::llm::AssistantPart::ToolResult(result) = part {
+                        tool_result(result);
+                    }
+                }
+            }
+            Message::System(_) => {}
         }
     }
 }

@@ -65,10 +65,24 @@ fn lower_messages(request: &Request) -> Vec<Json> {
         messages.push(o.done());
     }
     let require = require_reasoning(model);
+    // The files of tool results, sent as a user message after the tool messages (`lowerToolMessages`).
+    let mut pending: Vec<Json> = Vec::new();
+    let flush = |messages: &mut Vec<Json>, pending: &mut Vec<Json>| {
+        if !pending.is_empty() {
+            let mut o = Obj::new();
+            o.str("role", "user").set("content", Json::Array(std::mem::take(pending)));
+            messages.push(o.done());
+        }
+    };
     for message in &request.messages {
         match message {
             Message::System(text) => {
                 let text = wrap_system_update(text);
+                if !pending.is_empty() {
+                    pending.push(lower_user_part(&UserPart::Text(text)));
+                    flush(&mut messages, &mut pending);
+                    continue;
+                }
                 match messages.last_mut() {
                     Some(previous) if json::get_str(previous, "role") == Some("user") && json::get_str(previous, "content").is_some() => {
                         let joined = format!("{}\n{text}", json::get_str(previous, "content").unwrap_or_default());
@@ -88,6 +102,7 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                 }
             }
             Message::User(parts) => {
+                flush(&mut messages, &mut pending);
                 let mut o = Obj::new();
                 o.str("role", "user");
                 if parts.iter().all(|part| matches!(part, UserPart::Text(_))) {
@@ -103,17 +118,48 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                     let mut o = Obj::new();
                     o.str("role", "tool").str("tool_call_id", &result.id).str("content", &tool_result_text(result));
                     messages.push(o.done());
+                    if let ToolResultValue::Content(content) = &result.value {
+                        pending.extend(content.iter().filter(|item| json::get_str(item, "type") == Some("file")).map(lower_tool_file));
+                    }
                 }
             }
             Message::Assistant(parts) => {
                 if parts.iter().all(|p| matches!(p, AssistantPart::Text { text, .. } if text.trim().is_empty())) {
                     continue;
                 }
+                flush(&mut messages, &mut pending);
                 messages.push(lower_assistant(parts, require));
             }
         }
     }
+    flush(&mut messages, &mut pending);
     messages
+}
+
+/// A tool result's file (`toolFileMedia`, then `lowerMedia`): a data URL keeps its data under the declared type, a
+/// URL is sent as is, anything else is raw base64.
+fn lower_tool_file(item: &Json) -> Json {
+    let mime = json::get_str(item, "mime").unwrap_or_default();
+    let uri = json::get_str(item, "uri").unwrap_or_default();
+    let data_url = |data: &str| format!("data:{mime};base64,{data}");
+    let url = match uri.strip_prefix("data:").and_then(|rest| rest.split_once(',')) {
+        Some((head, data)) if head.ends_with(";base64") => data_url(data),
+        _ if uri.contains("://") => uri.to_owned(),
+        _ => data_url(uri),
+    };
+    let mut inner = Obj::new();
+    let mut o = Obj::new();
+    if mime.eq_ignore_ascii_case("application/pdf") {
+        inner.str("filename", json::get_str(item, "name").unwrap_or("document.pdf")).str("file_data", &url);
+        o.str("type", "file").set("file", inner.done());
+    } else if mime.starts_with("video/") {
+        inner.str("url", &url);
+        o.str("type", "video_url").set("video_url", inner.done());
+    } else {
+        inner.str("url", &url);
+        o.str("type", "image_url").set("image_url", inner.done());
+    }
+    o.done()
 }
 
 /// A user content part (`lowerUserMessage` / `lowerMedia`): PDFs as inline `file` parts, images and videos as data URLs.

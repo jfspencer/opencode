@@ -1,8 +1,8 @@
 //! Plan mode (packages/core/src/plugin/plan.ts): a session that enters the `plan` agent gets a reminder of Plan mode's
 //! rules as synthetic input (on creation, and on a switch to or from the agent), and every request reconciles the
-//! reminder near the tail of the history so compaction or a revert cannot strip it.
-//!
-//! TODO(port): the plan agent's edit/write permission message rewrite (`tool.execute.after`).
+//! reminder near the tail of the history so compaction or a revert cannot strip it. An editing tool (`edit`, `write`,
+//! `patch`) the plan agent's rules deny fails with [`blocked`] instead of the denial (`tool.execute.after`; the file
+//! tools apply it where they assert, `tool::file_access::assert`).
 
 use crate::app::App;
 use crate::bus::LocationRef;
@@ -14,6 +14,11 @@ pub const AGENT: &str = "plan";
 fn directory() -> String {
     let home = std::env::var("OPENCODE_TEST_HOME").or_else(|_| std::env::var("HOME")).unwrap_or_default();
     format!("{home}/.opencode/plan")
+}
+
+/// The `tool.execute.after` rewrite of a denied edit: what the plan agent is told instead of the denial.
+pub fn blocked(tool: &str) -> String {
+    format!("Cannot use {tool} to modify files outside the Plan directory: {}", directory())
 }
 
 pub fn enter() -> String {
