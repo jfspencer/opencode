@@ -301,7 +301,7 @@ fn item(id: &str, status: Status, title: Option<&str>, started: i64, completed: 
 }
 
 impl Jobs {
-    #[allow(dead_code)] // `Job.get` (the job tools').
+    /// `Job.get`.
     pub fn get(&self, id: &str) -> Option<Info> {
         self.state.lock().unwrap().find(id).map(|job| job.info.clone())
     }

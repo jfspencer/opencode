@@ -14,8 +14,8 @@
 //!
 //! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error. The
 //! Code Mode catalog is the reference configuration's (`codemode-catalog.json`, the `opencode.*` tools), until the
-//! Code Mode tools are registered here; descriptions that depend on the inventory (skills) are the reference
-//! configuration's (the subagent list is live: [`subagent::describe`]). Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
+//! Code Mode tools are registered here; descriptions that depend on the inventory (skills; subagents are live) are
+//! the reference configuration's. Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
 //! successful result with [`output::truncate`].
 
 pub mod output;

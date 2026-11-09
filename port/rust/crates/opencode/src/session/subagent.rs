@@ -162,20 +162,20 @@ fn deliver(app: &App, info: &Info, spawned: &Spawned) {
 }
 
 /// A synthetic input (`Session.synthetic`'s input).
-struct Synthetic {
-    id: Option<String>,
-    session: String,
-    text: String,
-    description: Option<String>,
-    metadata: Option<Json>,
-    resume: bool,
+pub struct Synthetic {
+    pub id: Option<String>,
+    pub session: String,
+    pub text: String,
+    pub description: Option<String>,
+    pub metadata: Option<Json>,
+    pub resume: bool,
     /// Published in the session's location (a job's notice), or in none (the session API's).
-    located: bool,
+    pub located: bool,
 }
 
 /// `Session.synthetic`: admits the input (steering) and wakes the session unless it has a staged revert. `Err` when
 /// the session is missing or being removed, or the ID conflicts.
-fn synthetic(app: &App, input: Synthetic) -> std::result::Result<(), ()> {
+pub fn synthetic(app: &App, input: Synthetic) -> std::result::Result<(), ()> {
     if app.sessions.is_removing(&input.session) {
         return Err(());
     }
@@ -211,8 +211,10 @@ pub async fn background_session(app: &App, session_id: &str) -> Result<()> {
     if moved.is_empty() {
         return Ok(());
     }
-    // The blocked calls return at once and their step ends; TS admits the notice only after that step's next
-    // boundary, so it is delivered at the boundary after (the reference's order, not a guarantee of its design).
+    // The blocked calls return at once and their step ends. TS admits the notice only once the step's next boundary
+    // has passed (its admission yields to the runner at each database call), so it is delivered at the boundary
+    // after: the notice waits for the step to end, which leaves the runner at its next request. A step that still
+    // runs other tools does not end soon, and then the notice goes in at once, as in TS.
     let ended = async {
         loop {
             match events.recv().await {
@@ -227,7 +229,7 @@ pub async fn background_session(app: &App, session_id: &str) -> Result<()> {
             }
         }
     };
-    let _ = tokio::time::timeout(std::time::Duration::from_secs(5), ended).await;
+    let _ = tokio::time::timeout(std::time::Duration::from_secs(1), ended).await;
     let mut lines = vec![
         "User requested that active blocking work be moved to the background.".to_owned(),
         String::new(),
@@ -263,14 +265,16 @@ pub fn list_jobs(app: &App, query: &Json) -> Result<Vec<Json>> {
     }
     let kind = json::get_str(query, "kind");
     let status = json::get_str(query, "status");
-    let descendants = matches!(json::get(query, "descendants"), Some(Json::Bool(true))) || json::get_str(query, "descendants") == Some("true");
+    let descendants = matches!(json::get(query, "descendants"), Some(Json::Bool(true)))
+        || json::get_str(query, "descendants") == Some("true");
     let items = app
         .sessions
         .jobs
         .background_jobs(app)
         .into_iter()
         .filter(|(_, item_status, item)| {
-            kind.is_none_or(|kind| json::get_str(item, "kind") == Some(kind)) && status.is_none_or(|status| item_status.as_str() == status)
+            kind.is_none_or(|kind| json::get_str(item, "kind") == Some(kind))
+                && status.is_none_or(|status| item_status.as_str() == status)
         });
     let Some(ancestor) = session_id else { return Ok(items.map(|(_, _, item)| item).collect()) };
     if !descendants {
@@ -309,4 +313,21 @@ fn descends(app: &App, parents: &mut HashMap<String, Option<String>>, from: &str
         current = parent;
     }
     Ok(false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn completion_texts() {
+        let answer = json::parse(
+            r#"{"type":"assistant","content":[{"type":"reasoning","text":"r"},{"type":"text","text":"a"},{"type":"text","text":""},{"type":"text","text":"b"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(completion_text(Some(&answer)), "a\n\nb");
+        assert_eq!(completion_text(None), NO_TEXT);
+        let silent = json::parse(r#"{"type":"assistant","content":[{"type":"tool","name":"read"}]}"#).unwrap();
+        assert_eq!(completion_text(Some(&silent)), NO_TEXT);
+    }
 }

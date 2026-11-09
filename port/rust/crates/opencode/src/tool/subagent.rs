@@ -110,18 +110,9 @@ impl Input {
 
 /// `resolveModel`: a `providerID/modelID[#variant]` reference to an available chat model (and one of its variants).
 fn resolve_model(inventory: &Inventory, input: &str) -> Result<Json, Failure> {
-    let invalid = || failure(format!("Invalid model \"{input}\". Use \"providerID/modelID\" or \"providerID/modelID#variant\"."));
-    // `Model.Ref.parse`.
-    let provider_end = input.find('/').filter(|&end| end > 0).ok_or_else(invalid)?;
-    let provider = &input[..provider_end];
-    let rest = &input[provider_end + 1..];
-    let (id, variant) = match rest.find('#') {
-        Some(index) => (&rest[..index], Some(&rest[index + 1..])),
-        None => (rest, None),
-    };
-    if id.is_empty() || provider.contains('#') || variant.is_some_and(|v| v.is_empty() || v.contains('#')) {
-        return Err(invalid());
-    }
+    let (provider, id, variant) = parse_reference(input).ok_or_else(|| {
+        failure(format!("Invalid model \"{input}\". Use \"providerID/modelID\" or \"providerID/modelID#variant\"."))
+    })?;
     let Some(model) = inventory.available_models().find(|m| m.provider_id.0 == provider && m.id == id) else {
         fn kind(m: &t::ModelInfo) -> Option<&str> {
             match &m.r#type {
@@ -156,8 +147,21 @@ fn resolve_model(inventory: &Inventory, input: &str) -> Result<Json, Failure> {
     Ok(reference.done())
 }
 
-/// `permission.assert` for the agent, mapped as the tool's `ToolFailure` wraps the permission error: a rule's denial
-/// or a rejection with feedback is shown as is, a plain rejection as `Subagent denied: <agent>`.
+/// `Model.Ref.parse`: `(providerID, modelID, variant)`.
+fn parse_reference(input: &str) -> Option<(&str, &str, Option<&str>)> {
+    let provider_end = input.find('/').filter(|&end| end > 0)?;
+    let (provider, rest) = (&input[..provider_end], &input[provider_end + 1..]);
+    let (id, variant) = match rest.find('#') {
+        Some(index) => (&rest[..index], Some(&rest[index + 1..])),
+        None => (rest, None),
+    };
+    let invalid = id.is_empty() || provider.contains('#') || variant.is_some_and(|v| v.is_empty() || v.contains('#'));
+    (!invalid).then_some((provider, id, variant))
+}
+
+/// `permission.assert` for the agent. The tool's `ToolFailure` wraps the permission error, which shows through it (a
+/// rule's denial, a rejection with feedback); a plain rejection still declines the call (TS tunnels it past the
+/// wrapper as a defect); a missing session, whose error has no message, shows the wrapper's `Subagent denied`.
 async fn assert_allowed(context: &Context, agent: &str) -> Result<(), Failure> {
     use crate::permission::{Ask, Error, Requester, Source};
     let requester = Requester {
@@ -169,11 +173,8 @@ async fn assert_allowed(context: &Context, agent: &str) -> Result<(), Failure> {
     let ask = Ask { action: NAME.into(), resources: vec![agent.into()], save: Some(vec![agent.into()]), metadata: None };
     match context.location.permission.assert(&context.app, &context.location, &requester, &ask).await {
         Ok(()) => Ok(()),
-        Err(error @ Error::Blocked { .. }) => Err(Failure::Error(ToolError { kind: "permission.rejected", message: error.message(), metadata: None })),
-        Err(Error::Corrected(feedback)) if !feedback.is_empty() => {
-            Err(Failure::Error(ToolError { kind: "permission.rejected", message: feedback, metadata: None }))
-        }
-        Err(_) => Err(failure(format!("Subagent denied: {agent}"))),
+        Err(Error::SessionNotFound(_)) => Err(failure(format!("Subagent denied: {agent}"))),
+        Err(error) => Err(Failure::from(error)),
     }
 }
 
@@ -298,7 +299,12 @@ async fn run(context: Context, input: Json) -> Result<Output, Failure> {
     session::prompt::submit(&app, &child, &prompt.done())
         .await
         .map_err(|_| failure(format!("Failed to prompt subagent: {child}")))?;
-    let spawned = Spawned { parent: context.session_id.clone(), child: child.clone(), agent: agent.name.clone(), description: input.description };
+    let spawned = Spawned {
+        parent: context.session_id.clone(),
+        child: child.clone(),
+        agent: agent.name.clone(),
+        description: input.description,
+    };
     jobs::start(&app, &spawned);
     if input.background {
         jobs::background(&app, &spawned);
@@ -336,5 +342,19 @@ impl Tool for Subagent {
 
     fn execute<'a>(&'a self, context: Context, input: Json) -> Execution<'a> {
         Box::pin(run(context, input))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_reference;
+
+    #[test]
+    fn model_references() {
+        assert_eq!(parse_reference("openrouter/deepseek/v4#low"), Some(("openrouter", "deepseek/v4", Some("low"))));
+        assert_eq!(parse_reference("openrouter/m"), Some(("openrouter", "m", None)));
+        for invalid in ["not-a-model-ref", "/m", "p/", "p/m#", "p/m#a#b", "p#x/m", "p/#v"] {
+            assert_eq!(parse_reference(invalid), None, "{invalid}");
+        }
     }
 }
