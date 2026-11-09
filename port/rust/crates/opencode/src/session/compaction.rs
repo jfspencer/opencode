@@ -721,7 +721,8 @@ pub struct Context {
     tools: crate::tool::Snapshot,
     model: Arc<llm::Model>,
     initial: Vec<(String, String)>,
-    messages: Vec<Json>,
+    /// Shared, so the context's copies (another model, a background summary) do not copy the history.
+    messages: Arc<Vec<Json>>,
     /// The request's system parts after the request hooks (`baseTranscript` plus the `compaction` hooks).
     system: Vec<String>,
     location: LocationRef,
@@ -739,7 +740,7 @@ impl Context {
             model: loaded.model.clone(),
             system: crate::session::runner::system(loaded, &initial),
             initial,
-            messages,
+            messages: Arc::new(messages),
             location: loaded.reference.clone(),
             inventory: loaded.location.inventory(),
         }
@@ -1048,7 +1049,9 @@ enum Fail {
 
 /// A summary run off the critical path: it covers only `messages`, streams no deltas, and bills into `usage`.
 struct Background {
-    messages: Vec<Json>,
+    /// The context's messages, of which the first `covered` are summarized.
+    messages: Arc<Vec<Json>>,
+    covered: usize,
     usage: Arc<Mutex<Vec<Usage>>>,
 }
 
@@ -1112,25 +1115,41 @@ async fn stream(app: &App, context: &Context, request: &llm::Request, background
     }
 }
 
-/// `send`: the request with the summary prompt; a reply that ignores the template gets one reminder.
+/// `send`: the request with the summary prompt; a reply that ignores the template gets one reminder. The prompt is
+/// appended in place, and the request is left as it was given.
 async fn send(
     app: &App,
     context: &Context,
-    mut request: llm::Request,
+    request: &mut llm::Request,
+    size: Option<Estimate>,
+    prompt: &str,
+    background: Option<&Background>,
+) -> Result<Summary, Fail> {
+    let (length, max_tokens) = (request.messages.len(), request.max_tokens);
+    let outcome = prompted(app, context, request, size, prompt, background).await;
+    request.messages.truncate(length);
+    request.max_tokens = max_tokens;
+    outcome
+}
+
+async fn prompted(
+    app: &App,
+    context: &Context,
+    request: &mut llm::Request,
     size: Option<Estimate>,
     prompt: &str,
     background: Option<&Background>,
 ) -> Result<Summary, Fail> {
     request.messages.push(Message::User(vec![UserPart::Text(prompt.to_owned())]));
     let grown = |extra: f64| size.map(|size| Estimate { measured: size.measured, estimated: size.estimated + extra });
-    fit_output(&mut request, grown(tokens(prompt)));
-    let reply = stream(app, context, &request, background).await?;
+    fit_output(request, grown(tokens(prompt)));
+    let reply = stream(app, context, request, background).await?;
     if filled(&reply) {
         return Ok(Summary { text: reply, metadata: None });
     }
     request.messages.push(Message::User(vec![UserPart::Text(NUDGE.to_owned())]));
-    fit_output(&mut request, grown(tokens(prompt) + tokens(NUDGE)));
-    let retry = stream(app, context, &request, background).await?;
+    fit_output(request, grown(tokens(prompt) + tokens(NUDGE)));
+    let retry = stream(app, context, request, background).await?;
     if filled(&retry) {
         return Ok(Summary { text: retry, metadata: None });
     }
@@ -1254,7 +1273,7 @@ enum Pick {
 async fn deliver(
     app: &App,
     context: &Context,
-    prepared: &Prepared,
+    prepared: &mut Prepared,
     mut target: f64,
     shrink: Shrink,
     prompt: &str,
@@ -1268,14 +1287,14 @@ async fn deliver(
     let all = prepared.request.messages.len();
     // `withoutTail` returns the request itself when the tail is not found: then history and request are one.
     let same = shrink.history == all;
-    let history_size = || estimate_request(&prepared.request.system, prepared.request.tools.iter(), prepared.request.messages[..shrink.history].iter());
     loop {
         let measured = if rejections == 0 { shrink.measured } else { None };
+        let request = &prepared.request;
         let unchanged = if as_text {
             None
-        } else if measured.map(|m| m.total()).unwrap_or_else(|| request_size(&prepared.request)) <= fit {
+        } else if measured.map(|m| m.total()).unwrap_or_else(|| request_size(request)) <= fit {
             Some(Pick::Prepared)
-        } else if history_size() <= target {
+        } else if estimate_request(&request.system, request.tools.iter(), request.messages[..shrink.history].iter()) <= target {
             Some(Pick::History)
         } else {
             None
@@ -1296,17 +1315,22 @@ async fn deliver(
         let is_prepared = matches!(pick, Pick::Prepared) || (same && matches!(pick, Pick::History));
         let is_history = matches!(pick, Pick::History) || (same && matches!(pick, Pick::Prepared));
         let size = if is_prepared { measured } else { None };
-        let request = match pick {
-            Pick::Prepared => prepared.request.clone(),
-            Pick::History => {
-                let mut request = without_messages(&prepared.request);
-                request.messages = prepared.request.messages[..shrink.history].to_vec();
-                request
+        let (sent_size, outcome) = match pick {
+            Pick::Prepared => {
+                let sent = size.map(|s| s.total()).unwrap_or_else(|| request_size(&prepared.request));
+                (sent, send(app, context, &mut prepared.request, size, prompt, background).await)
             }
-            Pick::Text(request) => request,
+            Pick::History => {
+                // The tail is set aside, not copied, while the history goes out.
+                let tail = prepared.request.messages.split_off(shrink.history);
+                let sent = size.map(|s| s.total()).unwrap_or_else(|| request_size(&prepared.request));
+                let outcome = send(app, context, &mut prepared.request, size, prompt, background).await;
+                prepared.request.messages.extend(tail);
+                (sent, outcome)
+            }
+            Pick::Text(mut request) => (request_size(&request), send(app, context, &mut request, size, prompt, background).await),
         };
-        let sent_size = size.map(|s| s.total()).unwrap_or_else(|| request_size(&request));
-        let cause = match send(app, context, request, size, prompt, background).await {
+        let cause = match outcome {
             Ok(summary) => return Ok(summary),
             Err(Fail::Unusable(error)) => return Err(error),
             Err(Fail::Ai(cause)) => cause,
@@ -1345,7 +1369,7 @@ async fn summarize(
     keep: f64,
     background: Option<&Background>,
 ) -> Result<Summary, Json> {
-    let messages = background.map_or(context.messages.as_slice(), |b| b.messages.as_slice());
+    let messages = background.map_or(context.messages.as_slice(), |b| &b.messages[..b.covered]);
     let Some(split) = split_conversation(messages, keep) else {
         return Err(error("compaction.unavailable", "Nothing to compact yet"));
     };
@@ -1356,7 +1380,7 @@ async fn summarize(
         previous.is_some(),
         previous.and_then(|p| json::get_str(p, "summary")).is_some_and(|s| s.contains(LEGACY_HEADING)),
     );
-    let prepared = prepare(context, messages, budget);
+    let mut prepared = prepare(context, messages, budget);
     // An overflow already proved the measured count low, so it keeps the character estimate.
     let measured = if overflow { None } else { measured_prompt(context, messages) };
     let overhead = tokens(&prompt) + tokens(NUDGE);
@@ -1366,7 +1390,7 @@ async fn summarize(
         .and_then(|keep| prepared.ids.iter().position(|id| id.as_deref() == Some(keep)))
         .unwrap_or(prepared.request.messages.len());
     let shrink = Shrink { fit: fit - overhead, history, measured, text: overflow };
-    let result = deliver(app, context, &prepared, budget - overhead, shrink, &prompt, background).await?;
+    let result = deliver(app, context, &mut prepared, budget - overhead, shrink, &prompt, background).await?;
     let Some(keep_id) = keep_id else { return Ok(result) };
     let mut metadata = Obj::new();
     metadata.str("keepID", &keep_id);
@@ -1672,7 +1696,7 @@ pub fn precompute_idle(app: &Arc<App>, context: &Context) {
         Ok(messages) => messages,
         Err(error) => return eprintln!("failed to read the session history: {error}"),
     };
-    start(app, &Context { messages, ..context.clone() }, None, &settings);
+    start(app, &Context { messages: Arc::new(messages), ..context.clone() }, None, &settings);
 }
 
 fn start(app: &Arc<App>, context: &Context, estimate: Option<Estimate>, settings: &Settings) {
@@ -1722,7 +1746,7 @@ fn start(app: &Arc<App>, context: &Context, estimate: Option<Estimate>, settings
     }
     let (selected, cap) = select_model(context, settings.buffer);
     let usage: Arc<Mutex<Vec<Usage>>> = Arc::default();
-    let background = Background { messages: messages[..anchor_index].to_vec(), usage: usage.clone() };
+    let background = Background { messages: messages.clone(), covered: anchor_index, usage: usage.clone() };
     let (sender, result) = watch::channel(None);
     let keep = settings.keep;
     let task = {
