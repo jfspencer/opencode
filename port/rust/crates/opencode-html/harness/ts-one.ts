@@ -15,7 +15,14 @@ if (mode === "events") {
     ontext: (text: string) => console.log("text", JSON.stringify(text)),
     onclosetag: (name: string) => console.log("close", JSON.stringify(name)),
   })
-  if (kind === "m") for (let i = 0; i < html.length; i += 64 * 1024) parser.write(html.slice(i, i + 64 * 1024))
+  // html-markdown.ts's chunks, which end between characters.
+  if (kind === "m")
+    for (let index = 0; index < html.length; ) {
+      const end = Math.min(index + 64 * 1024, html.length)
+      const next = end < html.length && /[\ud800-\udbff]/.test(html[end - 1]) ? end - 1 : end
+      parser.write(html.slice(index, next))
+      index = next
+    }
   else parser.write(html)
   parser.end()
 } else {
