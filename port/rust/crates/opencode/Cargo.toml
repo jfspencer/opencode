@@ -29,3 +29,5 @@ tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
 unicode-normalization.workspace = true
 sha2.workspace = true
+# The CLI's process control (signals, sessions): already in the tree through tokio.
+libc = "0.2"

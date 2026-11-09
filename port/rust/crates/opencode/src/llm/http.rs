@@ -252,6 +252,12 @@ where
 
 /// Sends a `POST` and returns once the response head arrives.
 pub async fn post(url: &str, headers: &[(String, String)], body: String) -> Result<Response, Failure> {
+    request("POST", url, headers, Some(body)).await
+}
+
+/// Sends a request (no body when `body` is `None`) and returns once the response head arrives.
+pub async fn request(method: &str, url: &str, headers: &[(String, String)], body: Option<String>) -> Result<Response, Failure> {
+    let body = body.unwrap_or_default();
     let target = parse(url).ok_or_else(|| Failure::new(FailureKind::Other, format!("invalid URL {url}")))?;
     let via = proxy(&target);
     let host_header = if (target.secure && target.port == 443) || (!target.secure && target.port == 80) {
@@ -284,11 +290,14 @@ pub async fn post(url: &str, headers: &[(String, String)], body: String) -> Resu
             }
         }
     };
-    let mut builder = hyper::Request::builder().method("POST").uri(uri);
+    let mut builder = hyper::Request::builder().method(method).uri(uri);
     for (name, value) in headers {
         builder = builder.header(name.as_str(), value.as_str());
     }
-    builder = builder.header("Host", host_header).header("Accept", "*/*");
+    builder = builder.header("Host", host_header);
+    if !headers.iter().any(|(name, _)| name.eq_ignore_ascii_case("accept")) {
+        builder = builder.header("Accept", "*/*");
+    }
     let request = builder.body(Full::new(Bytes::from(body))).map_err(|e| Failure::new(FailureKind::Other, e.to_string()))?;
     sender.ready().await.map_err(|e| hyper_failure(&e))?;
     let response = sender.send_request(request).await.map_err(|e| hyper_failure(&e))?;

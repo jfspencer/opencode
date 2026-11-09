@@ -502,6 +502,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "indexmap",
+ "libc",
  "opencode-protocol",
  "regex",
  "rusqlite",
