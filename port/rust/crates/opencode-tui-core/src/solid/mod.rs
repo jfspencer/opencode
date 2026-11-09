@@ -22,8 +22,10 @@ use crate::reactive::{create_memo, create_render_effect, create_render_effect_wi
 use crate::tree::Element;
 
 pub mod flow;
+pub mod portal;
 
 pub use flow::*;
+pub use portal::portal;
 
 /// What JSX evaluates to: nothing, a node, text, a list, or a function inserted reactively.
 #[derive(Clone, Default)]
