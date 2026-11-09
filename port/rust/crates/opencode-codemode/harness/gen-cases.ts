@@ -248,6 +248,110 @@ if (kind === "hooks") {
   }
 }
 
+if (kind === "scan") {
+  const programs: Record<string, string> = {
+    upstreamOrder: `
+      const chapters = await tools["hex-meetings"].get_chapters({ meeting_id: "m1" })
+      const thread = await tools.slack.read_thread({ ts: await tools.slack.latest_ts({}) })
+      await tools.slack.read_thread({ ts: "again" })
+      const ignored = { tools: 1 }.tools
+      return { wake: true, state: chapters }
+    `,
+    upstreamShadowed: `
+      function helper(tools) {
+        return tools[dynamicKey]()
+      }
+      {
+        const tools = { any: () => 1 }
+        tools.any()
+      }
+      return helper({ [dynamicKey]: () => ({ wake: false }) })
+    `,
+    empty: `   `,
+    emptyUnicode: ` ﻿ `,
+    syntax: `const x = {`,
+    exported: `export const a = 1`,
+    dynamic: `return await tools.slack[name]({})`,
+    aliased: `const s = tools.slack; return await s.read_thread({})`,
+    passed: `return Object.keys(tools)`,
+    bare: `tools`,
+    numberIndex: `tools[0]()`,
+    templateIndex: "tools[`a`]()",
+    stringIndexNested: `tools["a"]["b-c"].d()`,
+    optional: `tools.a?.b?.(); tools?.c(); (tools.d)?.()`,
+    newCall: `new tools.a()`,
+    tagged: "tools.a`x`",
+    assigned: `tools.a = 1`,
+    deleted: `delete tools.a`,
+    awaitedChain: `await (await tools.a()).b()`,
+    resultMember: `(await tools.a()).b.c()`,
+    callResultCall: `tools.a()()`,
+    switchOrder: `switch (tools.first()) { case tools.second(): tools.third(); default: tools.fourth() }`,
+    labelOrder: `tools: for (const x of [tools.a()]) { tools.b(); break tools }`,
+    objectKeys: `const o = { tools: 1, [tools.k()]: tools.v(), tools() {} }; o.tools`,
+    shorthand: `const o = { tools }`,
+    shorthandPattern: `const { tools } = x; tools.a()`,
+    patternKey: `const { tools: t } = x; tools.a()`,
+    patternDefault: `const { t = tools.def() } = x`,
+    assignmentPattern: `({ tools } = x); tools.b()`,
+    varHoisted: `tools.a(); if (x) { var tools = 1 }`,
+    varInFunction: `tools.a(); function f() { var tools = 1 }`,
+    varInForIn: `tools.a(); for (var tools in x) {}`,
+    letInFor: `for (let tools = 0; ; ) { tools.a() } tools.b()`,
+    forOfConst: `for (const tools of x) tools.a(); tools.b()`,
+    catchParam: `try { tools.a() } catch (tools) { tools.b() } tools.c()`,
+    catchPattern: `try {} catch ({ tools }) { tools.b() } tools.c()`,
+    switchLet: `switch (x) { case 1: let tools = 1 } tools.a()`,
+    blockFunction: `{ function tools() {} } tools.a()`,
+    blockClass: `{ class tools {} } tools.a()`,
+    topFunction: `tools.a(); function tools() {}`,
+    arrowParam: `const f = (tools) => tools.x(); tools.y()`,
+    arrowExpressionScope: `const f = ({ a: [tools] }) => tools.x(); tools.y()`,
+    restParam: `function g(...tools) { tools.x() } tools.y()`,
+    namedFunctionExpression: `const h = function tools() { tools.x() }; tools.y()`,
+    classMembers: `class A { tools() {} static tools = 1; get [tools.k()]() {} } tools.z()`,
+    classField: `class A { tools = 1 }`,
+    classStaticVar: `tools.a(); x = class { static { var tools = 1 } }`,
+    staticBlockVar: `class A { static { var tools } } tools.a()`,
+    memberProperty: `x.tools.a(); x?.tools`,
+    labels: `tools: { break tools } tools.a()`,
+    continueLabel: `tools: for (;;) { continue tools }`,
+    importBinding: `import { tools } from "x"`,
+    importAs: `import { a as tools } from "x"`,
+    importOther: `import fs from "fs"; tools.a()`,
+    importNamespace: `import * as tools from "x"`,
+    metaProperty: `function f() { new.target } tools.a()`,
+    templateExpr: "`${tools.a()} and ${tools.b()}`",
+    spreadArgs: `tools.a(...tools.b())`,
+    sequence: `(tools.a(), tools.b())`,
+    computedLiteralNumber: `tools.a[1]()`,
+    privateName: `class A { #x; m() { tools.#x } }`,
+    unicodeEscape: `tools.\\u0061()`,
+    escapedToolsName: `t\\u006fols.a()`,
+    stringLiteralUnicode: `tools["\\u{1F600}"]()`,
+    usingDecl: `{ using tools = x } tools.a()`,
+    deep: `${"(".repeat(200)}tools.a()${")".repeat(200)}`,
+    deepArrays: `${"[".repeat(500)}tools.a()${"]".repeat(500)}`,
+    withStatement: `with (x) { tools.a() }`,
+    exportNested: `{ export const a = tools.a() }`,
+    yieldIn: `function* g() { yield tools.a() }`,
+    getterSetter: `const o = { get tools() { return tools.a() }, set tools(v) {} }`,
+    multiline: `const a = 1\n\n   const b = tools\n.c\n.d\n(tools.e)`,
+    errorAfterFound: `tools.a(); tools.b(); const s = tools`,
+    duplicate: `tools.a(); tools.a(); tools["a"](); tools.b()`,
+    callee: `(0, tools.a)()`,
+    conditional: `(x ? tools.a : tools.b)()`,
+    // Depth: TS's recursive walks throw past about 9,100 levels; these stay well clear of the threshold.
+    deepMembersOk: `tools.a(); x${".b".repeat(6000)}`,
+    deepMembers: `tools.a(); x${".b".repeat(20000)}`,
+    deepInArrow: `tools.a(); (() => x${".b".repeat(20000)})`,
+    deepInFunction: `(function () { tools.a(); x${"()".repeat(20000)} })`,
+    deepToolPath: `tools${".b".repeat(6000)}()`,
+    deepParens: `${"(".repeat(5000)}1${")".repeat(5000)}`,
+  }
+  for (const [name, code] of Object.entries(programs)) add(name, code, { scanOnly: true })
+}
+
 if (kind === "matrix") {
   const values = [`undefined`, `null`, `true`, `false`, `0`, `-0`, `1`, `-1.5`, `NaN`, `Infinity`, `""`, `"0"`, `"1e3"`, `" 12 "`, `"abc"`, `[]`, `[1]`, `[1,2]`, `{}`, `{ valueOf() { return 3 } }`, `{ toString() { return "s" } }`, `new Date(0)`, `/x/g`, `Symbol.iterator`]
   const binary = ["+", "-", "*", "/", "%", "**", "==", "!=", "===", "!==", "<", "<=", ">", ">=", "&", "|", "^", "<<", ">>", ">>>"]

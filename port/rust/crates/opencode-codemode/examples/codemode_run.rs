@@ -1,7 +1,7 @@
 //! The Rust side of the differential check: runs every case of a corpus (JSON lines, see harness/README.md) and
 //! prints one JSON line per case, `{"name", "result", "output"}`, byte for byte as harness/run-ts.ts prints them.
 //!
-//! usage: cargo run --example codemode_run -- corpus.jsonl > rust.jsonl
+//! usage: cargo run --example codemode_run -- corpus.jsonl [--scan] > rust.jsonl
 
 use opencode_codemode::json::{self, Json, JsonObj};
 use opencode_codemode::{
@@ -340,8 +340,32 @@ async fn run_case(case: &JsonObj) -> Json {
     }
 }
 
+fn scan_case(case: &JsonObj) -> Json {
+    let mut scan = JsonObj::new();
+    match opencode_codemode::scan::scan_tools(&text(case.get("code"))) {
+        Ok(paths) => {
+            scan.insert_str("ok", Json::Bool(true));
+            scan.insert_str("paths", Json::Arr(paths.iter().map(|p| Json::str(p)).collect()));
+        }
+        // run-ts.ts reports TS's throw for a tree too deep to walk.
+        Err(diagnostic) if diagnostic.kind == opencode_codemode::DiagnosticKind::ExecutionFailure => {
+            scan.insert_str("ok", Json::Bool(false));
+            scan.insert_str("thrown", Json::str("RangeError"));
+        }
+        Err(diagnostic) => {
+            scan.insert_str("ok", Json::Bool(false));
+            scan.insert_str("error", diagnostic.to_json());
+        }
+    }
+    let mut line = JsonObj::new();
+    line.insert_str("name", case.get("name").cloned().unwrap_or(Json::Null));
+    line.insert_str("scan", Json::Obj(scan));
+    Json::Obj(line)
+}
+
 fn main() {
-    let path = std::env::args().nth(1).expect("usage: codemode_run corpus.jsonl");
+    let path = std::env::args().nth(1).expect("usage: codemode_run corpus.jsonl [--scan]");
+    let scanning = std::env::args().any(|arg| arg == "--scan");
     let source = std::fs::read_to_string(&path).expect("readable corpus");
     // CODEMODE_STACK sets the thread's stack (bytes); the default is a tokio worker's 2 MiB, which the interpreter
     // must survive on any program.
@@ -358,7 +382,18 @@ fn main() {
                     _ => continue,
                 };
                 let name = case.get("name").cloned().unwrap_or(Json::Null);
-                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| runtime.block_on(run_case(&case))))
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    if scanning {
+                        scan_case(&case)
+                    } else if matches!(case.get("scanOnly"), Some(Json::Bool(true))) {
+                        let mut line = JsonObj::new();
+                        line.insert_str("name", case.get("name").cloned().unwrap_or(Json::Null));
+                        line.insert_str("skipped", Json::Bool(true));
+                        Json::Obj(line)
+                    } else {
+                        runtime.block_on(run_case(&case))
+                    }
+                }))
                     .unwrap_or_else(|_| {
                         let mut line = JsonObj::new();
                         line.insert_str("name", name);

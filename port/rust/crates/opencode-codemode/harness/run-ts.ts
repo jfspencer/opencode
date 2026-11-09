@@ -3,7 +3,10 @@
 // `{"name", "result", "output"}`, where `result` is the CodeMode.Result exactly as the tool layer receives it and
 // `output` is the text core's `execute` tool hands to the model (core/src/codemode/tool.ts `formatResult`).
 //
-// usage: bun harness/run-ts.ts corpus.jsonl > ts.jsonl
+// usage: bun harness/run-ts.ts corpus.jsonl [--scan] > ts.jsonl
+//
+// With --scan, each case's code goes through `CodeMode.scanTools` instead, printing `{"name", "scan"}` where `scan` is
+// `{"ok": true, "paths"}` or `{"ok": false, "error"}`.
 import { CodeMode, Extension, Tool } from "../../../../.reference/packages/codemode/src/index.ts"
 import { Effect, Schema } from "../../../../.reference/packages/codemode/node_modules/effect/dist/index.js"
 
@@ -81,6 +84,7 @@ type Case = {
   extensions?: Array<{ name: string; globals: Record<string, GlobalSpec> }>
   /** Record the hooks' events: each `before` as it starts, each `after` with the index of its `before`. */
   hooks?: boolean
+  scanOnly?: boolean
 }
 
 const behave = (spec: ToolSpec) => {
@@ -141,10 +145,28 @@ function formatValue(value: CodeMode.DataValue) {
 }
 
 const path = process.argv[2]
-if (!path) throw new Error("usage: bun harness/run-ts.ts corpus.jsonl")
+if (!path) throw new Error("usage: bun harness/run-ts.ts corpus.jsonl [--scan]")
 const lines = (await Bun.file(path).text()).split("\n").filter((line) => line.trim() !== "")
+const scanning = process.argv.includes("--scan")
 for (const line of lines) {
   const item = JSON.parse(line) as Case
+  if (scanning) {
+    // A tree deeper than the JS stack holds makes scanTools throw (Rust: an ExecutionFailure diagnostic).
+    let scan: unknown
+    try {
+      const scanned = CodeMode.scanTools(item.code)
+      scan = scanned._tag === "Success" ? { ok: true, paths: scanned.success } : { ok: false, error: scanned.failure }
+    } catch (error) {
+      scan = { ok: false, thrown: error instanceof Error ? error.name : typeof error }
+    }
+    process.stdout.write(JSON.stringify({ name: item.name, scan }) + "\n")
+    continue
+  }
+  // Cases written for the scan alone (some never finish when run).
+  if (item.scanOnly) {
+    process.stdout.write(JSON.stringify({ name: item.name, skipped: true }) + "\n")
+    continue
+  }
   const events: Array<unknown> = []
   const started = new Map<object, number>()
   const begin = (call: object, event: Array<unknown>) =>

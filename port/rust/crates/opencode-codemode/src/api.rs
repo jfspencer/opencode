@@ -93,6 +93,13 @@ impl Runtime {
     }
 }
 
+impl Diagnostic {
+    /// The diagnostic as TS writes it: `kind`, `message`, then `location` and `suggestions` when present.
+    pub fn to_json(&self) -> Json {
+        diagnostic_json(self)
+    }
+}
+
 fn diagnostic_json(diagnostic: &Diagnostic) -> Json {
     let mut out = JsonObj::new();
     out.insert_str("kind", Json::str(diagnostic.kind.as_str()));
@@ -205,7 +212,7 @@ impl CodeResult {
     }
 }
 
-fn js_trim(text: &JsStr) -> JsStr {
+pub(crate) fn js_trim(text: &JsStr) -> JsStr {
     let units = text.units();
     let ws = crate::stdlib::string::is_js_whitespace;
     let start = units.iter().position(|u| !ws(*u)).unwrap_or(units.len());
@@ -233,7 +240,12 @@ fn parse_failure(message: &str, line: u32, column: u32) -> Diagnostic {
     }
 }
 
-const PARSER_STACK: usize = 8 * 1024 * 1024;
+pub(crate) const PARSER_STACK: usize = 8 * 1024 * 1024;
+
+/// Frees a tree: one as deep as the parser allows is freed recursively, so it gets the parser's stack too.
+pub(crate) fn drop_program<T>(program: T) {
+    stacker::grow(4 * PARSER_STACK, move || drop(program));
+}
 
 /// acorn's parse plus the export check (parseProgram).
 pub fn parse_program(code: &str) -> Result<crate::parser::ast::Program, Diagnostic> {
@@ -252,6 +264,7 @@ pub fn parse_program(code: &str) -> Result<crate::parser::ast::Program, Diagnost
         program.body.iter().find(|s| matches!(s, Stmt::ExportNamed(_) | Stmt::ExportDefault(_) | Stmt::ExportAll(_)))
     {
         let location = Loc::of(exported.span());
+        drop_program(program);
         return Err(Diagnostic {
             kind: DiagnosticKind::ParseError,
             message: JsStr::from(format!(
@@ -364,8 +377,7 @@ pub async fn execute(prepared: Rc<Prepared>, code: &str, options: ExecuteOptions
         Ok(program) => {
             let program = Rc::new(program);
             let outcome = run_program(prepared, program.clone(), &options).await;
-            // A tree as deep as the parser allows is freed recursively: give that the parser's stack too.
-            stacker::grow(4 * PARSER_STACK, move || drop(program));
+            drop_program(program);
             match outcome {
                 None => return Execution::Interrupted,
                 Some(result) => result,

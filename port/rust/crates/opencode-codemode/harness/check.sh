@@ -2,6 +2,8 @@
 # The differential check: every corpus under harness/corpus runs through the TS reference interpreter and through
 # the Rust crate, and the JSON lines must be byte-identical.
 #
+# Every corpus's programs also go through `scanTools` on both sides (the `<name>.scan` lines).
+#
 # usage: harness/check.sh [corpus-name...] [--show N]     (run from anywhere; TZ is pinned to UTC)
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
@@ -28,5 +30,9 @@ for name in "${names[@]}"; do
   "$runner" "$corpus" > "$out/$name.rust.jsonl"
   echo "== $name"
   bun "$here/compare.ts" "$out/$name.ts.jsonl" "$out/$name.rust.jsonl" --show "$show" || status=1
+  bun "$here/run-ts.ts" "$corpus" --scan > "$out/$name.scan.ts.jsonl"
+  "$runner" "$corpus" --scan > "$out/$name.scan.rust.jsonl"
+  echo "== $name.scan"
+  bun "$here/compare.ts" "$out/$name.scan.ts.jsonl" "$out/$name.scan.rust.jsonl" --show "$show" || status=1
 done
 exit $status

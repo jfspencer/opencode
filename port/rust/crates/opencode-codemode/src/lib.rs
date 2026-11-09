@@ -10,6 +10,7 @@ pub mod json;
 pub mod jsstr;
 pub mod numconv;
 pub mod parser;
+pub mod scan;
 pub mod stdlib;
 pub mod tools;
 
