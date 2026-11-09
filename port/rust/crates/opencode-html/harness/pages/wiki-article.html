@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html class="client-nojs" lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Hash table - Encyclopedia</title>
+<script>(function(){var className="client-js";document.documentElement.className=className;}());</script>
+<link rel="stylesheet" href="/w/load.php?lang=en&amp;modules=site.styles&amp;only=styles&amp;skin=vector">
+</head>
+<body class="skin-vector mediawiki ltr">
+<div id="mw-navigation"><h2>Navigation menu</h2><nav id="p-personal" aria-labelledby="p-personal-label"><ul><li id="pt-login"><a href="/w/index.php?title=Special:UserLogin" title="You're encouraged to log in">Log in</a></li></ul></nav></div>
+<div id="content" class="mw-body" role="main">
+<h1 id="firstHeading" class="firstHeading mw-first-heading"><span class="mw-page-title-main">Hash table</span></h1>
+<div id="bodyContent" class="vector-body">
+<div id="siteSub" class="noprint">From the Encyclopedia</div>
+<div id="mw-content-text" class="mw-body-content mw-content-ltr" lang="en" dir="ltr"><div class="mw-parser-output">
+<div class="shortdescription nomobile noexcerpt noprint searchaux" style="display:none">Associative array for storing key-value pairs</div>
+<div role="note" class="hatnote navigation-not-searchable">"Hash map" redirects here. For other uses, see <a href="/wiki/Hash_map_(disambiguation)" class="mw-disambig" title="Hash map (disambiguation)">Hash map (disambiguation)</a>.</div>
+<table class="infobox"><caption class="infobox-title">Hash table</caption><tbody><tr><th class="infobox-header" colspan="3">Type</th></tr><tr><td class="infobox-full-data" colspan="3"><a href="/wiki/Unordered_associative_array" class="mw-redirect" title="Unordered associative array">Unordered associative array</a></td></tr><tr><th class="infobox-header" colspan="3">Time complexity in <a href="/wiki/Big_O_notation" title="Big O notation">big O notation</a></th></tr><tr><th>Operation</th><th>Average</th><th>Worst case</th></tr><tr><td>Search</td><td>Θ(1)</td><td>O(<i>n</i>)</td></tr><tr><td>Insert</td><td>Θ(1)</td><td>O(<i>n</i>)</td></tr></tbody></table>
+<figure class="mw-default-size" typeof="mw:File/Thumb"><a href="/wiki/File:Hash_table_3_1_1_0_1_0_0_SP.svg" class="mw-file-description"><img alt="" src="//upload.example.org/thumb/Hash_table.svg.png" decoding="async" width="315" height="230" class="mw-file-element"></a><figcaption>A small phone book as a hash table</figcaption></figure>
+<p>In <a href="/wiki/Computing" title="Computing">computing</a>, a <b>hash table</b> is a <a href="/wiki/Data_structure" title="Data structure">data structure</a> that implements an <a href="/wiki/Associative_array" title="Associative array">associative array</a>, also called a <b>dictionary</b> or simply <b>map</b>; an associative array is an <a href="/wiki/Abstract_data_type" title="Abstract data type">abstract data type</a> that maps <a href="/wiki/Unique_key" title="Unique key">keys</a> to <a href="/wiki/Value_(computer_science)" title="Value (computer science)">values</a>.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span class="cite-bracket">&#91;</span>1<span class="cite-bracket">&#93;</span></a></sup> A hash table uses a <a href="/wiki/Hash_function" title="Hash function">hash function</a> to compute an <i>index</i>, also called a <i>hash code</i>, into an array of <i>buckets</i> or <i>slots</i>, from which the desired value can be found.</p>
+<meta property="mw:PageProp/toc">
+<div id="toc" class="toc" role="navigation" aria-labelledby="mw-toc-heading"><input type="checkbox" role="button" id="toctogglecheckbox" class="toctogglecheckbox" style="display:none"><div class="toctitle" lang="en" dir="ltr"><h2 id="mw-toc-heading">Contents</h2></div>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#History"><span class="tocnumber">1</span> <span class="toctext">History</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Overview"><span class="tocnumber">2</span> <span class="toctext">Overview</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Load_factor"><span class="tocnumber">2.1</span> <span class="toctext">Load factor</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Collision_resolution"><span class="tocnumber">3</span> <span class="toctext">Collision resolution</span></a></li>
+</ul>
+</div>
+<div class="mw-heading mw-heading2"><h2 id="History">History</h2><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Hash_table&amp;action=edit&amp;section=1" title="Edit section: History"><span>edit</span></a><span class="mw-editsection-bracket">]</span></span></div>
+<p>The idea of hashing arose independently in different places. In January 1953, <a href="/wiki/Hans_Peter_Luhn" title="Hans Peter Luhn">Hans Peter Luhn</a> wrote an internal <a href="/wiki/IBM" title="IBM">IBM</a> memorandum that used hashing with chaining.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span class="cite-bracket">&#91;</span>2<span class="cite-bracket">&#93;</span></a></sup></p>
+<div class="mw-heading mw-heading2"><h2 id="Overview">Overview</h2></div>
+<p>An <a href="/wiki/Associative_array" title="Associative array">associative array</a> stores a <a href="/wiki/Set_(abstract_data_type)" title="Set (abstract data type)">set</a> of (key, value) pairs and allows insertion, deletion, and lookup (search), with the constraint of <a href="/wiki/Unique_key" title="Unique key">unique keys</a>.</p>
+<div class="mw-heading mw-heading3"><h3 id="Load_factor">Load factor</h3></div>
+<p>A <i>load factor</i> <span class="mwe-math-element"><span class="mwe-math-mathml-inline mwe-math-mathml-a11y" style="display: none;"><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \alpha }"><semantics><mrow class="MJX-TeXAtom-ORD"><mstyle displaystyle="true" scriptlevel="0"><mi>&#x03B1;<!-- α --></mi></mstyle></mrow><annotation encoding="application/x-tex">{\displaystyle \alpha }</annotation></semantics></math></span><img src="https://wikimedia.example/api/rest_v1/media/math/render/svg/b79333175c8b3f0840bfb4ec41b8072c83ea88d3" class="mwe-math-fallback-image-inline mw-invert skin-invert" aria-hidden="true" style="vertical-align: -0.338ex; width:1.488ex; height:1.676ex;" alt="{\displaystyle \alpha }"></span> is a critical statistic of a hash table, and is defined as follows:<sup id="cite_ref-3" class="reference"><a href="#cite_note-3">[3]</a></sup></p>
+<dl><dd><span class="mwe-math-element"><math><mi>load factor</mi><mo>=</mo><mfrac><mi>n</mi><mi>k</mi></mfrac></math></span></dd></dl>
+<p>where</p>
+<ul><li><span class="texhtml"><i>n</i></span> is the number of entries occupied in the hash table.</li>
+<li><span class="texhtml"><i>k</i></span> is the number of buckets.</li></ul>
+<div class="mw-heading mw-heading2"><h2 id="Collision_resolution">Collision resolution</h2></div>
+<p>A search algorithm that uses hashing consists of two parts. The first part is computing a <a href="/wiki/Hash_function" title="Hash function">hash function</a> which transforms the search key into an <a href="/wiki/Array_index" class="mw-redirect" title="Array index">array index</a>.</p>
+<div class="mw-references-wrap"><ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><cite id="CITEREFCormen2009" class="citation book cs1">Cormen, Thomas H. (2009). <i>Introduction to Algorithms</i> (3rd ed.). MIT Press. p.&#160;253. <a href="/wiki/ISBN_(identifier)" class="mw-redirect" title="ISBN (identifier)">ISBN</a>&#160;<a href="/wiki/Special:BookSources/978-0-262-03384-8" title="Special:BookSources/978-0-262-03384-8"><bdi>978-0-262-03384-8</bdi></a>.</cite></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text">Luhn, H. P. (1953). "A new method of recording and searching information".</span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text">Knuth, Donald (1998). <i>The Art of Computer Programming</i>. Vol.&#160;3.</span></li>
+</ol></div>
+<div class="navbox-styles"><style data-mw-deduplicate="TemplateStyles:r1129693374">.mw-parser-output .hlist dl{margin:0}</style></div>
+</div></div>
+<div class="printfooter" data-nosnippet="">Retrieved from "<a dir="ltr" href="https://en.example.org/w/index.php?title=Hash_table&amp;oldid=1">https://en.example.org/w/index.php?title=Hash_table&amp;oldid=1</a>"</div>
+</div>
+</div>
+<footer id="footer" class="mw-footer" role="contentinfo"><ul id="footer-info"><li id="footer-info-lastmod"> This page was last edited on 1 January 2025, at 00:00<span class="anonymous-show">&#160;(UTC)</span>.</li></ul></footer>
+</body>
+</html>

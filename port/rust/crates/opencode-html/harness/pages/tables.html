@@ -1,0 +1,88 @@
+<html><body>
+<h1>Quarterly report</h1>
+<table border="1" cellpadding="4">
+  <caption>Revenue by region <em>(USD, thousands)</em></caption>
+  <colgroup><col span="1"><col span="4" style="background:#eee"></colgroup>
+  <thead>
+    <tr><th scope="col">Region</th><th scope="col">Q1</th><th scope="col">Q2</th><th scope="col">Q3</th><th scope="col">Q4</th></tr>
+  </thead>
+  <tbody>
+    <tr><th scope="row">North America</th><td>1,204</td><td>1,310</td><td>1,288</td><td>1,502</td></tr>
+    <tr><th scope="row">Europe</th><td>988</td><td>1,021</td><td>965</td><td>1,140</td></tr>
+    <tr><th scope="row">Asia | Pacific</th><td>644</td><td>702</td><td>&mdash;</td><td>815</td></tr>
+  </tbody>
+  <tfoot>
+    <tr><th>Total</th><td>2,836</td><td>3,033</td><td>2,253</td><td>3,457</td></tr>
+  </tfoot>
+</table>
+
+<h2>Spans</h2>
+<table>
+  <tr><th rowspan="2">Name</th><th colspan="2">Contact</th></tr>
+  <tr><th>Email</th><th>Phone</th></tr>
+  <tr><td>Ada</td><td>ada@example.com</td><td>+1 555 0100</td></tr>
+</table>
+
+<h2>Cells with structure</h2>
+<table>
+  <tr><th>Feature</th><th>Notes</th><th>Example</th></tr>
+  <tr>
+    <td><strong>Lists</strong></td>
+    <td><ul><li>first point</li><li>second point</li></ul></td>
+    <td><pre>let x = 1;
+let y = x | 2;</pre></td>
+  </tr>
+  <tr>
+    <td><a href="/links" title="Links &amp; anchors">Links</a></td>
+    <td><p>Paragraph one.</p><p>Paragraph two with a <br>line break.</p></td>
+    <td><code>a|b</code> and <code>`tick`</code></td>
+  </tr>
+  <tr>
+    <td>Images</td>
+    <td><img src="/icons/ok.png" alt="ok"> <img src="/icons/warn.png" alt="warn [!]"></td>
+    <td><blockquote>quoted in a cell</blockquote></td>
+  </tr>
+</table>
+
+<h2>Ragged and broken</h2>
+<table>
+  <tr><td>one</td><td>two</td></tr>
+  <tr><td>three</td></tr>
+  <tr><td>four</td><td>five</td><td>six</td></tr>
+</table>
+<table>stray text before rows<tr><td>cell</td></tr> and after</table>
+<table></table>
+<table><tr></tr></table>
+<table><td>no row</td><td>still no row</table>
+<table><tr><td>unclosed cell<tr><td>next row
+</table>
+
+<h2>Nested</h2>
+<table>
+  <tr><th>Outer</th><th>Inner table</th></tr>
+  <tr>
+    <td>left</td>
+    <td>
+      <table>
+        <tr><th>k</th><th>v</th></tr>
+        <tr><td>alpha</td><td>1</td></tr>
+        <tr><td>beta</td><td>2</td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<h2>Layout tables (old school)</h2>
+<table width="100%" cellspacing="0"><tr><td valign="top" width="200">
+<table><tr><td><a href="/">Home</a></td></tr><tr><td><a href="/news">News</a></td></tr></table>
+</td><td valign="top"><h3>Welcome!</h3><p>This site is best viewed in 800&times;600.</p></td></tr></table>
+
+<blockquote>
+<p>A table inside a quote:</p>
+<table><tr><th>x</th><th>y</th></tr><tr><td>1</td><td>2</td></tr></table>
+</blockquote>
+<ul><li>A table inside a list item:
+<table><tr><th>a</th></tr><tr><td>b</td></tr></table></li></ul>
+<table><caption></caption><tr><td>empty caption</td></tr></table>
+<table><tr><td colspan="">empty colspan</td><td rowspan="1">rowspan one</td></tr></table>
+</body></html>

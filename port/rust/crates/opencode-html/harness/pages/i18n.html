@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="mul">
+<head><meta charset="utf-8"><title>Unicode &amp; i18n — テスト</title></head>
+<body>
+<h1>多言語ページ · Multilingual page · Многоязычная страница</h1>
+<p lang="ja">日本語の段落です。句読点、「かぎかっこ」、そして<ruby>漢字<rp>(</rp><rt>かんじ</rt><rp>)</rp></ruby>のルビ。</p>
+<p lang="zh">中文段落：这是一个测试。全角空格「　」在这里。数字１２３和标点，。！？</p>
+<p lang="ko">한국어 문단입니다. <strong>굵게</strong> 그리고 <em>기울임</em>.</p>
+<p lang="ar" dir="rtl">هذه فقرة باللغة العربية مع <a href="/ar">رابط</a> وأرقام ١٢٣.</p>
+<p lang="he" dir="rtl">זוהי פסקה בעברית עם <code>קוד</code> בתוכה.</p>
+<p lang="hi">हिन्दी अनुच्छेद: नमस्ते दुनिया।</p>
+<p lang="th">ภาษาไทย ไม่มีช่องว่างระหว่างคำ</p>
+<p>Combining marks: e&#x301; a&#x308; n&#x303; — precomposed: é ä ñ. Zalgo: Z&#x0351;&#x0357;a&#x0308;l&#x030C;g&#x0301;o&#x0300;</p>
+<p>Emoji: 😀 👍🏽 👩‍👩‍👧 🏳️‍🌈 🇯🇵 #️⃣ 1️⃣ ❤️ — and astral entities: &#x1F600; &#128077; &Afr; &Bopf; &Cscr; &fopf; &zfr;</p>
+<p>Math: &sum;<sub>i=1</sub><sup>n</sup> i = n(n+1)/2 · &int;&#8320;&#185; x dx · &radic;2 &asymp; 1.414 · &infin; · &forall;x &exist;y · &alpha;&beta;&gamma;&delta; · &NotEqualTilde; &nvlt; &bne;</p>
+<p>Spaces: [&nbsp;] [&ensp;] [&emsp;] [&thinsp;] [&#x200B;] [&#x2028;] [&#x2029;] [&#xFEFF;] [&#x3000;] [&#x1680;] [&#x205F;]</p>
+<p>Quotes: &lsquo;single&rsquo; &ldquo;double&rdquo; &laquo;guillemets&raquo; &sbquo;low&lsquo; &bdquo;low&ldquo;</p>
+<p>Dashes and symbols: &ndash; &mdash; &hellip; &bull; &middot; &dagger; &Dagger; &permil; &trade; &reg; &copy; &sect; &para; &deg; &micro; &euro; &pound; &yen; &cent;</p>
+<p>Windows-1252 numeric references: &#128; &#130; &#131; &#132; &#133; &#134; &#135; &#136; &#137; &#138; &#139; &#140; &#142; &#145; &#146; &#147; &#148; &#149; &#150; &#151; &#152; &#153; &#154; &#155; &#156; &#158; &#159;</p>
+<p>Invalid references: &#0; &#xD800; &#xDFFF; &#x110000; &#99999999; &#x7FFFFFFF;</p>
+<ul>
+<li>Ελληνικά: Γειά σου Κόσμε — ΣΊΣΥΦΟΣ (final sigma: ς)</li>
+<li>Türkçe: İstanbul, ıspanak, IŞIK</li>
+<li>Deutsch: Straße, GROSSE, Fußgängerübergänge</li>
+<li>Tiếng Việt: Xin chào thế giới</li>
+<li>Emoji in code: <code>🚀 deploy</code> and in a link: <a href="/🚀">🚀 launch</a></li>
+</ul>
+<table><tr><th>言語</th><th>挨拶</th></tr><tr><td>日本語</td><td>こんにちは</td></tr><tr><td>Русский</td><td>Привет</td></tr><tr><td>emoji</td><td>👋</td></tr></table>
+<pre>アスキーアート:
+  ／＞　 フ
+  | 　_　_|
+／` ミ＿xノ
+</pre>
+<p><img src="/画像/猫.png" alt="猫の写真 🐱" title="ねこ"></p>
+<p>Line separator inside text: before&#x2028;after, and raw: before after</p>
+</body>
+</html>

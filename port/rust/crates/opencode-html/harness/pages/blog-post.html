@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Why we rewrote our build in a weekend &mdash; The Engineering Blog</title>
+<meta property="og:title" content="Why we rewrote our build in a weekend">
+<script async src="https://www.googletagmanager.example/gtag/js?id=G-123"></script>
+<script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date());</script>
+</head>
+<body class="post-template">
+<div class="site-wrapper">
+<header class="site-header">
+  <div class="inner">
+    <a class="site-logo" href="/"><img src="/content/images/logo.png" alt="The Engineering Blog"></a>
+    <ul class="nav" role="menu">
+      <li class="nav-home" role="menuitem"><a href="/">Home</a></li>
+      <li class="nav-about" role="menuitem"><a href="/about/">About</a></li>
+      <li class="nav-rss" role="menuitem"><a href="/rss/">RSS</a></li>
+    </ul>
+  </div>
+</header>
+<main id="site-main" class="site-main outer">
+<article class="post-full post">
+  <header class="post-full-header">
+    <section class="post-full-tags"><a href="/tag/build/">Build</a>, <a href="/tag/tooling/">Tooling</a></section>
+    <h1 class="post-full-title">Why we rewrote our build in a weekend</h1>
+    <p class="post-full-custom-excerpt">Spoiler: we didn't <em>really</em> do it in a weekend.</p>
+    <div class="post-full-byline">
+      <section class="post-full-byline-content">
+        <ul class="author-list"><li class="author-list-item"><a href="/author/sam/" class="author-avatar"><img class="author-profile-image" src="/content/images/sam.jpg" alt="Sam Example"></a></li></ul>
+        <section class="post-full-byline-meta">
+          <h4 class="author-name"><a href="/author/sam/">Sam Example</a></h4>
+          <div class="byline-meta-content"><time class="byline-meta-date" datetime="2024-11-02">2 Nov 2024</time><span class="byline-reading-time"><span class="bull">&bull;</span> 9 min read</span></div>
+        </section>
+      </section>
+    </div>
+  </header>
+  <figure class="post-full-image">
+    <img srcset="/img/hero-300.jpg 300w, /img/hero-600.jpg 600w" sizes="(max-width: 800px) 400px, 1170px" src="/img/hero-600.jpg" alt="A very old build server, covered in dust">
+    <figcaption>Our build server, circa 2019. Photo by <a href="https://unsplash.example/@someone">Someone</a>.</figcaption>
+  </figure>
+  <section class="post-full-content">
+    <div class="post-content">
+      <p>Last month our CI times crossed <strong>forty minutes</strong>. That's forty minutes between <em>"I pushed a fix"</em> and <em>"I know whether the fix works"</em>. Something had to give.</p>
+      <p>This post walks through what we changed, what we measured, and &mdash; most importantly &mdash; what we got wrong along the way. If you only read one section, read <a href="#what-went-wrong">What went wrong</a>.</p>
+      <h2 id="the-old-setup">The old setup</h2>
+      <p>The old pipeline was a 2,300-line <code>Makefile</code> that had grown organically since 2016. Some highlights:</p>
+      <ul>
+        <li>Every target depended on <code>clean</code>, so <em>nothing</em> was ever cached.</li>
+        <li>Tests ran serially because two of them shared a port (<code>:8080</code>, of course).</li>
+        <li>A step called <code>fix-permissions</code> ran <code>chmod -R 777 .</code>&nbsp;&mdash; don't ask.</li>
+      </ul>
+      <blockquote><p>"A build system is a program that runs other programs, badly." <br>&mdash; an anonymous colleague, after a long night</p></blockquote>
+      <h2 id="measuring">Measuring first</h2>
+      <p>Before changing anything we added timing to every step. The results were... instructive:</p>
+      <table>
+        <thead><tr><th>Step</th><th>Median</th><th>p95</th></tr></thead>
+        <tbody>
+          <tr><td>Dependency install</td><td>6m 12s</td><td>11m 40s</td></tr>
+          <tr><td>Compile</td><td>14m 03s</td><td>15m 30s</td></tr>
+          <tr><td>Unit tests</td><td>9m 47s</td><td>12m 02s</td></tr>
+          <tr><td>Integration tests</td><td>8m 55s</td><td>19m 10s</td></tr>
+        </tbody>
+      </table>
+      <p>Notice the p95 for integration tests: almost all of that variance came from one flaky test that retried <em>five times</em> with exponential back-off.</p>
+      <h2 id="the-rewrite">The rewrite</h2>
+      <p>We moved to a content-addressed cache. The core idea fits in a few lines:</p>
+      <pre><code class="language-python">def cache_key(step, inputs):
+    h = hashlib.sha256()
+    h.update(step.command.encode())
+    for path in sorted(inputs):
+        h.update(path.encode())
+        h.update(digest(path))
+    return h.hexdigest()
+
+if (key := cache_key(step, step.inputs)) in cache:
+    restore(cache[key])  # &lt;-- the 90% case
+else:
+    run(step); cache[key] = snapshot(step.outputs)
+</code></pre>
+      <p>That's it. Everything else is plumbing: remote storage, eviction, and making sure <code>inputs</code> is <strong>actually complete</strong>.</p>
+      <h3 id="what-went-wrong">What went wrong</h3>
+      <ol>
+        <li><p><strong>Undeclared inputs.</strong> The compiler read <code>$HOME/.config/toolchain.toml</code>. Nobody knew. Cache hits produced binaries built with the wrong flags.</p></li>
+        <li><p><strong>Timestamps in outputs.</strong> Our archives embedded <code>mtime</code>, so identical inputs produced different outputs, which defeated downstream caching.</p></li>
+        <li><p><strong>The 777 step.</strong> Yes, it came back to bite us: file modes were part of the digest.</p>
+          <ul><li>Fix: normalize modes to <code>0644</code>/<code>0755</code> before hashing.</li><li>Second fix: delete the step. Nobody missed it.</li></ul>
+        </li>
+      </ol>
+      <hr>
+      <h2 id="results">Results</h2>
+      <p>Median CI time is now <strong>6m 40s</strong> (down from 39m). Cache hit rate sits around 87%. Developers have stopped making coffee during builds, which has been bad for the coffee machine's utilization metrics.</p>
+      <p><img src="/img/chart.png" alt="Chart: CI duration over time, dropping sharply in October" title="CI duration, Aug&ndash;Nov"></p>
+      <p>Questions? Find us on <a href="https://social.example/@eng" rel="me">the fediverse</a> or open an issue on <a href="https://git.example/eng/blog/issues/new?title=Build%20post&amp;labels=question">our repo</a>.</p>
+    </div>
+  </section>
+  <section class="post-full-comments" hidden><div id="disqus_thread"></div></section>
+</article>
+<aside class="read-more-wrap outer">
+  <div class="read-more inner">
+    <article class="post-card"><a class="post-card-image-link" href="/flaky-tests/"><img class="post-card-image" src="/img/flaky.jpg" alt=""></a><div class="post-card-content"><a class="post-card-content-link" href="/flaky-tests/"><header class="post-card-header"><h2 class="post-card-title">Taming flaky tests</h2></header><section class="post-card-excerpt"><p>Five patterns we found, and how to make each one deterministic.</p></section></a></div></article>
+  </div>
+</aside>
+</main>
+<footer class="site-footer outer"><div class="site-footer-content inner"><section class="copyright"><a href="/">The Engineering Blog</a> &copy; 2024</section><nav class="site-footer-nav"><a href="/privacy/">Privacy</a> <a href="/terms/">Terms</a></nav></div></footer>
+</div>
+<div class="cookie-banner" aria-hidden="true">We use cookies. <button>OK</button></div>
+<noscript><img height="1" width="1" style="display:none" src="https://pixel.example/tr?id=1&ev=PageView&noscript=1"></noscript>
+</body>
+</html>
