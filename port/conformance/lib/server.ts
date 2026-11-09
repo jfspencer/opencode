@@ -30,7 +30,7 @@
 //
 // Records nothing itself. When CONFORMANCE_MEMORY_LOG names a file, the peak resident memory of every server
 // process (and every TUI process, lib/tui.ts) is appended to it as one JSON line per scenario.
-import { appendFileSync, existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fakeNetwork } from "./network"
 
@@ -213,6 +213,16 @@ export async function startProcess(
         )
     },
   }
+}
+
+/**
+ * The persistent-terminal daemon's environment for a process the harness starts (lib/preload.ts): the reference's
+ * opencode-pty build, and a socket directory in the sandbox. Without it, a daemon listens in the user's real
+ * /tmp/opencode-pty-<uid>, where their service's daemons do.
+ */
+export function ptyEnv(socketDir: string): Record<string, string> {
+  mkdirSync(socketDir, { recursive: true })
+  return { OPENCODE_PTY_BIN: process.env.OPENCODE_PTY_BIN!, OPENCODE_PTY_SOCKET_DIR: socketDir }
 }
 
 /** Peak and current resident memory (KiB) of a live process. */

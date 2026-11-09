@@ -64,7 +64,7 @@ import path from "node:path"
 import { config as makeConfig } from "./model"
 import { fakeNetwork } from "./network"
 import { scenario, type Ctx, type ScenarioOptions } from "./scenario"
-import { ENTRY, opencodeCommand, REPO, runsTs, tsEnv } from "./server"
+import { ENTRY, opencodeCommand, ptyEnv, REPO, runsTs, tsEnv } from "./server"
 
 // The TS reference being driven (port/conformance/ref, set by port/scripts/link-deps.sh), or the executable named
 // by CONFORMANCE_IMPL (lib/server.ts). TS processes get tsEnv(): the SolidJS transform and a release build's
@@ -218,6 +218,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       // The port omits fff file search (ripgrep + fuzzysort instead).
       OPENCODE_DISABLE_FFF: "1",
       OPENCODE_MODELS_PATH: path.join(sandbox, "models.json"),
+      ...ptyEnv(path.join(sandbox, "pty")),
       ...network.env,
       ...(runsTs() ? tsEnv() : {}),
     }
