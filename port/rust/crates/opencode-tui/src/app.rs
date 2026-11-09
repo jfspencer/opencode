@@ -113,6 +113,7 @@ pub async fn run(input: TuiInput) -> i32 {
         };
         provide_context(context(), t.clone());
         crate::keymap::install(&t);
+        crate::local::install();
         let view = component(app_view);
         insert(root, view, At::Only);
     });
