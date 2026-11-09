@@ -1,13 +1,20 @@
-//! What the home screen reads from the server: the location, its agents, providers, models and configured model.
+//! The TUI's data (`context/data.tsx` over `@opencode/client/solid`'s `createData`): `opencode-tui-sync`'s store,
+//! fed by the client connection's event stream, observed through the reactive layer (its `Reactivity` keys map to
+//! signals), and the views of it the home screen reads (agents, providers, models, the configured model, the
+//! location's directory) as memos over the store's reads.
 //!
-//! TODO(port-tui): opencode-tui-sync's data store. A stand-in: each list is loaded once with the client and held
-//! in a signal; `data.location.*` of `@opencode/client/solid` (refetch on events, per-location caches) replaces it.
-//! `OPENCODE_TUI_DEBUG=<file>` appends every response to that file.
+//! TODO(port-tui): opencode-tui-sync milestone 3 (the TUI's data contexts) replaces the views below with its
+//! context API; [`Data::store`] is the store itself for components that read it directly.
+//! `OPENCODE_TUI_DEBUG=<file>` appends the direct responses to that file.
 use std::rc::Rc;
 
 use opencode_protocol::Json;
-use opencode_tui_core::reactive::{Signal, create_signal_with};
+use opencode_tui_core::reactive::{KeyedSignals, Memo, Signal, create_memo_equals, create_signal_with};
+use opencode_tui_sync::bus::Emitter;
 use opencode_tui_sync::client::{Client, RequestOptions};
+use opencode_tui_sync::connection::{ClientConnection, ConnectionOptions};
+use opencode_tui_sync::data::{CreateDataInput, Data as Store};
+use opencode_tui_sync::reactive::{Key, Reactivity};
 
 /// A JSON field.
 pub fn get<'a>(value: &'a Json, key: &str) -> Option<&'a Json> {
@@ -58,15 +65,60 @@ pub struct ProviderInfo {
     pub name: String,
 }
 
-/// The loaded lists (`undefined` until loaded).
+/// The store's change notification as signals: a read tracks its key; a change triggers the key, its ancestors
+/// and its descendants (opencode-tui-sync's `Reactivity` contract).
+struct Signals(KeyedSignals<Key>);
+
+fn under(key: &Key, ancestor: &Key) -> bool {
+    let mut parent = key.parent();
+    while let Some(p) = parent {
+        if &p == ancestor {
+            return true;
+        }
+        parent = p.parent();
+    }
+    false
+}
+
+impl Reactivity for Signals {
+    fn track(&self, key: &Key) {
+        self.0.track(key);
+    }
+    fn trigger(&self, key: &Key) {
+        let signals = &self.0;
+        signals.batch(&mut || {
+            signals.trigger(key);
+            let mut parent = key.parent();
+            while let Some(p) = parent {
+                signals.trigger(&p);
+                parent = p.parent();
+            }
+            for descendant in signals.keys_where(|k| under(k, key)) {
+                signals.trigger(&descendant);
+            }
+        });
+    }
+    fn batch(&self, f: &mut dyn FnMut()) {
+        self.0.batch(f);
+    }
+    fn untrack(&self, f: &mut dyn FnMut()) {
+        self.0.untrack(f);
+    }
+}
+
+/// The data the TUI reads.
 pub struct Data {
     pub client: Client,
+    /// `createData`: the store.
+    pub store: Store,
+    /// The event stream and its reconnects (`createClientConnection`).
+    pub connection: ClientConnection,
     pub directory: Signal<Option<String>>,
-    pub agents: Signal<Option<Vec<AgentInfo>>>,
-    pub models: Signal<Option<Vec<ModelInfo>>>,
-    pub providers: Signal<Option<Vec<ProviderInfo>>>,
+    pub agents: Memo<Option<Vec<AgentInfo>>>,
+    pub models: Memo<Option<Vec<ModelInfo>>>,
+    pub providers: Memo<Option<Vec<ProviderInfo>>>,
     /// The configured model (`config.model`), as `(providerID, modelID, variant)`.
-    pub configured_model: Signal<Option<(String, String, Option<String>)>>,
+    pub configured_model: Memo<Option<(String, String, Option<String>)>>,
 }
 
 fn debug(label: &str, value: &Json) {
@@ -86,21 +138,134 @@ pub fn parse_model(value: &str) -> (String, String) {
     }
 }
 
-impl Data {
-    pub fn new(client: Client) -> Rc<Data> {
-        Rc::new(Data {
-            client,
-            directory: create_signal_with(None, None).0,
-            agents: create_signal_with(None, None).0,
-            models: create_signal_with(None, None).0,
-            providers: create_signal_with(None, None).0,
-            configured_model: create_signal_with(None, None).0,
+fn location_of(directory: &Signal<Option<String>>) -> Option<Json> {
+    directory.get().map(|d| object(vec![("directory", Json::String(d))]))
+}
+
+fn agents_of(list: &Json) -> Vec<AgentInfo> {
+    array(list)
+        .iter()
+        .map(|a| AgentInfo {
+            id: get_str(a, "id").unwrap_or_default().to_string(),
+            mode: get_str(a, "mode").unwrap_or("primary").to_string(),
+            hidden: matches!(get(a, "hidden"), Some(Json::Bool(true))),
+            color: get_str(a, "color").map(str::to_string),
+            model: get(a, "model").map(|m| {
+                (
+                    get_str(m, "providerID").unwrap_or_default().to_string(),
+                    get_str(m, "id").unwrap_or_default().to_string(),
+                    get_str(m, "variant").map(str::to_string),
+                )
+            }),
         })
+        .collect()
+}
+
+fn models_of(list: &Json) -> Vec<ModelInfo> {
+    array(list)
+        .iter()
+        .map(|m| ModelInfo {
+            id: get_str(m, "id").unwrap_or_default().to_string(),
+            provider_id: get_str(m, "providerID").unwrap_or_default().to_string(),
+            name: get_str(m, "name").unwrap_or_default().to_string(),
+            variants: get(m, "variants")
+                .map(|v| array(v).iter().filter_map(|x| get_str(x, "id").map(str::to_string)).collect())
+                .unwrap_or_default(),
+        })
+        .collect()
+}
+
+fn providers_of(list: &Json) -> Vec<ProviderInfo> {
+    array(list)
+        .iter()
+        .map(|p| ProviderInfo {
+            id: get_str(p, "id").unwrap_or_default().to_string(),
+            name: get_str(p, "name").unwrap_or_default().to_string(),
+        })
+        .collect()
+}
+
+/// local.tsx `configuredModel`: the last document entry that sets a model.
+fn configured_of(config: &Json) -> Option<(String, String, Option<String>)> {
+    let configured = array(config)
+        .iter()
+        .rev()
+        .filter(|entry| get_str(entry, "type") == Some("document"))
+        .find_map(|entry| get(entry, "info").and_then(|info| get(info, "model")).cloned());
+    match configured {
+        Some(Json::String(value)) => {
+            let (provider, model) = parse_model(&value);
+            Some((provider, model, None))
+        }
+        Some(value @ Json::Object(_)) => Some((
+            get_str(&value, "providerID").unwrap_or_default().to_string(),
+            get_str(&value, "model").unwrap_or_default().to_string(),
+            get_str(&value, "variant").map(str::to_string),
+        )),
+        _ => None,
+    }
+}
+
+impl Data {
+    /// The store for a client (`ClientProvider` + `DataProvider`), its connection started.
+    pub fn new(client: Client, directory: &str) -> Rc<Data> {
+        let reactivity: Rc<dyn Reactivity> = Rc::new(Signals(KeyedSignals::new()));
+        let emitter = Emitter::new();
+        let connection = {
+            let emitter = emitter.clone();
+            ClientConnection::create(
+                client.clone(),
+                ConnectionOptions {
+                    reconnect: None,
+                    on_event: Rc::new(move |event| emitter.emit(event)),
+                    flush_interval: None,
+                    idle_timeout: None,
+                    log: None,
+                    reactivity: reactivity.clone(),
+                },
+            )
+        };
+        let api = client.clone();
+        let store = Store::create(CreateDataInput {
+            api: Rc::new(move || api.clone()),
+            directory: directory.to_string(),
+            initial_message_limit: None,
+            event: emitter,
+            connection: Some(Rc::new(connection.clone())),
+            on_error: None,
+            omit_tool_file_data: false,
+            reactivity,
+            log: None,
+        });
+        let directory = create_signal_with(None, None).0;
+        let agents = {
+            let resource = store.location.agent.clone();
+            create_memo_equals(move || location_of(&directory).and_then(|l| resource.list(Some(&l))).map(|r| agents_of(&r)), None)
+        };
+        let models = {
+            let resource = store.location.model.clone();
+            create_memo_equals(move || location_of(&directory).and_then(|l| resource.list(Some(&l))).map(|r| models_of(&r)), None)
+        };
+        let providers = {
+            let resource = store.location.provider.clone();
+            create_memo_equals(
+                move || location_of(&directory).and_then(|l| resource.list(Some(&l))).map(|r| providers_of(&r)),
+                None,
+            )
+        };
+        let configured_model = {
+            let resource = store.location.config.clone();
+            create_memo_equals(
+                move || location_of(&directory).and_then(|l| resource.list(Some(&l))).and_then(|r| configured_of(&r)),
+                None,
+            )
+        };
+        let _ = connection.start();
+        Rc::new(Data { client, store, connection, directory, agents, models, providers, configured_model })
     }
 
     async fn call(&self, name: &str, input: Json) -> Option<Json> {
-        let result = self.client.call_named(name, &input, RequestOptions::default()).await;
-        match result {
+        match self.client.call_named(name, &input, RequestOptions::default()).await {
             Ok(value) => {
                 let json = value.json();
                 debug(name, &json);
@@ -111,11 +276,6 @@ impl Data {
                 None
             }
         }
-    }
-
-    fn location_input(&self) -> Json {
-        let directory = self.directory.get_untracked().unwrap_or_default();
-        object(vec![("location", object(vec![("directory", Json::String(directory))]))])
     }
 
     /// The location the TUI opens (app.tsx: `file.list` in the working directory, else `location.get`).
@@ -134,78 +294,19 @@ impl Data {
         directory
     }
 
-    /// Loads the agent, provider and model lists and the configured model of the location.
+    /// Loads the location's agents, providers, models and config into the store.
     pub async fn load_location_data(self: Rc<Self>) {
-        let agents = self.call("agent.list", self.location_input()).await;
-        let providers = self.call("provider.list", self.location_input()).await;
-        let models = self.call("model.list", self.location_input()).await;
-        let config = self.call("config.get", self.location_input()).await;
-        opencode_tui_core::reactive::batch(|| {
-            if let Some(agents) = agents {
-                let list = array(&agents)
-                    .iter()
-                    .map(|a| AgentInfo {
-                        id: get_str(a, "id").unwrap_or_default().to_string(),
-                        mode: get_str(a, "mode").unwrap_or("primary").to_string(),
-                        hidden: matches!(get(a, "hidden"), Some(Json::Bool(true))),
-                        color: get_str(a, "color").map(str::to_string),
-                        model: get(a, "model").map(|m| {
-                            (
-                                get_str(m, "providerID").unwrap_or_default().to_string(),
-                                get_str(m, "id").unwrap_or_default().to_string(),
-                                get_str(m, "variant").map(str::to_string),
-                            )
-                        }),
-                    })
-                    .collect();
-                self.agents.set(Some(list));
-            }
-            if let Some(providers) = providers {
-                let list = array(&providers)
-                    .iter()
-                    .map(|p| ProviderInfo {
-                        id: get_str(p, "id").unwrap_or_default().to_string(),
-                        name: get_str(p, "name").unwrap_or_default().to_string(),
-                    })
-                    .collect();
-                self.providers.set(Some(list));
-            }
-            if let Some(models) = models {
-                let list = array(&models)
-                    .iter()
-                    .map(|m| ModelInfo {
-                        id: get_str(m, "id").unwrap_or_default().to_string(),
-                        provider_id: get_str(m, "providerID").unwrap_or_default().to_string(),
-                        name: get_str(m, "name").unwrap_or_default().to_string(),
-                        variants: get(m, "variants")
-                            .map(|v| array(v).iter().filter_map(|x| get_str(x, "id").map(str::to_string)).collect())
-                            .unwrap_or_default(),
-                    })
-                    .collect();
-                self.models.set(Some(list));
-            }
-            if let Some(config) = config {
-                // The last document entry that sets a model (local.tsx `configuredModel`).
-                let configured = array(&config)
-                    .iter()
-                    .rev()
-                    .filter(|entry| get_str(entry, "type") == Some("document"))
-                    .find_map(|entry| get(entry, "info").and_then(|info| get(info, "model")).cloned())
-                    .or_else(|| get(&config, "model").cloned());
-                let parsed = match configured {
-                    Some(Json::String(value)) => {
-                        let (provider, model) = parse_model(&value);
-                        Some((provider, model, None))
-                    }
-                    Some(value @ Json::Object(_)) => Some((
-                        get_str(&value, "providerID").unwrap_or_default().to_string(),
-                        get_str(&value, "model").unwrap_or_default().to_string(),
-                        get_str(&value, "variant").map(str::to_string),
-                    )),
-                    _ => None,
-                };
-                self.configured_model.set(parsed);
-            }
-        });
+        let Some(location) = self.directory.get_untracked().map(|d| object(vec![("directory", Json::String(d))])) else {
+            return;
+        };
+        let loads = [
+            self.store.location.agent.sync(Some(&location)),
+            self.store.location.provider.sync(Some(&location)),
+            self.store.location.model.sync(Some(&location)),
+            self.store.location.config.sync(Some(&location)),
+        ];
+        for load in loads {
+            let _ = load.wait().await;
+        }
     }
 }
