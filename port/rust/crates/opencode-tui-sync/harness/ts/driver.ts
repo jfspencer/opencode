@@ -16,6 +16,7 @@ const { OpenCode } = await import(path.join(client, "promise/index.ts"))
 const { createClientConnection } = await import(path.join(client, "solid/connection.ts"))
 const solid = await import(Bun.resolveSync("solid-js", path.join(client, "solid")))
 const { runData } = await import("./data")
+const { runContext } = await import("./context")
 
 type Step = Record<string, unknown> & { op: string }
 type Case = Record<string, unknown> & { kind: string; name: string }
@@ -212,6 +213,7 @@ for (const spec of cases) {
     else if (spec.kind === "sse") result = await runSse(spec)
     else if (spec.kind === "connection") result = await runConnection(spec)
     else if (spec.kind === "data") result = await runData(spec, { OpenCode, solid, reference })
+    else if (spec.kind === "context") result = await runContext(spec, { OpenCode, solid, reference })
     else throw new Error(`unknown case kind ${spec.kind}`)
   } catch (error) {
     result = { crashed: String(error instanceof Error ? error.stack : error) }

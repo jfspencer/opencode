@@ -10,6 +10,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { connectionCases, randomConnectionCases, requestCases, sseCases } from "./cases/client"
+import { contextCases } from "./cases/context"
 import { dataCases } from "./cases/data"
 import { Random } from "./cases/random"
 
@@ -50,20 +51,24 @@ const wants = (kind: string) => !only || only.includes(kind)
 if (wants("request")) cases.push(...requestCases(random, 600 * count))
 if (wants("sse")) cases.push(...sseCases(random, 400 * count))
 if (wants("connection")) cases.push(...connectionCases(), ...randomConnectionCases(random, 150 * count))
-if (wants("data")) {
-  const { fixed, generated } = dataCases(seed, 300 * count)
-  const file = path.join(work, "generate.jsonl")
+/** Runs generated cases against TS once, keeping the concrete steps it took, for both drivers to replay. */
+async function concrete(generated: unknown[], label: string) {
+  const file = path.join(work, `generate-${label}.jsonl`)
   write(file, generated)
-  const results = await tsDriver(file, path.join(work, "generated.jsonl"))
-  const concrete = results.map((line, index) => {
+  const results = await tsDriver(file, path.join(work, `generated-${label}.jsonl`))
+  return results.map((line, index) => {
     const result = line.result as { steps?: unknown[]; crashed?: string }
     if (!result.steps) throw new Error(`generating ${line.name} failed: ${result.crashed ?? JSON.stringify(result).slice(0, 500)}`)
     const spec = generated[index] as Record<string, unknown>
     const { generate: _, ...rest } = spec
     return { ...rest, steps: result.steps }
   })
-  cases.push(...fixed, ...concrete)
 }
+if (wants("data")) {
+  const { fixed, generated } = dataCases(seed, 300 * count)
+  cases.push(...fixed, ...(await concrete(generated, "data")))
+}
+if (wants("context")) cases.push(...(await concrete(contextCases(seed, 100 * count), "context")))
 for (const file of flags("--cases"))
   cases.push(...readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line)))
 const casesFile = path.join(work, "cases.jsonl")
@@ -120,7 +125,7 @@ for (let i = 0; i < Math.max(ts.length, rust.length); i++) {
   const stats = kinds.get(spec?.kind ?? "?") ?? { total: 0, failed: 0 }
   kinds.set(spec?.kind ?? "?", stats)
   stats.total++
-  const found = difference(normalize(ts[i]?.result), normalize(rust[i]?.result), spec?.kind === "data")
+  const found = difference(normalize(ts[i]?.result), normalize(rust[i]?.result), spec?.kind === "data" || spec?.kind === "context")
   const crashed = JSON.stringify(ts[i]?.result ?? "").includes('"crashed"')
   if (!found && !crashed) continue
   stats.failed++

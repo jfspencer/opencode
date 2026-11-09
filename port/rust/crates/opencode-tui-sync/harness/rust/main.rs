@@ -3,6 +3,7 @@
 //!
 //! usage: sync-driver <cases.jsonl>
 
+mod context;
 mod data;
 mod tracker;
 mod env;
@@ -39,6 +40,7 @@ fn main() {
                 "sse" => run_sse(&spec, &script).await,
                 "connection" => run_connection(&spec, &script).await,
                 "data" => data::run(&spec, &script).await,
+                "context" => context::run(&spec, &script).await,
                 other => obj(vec![("crashed", Json::String(format!("unknown case kind {other}")))]),
             };
             env::advance(120_000.0).await;
