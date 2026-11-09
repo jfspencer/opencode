@@ -96,4 +96,5 @@ pub mod local;
 pub mod prompt;
 pub mod session;
 pub mod theme;
+pub mod tools;
 pub mod util;
