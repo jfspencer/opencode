@@ -756,7 +756,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
     loop {
         let joined = tokio::select! {
             biased;
-            _ = input.cancel.cancelled(), if !stream_interrupted => {
+            _ = input.cancel.cancelled(), if !stream_interrupted && !tools_interrupted => {
                 tools.abort_all();
                 tools_interrupted = true;
                 continue;
