@@ -231,6 +231,13 @@ scenarios/cli-session.test.ts › session import into another directory
 scenarios/cli-session.test.ts › session list formats and limits
 scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
+scenarios/cli-wizard.test.ts › wizard after flags already given
+scenarios/cli-wizard.test.ts › wizard boolean answers and cancelling mid-way
+scenarios/cli-wizard.test.ts › wizard command not run
+scenarios/cli-wizard.test.ts › wizard counts, repeated flags and quoting
+scenarios/cli-wizard.test.ts › wizard on the root command, cancelled
+scenarios/cli-wizard.test.ts › wizard picks a command from the root and runs it
+scenarios/cli-wizard.test.ts › wizard with a limit and a format
 scenarios/codemode-lang-async.test.ts › async delegation and settlement edge cases
 scenarios/codemode-lang-async.test.ts › async functions and await ordering
 scenarios/codemode-lang-async.test.ts › generators and iterators
