@@ -5,9 +5,11 @@
 //! retries, compactions, completed-edit diffs and usage), permission requests and forms asked of the client,
 //! cancellation, and config options (model, effort, mode) that follow the server's catalog and selections.
 //!
-//! Out of scope: the MCP servers a client names are checked but not registered (`experimental.mcp.add`), since MCP
-//! is dropped from the port; the SDK's schema validation of request parameters (zod's error format) is not
-//! reproduced.
+//! Out of scope: the MCP servers a client names are checked but not registered (`experimental.mcp.add`): MCP is
+//! dropped from the port.
+//!
+//! TODO(port): the ACP SDK validates each request's parameters against the protocol's zod schemas and answers
+//! invalid ones with `-32602 Invalid params` and zod's formatted error tree; here, parameters are read leniently.
 
 mod elicitation;
 mod permission;
@@ -161,7 +163,9 @@ impl Connection {
         let id = match get(message, "id") {
             Some(Json::Number(n)) => *n as i64,
             Some(other) => {
-                super::out::stderr(&format!("Got response to unknown request {}\n", json::text(other)));
+                // `console.error` prints a string as it is.
+                let shown = json::as_str(other).map(String::from).unwrap_or_else(|| json::text(other));
+                super::out::stderr(&format!("Got response to unknown request {shown}\n"));
                 return;
             }
             None => return,
@@ -1224,21 +1228,16 @@ pub async fn command(globals: &super::parse::Globals, input: &Input) -> Result {
         connected,
     });
     tokio::spawn(follow_events(agent.clone(), connected_tx));
-    let (lines_tx, mut lines) = mpsc::unbounded_channel::<String>();
-    std::thread::spawn(move || {
-        use std::io::BufRead;
-        for line in std::io::stdin().lock().lines() {
-            let Ok(line) = line else { break };
-            if lines_tx.send(line).is_err() {
-                break;
-            }
-        }
-    });
+    let (lines_tx, mut lines) = mpsc::unbounded_channel::<Line>();
+    std::thread::spawn(move || read_lines(lines_tx));
     let failure = loop {
         tokio::select! {
             line = lines.recv() => {
-                let Some(line) = line else { break None };
-                dispatch(&agent, &line);
+                match line {
+                    None => break None,
+                    Some(Line::TooLarge) => break Some(format!("incoming message exceeded the {} MiB limit", MAX_MESSAGE_BYTES / 1024 / 1024)),
+                    Some(Line::Text(line)) => dispatch(&agent, &line),
+                }
             }
             exit = private.exited() => {
                 let reason = match exit {
@@ -1258,16 +1257,90 @@ pub async fn command(globals: &super::parse::Globals, input: &Input) -> Result {
     std::process::exit(if failure.is_some() { 1 } else { 0 })
 }
 
+/// The SDK's `DEFAULT_MAX_MESSAGE_BYTES`: a longer line closes the connection.
+const MAX_MESSAGE_BYTES: usize = 32 * 1024 * 1024;
+
+enum Line {
+    Text(String),
+    TooLarge,
+}
+
+/// `ndJsonStream`'s reading: lines split at LF (a CR before it dropped), decoded leniently, at most
+/// [`MAX_MESSAGE_BYTES`] each.
+fn read_lines(lines: mpsc::UnboundedSender<Line>) {
+    use std::io::BufRead;
+    let stdin = std::io::stdin();
+    let mut input = stdin.lock();
+    let mut pending: Vec<u8> = vec![];
+    loop {
+        let (consumed, complete) = match input.fill_buf() {
+            Ok([]) => break,
+            Ok(buffer) => match buffer.iter().position(|b| *b == b'\n') {
+                Some(at) => {
+                    pending.extend_from_slice(&buffer[..at]);
+                    (at + 1, true)
+                }
+                None => {
+                    pending.extend_from_slice(buffer);
+                    (buffer.len(), false)
+                }
+            },
+            Err(error) if error.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(_) => break,
+        };
+        input.consume(consumed);
+        let length = pending.len() - usize::from(pending.last() == Some(&b'\r'));
+        if length > MAX_MESSAGE_BYTES {
+            let _ = lines.send(Line::TooLarge);
+            return;
+        }
+        if complete {
+            if pending.last() == Some(&b'\r') {
+                pending.pop();
+            }
+            if lines.send(Line::Text(String::from_utf8_lossy(&pending).into_owned())).is_err() {
+                return;
+            }
+            pending.clear();
+        }
+    }
+    if !pending.is_empty() {
+        if pending.last() == Some(&b'\r') {
+            pending.pop();
+        }
+        let _ = lines.send(Line::Text(String::from_utf8_lossy(&pending).into_owned()));
+    }
+}
+
+fn protocol_error(conn: &Connection, code: i64, message: &str, data: Option<Json>) {
+    let mut error = Obj::new();
+    error.int("code", code).str("message", message).opt("data", data);
+    let mut o = Obj::new();
+    o.str("jsonrpc", "2.0").set("id", Json::Null).set("error", error.done());
+    conn.send(&o.done());
+}
+
 fn dispatch(agent: &Arc<Agent>, line: &str) {
-    let Some(message) = json::parse(line) else {
-        let mut o = Obj::new();
-        let mut error = Obj::new();
-        error.int("code", -32700).str("message", "Parse error");
-        o.str("jsonrpc", "2.0").set("id", Json::Null).set("error", error.done());
-        agent.conn.send(&o.done());
+    let line = line.trim_matches(crate::text::is_js_whitespace);
+    if line.is_empty() {
         return;
-    };
-    let Some(method) = get_str(&message, "method").map(String::from) else {
+    }
+    let Some(message) = json::parse(line) else { return protocol_error(&agent.conn, -32700, "Parse error", None) };
+    // TODO(port): JSON-RPC batches (an array of messages, answered by one array) are not taken apart.
+    if !matches!(message, Json::Object(_) | Json::Array(_)) {
+        return protocol_error(&agent.conn, -32600, "Invalid request", Some(message));
+    }
+    let envelope = get_str(&message, "jsonrpc") == Some("2.0");
+    let valid_id = |id: Option<&Json>| matches!(id, Some(Json::Null | Json::String(_))) || matches!(id, Some(Json::Number(n)) if n.is_finite());
+    let has_method = get(&message, "method").is_some();
+    let method = get_str(&message, "method").map(String::from);
+    let request = envelope && method.is_some() && valid_id(get(&message, "id"));
+    let notification = envelope && method.is_some() && get(&message, "id").is_none();
+    let response_shaped = matches!(message, Json::Object(_)) && !has_method && ["id", "result", "error"].iter().any(|k| get(&message, k).is_some());
+    if !request && !notification && !response_shaped {
+        return protocol_error(&agent.conn, -32600, "Invalid request", Some(message));
+    }
+    let Some(method) = method.filter(|_| has_method) else {
         if get(&message, "id").is_some() {
             agent.conn.answered(&message);
         }
