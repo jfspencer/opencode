@@ -4,6 +4,7 @@
 use opencode_protocol::Json;
 
 use super::file_access::{self, Kind};
+use super::file_input::Wording;
 use super::file_search::{self, DEFAULT_SEARCH_LIMIT, SearchError};
 use super::{Context, Definition, Execution, Failure, Output, Tool, ToolError};
 use crate::json::{self, Obj};
@@ -28,7 +29,7 @@ fn model_content(paths: &[String], truncated: bool) -> String {
 
 impl Glob {
     async fn run(&self, context: Context, input: Json) -> Result<Output, Failure> {
-        let input = super::file_input::decode(&self.definition, &input, &[])?;
+        let input = super::file_input::decode(&self.definition, &input, &[("path", Wording::Expected("RelativePath"))])?;
         let pattern = json::get_str(&input, "pattern").unwrap_or_default().to_owned();
         let search_path = json::get_str(&input, "path").filter(|p| *p != "undefined" && *p != "null").map(str::to_owned);
         let hidden = json::get_bool(&input, "hidden");

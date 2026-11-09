@@ -7,6 +7,7 @@
 use opencode_protocol::Json;
 
 use super::file_access::{self, dirname};
+use super::file_input::Wording;
 use super::file_search::{self, DEFAULT_SEARCH_LIMIT, GrepInput, Match, SearchError};
 use super::{Context, Definition, Execution, Failure, Output, Tool, ToolError};
 use crate::json::{self, Obj};
@@ -42,7 +43,8 @@ fn model_content(matches: &[Match], truncated: bool) -> String {
 
 impl Grep {
     async fn run(&self, context: Context, input: Json) -> Result<Output, Failure> {
-        let input = super::file_input::decode(&self.definition, &input, &[("pattern", "Pattern must not be empty")])?;
+        let wording = [("pattern", Wording::Message("Pattern must not be empty")), ("path", Wording::Expected("RelativePath"))];
+        let input = super::file_input::decode(&self.definition, &input, &wording)?;
         let get = |key: &str| json::get_str(&input, key).map(str::to_owned);
         let pattern = get("pattern").unwrap_or_default();
         let path = get("path");

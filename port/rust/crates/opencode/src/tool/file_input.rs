@@ -138,8 +138,20 @@ fn number_text(n: f64) -> String {
     json::text(&Json::Number(n))
 }
 
+/// How TS words a field's issues where the JSON schema does not say: a check's own message, or the identifier a
+/// type error expects (a branded schema's, such as `RelativePath`).
+#[derive(Debug, Clone, Copy)]
+pub enum Wording {
+    Message(&'static str),
+    Expected(&'static str),
+}
+
 /// The issues of one field's value against its property schema, in Effect's check order.
-fn check(value: &Json, property: &Json, custom: Option<&str>) -> Vec<String> {
+fn check(value: &Json, property: &Json, wording: Option<Wording>) -> Vec<String> {
+    let custom = match wording {
+        Some(Wording::Message(message)) => Some(message),
+        _ => None,
+    };
     let ty = json::get_str(property, "type");
     if let Some(Json::Array(options)) = json::get(property, "enum") {
         if options.iter().any(|option| option == value) {
@@ -155,10 +167,11 @@ fn check(value: &Json, property: &Json, custom: Option<&str>) -> Vec<String> {
         _ => false,
     };
     if !typed {
-        let expected = match ty {
-            Some("integer") => "number",
-            Some(other) => other,
-            None => "unknown",
+        let expected = match (wording, ty) {
+            (Some(Wording::Expected(expected)), _) => expected,
+            (_, Some("integer")) => "number",
+            (_, Some(other)) => other,
+            (_, None) => "unknown",
         };
         return vec![format!("Expected {expected}")];
     }
@@ -248,8 +261,8 @@ pub fn pretty(value: &Json, indent: usize, out: &mut String) {
 }
 
 /// Repairs and decodes a call's input against the tool's definition: the decoded (repaired) input, or the
-/// "Invalid arguments" tool error. `messages` names the fields whose check has its own message in TS.
-pub fn decode(definition: &Definition, input: &Json, messages: &[(&str, &str)]) -> Result<Json, Failure> {
+/// "Invalid arguments" tool error. `wording` names the fields TS words differently.
+pub fn decode(definition: &Definition, input: &Json, wording: &[(&str, Wording)]) -> Result<Json, Failure> {
     let schema = &definition.parameters;
     let value = repair(input, schema);
     let mut issues: Vec<(String, String)> = Vec::new();
@@ -266,7 +279,7 @@ pub fn decode(definition: &Definition, input: &Json, messages: &[(&str, &str)]) 
                         None if required.contains(&key.as_str()) => issues.push((key.clone(), "Missing key".into())),
                         None => {}
                         Some(item) => {
-                            let custom = messages.iter().find(|(field, _)| field == key).map(|(_, message)| *message);
+                            let custom = wording.iter().find(|(field, _)| field == key).map(|(_, wording)| *wording);
                             issues.extend(check(item, property, custom).into_iter().map(|message| (key.clone(), message)));
                         }
                     }
