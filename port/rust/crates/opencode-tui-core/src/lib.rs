@@ -11,5 +11,7 @@ pub mod buffer;
 pub mod layout;
 pub mod color;
 pub mod output;
+pub mod pool;
 pub mod reactive;
 pub mod terminal;
+pub mod unicode;
