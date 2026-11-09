@@ -137,6 +137,10 @@ scenarios/agent-loop.test.ts › usage with cache writes and reported cost
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
+scenarios/cli-auth.test.ts › auth list with the API key from the environment
+scenarios/cli-auth.test.ts › auth list without credentials
+scenarios/cli-auth.test.ts › auth login without a terminal
+scenarios/cli-auth.test.ts › auth logout without stored credentials
 scenarios/cli-inspect.test.ts › debug agents and config
 scenarios/cli-inspect.test.ts › debug paths
 scenarios/cli-inspect.test.ts › models lists only the configured model

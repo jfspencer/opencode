@@ -9,6 +9,7 @@
 //! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
 //! default command), `--wizard`; see each handler's TODO(port).
 
+mod auth;
 mod client;
 mod commands;
 mod connection;
@@ -186,6 +187,7 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["session", "export"] => commands::session_export(globals, input).await,
         ["session", "import"] => commands::session_import(globals, input).await,
         ["api"] => commands::api(globals, input).await,
+        ["auth", name] => auth::command(name, globals, input).await,
         // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
         // uninstall, pair, debug heap-dump).
         _ => unavailable(path),
