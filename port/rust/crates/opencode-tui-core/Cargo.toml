@@ -10,3 +10,6 @@ publish.workspace = true
 [dependencies]
 libc.workspace = true
 tokio.workspace = true
+
+[build-dependencies]
+cc = "1"

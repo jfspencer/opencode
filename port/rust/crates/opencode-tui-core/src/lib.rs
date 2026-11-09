@@ -8,6 +8,7 @@
 //! - [`reactive`]: Solid 1.9's reactive core (signals, memos, effects, owners, contexts, batch, stores).
 pub mod border;
 pub mod buffer;
+pub mod layout;
 pub mod color;
 pub mod output;
 pub mod reactive;
