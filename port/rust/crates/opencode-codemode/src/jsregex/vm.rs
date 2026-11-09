@@ -2,7 +2,7 @@
 //! undo log for captures and loop registers), so neither long inputs nor deep loops grow the native stack.
 
 use super::charset::CharSet;
-use super::parser::Node;
+use super::parser::{Node, deep};
 use super::unicode;
 
 const UNSET: usize = usize::MAX;
@@ -46,10 +46,11 @@ enum Inst {
     One { one: One, back: bool },
     /// A loop over one character: `min..=max` of them, greedy or lazy.
     Single { one: One, min: u32, max: u32, greedy: bool, back: bool },
-    /// Try `a`, then `b`.
-    Split { a: u32, b: u32 },
+    /// Try `a`, then `b`; `b` only when the next character is in the `guard` set, if there is one.
+    Split { a: u32, b: u32, guard: Option<u32> },
     Jmp(u32),
-    GroupStart { reg: u32 },
+    /// `undo`: the group's body has choice points that may be resumed after a later pass changed the register.
+    GroupStart { reg: u32, undo: bool },
     GroupEnd { index: u32, reg: u32, back: bool },
     ClearCaptures { from: u32, to: u32 },
     RepInit { reg: u32 },
@@ -65,6 +66,8 @@ enum Inst {
 }
 
 pub struct Program {
+    /// The characters a match can start with, when that is known (a search skips other positions).
+    first: Option<Set>,
     insts: Vec<Inst>,
     sets: Vec<Set>,
     backref_groups: Vec<Vec<u32>>,
@@ -86,24 +89,42 @@ impl Compiler {
         self.insts.len() as u32
     }
 
+    /// The node as a one-character matcher, when it matches exactly one character and captures nothing (an
+    /// alternation of single characters is a class: whichever alternative matches, the outcome is the same).
     fn one(&mut self, node: &Node) -> Option<One> {
-        match node {
-            Node::Group(body) => self.one(body),
-            Node::Char(c) => Some(One::Char(*c)),
-            Node::Class(set) => {
-                if let [(a, b)] = set.ranges()
-                    && a == b
-                {
-                    return Some(One::Char(*a));
-                }
-                self.sets.push(Set::new(set.clone()));
-                Some(One::Set(self.sets.len() as u32 - 1))
-            }
-            _ => None,
+        let set = single_chars(node)?;
+        if let [(a, b)] = set.ranges()
+            && a == b
+        {
+            return Some(One::Char(*a));
         }
+        self.sets.push(Set::new(set));
+        Some(One::Set(self.sets.len() as u32 - 1))
     }
 
     fn emit(&mut self, node: &Node, back: bool) {
+        deep(|| self.emit_node(node, back))
+    }
+
+    /// One iteration of a loop: its captures are cleared first (RepeatMatcher step 4).
+    fn emit_iteration(&mut self, body: &Node, captures: (u32, u32), back: bool) {
+        if captures.0 < captures.1 {
+            self.insts.push(Inst::ClearCaptures { from: captures.0, to: captures.1 });
+        }
+        self.emit(body, back);
+    }
+
+    /// The characters any of `nodes` can start with, as a set index, when that is known for all of them.
+    fn first_set(&mut self, nodes: &[Node]) -> Option<u32> {
+        let mut set = CharSet::new();
+        for n in nodes {
+            set.add_set(&first_chars(n)?);
+        }
+        self.sets.push(Set::new(set));
+        Some(self.sets.len() as u32 - 1)
+    }
+
+    fn emit_node(&mut self, node: &Node, back: bool) {
         match node {
             Node::Empty => {}
             Node::Char(_) | Node::Class(_) => {
@@ -121,12 +142,36 @@ impl Compiler {
                     }
                 }
             }
+            Node::Alt(_) if single_chars(node).is_some() => {
+                let one = self.one(node).expect("one character");
+                self.insts.push(Inst::One { one, back });
+            }
             Node::Alt(alternatives) => {
+                // Guards (the characters the remaining alternatives can start with) for hand-sized alternations;
+                // huge ones (properties of strings) are not worth a set per alternative.
+                let mut guards: Vec<Option<u32>> = vec![None; alternatives.len() + 1];
+                if !back && alternatives.len() <= 32 {
+                    let mut suffix = Some(CharSet::new());
+                    for k in (1..alternatives.len()).rev() {
+                        suffix = match (suffix, first_chars(&alternatives[k])) {
+                            (Some(mut set), Some(first)) => {
+                                set.add_set(&first);
+                                Some(set)
+                            }
+                            _ => None,
+                        };
+                        if let Some(set) = &suffix {
+                            self.sets.push(Set::new(set.clone()));
+                            guards[k] = Some(self.sets.len() as u32 - 1);
+                        }
+                    }
+                }
                 let mut jumps = Vec::new();
                 for (k, alternative) in alternatives.iter().enumerate() {
                     if k + 1 < alternatives.len() {
                         let split = self.pc();
-                        self.insts.push(Inst::Split { a: split + 1, b: 0 });
+                        let guard = guards[k + 1];
+                        self.insts.push(Inst::Split { a: split + 1, b: 0, guard });
                         self.emit(alternative, back);
                         jumps.push(self.pc());
                         self.insts.push(Inst::Jmp(0));
@@ -146,7 +191,7 @@ impl Compiler {
             Node::Group(body) => self.emit(body, back),
             Node::Capture { index, body } => {
                 let reg = self.group_regs[*index as usize];
-                self.insts.push(Inst::GroupStart { reg });
+                self.insts.push(Inst::GroupStart { reg, undo: !deterministic(body) });
                 self.emit(body, back);
                 self.insts.push(Inst::GroupEnd { index: *index, reg, back });
             }
@@ -165,6 +210,29 @@ impl Compiler {
                     && let Some(one) = self.one(body)
                 {
                     self.insts.push(Inst::Single { one, min: *min, max: *max, greedy: *greedy, back });
+                    return;
+                }
+                if *min == 1 && *max == 1 {
+                    self.emit_iteration(body, *captures, back);
+                    return;
+                }
+                if *min <= 1 && (*max == INFINITE || *min == 0 && *max == 1) && min_length(body) > 0 {
+                    // No iteration can be empty, so neither the empty check nor (for these bounds) a counter is
+                    // needed: a choice point per iteration is all the loop keeps.
+                    if *min == 1 {
+                        self.emit_iteration(body, *captures, back);
+                    }
+                    let head = self.pc();
+                    let guard = if back || *greedy { None } else { self.first_set(std::slice::from_ref(&**body)) };
+                    self.insts.push(Inst::Split { a: 0, b: 0, guard });
+                    let body_pc = self.pc();
+                    self.emit_iteration(body, *captures, back);
+                    if *max == INFINITE {
+                        self.insts.push(Inst::Jmp(head));
+                    }
+                    let exit = self.pc();
+                    let (a, b) = if *greedy { (body_pc, exit) } else { (exit, body_pc) };
+                    self.insts[head as usize] = Inst::Split { a, b, guard };
                     return;
                 }
                 let reg = self.regs;
@@ -209,6 +277,7 @@ pub fn compile(node: &Node, capture_count: u32, unicode: bool) -> Program {
     compiler.emit(node, false);
     compiler.insts.push(Inst::Succeed);
     Program {
+        first: first_chars(node).map(Set::new),
         insts: compiler.insts,
         sets: compiler.sets,
         backref_groups: compiler.backref_groups,
@@ -218,14 +287,97 @@ pub fn compile(node: &Node, capture_count: u32, unicode: bool) -> Program {
     }
 }
 
+/// Backtrack records hold positions as u32 (JS strings are shorter than 2^32), so each is 16 bytes.
 enum Bt {
-    Branch { pc: u32, pos: usize },
-    Reg { reg: u32, old: usize },
-    Cap { slot: u32, old: usize },
+    Branch { pc: u32, pos: u32 },
+    Reg { reg: u32, old: u32 },
+    /// A group's capture before it changed.
+    Group { group: u32, start: u32, end: u32 },
     /// A greedy single-character loop that can give back characters down to `limit`.
-    Greedy { inst: u32, pos: usize, limit: usize },
+    Greedy { inst: u32, pos: u32, limit: u32 },
     /// A lazy single-character loop that can take one more character.
-    Lazy { inst: u32, pos: usize, count: u32 },
+    Lazy { inst: u32, pos: u32, count: u32 },
+}
+
+fn pack(value: usize) -> u32 {
+    if value == UNSET { u32::MAX } else { value as u32 }
+}
+
+fn unpack(value: u32) -> usize {
+    if value == u32::MAX { UNSET } else { value as usize }
+}
+
+/// The fewest code units a match of `node` takes (0 when it may be empty).
+fn min_length(node: &Node) -> u64 {
+    match node {
+        Node::Char(_) | Node::Class(_) => 1,
+        Node::Seq(nodes) => nodes.iter().map(|n| deep(|| min_length(n))).sum(),
+        Node::Alt(alternatives) => alternatives.iter().map(|n| deep(|| min_length(n))).min().unwrap_or(0),
+        Node::Capture { body, .. } | Node::Group(body) => deep(|| min_length(body)),
+        Node::Repeat { body, min, .. } => *min as u64 * deep(|| min_length(body)),
+        _ => 0,
+    }
+}
+
+/// Whether matching `node` leaves no choice point behind (a lookaround's are discarded when it completes).
+fn deterministic(node: &Node) -> bool {
+    match node {
+        Node::Seq(nodes) => nodes.iter().all(|n| deep(|| deterministic(n))),
+        Node::Alt(_) => single_chars(node).is_some(),
+        Node::Capture { body, .. } | Node::Group(body) => deep(|| deterministic(body)),
+        Node::Repeat { body, min, max, captures, .. } => {
+            min == max && captures.0 >= captures.1 && single_chars(body).is_some()
+        }
+        _ => true,
+    }
+}
+
+/// The characters of a node that matches exactly one of them.
+fn single_chars(node: &Node) -> Option<CharSet> {
+    match node {
+        Node::Char(c) => Some(CharSet::single(*c)),
+        Node::Class(set) => Some(set.clone()),
+        Node::Group(body) => deep(|| single_chars(body)),
+        Node::Alt(alternatives) => {
+            let mut set = CharSet::new();
+            for a in alternatives {
+                set.add_set(&deep(|| single_chars(a))?);
+            }
+            Some(set)
+        }
+        _ => None,
+    }
+}
+
+/// The characters a non-empty match of `node` must start with; None when it may match empty (or it is unclear).
+fn first_chars(node: &Node) -> Option<CharSet> {
+    match node {
+        Node::Char(c) => Some(CharSet::single(*c)),
+        Node::Class(set) => Some(set.clone()),
+        Node::Seq(nodes) => {
+            for n in nodes {
+                match n {
+                    Node::Empty
+                    | Node::LineStart { .. }
+                    | Node::LineEnd { .. }
+                    | Node::WordBoundary { .. }
+                    | Node::Look { .. } => continue,
+                    _ => return deep(|| first_chars(n)),
+                }
+            }
+            None
+        }
+        Node::Alt(alternatives) => {
+            let mut set = CharSet::new();
+            for a in alternatives {
+                set.add_set(&deep(|| first_chars(a))?);
+            }
+            Some(set)
+        }
+        Node::Capture { body, .. } | Node::Group(body) => deep(|| first_chars(body)),
+        Node::Repeat { body, min, .. } if *min >= 1 => deep(|| first_chars(body)),
+        _ => None,
+    }
 }
 
 fn is_lead(u: u16) -> bool {
@@ -249,8 +401,9 @@ impl Program {
         self.capture_count
     }
 
-    /// Matches at exactly `start`; the capture slots (2 per group, group 0 included) on success.
-    pub fn match_at(&self, text: &[u16], start: usize) -> Option<Vec<usize>> {
+    /// The first match starting at or after `from` (only at `from` when sticky), advancing by code points in
+    /// unicode mode: the capture slots (2 per group, group 0 included).
+    pub fn search(&self, text: &[u16], from: usize, sticky: bool) -> Option<Vec<usize>> {
         let mut machine = Machine {
             program: self,
             text,
@@ -258,10 +411,31 @@ impl Program {
             regs: vec![UNSET; self.regs],
             stack: Vec::new(),
         };
-        let end = machine.run(0, start, 0)?;
-        machine.caps[0] = start;
-        machine.caps[1] = end;
-        Some(machine.caps)
+        let mut pos = from;
+        loop {
+            let candidate = sticky
+                || match &self.first {
+                    None => true,
+                    Some(first) => machine.next_char(pos, false).is_some_and(|(c, _)| first.contains(c)),
+                };
+            if candidate {
+                machine.caps.fill(UNSET);
+                machine.regs.fill(UNSET);
+                machine.stack.clear();
+                if let Some(end) = machine.run(0, pos, 0) {
+                    machine.caps[0] = pos;
+                    machine.caps[1] = end;
+                    return Some(machine.caps);
+                }
+            }
+            if sticky || pos >= text.len() {
+                return None;
+            }
+            pos = match machine.next_char(pos, false) {
+                Some((_, next)) => next,
+                None => pos + 1,
+            };
+        }
     }
 }
 
@@ -324,18 +498,19 @@ impl<'p, 't> Machine<'p, 't> {
         }
     }
 
-    fn set_cap(&mut self, slot: usize, value: usize) {
-        let old = self.caps[slot];
-        if old != value {
-            self.stack.push(Bt::Cap { slot: slot as u32, old });
-            self.caps[slot] = value;
+    fn set_group(&mut self, group: usize, start: usize, end: usize) {
+        let (old_start, old_end) = (self.caps[2 * group], self.caps[2 * group + 1]);
+        if (old_start, old_end) != (start, end) {
+            self.stack.push(Bt::Group { group: group as u32, start: pack(old_start), end: pack(old_end) });
+            self.caps[2 * group] = start;
+            self.caps[2 * group + 1] = end;
         }
     }
 
     fn set_reg(&mut self, reg: usize, value: usize) {
         let old = self.regs[reg];
         if old != value {
-            self.stack.push(Bt::Reg { reg: reg as u32, old });
+            self.stack.push(Bt::Reg { reg: reg as u32, old: pack(old) });
             self.regs[reg] = value;
         }
     }
@@ -441,17 +616,23 @@ impl<'p, 't> Machine<'p, 't> {
                                 }
                             }
                             if pos != limit {
-                                self.stack.push(Bt::Greedy { inst: pc, pos, limit });
+                                self.stack.push(Bt::Greedy { inst: pc, pos: pos as u32, limit: limit as u32 });
                             }
                         } else if count < max {
-                            self.stack.push(Bt::Lazy { inst: pc, pos, count });
+                            self.stack.push(Bt::Lazy { inst: pc, pos: pos as u32, count });
                         }
                         pc += 1;
                     }
                     ok
                 }
-                Inst::Split { a, b } => {
-                    self.stack.push(Bt::Branch { pc: *b, pos });
+                Inst::Split { a, b, guard } => {
+                    let viable = match guard {
+                        None => true,
+                        Some(set) => self.next_char(pos, false).is_some_and(|(c, _)| program.sets[*set as usize].contains(c)),
+                    };
+                    if viable {
+                        self.stack.push(Bt::Branch { pc: *b, pos: pos as u32 });
+                    }
                     pc = *a;
                     true
                 }
@@ -459,23 +640,25 @@ impl<'p, 't> Machine<'p, 't> {
                     pc = *target;
                     true
                 }
-                Inst::GroupStart { reg } => {
-                    self.set_reg(*reg as usize, pos);
+                Inst::GroupStart { reg, undo } => {
+                    if *undo {
+                        self.set_reg(*reg as usize, pos);
+                    } else {
+                        self.regs[*reg as usize] = pos;
+                    }
                     pc += 1;
                     true
                 }
                 Inst::GroupEnd { index, reg, back } => {
                     let other = self.regs[*reg as usize];
                     let (s, e) = if *back { (pos, other) } else { (other, pos) };
-                    self.set_cap(2 * *index as usize, s);
-                    self.set_cap(2 * *index as usize + 1, e);
+                    self.set_group(*index as usize, s, e);
                     pc += 1;
                     true
                 }
                 Inst::ClearCaptures { from, to } => {
                     for g in *from..*to {
-                        self.set_cap(2 * g as usize, UNSET);
-                        self.set_cap(2 * g as usize + 1, UNSET);
+                        self.set_group(g as usize, UNSET, UNSET);
                     }
                     pc += 1;
                     true
@@ -492,10 +675,10 @@ impl<'p, 't> Machine<'p, 't> {
                     } else if *max != INFINITE && count >= *max {
                         pc = *exit;
                     } else if *greedy {
-                        self.stack.push(Bt::Branch { pc: *exit, pos });
+                        self.stack.push(Bt::Branch { pc: *exit, pos: pos as u32 });
                         pc = *body;
                     } else {
-                        self.stack.push(Bt::Branch { pc: *body, pos });
+                        self.stack.push(Bt::Branch { pc: *body, pos: pos as u32 });
                         pc = *exit;
                     }
                     true
@@ -551,13 +734,14 @@ impl<'p, 't> Machine<'p, 't> {
                 },
                 Inst::Look { negate, body, next } => {
                     let height = self.stack.len();
-                    let matched = self.run(*body, pos, height).is_some();
+                    let body = *body;
+                    let matched = deep(|| self.run(body, pos, height)).is_some();
                     if matched && !*negate {
                         // Atomic: drop the body's choice points, keep its capture undo records.
                         let mut keep = height;
                         for k in height..self.stack.len() {
-                            if let Bt::Cap { slot, old } = self.stack[k] {
-                                self.stack[keep] = Bt::Cap { slot, old };
+                            if let Bt::Group { group, start, end } = self.stack[k] {
+                                self.stack[keep] = Bt::Group { group, start, end };
                                 keep += 1;
                             }
                         }
@@ -587,16 +771,19 @@ impl<'p, 't> Machine<'p, 't> {
                 match self.stack.pop().unwrap() {
                     Bt::Branch { pc: p, pos: q } => {
                         pc = p;
-                        pos = q;
+                        pos = q as usize;
                         break;
                     }
-                    Bt::Reg { reg, old } => self.regs[reg as usize] = old,
-                    Bt::Cap { slot, old } => self.caps[slot as usize] = old,
+                    Bt::Reg { reg, old } => self.regs[reg as usize] = unpack(old),
+                    Bt::Group { group, start, end } => {
+                        self.caps[2 * group as usize] = unpack(start);
+                        self.caps[2 * group as usize + 1] = unpack(end);
+                    }
                     Bt::Greedy { inst, pos: q, limit } => {
                         let Inst::Single { back, .. } = program.insts[inst as usize] else { unreachable!() };
-                        let next = self.give_back(q, limit, back);
-                        if next != limit {
-                            self.stack.push(Bt::Greedy { inst, pos: next, limit });
+                        let next = self.give_back(q as usize, limit as usize, back);
+                        if next != limit as usize {
+                            self.stack.push(Bt::Greedy { inst, pos: next as u32, limit });
                         }
                         pc = inst + 1;
                         pos = next;
@@ -604,9 +791,9 @@ impl<'p, 't> Machine<'p, 't> {
                     }
                     Bt::Lazy { inst, pos: q, count } => {
                         let Inst::Single { one, max, back, .. } = program.insts[inst as usize] else { unreachable!() };
-                        if let Some(next) = self.step_one(one, q, back) {
+                        if let Some(next) = self.step_one(one, q as usize, back) {
                             if count + 1 < max {
-                                self.stack.push(Bt::Lazy { inst, pos: next, count: count + 1 });
+                                self.stack.push(Bt::Lazy { inst, pos: next as u32, count: count + 1 });
                             }
                             pc = inst + 1;
                             pos = next;
@@ -622,8 +809,11 @@ impl<'p, 't> Machine<'p, 't> {
     fn unwind(&mut self, height: usize) {
         while self.stack.len() > height {
             match self.stack.pop().unwrap() {
-                Bt::Reg { reg, old } => self.regs[reg as usize] = old,
-                Bt::Cap { slot, old } => self.caps[slot as usize] = old,
+                Bt::Reg { reg, old } => self.regs[reg as usize] = unpack(old),
+                Bt::Group { group, start, end } => {
+                    self.caps[2 * group as usize] = unpack(start);
+                    self.caps[2 * group as usize + 1] = unpack(end);
+                }
                 _ => {}
             }
         }

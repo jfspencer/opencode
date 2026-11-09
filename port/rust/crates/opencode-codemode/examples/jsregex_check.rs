@@ -52,6 +52,12 @@ fn s(units: Option<&[u16]>) -> String {
 }
 
 fn num(n: f64) -> String {
+    if n.is_nan() {
+        return "NaN".to_string();
+    }
+    if n.is_infinite() {
+        return if n > 0.0 { "Infinity" } else { "-Infinity" }.to_string();
+    }
     if n == 0.0 && n.is_sign_negative() {
         return "-0".to_string();
     }
@@ -81,14 +87,37 @@ fn units(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
 
-const REPLACEMENTS: [&str; 6] = ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x"];
+const BENCH: [(&str, &str); 14] = [
+    ("\\w+", "g"),
+    ("(\\w+)\\s(\\w+)", "g"),
+    ("[aeiou]{2}", "g"),
+    ("^.*$", "gm"),
+    ("(?:a|b|c|d|e)+", "g"),
+    ("\\bipsum\\b", "g"),
+    ("(?<=m)\\s", "g"),
+    ("xyz", "g"),
+    ("\\p{L}+", "gu"),
+    ("[a-z]+", "gi"),
+    ("(\\w)\\1", "g"),
+    ("(?:(\\w+),?\\s*)+\\.", "g"),
+    ("e[^e]*?t", "g"),
+    ("(?:dolor|tempor|elit)", "g"),
+];
+
+const REPLACEMENTS: [&str; 9] =
+    ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x", "$<$<>$<n$<x>", "$9$1$$$&$01x", "\\$1$'$`"];
 const LIMITS: [Option<u32>; 5] = [None, Some(0), Some(1), Some(2), Some(3)];
 
 fn operations(pattern: &[u16], flags: &[u16], text: &[u16], full: bool) -> String {
     let fresh = || JsRegExp::new(pattern, flags).expect("valid regex");
     let mut results: Vec<String> = Vec::new();
     let len = text.len() as f64;
-    let last_indexes: Vec<f64> = if full { vec![0.0, 1.0, 2.0, len, len + 1.0, -1.0, 2.5] } else { vec![0.0, 1.0, len] };
+    let last_indexes: Vec<f64> = if full {
+        let (inf, nan) = (f64::INFINITY, f64::NAN);
+        vec![0.0, 1.0, 2.0, len, len + 1.0, -1.0, 2.5, nan, inf, -inf, 4294967296.0, 9007199254740993.0, -0.5]
+    } else {
+        vec![0.0, 1.0, len]
+    };
     for at in last_indexes {
         let re = fresh();
         re.set_last_index(at);
@@ -168,6 +197,31 @@ fn main() {
         }
         return;
     }
+    // `--bench`: global match counts over a 1 MB text, timed (compare with harness/jsregex/bench.ts).
+    if args.get(1).map(String::as_str) == Some("--bench") {
+        let line = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.\n";
+        let text: Vec<u16> = line.repeat(1 << 20 >> 7).encode_utf16().collect();
+        for (pattern, flags) in BENCH {
+            let re = JsRegExp::new(&units(pattern), &units(flags)).expect("bench pattern");
+            let started = std::time::Instant::now();
+            let count = jsregex::match_global(&re, &text).map_or(0, |m| m.len());
+            println!("{:>8.1} ms  {count:>8}  /{pattern}/{flags}", started.elapsed().as_secs_f64() * 1000.0);
+        }
+        // One long match through a loop with a capture: the backtrack stack grows with the input.
+        let long: Vec<u16> = "ab".repeat(1 << 19).encode_utf16().collect();
+        for pattern in ["(a|b)*", "(?:(a)|b)*", "(ab)*$"] {
+            let re = JsRegExp::new(&units(pattern), &[]).expect("bench pattern");
+            let started = std::time::Instant::now();
+            let end = re.exec(&long).map(|m| m.end());
+            println!("{:>8.1} ms  {end:?}  /{pattern}/ on 1M", started.elapsed().as_secs_f64() * 1000.0);
+        }
+        if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
+            for line in status.lines().filter(|l| l.starts_with("VmHWM")) {
+                println!("{line}");
+            }
+        }
+        return;
+    }
     let max_reports: usize = args.get(1).and_then(|a| a.parse().ok()).unwrap_or(40);
     let stdin = std::io::stdin();
     let mut cases = 0u64;
@@ -220,7 +274,7 @@ fn main() {
                 }
                 let text = dec(fields[1]);
                 let expected = fields[2];
-                let full = expected.split(' ').count() > 20;
+                let full = expected.split(' ').count() > 25;
                 if std::env::var_os("JSREGEX_TRACE").is_some() {
                     eprintln!("case /{}/{} on \"{}\"", enc(pattern), enc(flags), fields[1]);
                 }

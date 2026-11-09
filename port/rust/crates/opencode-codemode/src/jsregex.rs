@@ -118,6 +118,8 @@ const FLAGS_MESSAGE: &str = "Invalid flags supplied to RegExp constructor.";
 
 /// Recently compiled patterns: a regex literal evaluated in a loop makes a new RegExp object each time.
 const COMPILE_CACHE_SIZE: usize = 32;
+/// Longer patterns are not kept, so the cache stays small.
+const COMPILE_CACHE_MAX_PATTERN: usize = 1024;
 
 type CacheEntry = (Rc<[u16]>, Flags, Rc<Compiled>);
 
@@ -143,11 +145,13 @@ impl JsRegExp {
             Some(compiled) => compiled,
             None => {
                 let compiled = Rc::new(Self::compile(pattern, parsed_flags)?);
-                COMPILE_CACHE.with(|cache| {
-                    let mut cache = cache.borrow_mut();
-                    cache.insert(0, (Rc::from(pattern), key_flags, compiled.clone()));
-                    cache.truncate(COMPILE_CACHE_SIZE);
-                });
+                if pattern.len() <= COMPILE_CACHE_MAX_PATTERN {
+                    COMPILE_CACHE.with(|cache| {
+                        let mut cache = cache.borrow_mut();
+                        cache.insert(0, (Rc::from(pattern), key_flags, compiled.clone()));
+                        cache.truncate(COMPILE_CACHE_SIZE);
+                    });
+                }
                 compiled
             }
         };
@@ -295,18 +299,8 @@ impl JsRegExp {
 
     /// The first match at or after `from` (only at `from` when sticky), ignoring lastIndex.
     fn search(&self, text: &[u16], from: usize, sticky: bool) -> Option<Match> {
-        let program = &self.compiled.program;
-        let unicode = self.flags.full_unicode();
-        let mut pos = from;
-        loop {
-            if let Some(slots) = program.match_at(text, pos) {
-                return Some(self.build_match(&slots));
-            }
-            if sticky || pos >= text.len() {
-                return None;
-            }
-            pos = advance(text, pos, unicode);
-        }
+        let slots = self.compiled.program.search(text, from, sticky)?;
+        Some(self.build_match(&slots))
     }
 
     fn build_match(&self, slots: &[usize]) -> Match {
@@ -796,4 +790,123 @@ pub fn escape(text: &[u16]) -> Vec<u16> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    //! A few of the behaviors the differential check (harness/jsregex/check.sh) pins against JSC, kept here so they
+    //! are checked without bun.
+    use super::*;
+
+    fn u(s: &str) -> Vec<u16> {
+        s.encode_utf16().collect()
+    }
+
+    fn re(pattern: &str, flags: &str) -> JsRegExp {
+        JsRegExp::new(&u(pattern), &u(flags)).expect("valid pattern")
+    }
+
+    fn error(pattern: &str, flags: &str) -> String {
+        JsRegExp::new(&u(pattern), &u(flags)).err().expect("invalid pattern").message().to_string()
+    }
+
+    fn text(units: &[u16]) -> String {
+        String::from_utf16_lossy(units)
+    }
+
+    #[test]
+    fn constructor_errors_use_jsc_messages() {
+        assert_eq!(error("a", "gg"), "Invalid flags supplied to RegExp constructor.");
+        assert_eq!(error("a", "uv"), "Invalid flags supplied to RegExp constructor.");
+        assert_eq!(error("(", ""), "Invalid regular expression: missing )");
+        assert_eq!(error("a**", ""), "Invalid regular expression: nothing to repeat");
+        assert_eq!(error("\\2(", "u"), "Invalid regular expression: missing )");
+        assert_eq!(error("(?i)", ""), "Invalid regular expression: unrecognized character after (?");
+        assert_eq!(error("(?ii", ""), "Invalid regular expression: invalid regular expression modifier");
+        assert_eq!(error("[ab&&c]", "v"), "Invalid regular expression: invalid operation in class set");
+        assert_eq!(error("a{4294967295}x", ""), "Invalid regular expression: pattern exceeds string length limits");
+    }
+
+    #[test]
+    fn annex_b_syntax_is_accepted_outside_unicode_mode() {
+        for pattern in ["]", "{", "a{", "\\c", "[\\c1]", "\\8", "[\\w-a]", "(?=a)*", "\\k<a", "\\q"] {
+            assert!(JsRegExp::new(&u(pattern), &[]).is_ok(), "{pattern}");
+        }
+        assert!(JsRegExp::new(&u("\\ω"), &u("u")).is_ok(), "JSC allows non-ASCII identity escapes");
+    }
+
+    #[test]
+    fn source_is_escaped_like_jsc() {
+        assert_eq!(text(&re("", "").source()), "(?:)");
+        assert_eq!(text(&re("a/b[/]\n", "").source()), "a\\/b[/]\\n");
+        assert_eq!(text(&re("\\\n", "").source()), "\\n");
+        assert_eq!(re("a", "yusmigd").flags(), "dgimsuy");
+    }
+
+    #[test]
+    fn exec_follows_last_index() {
+        let g = re("a", "g");
+        g.set_last_index(2.5);
+        assert_eq!(g.exec(&u("aaaa")).map(|m| m.index()), Some(2));
+        assert_eq!(g.last_index(), 3.0);
+        g.set_last_index(9.0);
+        assert!(g.exec(&u("aaaa")).is_none());
+        assert_eq!(g.last_index(), 0.0);
+        // A unicode match never starts inside a surrogate pair.
+        let pair = re(".", "gu");
+        pair.set_last_index(1.0);
+        let m = pair.exec(&u("😀")).unwrap();
+        assert_eq!(m.captures[0], Some((0, 2)));
+        let sticky = re("\\udc00", "y");
+        sticky.set_last_index(1.0);
+        assert_eq!(sticky.exec(&u("\u{10000}")).map(|m| m.index()), Some(1));
+    }
+
+    #[test]
+    fn case_folding_uses_jsc_tables() {
+        assert!(re("\\u1c89", "iu").test(&u("\u{1c8a}")));
+        assert!(!re("\\u1c89", "i").test(&u("\u{1c8a}")), "the non-unicode table is older");
+        assert!(re("\\w", "iu").test(&u("ſ")));
+        assert!(!re("\\w", "i").test(&u("ſ")));
+        assert!(re("[\\p{Lu}&&k]", "iv").test(&u("K")));
+        assert!(!re("\\P{Ll}", "iv").test(&u("a")));
+    }
+
+    #[test]
+    fn duplicate_named_groups_report_the_participating_group() {
+        let m = re("(?<a>x)|(?<a>y)", "").exec(&u("y")).unwrap();
+        assert_eq!(m.groups, Some(vec![(u("a"), Some((0, 1)))]));
+        assert!(re("(?:(?<a>x)|(?<a>y))\\k<a>", "").test(&u("yy")));
+    }
+
+    #[test]
+    fn string_algorithms() {
+        assert_eq!(text(&replace(&re("(x)", ""), &u("x"), &u("$0|$01|$1|$10|$2|$11"))), "$0|x|x|x0|$2|x1");
+        assert_eq!(text(&replace(&re("(?:)", "gu"), &u("😀"), &u("-"))), "-😀-");
+        let parts: Vec<String> =
+            split(&re("(a)|b", ""), &u("ab"), None).iter().map(|p| p.as_deref().map_or("~".into(), text)).collect();
+        assert_eq!(parts, ["", "a", "", "~", ""]);
+        let sticky = re("a", "y");
+        sticky.set_last_index(1.0);
+        assert_eq!(split(&sticky, &u("aaa"), None).len(), 4);
+        assert_eq!(sticky.last_index(), 1.0);
+        let g = re("a", "g");
+        g.set_last_index(-0.0);
+        assert_eq!(search(&g, &u("bab")), 1);
+        assert!(g.last_index() == 0.0 && g.last_index().is_sign_negative());
+        assert_eq!(match_global(&re("a|", "g"), &u("ab")).unwrap().len(), 3);
+        assert_eq!(text(&escape(&u("1a b-c"))), "\\x31a\\x20b\\x2dc");
+        assert_eq!(string_replace_positions(&u("aaa"), &u(""), true), [0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn deep_nesting_does_not_overflow_the_stack() {
+        let depth = 20_000;
+        let pattern = "(?:".repeat(depth) + "a" + &")".repeat(depth);
+        let handle = std::thread::Builder::new()
+            .stack_size(256 * 1024)
+            .spawn(move || re(&pattern, "").test(&u("a")))
+            .unwrap();
+        assert!(handle.join().unwrap());
+    }
 }

@@ -55,14 +55,16 @@ const emit = (line: string) => {
   if (out.length >= 2000) flush()
 }
 
-const replacements = ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x"]
+const replacements = ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x", "$<$<>$<n$<x>", "$9$1$$$&$01x", "\\$1$'$`"]
 const limits: Array<number | undefined> = [undefined, 0, 1, 2, 3]
 
 // Every operation on one regex and subject, in the order jsregex_check.rs performs them.
 const operations = (pattern: string, flags: string, s: string, full: boolean) => {
   const fresh = () => new RegExp(pattern, flags)
   const results: string[] = []
-  const lastIndexes = full ? [0, 1, 2, s.length, s.length + 1, -1, 2.5] : [0, 1, s.length]
+  const lastIndexes = full
+    ? [0, 1, 2, s.length, s.length + 1, -1, 2.5, NaN, Infinity, -Infinity, 4294967296, 9007199254740993, -0.5]
+    : [0, 1, s.length]
   for (const at of lastIndexes) {
     const re = fresh()
     re.lastIndex = at
@@ -302,10 +304,194 @@ for (let k = 0; k < mutations; k++) {
 const badFlags = ["gg", "uv", "x", "dgimsuvy", "G", "ii", "gu ", " ", "yy", "vu", "-", "gimsuyd", "dgimsvy"]
 for (const flags of badFlags) regex("a", flags, ["a"])
 
+// ---- a richer grammar: Unicode, properties, v-flag sets, modifiers, references ---------------------------------
+const richAtoms = [
+  ...atoms, "é", "É", "\\u00e9", "😁", "𝒜", "\\ude00", "ẞ", "Σ", "σ", "ς", "İ", "ı", "\\u212a", "Ꭰ", "ꭰ", "𐐀", "𐐨",
+  "ǅ", "\\p{Lu}", "\\p{Ll}", "\\P{L}", "\\p{N}", "\\p{Script=Greek}", "\\p{ASCII}", "\\p{Emoji}", "\\p{RGI_Emoji}",
+  "[\\p{L}--[a-z]]", "[a-zß]", "[^\\p{L}]", "[\\u0100-\\u017f]", "[^\\w\\s]", "[\\q{ab|ß|😀}]", "[[a-z]&&[^aeiou]]",
+  "[\\w--\\d]", "[\\p{Lu}&&\\p{Script=Latin}]", "[😀-😂]", "[\\ud800-\\udfff]", "\\x41", "\\101", "\\cA", "\\c", "\\8",
+  "\\3", "(?<x>a|b)", "(?<y>.)", "[\\s\\S]", "[^]", "[]", "\\u{10400}", "[\\u{10400}-\\u{1044f}]", ".", "\\D", "\\s",
+]
+const richSubject = () => {
+  const alphabet = ["a", "b", "A", "B", "é", "É", "Σ", "σ", "ς", "İ", "ı", "i", "I", "K", "k", "K", "Ꭰ", "ꭰ", "𐐀",
+    "𐐨", "😀", "😁", "\ude00", "\ud83d", "\n", "\r", " ", " ", "1", "_", "ß", "ẞ", "ſ", "s", "S", "𝒜", "-", "ǅ", "ǆ"]
+  const n = int(12)
+  let s = ""
+  for (let k = 0; k < n; k++) s += pick(alphabet)
+  return s
+}
+const richNode = (depth: number): string => {
+  const roll = random()
+  if (depth <= 0 || roll < 0.3) return pick(richAtoms)
+  if (roll < 0.5) {
+    let s = ""
+    for (let k = 2 + int(3); k > 0; k--) s += richNode(depth - 1)
+    return s
+  }
+  if (roll < 0.6) return richNode(depth - 1) + "|" + richNode(depth - 1)
+  if (roll < 0.75) {
+    const open = pick(["(", "(?:", `(?<${pick(names)}>`, "(?=", "(?!", "(?<=", "(?<!", "(?i:", "(?-i:", "(?m:", "(?s:", "(?is-m:"])
+    return open + richNode(depth - 1) + ")"
+  }
+  return richNode(depth - 1) + pick(quantifiers)
+}
+const richFlags = ["", "i", "u", "v", "iu", "iv", "g", "gi", "giu", "giv", "y", "iy", "uy", "m", "s", "ms", "gimsu", "gimsv"]
+for (let k = 0; k < Math.round(40000 * scale); k++) {
+  regex(richNode(2 + int(3)), pick(richFlags), [richSubject(), richSubject(), richSubject()], false)
+}
+
+// ---- long subjects ----------------------------------------------------------------------------------------------
+const longPatterns = [
+  "a*", "a+?b", "(a|b)*c", "\\w+", ".*?x", "(?:ab)+", "\\b\\w", "(?<=a)b", "[^x]*x", "(a)\\1*", "^.*$", "(?:a|b|c)+$",
+  "(\\w)(\\w)?", "\\s+", "x*", "(?=(a+))a*b\\1", "[a-c]{2,5}?", "(?<!b)a", "😀+", ".", "(?:)", "\\d{3}", "(a*)+?b",
+  "(?:a{0,3}b)*", "a(?!b)", "[^\\n]*\\n", "(?<w>\\w+)\\s\\k<w>",
+]
+const longFlags = ["", "g", "gi", "gu", "gm", "y", "gy", "gs", "giv"]
+const longSubject = () => {
+  const unit = richSubject() + pick(["a", "ab", "abc", "x", " ", "\n", "aaa", "😀"])
+  const times = 20 + int(200)
+  let s = ""
+  for (let k = 0; k < times; k++) s += random() < 0.7 ? unit : pick(["a", "b", "c", "x", "😀", " ", "\n", "1"])
+  return s
+}
+for (let k = 0; k < Math.round(1500 * scale); k++) regex(pick(longPatterns), pick(longFlags), [longSubject()], false)
+
+// ---- case folding sweeps ----------------------------------------------------------------------------------------
+const caseRanges: Array<[number, number]> = [
+  [0x80, 0x2000], [0x2100, 0x2200], [0x2c00, 0x2d30], [0xa640, 0xa800], [0xab70, 0xabc0], [0xff00, 0xff60],
+  [0x10400, 0x10450], [0x104b0, 0x10500], [0x10c80, 0x10d00], [0x118a0, 0x118e0], [0x16e40, 0x16e80], [0x1e900, 0x1e944],
+]
+const codePoint = () => {
+  const [a, b] = pick(caseRanges)
+  return a + int(b - a)
+}
+const hexEscape = (c: number) => "\\u{" + c.toString(16) + "}"
+for (let k = 0; k < Math.round(15000 * scale); k++) {
+  const c = codePoint()
+  const ch = String.fromCodePoint(c)
+  const related = [ch, ch.toUpperCase(), ch.toLowerCase(), String.fromCodePoint(c + 1), String.fromCodePoint(Math.max(0, c - 1))]
+  const subject = related.join("") + ch.toUpperCase().toLowerCase()
+  const d = c + int(40)
+  const pattern = pick([
+    ch, `[${ch}]`, `[^${ch}]`, `(${ch})\\1`, `(.)\\1`, `[${ch}-${String.fromCodePoint(d)}]`, `${ch}+`,
+    `(?<n>${ch})\\k<n>`, `[${ch}${String.fromCodePoint(d)}]+`, `\\b${ch}`, `[\\w${ch}]`,
+  ])
+  const flags = pick(["i", "iu", "iv", "gi", "giu", "", "u"])
+  const escaped = pattern.replace(/[\u{80}-\u{10ffff}]/gu, (x) => (flags.includes("u") || flags.includes("v") ? hexEscape(x.codePointAt(0)!) : x))
+  regex(random() < 0.5 ? pattern : escaped, flags, [subject, related[1] + related[2], ch], false)
+}
+
+// ---- syntax fuzzing ---------------------------------------------------------------------------------------------
+const fuzz = (tokens: string[], length: number) => {
+  let s = ""
+  for (let k = 1 + int(length); k > 0; k--) s += pick(tokens)
+  return s
+}
+const classSetTokens = ["[", "]", "&&", "--", "-", "a", "b", "z", "\\d", "\\q{ab|c}", "\\q{", "}", "|", "[a]", "^", "\\p{L}",
+  "!", "&", "(", "\\", "\\-", "\\b", "\\w", "\\W", "\\x41", "\\u{1F600}", "😀", "!!", "\\q{}", "\\p{RGI_Emoji}", "&&&", "---"]
+const classTokens = ["[", "]", "-", "a", "b", "z", "\\d", "\\w", "\\W", "^", "\\b", "\\B", "\\c", "\\c1", "\\cA", "\\1", "\\0",
+  "\\8", "\\x4", "\\u12", "\\u{41}", "\\k", "\\-", "\\]", "😀", "\\ud83d", "\\p{L}", "\\P{L}", "{", "}", "(", ")"]
+const escapeTokens = ["\\", "a", "b", "c", "d", "k", "p", "u", "x", "q", "0", "1", "8", "{", "}", "<", ">", "-", "/", " ", "é",
+  "😀", "A", "C", "1F600", "[", "]", "(", ")", "z", "_", "$", "^"]
+const quantifierTokens = ["a", "{", "}", ",", "0", "1", "2", "9", "4294967295", "4294967296", "?", "*", "+", "(?=a)", "(?<=a)",
+  "^", "\\b", "(", ")", "|", "x"]
+const modifierTokens = ["(?", "i", "m", "s", "-", ":", ")", "a", "x", "(", "|", "P", "d", "ii"]
+const nameTokens = ["(?<", "\\k<", ">", "a", "b", "$", "_", "1", "é", "𝒜", "\\u0061", "\\u{62}", "\\ud835\\udc9c", "\\ud835",
+  "\\u{110000}", "\\u004", "\\", "-", ")", "(", "!", "=", "\\d", "‌"]
+for (let k = 0; k < Math.round(20000 * scale); k++) {
+  const roll = random()
+  const [pattern, flags] =
+    roll < 0.25 ? ["[" + fuzz(classSetTokens, 6) + pick(["]", "", "]]"]), pick(["v", "iv", "gv"])]
+      : roll < 0.4 ? ["[" + fuzz(classTokens, 5) + pick(["]", ""]), pick(["", "i", "u", "iu"])]
+      : roll < 0.55 ? ["\\" + fuzz(escapeTokens, 3), pick(["", "u", "v", "i"])]
+      : roll < 0.7 ? [fuzz(quantifierTokens, 5), pick(["", "u"])]
+      : roll < 0.85 ? [fuzz(modifierTokens, 6), pick(["", "i", "u"])]
+      : [fuzz(nameTokens, 6), pick(["", "u"])]
+  regex(pattern, flags, [richSubject()], false)
+}
+
+// ---- every short v-flag class over a token alphabet (JSC's class-set errors depend on the token order) ----------
+{
+  const tokens = ["a", "b", "\\d", "[a]", "\\q{ab}", "&&", "--", "-", "&", "!", "!!", "(", "]"]
+  const walk = (prefix: string, depth: number) => {
+    if (prefix.length) {
+      regex("[" + prefix + "]", "v", ["ab!&-"], false)
+      regex("[" + prefix, "v", [], false)
+    }
+    if (depth > 0) for (const t of tokens) walk(prefix + t, depth - 1)
+  }
+  walk("", 4)
+  // A nested class starts in the state its parent was in, so nested classes get their own walk.
+  const nestedTokens = ["a", "\\d", "[a]", "\\q{ab}", "&&", "--", "-", "&", "!", "(", "]", "\\-"]
+  const parents = ["", "a", "\\d", "[a]", "\\q{ab}", "ab", "a&&b", "a&&\\d", "a-b", "\\-", "a&&"]
+  for (const parent of parents) {
+    const nested = (s: string, depth: number) => {
+      for (const close of ["", "]", "]]"]) regex("[" + parent + "[" + s + close, "v", ["ab-"], false)
+      if (depth > 0) for (const t of nestedTokens) nested(s + t, depth - 1)
+    }
+    nested("", 3)
+  }
+}
+// ---- more exhaustive syntax: non-v classes, every escape, groups, references --------------------------------
+{
+  const enumerate = (tokens: string[], depth: number, visit: (s: string) => void) => {
+    const walk = (s: string, d: number) => {
+      if (s.length) visit(s)
+      if (d > 0) for (const t of tokens) walk(s + t, d - 1)
+    }
+    walk("", depth)
+  }
+  const classTokens = ["a", "z", "-", "\\d", "\\w", "]", "^", "\\b", "\\c", "\\c1", "\\1", "\\-", "😀", "\\u{41}", "\\k"]
+  enumerate(classTokens, 3, (s) => {
+    for (const flags of ["", "u", "i"]) {
+      regex("[" + s + "]", flags, ["az-1"], false)
+      regex("[" + s, flags, [], false)
+    }
+  })
+  const extras = ["\u0080", "é", "😀", "‌", " ", "\ud800", "\udc00"]
+  for (let c = 0x20; c < 0x7f; c++) extras.push(String.fromCharCode(c))
+  for (const ch of extras) {
+    for (const pattern of [`\\${ch}`, `\\${ch}1`, `\\${ch}{1}`, `\\${ch}41`, `[\\${ch}]`, `[\\${ch}-z]`, `\\${ch}{41}`, `\\${ch}<a>(?<a>.)`])
+      for (const flags of ["", "u", "v", "i"]) regex(pattern, flags, ["a1" + ch], false)
+  }
+  const groupTokens = ["(", "?", "<", ">", "=", "!", ":", "a", ")", "i", "-", "*"]
+  enumerate(groupTokens, 4, (s) => {
+    for (const flags of ["", "u"]) regex(s, flags, ["a"], false)
+  })
+  const referenceTokens = ["(a)", "(?<a>x)", "(?<b>y)", "\\1", "\\2", "\\k<a>", "\\k<b>", "\\k", "(", ")", "[\\k]", "|", "\\10"]
+  enumerate(referenceTokens, 3, (s) => {
+    for (const flags of ["", "u", "i"]) regex(s, flags, ["axyaa"], false)
+  })
+}
+
+// ---- JSC's size limits (nesting deeper than about 37,000 groups is a RangeError from a native stack check, which
+// the port does not reproduce) ------------------------------------------------------------------------------------
+regex("a".repeat(1 << 20), "", ["a"], false)
+regex("a".repeat((1 << 20) + 1), "", [], false)
+regex("*" + "a".repeat(1 << 20), "", [], false)
+regex("(a)".repeat(32768), "", [], false)
+regex("(a)".repeat(32768) + "(?<n>b)", "", [], false)
+regex("(a)".repeat(32769), "", [], false)
+regex("(a)".repeat(32769) + "(", "", [], false)
+regex("(?:".repeat(20000) + "a" + ")".repeat(20000), "", ["a", "b"], false)
+regex("(?=".repeat(5000) + "a" + ")".repeat(5000), "", ["a"], false)
+regex("[".repeat(20000) + "a" + "]".repeat(20000), "v", ["a"], false)
+
+for (const digits of ["4294967295", "4294967296", "9007199254740993", "9223372036854775807", "9223372036854775808",
+  "18446744073709551615", "18446744073709551616", "99999999999999999999999"]) {
+  for (const pattern of [`a{${digits}}`, `{${digits}}`, `a{${digits},}`, `a{1,${digits}}`, `a{${digits}`, `\\${digits}`, `(a)\\${digits}`])
+    for (const flags of ["", "u"]) regex(pattern, flags, ["aa"], false)
+}
+
 // ---- RegExp.escape and string-pattern replace -----------------------------------------------------------------
 const escapeInputs = ["", "abc", "1a", "a1", "_x", "$^\\.*+?()[]{}|/", ",-=<>#&!%:;@~'`\"", " \t\n\v\f\r", "\u00a0\ufeff",
   "\u2028\u2029", "\ud800", "a\udc00", "😀", "é", "\u3000", "\u1680", "z9", "-1", "\u0085"]
 for (let k = 0; k < Math.round(2000 * scale); k++) escapeInputs.push(randomSubject() + pick(["", "/", "#", "1", "\u2000"]))
+for (let k = 0; k < Math.round(2000 * scale); k++) {
+  let s = ""
+  for (let n = int(6); n >= 0; n--) s += String.fromCharCode(random() < 0.7 ? 0x20 + int(0x60) : int(0x3000))
+  escapeInputs.push(s)
+}
 for (const s of escapeInputs) {
   // @ts-ignore RegExp.escape is ES2025
   emit(`X\t${enc(s)}\t${str(RegExp.escape(s))}`)
