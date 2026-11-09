@@ -4,7 +4,8 @@
 //! The types in [`types`], [`routes`] and [`events`] are generated from the TS reference's Effect schemas by
 //! `port/rust/gen` (run `port/scripts/gen-types.sh`); never edit them by hand. [`wire`] is the hand-written runtime
 //! they build on. Read JSON with [`wire::from_str`] and write it with [`wire::to_string`]: the output is
-//! byte-identical to `JSON.stringify` of the TS value.
+//! byte-identical to `JSON.stringify` of the TS value. A rejected value's [`wire::Issue`] displays as the exact text
+//! TS reports for it (Effect's formatted schema issue, the TS server's `InvalidRequestError.message`).
 
 pub mod wire;
 

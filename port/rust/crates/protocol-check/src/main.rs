@@ -1,7 +1,8 @@
 //! Round-trip harness for the generated wire types, driven by port/rust/gen/src/roundtrip.ts.
 //!
 //! Reads lines `<root type>\t<JSON text>` from stdin and answers each with `ok\t<JSON written back>` or
-//! `err\t<reason>`. `--roots` lists the root type names instead.
+//! `err\t<reason as a JSON string>` (for a decode failure, Effect's formatted message). `--roots` lists the root
+//! type names instead.
 
 use opencode_protocol::{roots, wire};
 use std::io::{BufRead, BufWriter, Write};
@@ -27,7 +28,7 @@ fn main() {
         };
         match answer {
             Ok(text) => writeln!(out, "ok\t{text}"),
-            Err(e) => writeln!(out, "err\t{}", e.replace(['\n', '\t'], " ")),
+            Err(e) => writeln!(out, "err\t{}", wire::to_string(&e)),
         }
         .expect("write to stdout");
     }

@@ -25,7 +25,7 @@ export function build(): Model {
   const roots: RootTy[] = collected.roots.map((root) => ({
     root,
     name: "",
-    ty: lowering.lowerRoot(root.ast, root.hint, root.wire, root.origin),
+    ty: lowering.lowerRoot(root.ast, root.hint, root.wire, root.origin, root.decode),
   }))
   const defs = dedupe([...lowering.defs.values()], roots)
   const names = assignNames(defs)

@@ -5,7 +5,7 @@ import { ClientApi } from "@opencode/protocol/client"
 import { OpenCodeEvent } from "@opencode/protocol/groups/event"
 import { EventManifest } from "@opencode/schema/event-manifest"
 import { Config } from "@opencode/schema/config"
-import { Context, SchemaAST } from "effect"
+import { Context, Schema, SchemaAST } from "effect"
 import { HttpApi, HttpApiEndpoint, HttpApiSchema, OpenApi } from "effect/http-api"
 
 /**
@@ -26,6 +26,12 @@ export interface Root {
   readonly wire: Wire
   /** Where the root came from, for diagnostics and the route table. */
   readonly origin: string
+  /**
+   * What HttpApi actually decodes a request part with, when that is not `ast` itself: a payload goes through
+   * `Schema.Union(payloadSchemas)` (effect/http-api/HttpApiBuilder.ts, `buildPayloadDecoders`). The union of one
+   * member must report like its member (the generator checks), so `ast` gives the Rust type and this the TS truth.
+   */
+  readonly decode?: SchemaAST.AST
 }
 
 export interface Body {
@@ -69,22 +75,33 @@ export function collect() {
       const base = pascal(operationId)
       const origin = `${e.method} ${e.path}`
       const params = e.params && add({ hint: `${base}Params`, ast: e.params.ast, wire: "tree", origin: `${origin} params` })
-      const query = e.query && add({ hint: `${base}Query`, ast: e.query.ast, wire: "tree", origin: `${origin} query` })
+      // HttpApi decodes the query with `toCodecArrayFromSingle(query)`: an array property also takes one string.
+      const query =
+        e.query &&
+        add({ hint: `${base}Query`, ast: Schema.toCodecArrayFromSingle(e.query as never).ast, wire: "tree", origin: `${origin} query` })
       const headers =
         e.headers && add({ hint: `${base}Headers`, ast: e.headers.ast, wire: "tree", origin: `${origin} headers` })
       const payload: Body[] = []
       const hasBody = !["GET", "HEAD", "OPTIONS"].includes(e.method)
       for (const [contentType, entry] of e.payload) {
-        for (const schema of entry.schemas) {
-          if (HttpApiSchema.isNoContent(schema.ast)) continue
+        const schemas = entry.schemas.filter((schema) => !HttpApiSchema.isNoContent(schema.ast))
+        if (schemas.length > 1) throw new Error(`several payload schemas for ${contentType} at ${origin}`)
+        for (const schema of schemas) {
           const kind = entry.encoding._tag === "Json" ? "json" : entry.encoding._tag === "Uint8Array" ? "binary" : "text"
-          // GET-style payloads are query parameters (HttpApi decodes them from the query string).
+          // GET-style payloads are query parameters (HttpApi decodes them from the query string, like a query).
           const wire = hasBody ? (kind === "json" ? "json" : "plain") : "tree"
+          const ast = hasBody ? schema.ast : Schema.toCodecArrayFromSingle(schema as never).ast
+          const decode = hasBody
+            ? Schema.Union(entry.schemas as never).ast
+            : Schema.toCodecArrayFromSingle(Schema.Union(entry.schemas as never)).ast
           payload.push({
             status: 0,
             kind: hasBody ? kind : "query",
             contentType,
-            root: kind === "json" || !hasBody ? add({ hint: `${base}Payload`, ast: schema.ast, wire, origin: `${origin} payload` }) : undefined,
+            root:
+              kind === "json" || !hasBody
+                ? add({ hint: `${base}Payload`, ast, wire, origin: `${origin} payload`, decode })
+                : undefined,
           })
         }
       }
