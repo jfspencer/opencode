@@ -169,7 +169,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 
 | Module | TS counterpart |
 |---|---|
-| `cli.rs`, `cli/`, `cors.rs` | `packages/cli`: effect/cli 4.1's parsing, help and error texts over the command tree, in color on a terminal (`cli/spec.rs`, `parse.rs`, `help.rs`; the shell completion scripts are recorded from the reference); the server a command talks to (`--server`, a private `serve --stdio` child, or the background service, which `service.rs` configures, discovers, starts with contenders and stops, under the channel's XDG files, handing persistent terminals to a replacement through `pty_handoff.rs`); `serve` in its three modes; `run` (session target, stdin and attachments, the prompt over the event stream with its text or JSON rendering, permission and question handling, signals); `session` (the table through `less -R -S` on a terminal, times in the local zone, the export picker), `api`, `models`, `debug`, `reload`, `stats`, `auth`, `upgrade` and `uninstall` (`install.rs`: the installation method, the update service, the package manager or installer it runs; the services stopped and the cache removed) in @clack/prompts' frames (`clack.rs`), and `acp` (the Agent Client Protocol over stdio); CORS preflight and the request-site check. Not ported: the TUI (default command), `pair`, `--wizard`; `mini`, `mcp` and `plugin` are dropped |
+| `cli.rs`, `cli/`, `cors.rs` | `packages/cli`: effect/cli 4.1's parsing, help and error texts over the command tree, in color on a terminal (`cli/spec.rs`, `parse.rs`, `help.rs`; the shell completion scripts are recorded from the reference); the server a command talks to (`--server`, a private `serve --stdio` child, or the background service, which `service.rs` configures, discovers, starts with contenders and stops, under the channel's XDG files, handing persistent terminals to a replacement through `pty_handoff.rs`); `serve` in its three modes; `run` (session target, stdin and attachments, the prompt over the event stream with its text or JSON rendering, permission and question handling, signals); `session` (the table through `less -R -S` on a terminal, times in the local zone, the export picker), `api`, `models`, `debug`, `reload`, `stats`, `auth`, `upgrade` and `uninstall` (`install.rs`: the installation method, the update service, the package manager or installer it runs; the services stopped and the cache removed) in @clack/prompts' frames (`clack.rs`), and `acp` (the Agent Client Protocol over stdio); `--wizard` (`wizard.rs`: the command built with effect/cli's prompts, then run); CORS preflight and the request-site check. Not ported: the TUI (default command), `pair`; `mini`, `mcp` and `plugin` are dropped |
 | `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
 | `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
 | `handlers/` | `server/src/handlers/*.ts`, one module per area of the API (`handlers/mod.rs` routes an operation by its name) |
@@ -214,11 +214,14 @@ endpoint without a handler answers 501 (after the 404 of an unknown session, whi
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
-as not run.
+as not run. TUI scenario files are given as `tui/<file>` (or `tui` for all of them): they run from `conformance/tui`
+against `<binary> --server <url>` in a pseudo-terminal, ledgered as `tui/<file> › <scenario>`; the in-process-only ones
+are skipped, as the harness skips them for a process.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)
 port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
+port/scripts/rust-conformance.sh 3 tui/nav-home.test.ts # TUI scenarios
 port/scripts/rust-conformance.sh --update              # record new passes in the ledger
 CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
 ```

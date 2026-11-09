@@ -1,0 +1,60 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode",
+          "",
+          "✔ Command …  debug",
+          "",
+          "Current command",
+          "  $ opencode debug",
+          "",
+          "✔ Command …  paths",
+          "",
+          "Current command",
+          "  $ opencode debug paths",
+          "",
+          "PATHS · ARGUMENTS",
+          "✔ Set Name? … yes",
+          "✔ Name …  home",
+          "",
+          "Command ready",
+          "  $ opencode debug paths home",
+          "",
+          "✔ Run this command? … yes / no",
+          "",
+          "<sandbox>/home"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[B\u001b[B\u001b[B\u001b[B",
+            "\r",
+            "\u001b[A",
+            "\r",
+            "y",
+            "j",
+            "\r",
+            "\r"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

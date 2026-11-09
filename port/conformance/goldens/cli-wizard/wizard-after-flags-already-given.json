@@ -1,0 +1,133 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "-n",
+          "2",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode session list -n 2",
+          "",
+          "LIST · FLAGS",
+          "✔ Set Max count (--max-count)? … no",
+          "",
+          "✔ Set Output format (--format)? … no",
+          "",
+          "Command ready",
+          "  $ opencode session list -n 2",
+          "",
+          "✔ Run this command? … yes / no"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "\r",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--format",
+          "json",
+          "--wizard"
+        ],
+        "exit": 1,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode session list --format json",
+          "",
+          "LIST · FLAGS",
+          "✔ Set Max count (--max-count)? … no",
+          "",
+          "✔ Set Output format (--format)? … yes",
+          "✔ Output format (--format) …  table",
+          "",
+          "Command ready",
+          "  $ opencode session list --format json --format table",
+          "",
+          "✔ Run this command? … yes / no",
+          "",
+          "DESCRIPTION",
+          "  List top-level sessions in the current project, newest first",
+          "",
+          "USAGE",
+          "  opencode session list [flags]",
+          "",
+          "FLAGS",
+          "  --max-count, -n integer    Limit to N most recent sessions (default: 100)",
+          "  --format choice            Output format (choices: table, json)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "DESCRIPTION",
+          "  List top-level sessions in the current project, newest first",
+          "",
+          "USAGE",
+          "  opencode session list [flags]",
+          "",
+          "FLAGS",
+          "  --max-count, -n integer    Limit to N most recent sessions (default: 100)",
+          "  --format choice            Output format (choices: table, json)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          "  --standalone                                                        Run with a private server instead of the background service",
+          "  --server string                                                     Connect to a server URL instead of the background service",
+          "",
+          "ERROR",
+          "  Invalid value for flag --format: \"2 occurrences\". Expected: at most 1 value"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "n",
+            "y",
+            "\r",
+            "\r"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

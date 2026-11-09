@@ -7,7 +7,7 @@
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
 //! Not ported (they answer an error): `mini`, `mcp`, `plugin` (dropped from the port), `pair`, the TUI (the default
-//! command), `--wizard`; see `dispatch`.
+//! command); see `dispatch`. `--wizard` builds the command in a terminal first (`wizard.rs`).
 
 mod auth;
 mod clack;
@@ -27,6 +27,7 @@ mod service;
 mod spec;
 mod stats;
 mod tool;
+mod wizard;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -123,10 +124,16 @@ pub fn main() -> ! {
     let _ = STARTUP.set(crate::project::absolutize("."));
     merge_no_proxy();
     let root = spec::root();
-    let code = match parse::run(&root, &argv) {
+    let code = finish(&root, parse::run(&root, &argv), &argv);
+    exit(code)
+}
+
+/// `Command.runWith` after parsing: help, version, completions, the wizard, or the command's handler.
+fn finish(root: &spec::Command, outcome: Outcome, argv: &[String]) -> i32 {
+    match outcome {
         Outcome::Help { path, errors } => {
             let palette = help::Palette::detect();
-            stdout(&format!("{}\n", help::render(&root, &path, palette)));
+            stdout(&format!("{}\n", help::render(root, &path, palette)));
             if errors.is_empty() {
                 0
             } else {
@@ -147,10 +154,20 @@ pub fn main() -> ! {
             });
             0
         }
-        Outcome::Wizard => {
-            stderr("Error: --wizard is not available in this build\n");
-            1
-        }
+        Outcome::Wizard { path } => match wizard::run(root, &path, argv) {
+            wizard::End::Exit(code) => code,
+            wizard::End::Run(args) => {
+                let outcome = parse::run(root, &args);
+                // The wizard runs the command with `renderErrors: false`: an invalid command shows its help alone,
+                // then the CLI shows the help again with the errors.
+                if let Outcome::Help { path, errors } = &outcome {
+                    if !errors.is_empty() {
+                        stdout(&format!("{}\n", help::render(root, path, help::Palette::detect())));
+                    }
+                }
+                finish(root, outcome, &args)
+            }
+        },
         Outcome::Run { path, input, globals } => {
             if globals.print_logs {
                 // SAFETY: single-threaded so far.
@@ -165,8 +182,7 @@ pub fn main() -> ! {
                 }
             }
         }
-    };
-    exit(code)
+    }
 }
 
 fn unavailable(path: &[&str]) -> out::Result {
