@@ -434,7 +434,15 @@ struct Machine<'p, 't> {
     caps: Vec<usize>,
     regs: Vec<usize>,
     stack: Vec<Bt>,
+    /// Alternation and loop choice points this search may still resume (see BACKTRACK_BUDGET).
+    budget: u64,
 }
+
+/// How many alternation and loop choice points one search (an exec) may resume before it gives up and reports no
+/// match, as JSC's Yarr interpreter does when it exhausts its match limit, instead of backtracking exponentially
+/// for ever. Single-character loops giving back characters are not counted, so plain scans of long texts never
+/// run out.
+const BACKTRACK_BUDGET: u64 = 50_000_000;
 
 impl Program {
     pub fn capture_count(&self) -> u32 {
@@ -450,6 +458,7 @@ impl Program {
             caps: vec![UNSET; 2 * (self.capture_count as usize + 1)],
             regs: vec![UNSET; self.regs],
             stack: Vec::new(),
+            budget: BACKTRACK_BUDGET,
         };
         let mut pos = from;
         loop {
@@ -466,6 +475,9 @@ impl Program {
                     machine.caps[0] = pos;
                     machine.caps[1] = end;
                     return Some(machine.caps);
+                }
+                if machine.budget == 0 {
+                    return None;
                 }
             }
             if sticky || pos >= text.len() {
@@ -776,6 +788,9 @@ impl<'p, 't> Machine<'p, 't> {
                     let height = self.stack.len();
                     let body = *body;
                     let matched = deep(|| self.run(body, pos, height)).is_some();
+                    if self.budget == 0 {
+                        return None;
+                    }
                     if matched && !*negate {
                         // Atomic: drop the body's choice points, keep its capture undo records.
                         let mut keep = height;
@@ -810,6 +825,10 @@ impl<'p, 't> Machine<'p, 't> {
                 }
                 match self.stack.pop().unwrap() {
                     Bt::Branch { pc: p, pos: q } => {
+                        if self.budget == 0 {
+                            return None;
+                        }
+                        self.budget -= 1;
                         pc = p;
                         pos = q as usize;
                         break;

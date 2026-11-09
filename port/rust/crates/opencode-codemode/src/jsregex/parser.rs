@@ -286,10 +286,10 @@ impl ClassValue {
         self.may_contain_strings |= other.may_contain_strings;
     }
 
+    /// JSC takes "may contain strings" from the first operand of an intersection, as of a subtraction.
     fn intersect(&mut self, other: ClassValue) {
         self.set = self.set.intersect(&other.set);
         self.strings.retain(|s| other.strings.contains(s));
-        self.may_contain_strings &= other.may_contain_strings;
     }
 
     fn subtract(&mut self, other: ClassValue) {
@@ -1368,6 +1368,9 @@ impl<'a> Parser<'a> {
                             if !self.try_consume(b'{') {
                                 return Err(INVALID_IDENTITY_ESCAPE);
                             }
+                            if levels.last().unwrap().in_range() {
+                                return Err(INVALID_CLASS_SET_CHARACTER);
+                            }
                             let value = self.parse_class_string_disjunction()?;
                             levels.last_mut().unwrap().strings(value)?;
                         }
@@ -1425,16 +1428,20 @@ impl<'a> Parser<'a> {
         if self.icase { unicode::unicode_folding().canon(c) } else { c }
     }
 
+    /// A level's value at its `]`. Negating a class that may contain strings is an error; JSC counts the empty
+    /// string (when actually present) only for the outermost class, and a negated nested class keeps it.
     fn end_set_level(&self, level: SetLevel, top: bool) -> Result<ClassValue, Fail> {
         let negate = level.negate;
         let value = level.end(top)?;
         if !negate {
             return Ok(value);
         }
-        if value.may_contain_strings {
+        let has_empty = value.strings.iter().any(|s| s.is_empty());
+        if value.may_contain_strings || (top && has_empty) {
             return Err(NEGATED_MAY_CONTAIN_STRINGS);
         }
-        Ok(ClassValue { set: self.complement_v(&value.set), strings: Vec::new(), may_contain_strings: false })
+        let strings = if has_empty { vec![Vec::new()] } else { Vec::new() };
+        Ok(ClassValue { set: self.complement_v(&value.set), strings, may_contain_strings: false })
     }
 
     /// An escape in a v-flag class standing for one character.
@@ -1471,7 +1478,8 @@ impl<'a> Parser<'a> {
                 if s.len() == 1 {
                     value.set.add(s[0]);
                 } else {
-                    value.may_contain_strings = true;
+                    // Only strings of two or more characters make a class one that "may contain strings".
+                    value.may_contain_strings |= s.len() > 1;
                     if !value.strings.contains(&s) {
                         value.strings.push(s);
                     }
@@ -1564,6 +1572,11 @@ impl SetLevel {
         {
             self.apply(Self::single(folded));
         }
+    }
+
+    /// After a range's `-` (only a character may follow).
+    fn in_range(&self) -> bool {
+        matches!(self.state, SetState::CharHyphen(_) | SetState::ClassHyphen)
     }
 
     /// In an intersection or subtraction an escape may only follow the operator.
