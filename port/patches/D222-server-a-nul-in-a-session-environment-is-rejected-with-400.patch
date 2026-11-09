@@ -1,0 +1,87 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:17:54 -0700
+Subject: [PATCH] D222 server: a NUL in a session environment is rejected with
+ 400
+
+Upstream: PUT /api/session/:id/environment accepts a variable whose name or value contains a NUL. No process can
+start with such an environment, so every shell command of the session then fails: POST /api/session/:id/shell
+{"command":"true"} answers 400 invalid_command "The command contains a NUL character" on field `command` (D218's
+mapping of the spawn's BadArgument), blaming a command that has none; the shell tool fails the same way.
+Fixed: the PUT answers 400 InvalidRequestError, kind invalid_environment, field variables, "Environment variable
+"X" contains a NUL character", and keeps the environment it had.
+Found by the Rust shell slice.
+Scenarios: session-api-control.test.ts "run user shell commands in a session" (new request)
+Upstream tests: packages/server/test/session-environment.test.ts (new)
+
+diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
+index 0dfa0717d7..778f1f9f77 100644
+--- a/packages/protocol/src/groups/session.ts
++++ b/packages/protocol/src/groups/session.ts
+@@ -807,7 +807,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+         params: { sessionID: Session.ID },
+         payload: Schema.Struct({ variables: Schema.Record(Schema.String, Schema.String) }),
+         success: HttpApiSchema.NoContent,
+-        error: SessionNotFoundError,
++        error: [InvalidRequestError, SessionNotFoundError],
+       }).annotateMerge(
+         OpenApi.annotations({
+           identifier: "session.environment",
+diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
+index 21d8713d57..e12f49b331 100644
+--- a/packages/server/src/handlers/session.ts
++++ b/packages/server/src/handlers/session.ts
+@@ -234,6 +234,16 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+       .handle(
+         "session.environment",
+         Effect.fn(function* (ctx) {
++          // No process can start with a NUL in its environment: every shell command of the session would fail.
++          const invalid = Object.entries(ctx.payload.variables).find(
++            ([key, value]) => key.includes("\0") || value.includes("\0"),
++          )
++          if (invalid)
++            return yield* new InvalidRequestError({
++              message: `Environment variable ${JSON.stringify(invalid[0])} contains a NUL character`,
++              kind: "invalid_environment",
++              field: "variables",
++            })
+           yield* session
+             .environment({ sessionID: ctx.params.sessionID, variables: ctx.payload.variables })
+             .pipe(Effect.catchTag("Session.NotFoundError", missingSession))
+diff --git a/packages/server/test/session-environment.test.ts b/packages/server/test/session-environment.test.ts
+new file mode 100644
+index 0000000000..bb91f247af
+--- /dev/null
++++ b/packages/server/test/session-environment.test.ts
+@@ -0,0 +1,31 @@
++import { expect } from "bun:test"
++import { Effect } from "effect"
++import { it } from "../../core/test/lib/effect"
++import { ServerFetch } from "../src/fetch"
++
++it.live("rejects a NUL in a session environment instead of failing every shell command later", () =>
++  Effect.gen(function* () {
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      fs: { filewatcher: false },
++    })
++    const request = (method: string, route: string, body: unknown) =>
++      Effect.promise(async () => {
++        const response = await handler(
++          new Request(`http://opencode.local${route}`, {
++            method,
++            headers: { "content-type": "application/json" },
++            body: JSON.stringify(body),
++          }),
++        )
++        return { status: response.status, body: response.status === 204 ? undefined : await response.json() }
++      })
++    const created = yield* request("POST", "/api/session", { title: "environment" })
++    const id = created.body.data.id
++    const rejected = yield* request("PUT", `/api/session/${id}/environment`, { variables: { X: "a\u0000b" } })
++    expect(rejected.status).toBe(400)
++    expect(rejected.body).toMatchObject({ _tag: "InvalidRequestError", kind: "invalid_environment", field: "variables" })
++    expect((yield* request("PUT", `/api/session/${id}/environment`, { variables: { X: "ab" } })).status).toBe(204)
++  }).pipe(Effect.scoped),
++)

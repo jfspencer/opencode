@@ -332,7 +332,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"command\":\"printf 'one\\\\ntwo\\\\nthree\\\\n'; printf 'émoji ✓\\\\n' >&2\"}",
+                    "arguments": "{\"command\":\"printf 'one\\\\ntwo\\\\nthree\\\\n'; printf 'émoji ✓\\\\n'\"}",
                     "name": "shell"
                   },
                   "id": "call_conformance_0",
@@ -531,7 +531,7 @@
         "created": "<time>",
         "data": {
           "info": {
-            "command": "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n' >&2",
+            "command": "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n'",
             "cwd": "<project>",
             "file": "<root>/data/opencode/shell/<hash_1>/<sh_1>.out",
             "id": "<sh_1>",
@@ -729,7 +729,7 @@
           "assistantMessageID": "<msg_2>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"command\":\"printf 'one\\\\ntwo\\\\nthree\\\\n'; printf 'émoji ✓\\\\n' >&2\"}"
+          "text": "{\"command\":\"printf 'one\\\\ntwo\\\\nthree\\\\n'; printf 'émoji ✓\\\\n'\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -749,7 +749,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "command": "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n' >&2"
+            "command": "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n'"
           },
           "sessionID": "<ses_1>"
         },

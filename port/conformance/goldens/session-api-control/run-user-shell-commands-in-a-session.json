@@ -37,6 +37,23 @@
       "url": "/api/session"
     },
     {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "field": "variables",
+        "kind": "invalid_environment",
+        "message": "Environment variable \"X\" contains a NUL character"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "variables": {
+          "X": "a\u0000b"
+        }
+      },
+      "status": 400,
+      "url": "/api/session/<ses_1>/environment"
+    },
+    {
       "body": null,
       "kind": "http",
       "method": "POST",
@@ -51,7 +68,7 @@
       "kind": "http",
       "method": "POST",
       "request": {
-        "command": "echo out; echo err >&2; exit 3",
+        "command": "echo out; echo again; exit 3",
         "id": "<msg_1>"
       },
       "status": 204,
@@ -120,16 +137,16 @@
             "type": "shell"
           },
           {
-            "command": "echo out; echo err >&2; exit 3",
+            "command": "echo out; echo again; exit 3",
             "exit": 3,
             "id": "<msg_1>",
             "metadata": {
               "background": true
             },
             "output": {
-              "cursor": 8,
-              "output": "out\nerr\n",
-              "size": 8,
+              "cursor": 10,
+              "output": "out\nagain\n",
+              "size": 10,
               "truncated": false
             },
             "shellID": "<sh_2>",
@@ -201,7 +218,7 @@
                 "state": "completed",
                 "truncated": false
               },
-              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo out; echo err >&2; exit 3\">\nout\nerr\n\n\nExited with code 3\n</shell>"
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo out; echo again; exit 3\">\nout\nagain\n\n\nExited with code 3\n</shell>"
             },
             "sessionID": "<ses_1>",
             "time": {
@@ -380,7 +397,7 @@
         "created": "<time>",
         "data": {
           "info": {
-            "command": "echo out; echo err >&2; exit 3",
+            "command": "echo out; echo again; exit 3",
             "cwd": "<project>",
             "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
             "id": "<sh_2>",
@@ -586,7 +603,7 @@
         "data": {
           "sessionID": "<ses_1>",
           "shell": {
-            "command": "echo out; echo err >&2; exit 3",
+            "command": "echo out; echo again; exit 3",
             "cwd": "<project>",
             "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
             "id": "<sh_2>",
@@ -617,14 +634,14 @@
         "created": "<time>",
         "data": {
           "output": {
-            "cursor": 8,
-            "output": "out\nerr\n",
-            "size": 8,
+            "cursor": 10,
+            "output": "out\nagain\n",
+            "size": 10,
             "truncated": false
           },
           "sessionID": "<ses_1>",
           "shell": {
-            "command": "echo out; echo err >&2; exit 3",
+            "command": "echo out; echo again; exit 3",
             "cwd": "<project>",
             "exit": 3,
             "file": "<root>/data/opencode/shell/<hash_1>/<sh_2>.out",
@@ -667,7 +684,7 @@
                 "state": "completed",
                 "truncated": false
               },
-              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo out; echo err >&2; exit 3\">\nout\nerr\n\n\nExited with code 3\n</shell>"
+              "text": "The following shell command was executed by the user:\n<shell id=\"<sh_2>\" state=\"completed\" command=\"echo out; echo again; exit 3\">\nout\nagain\n\n\nExited with code 3\n</shell>"
             },
             "type": "synthetic"
           },

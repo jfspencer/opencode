@@ -46,9 +46,11 @@ function shell(name: string, inputs: Record<string, unknown>[], options: { confi
   })
 }
 
+// Output combines stdout and stderr, two pipes read concurrently: a command that writes to both interleaves them
+// in whatever order they are read, so each command here writes to one.
 shell("output, stderr and exit status", [
   { command: "cat src/a.txt src/b.txt" },
-  { command: "echo out; echo err >&2; echo again" },
+  { command: "echo err >&2; echo again >&2" },
   { command: "true" },
   { command: "grep -c missing README.md" },
   { command: "echo partial; exit 3" },
