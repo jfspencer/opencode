@@ -1,14 +1,11 @@
-//! JavaScript string semantics over byte strings.
+//! JavaScript string semantics over UTF-8 byte strings.
 //!
-//! The TS converters work on JS strings (UTF-16), which can hold lone surrogates: htmlparser2 emits an astral named
-//! entity (`&Afr;`) as two text events of one surrogate each, and the converter writes its input in 64 KiB chunks,
-//! which can split a surrogate pair. Here a JS string is a byte string in generalized UTF-8 (WTF-8): valid UTF-8,
-//! except that a lone surrogate is the 3-byte sequence `ED A0..BF xx`. Concatenation (`push`) joins a high surrogate
-//! and the low surrogate after it into one 4-byte character, as JS does. The byte length of such a string is what
-//! `TextEncoder#encode(s).byteLength` gives in JS (a lone surrogate encodes as U+FFFD, also 3 bytes), so byte budgets
-//! are counted on the bytes directly.
+//! The TS converters work on JS strings (UTF-16). The patched reference never makes a lone surrogate from a valid
+//! string: htmlparser2 emits an astral entity as one code point and html-markdown.ts writes its input in chunks
+//! that end between characters (D113, D114). A JS string is therefore kept as its UTF-8 bytes, whose length is what
+//! `TextEncoder#encode(s).byteLength` gives in JS, so byte budgets are counted on the bytes directly.
 
-/// A JS string, as generalized UTF-8 (see the module docs).
+/// A JS string, as UTF-8 bytes.
 pub(crate) type JsString = Vec<u8>;
 
 /// JS `WhiteSpace` and `LineTerminator`: what `String#trim`, `parseInt` and the regular expression `\s` match.
@@ -23,7 +20,7 @@ fn is_continuation(byte: u8) -> bool {
     byte & 0xc0 == 0x80
 }
 
-/// The code point (or lone surrogate) that starts at `i`, and its length in bytes.
+/// The code point that starts at `i`, and its length in bytes.
 pub(crate) fn decode_at(s: &[u8], i: usize) -> (u32, usize) {
     let b = s[i];
     if b < 0x80 {
@@ -43,72 +40,27 @@ pub(crate) fn decode_at(s: &[u8], i: usize) -> (u32, usize) {
     (cp, 4)
 }
 
-/// Appends one code point, or one UTF-16 code unit (a surrogate becomes its 3-byte form), without joining.
-pub(crate) fn push_code_point_raw(out: &mut JsString, cp: u32) {
-    if cp < 0x80 {
-        out.push(cp as u8);
-    } else if cp < 0x800 {
-        out.extend_from_slice(&[0xc0 | (cp >> 6) as u8, 0x80 | (cp & 0x3f) as u8]);
-    } else if cp < 0x10000 {
-        out.extend_from_slice(&[0xe0 | (cp >> 12) as u8, 0x80 | ((cp >> 6) & 0x3f) as u8, 0x80 | (cp & 0x3f) as u8]);
-    } else {
-        out.extend_from_slice(&[
-            0xf0 | (cp >> 18) as u8,
-            0x80 | ((cp >> 12) & 0x3f) as u8,
-            0x80 | ((cp >> 6) & 0x3f) as u8,
-            0x80 | (cp & 0x3f) as u8,
-        ]);
-    }
-}
-
-fn ends_with_high_surrogate(s: &[u8]) -> bool {
-    let n = s.len();
-    n >= 3 && s[n - 3] == 0xed && (0xa0..=0xaf).contains(&s[n - 2])
-}
-
-fn starts_with_low_surrogate(s: &[u8]) -> bool {
-    s.len() >= 3 && s[0] == 0xed && (0xb0..=0xbf).contains(&s[1])
-}
-
-/// `dst += src`: a high surrogate at the end of `dst` and a low surrogate at the start of `src` become one character.
+/// `dst += src`.
 pub(crate) fn push(dst: &mut JsString, src: &[u8]) {
-    if ends_with_high_surrogate(dst) && starts_with_low_surrogate(src) {
-        let n = dst.len();
-        let (high, _) = decode_at(dst, n - 3);
-        let (low, _) = decode_at(src, 0);
-        dst.truncate(n - 3);
-        push_code_point_raw(dst, 0x10000 + ((high - 0xd800) << 10) + (low - 0xdc00));
-        dst.extend_from_slice(&src[3..]);
-    } else {
-        dst.extend_from_slice(src);
-    }
+    dst.extend_from_slice(src);
 }
 
-/// `String.fromCodePoint(cp)` appended with JS concatenation.
+/// `dst += String.fromCodePoint(cp)`, for a code point that is not a surrogate (the tokenizer's entities never
+/// are: `replaceCodePoint` turns a numeric one into U+FFFD).
 pub(crate) fn push_code_point(dst: &mut JsString, cp: u32) {
-    let mut unit = Vec::with_capacity(4);
-    push_code_point_raw(&mut unit, cp);
-    push(dst, &unit);
+    let c = char::from_u32(cp).unwrap_or(char::REPLACEMENT_CHARACTER);
+    dst.extend_from_slice(c.encode_utf8(&mut [0; 4]).as_bytes());
 }
 
-/// The string as UTF-8, as `TextEncoder` writes it: each lone surrogate becomes U+FFFD.
-pub(crate) fn into_string(mut s: JsString) -> String {
-    let mut i = 0;
-    while i + 2 < s.len() {
-        if s[i] == 0xed && s[i + 1] >= 0xa0 {
-            s[i..i + 3].copy_from_slice("\u{fffd}".as_bytes());
-            i += 3;
-        } else {
-            i += 1;
-        }
-    }
+/// The string as a Rust `String`.
+pub(crate) fn into_string(s: JsString) -> String {
     match String::from_utf8(s) {
         Ok(s) => s,
         Err(e) => String::from_utf8_lossy(e.as_bytes()).into_owned(),
     }
 }
 
-/// The longest prefix of whole code points (a lone surrogate counts as one) that encodes in at most `bytes` bytes:
+/// The longest prefix of whole code points that encodes in at most `bytes` bytes:
 /// html-markdown.ts `sliceBytes`.
 pub(crate) fn slice_bytes(s: &[u8], bytes: i64) -> &[u8] {
     if (s.len() as i64) <= bytes {
@@ -293,15 +245,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn joins_surrogate_halves() {
+    fn pushes_code_points() {
         let mut s = Vec::new();
-        push_code_point(&mut s, 0xd83d);
-        assert_eq!(s.len(), 3);
-        push_code_point(&mut s, 0xde00);
-        assert_eq!(into_string(s), "😀");
-        let mut lone = Vec::new();
-        push_code_point(&mut lone, 0xde00);
-        assert_eq!(into_string(lone), "\u{fffd}");
+        push_code_point(&mut s, 0x1d504);
+        push_code_point(&mut s, 0xe9);
+        assert_eq!(into_string(s), "\u{1d504}é");
     }
 
     #[test]

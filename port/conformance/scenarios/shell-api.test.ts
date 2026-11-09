@@ -53,7 +53,8 @@ scenario(
   "page through the output of a finished command",
   {
     config: allowShell,
-    turns: [call("shell", { command: "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n' >&2" }), say("Done.")],
+    // One stream: stdout and stderr are read concurrently, so the byte offsets below would depend on timing.
+    turns: [call("shell", { command: "printf 'one\\ntwo\\nthree\\n'; printf 'émoji ✓\\n'" }), say("Done.")],
   },
   async (ctx) => {
     const id = await ctx.session({ title: "output" })

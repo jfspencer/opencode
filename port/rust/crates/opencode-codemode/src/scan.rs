@@ -2,8 +2,9 @@
 //! it. It fails on syntax errors, on dynamic bracket access (`tools[name]`), and on aliasing or passing `tools` rather
 //! than calling `tools.<path>(...)` directly. Core's schedule checks use it to vet a condition's tool calls.
 //!
-//! TS walks acorn's tree generically, visiting each node's children in the order acorn set its properties; `children`
-//! lists them in that order (a `switch` case's statements before its test, a label after its body).
+//! TS walks acorn's tree generically, visiting each node's children in source order (D516: acorn sets some properties
+//! out of order, a `switch` case's statements before its test, a label after its body); `children` lists them so.
+//! Siblings with no children of their own (a template's strings) keep acorn's order: they cannot change the result.
 
 use crate::interp::Loc;
 use crate::interp::errors::{Diagnostic, DiagnosticKind, format_location};
@@ -12,7 +13,7 @@ use crate::parser::ast::*;
 
 /// The tool paths `code` calls, or why it cannot be scanned.
 ///
-/// TS's walks recurse on the JS stack, so a tree nested deeper than it holds (about 9,100 levels, as in a chain of
+/// TS's walks recurse on the JS stack, so a tree nested deeper than it holds (about 7,250 levels, as in a chain of
 /// that many `.b`s; the parser itself gives up sooner on nested brackets) makes `scanTools` throw a RangeError
 /// instead of returning. Here that is `Err` with the execution's nesting diagnostic (`ExecutionFailure`, "Execution
 /// exceeded the maximum nesting depth.").
@@ -35,8 +36,11 @@ pub fn scan_tools(code: &str) -> Result<Vec<String>, Diagnostic> {
 }
 
 /// How deep TS's walks reach before JavaScriptCore runs out of stack, in nodes on the current path; the walk over
-/// `var`s and the main visit cost about the same per level, and add up when one runs inside the other.
-const MAX_DEPTH: usize = 9_120;
+/// `var`s and the main visit cost about the same per level, and add up when one runs inside the other. Calibrated
+/// in bun after a warm-up on `harness/corpus/scan.jsonl`: chains of calls, members, tagged templates, and members
+/// inside a function first throw at 7,249 to 7,255 links (9,118 to 9,121 before D516 sorted each node's children).
+/// Colder or warmer, TS's threshold moves between about 6,800 and 11,500.
+const MAX_DEPTH: usize = 7_253;
 
 /// The walk went deeper than TS's could.
 struct TooDeep;
@@ -135,7 +139,7 @@ fn spread_node(item: &ExprOrSpread) -> Node<'_> {
 }
 
 impl<'a> Node<'a> {
-    /// The node's children in acorn's property order, with the property that holds each.
+    /// The node's children in source order, with the property that holds each.
     fn children(self) -> Vec<(Field, Node<'a>)> {
         use Field::*;
         let mut out: Vec<(Field, Node<'a>)> = Vec::new();
@@ -152,8 +156,8 @@ impl<'a> Node<'a> {
                 }
                 Stmt::Return(node) => out.extend(node.argument.iter().map(|e| (Other, expr_node(e)))),
                 Stmt::Labeled(node) => {
-                    out.push((Other, stmt_node(&node.body)));
                     out.push((Label, Node::Ident(&node.label)));
+                    out.push((Other, stmt_node(&node.body)));
                 }
                 Stmt::Break(node) => out.extend(node.label.iter().map(|l| (Label, Node::Ident(l)))),
                 Stmt::Continue(node) => out.extend(node.label.iter().map(|l| (Label, Node::Ident(l)))),
@@ -223,8 +227,8 @@ impl<'a> Node<'a> {
                 Stmt::Block(_) | Stmt::Function(_) | Stmt::Variable(_) | Stmt::Class(_) => unreachable!("normalized"),
             },
             Node::SwitchCase(case) => {
-                stmts(&mut out, &case.consequent);
                 out.extend(case.test.iter().map(|e| (Other, expr_node(e))));
+                stmts(&mut out, &case.consequent);
             }
             Node::Catch(clause) => {
                 out.extend(clause.param.iter().map(|p| (Other, pat_node(p))));
@@ -437,7 +441,8 @@ impl<'a> Scan<'a> {
                 Err(diagnostic) => Some(Stop::Invalid(diagnostic)),
             };
         }
-        let scope = match enter_node_scope(node, self.ancestors.len() + 1) {
+        let parent = self.ancestors.last().map(|ancestor| ancestor.node);
+        let scope = match enter_node_scope(node, parent, self.ancestors.len() + 1) {
             Ok(scope) => scope,
             Err(TooDeep) => return Some(Stop::TooDeep),
         };
@@ -513,17 +518,19 @@ impl<'a> Scan<'a> {
 }
 
 /// The scope a node opens, as whether it declares `tools`; `depth` is the node's own on the visit's path.
-fn enter_node_scope(node: Node<'_>, depth: usize) -> Result<Option<bool>, TooDeep> {
+fn enter_node_scope(node: Node<'_>, parent: Option<Node<'_>>, depth: usize) -> Result<Option<bool>, TooDeep> {
     Ok(match node {
+        // The parameters; the body block adds the body's declarations, which the parameters' defaults cannot see (D515).
         Node::Function(function) => {
-            let mut declares = function.id.as_ref().is_some_and(|id| &*id.name == "tools");
-            declares |= function.params.iter().any(pattern_declares);
-            if let FunctionBody::Block(block) = &function.body {
-                declares |= collect_scope(&block.body, true, depth)?;
-            }
-            Some(declares)
+            Some(function.id.as_ref().is_some_and(|id| &*id.name == "tools") || function.params.iter().any(pattern_declares))
         }
-        Node::Block(block) => Some(collect_scope(&block.body, false, depth)?),
+        Node::Block(block) => {
+            let body = matches!(parent, Some(Node::Function(function))
+                if matches!(&function.body, FunctionBody::Block(own) if std::ptr::eq(own, block)));
+            Some(collect_scope(&block.body, body, depth)?)
+        }
+        // A class static block is a var scope of its own, like a function body (D514).
+        Node::ClassElement(ClassElement::StaticBlock(block)) => Some(collect_scope(&block.body, true, depth)?),
         Node::Catch(clause) => Some(clause.param.as_ref().is_some_and(pattern_declares)),
         Node::Stmt(Stmt::For(node)) => match &node.init {
             Some(ForInit::Variable(declaration)) if declaration.kind != VarKind::Var => Some(declarator_declares(declaration)),
@@ -568,13 +575,14 @@ fn collect_scope(body: &[Stmt], include_var: bool, depth: usize) -> Result<bool,
     Ok(declares)
 }
 
-/// Whether a `var` anywhere under `node`, outside nested functions, declares `tools`; `depth` is the node's own.
+/// Whether a `var` anywhere under `node`, outside nested functions and static blocks, declares `tools`; `depth` is the
+/// node's own.
 fn nested_vars_declare(node: Node<'_>, depth: usize) -> Result<bool, TooDeep> {
     if depth > MAX_DEPTH {
         return Err(TooDeep);
     }
     stacker::maybe_grow(64 * 1024, 1024 * 1024, || match node {
-        Node::Function(_) => Ok(false),
+        Node::Function(_) | Node::ClassElement(ClassElement::StaticBlock(_)) => Ok(false),
         other => {
             let mut declares = matches!(other, Node::VarDecl(declaration)
                 if declaration.kind == VarKind::Var && declarator_declares(declaration));

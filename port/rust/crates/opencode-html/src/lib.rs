@@ -6,10 +6,11 @@
 //! - [`webfetch`]: the other pure steps the tool applies to a response (Accept header, content-type checks, body
 //!   limit, decoding, choice of conversion).
 //!
-//! Both converters run on a port of htmlparser2 8.0.2's tokenizer and parser (`parser.rs`), so they see exactly the
-//! events the TS converters see, quirks included. Strings follow JS semantics: lone surrogates, UTF-16 chunking and
-//! `TextEncoder` byte counts are reproduced (see `js.rs`); the returned `String` is the TS result as `TextEncoder`
-//! would encode it (a lone surrogate, which TS can return, becomes U+FFFD).
+//! Both converters run on a port of htmlparser2 8.0.2's tokenizer and parser (`parser.rs`), as the TS reference
+//! patches it (`patches/htmlparser2@8.0.2.patch`: deviations D113 and D114), so they see exactly the events the TS
+//! converters see, quirks included. Strings follow JS semantics where it shows: html-markdown.ts's 64 Ki-unit write
+//! chunks and `TextEncoder` byte counts are reproduced (see `js.rs`). The patched TS never returns a lone surrogate,
+//! so the returned `String` is the TS result exactly.
 //!
 //! # Use in the webfetch tool
 //!
@@ -73,4 +74,36 @@ pub fn html_to_markdown(html: &str) -> String {
 /// `extractTextFromHTML(html)`.
 pub fn html_to_text(html: &str) -> String {
     text::extract(html)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The upstream test D113 adds ("drops a tag the input ends inside and keeps a reference without digits as text").
+    #[test]
+    fn markup_cut_off_at_the_end() {
+        assert_eq!(html_to_markdown("<p>a</p></div foo"), "a");
+        assert_eq!(html_to_text("a</b \u{1f600}"), "a");
+        assert_eq!(html_to_markdown("<p>a</p><div/"), "a");
+        assert_eq!(html_to_markdown("x<s"), "x");
+        assert_eq!(html_to_markdown("x<t"), "x");
+        assert_eq!(html_to_markdown("<ul><li>a<b "), "- a");
+        assert_eq!(html_to_markdown("<p>a<em "), "a");
+        assert_eq!(html_to_markdown("<p>hello world &#x"), "hello world &#x");
+    }
+
+    /// The upstream test D114 adds ("keeps astral characters whole at the content limit").
+    #[test]
+    fn astral_characters_stay_whole_at_the_budget() {
+        let budget = MAX_MARKDOWN_BYTES - 64 * 1024;
+        // A leading "a" puts every high surrogate at an odd index, so some fall at the end of a write chunk.
+        let fitting = format!("a{}", "\u{1f600}".repeat((budget - 1) / 4));
+        assert_eq!(html_to_markdown(&fitting), fitting);
+        // An astral entity is one character (the paragraph's break takes two bytes of the budget).
+        let x = "x".repeat(budget - 6);
+        assert_eq!(html_to_markdown(&format!("<p>{x}&Afr;</p>")), format!("{x}\u{1d504}"));
+        let x = "x".repeat(budget - 5);
+        assert_eq!(html_to_markdown(&format!("<p>{x}&Afr;</p>")), x);
+    }
 }

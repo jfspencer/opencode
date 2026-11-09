@@ -184,10 +184,10 @@ pub fn decode_body(body: &[u8]) -> Cow<'_, str> {
     String::from_utf8_lossy(body)
 }
 
-/// webfetch.ts `convert(content, contentType, format)`: HTML (any `content-type` containing `text/html`, as
-/// written) becomes Markdown or text; everything else, and HTML asked for as HTML, is returned as is.
+/// webfetch.ts `convert(content, contentType, format)`: HTML (any `content-type` containing `text/html` in any case,
+/// D115) becomes Markdown or text; everything else, and HTML asked for as HTML, is returned as is.
 pub fn convert<'a>(content: &'a str, content_type: &str, format: Format) -> Cow<'a, str> {
-    if !content_type.contains("text/html") {
+    if !js::to_lower_case(content_type).contains("text/html") {
         return Cow::Borrowed(content);
     }
     match format {
@@ -211,6 +211,16 @@ mod tests {
         );
         assert_eq!(check_content_type(""), Ok(()));
         assert_eq!(check_content_type("image/svg+xml"), Ok(()));
+    }
+
+    /// The upstream test D115 adds ("converts HTML whatever the case of its content type").
+    #[test]
+    fn converts_html_in_any_case() {
+        let html = "<h1>Hello</h1><p>world</p>";
+        assert_eq!(convert(html, "Text/HTML", Format::Markdown), "# Hello\n\nworld");
+        assert_eq!(convert(html, "TEXT/HTML; charset=utf-8", Format::Text), "Helloworld");
+        assert_eq!(convert(html, "Text/HTML", Format::Html), html);
+        assert_eq!(convert(html, "text/plain", Format::Markdown), html);
     }
 
     #[test]

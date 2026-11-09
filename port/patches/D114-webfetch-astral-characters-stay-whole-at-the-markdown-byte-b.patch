@@ -1,0 +1,139 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:50:11 -0700
+Subject: [PATCH] D114 webfetch: astral characters stay whole at the markdown
+ byte budget
+
+Upstream: html-markdown.ts counts its 5 MiB budget with TextEncoder, and two paths hand it a surrogate pair as two
+lone halves, each counted as three bytes: htmlparser2 8.0.2 emits an astral named entity (stored as two UTF-16
+units) as two text events, and html-markdown.ts writes the page to the parser in 64 Ki-unit chunks that can end
+between the halves of a pair. At the budget the first half can fit and the second not:
+`<p>${"x".repeat(5177339)}&Afr;</p>` ends in a lone \ud835. Each split pair also overcounts by two bytes, so text at
+the budget is cut short.
+Fixed: htmlparser2 emits an astral entity as one code point (patches/htmlparser2@8.0.2.patch), and
+html-markdown.ts ends each chunk between characters.
+Found by the Rust opencode-html crate's differential harness.
+Scenarios: none (the budget is 5 MiB of output); the crate's harness and the upstream test pin it.
+Upstream tests: packages/core/test/tool-webfetch.test.ts adds a test
+
+diff --git a/packages/core/src/tool/html-markdown.ts b/packages/core/src/tool/html-markdown.ts
+index 23818cb697..b2c9357ef1 100644
+--- a/packages/core/src/tool/html-markdown.ts
++++ b/packages/core/src/tool/html-markdown.ts
+@@ -614,7 +614,14 @@ export function convertHTMLToMarkdown(html: string) {
+       }
+     },
+   })
+-  for (let index = 0; index < html.length; index += 64 * 1024) parser.write(html.slice(index, index + 64 * 1024))
++  // Chunks end between characters: a surrogate pair split across two writes reaches `text` as two lone halves, each
++  // counted as three bytes.
++  for (let index = 0; index < html.length; ) {
++    const end = Math.min(index + 64 * 1024, html.length)
++    const next = end < html.length && /[\ud800-\udbff]/.test(html[end - 1]) ? end - 1 : end
++    parser.write(html.slice(index, next))
++    index = next
++  }
+   parser.end()
+ 
+   const normalized: string[] = []
+diff --git a/packages/core/test/tool-webfetch.test.ts b/packages/core/test/tool-webfetch.test.ts
+index 73558af9ae..b313b8b3b9 100644
+--- a/packages/core/test/tool-webfetch.test.ts
++++ b/packages/core/test/tool-webfetch.test.ts
+@@ -211,6 +211,18 @@ describe("WebFetchTool helpers", () => {
+     expect(Buffer.byteLength(truncated)).toBe(Buffer.byteLength(fitting))
+   })
+ 
++  test("keeps astral characters whole at the content limit", () => {
++    const budget = WebFetchTool.MAX_RESPONSE_BYTES - 64 * 1024
++    // A leading "a" puts every high surrogate at an odd index, so some fall at the end of a parser chunk.
++    const fitting = "a" + "\u{1f600}".repeat(Math.floor((budget - 1) / 4))
++    expect(WebFetchTool.convertHTMLToMarkdown(fitting)).toBe(fitting)
++    // An astral entity is one character (the paragraph's break takes two bytes of the budget).
++    expect(WebFetchTool.convertHTMLToMarkdown(`<p>${"x".repeat(budget - 6)}&Afr;</p>`)).toBe(
++      "x".repeat(budget - 6) + "\u{1d504}",
++    )
++    expect(WebFetchTool.convertHTMLToMarkdown(`<p>${"x".repeat(budget - 5)}&Afr;</p>`)).toBe("x".repeat(budget - 5))
++  })
++
+   test("bounds deeply nested list output and fragmented code fences", () => {
+     const lists = `${"<ul><li>item".repeat(2_000)}${"</li></ul>".repeat(2_000)}`
+     const quotes = `${"<blockquote><p>item".repeat(2_000)}${"</p></blockquote>".repeat(2_000)}`
+diff --git a/patches/htmlparser2@8.0.2.patch b/patches/htmlparser2@8.0.2.patch
+index a8c27584ad..13accb6e66 100644
+--- a/patches/htmlparser2@8.0.2.patch
++++ b/patches/htmlparser2@8.0.2.patch
+@@ -1,7 +1,26 @@
+ diff --git a/lib/Tokenizer.js b/lib/Tokenizer.js
+ --- a/lib/Tokenizer.js
+ +++ b/lib/Tokenizer.js
+-@@ -889,12 +889,18 @@
++@@ -639,8 +639,16 @@
++                 break;
++             }
++             case 3: {
++-                this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
++-                this.emitCodePoint(this.entityTrie[this.entityResult + 2]);
+++                const first = this.entityTrie[this.entityResult + 1];
+++                const second = this.entityTrie[this.entityResult + 2];
+++                // An astral character is stored as its two UTF-16 units: emit it as one code point
+++                if (first >= 0xd800 && first <= 0xdbff && second >= 0xdc00 && second <= 0xdfff) {
+++                    this.emitCodePoint((first - 0xd800) * 0x400 + (second - 0xdc00) + 0x10000);
+++                }
+++                else {
+++                    this.emitCodePoint(first);
+++                    this.emitCodePoint(second);
+++                }
++             }
++         }
++     };
++@@ -889,12 +897,18 @@
+          else if (this.state === State.InNumericEntity &&
+              this.allowLegacyEntity()) {
+              this.emitNumericEntity(false);
+@@ -22,7 +41,7 @@ diff --git a/lib/Tokenizer.js b/lib/Tokenizer.js
+          }
+          else if (this.state === State.InTagName ||
+              this.state === State.BeforeAttributeName ||
+-@@ -904,7 +910,11 @@
++@@ -904,7 +918,11 @@
+              this.state === State.InAttributeValueSq ||
+              this.state === State.InAttributeValueDq ||
+              this.state === State.InAttributeValueNq ||
+@@ -38,7 +57,26 @@ diff --git a/lib/Tokenizer.js b/lib/Tokenizer.js
+ diff --git a/lib/esm/Tokenizer.js b/lib/esm/Tokenizer.js
+ --- a/lib/esm/Tokenizer.js
+ +++ b/lib/esm/Tokenizer.js
+-@@ -885,12 +885,18 @@
++@@ -635,8 +635,16 @@
++                 break;
++             }
++             case 3: {
++-                this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
++-                this.emitCodePoint(this.entityTrie[this.entityResult + 2]);
+++                const first = this.entityTrie[this.entityResult + 1];
+++                const second = this.entityTrie[this.entityResult + 2];
+++                // An astral character is stored as its two UTF-16 units: emit it as one code point
+++                if (first >= 0xd800 && first <= 0xdbff && second >= 0xdc00 && second <= 0xdfff) {
+++                    this.emitCodePoint((first - 0xd800) * 0x400 + (second - 0xdc00) + 0x10000);
+++                }
+++                else {
+++                    this.emitCodePoint(first);
+++                    this.emitCodePoint(second);
+++                }
++             }
++         }
++     }
++@@ -885,12 +893,18 @@
+          else if (this.state === State.InNumericEntity &&
+              this.allowLegacyEntity()) {
+              this.emitNumericEntity(false);
+@@ -59,7 +97,7 @@ diff --git a/lib/esm/Tokenizer.js b/lib/esm/Tokenizer.js
+          }
+          else if (this.state === State.InTagName ||
+              this.state === State.BeforeAttributeName ||
+-@@ -900,7 +906,11 @@
++@@ -900,7 +914,11 @@
+              this.state === State.InAttributeValueSq ||
+              this.state === State.InAttributeValueDq ||
+              this.state === State.InAttributeValueNq ||

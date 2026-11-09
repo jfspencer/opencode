@@ -329,6 +329,14 @@ scenario(
     },
     async (ctx) => {
       const id = await run(ctx, "Count files in the background.")
+      // The child is held at the fake model: once its request has arrived there, its job is as the listing records it.
+      await ctx.until(() =>
+        ctx.provider.requests.some((request) => {
+          if (request.kind !== "chat") return false
+          const messages = (request.body as { messages?: { role: string; content: unknown }[] })?.messages ?? []
+          return JSON.stringify(messages.find((message) => message.role === "user")?.content).includes('Count files."')
+        }),
+      )
       await ctx.http("GET", `/api/experimental/job?sessionID=${id}`)
       childGate.open()
       await executions(ctx, id, 2)

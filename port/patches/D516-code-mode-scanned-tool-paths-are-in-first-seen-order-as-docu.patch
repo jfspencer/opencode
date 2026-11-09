@@ -1,0 +1,66 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:02:39 -0700
+Subject: [PATCH] D516 code mode: scanned tool paths are in first-seen order,
+ as documented
+
+Upstream: scanTools documents its result as the tool paths "in first-seen order", but it walks each syntax node's
+children in the order of their object keys, and acorn sets some keys out of source order: `switch (tools.a()) {
+case tools.b(): tools.c() }` lists `["a","c","b"]` (a case's `consequent` is created before its `test`).
+Fixed: children are visited in source order.
+Found by the Rust opencode-codemode crate.
+Scenarios: none (the order shows only in a schedule check's permission requests, which no scenario reaches
+with several tools); the crate's harness and the upstream test pin it
+Upstream tests: packages/codemode/test/scan.test.ts adds a test
+
+diff --git a/packages/codemode/src/scan.ts b/packages/codemode/src/scan.ts
+index d4fe5f7d20..905bc78ac6 100644
+--- a/packages/codemode/src/scan.ts
++++ b/packages/codemode/src/scan.ts
+@@ -243,21 +243,14 @@ function visitChildren(
+   node: AnyNode,
+   visit: (child: AnyNode | null | undefined) => Diagnostic | undefined,
+ ): Diagnostic | undefined {
+-  for (const [key, value] of Object.entries(node as unknown as Record<string, unknown>)) {
+-    if (key === "type" || key === "start" || key === "end" || key === "loc" || key === "range") continue
+-    if (Array.isArray(value)) {
+-      for (const item of value) {
+-        if (isAstNode(item)) {
+-          const error = visit(item)
+-          if (error) return error
+-        }
+-      }
+-      continue
+-    }
+-    if (isAstNode(value)) {
+-      const error = visit(value)
+-      if (error) return error
+-    }
++  const children = Object.entries(node as unknown as Record<string, unknown>).flatMap(([key, value]) => {
++    if (key === "type" || key === "start" || key === "end" || key === "loc" || key === "range") return []
++    return (Array.isArray(value) ? value : [value]).filter(isAstNode)
++  })
++  // In source order: acorn sets some keys out of order (a switch case's `consequent` before its `test`).
++  for (const child of children.toSorted((a, b) => a.start - b.start)) {
++    const error = visit(child)
++    if (error) return error
+   }
+   return undefined
+ }
+diff --git a/packages/codemode/test/scan.test.ts b/packages/codemode/test/scan.test.ts
+index 2742a5573a..7563c577db 100644
+--- a/packages/codemode/test/scan.test.ts
++++ b/packages/codemode/test/scan.test.ts
+@@ -17,6 +17,12 @@ describe("CodeMode.scanTools", () => {
+     }
+   })
+ 
++  test("lists tools in source order whatever the syntax tree's key order", () => {
++    expect(CodeMode.scanTools("switch (tools.a()) { case tools.b(): tools.c() }")).toEqual(
++      Result.succeed(["a", "b", "c"]),
++    )
++  })
++
+   test("ignores shadowed local tools bindings", () => {
+     const scanned = CodeMode.scanTools(`
+       function helper(tools) {

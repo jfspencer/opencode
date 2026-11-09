@@ -190,7 +190,8 @@ Each rule states that the difference it hides is not observable behavior.
 - **CLI** (`lib/cli.ts`): ports, sandbox paths, secrets, locale times, stack frames (documented in the file).
 
 **Unspecified by the standard:** the order of multi-file glob/grep results (it follows ripgrep's parallel walk
-and varies between runs upstream). Scenarios pin single-file matches.
+and varies between runs upstream), and how a shell command's stdout and stderr interleave in its output (two
+pipes, read concurrently). Scenarios pin single-file matches and write to one stream per command.
 
 ## Reference configuration
 

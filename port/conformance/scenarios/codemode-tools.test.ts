@@ -104,6 +104,26 @@ const catalog = {
 }
 
 for (const engine of engines) {
+  // A program's tools are the calls its scan finds; a call the scan misses fails as an unknown tool. A function
+  // body's declarations do not hide `tools` from its parameter defaults.
+  scenario(
+    `codemode tool scan scopes${engine.suffix}`,
+    {
+      config: engine.config,
+      turns: programs(
+        `const f = async function (models = tools.opencode.models({ query: "flash" })) { var tools; return await models }
+return await f()`,
+        `const f = async (models = tools.opencode.models({ query: "flash" })) => { let tools; return await models }
+return await f()`,
+      ),
+    },
+    async (ctx) => {
+      const id = await ctx.session()
+      await ctx.prompt(id, "Which flash models are there?")
+      await settled(ctx, id)
+    },
+  )
+
   scenario(
     `codemode models tool${engine.suffix}`,
     {

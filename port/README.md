@@ -197,13 +197,15 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
 | `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
-Status (2026-11-09): 659 of the 673 server scenarios pass (the ledger), including 66 of the 70 CLI scenarios: session
+Status (2026-11-09): 662 of the 677 server scenarios pass (the ledger), including 66 of the 70 CLI scenarios: session
 CRUD, projects, locations, the file system, version control, worktrees, config, agents, providers and models, the
 execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots and reverts, schedules,
 session transfer, webfetch, skills and instructions, shell, the file tools, and the CLI (`run`, `serve`, `service`,
 `session`, `api`, `auth`, `stats`, `acp` and the rest), and Code Mode. Stored credentials, media blobs, the PTY APIs
-and the TUI are in progress. Release builds peak at about 9 to 12 MiB per server process on the passing
-scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+and the TUI are in progress. Release builds peak (VmHWM) at a median of 19.6 MiB per server process
+over 600 passing scenarios (p90 21.3 MiB); an idle server holds about 2 MiB of anonymous memory, the rest being clean
+pages of the 20 MB executable. The TS server peaks at a median of about 312 MiB, and at 377 to 728 MiB on the five
+scenarios where Rust peaks highest (62 to 141 MiB: large attachments, Code Mode limits, the webfetch budget). Unported behavior is marked `TODO(port)` in the source; an
 endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
@@ -227,10 +229,11 @@ by a differential harness of its own.
 `rust/crates/opencode-html` is the webfetch tool's body processing: `html_to_markdown` (`html-markdown.ts`),
 `html_to_text` (`extractTextFromHTML` in `webfetch.ts`), and in `webfetch` the pure response steps (Accept header,
 content-type checks, body limit, decoding, choice of conversion). Both converters run on a port of htmlparser2 8.0.2's
-Tokenizer and Parser with entities 4.5.0's decode trie, so they see the same events as TS, quirks included. JS string
-semantics are kept over generalized UTF-8 (64 Ki-unit write chunks, astral entities as two surrogate events,
-TextEncoder byte counts); the output is the TS string as TextEncoder encodes it, so a lone surrogate in a TS result
-comes out as U+FFFD. `harness/run.sh` runs the upstream converter tests with a recording preload, then compares TS and
+Tokenizer and Parser as the reference patches it (D113: a tag the input ends inside is dropped and not closed, a
+digitless `&#x` at the end stays text; D114: an astral entity is one code point), with entities 4.5.0's decode trie,
+so they see the same events as TS, quirks included. Strings are UTF-8 with JS's TextEncoder byte counts and
+html-markdown.ts's 64 Ki-unit write chunks, which end between characters (D114). The patched TS never returns a lone
+surrogate, so the output is the TS string exactly: the U+FFFD gap is gone. `harness/run.sh` runs the upstream converter tests with a recording preload, then compares TS and
 Rust on the scenario bodies, the recorded upstream inputs, hand-written pages and their mutations, and generated cases
 (tag soup, nesting, chunk boundaries, end of input, list numbers, the budget, content types, decoding, the body
 limit): 0 differences on about 150k cases.

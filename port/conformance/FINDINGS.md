@@ -34,6 +34,23 @@ Status as of 2026-11-07, upstream 6a89e9f.
   `ECONNREFUSED` only, and Bun's fetch reports `ConnectionRefused`. Found by giving the transport scenarios the
   errors Bun actually throws instead of Node-shaped ones.
 
+**Tools** (D113–D122; found by the Rust crates' differential harnesses and the file-tools and shell slices)
+- D113: webfetch HTML that ends inside markup: htmlparser2 8.0.2 replayed the last UTF-16 unit after `</div foo`
+  or `<div/` (`ao`, or a lone surrogate), kept `<s`/`<t` as text, lost the text before a digitless `&#x`, and closed
+  a tag it never opened, so html-markdown.ts closed the wrong frame (`<ul><li>a<b ` gave `- a**`). Fixed in a
+  patched dependency (`patches/htmlparser2@8.0.2.patch` in the reference, as upstream patches others).
+- D114: the 5 MiB markdown budget split surrogate pairs: an astral entity reached html-markdown.ts as two halves,
+  and its 64 Ki-unit chunks could cut a pair; each half counted three bytes (a lone `\ud835` at the edge).
+- D115: a page served as `Text/HTML` came back as raw HTML (case-sensitive media type check).
+- D116: "always" on a quoted, escaped or path-qualified name saved a broad prefix: `'sudo' ls` saved `'sudo' *`
+  (approving `'sudo' rm -rf /`), `'git' status` `'git' *`, `/usr/bin/git status` `/usr/bin/git *`.
+- D117: a quoted or escaped cd (`'cd' /outside`) reported no directory, bypassing external_directory rules.
+- D118: PowerShell `$env:toString` resolved an Object.prototype member as a directory.
+- D119: a pattern's `?` matched one UTF-16 unit instead of one character (`a?` missed `a😀`).
+- D120: grep's model listing had a blank line after every match (ripgrep's line terminator).
+- D121: a CRLF file kept its `\r` in an unpaged read and lost it in a paged one; both drop it now.
+- D122: grep on a FIFO or socket searched the directory around it; it fails like glob's wrong-kind path.
+
 **HTTP API**
 - D201: a relative `location.directory` (create, import, `GET /api/session?directory=`) answered `500 null`; now 400.
 - D202: non-numeric stats ranges (`from=yesterday`) answered 500; now 400.
@@ -62,9 +79,10 @@ Status as of 2026-11-07, upstream 6a89e9f.
   handling missed. It now answers 404 `FileNotFoundError`, as a missing path does.
 - D220: `PATCH /api/project/:id` with a relative `canonical` answered 500 with an empty body, even for an unknown
   project (the absolute-path column throws before the lookup); now 400 `InvalidRequestError`, like D201.
-- D221: `GET /api/agent/:id` and `GET /api/provider/:id` answered before the location's plugins loaded: as a
-  location's first request, 404 for `general` or `openrouter`, and `build` without its configured model and
-  description. They now wait, like their list routes (D207).
+- D221: `GET /api/agent/:id` answered before the location's plugins loaded: as a location's first request, 404 for
+  `general`, and `build` without its configured model and description. It now waits, like the list (#59082).
+- D222: `PUT /api/session/:id/environment` accepted a NUL, after which every shell command of the session failed
+  as "The command contains a NUL character" on field `command`; the PUT is now a 400 `invalid_environment`.
 
 **TUI**
 - D301: `@` completion of a directory gave `@src/util//`.
@@ -107,6 +125,10 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D511: `JSON.parse(obj)` ignored the object's own `toString`.
 - D512: `String.raw` rejected a string `raw`.
 - D513: `btoa`/`atob` threw TypeError instead of `InvalidCharacterError`.
+- D514–D516 (scanTools, found by the Rust codemode crate): a `var` in a class static block, and a function body's
+  declarations, hid `tools` from the scan (so `function (a = tools.x()) { var tools }` failed as an unknown tool);
+  paths came out in syntax-tree key order instead of first-seen order. Both engines reject classes, so D514 shows
+  only where the scan is used alone (schedule-check validation); D516 is not observable through code mode.
 
 ## Recorded behavior that is not a bug (evidence)
 
@@ -122,6 +144,13 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - Reasoning without `reasoning_details` is not echoed back, and another model's reasoning is dropped after a
   switch: deliberate (upstream #37708, `to-llm-message.ts`).
 - A `write` permission rule has no effect: `edit` governs write and patch (`permissions.mdx`, `migrate-v1.mdx`).
+- `GET /api/provider/:id` answers from the current catalog without waiting for the location's plugins, while the
+  list waits: upstream kept the single read nonblocking on purpose (#59082), and its test asserts it ("single
+  provider reads stay nonblocking"). On a cold location it races the plugins, so no scenario reads it first.
+- A tool failure whose cause no rule classifies has type `unknown` (the read tool's binary, offset, path-kind and
+  media-limit errors; webfetch's and shell's wrapped errors), while a failure without a cause is `tool.execution`.
+  `toSessionError` classifies by the wrapped cause on purpose (#38367), upstream tests assert `unknown` for these
+  (tool-read, tool-webfetch, tool-shell), and nothing reads the type, so it is left as designed.
 - `run --worktree name` keeps `name` in the message: values attach with `=` only, by design (`flag.ts`, #60712).
 - Malformed percent-encoding answers 404 with an empty body on every route: Effect's router, before any handler.
 - Hidden references stay in `/api/reference` and agent instructions: documented (`references.mdx`).
@@ -143,6 +172,14 @@ Status as of 2026-11-07, upstream 6a89e9f.
   provider request (655) would gain both headers.
 - `POST /api/experimental/fs/write` answers 500 with an empty body for any write that fails (a path through a
   file, a directory, no permission): the endpoint declares no errors, so the right answer is a design choice.
+- A bug, not yet patched: a plain "reject" inside Code Mode does not stop the turn. Permission.assert tunnels a
+  decline as a defect so that no tool can catch it (`permission.ts`; a direct call's decline ends the turn, D213),
+  but Code Mode's runtime turns every non-interrupt cause of a tool call into an error the program catches
+  (`codemode/src/tool-runtime.ts`: the program sees `Permission.DeclinedError`), and code-mode `fetch` does the same
+  (`Error` with an empty message): "codemode fetch rejected with feedback" records `"Error: "` and the turn goes on.
+  The fix: the bridge (`core/src/codemode/tool.ts`, and `fetch.ts` through the execution context) records the
+  decline and ends the program as an interrupt, which both interpreters propagate uncaught, then fails the call
+  with the decline; the goldens of both engines change.
 - A possible plan-mode race (a prompt before the creation reminder is queued); never observed.
 - CLI errors print JS stack frames (`Cause.pretty`). The CLI driver masks frames, so they are not part of the
   standard; the Rust CLI prints messages only.
@@ -190,6 +227,8 @@ The standard leaves these unspecified; scenarios avoid them:
   subagent's tool call loaded. Scenarios wait, boot later, or turn the watcher off.
 - Which reads the TUI's data layer makes (it refetches on event bursts): writes only are recorded.
 - Text/reasoning deltas and tool progress are batched on 100 ms timers (normalized, see README).
+- A shell command's output joins stdout and stderr, two pipes read concurrently: a command that writes to both
+  interleaves them in read order. Scenarios write to one stream per command.
 
 ## Harness limits (what the oracle cannot yet prove)
 
@@ -206,6 +245,9 @@ The standard leaves these unspecified; scenarios avoid them:
   recorded (70+ scenarios); coverage would need e.g. a Node build with `NODE_V8_COVERAGE`.
 - **TUI colors**: frames record characters only; selection, syntax highlighting and theme colors are invisible.
 - **Watcher-driven and schedule-firing behavior** has few dedicated scenarios.
+- **PTYs**: nothing covers `pty.*` (REST and the WebSocket I/O of `pty-socket.ts`) or `experimental.persistentPty.*`
+  (the TUI's terminal pane, a client of the `opencode-pty` daemon). The harness has no WebSocket client (the
+  in-process handler cannot upgrade a request), and persistent PTYs run in a separate daemon.
 - **Restarts** within a scenario (session recovery), persisted events and server disconnects are not yet
   expressible. Transport failures are: a connection closed before the response or dropped while it is read
   reaches a process as the real thing (the fake network closes the socket). A refused connection and a name

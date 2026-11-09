@@ -214,10 +214,13 @@ scenario("run user shell commands in a session", { files: { "a.txt": "a\n" } }, 
   )
   await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === ctx.project)
   const session = await ctx.session({ title: "shell" })
+  // No process can start with a NUL in its environment: the PUT is refused and the commands below still run.
+  await ctx.http("PUT", `/api/session/${session}/environment`, { variables: { X: "a\u0000b" } })
   await ctx.http("POST", `/api/session/${session}/shell`, { command: "cat a.txt" })
   await ctx.http("POST", `/api/session/${session}/shell`, {
     id: "msg_00000000000000conformanceSH",
-    command: "echo out; echo err >&2; exit 3",
+    // One stream only: stdout and stderr are read concurrently, so their interleaving is not specified.
+    command: "echo out; echo again; exit 3",
   })
   await ctx.http("POST", `/api/session/${session}/shell`, { command: "definitely-not-a-command-xyz" })
   await ctx.http("POST", `/api/session/${session}/shell`, {})

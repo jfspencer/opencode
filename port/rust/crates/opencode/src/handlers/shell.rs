@@ -105,8 +105,23 @@ pub async fn session(app: &App, request: &Request, decoded: &Decoded) -> Result<
             Ok(Response::no_content())
         }
         "session.environment" => {
+            let variables = match json::get(&decoded.payload, "variables") {
+                Some(Json::Object(variables)) => Some(variables),
+                _ => None,
+            };
+            // No process can start with a NUL in its environment: every shell command of the session would fail (D222).
+            if let Some(key) = variables.and_then(nul_variable) {
+                let mut name = String::new();
+                opencode_protocol::wire::out::write_json_string(&mut name, key);
+                let mut o = Obj::new();
+                o.str("_tag", "InvalidRequestError")
+                    .str("message", &format!("Environment variable {name} contains a NUL character"))
+                    .str("kind", "invalid_environment")
+                    .str("field", "variables");
+                return Err(Failure::new(400, o.done()));
+            }
             session::require(&app.db.lock().unwrap(), session_id)?;
-            if let Some(Json::Object(variables)) = json::get(&decoded.payload, "variables") {
+            if let Some(variables) = variables {
                 let variables = variables
                     .iter()
                     .filter_map(|(key, value)| json::as_str(value).map(|v| (key.clone(), v.to_owned())))
@@ -117,4 +132,10 @@ pub async fn session(app: &App, request: &Request, decoded: &Decoded) -> Result<
         }
         _ => super::fallback(app, request),
     }
+}
+
+/// The first variable (in JS property order) whose name or value contains a NUL.
+fn nul_variable(variables: &opencode_protocol::wire::Object) -> Option<&str> {
+    let keys = opencode_protocol::wire::out::js_key_order(variables.keys().map(String::as_str));
+    keys.into_iter().find(|key| key.contains('\0') || json::as_str(&variables[*key]).is_some_and(|value| value.contains('\0')))
 }

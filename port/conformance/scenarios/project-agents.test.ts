@@ -21,12 +21,13 @@ scenario("built-in agents", {}, async (ctx) => {
 })
 
 // Each lookup is the first request to its own location, so it must wait for the location's plugins: they register
-// the agents and providers, and apply the config to them.
+// the agents and apply the config to them. (A provider lookup does not wait, on purpose upstream: on a cold location
+// it races the plugins, so it has no place here.)
 scenario(
-  "agent and provider lookups on a location's first request",
+  "agent lookups on a location's first request",
   {
     boot: false,
-    files: { "sub/a.txt": "a\n", "other/b.txt": "b\n" },
+    files: { "sub/a.txt": "a\n" },
     config: { agents: { build: { description: "Configured build.", color: "#123456" } } },
   },
   async (ctx) => {
@@ -37,7 +38,6 @@ scenario(
     }
     await first("/api/agent/build", ctx.project)
     await first("/api/agent/general", path.join(ctx.project, "sub"))
-    await first("/api/provider/openrouter", path.join(ctx.project, "other"))
   },
 )
 
