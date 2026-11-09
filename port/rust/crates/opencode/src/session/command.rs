@@ -2,7 +2,9 @@
 //! plugin/command.ts for `init` and `review`, config/plugin/command.ts for config and markdown commands): the
 //! command's template becomes a prompt, after switching to the command's agent and model when it names them.
 //!
-//! TODO(port): `goal` (plugin/goal.ts), commands that run as a subagent (`SubagentJob`), MCP prompts, the
+//! A command that runs as a subagent starts a child session as a background subagent job ([`session::subagent`]).
+//!
+//! TODO(port): `goal` (plugin/goal.ts), MCP prompts, the
 //! interleaved output of interpolated shell commands (stdout, then stderr).
 
 use opencode_protocol::Json;
@@ -119,8 +121,39 @@ pub async fn execute(app: &App, session_id: &str, input: &Json) -> Result<()> {
                 .subagent()
                 .unwrap_or_else(|| command_agent.as_ref().and_then(|a| json::get_str(a, "mode")) == Some("subagent"));
             if subagent {
-                // TODO(port): a child session run as a background subagent job.
-                return Err(execution_error(name, "Commands that run as a subagent are not yet supported by the Rust port"));
+                // A child session of the command's agent (else the session's), run as a background subagent job.
+                let parent = session::require(&app.db.lock().unwrap(), session_id)?;
+                let (agent_id, selected) = inventory.select(agent.or(json::get_str(&parent.info, "agent")));
+                let description = command.description.clone().unwrap_or_else(|| name.to_owned());
+                let model = model
+                    .or_else(|| selected.and_then(|info| info.model.as_ref()).map(json::of))
+                    .or_else(|| json::get(&parent.info, "model").cloned());
+                let child = session::create(
+                    app,
+                    session::CreateInput {
+                        id: None,
+                        parent_id: Some(session_id.to_owned()),
+                        title: Some(description.clone()),
+                        agent: Some(agent_id.clone()),
+                        model,
+                        location: None,
+                        metadata: None,
+                        permissions: None,
+                    },
+                )?;
+                let child = child.id().to_owned();
+                // The command's prompt (its attachments; the child's delivery is the default).
+                let attachments = request.done();
+                let mut prompt = Obj::new();
+                for key in ["files", "agents", "skills"] {
+                    prompt.opt(key, json::get(&attachments, key).cloned());
+                }
+                prompt.str("text", &format!("{}\n{text}", session::subagent::PREAMBLE)).set("resume", Json::Bool(false));
+                prompt::submit(app, &child, &prompt.done()).await?;
+                let spawned = session::subagent::Spawned { parent: session_id.to_owned(), child, agent: agent_id, description };
+                session::subagent::start(app, &spawned);
+                session::subagent::background(app, &spawned);
+                return Ok(());
             }
             if let Some(agent) = agent {
                 let current = session::require(&app.db.lock().unwrap(), session_id)?;

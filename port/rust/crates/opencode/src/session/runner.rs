@@ -91,7 +91,8 @@ async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Select
     if let Some(Json::Array(session_rules)) = json::get(&info, "permissions") {
         rules.extend(session_rules.iter().cloned());
     }
-    let tools = crate::tool::registry().snapshot(&rules);
+    let mut tools = crate::tool::registry().snapshot(&rules);
+    crate::tool::subagent::describe(&mut tools, &inventory, &agent_id);
     let git = location.vcs.as_ref().is_some_and(|vcs| vcs.kind == "git");
     let sources = {
         let db = app.db.lock().unwrap();
