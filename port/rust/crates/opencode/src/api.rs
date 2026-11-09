@@ -1,12 +1,13 @@
-//! Request dispatch: the HttpApi pipeline of packages/server/src/routes.ts. Middleware first (the session and form
-//! location middleware validate and load the session; the location middleware boots the request's location), then
+//! Request dispatch: the HttpApi pipeline of packages/server/src/routes.ts. Middleware first (each endpoint's, from the
+//! generated route table: the session and form location middleware validate and load the session and boot its
+//! location; the location middleware boots the request's location), then
 //! the request is decoded against the endpoint's schemas (path parameters, query, payload; a failure is a 400
 //! `InvalidRequestError` naming the part), then the handler runs.
 
 use bytes::Bytes;
 use opencode_protocol::Json;
 use opencode_protocol::roots;
-use opencode_protocol::routes::BodyKind;
+use opencode_protocol::routes::{BodyKind, Middleware};
 use tokio::sync::mpsc;
 
 use crate::app::App;
@@ -14,51 +15,6 @@ use crate::bus::LocationRef;
 use crate::http::{Failure, Request, Response, Result};
 use crate::json::{self, Obj};
 use crate::session;
-
-/// Groups whose endpoints run in the request's location (packages/protocol/src/api.ts).
-/// TODO(port): emit the middleware of each endpoint from the generator instead.
-const LOCATED_GROUPS: &[&str] = &[
-    "server.agent",
-    "server.plugin",
-    "server.model",
-    "server.provider",
-    "server.integration",
-    "server.fs",
-    "server.command",
-    "server.skill",
-    "server.rpc",
-    "server.shell",
-    "server.reference",
-    "server.vcs",
-    "server.websearch",
-    "server.usage",
-    "server.config",
-];
-const LOCATED_OPERATIONS: &[&str] = &[
-    "form.list",
-    "location.get",
-    "experimental.mcp.client.token",
-    "permission.request.list",
-    "permission.saved.list",
-    "pty.connect.token",
-];
-const SESSION_LOCATED: &[&str] = &[
-    "session.permission.create",
-    "session.permission.get",
-    "session.permission.reply",
-    "session.prompt",
-    "session.command",
-    "experimental.session.skill",
-    "session.shell",
-    "session.revert.stage",
-    "session.revert.clear",
-    "session.generate",
-    "session.form.list",
-    "session.form.create",
-    "session.form.get",
-    "session.form.reply",
-    "session.form.cancel",
-];
 
 /// What the pipeline decoded: canonical JSON of each request part.
 pub struct Decoded {
@@ -89,18 +45,24 @@ pub async fn dispatch(app: &App, request: Request) -> Response {
 
 async fn run(app: &App, request: &Request) -> Result<Response> {
     let route = request.route;
-    let operation = route.operation;
-    let mut located = None;
-    if SESSION_LOCATED.contains(&operation) {
-        let id = request.param("sessionID");
-        if !id.starts_with("ses") {
-            return Err(Failure::invalid("Invalid session ID", Some("sessionID"), None));
+    let located = match route.middleware {
+        Middleware::None => None,
+        Middleware::Location => Some(app.locations.get(app, &request_location(app, request)).await?),
+        // The form middleware's undocumented `global` session stands for the request's location (MCP elicitations
+        // without a session). TODO(port): `session.form.list` of a session without live capabilities answers
+        // `{data: []}` without booting its location.
+        Middleware::Form if request.param("sessionID") == "global" => {
+            Some(app.locations.get(app, &request_location(app, request)).await?)
         }
-        let stored = session::require(&app.db.lock().unwrap(), id)?;
-        located = Some(app.locations.get(app, &stored.location).await?);
-    } else if LOCATED_GROUPS.contains(&route.group) || LOCATED_OPERATIONS.contains(&operation) {
-        located = Some(app.locations.get(app, &request_location(app, request)).await?);
-    }
+        Middleware::Session | Middleware::Form => {
+            let id = request.param("sessionID");
+            if !id.starts_with("ses") {
+                return Err(Failure::invalid("Invalid session ID", Some("sessionID"), None));
+            }
+            let stored = session::require(&app.db.lock().unwrap(), id)?;
+            Some(app.locations.get(app, &stored.location).await?)
+        }
+    };
     let decoded = decode(request)?;
     crate::handlers::handle(app, request, decoded, located).await
 }

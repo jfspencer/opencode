@@ -91,9 +91,9 @@ pub struct Bus {
     order: Mutex<()>,
 }
 
-/// The data field naming a durable event's aggregate. TODO(port): emit it into the generated manifest.
+/// The data field naming a durable event's aggregate (the manifest's `durable.aggregate`).
 pub fn aggregate_field(ty: &str) -> &'static str {
-    if ty == "worktree.resolved" { "projectID" } else { "sessionID" }
+    EVENTS.iter().find(|e| e.r#type == ty).and_then(|e| e.aggregate).unwrap_or_else(|| panic!("{ty} is not a durable event"))
 }
 
 /// Durable version of an event type from the manifest; `None` for ephemeral events.

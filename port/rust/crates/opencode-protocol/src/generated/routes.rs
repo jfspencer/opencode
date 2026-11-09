@@ -22,6 +22,18 @@ pub enum BodyKind {
     Stream,
 }
 
+/// The location middleware an endpoint runs behind (packages/server/src/location.ts, middleware/*-location.ts).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Middleware {
+    None,
+    /// The request's location (`location[directory]`, `x-opencode-directory`, or the server's directory).
+    Location,
+    /// The location of the session named by the `sessionID` parameter.
+    Session,
+    /// Like `Session`; the `global` session ID stands for the request's location.
+    Form,
+}
+
 /// One response or request body: status (0 for requests), kind, content type and type name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Body {
@@ -46,6 +58,7 @@ pub struct Route {
     pub payload: &'static [Body],
     pub success: &'static [Body],
     pub errors: &'static [Body],
+    pub middleware: Middleware,
 }
 
 /// Every endpoint, in declaration order.
@@ -61,6 +74,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServerInfo") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "server.pair",
@@ -73,6 +87,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PairingCode") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "server.connect",
@@ -85,6 +100,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PairingSession") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "location.get",
@@ -97,6 +113,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationPublicInfo") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "location.reload",
@@ -109,6 +126,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "agent.list",
@@ -121,6 +139,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "agent.get",
@@ -133,6 +152,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "plugin.list",
@@ -145,6 +165,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "plugin.gui",
@@ -157,6 +178,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginGuiResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "plugin.check",
@@ -169,6 +191,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginCheckPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginCheckResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "plugin.update",
@@ -181,6 +204,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PluginUpdatePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "session.list",
@@ -193,6 +217,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionsResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidCursorError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.stats",
@@ -205,6 +230,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionStatsResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.create",
@@ -217,6 +243,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionCreateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.import",
@@ -229,6 +256,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionImportPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionImportResponse") }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.export",
@@ -241,6 +269,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionExportResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.active",
@@ -253,6 +282,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionActiveResponse") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.get",
@@ -265,6 +295,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.remove",
@@ -277,6 +308,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.fork",
@@ -289,6 +321,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionForkPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionForkResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("MessageNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.switchAgent",
@@ -301,6 +334,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionSwitchAgentPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.switchModel",
@@ -313,6 +347,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionSwitchModelPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.update",
@@ -325,6 +360,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionUpdatePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.move",
@@ -337,6 +373,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionMovePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.prompt",
@@ -349,6 +386,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPromptPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPromptResponse") }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.command",
@@ -361,6 +399,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionCommandPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CommandNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CommandExecutionError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "experimental.session.skill",
@@ -373,6 +412,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionSkillPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SkillNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.synthetic",
@@ -385,6 +425,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionSyntheticPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionSyntheticResponse") }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.shell",
@@ -397,6 +438,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionShellPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.compact",
@@ -409,6 +451,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionCompactPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionCompactResponse") }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.wait",
@@ -421,6 +464,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.revert.stage",
@@ -433,6 +477,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionRevertStagePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionRevertStageResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("MessageNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionBusyError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.revert.clear",
@@ -445,6 +490,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionBusyError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.revert.commit",
@@ -457,6 +503,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionBusyError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.context",
@@ -469,6 +516,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionContextResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.diff",
@@ -481,6 +529,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionDiffResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("MessageNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.inbox.list",
@@ -493,6 +542,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionInboxListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.inbox.cancel",
@@ -505,6 +555,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.inbox.update",
@@ -517,6 +568,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionInboxUpdatePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.instructions.entry.list",
@@ -529,6 +581,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionInstructionsEntryListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.instructions.entry.put",
@@ -541,6 +594,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSessionInstructionsEntryPutPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 413, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InstructionEntryValueTooLargeError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.session.instructions.entry.remove",
@@ -553,6 +607,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.generate",
@@ -565,6 +620,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionGeneratePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionGenerateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "experimental.session.log",
@@ -577,6 +633,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Sse, content_type: Some("text/event-stream"), ty: Some("SessionLogItem") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.interrupt",
@@ -589,6 +646,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionInterruptResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.background",
@@ -601,6 +659,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.message.get",
@@ -613,6 +672,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionMessageGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("MessageNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.form.list",
@@ -625,6 +685,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionFormListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Form,
     },
     Route {
         operation: "session.form.create",
@@ -637,6 +698,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionFormCreateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Form,
     },
     Route {
         operation: "session.form.get",
@@ -649,6 +711,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionFormGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Form,
     },
     Route {
         operation: "session.form.reply",
@@ -661,6 +724,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormReply") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormAlreadySettledError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormInvalidAnswerError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Form,
     },
     Route {
         operation: "session.form.cancel",
@@ -673,6 +737,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormAlreadySettledError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Form,
     },
     Route {
         operation: "session.environment",
@@ -685,6 +750,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionEnvironmentPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.view",
@@ -697,6 +763,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionViewPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.message.list",
@@ -709,6 +776,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionMessagesResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidCursorError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "model.list",
@@ -721,6 +789,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "model.default",
@@ -733,6 +802,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelDefaultResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.generate.text",
@@ -745,6 +815,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalGenerateTextPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateTextResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelNotFoundError") }, Body { status: 422, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnsupportedModelError") }, Body { status: 502, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.generate.textLegacy",
@@ -757,6 +828,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalGenerateTextPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateTextResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelNotFoundError") }, Body { status: 422, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnsupportedModelError") }, Body { status: 502, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.generate.image",
@@ -769,6 +841,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateImageRequest") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateImageResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelNotFoundError") }, Body { status: 422, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnsupportedModelError") }, Body { status: 502, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.generate.decisions",
@@ -781,6 +854,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateDecisionRequest") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("GenerateDecisionsResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ModelNotFoundError") }, Body { status: 422, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnsupportedModelError") }, Body { status: 502, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.voice.models",
@@ -793,6 +867,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VoiceModelsResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.voice.session",
@@ -805,6 +880,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalVoiceSessionPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VoiceSessionResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "provider.list",
@@ -817,6 +893,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "provider.get",
@@ -829,6 +906,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.list",
@@ -841,6 +919,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.get",
@@ -853,6 +932,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.integration.wellknown.add",
@@ -865,6 +945,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalIntegrationWellknownAddPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.connect.key",
@@ -877,6 +958,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationConnectKeyPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.connect.external",
@@ -889,6 +971,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationConnectExternalPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.oauth.connect",
@@ -901,6 +984,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationOauthConnectPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationOauthConnectResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.oauth.status",
@@ -913,6 +997,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationOauthStatusResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationAttemptNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.oauth.complete",
@@ -925,6 +1010,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationOauthCompletePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationAttemptNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.oauth.cancel",
@@ -937,6 +1023,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.command.connect",
@@ -949,6 +1036,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationCommandConnectPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationCommandConnectResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationMethodNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.command.status",
@@ -961,6 +1049,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationCommandStatusResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("IntegrationAttemptNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "integration.command.cancel",
@@ -973,6 +1062,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "mcp.list",
@@ -985,6 +1075,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("McpListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.add",
@@ -997,6 +1088,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalMcpAddPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.remove",
@@ -1009,6 +1101,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("McpServerNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.connect",
@@ -1021,6 +1114,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("McpServerNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.disconnect",
@@ -1033,6 +1127,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("McpServerNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "mcp.resource.catalog",
@@ -1045,6 +1140,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("McpResourceCatalogResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.client.token",
@@ -1057,6 +1153,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalMcpClientTokenResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.mcp.client",
@@ -1069,6 +1166,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalMcpClientResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "credential.list",
@@ -1081,6 +1179,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CredentialListResponse") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "credential.create",
@@ -1093,6 +1192,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CredentialCreateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CredentialCreateResponse") }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "credential.update",
@@ -1105,6 +1205,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CredentialUpdatePayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "credential.activate",
@@ -1117,6 +1218,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "credential.remove",
@@ -1129,6 +1231,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "project.list",
@@ -1141,6 +1244,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectListResponse") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "project.update",
@@ -1153,6 +1257,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectUpdatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("Project") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "form.list",
@@ -1165,6 +1270,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FormListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "permission.request.list",
@@ -1177,6 +1283,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionRequestListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "permission.saved.list",
@@ -1189,6 +1296,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionSavedListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "permission.saved.update",
@@ -1201,6 +1309,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionSavedUpdatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionSavedUpdateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionSavedNotFoundError") }, Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "permission.saved.remove",
@@ -1213,6 +1322,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.permission.create",
@@ -1225,6 +1335,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPermissionCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPermissionCreateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.permission.list",
@@ -1237,6 +1348,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPermissionListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "session.permission.get",
@@ -1249,6 +1361,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPermissionGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "session.permission.reply",
@@ -1261,6 +1374,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionPermissionReplyPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PermissionNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Session,
     },
     Route {
         operation: "fs.read",
@@ -1273,6 +1387,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Binary, content_type: Some("application/octet-stream"), ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FileNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "fs.list",
@@ -1285,6 +1400,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FsListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FileNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "fs.find",
@@ -1297,6 +1413,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FsFindResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.fs.write",
@@ -1309,6 +1426,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Binary, content_type: Some("application/octet-stream"), ty: None }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalFsWriteResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.fs.watch",
@@ -1321,6 +1439,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalFsWatchPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FileNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.fs.unwatch",
@@ -1333,6 +1452,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalFsWatchPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "command.list",
@@ -1345,6 +1465,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("CommandListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "skill.list",
@@ -1357,6 +1478,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SkillListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "rpc.call",
@@ -1369,6 +1491,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("RpcInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("RpcOutput") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("RpcError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("RpcInternalError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "event.subscribe",
@@ -1381,6 +1504,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Sse, content_type: Some("text/event-stream"), ty: Some("V2Event") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "pty.list",
@@ -1393,6 +1517,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.create",
@@ -1405,6 +1530,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyCreateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.get",
@@ -1417,6 +1543,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.update",
@@ -1429,6 +1556,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyUpdatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyUpdateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.remove",
@@ -1441,6 +1569,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.connect.token",
@@ -1453,6 +1582,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyConnectTokenResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "pty.connect",
@@ -1465,6 +1595,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyConnectResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.read",
@@ -1477,6 +1608,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyReadResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.list",
@@ -1489,6 +1621,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyListResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.create",
@@ -1501,6 +1634,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PersistentPtyCreateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyCreateResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.shutdown",
@@ -1513,6 +1647,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.handoff",
@@ -1525,6 +1660,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyHandoffResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.get",
@@ -1537,6 +1673,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.update",
@@ -1549,6 +1686,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PersistentPtyUpdateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyUpdateResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 501, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyFeatureUnsupportedError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.snapshot",
@@ -1561,6 +1699,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtySnapshotResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.remove",
@@ -1573,6 +1712,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.connectToken",
@@ -1585,6 +1725,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyConnectTokenResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.persistentPty.connect",
@@ -1597,6 +1738,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalPersistentPtyConnectResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("PtyNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.media.get",
@@ -1609,6 +1751,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Binary, content_type: Some("application/octet-stream"), ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FileNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.create",
@@ -1621,6 +1764,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ScheduleCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalScheduleCreateResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.list",
@@ -1633,6 +1777,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalScheduleListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.get",
@@ -1645,6 +1790,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalScheduleGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ScheduleNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.pause",
@@ -1657,6 +1803,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalSchedulePauseResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ScheduleNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.resume",
@@ -1669,6 +1816,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalScheduleResumeResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ScheduleNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.schedule.delete",
@@ -1681,6 +1829,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ScheduleNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.providers",
@@ -1693,6 +1842,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalArtifactsProvidersResponse") }],
         errors: &[Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.list",
@@ -1705,6 +1855,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalArtifactsListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.create",
@@ -1717,6 +1868,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactCreateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalArtifactsCreateResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProviderNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.get",
@@ -1729,6 +1881,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalArtifactsGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.update",
@@ -1741,6 +1894,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactUpdateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalArtifactsUpdateResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.delete",
@@ -1753,6 +1907,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.artifacts.view",
@@ -1765,6 +1920,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Binary, content_type: Some("application/octet-stream"), ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("FileNotFoundError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ArtifactNotFoundError") }, Body { status: 403, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ForbiddenError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.job.list",
@@ -1777,6 +1933,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalJobListResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "shell.list",
@@ -1789,6 +1946,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellListResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "shell.create",
@@ -1801,6 +1959,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellCreatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellCreateResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "shell.get",
@@ -1813,6 +1972,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "shell.output",
@@ -1825,6 +1985,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellOutputResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ShellNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "shell.remove",
@@ -1837,6 +1998,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "reference.list",
@@ -1849,6 +2011,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ReferenceListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "worktree.list",
@@ -1861,6 +2024,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeList") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "worktree.create",
@@ -1873,6 +2037,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeCreateInput") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeInfo") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "worktree.remove",
@@ -1885,6 +2050,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeRemoveInput") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "worktree.refresh",
@@ -1897,6 +2063,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeRefreshPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WorktreeError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "vcs.init",
@@ -1909,6 +2076,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 409, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConflictError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 501, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsInitNotSupportedError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "vcs.get",
@@ -1921,6 +2089,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsGetResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "vcs.base",
@@ -1933,6 +2102,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsBaseResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "vcs.status",
@@ -1945,6 +2115,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsStatusResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "vcs.branch.list",
@@ -1957,6 +2128,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsBranchListResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "vcs.diff",
@@ -1969,6 +2141,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("VcsDiffResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "debug.heapDump",
@@ -1981,6 +2154,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("DebugHeapDumpResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 500, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnknownError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "debug.location.list",
@@ -1993,6 +2167,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("DebugLocationListResponse") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "debug.location.evict",
@@ -2005,6 +2180,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "experimental.migration.v1.status",
@@ -2017,6 +2193,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalMigrationV1StatusResponse") }],
         errors: &[Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::None,
     },
     Route {
         operation: "websearch.providers",
@@ -2029,6 +2206,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WebsearchProvidersResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "websearch.query",
@@ -2041,6 +2219,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WebsearchQueryPayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("WebsearchQueryResponse") }],
         errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.usage.limits",
@@ -2053,6 +2232,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ExperimentalUsageLimitsResponse") }],
         errors: &[Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "config.get",
@@ -2065,6 +2245,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConfigGetResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "config.shells",
@@ -2077,6 +2258,7 @@ pub const ROUTES: &[Route] = &[
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConfigShellsResponse") }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
     Route {
         operation: "experimental.config.update",
@@ -2089,5 +2271,6 @@ pub const ROUTES: &[Route] = &[
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ConfigPatch") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
         errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        middleware: Middleware::Location,
     },
 ];

@@ -1,12 +1,13 @@
 // The schemas the generator covers, collected from the TS reference at runtime, in declaration order:
 // every HttpApi endpoint (path params, query, headers, payloads, successes, errors), the SSE event union and
 // every event definition, and the v2 config file. Each root records the wire context it is read and written in.
+import { makeDefaultApi } from "@opencode/protocol/api"
 import { ClientApi } from "@opencode/protocol/client"
 import { OpenCodeEvent } from "@opencode/protocol/groups/event"
 import { EventManifest } from "@opencode/schema/event-manifest"
 import { Config } from "@opencode/schema/config"
 import { Context, Schema, SchemaAST } from "effect"
-import { HttpApi, HttpApiEndpoint, HttpApiSchema, OpenApi } from "effect/http-api"
+import { HttpApi, HttpApiEndpoint, HttpApiMiddleware, HttpApiSchema, OpenApi } from "effect/http-api"
 
 /**
  * How a value travels:
@@ -54,6 +55,41 @@ export interface Endpoint {
   readonly payload: ReadonlyArray<Body>
   readonly success: ReadonlyArray<Body>
   readonly errors: ReadonlyArray<Body>
+  /** The location middleware the endpoint runs behind, if any (packages/server/src/{location,middleware/*}.ts). */
+  readonly middleware: Middleware
+}
+
+/** `location`: the request's location; `session`: the session's location; `form`: the session's, or `global`. */
+export type Middleware = "none" | "location" | "session" | "form"
+
+// The client API gives forms and sessions one middleware identity; the server's are distinct. The API built with
+// three distinct identities tells, per endpoint, which one the server places it behind.
+class Location extends HttpApiMiddleware.Service<Location>()("port/LocationMiddleware") {}
+class FormLocation extends HttpApiMiddleware.Service<FormLocation>()("port/FormLocationMiddleware") {}
+class SessionLocation extends HttpApiMiddleware.Service<SessionLocation>()("port/SessionLocationMiddleware") {}
+
+function middlewares(): Map<string, Middleware> {
+  const api = makeDefaultApi({
+    locationMiddleware: Location,
+    formLocationMiddleware: FormLocation,
+    sessionLocationMiddleware: SessionLocation,
+  })
+  const kinds = new Map<string, Middleware>([
+    [Location.key, "location"],
+    [FormLocation.key, "form"],
+    [SessionLocation.key, "session"],
+  ])
+  const out = new Map<string, Middleware>()
+  HttpApi.reflect(api as never, {
+    onGroup() {},
+    onEndpoint({ endpoint }) {
+      const e = endpoint as HttpApiEndpoint.Top
+      const found = [...e.middlewares].flatMap((m) => (kinds.has(m.key) ? [kinds.get(m.key)!] : []))
+      if (found.length > 1) throw new Error(`several location middlewares at ${e.method} ${e.path}`)
+      out.set(`${e.method} ${e.path}`, found[0] ?? "none")
+    },
+  })
+  return out
 }
 
 const pascal = (s: string) =>
@@ -67,6 +103,7 @@ export function collect() {
   const endpoints: Endpoint[] = []
   const roots: Root[] = []
   const add = (root: Root) => (roots.push(root), root)
+  const middleware = middlewares()
   HttpApi.reflect(ClientApi as never, {
     onGroup() {},
     onEndpoint({ group, endpoint }) {
@@ -125,15 +162,19 @@ export function collect() {
         payload,
         success,
         errors,
+        middleware: middleware.get(origin) ?? (() => {
+          throw new Error(`no middleware entry for ${origin}`)
+        })(),
       })
     },
   })
   const sse = add({ hint: "V2Event", ast: OpenCodeEvent.ast, wire: "plain", origin: "GET /api/event (SSE data)" })
   const events = EventManifest.Definitions.map((definition) => {
-    const d = definition as unknown as { type: string; durable?: { version: number }; ast: SchemaAST.AST }
+    const d = definition as unknown as { type: string; durable?: { version: number; aggregate: string }; ast: SchemaAST.AST }
     return {
       type: d.type,
       version: d.durable?.version,
+      aggregate: d.durable?.aggregate,
       root: add({ hint: pascal(d.type), ast: d.ast, wire: "plain", origin: `event ${d.type}` }),
     }
   })
