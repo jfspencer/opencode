@@ -14,6 +14,7 @@
 //! TS.
 
 pub mod code;
+pub mod diff;
 pub mod highlight;
 pub mod js;
 pub mod links;
@@ -22,4 +23,5 @@ pub mod marked;
 pub mod resolve_ft;
 pub mod style;
 pub mod styled_text;
+pub mod table;
 pub mod tree_sitter;

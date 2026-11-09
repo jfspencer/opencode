@@ -6,12 +6,17 @@ mod json;
 
 use json::J;
 use opencode_tui_markup::js::JsString;
+use opencode_tui_markup::links;
+use opencode_tui_markup::{diff, table};
 use opencode_tui_markup::markdown::{
-    BorderStyle, BoxRole, ColumnFitter, ColumnWidthMode, InternalBlockMode, Markdown, MarkdownOptions, MarkdownTableOptions,
+    BorderStyle, BoxRole, CodeNode, ColumnFitter, ColumnWidthMode, InternalBlockMode, Markdown, MarkdownOptions, MarkdownTableOptions,
     MarkdownTableStyle, Node, WrapMode,
 };
 use opencode_tui_markup::marked::{self, Align, ListStart, Nullable, TableCell, Token};
+use opencode_tui_markup::code::{self, HighlightOptions, HighlightOutcome};
+use opencode_tui_markup::highlight::SimpleHighlight;
 use opencode_tui_markup::style::{Rgba, StyleDefinition, SyntaxStyle, TextChunk};
+use opencode_tui_markup::tree_sitter::{self, TreeSitterClient};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::io::{BufRead, Write};
@@ -320,6 +325,353 @@ fn markdown_case(case: &Value) -> J {
     J::Arr(out)
 }
 
+fn highlight_json(h: &SimpleHighlight) -> J {
+    let mut items = vec![J::Num(h.start as f64), J::Num(h.end as f64), J::s(&h.group)];
+    if let Some(m) = &h.meta {
+        let mut f: Vec<(&'static str, J)> = Vec::new();
+        if let Some(v) = m.is_injection {
+            f.push(("isInjection", J::Bool(v)));
+        }
+        if let Some(v) = &m.injection_lang {
+            f.push(("injectionLang", J::s(v)));
+        }
+        if let Some(v) = m.contains_injection {
+            f.push(("containsInjection", J::Bool(v)));
+        }
+        if let Some(v) = nullable(&m.conceal) {
+            f.push(("conceal", v));
+        }
+        if let Some(v) = nullable(&m.conceal_lines) {
+            f.push(("concealLines", v));
+        }
+        items.push(J::Obj(f));
+    }
+    J::Arr(items)
+}
+
+fn client() -> &'static TreeSitterClient {
+    static CLIENT: std::sync::OnceLock<TreeSitterClient> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        tree_sitter::add_default_parsers(tree_sitter::tui_parsers());
+        TreeSitterClient::new()
+    })
+}
+
+fn highlight_case(case: &Value) -> J {
+    let result = client().highlight_once(&s(case, "content"), case["filetype"].as_str().unwrap());
+    J::Obj(vec![
+        ("highlights", J::opt(result.highlights.as_ref(), |h| J::Arr(h.iter().map(highlight_json).collect()))),
+        ("warning", J::opt(result.warning.as_deref(), J::s)),
+        ("error", J::opt(result.error.as_deref(), J::s)),
+    ])
+}
+
+fn outcome_json(outcome: &HighlightOutcome) -> J {
+    match outcome {
+        HighlightOutcome::Plain => J::Obj(vec![("chunks", J::s("plain")), ("lineSources", J::Null)]),
+        HighlightOutcome::Styled { text, rendered_line_sources } => J::Obj(vec![
+            ("chunks", chunks(&text.chunks)),
+            (
+                "lineSources",
+                J::opt(rendered_line_sources.as_ref(), |l| J::Arr(l.iter().map(|&n| J::Num(n as f64)).collect())),
+            ),
+        ]),
+    }
+}
+
+fn code_case(case: &Value) -> J {
+    // CodeRenderable (scheduleHighlights) runs no pass for empty content: its text buffer is never handed text.
+    if s(case, "content").is_empty() {
+        return J::Obj(vec![("chunks", J::Null), ("lineSources", J::Null)]);
+    }
+    let style = theme();
+    let base = case.get("baseHighlight").and_then(|v| v.as_str());
+    let outcome = code::highlight(
+        client(),
+        &s(case, "content"),
+        case["filetype"].as_str().unwrap(),
+        &style,
+        &HighlightOptions {
+            conceal: case.get("conceal").and_then(|v| v.as_bool()).unwrap_or(true),
+            base_highlight: base,
+            on_highlight: None,
+            on_chunks: None,
+        },
+    );
+    outcome_json(&outcome)
+}
+
+/// What each code child of a markdown render ends up showing, as a renderer runs the pipeline for it.
+fn markdown_render_case(case: &Value) -> J {
+    let style = Rc::new(theme());
+    let color = |k: &str| case.get(k).and_then(|v| v.as_str()).map(Rgba::from_hex);
+    let md = Markdown::new(MarkdownOptions {
+        id: "md".into(),
+        content: s(case, "content"),
+        syntax_style: Some(style.clone()),
+        fg: color("fg"),
+        bg: color("bg"),
+        conceal: case.get("conceal").and_then(|v| v.as_bool()).unwrap_or(true),
+        conceal_code: false,
+        streaming: false,
+        table_options: case.get("tableOptions").and_then(table_options),
+        internal_block_mode: if case.get("internalBlockMode").and_then(|v| v.as_str()) == Some("top-level") {
+            InternalBlockMode::TopLevel
+        } else {
+            InternalBlockMode::Coalesced
+        },
+        hyperlinks: case.get("hyperlinks").and_then(|v| v.as_bool()).unwrap_or(false),
+    });
+    let mut out = Vec::new();
+    fn walk<'a>(node: &'a Node, out: &mut Vec<&'a CodeNode>) {
+        match node {
+            Node::Code(c) => out.push(c),
+            Node::Box(b) => b.children.iter().for_each(|c| walk(c, out)),
+            _ => {}
+        }
+    }
+    let mut codes = Vec::new();
+    for node in md.children() {
+        walk(node, &mut codes);
+    }
+    let (conceal, hyperlinks) = (md.conceal(), md.hyperlinks());
+    let on_highlight = |h: &[SimpleHighlight], content: &JsString, _: &str| {
+        Some(links::add_markdown_link_highlights(h, content, conceal, hyperlinks))
+    };
+    let on_chunks = |chunks: Vec<TextChunk>, ctx: &code::ChunkContext<'_>| {
+        links::detect_links(chunks, ctx.content, ctx.highlights, ctx.source_ranges, Some(ctx.syntax_style))
+    };
+    for node in codes {
+        let chunks = if node.content.is_empty() {
+            J::Null
+        } else if let Some(filetype) = &node.filetype {
+            let hooks = node.markdown_hooks.is_some();
+            let outcome = code::highlight(
+                client(),
+                &node.content,
+                filetype,
+                &style,
+                &HighlightOptions {
+                    conceal: node.conceal,
+                    base_highlight: node.base_highlight.as_deref(),
+                    on_highlight: if hooks { Some(&on_highlight) } else { None },
+                    on_chunks: if hooks { Some(&on_chunks) } else { None },
+                },
+            );
+            match outcome {
+                HighlightOutcome::Plain => J::s("plain"),
+                HighlightOutcome::Styled { text, .. } => chunks(&text.chunks),
+            }
+        } else {
+            J::s("plain")
+        };
+        out.push(J::Obj(vec![("id", J::s(&node.id)), ("chunks", chunks)]));
+    }
+    J::Arr(out)
+}
+
+fn patch_json(p: &diff::StructuredPatch) -> J {
+    let mut f: Vec<(&'static str, J)> = Vec::new();
+    let mut opt_s = |k: &'static str, v: &Option<JsString>| {
+        if let Some(v) = v {
+            f.push((k, J::js(v)));
+        }
+    };
+    opt_s("index", &p.index);
+    opt_s("oldFileName", &p.old_file_name);
+    opt_s("newFileName", &p.new_file_name);
+    opt_s("oldHeader", &p.old_header);
+    opt_s("newHeader", &p.new_header);
+    opt_s("oldMode", &p.old_mode);
+    opt_s("newMode", &p.new_mode);
+    for (k, v) in [
+        ("isGit", p.is_git),
+        ("isRename", p.is_rename),
+        ("isCopy", p.is_copy),
+        ("isCreate", p.is_create),
+        ("isDelete", p.is_delete),
+        ("isBinary", p.is_binary),
+    ] {
+        if let Some(v) = v {
+            f.push((k, J::Bool(v)));
+        }
+    }
+    f.push((
+        "hunks",
+        J::Arr(
+            p.hunks
+                .iter()
+                .map(|h| {
+                    J::Obj(vec![
+                        ("oldStart", J::Num(h.old_start)),
+                        ("oldLines", J::Num(h.old_lines)),
+                        ("newStart", J::Num(h.new_start)),
+                        ("newLines", J::Num(h.new_lines)),
+                        ("lines", J::Arr(h.lines.iter().map(J::js).collect())),
+                    ])
+                })
+                .collect(),
+        ),
+    ));
+    J::Obj(f)
+}
+
+fn side_json(side: &str, m: &diff::SideModel, width: &str) -> J {
+    J::Obj(vec![
+        ("side", J::s(side)),
+        ("content", J::js(&m.content)),
+        (
+            "lineColors",
+            J::Arr(
+                m.line_colors
+                    .iter()
+                    .map(|(k, v)| {
+                        J::Arr(vec![
+                            J::Num(*k as f64),
+                            J::Obj(vec![("gutter", rgba(Some(v.gutter))), ("content", rgba(Some(v.content)))]),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ),
+        (
+            "lineSigns",
+            J::Arr(
+                m.line_signs
+                    .iter()
+                    .map(|(k, v)| {
+                        J::Arr(vec![J::Num(*k as f64), J::Obj(vec![("after", J::s(v.after)), ("afterColor", rgba(Some(v.after_color)))])])
+                    })
+                    .collect(),
+            ),
+        ),
+        ("lineNumbers", J::Arr(m.line_numbers.iter().map(|(k, v)| J::Arr(vec![J::Num(*k as f64), J::Num(*v)])).collect())),
+        ("hideLineNumbers", J::Arr(m.hide_line_numbers.iter().map(|&k| J::Num(k as f64)).collect())),
+        ("width", J::s(width)),
+    ])
+}
+
+fn diff_case(case: &Value) -> J {
+    let text = s(case, "diff");
+    let mut f: Vec<(&'static str, J)> = Vec::new();
+    match diff::parse_patch(&text) {
+        Ok(patches) => f.push(("patches", J::Arr(patches.iter().map(patch_json).collect()))),
+        Err(e) => f.push(("error", J::s(&e))),
+    }
+    let mut sides = Vec::new();
+    let mut hunk_starts: Vec<usize> = Vec::new();
+    let mut error_text = J::Null;
+    match diff::parse_diff(&text) {
+        diff::ParsedDiff::None => {}
+        diff::ParsedDiff::Error(message) => error_text = J::s(&message),
+        diff::ParsedDiff::Patch(patch) if !patch.hunks.is_empty() => {
+            let model = diff::DiffModel { patch: &patch, colors: diff::DiffColors::default() };
+            if case["view"].as_str() == Some("split") {
+                let view = model.split_view(None);
+                sides.push(side_json("left", &view.left, "50%"));
+                sides.push(side_json("right", &view.right, "50%"));
+                hunk_starts = view.hunk_start_lines;
+            } else {
+                let (side, starts) = model.unified_view();
+                sides.push(side_json("left", &side, "100%"));
+                hunk_starts = starts;
+            }
+        }
+        diff::ParsedDiff::Patch(_) => {}
+    }
+    f.push(("sides", J::Arr(sides)));
+    f.push(("hunkStartLines", J::Arr(hunk_starts.iter().map(|&n| J::Num(n as f64)).collect())));
+    f.push(("errorText", error_text));
+    J::Obj(f)
+}
+
+fn table_case(case: &Value) -> J {
+    let cells: Vec<Vec<Option<String>>> = case["cells"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row.as_array().unwrap().iter().map(|c| c.as_str().map(str::to_owned)).collect())
+        .collect();
+    let o = &case["options"];
+    let num = |k: &str| o.get(k).and_then(|v| v.as_f64());
+    let wrap = match o.get("wrapMode").and_then(|v| v.as_str()) {
+        Some("none") => WrapMode::None,
+        Some("char") => WrapMode::Char,
+        _ => WrapMode::Word,
+    };
+    let border = o.get("border").and_then(|v| v.as_bool()).unwrap_or(true);
+    let options = table::TableOptions {
+        wrap_mode: wrap,
+        column_width_mode: if o.get("columnWidthMode").and_then(|v| v.as_str()) == Some("content") {
+            ColumnWidthMode::Content
+        } else {
+            ColumnWidthMode::Full
+        },
+        column_fitter: if o.get("columnFitter").and_then(|v| v.as_str()) == Some("balanced") {
+            ColumnFitter::Balanced
+        } else {
+            ColumnFitter::Proportional
+        },
+        cell_padding_x: table::resolve_non_negative(num("cellPaddingX").or(num("cellPadding")), 0),
+        cell_padding_y: table::resolve_non_negative(num("cellPaddingY").or(num("cellPadding")), 0),
+        column_gap: table::resolve_non_negative(num("columnGap"), 0),
+        border,
+        outer_border: o.get("outerBorder").and_then(|v| v.as_bool()).unwrap_or(border),
+    };
+    let columns = cells.iter().map(|r| r.len()).max().unwrap_or(0);
+    let t = table::Table { rows: cells.len(), columns, options };
+    // Replay the measures TS recorded; a measure TS never asked for is a difference.
+    let recorded: Vec<(usize, usize, u32, Option<table::Measure>)> = case["tsMeasures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| {
+            let m = m.as_array().unwrap();
+            let result = m[3].as_object().map(|o| table::Measure {
+                line_count: o["lineCount"].as_u64().unwrap() as u32,
+                width_cols_max: o["widthColsMax"].as_u64().unwrap() as u32,
+            });
+            (m[0].as_u64().unwrap() as usize, m[1].as_u64().unwrap() as usize, m[2].as_u64().unwrap() as u32, result)
+        })
+        .collect();
+    let mut asked: Vec<J> = Vec::new();
+    let mut measurer = |row: usize, col: usize, width: u32| -> Option<table::Measure> {
+        let found = recorded.iter().find(|(r, c, w, _)| *r == row && *c == col && *w == width);
+        let result = found.and_then(|f| f.3);
+        asked.push(J::Arr(vec![
+            J::Num(row as f64),
+            J::Num(col as f64),
+            J::Num(width as f64),
+            match (found, result) {
+                (None, _) => J::s("not measured by TS"),
+                (Some(_), None) => J::Null,
+                (Some(_), Some(m)) => J::Obj(vec![
+                    ("lineCount", J::Num(m.line_count as f64)),
+                    ("widthColsMax", J::Num(m.width_cols_max as f64)),
+                ]),
+            },
+        ]));
+        result
+    };
+    let max = case.get("maxWidth").and_then(|v| v.as_f64());
+    let layout = t.compute_layout(t.resolve_layout_width_constraint(max), &mut measurer);
+    let ints = |v: &[i64]| J::Arr(v.iter().map(|&n| J::Num(n as f64)).collect());
+    J::Obj(vec![
+        (
+            "layout",
+            J::Obj(vec![
+                ("columnWidths", ints(&layout.column_widths)),
+                ("rowHeights", ints(&layout.row_heights)),
+                ("columnOffsets", ints(&layout.column_offsets)),
+                ("rowOffsets", ints(&layout.row_offsets)),
+                ("tableWidth", J::Num(layout.table_width as f64)),
+                ("tableHeight", J::Num(layout.table_height as f64)),
+            ]),
+        ),
+        ("measures", J::Arr(asked)),
+    ])
+}
+
 fn s(v: &Value, key: &str) -> JsString {
     JsString::from(v[key].as_str().unwrap_or_else(|| panic!("case field {key}")))
 }
@@ -352,6 +704,11 @@ fn answer(case: &Value) -> J {
             Err(e) => J::Obj(vec![("error", J::s(&e.0))]),
         },
         "markdown" => markdown_case(case),
+        "highlight" => highlight_case(case),
+        "code" => code_case(case),
+        "markdownRender" => markdown_render_case(case),
+        "diff" => diff_case(case),
+        "table" => table_case(case),
         other => panic!("unknown op {other}"),
     }
 }
