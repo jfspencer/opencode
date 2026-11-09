@@ -117,6 +117,7 @@ pub mod local;
 pub mod permission;
 pub mod prompt;
 pub mod session;
+pub mod subagents;
 pub mod theme;
 pub mod toast;
 pub mod tools;
