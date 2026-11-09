@@ -230,6 +230,15 @@ pub fn home() -> View {
     b6.set_padding(Edge::Top, Some(Value::Point(1.0)));
     b6.set_flex_shrink(Some(0.0));
     b6.set_position_type(false);
+    // The location context follows the route's location, else the default one (tracked alone: `location.set`
+    // reads other signals). TODO(port-tui): `route.location` (Home has none yet).
+    {
+        let data = t.data.clone();
+        create_effect(move || {
+            let target = data.store.location.default();
+            untrack(|| data.location.set(Some(target)));
+        });
+    }
     let (prompt_ref, set_prompt_ref) = create_signal_with(None::<PromptRef>, None);
     {
         let args_prompt = t.args.prompt.clone();

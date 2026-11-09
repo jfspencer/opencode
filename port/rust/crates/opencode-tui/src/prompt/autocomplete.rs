@@ -17,7 +17,7 @@ use opencode_tui_core::renderables::scrollbox::{
     MacOSScrollAccel, ScrollAcceleration, ScrollBarOptions, ScrollUnit,
 };
 use opencode_tui_core::renderables::text::WrapMode;
-use opencode_tui_core::renderables::textarea::Textarea;
+use crate::prompt::input::Textarea;
 use opencode_tui_core::renderer;
 use opencode_tui_core::solid::*;
 use opencode_tui_core::tree::{Edge, Element, FlexDirection, MouseEventType};

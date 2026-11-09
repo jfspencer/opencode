@@ -951,6 +951,9 @@ scenarios/tools.test.ts › shell command
 scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
+tui/nav-args.test.ts › args: --continue without any session
+tui/nav-exit.test.ts › exit: /exit
+tui/nav-exit.test.ts › exit: /q alias
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
 tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
@@ -968,5 +971,33 @@ tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
 tui/nav-keybinds.test.ts › keybinds: the leader times out
+tui/nav-mention.test.ts › mentions: @ lists skills and subagents, then files once there is a query
+tui/nav-mention.test.ts › mentions: a line range
+tui/nav-mention.test.ts › mentions: an @ in the middle of a word is not a mention
+tui/nav-mention.test.ts › mentions: deleting a mention removes it whole
+tui/nav-mention.test.ts › mentions: subagents
+tui/nav-mention.test.ts › mentions: tab completes a directory
+tui/nav-paste.test.ts › paste: a path that doesn't exist is text
+tui/nav-paste.test.ts › paste: control characters and escape sequences are dropped
+tui/nav-paste.test.ts › paste: full mode inserts large text
+tui/nav-paste.test.ts › paste: pasting the same text again expands the placeholder
+tui/nav-paste.test.ts › paste: several file paths at once
+tui/nav-paste.test.ts › paste: short text is inserted as typed
+tui/nav-prompt.test.ts › prompt: cursor movement
+tui/nav-prompt.test.ts › prompt: delete line, undo and redo
+tui/nav-prompt.test.ts › prompt: deleting text
+tui/nav-prompt.test.ts › prompt: escape on a typed prompt keeps the text
+tui/nav-prompt.test.ts › prompt: long input wraps and scrolls
+tui/nav-prompt.test.ts › prompt: moving between lines
+tui/nav-prompt.test.ts › prompt: multi-line input
+tui/nav-prompt.test.ts › prompt: selection is replaced by typing
+tui/nav-prompt.test.ts › prompt: unicode and wide characters
+tui/nav-shell.test.ts › shell: ! enters shell mode, backspace leaves it
+tui/nav-shell.test.ts › shell: ! in the middle of a prompt is text
+tui/nav-shell.test.ts › shell: ! typed in one burst after text is text
+tui/nav-shell.test.ts › shell: backspace typed in one burst after a command deletes text
+tui/nav-slash.test.ts › slash: /cd argument completion and errors
+tui/nav-slash.test.ts › slash: tab completes the selected command
 tui/nav-toasts.test.ts › toasts: info toast comes and goes
 tui/nav-toasts.test.ts › toasts: no model to send the prompt to
+tui/nav-toasts.test.ts › toasts: some prompts cannot be queued

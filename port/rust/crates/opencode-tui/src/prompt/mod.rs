@@ -11,16 +11,18 @@
 //! TODO(port-tui): stand-ins until their owners land: dialogs (`dialog.replace`/`clear` and the stack: the skill,
 //! stash, image preview, integration and workspace dialogs are not opened), the editor context (IDE selections),
 //! `openEditor`, the clipboard (`prompt.paste` without a bracketed paste), the worktree move (`usePromptMove`: no
-//! pending destination), usage limits, directory recents (`useStorage`), the location context (`useLocation`: the
-//! loaded directory), `tui.prompt.append` events, the terminal environment (`variables` of a local server), image
+//! pending destination), usage limits, directory recents (`useStorage`), `tui.prompt.append` events, the terminal environment (`variables` of a local server), image
 //! previews, cursor styles, and a live config (the paste summary toggle).
 pub mod attachment;
 pub mod autocomplete;
+pub mod draft_stash;
 pub mod footer;
 pub mod frecency;
 pub mod history;
+pub mod input;
 pub mod metadata;
 pub mod persistence;
+pub mod restore;
 pub mod stash;
 pub mod text;
 
@@ -39,7 +41,8 @@ use opencode_tui_core::layout::Value;
 use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderables::box_::{BorderProp, Side};
 use opencode_tui_core::renderables::text::WrapMode;
-use opencode_tui_core::renderables::textarea::{EditorTraits, Textarea, strip_ansi_sequences};
+use opencode_tui_core::renderables::textarea::EditorTraits;
+use crate::prompt::input::{Textarea, strip_ansi_sequences};
 use opencode_tui_core::renderer;
 use opencode_tui_core::solid::*;
 use opencode_tui_core::tree::{Edge, Element, FlexDirection, Justify, MouseEventType};
@@ -58,7 +61,8 @@ use crate::prompt::autocomplete::{AutocompleteProps, AutocompleteRef, Visible};
 use crate::prompt::history::{
     History, Mode, PartRef, PastedText, PromptFile, PromptInfo, Range, agent_json, empty_prompt, file_json, skill_json,
 };
-use crate::prompt::stash::{Composer, DraftEntry, Stash, register_composer, save_draft, take_draft};
+use crate::prompt::draft_stash::{DraftEntry, register_composer, save_draft, take_draft};
+use crate::prompt::stash::Stash;
 use crate::prompt::text::{TrackedText, measure, parse_slash_head};
 use crate::toast::{ToastInput, Toasts, Variant};
 use crate::util::{abbreviate_home, rgba, take_width, tint, truncate_file_path};
@@ -119,7 +123,7 @@ impl PromptRef {
         s.ta.set_text(&prompt.text);
         s.prompt.set(prompt.clone());
         s.restore_extmarks_from_prompt(prompt);
-        s.ta.goto_buffer_end(false);
+        s.ta.goto_buffer_end();
     }
     pub fn reset(&self) {
         self.0.reset_composer();
@@ -142,18 +146,6 @@ impl PromptRef {
     /// The textarea.
     pub fn input(&self) -> Element {
         self.0.input
-    }
-}
-
-impl Composer for PromptRef {
-    fn current(&self) -> PromptInfo {
-        PromptRef::current(self)
-    }
-    fn set_mode(&self, shell: bool) {
-        PromptRef::set_mode(self, if shell { Mode::Shell } else { Mode::Normal });
-    }
-    fn set(&self, prompt: &PromptInfo) {
-        PromptRef::set(self, prompt);
     }
 }
 
@@ -338,10 +330,7 @@ impl State {
 
     /// `currentLocation.ref ?? data.location.default()`.
     fn location(&self) -> Json {
-        match self.t.data.directory.get() {
-            Some(directory) => obj! { "directory" => directory },
-            None => self.t.data.store.location.default(),
-        }
+        self.t.data.location.r#ref().unwrap_or_else(|| self.t.data.store.location.default())
     }
 
     fn location_directory(&self) -> String {
@@ -1001,7 +990,7 @@ pub fn prompt(props: PromptProps) -> View {
 
     let anchor = box_();
     let input = textarea();
-    let ta = input.textarea().expect("a textarea");
+    let ta = Textarea::of(input).expect("a textarea");
     let syntax = theme.with_untracked(syntax_style);
     let styles = Styles {
         file: syntax.get_style_id("extmark.file"),
@@ -1068,6 +1057,32 @@ pub fn prompt(props: PromptProps) -> View {
                 ..Layer::default()
             }
         });
+    }
+
+    // `tui.prompt.append`: text a client sends to this location's prompt. (TS never unsubscribes; the handler of
+    // an unmounted prompt does nothing, so unsubscribing on cleanup changes nothing visible.)
+    {
+        let s = s.clone();
+        let off = t.data.event.on("tui.prompt.append", move |event, metadata| {
+            if metadata.directory.as_deref() != s.location().str("directory") {
+                return;
+            }
+            if s.input.is_destroyed() {
+                return;
+            }
+            s.ta.insert_text(event.data().str("text").unwrap_or_default());
+            // setTimeout is a workaround and needs to be addressed properly
+            let ta = s.ta.clone();
+            renderer::set_timeout(0, move || {
+                if ta.el.is_destroyed() {
+                    return;
+                }
+                ta.invalidate_intrinsic_size();
+                ta.goto_buffer_end();
+                renderer::request_render();
+            });
+        });
+        on_cleanup(move || off.call());
     }
 
     {
@@ -1270,7 +1285,7 @@ pub fn prompt(props: PromptProps) -> View {
         let s = s.clone();
         let stash_session = stash_session.clone();
         on_mount(move || {
-            let unregister = register_composer(stash_session.clone(), Rc::new(reference.clone()));
+            let unregister = register_composer(stash_session.clone(), reference.clone());
             on_cleanup(unregister);
             let saved = take_draft(stash_session.as_deref());
             if !s.prompt.with_untracked(|p| p.text.is_empty()) {
@@ -1363,7 +1378,7 @@ pub fn prompt(props: PromptProps) -> View {
                         s.ta.set_text(&entry.prompt.text);
                         s.prompt.set(entry.prompt.clone());
                         s.restore_extmarks_from_prompt(&entry.prompt);
-                        s.ta.goto_buffer_end(false);
+                        s.ta.goto_buffer_end();
                     }
                     true
                 }) as Rc<dyn Fn(Option<String>) -> bool>
@@ -1662,7 +1677,7 @@ pub fn prompt(props: PromptProps) -> View {
     // <textarea>
     insert_node(inner, input, None);
     input.set_width(Some(Value::Percent(100.0)));
-    bind(move || placeholder_text.get(), move |p| input.set_placeholder_text(p.as_deref()));
+    bind(move || placeholder_text.get(), move |p| input.set_placeholder(p.as_deref().unwrap_or("")));
     bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| input.set_placeholder_color(c));
     {
         let s = s.clone();
@@ -1933,7 +1948,7 @@ fn history_move(s: &Rc<State>, previous: bool) -> bool {
                 ta.set_cursor_offset(0);
                 return true;
             }
-            ta.move_cursor_up(false);
+            ta.move_cursor_up();
             return true;
         }
     } else {
@@ -1943,7 +1958,7 @@ fn history_move(s: &Rc<State>, previous: bool) -> bool {
                 ta.set_cursor_offset(end);
                 return true;
             }
-            ta.move_cursor_down(false);
+            ta.move_cursor_down();
             return true;
         }
     }
@@ -1988,12 +2003,8 @@ fn change_directory(s: Rc<State>, input: Option<String>) {
                         s.pending_directory.set(None);
                     }
                     Ok(location) => {
-                        // TODO(port-tui): `directoryRecents.touch` and `currentLocation.set(location)` (the location
-                        // context).
-                        let location = location.json();
-                        if let Some(directory) = location.str("directory") {
-                            s.t.data.directory.set(Some(directory.to_string()));
-                        }
+                        // TODO(port-tui): `directoryRecents.touch` (the storage context).
+                        s.t.data.location.set(Some(location.json()));
                         s.pending_directory.set(None);
                     }
                 }
