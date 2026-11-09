@@ -52,6 +52,12 @@ fn s(units: Option<&[u16]>) -> String {
 }
 
 fn num(n: f64) -> String {
+    if n.is_nan() {
+        return "NaN".to_string();
+    }
+    if n.is_infinite() {
+        return if n > 0.0 { "Infinity" } else { "-Infinity" }.to_string();
+    }
     if n == 0.0 && n.is_sign_negative() {
         return "-0".to_string();
     }
@@ -81,14 +87,20 @@ fn units(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
 
-const REPLACEMENTS: [&str; 6] = ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x"];
+const REPLACEMENTS: [&str; 9] =
+    ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x", "$<$<>$<n$<x>", "$9$1$$$&$01x", "\\$1$'$`"];
 const LIMITS: [Option<u32>; 5] = [None, Some(0), Some(1), Some(2), Some(3)];
 
 fn operations(pattern: &[u16], flags: &[u16], text: &[u16], full: bool) -> String {
     let fresh = || JsRegExp::new(pattern, flags).expect("valid regex");
     let mut results: Vec<String> = Vec::new();
     let len = text.len() as f64;
-    let last_indexes: Vec<f64> = if full { vec![0.0, 1.0, 2.0, len, len + 1.0, -1.0, 2.5] } else { vec![0.0, 1.0, len] };
+    let last_indexes: Vec<f64> = if full {
+        let (inf, nan) = (f64::INFINITY, f64::NAN);
+        vec![0.0, 1.0, 2.0, len, len + 1.0, -1.0, 2.5, nan, inf, -inf, 4294967296.0, 9007199254740993.0, -0.5]
+    } else {
+        vec![0.0, 1.0, len]
+    };
     for at in last_indexes {
         let re = fresh();
         re.set_last_index(at);
@@ -220,7 +232,7 @@ fn main() {
                 }
                 let text = dec(fields[1]);
                 let expected = fields[2];
-                let full = expected.split(' ').count() > 20;
+                let full = expected.split(' ').count() > 25;
                 if std::env::var_os("JSREGEX_TRACE").is_some() {
                     eprintln!("case /{}/{} on \"{}\"", enc(pattern), enc(flags), fields[1]);
                 }
