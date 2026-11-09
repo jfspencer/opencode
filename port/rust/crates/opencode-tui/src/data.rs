@@ -3,17 +3,20 @@
 //! signals), and the views of it the home screen reads (agents, providers, models, the configured model, the
 //! location's directory) as memos over the store's reads.
 //!
-//! TODO(port-tui): opencode-tui-sync milestone 3 (the TUI's data contexts) replaces the views below with its
-//! context API; [`Data::store`] is the store itself for components that read it directly.
+//! The providers are opencode-tui-sync's contexts, built in TS's order: [`Data::client_context`] (`useClient()`),
+//! [`Data::store`] (`useData()`: the store with `location.sync` and `session.title`), [`Data::location`]
+//! (`useLocation()`), [`Data::event`] (`useEvent()`). The views below are what the home screen reads.
 //! `OPENCODE_TUI_DEBUG=<file>` appends the direct responses to that file.
 use std::rc::Rc;
 
 use opencode_protocol::Json;
 use opencode_tui_core::reactive::{KeyedSignals, Memo, Signal, create_memo_equals, create_signal_with};
-use opencode_tui_sync::bus::Emitter;
 use opencode_tui_sync::client::{Client, RequestOptions};
-use opencode_tui_sync::connection::{ClientConnection, ConnectionOptions};
-use opencode_tui_sync::data::{CreateDataInput, Data as Store};
+use opencode_tui_sync::connection::ClientConnection;
+use opencode_tui_sync::context::client::{ClientContext, ClientInput};
+use opencode_tui_sync::context::data::DataContext;
+use opencode_tui_sync::context::event::EventContext;
+use opencode_tui_sync::context::location::LocationContext;
 use opencode_tui_sync::reactive::{Key, Reactivity};
 
 /// A JSON field.
@@ -110,9 +113,15 @@ impl Reactivity for Signals {
 /// The data the TUI reads.
 pub struct Data {
     pub client: Client,
-    /// `createData`: the store.
-    pub store: Store,
-    /// The event stream and its reconnects (`createClientConnection`).
+    /// `useClient()`: the client, its event bus, the connection, media.
+    pub client_context: ClientContext,
+    /// `useData()`: the store (derefs to `createData`'s data).
+    pub store: DataContext,
+    /// `useLocation()`.
+    pub location: LocationContext,
+    /// `useEvent()`.
+    pub event: EventContext,
+    /// The event stream and its reconnects (`client.connection`).
     pub connection: ClientConnection,
     /// `useEvent()`: the client's event bus.
     pub event: Emitter,
@@ -212,35 +221,20 @@ fn configured_of(config: &Json) -> Option<(String, String, Option<String>)> {
 
 impl Data {
     /// The store for a client (`ClientProvider` + `DataProvider`), its connection started.
-    pub fn new(client: Client, directory: &str) -> Rc<Data> {
+    pub fn new(client: Client, url: &str, headers: Vec<(String, String)>, directory: &str) -> Rc<Data> {
         let reactivity: Rc<dyn Reactivity> = Rc::new(Signals(KeyedSignals::new()));
-        let emitter = Emitter::new();
-        let connection = {
-            let emitter = emitter.clone();
-            ClientConnection::create(
-                client.clone(),
-                ConnectionOptions {
-                    reconnect: None,
-                    on_event: Rc::new(move |event| emitter.emit(event)),
-                    flush_interval: None,
-                    idle_timeout: None,
-                    log: None,
-                    reactivity: reactivity.clone(),
-                },
-            )
-        };
-        let api = client.clone();
-        let store = Store::create(CreateDataInput {
-            api: Rc::new(move || api.clone()),
-            directory: directory.to_string(),
-            initial_message_limit: None,
-            event: emitter.clone(),
-            connection: Some(Rc::new(connection.clone())),
-            on_error: None,
-            omit_tool_file_data: false,
-            reactivity,
+        let client_context = ClientContext::new(ClientInput {
+            api: client.clone(),
+            url: Some(url.to_string()),
+            headers: Some(headers),
+            service: None,
             log: None,
+            reactivity,
         });
+        let store = DataContext::new(&client_context, directory);
+        let location = LocationContext::new(&client_context, &store);
+        let event = EventContext::new(&client_context);
+        let connection = client_context.connection().clone();
         let directory = create_signal_with(None, None).0;
         let agents = {
             let resource = store.location.agent.clone();
@@ -265,7 +259,19 @@ impl Data {
             )
         };
         let _ = connection.start();
-        Rc::new(Data { client, store, connection, event: emitter, directory, agents, models, providers, configured_model })
+        Rc::new(Data {
+            client,
+            client_context,
+            store,
+            location,
+            event,
+            connection,
+            directory,
+            agents,
+            models,
+            providers,
+            configured_model,
+        })
     }
 
     async fn call(&self, name: &str, input: Json) -> Option<Json> {

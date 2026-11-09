@@ -58,7 +58,7 @@ pub async fn run(input: TuiInput) -> i32 {
     };
     let client = Client::make(ClientOptions { base_url: input.url.clone(), headers: input.headers.clone(), transport: Rc::new(HttpTransport) });
     let cwd = std::env::current_dir().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
-    let data = Data::new(client, &cwd);
+    let data = Data::new(client, &input.url, input.headers.clone(), &cwd);
     data.load_location(&cwd).await;
 
     if let Err(error) = renderer::create_cli_renderer(RendererConfig { use_mouse: resolved.mouse, ..RendererConfig::default() }).await {
