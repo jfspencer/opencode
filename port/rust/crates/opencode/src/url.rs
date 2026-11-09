@@ -209,11 +209,6 @@ impl Url {
         is_special(&self.scheme)
     }
 
-    /// `url.protocol`.
-    pub fn protocol(&self) -> String {
-        format!("{}:", self.scheme)
-    }
-
     /// `url.host` (with the port).
     pub fn authority(&self) -> String {
         let host = self.host.clone().unwrap_or_default();

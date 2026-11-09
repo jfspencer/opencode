@@ -90,6 +90,8 @@ pub struct Inventory {
     pub instructions: crate::instruction_discovery::Discovered,
     /// The configured instruction URLs' last fetched copies.
     pub remote_instructions: crate::instruction_discovery::Remote,
+    /// The skill directories the configured skill URLs pulled.
+    pub pulled_skills: skills::Pulled,
 }
 
 impl Inventory {
@@ -99,7 +101,8 @@ impl Inventory {
         let sources = config::discover(&location.directory);
         let entries = config::load(&location.directory, &sources);
         let remote = crate::instruction_discovery::fetch(&entries, &[]).await;
-        Ok(Self::build(&location.directory, project_directory, sources, entries, remote))
+        let pulled = skills::pull_all(&entries, &location.directory).await;
+        Ok(Self::build(&location.directory, project_directory, sources, entries, remote, pulled))
     }
 
     fn build(
@@ -108,13 +111,14 @@ impl Inventory {
         sources: config::Sources,
         entries: Vec<Entry>,
         remote_instructions: crate::instruction_discovery::Remote,
+        pulled_skills: skills::Pulled,
     ) -> Inventory {
         let options = config::Options::get();
         let registry = agents::build(&entries, &options.home, &config::join(&options.home, ".opencode/plan"));
         let selected = registry.selected().is_some();
         let catalog = providers::build(&entries);
         let commands = commands::build(&entries);
-        let skills = skills::build(&entries, &sources, directory);
+        let skills = skills::build(&entries, &sources, directory, &pulled_skills);
         let references = references::build(&entries, directory, &options.home, &options.repos);
         let instructions =
             crate::instruction_discovery::discover(directory, project_directory, &entries, &remote_instructions);
@@ -131,6 +135,7 @@ impl Inventory {
             project_directory: project_directory.to_owned(),
             instructions,
             remote_instructions,
+            pulled_skills,
         }
     }
 
@@ -230,13 +235,16 @@ impl Shared {
         let compatibility_changed = sources.claude != previous.sources.claude || sources.agents != previous.sources.agents;
         let entries = config::load(&previous.directory, &sources);
         let config_changed = entries != previous.entries || compatibility_changed;
-        // Instruction URLs are fetched again when the config changes (`reconfigure`).
-        let remote = if config_changed {
-            crate::instruction_discovery::fetch(&entries, &previous.remote_instructions).await
+        // Instruction and skill URLs are fetched again when the config changes (`reconfigure`, `refresh`).
+        let (remote, pulled) = if config_changed {
+            (
+                crate::instruction_discovery::fetch(&entries, &previous.remote_instructions).await,
+                skills::pull_all(&entries, &previous.directory).await,
+            )
         } else {
-            previous.remote_instructions.clone()
+            (previous.remote_instructions.clone(), previous.pulled_skills.clone())
         };
-        let next = Inventory::build(&previous.directory, &previous.project_directory, sources, entries, remote);
+        let next = Inventory::build(&previous.directory, &previous.project_directory, sources, entries, remote, pulled);
         let options = || PublishOptions { id: None, location: Some(location.clone()) };
         if config_changed {
             bus.emit("config.updated", Obj::new().done(), options());
