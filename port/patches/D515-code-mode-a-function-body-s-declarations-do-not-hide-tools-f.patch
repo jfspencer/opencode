@@ -1,0 +1,109 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:01:52 -0700
+Subject: [PATCH] D515 code mode: a function body's declarations do not hide
+ tools from its parameter defaults
+
+Upstream: scanTools gives a function one scope for its parameters and its body's declarations, but parameter
+default expressions are evaluated before the body's scope exists. `const f = function (a = tools.danger({})) {
+var tools }; await f()` scans as no tools (also with `let tools` in an arrow body), though the default calls the
+real tools. As with D514, code mode then fails the call as an unknown tool and a schedule check under-reports.
+Fixed: the parameters are the function's scope, and its body block adds the body's declarations (var included).
+Found by the Rust opencode-codemode crate.
+Scenarios: codemode-tools.test.ts "codemode tool scan scopes" (new)
+Upstream tests: packages/codemode/test/scan.test.ts adds a test
+
+diff --git a/packages/codemode/src/scan.ts b/packages/codemode/src/scan.ts
+index 283794fe7e..d4fe5f7d20 100644
+--- a/packages/codemode/src/scan.ts
++++ b/packages/codemode/src/scan.ts
+@@ -1,4 +1,15 @@
+-import type { AnyNode, BlockStatement, ModuleDeclaration, Pattern, Program, Statement, StaticBlock } from "acorn"
++import type {
++  AnyNode,
++  ArrowFunctionExpression,
++  BlockStatement,
++  FunctionDeclaration,
++  FunctionExpression,
++  ModuleDeclaration,
++  Pattern,
++  Program,
++  Statement,
++  StaticBlock,
++} from "acorn"
+ import { Result } from "effect"
+ import type { Diagnostic } from "./codemode.js"
+ import { parseProgram } from "./interpreter/execute.js"
+@@ -42,7 +53,7 @@ export function scanTools(code: string): Result.Result<ReadonlyArray<string>, Di
+       return undefined
+     }
+ 
+-    const pushedScope = enterNodeScope(node)
++    const pushedScope = enterNodeScope(node, ancestors.at(-1))
+     if (pushedScope) scopes.push(pushedScope)
+     ancestors.push(node)
+ 
+@@ -125,21 +136,15 @@ function readStaticToolCall(
+   return { ok: true, path: segments.join(".") }
+ }
+ 
+-function enterNodeScope(node: AnyNode): Set<string> | undefined {
+-  if (
+-    node.type === "FunctionDeclaration" ||
+-    node.type === "FunctionExpression" ||
+-    node.type === "ArrowFunctionExpression"
+-  ) {
++function enterNodeScope(node: AnyNode, parent: AnyNode | undefined): Set<string> | undefined {
++  if (isFunction(node)) {
+     const names = new Set<string>()
+     if (node.id) names.add(node.id.name)
+     for (const param of node.params) collectPattern(param, names)
+-    if (node.body.type === "BlockStatement") {
+-      for (const name of collectScope(node.body, true)) names.add(name)
+-    }
+     return names
+   }
+-  if (node.type === "BlockStatement") return collectScope(node, false)
++  // A function body's declarations are its own scope: its parameters' defaults cannot see them.
++  if (node.type === "BlockStatement") return collectScope(node, isFunction(parent) && parent.body === node)
+   // A class static block is a var scope of its own, like a function body.
+   if (node.type === "StaticBlock") return collectScope(node, true)
+   if (node.type === "CatchClause") {
+@@ -164,6 +169,16 @@ function enterNodeScope(node: AnyNode): Set<string> | undefined {
+   return undefined
+ }
+ 
++function isFunction(
++  node: AnyNode | undefined,
++): node is FunctionDeclaration | FunctionExpression | ArrowFunctionExpression {
++  return (
++    node?.type === "FunctionDeclaration" ||
++    node?.type === "FunctionExpression" ||
++    node?.type === "ArrowFunctionExpression"
++  )
++}
++
+ function collectScope(container: Program | BlockStatement | StaticBlock, includeVar: boolean): Set<string> {
+   const names = new Set<string>()
+   for (const statement of container.body) {
+diff --git a/packages/codemode/test/scan.test.ts b/packages/codemode/test/scan.test.ts
+index 7d87bdb4d0..2742a5573a 100644
+--- a/packages/codemode/test/scan.test.ts
++++ b/packages/codemode/test/scan.test.ts
+@@ -40,6 +40,16 @@ describe("CodeMode.scanTools", () => {
+     )
+   })
+ 
++  test("keeps a function body's declarations out of its parameter defaults", () => {
++    expect(CodeMode.scanTools("const f = function (a = tools.danger({})) { var tools }; await f()")).toEqual(
++      Result.succeed(["danger"]),
++    )
++    expect(CodeMode.scanTools("const f = (a = tools.early()) => { let tools; return tools.late() }")).toEqual(
++      Result.succeed(["early"]),
++    )
++    expect(CodeMode.scanTools("const f = function (tools = 1) { return tools.none() }")).toEqual(Result.succeed([]))
++  })
++
+   test("rejects empty code, syntax errors, dynamic bracket access, and aliasing tools", () => {
+     expect(Result.isFailure(CodeMode.scanTools("   "))).toBe(true)
+     expect(Result.isFailure(CodeMode.scanTools("const x = {"))).toBe(true)
