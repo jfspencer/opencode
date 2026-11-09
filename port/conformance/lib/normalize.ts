@@ -4,6 +4,8 @@
 // Generated IDs (ses_…, msg_…), including forked copies that carry a sequence suffix (msg_…_3).
 // IDs, and IDs derived from another (a scheduled prompt's inbox item is `msg_sch_<schedule>_<run>`).
 const ID = /\b([a-z]{2,8})_(?:[a-z]{2,8}_)?([0-9A-Za-z]{16,40})(_\d+)?\b/g
+// Persistent terminals are numbered by the opencode-pty daemon, at random (pty_persistent_8621919930907382).
+const PERSISTENT_PTY = /\bpty_persistent_\d+\b/g
 const UUID = /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi
 const HASH = /\b(?:[0-9a-f]{64}|[0-9a-f]{40})\b/g
 const B64_JSON = /^[A-Za-z0-9_-]{16,}={0,2}$/
@@ -14,6 +16,9 @@ export const DATE = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Ju
 // Operating-system process IDs.
 export const PID_KEY = /^pid$/
 const HOSTNAME_KEY = /^hostname$/
+// The opencode-pty daemon's random credentials in a handoff descriptor (instance ID and ticket, 128-bit hex).
+const HEX_TOKEN_KEY = /^(instanceID|ticket)$/
+const HEX_TOKEN = /^[0-9a-f]{32}$/
 const ISO = /\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\b/g
 const TIME_KEY =
   /^(time|created|updated|completed|started|ended|start|end|timestamp|at|lastUsed|modified|mtime|expires(At)?|.*At)$/i
@@ -147,6 +152,7 @@ export function normalizer(paths: Record<string, string>): Normalizer {
       const decoded = decode(encoded)
       return decoded ? `${prefix}<base64-json:${JSON.stringify(value(decoded))}>` : raw
     })
+    out = out.replace(PERSISTENT_PTY, (raw) => placeholder("pty_persistent", raw))
     out = out.replace(ID, (raw, prefix: string) => placeholder(prefix, raw))
     out = out.replace(UUID, (raw) => placeholder("uuid", raw.toLowerCase()))
     out = out.replace(HASH, (raw) => placeholder("hash", raw))
@@ -168,7 +174,13 @@ export function normalizer(paths: Record<string, string>): Normalizer {
         const owner = typeof parent?.id === "string" ? parent.id : undefined
         return owner?.startsWith("ses_") ? `<slug-of-${string(owner).slice(1, -1)}>` : "<slug>"
       }
+      // A terminal's default title ends with its ID's last four characters ("Terminal Ab3x"): named after the
+      // terminal, like a slug.
+      if (key === "title" && typeof parent?.id === "string" && parent.id.startsWith("pty_")) {
+        if (input === `Terminal ${parent.id.slice(-4)}`) return `Terminal <tail-of-${string(parent.id).slice(1, -1)}>`
+      }
       if (HOSTNAME_KEY.test(key)) return "<hostname>"
+      if (HEX_TOKEN_KEY.test(key) && HEX_TOKEN.test(input)) return placeholder("token", input)
       return cursor(input) ?? string(input)
     }
     if (typeof input === "number") {

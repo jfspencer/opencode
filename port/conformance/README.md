@@ -55,6 +55,10 @@ an absolute path to an executable (the Rust build), every scenario starts its ow
 only through its public interface, so whatever passes here passes for a user:
 
 - the sandbox HOME/XDG directories and environment of `lib/preload.ts`, and its working directory;
+- the persistent-terminal daemon: `OPENCODE_PTY_BIN` names the reference's build of `opencode-pty`, which every
+  implementation starts (on first use, as `opencode-pty daemon --runtime-dir <XDG_STATE_HOME>/opencode/pty --name
+  <uuid>`) and owns; `OPENCODE_PTY_SOCKET_DIR` keeps its socket in the sandbox, away from the
+  `/tmp/opencode-pty-<uid>` where a real service's daemons listen. A daemon stops when its owner goes;
 - the in-process boot options as the environment variables `opencode serve` reads (`OPENCODE_CONFIG_CONTENT`,
   `OPENCODE_DISABLE_PROJECT_CONFIG`, `OPENCODE_DISABLE_MODELS_FETCH` + an empty `OPENCODE_MODELS_PATH`,
   `OPENCODE_DISABLE_FILEWATCHER`, `OPENCODE_DISABLE_FFF`, `OPENCODE_DB=:memory:`); requests carry the
@@ -97,11 +101,22 @@ scenario(
 
 - `options`: `files` (project files, fixed mtimes), `git` (init + one commit), `turns` (scripted model replies,
   consumed in order by chat requests), `responders` (functions answering any outbound request, e.g. webfetch
-  URLs), `config` (overrides deep-merged into `lib/model.ts`), `projectConfig`, `timeout`, `events`, `server`.
+  URLs), `config` (overrides deep-merged into `lib/model.ts`), `projectConfig`, `timeout`, `events`, `server`,
+  `inProcessOnly` / `processOnly` (why the scenario can run only one way; it is skipped the other way).
 - Before the body runs, the harness waits for the live event stream and for the project location's plugins
   to finish loading; after it, it waits for background work to go quiet. Neither step is recorded.
 - `ctx.http(method, url, body?)` calls the API and records the exchange. Requests carry the project directory
   (`x-opencode-directory`) like real clients do.
+- `ctx.socket(url, options?)` opens a WebSocket to a server process (an in-process handler cannot upgrade:
+  mark the scenario `processOnly`) and records its URL, whether it opened, what was sent and received in
+  order, and the close code and reason. It carries the server password and the project directory unless
+  told not to (`auth: false` is a browser, which presents a ticket instead); `record` decides how a frame is
+  recorded and `merge` which consecutive frames are one stream (a terminal's output chunks). `until(predicate)`
+  waits on what it received, `closed` resolves with the close, `close()` closes from the client. Sockets still
+  open when the body ends close unrecorded.
+- `ctx.restart(env?)` stops a server process and starts another in its place with extra environment (process
+  only; recorded as `{ kind: "restart" }`); `http` and the event stream follow it. The old server's terminal
+  daemon is spared, as a real restart leaves it running for a handoff; it is killed with the last server.
 - `ctx.session()`, `ctx.prompt(id, text)` (sends, then settles), `ctx.settle(id)` (waits for idle, or for a
   permission request / form; returns which), `ctx.until(predicate)` (waits for an event), `ctx.quiesce()`,
   `ctx.note(label, v)`, `ctx.write/read` (project files), `ctx.provider.requests`, `ctx.events`.
@@ -142,7 +157,10 @@ files, all normalized.
 Each rule states that the difference it hides is not observable behavior.
 
 - **Generated identity:** IDs (incl. forked `msg_…_N`), UUIDs, 40/64-hex hashes and random session slugs get
-  placeholders numbered by first appearance. A slug is named after its session.
+  placeholders numbered by first appearance. A slug is named after its session, and so is a terminal's default
+  title (`Terminal <last four characters of its ID>`). The `opencode-pty` daemon numbers persistent terminals
+  at random (`pty_persistent_<n>`), and a handoff carries its random instance ID and ticket (128-bit hex):
+  placeholders too.
 - **Clock:** epoch-ms times, ISO times, and today's date in the system prompt's format (`Sat Nov 07 2026`)
   are masked; durations too.
 - **Paging cursors** (base64 JSON, in bodies and in URLs) are compared decoded.
@@ -186,6 +204,9 @@ Each rule states that the difference it hides is not observable behavior.
   equivalent (RFC 9110 §12.5.1). The fake's responses are what a real server sends either way: a reason
   phrase, no body for `HEAD`. On the wire they also carry framing (`transfer-encoding: chunked`,
   `connection: close`); scenarios that print response headers leave framing headers out.
+- **Terminal output:** how a terminal's output is split into WebSocket frames is timing (the program's writes
+  and the PTY's reads): consecutive output frames are recorded as one (`merge`). Frame types and control
+  messages stay exact.
 - **TUI frames** (`lib/tui.ts`): step timing and throughput, and the prompt's randomly chosen example text.
 - **CLI** (`lib/cli.ts`): ports, sandbox paths, secrets, locale times, stack frames (documented in the file).
 
@@ -224,7 +245,7 @@ tuiScenario("prompt and reply", { turns: [say("Hello.")], width: 100, height: 30
 ```
 
 The real TUI talks to the scenario's server over HTTP (through a local proxy that notes which endpoints it
-calls), in a real terminal: Ghostty's terminal core (libghostty-vt as WASM, from the `ghostty-web` package the
+calls, and passes the WebSockets it opens, a terminal pane's, through to a server process), in a real terminal: Ghostty's terminal core (libghostty-vt as WASM, from the `ghostty-web` package the
 reference already depends on; `lib/terminal.ts`). The TUI's output is interpreted by it; its queries (device
 attributes, modes, kitty keyboard flags, dark/light scheme) get Ghostty's answers; keys arrive as Ghostty's key
 encoder writes them for the keyboard protocol the TUI turned on, mouse events as the reports it asked for (SGR),

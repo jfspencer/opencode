@@ -96,18 +96,54 @@ interface Screen {
 export function tuiScenario(name: string, options: TuiOptions, body: (t: TuiCtx) => Promise<void>) {
   scenario(name, { timeout: 90_000, ...options }, async (ctx) => {
     const requests: string[] = []
-    const server = Bun.serve({
+    // A WebSocket the TUI opens (a terminal pane's) is passed through to the implementation, which only a process
+    // can upgrade; messages queue until the implementation's side is open.
+    type Pipe = { upstream: WebSocket; pending: Array<string | Buffer> }
+    const server = Bun.serve<Pipe>({
       port: 0,
       // The TUI holds its event stream (and long requests) open for as long as the scenario runs.
       idleTimeout: 0,
-      fetch: async (request) => {
+      fetch: async (request, self) => {
         const url = new URL(request.url)
         requests.push(`${request.method} ${url.pathname}`)
+        if (request.headers.get("upgrade")?.toLowerCase() === "websocket" && implementation().kind === "process") {
+          const directory = request.headers.get("x-opencode-directory")
+          const upstream = ctx.connect(
+            url.pathname + url.search,
+            directory ? { "x-opencode-directory": directory } : {},
+          )
+          upstream.binaryType = "arraybuffer"
+          if (self.upgrade(request, { data: { upstream, pending: [] } })) return undefined as unknown as Response
+          upstream.close()
+        }
         const response = await ctx.handler(request)
         // CONFORMANCE_TUI_LOG=1: every request the TUI makes, with its status, on stderr (debugging).
         if (process.env.CONFORMANCE_TUI_LOG)
           console.error(`tui ${request.method} ${url.pathname}${url.search} -> ${response.status}`)
         return response
+      },
+      websocket: {
+        open(ws) {
+          const { upstream, pending } = ws.data
+          upstream.addEventListener("message", (event) =>
+            ws.send(typeof event.data === "string" ? event.data : new Uint8Array(event.data as ArrayBuffer)),
+          )
+          // Codes a peer cannot send (no status, abnormal closure) pass on as a normal close.
+          upstream.addEventListener("close", (event) =>
+            ws.close([1005, 1006, 1015].includes(event.code) ? 1000 : event.code, event.reason),
+          )
+          upstream.addEventListener("open", () => {
+            for (const message of pending.splice(0)) upstream.send(message)
+          })
+        },
+        message(ws, message) {
+          const { upstream, pending } = ws.data
+          if (upstream.readyState === WebSocket.OPEN) upstream.send(message)
+          else pending.push(message)
+        },
+        close(ws) {
+          ws.data.upstream.close()
+        },
       },
     })
     const args = { ...options.args, ...((options.setup ? await options.setup(ctx) : undefined) ?? {}) }

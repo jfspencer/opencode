@@ -33,7 +33,7 @@ import { matchGolden } from "./golden"
 import { config as makeConfig } from "./model"
 import { normalizer } from "./normalize"
 import { FakeOpenRouter, type Responder, type Turn } from "./openrouter"
-import { implementation, startProcess } from "./server"
+import { AUTHORIZATION, daemons, implementation, kill, startProcess } from "./server"
 
 export interface ScenarioOptions {
   /** Config overrides merged into the base OpenRouter-only config. */
@@ -71,6 +71,49 @@ export interface ScenarioOptions {
    * Only for inputs a process can't be given through its public interface.
    */
   readonly inProcessOnly?: string
+  /**
+   * Why the scenario needs an implementation running as a process (CONFORMANCE_IMPL); it is skipped in-process. For
+   * what only a real listener has, like WebSocket upgrades (`ctx.socket`).
+   */
+  readonly processOnly?: string
+}
+
+/** One frame a WebSocket received: text as sent, binary as bytes. */
+export type Frame =
+  | { readonly type: "text"; readonly data: string }
+  | { readonly type: "binary"; readonly data: Uint8Array }
+
+export interface SocketOptions {
+  /** Extra request headers (the harness sends the server password unless `auth` is false). */
+  readonly headers?: Record<string, string>
+  /** Send the server password (default true). Clients that cannot set headers (browsers) present a ticket instead. */
+  readonly auth?: boolean
+  /** Scope the connection to the project with `x-opencode-directory`, as `http` does (default true). */
+  readonly directory?: boolean
+  /**
+   * How a received frame is recorded (default: text as `{ text }`, binary as `{ binary: <utf-8> }`). Return
+   * `undefined` to leave a frame out.
+   */
+  readonly record?: (frame: Frame) => unknown
+  /**
+   * Frames whose boundaries are timing rather than behavior (a terminal's output chunks): consecutive recorded
+   * items for which this returns a key are joined into one, by concatenating that key's string.
+   */
+  readonly merge?: (item: unknown) => string | undefined
+}
+
+export interface Socket {
+  /** Whether the upgrade succeeded. A rejected one is recorded as `opened: false` (the client sees no status). */
+  readonly opened: boolean
+  /** The recorded items received so far, merged as `merge` says. */
+  readonly items: readonly unknown[]
+  send(data: string | Uint8Array): void
+  /** Resolve once the items received so far satisfy the predicate (rejects after `timeout` ms). */
+  until(predicate: (items: readonly unknown[]) => boolean, timeout?: number): Promise<void>
+  /** Resolve with the close code and reason once the connection closes. */
+  readonly closed: Promise<{ readonly code: number; readonly reason: string }>
+  /** Close from the client (code 1000) and wait for the close to complete. */
+  close(): Promise<void>
 }
 
 export interface HttpResult {
@@ -87,6 +130,22 @@ export interface Ctx {
   readonly provider: FakeOpenRouter
   /** Raw HTTP call against the implementation; recorded in the transcript. */
   http(method: string, url: string, body?: unknown, headers?: Record<string, string>): Promise<HttpResult>
+  /**
+   * Open a WebSocket to the implementation (only as a process: mark the scenario `processOnly`). Recorded in the
+   * transcript: the URL, whether it opened, what was sent and received in order, and how it closed.
+   */
+  socket(url: string, options?: SocketOptions): Promise<Socket>
+  /**
+   * A raw WebSocket to the implementation (only as a process), carrying the server password; not recorded. For
+   * drivers that pass a client's socket through (the TUI's terminal pane).
+   */
+  connect(url: string, headers?: Record<string, string>): WebSocket
+  /**
+   * Stop the server process and start a new one in its place, with extra environment (only as a process); the
+   * event stream and `http` follow it. Recorded as a `restart` entry. The database is in memory, so the new server
+   * starts without sessions: what survives is what lives outside it (a handed-off terminal daemon).
+   */
+  restart(env?: Record<string, string>): Promise<void>
   /** Record an extra observation under a label. */
   note(label: string, value: unknown): void
   write(file: string, content: string): void
@@ -111,6 +170,7 @@ type Entry = { readonly kind: string } & Record<string, unknown>
 export function scenario(name: string, options: ScenarioOptions, body: (ctx: Ctx) => Promise<void>) {
   const file = callerFile()
   if (options.inProcessOnly && implementation().kind === "process") return test.skip(name, () => {})
+  if (options.processOnly && implementation().kind !== "process") return test.skip(name, () => {})
   test(name, () => run(file, name, options, body), options.timeout ?? 60_000)
 }
 
@@ -149,7 +209,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
     settings,
     provider,
     label,
-    async (handler, origin) => {
+    async (handler, origin, replace) => {
       serverOrigin = origin
       const call = async (method: string, url: string, payload?: unknown, headers: Record<string, string> = {}) => {
         const response = await handler(
@@ -168,7 +228,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
         return { status: response.status, body: parse(text) }
       }
       // Subscribe before anything happens, and only proceed once the stream is live.
-      const stream = options.standalone ? { cancel() {} } : await subscribe(handler, events)
+      let stream = options.standalone ? { cancel() {} } : await subscribe(handler, events)
       const until = async (predicate: (event: any) => boolean, from = 0, timeout = 20_000) => {
         const deadline = Date.now() + timeout
         while (Date.now() < deadline) {
@@ -238,6 +298,85 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
       // as a client would before using it. Unrecorded: it is setup, not part of the scenario.
       if (options.boot !== false && !options.standalone) await call("GET", "/api/agent")
       await quiesce()
+      const sockets: Array<{ ws: WebSocket; mute: () => void }> = []
+      const socket = async (url: string, socketOptions: SocketOptions = {}): Promise<Socket> => {
+        if (origin === IN_PROCESS)
+          throw new Error("ctx.socket needs the implementation as a process: mark the scenario processOnly")
+        const record = socketOptions.record ?? recordFrame
+        const merge = socketOptions.merge
+        // What the transcript records, in order (sent and received), and the received items alone.
+        const log: unknown[] = []
+        const items: unknown[] = []
+        const entry: { kind: string; url: string; opened: boolean; frames: unknown[]; closed?: unknown } = {
+          kind: "socket",
+          url,
+          opened: false,
+          frames: log,
+        }
+        transcript.push(entry)
+        const append = (list: unknown[], item: unknown) => {
+          const key = merge?.(item)
+          const last = list.at(-1)
+          if (key !== undefined && last !== undefined && merge?.(last) === key)
+            list[list.length - 1] = { [key]: String((last as any)[key]) + String((item as any)[key]) }
+          else list.push(item)
+        }
+        const ws = new WebSocket(origin.replace(/^http/, "ws") + url, {
+          headers: {
+            ...(socketOptions.directory === false ? {} : { "x-opencode-directory": encodeURIComponent(project) }),
+            ...(socketOptions.auth === false ? {} : { authorization: AUTHORIZATION }),
+            ...socketOptions.headers,
+          },
+        } as unknown as string[])
+        ws.binaryType = "arraybuffer"
+        let opened = false
+        let recording = true
+        sockets.push({ ws, mute: () => (recording = false) })
+        const closed = new Promise<{ code: number; reason: string }>((resolve) => {
+          ws.addEventListener("close", (event) => {
+            const result = { code: event.code, reason: event.reason }
+            if (opened && recording) entry.closed = result
+            resolve(result)
+          })
+        })
+        ws.addEventListener("message", (event) => {
+          const frame: Frame =
+            typeof event.data === "string"
+              ? { type: "text", data: event.data }
+              : { type: "binary", data: new Uint8Array(event.data as ArrayBuffer) }
+          const item = recording ? record(frame) : undefined
+          if (item === undefined) return
+          append(log, item)
+          append(items, item)
+        })
+        opened = await new Promise<boolean>((resolve) => {
+          ws.addEventListener("open", () => resolve(true))
+          ws.addEventListener("error", () => resolve(false))
+          void closed.then(() => resolve(false))
+          setTimeout(() => resolve(false), 10_000)
+        })
+        entry.opened = opened
+        return {
+          opened,
+          items,
+          send(data) {
+            ws.send(data)
+            log.push(typeof data === "string" ? { sent: data } : { sentBinary: Buffer.from(data).toString("base64") })
+          },
+          async until(predicate, timeout = 10_000) {
+            const deadline = Date.now() + timeout
+            while (!predicate(items)) {
+              if (Date.now() > deadline) throw new Error(`timed out waiting on socket ${url}: ${JSON.stringify(items)}`)
+              await new Promise((resolve) => setTimeout(resolve, 10))
+            }
+          },
+          closed,
+          async close() {
+            ws.close(1000)
+            await closed
+          },
+        }
+      }
       const ctx: Ctx = {
         project,
         label,
@@ -246,6 +385,23 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
         events,
         until,
         quiesce,
+        socket,
+        connect(url, headers = {}) {
+          if (origin === IN_PROCESS) throw new Error("ctx.connect needs the implementation as a process")
+          const ws = new WebSocket(origin.replace(/^http/, "ws") + url, {
+            headers: { ...headers, authorization: AUTHORIZATION },
+          } as unknown as string[])
+          sockets.push({ ws, mute: () => {} })
+          return ws
+        },
+        async restart(env = {}) {
+          if (!replace)
+            throw new Error("ctx.restart needs the implementation as a process: mark the scenario processOnly")
+          stream.cancel()
+          origin = serverOrigin = await replace(env)
+          stream = await subscribe(handler, events)
+          transcript.push({ kind: "restart" })
+        },
         async http(method, url, payload, headers) {
           const result = await call(method, url, payload, headers)
           transcript.push({
@@ -299,6 +455,11 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
         },
       }
       await body(ctx)
+      // Sockets the scenario left open close unrecorded (their entries keep no `closed`).
+      for (const { ws, mute } of sockets) {
+        mute()
+        if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) ws.close()
+      }
       // Let background work (titles, snapshots, location loads) finish before recording and shutdown.
       await quiesce()
       stream.cancel()
@@ -348,7 +509,11 @@ async function withServer(
   settings: { config: string; project: boolean; filewatcher: boolean; fff: boolean; standalone: boolean },
   provider: FakeOpenRouter,
   label: { file: string; scenario: string },
-  body: (handler: (request: Request) => Promise<Response>, origin: string) => Promise<void>,
+  body: (
+    handler: (request: Request) => Promise<Response>,
+    origin: string,
+    restart?: (env: Record<string, string>) => Promise<string>,
+  ) => Promise<void>,
 ) {
   if (settings.standalone)
     return body(async () => {
@@ -356,11 +521,21 @@ async function withServer(
     }, IN_PROCESS)
   const impl = implementation()
   if (impl.kind === "process") {
-    const server = await startProcess(impl, { ...settings, fetch: provider.fetch, label })
+    let server = await startProcess(impl, { ...settings, fetch: provider.fetch, label })
+    // A restart stops the process and starts another in its place; the handler always reaches the current one. The
+    // old server's terminal daemon is kept (for a handoff) and killed with the last server.
+    const kept: number[] = []
+    const restart = async (env: Record<string, string>) => {
+      kept.push(...daemons(server.pid))
+      await server.stop({ keepDaemon: true })
+      server = await startProcess(impl, { ...settings, fetch: provider.fetch, label, env })
+      return server.origin
+    }
     try {
-      await body(server.handler, server.origin)
+      await body((request) => server.handler(request), server.origin, restart)
     } finally {
       await server.stop()
+      kill(kept)
     }
     return
   }
@@ -414,6 +589,11 @@ const stripIndex = ({ index: _index, ...request }: { index: number } & Record<st
 function requestGroup(request: { kind: string; body: unknown }) {
   const session = (request.body as { prompt_cache_key?: unknown } | undefined)?.prompt_cache_key
   return typeof session === "string" ? `${request.kind}:${session}` : request.kind
+}
+
+/** A WebSocket frame as recorded by default: text as `{ text }`, binary as `{ binary: <utf-8> }`. */
+function recordFrame(frame: Frame) {
+  return frame.type === "text" ? { text: frame.data } : { binary: new TextDecoder().decode(frame.data) }
 }
 
 function eventSession(event: unknown): string | undefined {

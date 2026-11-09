@@ -83,6 +83,14 @@ Status as of 2026-11-07, upstream 6a89e9f.
   `general`, and `build` without its configured model and description. It now waits, like the list (#59082).
 - D222: `PUT /api/session/:id/environment` accepted a NUL, after which every shell command of the session failed
   as "The command contains a NUL character" on field `command`; the PUT is now a 400 `invalid_environment`.
+- D223: a terminal whose command is a login shell got `-l` after the caller's arguments: `POST /api/pty
+  { command: "/bin/sh", args: ["-c", "exit 3"] }` ran `sh -c "exit 3" -l`, where the flag is the script's `$0` and
+  the shell no login shell. The flag now leads (`["-l", "-c", "exit 3"]`); without arguments it is `["-l"]` as
+  before.
+- D224: a persistent terminal socket without framed input (`input_protocol` other than 1, as older clients
+  connect) sent every keystroke with the size the terminal had when the socket attached; input promotes its
+  sender at that size, so after a resize (through the API or another client) the next keystroke resized the
+  terminal back. It now sends the latest size the socket saw (`resized` events).
 
 **TUI**
 - D301: `@` completion of a directory gave `@src/util//`.
@@ -172,6 +180,11 @@ Status as of 2026-11-07, upstream 6a89e9f.
   the tool description.
 - Code mode: an empty `browser` namespace is listed (asserted by core tests); `matchAll` returns an array, and
   functions print `[object Function]`, Date `toString` is ISO, etc. (documented in `interpreter-support.md`).
+- Persistent terminals created without `cwd` start in `/`, not the session's directory: the service resolves
+  `cwd ?? "/"`, and every client passes the session's directory (the TUI, `client/src/solid/pty.ts`).
+- A persistent terminal that exits while a client is attached is removed (`persistent-pty.removed`); one that
+  exits unattended stays listed as exited until removed (upstream's server test asserts both). Typing in an
+  observer's socket takes control (`controller_changed`), as the daemon's `input` is specified to.
 
 ## Known and still open
 
@@ -251,11 +264,30 @@ The standard leaves these unspecified; scenarios avoid them:
   recorded (70+ scenarios); coverage would need e.g. a Node build with `NODE_V8_COVERAGE`.
 - **TUI colors**: frames record characters only; selection, syntax highlighting and theme colors are invisible.
 - **Watcher-driven and schedule-firing behavior** has few dedicated scenarios.
-- **PTYs**: nothing covers `pty.*` (REST and the WebSocket I/O of `pty-socket.ts`) or `experimental.persistentPty.*`
-  (the TUI's terminal pane, a client of the `opencode-pty` daemon). The harness has no WebSocket client (the
-  in-process handler cannot upgrade a request), and persistent PTYs run in a separate daemon.
-- **Restarts** within a scenario (session recovery), persisted events and server disconnects are not yet
-  expressible. Transport failures are: a connection closed before the response or dropped while it is read
+- **WebSockets** need a server process: the in-process handler cannot upgrade a request. `pty.*` and
+  `persistentPty.*` REST run both ways (scenarios/pty.test.ts, pty-persistent.test.ts); their WebSocket scenarios
+  and the TUI's terminal pane (tui/session-terminal.test.ts) are `processOnly`, so the in-process determinism
+  gate skips them; they were checked 11 of 11 as a process, 3 of them beside parallel TUI runs (the pane 7 of
+  7). In-process coverage does not reach `pty-socket.ts`.
+- **Persistent terminals** run in the reference's `opencode-pty` daemon for every implementation
+  (`OPENCODE_PTY_BIN`): the standard specifies the server's side (routes, errors, events, the socket protocol),
+  not the daemon. What the daemon decides is recorded as it decides it: terminal numbers (random, masked),
+  the `foregroundProcess` it reads from `/proc` when asked, and the VT checkpoint bytes of a snapshot or
+  resize. Scenarios wait until a program has printed before reading a terminal, since a terminal's info is
+  refreshed only when asked.
+- **Handoff across a restart** runs only as a process (`ctx.restart`): the replacement server gets the
+  descriptor as `OPENCODE_PTY_HANDOFF`, as `opencode service restart` passes it, and the harness spares the old
+  server's daemon (and its terminals) when it stops the old server, as a real restart leaves a detached daemon
+  running. The database is in memory, so the replacement starts without sessions; the terminals, which live in
+  the daemon, are what survives.
+- **Terminal programs** are fixed `sh -c` scripts (dash here) run through `/usr/bin/env`, so no login shell reads
+  the machine's profile; they print nothing until they get input, and a script turns echo off before its
+  answers and exits without printing, so nothing races the exit. The TUI's terminal pane runs the server's
+  shell (bash), whose first prompt comes from `/etc/bash.bashrc`: the scenario sets `PS1` and clears the screen
+  before any frame.
+- **Restarts** within a scenario: `ctx.restart(env)` replaces a server process (persistent terminals use it),
+  but the database is in memory, so session recovery across a restart, persisted events and server
+  disconnects are not yet expressible. Transport failures are: a connection closed before the response or dropped while it is read
   reaches a process as the real thing (the fake network closes the socket). A refused connection and a name
   that does not resolve cannot reach a process behind the fake network's proxy, so those three scenarios run
   in-process only (`inProcessOnly`).

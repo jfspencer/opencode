@@ -15,6 +15,8 @@
 //   fs.fff                    OPENCODE_DISABLE_FFF (the port omits fff: "1" unless a scenario turns fff on)
 //   database ":memory:"       OPENCODE_DB=:memory: (from lib/preload.ts)
 //   fetch                     HTTP(S)_PROXY to the fake network
+//   persistent terminals      OPENCODE_PTY_BIN (the reference's opencode-pty daemon, which the server starts and
+//                             owns) and OPENCODE_PTY_SOCKET_DIR (its socket, in the sandbox), from lib/preload.ts
 //   app                       the oracle's build identity: name "cli", version "conformance", channel
 //                             "conformance". Any channel but local and dev keeps experimental flags off, as in
 //                             releases (packages/core/src/flag.ts). Not "latest": a release channel's default
@@ -94,20 +96,25 @@ export interface ServerSettings {
   readonly fetch: (request: Request) => Promise<Response>
   /** For the memory log. */
   readonly label: { readonly file: string; readonly scenario: string }
+  /** Extra environment for this process (a restart's, e.g. OPENCODE_PTY_HANDOFF). */
+  readonly env?: Record<string, string>
 }
 
 export interface ServerProcess {
   readonly handler: (request: Request) => Promise<Response>
   /** Where the process listens (it reports this in server info). */
   readonly origin: string
-  stop(): Promise<void>
+  readonly pid: number
+  /** Stop the process and whatever it started; `keepDaemon` spares its terminal daemon (a restart). */
+  stop(options?: { readonly keepDaemon?: boolean }): Promise<void>
 }
 
 // Captured at load: scenarios may swap the global fetch (to route an in-process server's direct calls), and
 // requests to the implementation must not follow.
 const send = globalThis.fetch
 const PASSWORD = "conformance-password"
-const AUTHORIZATION = `Basic ${btoa(`opencode:${PASSWORD}`)}`
+/** The `authorization` header every request to a server process carries. */
+export const AUTHORIZATION = `Basic ${btoa(`opencode:${PASSWORD}`)}`
 
 export async function startProcess(
   impl: Extract<Implementation, { kind: "process" }>,
@@ -126,6 +133,7 @@ export async function startProcess(
     OPENCODE_DISABLE_FFF: settings.fff ? "0" : "1",
     OPENCODE_SERVER_PASSWORD: PASSWORD,
   })
+  if (settings.env) Object.assign(env, settings.env)
   if (!settings.project) env.OPENCODE_DISABLE_PROJECT_CONFIG = "1"
   if (!settings.filewatcher) env.OPENCODE_DISABLE_FILEWATCHER = "1"
 
@@ -184,9 +192,13 @@ export async function startProcess(
   return {
     handler,
     origin,
-    async stop() {
+    pid: child.pid,
+    async stop(options: { readonly keepDaemon?: boolean } = {}) {
       const memory = status(child.pid)
-      const tree = descendants(child.pid)
+      // A restart keeps the server's terminal daemon running, as a real restart does: it outlives its server (a
+      // detached process) and waits for a handoff's claim; nothing else of the process may survive it.
+      const kept = options.keepDaemon ? daemons(child.pid).flatMap((pid) => [pid, ...descendants(pid)]) : []
+      const tree = descendants(child.pid).filter((pid) => !kept.includes(pid))
       signal([-child.pid], "SIGTERM")
       await Promise.race([child.exited, Bun.sleep(5_000)])
       // Whatever is left (a server that ignored SIGTERM, tools that started their own process groups).
@@ -236,6 +248,22 @@ function descendants(pid: number) {
   }
   walk(pid)
   return out
+}
+
+/** The opencode-pty daemons among a process's descendants (lib/preload.ts names the binary). */
+export function daemons(pid: number) {
+  return descendants(pid).filter((child) => {
+    try {
+      return readFileSync(`/proc/${child}/cmdline`, "utf8").split("\0")[0] === process.env.OPENCODE_PTY_BIN
+    } catch {
+      return false
+    }
+  })
+}
+
+/** Kill processes the scenario let outlive their server (a kept terminal daemon). */
+export function kill(pids: readonly number[]) {
+  signal(pids, "SIGKILL")
 }
 
 function signal(targets: readonly number[], name: NodeJS.Signals) {

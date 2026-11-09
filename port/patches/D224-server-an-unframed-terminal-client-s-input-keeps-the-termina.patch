@@ -1,0 +1,153 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 05:01:22 -0700
+Subject: [PATCH] D224 server: an unframed terminal client's input keeps the
+ terminal's size
+
+Upstream: a persistent terminal socket without framed input (`input_protocol` other than 1, as clients before
+framed input connect) sends every keystroke to the daemon as `input` with the terminal size it read when it
+attached. Input promotes its sender at that size, so once the terminal has been resized (through the API, or by
+another client) the next keystroke from such a client resizes it back to the stale size.
+Fixed: the handler follows the terminal's `resized` events and sends the latest size with an unframed client's
+input; framed clients still send their own.
+Scenarios: pty-persistent.test.ts "persistent terminal websocket: control, observers, input and exit" (the
+observer's keystroke no longer resizes 60x10 back to 40x6)
+Upstream tests: packages/server/test/persistent-pty.test.ts adds a test
+
+diff --git a/packages/server/src/handlers/persistent-pty.ts b/packages/server/src/handlers/persistent-pty.ts
+index e861cfdecc..ada0255597 100644
+--- a/packages/server/src/handlers/persistent-pty.ts
++++ b/packages/server/src/handlers/persistent-pty.ts
+@@ -174,6 +174,8 @@ export const PersistentPtyHandler = HttpApiBuilder.group(Api, "server.experiment
+           const socket = yield* Effect.orDie(ctx.request.upgrade)
+           const outbox = yield* Queue.unbounded<Outbound>()
+           let attachment: PersistentPty.Attachment | undefined
++          // A client without framed input never reports its size, so its input carries the terminal's latest.
++          let size: { readonly cols: number; readonly rows: number } | undefined
+           // Bun's native ws upgrade must start before asynchronous daemon I/O.
+           const onOpen = Effect.gen(function* () {
+             attachment = yield* pty
+@@ -184,11 +186,13 @@ export const PersistentPtyHandler = HttpApiBuilder.group(Api, "server.experiment
+                 takeover: url.searchParams.get("takeover") === "true",
+                 onEvent: (event) => {
+                   if (event.type === "output") Queue.offerUnsafe(outbox, event.data)
+-                  if (event.type === "resized")
++                  if (event.type === "resized") {
++                    size = { cols: event.cols, rows: event.rows }
+                     Queue.offerUnsafe(
+                       outbox,
+                       JSON.stringify({ ...event, checkpoint: Buffer.from(event.checkpoint).toString("base64") }),
+                     )
++                  }
+                   if (event.type !== "output" && event.type !== "resized")
+                     Queue.offerUnsafe(outbox, JSON.stringify(event))
+                 },
+@@ -204,6 +208,7 @@ export const PersistentPtyHandler = HttpApiBuilder.group(Api, "server.experiment
+               Queue.offerUnsafe(outbox, new Socket.CloseEvent(4404, "terminal unavailable"))
+               return
+             }
++            size = attachment.info.size
+ 
+             Queue.offerUnsafe(
+               outbox,
+@@ -237,10 +242,10 @@ export const PersistentPtyHandler = HttpApiBuilder.group(Api, "server.experiment
+             onMessage: (message) => {
+               if (!attachment) return Effect.void
+               const data = typeof message === "string" ? Buffer.from(message) : message
+-              if (!framedInput)
+-                return pty
+-                  .input(ctx.params.ptyID, attachmentID, attachment.info.size.cols, attachment.info.size.rows, data)
+-                  .pipe(Effect.ignore)
++              if (!framedInput) {
++                const current = size ?? attachment.info.size
++                return pty.input(ctx.params.ptyID, attachmentID, current.cols, current.rows, data).pipe(Effect.ignore)
++              }
+               if (data.byteLength < 5) return Effect.void
+               const view = new DataView(data.buffer, data.byteOffset, data.byteLength)
+               const type = data[0]
+diff --git a/packages/server/test/persistent-pty.test.ts b/packages/server/test/persistent-pty.test.ts
+index 2be137bb61..0f4e117825 100644
+--- a/packages/server/test/persistent-pty.test.ts
++++ b/packages/server/test/persistent-pty.test.ts
+@@ -208,6 +208,81 @@ smoke(
+   20_000,
+ )
+ 
++smoke(
++  "an unframed client's input keeps the terminal's current size",
++  () =>
++    Effect.gen(function* () {
++      const fixture = yield* testDirectory()
++      const server = yield* ServerProcess.start<never, never>({
++        hostname: "127.0.0.1",
++        port: 0,
++        password: "secret",
++        app: { version: "test-version" },
++        database: { path: fixture.database },
++        pty: { root: fixture.directory },
++        fs: { filewatcher: false },
++      })
++      const base = HttpServer.formatAddress(server.address)
++      const client = OpenCode.make({ baseUrl: base, headers: { authorization: `Basic ${btoa("opencode:secret")}` } })
++      const terminal = yield* Effect.promise(() =>
++        client.experimental.persistentPty.create({
++          sessionID: Session.ID.make("ses_persistent_pty_unframed"),
++          command: "/bin/sh",
++          args: ["-c", "stty -echo; printf ready; while read line; do stty size; done"],
++          cwd: fixture.root,
++          title: "unframed",
++          env: {},
++          size: { cols: 40, rows: 10 },
++        }),
++      )
++      yield* waitForText(base, terminal.id, "ready")
++      yield* Effect.promise(async () => {
++        const ticket = await Effect.runPromise(
++          request(base, "POST", `/api/experimental/persistent-pty/${terminal.id}/connect-token`, undefined, {
++            "x-opencode-ticket": "1",
++          }),
++        )
++        if (!isRecord(ticket.data) || typeof ticket.data.ticket !== "string") throw new Error("Invalid connect ticket")
++        const url = new URL(`/api/experimental/persistent-pty/${terminal.id}/connect`, base)
++        url.protocol = "ws:"
++        url.searchParams.set("ticket", ticket.data.ticket)
++        url.searchParams.set("attachment_id", "unframed")
++        const socket = new WebSocket(url)
++        socket.binaryType = "arraybuffer"
++        const state = { output: "", closed: false, ready: false, resized: false }
++        socket.addEventListener("message", (event) => {
++          if (event.data instanceof ArrayBuffer) state.output += new TextDecoder().decode(event.data)
++          else {
++            const type = JSON.parse(String(event.data)).type
++            if (type === "replay_complete") state.ready = true
++            if (type === "resized") state.resized = true
++          }
++        })
++        socket.addEventListener("close", () => (state.closed = true))
++        try {
++          for (let attempt = 0; attempt < 100 && !state.ready; attempt++) await Bun.sleep(20)
++          expect(state.ready).toBeTrue()
++          await client.experimental.persistentPty.update({
++            ptyID: terminal.id,
++            attachmentID: "unframed",
++            size: { cols: 50, rows: 12 },
++          })
++          for (let attempt = 0; attempt < 100 && !state.resized; attempt++) await Bun.sleep(20)
++          expect(state.resized).toBeTrue()
++          socket.send("size\n")
++          await waitForSocketOutput([state], "12 50")
++        } finally {
++          socket.close()
++        }
++      })
++      expect(yield* Effect.promise(() => client.experimental.persistentPty.get({ ptyID: terminal.id }))).toMatchObject({
++        size: { cols: 50, rows: 12 },
++      })
++      yield* Effect.promise(() => client.experimental.persistentPty.shutdown())
++    }),
++  20_000,
++)
++
+ it.live("reports renaming as unsupported on a daemon without the rename feature", () =>
+   Effect.gen(function* () {
+     const fixture = yield* testDirectory()
