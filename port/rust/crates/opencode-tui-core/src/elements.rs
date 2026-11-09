@@ -2,12 +2,17 @@
 //! `createElement(tag)` does, with only an id; props are then set one by one (the typed setters on
 //! [`Element`]).
 use crate::color::text_attributes;
-use crate::renderables::{box_, diff, line_number, text, textarea};
+use crate::renderables::{box_, diff, line_number, scrollbox, text, textarea};
 use crate::tree::Element;
 
 /// `<box>`.
 pub fn box_() -> Element {
     box_::create_box()
+}
+
+/// `<scrollbox>`.
+pub fn scrollbox() -> Element {
+    scrollbox::create_scrollbox()
 }
 
 /// `<text>`.
