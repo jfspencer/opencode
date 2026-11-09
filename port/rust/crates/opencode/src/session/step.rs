@@ -37,6 +37,8 @@ pub enum Outcome {
     #[allow(dead_code)]
     RecoverFull,
     OutputLimit { needs_continuation: bool },
+    /// The provider rejected the request as too long before any output, and a compaction made room.
+    Compacted,
 }
 
 /// How an attempt ended without an outcome.
@@ -629,6 +631,8 @@ pub struct Input {
     pub located: Arc<crate::location::Location>,
     pub directory: String,
     pub recover_continuation: bool,
+    /// The runner's overflow recovery (a compaction), invoked only before durable output.
+    pub recover_overflow: Option<crate::session::compaction::Recovery>,
     pub cancel: Cancel,
 }
 
@@ -792,11 +796,16 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             Some(Err(_)) => tools_interrupted = true,
         }
     }
+    if let Some(recover) = input.recover_overflow {
+        let output_started = publisher.lock().unwrap().record().output_started;
+        if !output_started && stream_failure.as_ref().is_some_and(AIError::context_overflow) && recover.await? {
+            return Ok(Outcome::Compacted);
+        }
+    }
     // The end snapshot and the files changed since the start, once every tool has settled (only a settled step
     // records them; the publisher is not held across the capture).
     let terminal = crate::snapshot::Terminal::capture(&input.located, start.as_deref()).await;
     let mut p = publisher.lock().unwrap();
-    // TODO(port): context overflow recovery by compaction before output (`recoverOverflow`).
     let recorded = p.record();
     let unknown_finish = stream_failure.is_none()
         && !stream_interrupted

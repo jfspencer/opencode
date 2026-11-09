@@ -598,13 +598,10 @@ pub fn get(db: &Connection, message_id: &str) -> rusqlite::Result<Option<(String
     .optional()
 }
 
-/// Every message of a session in sequence order (`SessionHistory.load(db, id, "latest")` without compaction
-/// boundaries). TODO(port): compaction boundaries, native windows, recent-text rebuilding.
+/// The messages later requests see, from the latest completed compaction on (`SessionHistory.load(db, id,
+/// "latest")`, see [`crate::session::compaction::history`]).
 pub fn history(db: &Connection, session: &str) -> rusqlite::Result<Vec<Json>> {
-    let mut statement = db.prepare("SELECT id, type, data FROM session_message WHERE session_id = ?1 ORDER BY seq ASC")?;
-    statement
-        .query_map(params![session], |row| Ok(from_row(row.get(0)?, row.get(1)?, &row.get::<_, String>(2)?)))?
-        .collect()
+    crate::session::compaction::history(db, session, None)
 }
 
 /// `SessionHistory.firstUserMessage`.
@@ -618,13 +615,14 @@ pub fn first_user(db: &Connection, session: &str) -> rusqlite::Result<Option<(St
     .map(|found| found.and_then(|(id, text)| text.map(|text| (id, text))))
 }
 
-/// `SessionHistory.incompleteAssistants` (without compaction boundaries).
+/// `SessionHistory.incompleteAssistants`: the unfinished assistants from the latest completed compaction on.
 pub fn incomplete_assistants(db: &Connection, session: &str) -> rusqlite::Result<Vec<Json>> {
+    let boundary = crate::session::compaction::boundary(db, session)?;
     let mut statement = db.prepare(
         "SELECT id, type, data FROM session_message WHERE session_id = ?1 AND type = 'assistant' \
-         AND json_extract(data, '$.time.completed') IS NULL ORDER BY seq ASC",
+         AND json_extract(data, '$.time.completed') IS NULL AND seq >= ?2 ORDER BY seq ASC",
     )?;
     statement
-        .query_map(params![session], |row| Ok(from_row(row.get(0)?, row.get(1)?, &row.get::<_, String>(2)?)))?
+        .query_map(params![session, boundary], |row| Ok(from_row(row.get(0)?, row.get(1)?, &row.get::<_, String>(2)?)))?
         .collect()
 }

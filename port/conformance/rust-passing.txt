@@ -11,6 +11,7 @@ scenarios/agent-loop-agents.test.ts › maximum steps reset on the next prompt
 scenarios/agent-loop-agents.test.ts › model settings become OpenRouter request options
 scenarios/agent-loop-agents.test.ts › no model available
 scenarios/agent-loop-agents.test.ts › plan agent request
+scenarios/agent-loop-agents.test.ts › plan reminder after compaction
 scenarios/agent-loop-agents.test.ts › prompt with a PDF attachment
 scenarios/agent-loop-agents.test.ts › prompt with a directory attachment
 scenarios/agent-loop-agents.test.ts › prompt with a missing attachment
@@ -30,6 +31,36 @@ scenarios/agent-loop-agents.test.ts › title generated for an untitled session
 scenarios/agent-loop-agents.test.ts › title generation fails
 scenarios/agent-loop-agents.test.ts › title is the first non-empty line of the reply
 scenarios/agent-loop-agents.test.ts › title skips think blocks written into the reply
+scenarios/agent-loop-compaction.test.ts › automatic compaction between prompts
+scenarios/agent-loop-compaction.test.ts › automatic compaction keeps recent exchanges
+scenarios/agent-loop-compaction.test.ts › background summary is dropped on a context overflow
+scenarios/agent-loop-compaction.test.ts › background summary is swapped in
+scenarios/agent-loop-compaction.test.ts › background summary replaced after it fails
+scenarios/agent-loop-compaction.test.ts › background summary that fails is not used
+scenarios/agent-loop-compaction.test.ts › compaction after a checkpoint, as text
+scenarios/agent-loop-compaction.test.ts › compaction past the summary room sends the history without the recent tail
+scenarios/agent-loop-compaction.test.ts › compaction summary blocked by the content filter
+scenarios/agent-loop-compaction.test.ts › compaction summary finishes with an error, then succeeds
+scenarios/agent-loop-compaction.test.ts › compaction summary hits the output limit
+scenarios/agent-loop-compaction.test.ts › compaction summary ignores the template twice
+scenarios/agent-loop-compaction.test.ts › compaction summary is empty
+scenarios/agent-loop-compaction.test.ts › compaction summary nudged once
+scenarios/agent-loop-compaction.test.ts › compaction summary request fails, then succeeds
+scenarios/agent-loop-compaction.test.ts › compaction summary request is not retryable
+scenarios/agent-loop-compaction.test.ts › compaction summary request rejected as payload too large
+scenarios/agent-loop-compaction.test.ts › compaction summary request rejected as too long until it gives up
+scenarios/agent-loop-compaction.test.ts › compaction summary with an unknown finish reason, then succeeds
+scenarios/agent-loop-compaction.test.ts › compaction threshold from a percentage buffer
+scenarios/agent-loop-compaction.test.ts › compaction threshold from a token buffer and kept tokens
+scenarios/agent-loop-compaction.test.ts › context overflow again after compaction fails the turn
+scenarios/agent-loop-compaction.test.ts › context overflow with automatic compaction disabled
+scenarios/agent-loop-compaction.test.ts › legacy checkpoint is rewritten
+scenarios/agent-loop-compaction.test.ts › manual compaction after switching variants
+scenarios/agent-loop-compaction.test.ts › manual compaction fails
+scenarios/agent-loop-compaction.test.ts › manual compaction of an empty session
+scenarios/agent-loop-compaction.test.ts › manual compaction rejected as too long cannot shrink further
+scenarios/agent-loop-compaction.test.ts › manual compaction with an unavailable model
+scenarios/agent-loop-compaction.test.ts › second compaction updates the checkpoint
 scenarios/agent-loop-errors.test.ts › client error marked retryable, then success
 scenarios/agent-loop-errors.test.ts › comments and blank frames are ignored
 scenarios/agent-loop-errors.test.ts › content after the finish reason
@@ -37,6 +68,7 @@ scenarios/agent-loop-errors.test.ts › content policy rejection
 scenarios/agent-loop-errors.test.ts › empty response body, then success
 scenarios/agent-loop-errors.test.ts › error frame after output, then continued
 scenarios/agent-loop-errors.test.ts › error frame before output, then success
+scenarios/agent-loop-errors.test.ts › error frame reporting context overflow mid-stream
 scenarios/agent-loop-errors.test.ts › forbidden
 scenarios/agent-loop-errors.test.ts › invalid request
 scenarios/agent-loop-errors.test.ts › invalid request without a body
@@ -66,6 +98,8 @@ scenarios/agent-loop-interrupt.test.ts › cancel a queued prompt
 scenarios/agent-loop-interrupt.test.ts › interrupt an idle session
 scenarios/agent-loop-interrupt.test.ts › interrupt and resume with a steering prompt
 scenarios/agent-loop-interrupt.test.ts › interrupt before any output
+scenarios/agent-loop-interrupt.test.ts › interrupt during automatic compaction
+scenarios/agent-loop-interrupt.test.ts › interrupt during manual compaction
 scenarios/agent-loop-interrupt.test.ts › interrupt keeps queued prompts parked
 scenarios/agent-loop-interrupt.test.ts › interrupt while a tool call is streaming
 scenarios/agent-loop-interrupt.test.ts › interrupt while reasoning
@@ -238,6 +272,7 @@ scenarios/session-api-inputs.test.ts › forms of a session whose location is no
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
+scenarios/session-api-prompt.test.ts › compaction requests wait in the inbox of a busy session
 scenarios/session-api-prompt.test.ts › get one message
 scenarios/session-api-prompt.test.ts › interrupt a running turn
 scenarios/session-api-prompt.test.ts › interrupt and resume pending steering input

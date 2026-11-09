@@ -6,6 +6,7 @@
 
 pub mod attachment;
 pub mod command;
+pub mod compaction;
 pub mod context;
 pub mod diff;
 pub mod entries;
@@ -312,6 +313,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.usage.recorded" => apply_usage(tx, id, data, None)?,
+        "session.compaction.started" | "session.compaction.ended" | "session.compaction.failed" => compaction::project(tx, event)?,
         "session.revert.staged" | "session.revert.cleared" | "session.revert.committed" => revert::project(tx, event)?,
         "session.agent.selected" => {
             message::project(tx, event)?;

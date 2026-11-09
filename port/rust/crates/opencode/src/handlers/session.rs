@@ -172,7 +172,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             let db = app.db.lock().unwrap();
             let session_id = request.param("sessionID");
             session::require(&db, session_id)?;
-            // `SessionHistory.load(.., "latest")`. TODO(port): from the latest completed compaction on.
+            // `SessionHistory.load(.., "latest")`: from the latest completed compaction on.
             let history = session::message::history(&db, session_id).map_err(fatal)?;
             Ok(data(Json::Array(history.iter().map(session::message::wire).collect())))
         }
