@@ -223,8 +223,7 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         .palette(false),
         // TODO(port-tui): DialogAgent.
         app("agent.list", "Switch agent", "Agent", stand_in).slash("agents", &[]),
-        // TODO(port-tui): DialogUsage.
-        app("usage.show", "View usage", "Agent", stand_in).slash("usage", &[]),
+        app("usage.show", "View usage", "Agent", open(dialog, crate::usage::dialog_usage)).slash("usage", &[]),
         // TODO(port-tui): DialogMcp.
         app("mcp.list", "MCP servers", "Agent", stand_in).slash("mcps", &[]),
         app("agent.cycle", "Agent cycle", "Agent", {
