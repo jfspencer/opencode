@@ -14,6 +14,7 @@ mod handlers;
 mod inventory;
 mod http;
 mod id;
+mod job;
 mod json;
 mod llm;
 mod location;
