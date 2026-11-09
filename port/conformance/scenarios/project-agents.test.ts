@@ -1,5 +1,6 @@
 // Agents: the built-in registry, custom agents from config `agents` and from markdown files in config directories,
 // and how a selected agent's prompt, permissions, request overlays and model reach the provider request.
+import path from "node:path"
 import { call, say } from "../lib/openrouter"
 import { baseConfig, MODEL_REF } from "../lib/model"
 import { type Ctx, type ScenarioOptions, scenario as base } from "../lib/scenario"
@@ -18,6 +19,27 @@ scenario("built-in agents", {}, async (ctx) => {
   await ctx.http("GET", "/api/agent/plan")
   await ctx.http("GET", "/api/agent/does-not-exist")
 })
+
+// Each lookup is the first request to its own location, so it must wait for the location's plugins: they register
+// the agents and providers, and apply the config to them.
+scenario(
+  "agent and provider lookups on a location's first request",
+  {
+    boot: false,
+    files: { "sub/a.txt": "a\n", "other/b.txt": "b\n" },
+    config: { agents: { build: { description: "Configured build.", color: "#123456" } } },
+  },
+  async (ctx) => {
+    const first = async (url: string, directory: string) => {
+      const from = ctx.events.length
+      await ctx.http("GET", url, undefined, { "x-opencode-directory": encodeURIComponent(directory) })
+      await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === directory, from)
+    }
+    await first("/api/agent/build", ctx.project)
+    await first("/api/agent/general", path.join(ctx.project, "sub"))
+    await first("/api/provider/openrouter", path.join(ctx.project, "other"))
+  },
+)
 
 scenario(
   "custom agents from config",

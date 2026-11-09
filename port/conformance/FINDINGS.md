@@ -57,6 +57,14 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - D217: `POST /api/shell` start failures answered 500 with an empty body; a NUL in the command, an oversized
   command and an inaccessible cwd are now 400s.
 - D218: `POST /api/session/:id/shell` answered 500 with an empty body for the same failures; now the same 400s.
+- D219: a path through a file (`GET /api/fs/read/README.md/x`, `GET /api/fs/list?path=README.md/x`, `POST
+  /api/experimental/fs/watch`) answered 500 with an empty body: the lookup fails with ENOTDIR, which only NotFound
+  handling missed. It now answers 404 `FileNotFoundError`, as a missing path does.
+- D220: `PATCH /api/project/:id` with a relative `canonical` answered 500 with an empty body, even for an unknown
+  project (the absolute-path column throws before the lookup); now 400 `InvalidRequestError`, like D201.
+- D221: `GET /api/agent/:id` and `GET /api/provider/:id` answered before the location's plugins loaded: as a
+  location's first request, 404 for `general` or `openrouter`, and `build` without its configured model and
+  description. They now wait, like their list routes (D207).
 
 **TUI**
 - D301: `@` completion of a directory gave `@src/util//`.
@@ -107,7 +115,10 @@ Status as of 2026-11-07, upstream 6a89e9f.
   (scenarios in codemode-tools and project-schedule).
 - Code-mode `fetch` uses `globalThis.fetch`: documented in `server/src/options.ts`; the real server injects none.
 - Agent request overlays (`agents.<id>.request`) are accepted but not sent: documented as not yet implemented
-  (`agents.mdx`, `migrate-v1.mdx`). If upstream implements them, the goldens change.
+  (`agents.mdx`: "preserves these values but does not yet send them with model requests"; `migrate-v1.mdx`). No
+  V2 code has ever read them: they replaced `agents.<id>.options` in #30581, and requests merged only provider and
+  model overlays before and after. If upstream implements them, the goldens change (project-agents "a custom agent
+  shapes the provider request", agent-loop-agents "request overlays from provider, model and agent config").
 - Reasoning without `reasoning_details` is not echoed back, and another model's reasoning is dropped after a
   switch: deliberate (upstream #37708, `to-llm-message.ts`).
 - A `write` permission rule has no effect: `edit` governs write and patch (`permissions.mdx`, `migrate-v1.mdx`).
@@ -122,6 +133,16 @@ Status as of 2026-11-07, upstream 6a89e9f.
 ## Known and still open
 
 - PowerShell equivalents of D101/D106 (`Invoke-Expression`/`iex`, options before the subcommand).
+- OpenRouter's attribution headers (`HTTP-Referer: https://opencode.ai/`, `X-Title: opencode`) reach a catalog
+  provider but not a provider defined only in config, such as the reference's: the provider plugins
+  (`plugin/provider/openrouter.ts`, also Cerebras, Kilo, ZenMux...) transform providers before the config plugin
+  registers them (`plugin/internal.ts`, `pre` before `post`), so they never see one. V1 sent them for a
+  config-defined `openrouter` too (#613: its custom loaders ran after config providers joined the provider
+  table). The headers only attribute requests to opencode on OpenRouter; nothing
+  user-visible changes. Not patched: a fix reorders plugin defaults and config overrides, and every golden with a
+  provider request (655) would gain both headers.
+- `POST /api/experimental/fs/write` answers 500 with an empty body for any write that fails (a path through a
+  file, a directory, no permission): the endpoint declares no errors, so the right answer is a design choice.
 - A possible plan-mode race (a prompt before the creation reminder is queued); never observed.
 - CLI errors print JS stack frames (`Cause.pretty`). The CLI driver masks frames, so they are not part of the
   standard; the Rust CLI prints messages only.
