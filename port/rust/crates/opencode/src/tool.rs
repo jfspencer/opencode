@@ -31,6 +31,7 @@ pub mod file_write;
 pub mod glob;
 pub mod grep;
 pub mod output;
+pub mod shell;
 mod question;
 pub mod read;
 pub mod schedule;
@@ -223,6 +224,7 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
                 "grep" => Arc::new(grep::Grep { definition }),
                 "question" => Arc::new(question::Question { definition }),
                 "read" => Arc::new(read::Read { definition }),
+                "shell" => shell::tool(definition),
                 "skill" => Arc::new(skill::Skill { definition }),
                 subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "webfetch" => Arc::new(webfetch::WebFetch { definition }),
