@@ -43,8 +43,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         ("fs", _) => fs::handle(app, request, decoded, located).await,
         ("vcs", _) => vcs::handle(app, request, decoded, located).await,
         ("worktree", _) => worktree::handle(app, request, decoded, located).await,
-        ("schedule", _) => schedule::handle(app, request, decoded, located).await,
-        ("shell" | "pty" | "persistentPty" | "job", _) => shell::handle(app, request, decoded, located).await,
+        ("schedule" | "job", _) => schedule::handle(app, request, decoded, located).await,
+        ("shell" | "pty" | "persistentPty", _) => shell::handle(app, request, decoded, located).await,
         _ => misc::handle(app, request, decoded, located).await,
     }
 }

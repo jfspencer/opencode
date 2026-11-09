@@ -1,23 +1,21 @@
-//! Jobs (packages/core/src/job.ts, job/list.ts, job/recovery.ts, session/background.ts): work a tool call starts that
-//! a session may wait for (`block`) or hand to the background (`background`, `backgroundAll`), and whose completion is
-//! announced to the session later. One process-wide registry; a backgrounded job with a recovery record is kept in the
-//! `job` table until its completion notice is admitted (`completeBackground`), so a restarted server can tell the
-//! session what became of it.
+//! Jobs (packages/core/src/job.ts, job/list.ts, job/recovery.ts, job/sql.ts): one process-local registry of
+//! long-running work (subagents, background shells, image requests) keyed by job ID, backed by the durable `job`
+//! table for work that was moved to the background until its completion notice is admitted.
 //!
-//! Jobs are kept in insertion order (a JS `Map`): a job is moved to the end when it is first consumed (its outcome
-//! seen by a waiter), and only the 25 most recently consumed jobs without a notification are kept.
+//! A job runs one future per generation ([`Jobs::start`] joins a running job instead of starting another). Callers
+//! wait for it ([`Jobs::wait`]), block on it from a session until it finishes or is moved to the background
+//! ([`Jobs::block`], [`Jobs::background`], [`Jobs::background_all`]), or cancel it ([`Jobs::cancel`],
+//! [`Jobs::cancel_session`]). A backgrounded job with a recovery gets a notification ID (the ID of the notice its
+//! completion admits into its owner session) and a `job` row, removed once the notice is admitted
+//! ([`Jobs::complete_background`]). Finished jobs are kept until consumed (waited for or blocked on), and at most 25
+//! consumed ones without a notification are remembered.
 //!
-//! A job's work is a future run on its own task; cancelling the job aborts the task (TS closes the job's scope, which
-//! interrupts it), so the work must clean up when dropped.
+//! TODO(port): restart recovery of backgrounded jobs (session/execution/restart.ts), wait timeouts.
 
-use std::collections::HashMap;
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex, OnceLock};
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
 
-use indexmap::IndexMap;
 use opencode_protocol::Json;
 use rusqlite::params;
 use tokio::sync::watch;
@@ -25,10 +23,9 @@ use tokio::sync::watch;
 use crate::app::App;
 use crate::json::{self, Obj};
 
-/// Consumed jobs without a notification kept for reads.
 const COMPLETED_LIMIT: usize = 25;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Status {
     Running,
     Completed,
@@ -46,7 +43,7 @@ impl Status {
         }
     }
 
-    fn parse(text: &str) -> Option<Self> {
+    fn parse(text: &str) -> Option<Status> {
         Some(match text {
             "running" => Status::Running,
             "completed" => Status::Completed,
@@ -57,8 +54,9 @@ impl Status {
     }
 }
 
-/// `Job.Recovery`: what a backgrounded job is, so its owner can be told about it after a restart.
-#[derive(Clone, Debug, PartialEq)]
+/// How backgrounded work is recovered and listed (`Job.Recovery`).
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[allow(dead_code)] // Shell and image jobs are the shell and image tools'.
 pub enum Recovery {
     Shell { session_id: String, shell_id: String, command: String },
     Subagent { parent_session_id: String, child_session_id: String, agent: String, description: String },
@@ -66,49 +64,7 @@ pub enum Recovery {
 }
 
 impl Recovery {
-    pub fn to_json(&self) -> Json {
-        let mut o = Obj::new();
-        match self {
-            Recovery::Shell { session_id, shell_id, command } => {
-                o.str("kind", "shell").str("sessionID", session_id).str("shellID", shell_id).str("command", command);
-            }
-            Recovery::Subagent { parent_session_id, child_session_id, agent, description } => {
-                o.str("kind", "subagent").str("parentSessionID", parent_session_id);
-                o.str("childSessionID", child_session_id).str("agent", agent).str("description", description);
-            }
-            Recovery::Image { session_id, path, model } => {
-                o.str("kind", "image").str("sessionID", session_id).str("path", path).str("model", model);
-            }
-        }
-        o.done()
-    }
-
-    /// `RecoverySchema` decoding (`None` for a row whose recovery no longer decodes).
-    pub fn from_json(value: &Json) -> Option<Self> {
-        let text = |key: &str| json::get_str(value, key).map(str::to_owned);
-        let session = |key: &str| text(key).filter(|id| id.starts_with("ses"));
-        Some(match json::get_str(value, "kind")? {
-            "shell" => Recovery::Shell { session_id: session("sessionID")?, shell_id: text("shellID")?, command: text("command")? },
-            "subagent" => Recovery::Subagent {
-                parent_session_id: session("parentSessionID")?,
-                child_session_id: session("childSessionID")?,
-                agent: text("agent")?,
-                description: text("description")?,
-            },
-            "image" => Recovery::Image { session_id: session("sessionID")?, path: text("path")?, model: text("model")? },
-            _ => return None,
-        })
-    }
-
-    /// `ownerSessionID`.
-    pub fn owner(&self) -> &str {
-        match self {
-            Recovery::Shell { session_id, .. } | Recovery::Image { session_id, .. } => session_id,
-            Recovery::Subagent { parent_session_id, .. } => parent_session_id,
-        }
-    }
-
-    fn kind(&self) -> &'static str {
+    pub fn kind(&self) -> &'static str {
         match self {
             Recovery::Shell { .. } => "shell",
             Recovery::Subagent { .. } => "subagent",
@@ -116,16 +72,63 @@ impl Recovery {
         }
     }
 
-    fn child(&self) -> Option<&str> {
+    /// The session the work belongs to (`ownerSessionID`): a subagent's parent.
+    pub fn owner(&self) -> &str {
         match self {
-            Recovery::Subagent { child_session_id, .. } => Some(child_session_id),
-            _ => None,
+            Recovery::Shell { session_id, .. } | Recovery::Image { session_id, .. } => session_id,
+            Recovery::Subagent { parent_session_id, .. } => parent_session_id,
+        }
+    }
+
+    pub fn to_json(&self) -> Json {
+        let mut o = Obj::new();
+        o.str("kind", self.kind());
+        match self {
+            Recovery::Shell { session_id, shell_id, command } => {
+                o.str("sessionID", session_id).str("shellID", shell_id).str("command", command);
+            }
+            Recovery::Subagent { parent_session_id, child_session_id, agent, description } => {
+                o.str("parentSessionID", parent_session_id)
+                    .str("childSessionID", child_session_id)
+                    .str("agent", agent)
+                    .str("description", description);
+            }
+            Recovery::Image { session_id, path, model } => {
+                o.str("sessionID", session_id).str("path", path).str("model", model);
+            }
+        }
+        o.done()
+    }
+
+    /// `RecoverySchema` decoding of a stored row.
+    fn from_json(value: &Json) -> Option<Recovery> {
+        let field = |key: &str| json::get_str(value, key).map(str::to_owned);
+        let session = |key: &str| field(key).filter(|id| id.starts_with("ses"));
+        Some(match json::get_str(value, "kind")? {
+            "shell" => Recovery::Shell { session_id: session("sessionID")?, shell_id: field("shellID")?, command: field("command")? },
+            "subagent" => Recovery::Subagent {
+                parent_session_id: session("parentSessionID")?,
+                child_session_id: session("childSessionID")?,
+                agent: field("agent")?,
+                description: field("description")?,
+            },
+            "image" => Recovery::Image { session_id: session("sessionID")?, path: field("path")?, model: field("model")? },
+            _ => return None,
+        })
+    }
+
+    /// `recoveryTitle`'s fallback when the job has no title.
+    fn title(&self) -> &str {
+        match self {
+            Recovery::Shell { command, .. } => command,
+            Recovery::Subagent { description, .. } => description,
+            Recovery::Image { path, .. } => path,
         }
     }
 }
 
-/// `Job.Info`.
-#[derive(Clone, Debug)]
+/// A job's state (`Job.Info`).
+#[derive(Debug, Clone)]
 pub struct Info {
     pub id: String,
     pub ty: String,
@@ -139,21 +142,14 @@ pub struct Info {
     pub notification_id: Option<String>,
 }
 
-/// `Job.Background`: a row of the `job` table.
-#[derive(Clone, Debug)]
-pub struct Background {
-    pub id: String,
-    pub notification_id: String,
-    pub recovery: Recovery,
-    pub status: Status,
-    pub output: Option<String>,
-    pub error: Option<String>,
+/// Why a job's run ended without output: its error text (`errorText`), or interruption (a cancelled job).
+#[derive(Debug, Clone)]
+pub enum RunError {
+    Failed(String),
+    Cancelled,
 }
 
-/// How a job's work ended.
-pub type Exit = Result<String, String>;
-
-pub type Work = Pin<Box<dyn Future<Output = Exit> + Send + 'static>>;
+pub type Run = Pin<Box<dyn Future<Output = Result<String, RunError>> + Send>>;
 
 pub struct StartInput {
     pub id: String,
@@ -162,11 +158,8 @@ pub struct StartInput {
     pub metadata: Option<Json>,
     pub recovery: Option<Recovery>,
     pub notification_id: Option<String>,
-    pub run: Work,
 }
 
-/// `Job.BlockResult`.
-#[derive(Clone, Debug)]
 pub enum Blocked {
     Finished(Info),
     Backgrounded(Info),
@@ -174,12 +167,13 @@ pub enum Blocked {
 
 struct Active {
     info: Info,
-    /// The job's scope (a fresh one per start of the same ID).
+    /// The job's generation (`scope`): a restart of the same ID is a new one.
     generation: u64,
     done: watch::Sender<Option<Info>>,
     backgrounded: watch::Sender<Option<Info>>,
     task: Option<tokio::task::AbortHandle>,
-    blocking: HashMap<String, usize>,
+    /// Sessions blocked on the job, with their count.
+    blocking: Vec<(String, usize)>,
     is_backgrounded: bool,
     consumed: bool,
     recovery: Option<Recovery>,
@@ -190,7 +184,7 @@ impl Active {
         if self.info.metadata.as_ref().and_then(|m| json::get_str(m, "sessionID")) == Some(session) {
             return true;
         }
-        if self.blocking.contains_key(session) {
+        if self.blocking.iter().any(|(s, _)| s == session) {
             return true;
         }
         match &self.recovery {
@@ -198,34 +192,65 @@ impl Active {
             Some(Recovery::Subagent { parent_session_id, child_session_id, .. }) => {
                 parent_session_id == session || child_session_id == session
             }
-            Some(Recovery::Shell { session_id, .. } | Recovery::Image { session_id, .. }) => session_id == session,
+            Some(recovery) => recovery.owner() == session,
+        }
+    }
+}
+
+#[derive(Default)]
+struct State {
+    /// In `Map` order: insertion, with a consumed job moved to the end.
+    jobs: Vec<Active>,
+    generations: u64,
+}
+
+impl State {
+    fn find(&mut self, id: &str) -> Option<&mut Active> {
+        self.jobs.iter_mut().find(|job| job.info.id == id)
+    }
+
+    fn position(&self, id: &str) -> Option<usize> {
+        self.jobs.iter().position(|job| job.info.id == id)
+    }
+
+    /// `consume`: a finished job is consumed once; history keeps the latest consumed jobs without a notification.
+    fn consume(&mut self, id: &str, generation: u64) {
+        let Some(index) = self.position(id) else { return };
+        let job = &self.jobs[index];
+        if job.generation != generation || job.info.status == Status::Running || job.consumed {
+            return;
+        }
+        let mut job = self.jobs.remove(index);
+        job.consumed = true;
+        self.jobs.push(job);
+        let completed: Vec<String> = self
+            .jobs
+            .iter()
+            .filter(|job| job.consumed && job.info.notification_id.is_none())
+            .map(|job| job.info.id.clone())
+            .collect();
+        if completed.len() > COMPLETED_LIMIT {
+            let stale = &completed[..completed.len() - COMPLETED_LIMIT];
+            self.jobs.retain(|job| !(stale.contains(&job.info.id) && job.consumed && job.info.notification_id.is_none()));
         }
     }
 }
 
 #[derive(Default)]
 pub struct Jobs {
-    state: Mutex<IndexMap<String, Active>>,
-    generations: AtomicU64,
+    state: Mutex<State>,
 }
 
-/// The process's job registry.
-pub fn jobs() -> &'static Jobs {
-    static JOBS: OnceLock<Jobs> = OnceLock::new();
-    JOBS.get_or_init(Jobs::default)
-}
-
-/// `persistBackground`: a backgrounded job with a recovery record is kept until its notice is admitted.
+/// `persistBackground`: upserts the job's row while it is backgrounded with a recovery.
 fn persist(app: &App, job: &Active) {
     let (Some(recovery), Some(notification)) = (&job.recovery, &job.info.notification_id) else { return };
-    let title = job.info.title.clone().unwrap_or_else(|| match recovery {
-        Recovery::Shell { command, .. } => command.clone(),
-        Recovery::Subagent { description, .. } => description.clone(),
-        Recovery::Image { path, .. } => path.clone(),
-    });
     let now = crate::id::now();
-    let db = app.db.lock().unwrap();
-    let result = db.execute(
+    let child = match recovery {
+        Recovery::Subagent { child_session_id, .. } => Some(child_session_id.as_str()),
+        _ => None,
+    };
+    let title = job.info.title.as_deref().unwrap_or(recovery.title());
+    let result = app.db.lock().unwrap().execute(
         "INSERT INTO job (notification_id, id, session_id, child_session_id, kind, title, status, output, error, recovery, \
          time_created, time_updated) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12) \
          ON CONFLICT (notification_id) DO UPDATE SET status = excluded.status, output = excluded.output, \
@@ -234,7 +259,7 @@ fn persist(app: &App, job: &Active) {
             notification,
             job.info.id,
             recovery.owner(),
-            recovery.child(),
+            child,
             recovery.kind(),
             title,
             job.info.status.as_str(),
@@ -246,73 +271,51 @@ fn persist(app: &App, job: &Active) {
         ],
     );
     if let Err(error) = result {
-        eprintln!("job persistence failed: {error}");
+        eprintln!("failed to persist background job {}: {error}", job.info.id);
     }
 }
 
+/// A `Job.Info` list item (`toItem`).
+fn item(id: &str, status: Status, title: Option<&str>, started: i64, completed: Option<i64>, recovery: &Recovery) -> Json {
+    let mut time = Obj::new();
+    time.int("started", started);
+    if let Some(completed) = completed {
+        time.int("completed", completed);
+    }
+    let mut o = Obj::new();
+    o.str("kind", recovery.kind()).str("id", id).str("sessionID", recovery.owner()).str("status", status.as_str());
+    o.opt_str("title", title);
+    o.set("time", time.done());
+    match recovery {
+        Recovery::Shell { shell_id, command, .. } => {
+            o.str("shellID", shell_id).str("command", command);
+        }
+        Recovery::Subagent { child_session_id, agent, description, .. } => {
+            o.str("childSessionID", child_session_id).str("agent", agent).str("description", description);
+        }
+        Recovery::Image { path, model, .. } => {
+            o.str("path", path).str("model", model);
+        }
+    }
+    o.done()
+}
+
 impl Jobs {
-    /// `consume`: the first read of a finished job moves it to the end; old consumed jobs are forgotten.
-    fn consume(&self, id: &str, generation: u64) {
-        let mut jobs = self.state.lock().unwrap();
-        let Some(job) = jobs.get(id) else { return };
-        if job.generation != generation || job.info.status == Status::Running || job.consumed {
-            return;
-        }
-        let mut job = jobs.shift_remove(id).expect("present");
-        job.consumed = true;
-        jobs.insert(id.to_owned(), job);
-        let completed: Vec<String> =
-            jobs.iter().filter(|(_, j)| j.consumed && j.info.notification_id.is_none()).map(|(id, _)| id.clone()).collect();
-        let excess = completed.len().saturating_sub(COMPLETED_LIMIT);
-        for id in completed.into_iter().take(excess) {
-            jobs.shift_remove(&id);
-        }
-    }
-
-    /// `settle`: records how the work of one generation ended.
-    fn settle(&self, app: &App, id: &str, generation: u64, exit: Exit) -> Option<Info> {
-        let mut jobs = self.state.lock().unwrap();
-        let job = jobs.get_mut(id)?;
-        if job.generation != generation {
-            return None;
-        }
-        if job.info.status != Status::Running {
-            return Some(job.info.clone());
-        }
-        job.blocking.clear();
-        job.info.completed_at = Some(crate::id::now());
-        match exit {
-            Ok(output) => {
-                job.info.status = Status::Completed;
-                job.info.output = Some(output);
-            }
-            Err(error) => {
-                job.info.status = Status::Error;
-                job.info.error = Some(if error.is_empty() { "Unknown error".into() } else { error });
-            }
-        }
-        persist(app, job);
-        let info = job.info.clone();
-        job.done.send_replace(Some(info.clone()));
-        job.task = None;
-        Some(info)
-    }
-
     /// `Job.get`.
     pub fn get(&self, id: &str) -> Option<Info> {
-        self.state.lock().unwrap().get(id).map(|job| job.info.clone())
+        self.state.lock().unwrap().find(id).map(|job| job.info.clone())
     }
 
-    /// `Job.start`: registers the job and starts its work (a running job of the same ID is returned as is).
-    pub fn start(&self, app: &Arc<App>, input: StartInput) -> Info {
-        let generation = self.generations.fetch_add(1, Ordering::SeqCst) + 1;
-        let info = {
-            let mut jobs = self.state.lock().unwrap();
-            if let Some(existing) = jobs.get(&input.id)
-                && existing.info.status == Status::Running
-            {
+    /// `Job.start`: a running job with this ID is joined (its snapshot returned, `run` never called); otherwise a new
+    /// generation starts, and `run` is called at once (as TS starts the run immediately) and driven to settlement.
+    pub fn start(&self, app: &App, input: StartInput, run: impl FnOnce() -> Run) -> Info {
+        let (info, generation) = {
+            let mut state = self.state.lock().unwrap();
+            if let Some(existing) = state.find(&input.id).filter(|job| job.info.status == Status::Running) {
                 return existing.info.clone();
             }
+            state.generations += 1;
+            let generation = state.generations;
             let info = Info {
                 id: input.id.clone(),
                 ty: input.ty,
@@ -328,128 +331,130 @@ impl Jobs {
             let job = Active {
                 info: info.clone(),
                 generation,
-                done: watch::Sender::new(None),
-                backgrounded: watch::Sender::new(None),
+                done: watch::channel(None).0,
+                backgrounded: watch::channel(None).0,
                 task: None,
-                blocking: HashMap::new(),
+                blocking: Vec::new(),
                 is_backgrounded: false,
                 consumed: false,
                 recovery: input.recovery,
             };
-            // `new Map(jobs).set(id, job)`: a restarted ID keeps its place.
-            jobs.insert(input.id.clone(), job);
-            info
+            match state.position(&input.id) {
+                Some(index) => state.jobs[index] = job,
+                None => state.jobs.push(job),
+            }
+            (info, generation)
         };
-        let app = app.clone();
-        let id = input.id.clone();
-        let run = input.run;
-        let task = tokio::spawn(async move {
-            let exit = run.await;
-            jobs().settle(&app, &id, generation, exit);
-        });
-        if let Some(job) = self.state.lock().unwrap().get_mut(&input.id)
-            && job.generation == generation
-            && job.info.status == Status::Running
-        {
-            job.task = Some(task.abort_handle());
+        let future = run();
+        let owner = app.arc();
+        let id = input.id;
+        let task = {
+            let id = id.clone();
+            tokio::spawn(async move {
+                let result = future.await;
+                owner.sessions.jobs.settle(&owner, &id, generation, result);
+            })
+        };
+        let mut state = self.state.lock().unwrap();
+        match state.find(&id).filter(|job| job.generation == generation) {
+            Some(job) if job.info.status == Status::Running => job.task = Some(task.abort_handle()),
+            _ => task.abort(),
         }
         info
     }
 
-    /// `Job.wait`: the job's Info once it has finished (or the timeout passed; `true` then).
-    pub async fn wait(&self, id: &str, timeout: Option<Duration>) -> (Option<Info>, bool) {
-        let (snapshot, mut done, generation, recoverable) = {
-            let jobs = self.state.lock().unwrap();
-            let Some(job) = jobs.get(id) else { return (None, false) };
-            (job.info.clone(), job.done.subscribe(), job.generation, job.recovery.is_some())
-        };
-        let result = if snapshot.status != Status::Running {
-            (Some(snapshot), false)
-        } else {
-            let wait = async {
-                match done.wait_for(|v| v.is_some()).await {
-                    Ok(info) => info.clone(),
-                    Err(_) => None,
-                }
-            };
-            match timeout {
-                None => (wait.await.or(Some(snapshot)), false),
-                Some(limit) if limit.is_zero() => (Some(snapshot), true),
-                Some(limit) => match tokio::time::timeout(limit, wait).await {
-                    Ok(info) => (info.or(Some(snapshot)), false),
-                    Err(_) => (Some(snapshot), true),
-                },
-            }
-        };
-        // A recoverable job can still be handed to the background after it finished.
-        let running = result.0.as_ref().is_some_and(|info| info.status == Status::Running);
-        if !running && !recoverable {
-            self.consume(id, generation);
+    /// `settle`: records the run's outcome for its generation.
+    fn settle(&self, app: &App, id: &str, generation: u64, result: Result<String, RunError>) {
+        let mut state = self.state.lock().unwrap();
+        let Some(job) = state.find(id) else { return };
+        if job.generation != generation || job.info.status != Status::Running {
+            return;
         }
-        result
+        job.blocking.clear();
+        job.info.completed_at = Some(crate::id::now());
+        match result {
+            Ok(output) => {
+                job.info.status = Status::Completed;
+                job.info.output = Some(output);
+            }
+            Err(RunError::Cancelled) => job.info.status = Status::Cancelled,
+            Err(RunError::Failed(error)) => {
+                job.info.status = Status::Error;
+                job.info.error = Some(error);
+            }
+        }
+        job.task = None;
+        if job.info.status != Status::Cancelled {
+            persist(app, job);
+        }
+        let info = job.info.clone();
+        job.done.send_replace(Some(info));
     }
 
-    /// `Job.block`: waits for the job on behalf of a session until it finishes or is backgrounded.
-    pub async fn block(&self, id: &str, session: &str) -> Option<Blocked> {
-        enum Start {
-            Finished(Info, u64),
-            Backgrounded(Info),
-            Wait(watch::Receiver<Option<Info>>, watch::Receiver<Option<Info>>, u64),
-        }
-        let start = {
-            let mut jobs = self.state.lock().unwrap();
-            let job = jobs.get_mut(id)?;
-            if job.info.status != Status::Running {
-                Start::Finished(job.info.clone(), job.generation)
-            } else if job.is_backgrounded {
-                Start::Backgrounded(job.info.clone())
-            } else {
-                *job.blocking.entry(session.to_owned()).or_insert(0) += 1;
-                Start::Wait(job.done.subscribe(), job.backgrounded.subscribe(), job.generation)
-            }
+    /// `Job.wait` without a timeout: the job's outcome once it finishes (`None` for an unknown job).
+    pub async fn wait(&self, id: &str) -> Option<Info> {
+        let (mut done, generation, recoverable) = {
+            let mut state = self.state.lock().unwrap();
+            let job = state.find(id)?;
+            (job.done.subscribe(), job.generation, job.recovery.is_some())
         };
-        let (mut done, mut backgrounded, generation) = match start {
-            Start::Finished(info, generation) => {
-                self.consume(id, generation);
+        // A finished job's outcome is already in its channel.
+        let info = done.wait_for(Option::is_some).await.ok()?.clone()?;
+        // A recoverable job may still be backgrounded after it finished.
+        if info.status != Status::Running && !recoverable {
+            self.state.lock().unwrap().consume(id, generation);
+        }
+        Some(info)
+    }
+
+    /// `Job.block`: waits on a running job from a session until it finishes or is moved to the background; the
+    /// session counts as blocked meanwhile. `None` for an unknown job.
+    pub async fn block(self: &Arc<Self>, id: &str, session: &str) -> Option<Blocked> {
+        let (mut done, mut backgrounded, generation) = {
+            let mut state = self.state.lock().unwrap();
+            let job = state.find(id)?;
+            if job.info.status != Status::Running {
+                let (info, generation) = (job.info.clone(), job.generation);
+                state.consume(id, generation);
                 return Some(Blocked::Finished(info));
             }
-            Start::Backgrounded(info) => return Some(Blocked::Backgrounded(info)),
-            Start::Wait(done, backgrounded, generation) => (done, backgrounded, generation),
-        };
-        // `Effect.ensuring(removeBlock)`, even when the caller stops waiting.
-        struct Unblock<'a> {
-            jobs: &'a Jobs,
-            id: &'a str,
-            session: &'a str,
-        }
-        impl Drop for Unblock<'_> {
-            fn drop(&mut self) {
-                let mut jobs = self.jobs.state.lock().unwrap();
-                let Some(job) = jobs.get_mut(self.id) else { return };
-                if job.info.status != Status::Running || job.is_backgrounded {
-                    return;
-                }
-                if let Some(count) = job.blocking.get_mut(self.session) {
-                    if *count <= 1 {
-                        job.blocking.remove(self.session);
-                    } else {
-                        *count -= 1;
-                    }
-                }
+            if job.is_backgrounded {
+                return Some(Blocked::Backgrounded(job.info.clone()));
             }
-        }
-        let _unblock = Unblock { jobs: self, id, session };
-        let outcome = tokio::select! {
-            info = done.wait_for(|v| v.is_some()) => info.ok().and_then(|i| i.clone()).map(Blocked::Finished),
-            info = backgrounded.wait_for(|v| v.is_some()) => info.ok().and_then(|i| i.clone()).map(Blocked::Backgrounded),
+            match job.blocking.iter_mut().find(|(s, _)| s == session) {
+                Some((_, count)) => *count += 1,
+                None => job.blocking.push((session.to_owned(), 1)),
+            }
+            (job.done.subscribe(), job.backgrounded.subscribe(), job.generation)
         };
-        if let Some(Blocked::Finished(_)) = &outcome {
-            self.consume(id, generation);
+        // `Effect.ensuring(removeBlock)`, also when the caller is dropped mid-wait.
+        let _unblock = Unblock { jobs: self.clone(), id: id.to_owned(), session: session.to_owned() };
+        tokio::select! {
+            info = done.wait_for(Option::is_some) => {
+                let info = info.ok()?.clone()?;
+                self.state.lock().unwrap().consume(id, generation);
+                Some(Blocked::Finished(info))
+            }
+            info = backgrounded.wait_for(Option::is_some) => Some(Blocked::Backgrounded(info.ok()?.clone()?)),
         }
-        outcome
     }
 
-    /// `markBackground`: the job no longer blocks anyone; a recoverable one gets its notification ID and is persisted.
+    fn remove_block(&self, id: &str, session: &str) {
+        let mut state = self.state.lock().unwrap();
+        let Some(job) = state.find(id) else { return };
+        if job.info.status != Status::Running || job.is_backgrounded {
+            return;
+        }
+        if let Some(index) = job.blocking.iter().position(|(s, _)| s == session) {
+            if job.blocking[index].1 <= 1 {
+                job.blocking.remove(index);
+            } else {
+                job.blocking[index].1 -= 1;
+            }
+        }
+    }
+
+    /// `markBackground`: backgrounded work with a recovery gets its notification ID and its row.
     fn mark_background(app: &App, job: &mut Active) {
         job.is_backgrounded = true;
         job.blocking.clear();
@@ -459,11 +464,10 @@ impl Jobs {
         persist(app, job);
     }
 
-    /// `Job.background`.
+    /// `Job.background`: moves a job to the background (a recoverable one even after it finished).
     pub fn background(&self, app: &App, id: &str) -> Option<Info> {
-        let mut jobs = self.state.lock().unwrap();
-        let job = jobs.get_mut(id)?;
-        // Recoverable work may finish before the caller backgrounds it.
+        let mut state = self.state.lock().unwrap();
+        let job = state.find(id)?;
         if job.info.status != Status::Running && job.recovery.is_none() {
             return None;
         }
@@ -476,48 +480,50 @@ impl Jobs {
         Some(info)
     }
 
-    /// `Job.backgroundAll`: every running job a session is blocked on (of one type, when given).
+    /// `Job.backgroundAll`: moves every running job the session is blocked on to the background.
     pub fn background_all(&self, app: &App, session: &str, ty: Option<&str>) -> Vec<Info> {
-        let mut jobs = self.state.lock().unwrap();
+        let mut state = self.state.lock().unwrap();
         let mut moved = Vec::new();
-        for job in jobs.values_mut() {
+        for job in state.jobs.iter_mut() {
             if job.info.status != Status::Running || job.is_backgrounded {
                 continue;
             }
-            if ty.is_some_and(|ty| job.info.ty != ty) || !job.blocking.contains_key(session) {
+            if ty.is_some_and(|ty| job.info.ty != ty) || !job.blocking.iter().any(|(s, _)| s == session) {
                 continue;
             }
             Self::mark_background(app, job);
-            job.backgrounded.send_replace(Some(job.info.clone()));
             moved.push(job.info.clone());
+        }
+        for info in &moved {
+            if let Some(job) = state.find(&info.id) {
+                job.backgrounded.send_replace(Some(info.clone()));
+            }
         }
         moved
     }
 
-    fn cancel_internal(&self, app: &App, id: &str, keep: bool) -> Option<Info> {
-        let (info, generation, task) = {
-            let mut jobs = self.state.lock().unwrap();
-            let job = jobs.get_mut(id)?;
-            if job.info.status != Status::Running {
-                let result = (job.info.clone(), job.generation);
-                drop(jobs);
-                self.consume(id, result.1);
-                return Some(result.0);
-            }
-            job.blocking.clear();
-            job.info.status = Status::Cancelled;
-            job.info.completed_at = Some(crate::id::now());
-            if keep {
-                persist(app, job);
-            }
-            job.done.send_replace(Some(job.info.clone()));
-            (job.info.clone(), job.generation, job.task.take())
-        };
-        // Closing the job's scope interrupts its work.
-        if let Some(task) = task {
+    /// `cancelInternal`.
+    fn cancel_internal(&self, app: &App, id: &str, save: bool) -> Option<Info> {
+        let mut state = self.state.lock().unwrap();
+        let job = state.find(id)?;
+        let generation = job.generation;
+        if job.info.status != Status::Running {
+            let info = job.info.clone();
+            state.consume(id, generation);
+            return Some(info);
+        }
+        job.blocking.clear();
+        job.info.status = Status::Cancelled;
+        job.info.completed_at = Some(crate::id::now());
+        if save {
+            persist(app, job);
+        }
+        let info = job.info.clone();
+        job.done.send_replace(Some(info.clone()));
+        if let Some(task) = job.task.take() {
             task.abort();
         }
-        self.consume(id, generation);
+        state.consume(id, generation);
         Some(info)
     }
 
@@ -526,195 +532,127 @@ impl Jobs {
         self.cancel_internal(app, id, true)
     }
 
-    /// `Job.cancelSession`: a removed session's jobs are cancelled and forgotten.
+    /// `Job.cancelSession`: cancels and forgets the session's jobs, its rows included.
     pub fn cancel_session(&self, app: &App, session: &str) -> Vec<Info> {
-        let ids: Vec<String> = self
-            .state
-            .lock()
-            .unwrap()
-            .values()
-            .filter(|job| job.info.status == Status::Running && job.matches_session(session))
-            .map(|job| job.info.id.clone())
-            .collect();
-        let cancelled: Vec<Info> = ids.iter().filter_map(|id| self.cancel_internal(app, id, false)).collect();
+        let ids: Vec<String> = {
+            let state = self.state.lock().unwrap();
+            state
+                .jobs
+                .iter()
+                .filter(|job| job.info.status == Status::Running && job.matches_session(session))
+                .map(|job| job.info.id.clone())
+                .collect()
+        };
+        let cancelled = ids.iter().filter_map(|id| self.cancel_internal(app, id, false)).collect();
         if let Err(error) = app
             .db
             .lock()
             .unwrap()
             .execute("DELETE FROM job WHERE session_id = ?1 OR child_session_id = ?1", params![session])
         {
-            eprintln!("job removal failed: {error}");
+            eprintln!("failed to delete the jobs of {session}: {error}");
         }
-        self.state.lock().unwrap().retain(|_, job| !job.matches_session(session));
+        self.state.lock().unwrap().jobs.retain(|job| !job.matches_session(session));
         cancelled
     }
 
-    /// `Job.pendingBackground`: the persisted background jobs, oldest first.
-    pub fn pending_background(&self, app: &App) -> Vec<Background> {
-        rows(app)
-            .into_iter()
-            .filter_map(|row| {
-                Some(Background {
-                    id: row.id,
-                    notification_id: row.notification_id,
-                    recovery: Recovery::from_json(&json::parse(&row.recovery)?)?,
-                    status: Status::parse(&row.status)?,
-                    output: row.output,
-                    error: row.error,
-                })
-            })
-            .collect()
-    }
-
-    /// `Job.runningBackground`: what the running background jobs are.
+    /// `Job.runningBackground`: the recoveries of running backgrounded jobs.
+    #[allow(dead_code)] // The idle hook's (`SessionBackground.outstanding`).
     pub fn running_background(&self) -> Vec<Recovery> {
-        self.state
-            .lock()
-            .unwrap()
-            .values()
+        let state = self.state.lock().unwrap();
+        state
+            .jobs
+            .iter()
             .filter(|job| job.is_backgrounded && job.info.status == Status::Running)
             .filter_map(|job| job.recovery.clone())
             .collect()
     }
 
-    /// `Job.completeBackground`: a job's notice was admitted; its record goes.
-    pub fn complete_background(&self, app: &App, notification_id: &str) {
-        let mut jobs = self.state.lock().unwrap();
-        if let Err(error) =
-            app.db.lock().unwrap().execute("DELETE FROM job WHERE notification_id = ?1", params![notification_id])
-        {
-            eprintln!("job removal failed: {error}");
-        }
-        let entry = jobs.iter().find(|(_, job)| job.info.notification_id.as_deref() == Some(notification_id));
-        if let Some((id, job)) = entry
-            && job.info.status != Status::Running
-        {
-            let id = id.clone();
-            jobs.shift_remove(&id);
-        }
-    }
-
-    /// `JobList.read` (`Job.backgroundJobs`): the persisted background jobs, then the live ones not persisted, as
-    /// `Job.Info` items.
-    pub fn background_jobs(&self, app: &App) -> Vec<Item> {
-        let rows = rows(app);
-        let jobs = self.state.lock().unwrap();
-        let mut seen = std::collections::HashSet::new();
+    /// `Job.backgroundJobs` (`JobList.read`): the stored rows (overlaid with the live state of their generation),
+    /// then live backgrounded jobs without a row.
+    pub fn background_jobs(&self, app: &App) -> Vec<(String, Status, Json)> {
+        type Row = (String, String, Option<String>, String, Option<String>, i64, i64);
+        let rows: Vec<Row> = {
+            let db = app.db.lock().unwrap();
+            let statement = db.prepare(
+                "SELECT notification_id, id, title, status, recovery, time_created, time_updated FROM job \
+                 ORDER BY time_created ASC, notification_id ASC",
+            );
+            match statement {
+                Ok(mut statement) => statement
+                    .query_map([], |row| {
+                        Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?, row.get(6)?))
+                    })
+                    .map(|rows| rows.filter_map(Result::ok).collect())
+                    .unwrap_or_default(),
+                Err(_) => vec![],
+            }
+        };
+        let state = self.state.lock().unwrap();
+        let mut seen: Vec<String> = Vec::new();
         let mut items = Vec::new();
-        for row in rows {
-            let Some(recovery) = json::parse(&row.recovery).and_then(|r| Recovery::from_json(&r)) else { continue };
-            seen.insert(row.notification_id.clone());
-            let live = jobs.get(&row.id).filter(|live| live.info.notification_id.as_deref() == Some(&row.notification_id));
-            let stored = Status::parse(&row.status).unwrap_or(Status::Running);
-            let status = live.map_or(stored, |l| l.info.status);
-            let completed = match live {
-                Some(live) => live.info.completed_at,
-                None => (stored != Status::Running).then_some(row.time_updated),
+        for (notification, id, title, status, recovery, created, updated) in rows {
+            let Some(recovery) = recovery.as_deref().and_then(json::parse).as_ref().and_then(Recovery::from_json) else {
+                continue;
             };
-            let title = live.and_then(|l| l.info.title.clone()).or(row.title);
-            items.push(Item { id: row.id, status, title, started: row.time_created, completed, recovery });
+            seen.push(notification.clone());
+            let live = state.jobs.iter().find(|job| job.info.id == id);
+            let same = live.filter(|job| job.info.notification_id.as_deref() == Some(notification.as_str()));
+            let stored = Status::parse(&status);
+            let status = match (same, stored) {
+                (Some(job), _) => job.info.status,
+                (None, Some(status)) => status,
+                (None, None) => continue,
+            };
+            let completed = match same {
+                Some(job) => job.info.completed_at,
+                None => (status != Status::Running).then_some(updated),
+            };
+            let title = match same.and_then(|job| job.info.title.clone()) {
+                Some(title) => Some(title),
+                None => title,
+            };
+            items.push((recovery.owner().to_owned(), status, item(&id, status, title.as_deref(), created, completed, &recovery)));
         }
-        for live in jobs.values() {
-            let Some(recovery) = live.recovery.clone().filter(|_| live.is_backgrounded) else { continue };
-            if live.info.notification_id.as_ref().is_some_and(|n| seen.contains(n)) {
+        for job in &state.jobs {
+            let Some(recovery) = job.recovery.as_ref().filter(|_| job.is_backgrounded) else { continue };
+            if job.info.notification_id.as_ref().is_some_and(|n| seen.contains(n)) {
                 continue;
             }
-            items.push(Item {
-                id: live.info.id.clone(),
-                status: live.info.status,
-                title: live.info.title.clone(),
-                started: live.info.started_at,
-                completed: live.info.completed_at,
-                recovery,
-            });
+            let info = &job.info;
+            items.push((
+                recovery.owner().to_owned(),
+                info.status,
+                item(&info.id, info.status, info.title.as_deref(), info.started_at, info.completed_at, recovery),
+            ));
         }
         items
     }
-}
 
-/// One background job as `job.list` reports it (`Job.Info` of packages/schema/src/job.ts).
-#[derive(Clone, Debug)]
-pub struct Item {
-    pub id: String,
-    pub status: Status,
-    pub title: Option<String>,
-    pub started: i64,
-    pub completed: Option<i64>,
-    pub recovery: Recovery,
-}
-
-impl Item {
-    pub fn kind(&self) -> &'static str {
-        self.recovery.kind()
-    }
-
-    /// The session the job belongs to (the parent, for a subagent).
-    pub fn session(&self) -> &str {
-        self.recovery.owner()
-    }
-
-    pub fn to_json(&self) -> Json {
-        let mut time = Obj::new();
-        time.int("started", self.started);
-        if let Some(completed) = self.completed {
-            time.int("completed", completed);
+    /// `Job.completeBackground`: the completion notice was admitted; the row goes, and so does a finished job.
+    pub fn complete_background(&self, app: &App, notification_id: &str) {
+        let mut state = self.state.lock().unwrap();
+        if let Err(error) = app.db.lock().unwrap().execute("DELETE FROM job WHERE notification_id = ?1", params![notification_id]) {
+            eprintln!("failed to complete background job {notification_id}: {error}");
         }
-        let mut o = Obj::new();
-        o.str("kind", self.kind()).str("id", &self.id).str("sessionID", self.session()).str("status", self.status.as_str());
-        o.opt_str("title", self.title.as_deref());
-        o.set("time", time.done());
-        match &self.recovery {
-            Recovery::Shell { shell_id, command, .. } => {
-                o.str("shellID", shell_id).str("command", command);
-            }
-            Recovery::Subagent { child_session_id, agent, description, .. } => {
-                o.str("childSessionID", child_session_id).str("agent", agent).str("description", description);
-            }
-            Recovery::Image { path, model, .. } => {
-                o.str("path", path).str("model", model);
-            }
+        let Some(index) = state.jobs.iter().position(|job| job.info.notification_id.as_deref() == Some(notification_id)) else {
+            return;
+        };
+        if state.jobs[index].info.status != Status::Running {
+            state.jobs.remove(index);
         }
-        o.done()
     }
 }
 
-struct Row {
-    notification_id: String,
+/// Removes a session's block on a job when its wait ends (`removeBlock`).
+struct Unblock {
+    jobs: Arc<Jobs>,
     id: String,
-    title: Option<String>,
-    status: String,
-    output: Option<String>,
-    error: Option<String>,
-    recovery: String,
-    time_created: i64,
-    time_updated: i64,
+    session: String,
 }
 
-fn rows(app: &App) -> Vec<Row> {
-    let db = app.db.lock().unwrap();
-    let query = || -> rusqlite::Result<Vec<Row>> {
-        let mut statement = db.prepare(
-            "SELECT notification_id, id, title, status, output, error, recovery, time_created, time_updated FROM job \
-             ORDER BY time_created ASC, notification_id ASC",
-        )?;
-        statement
-            .query_map([], |r| {
-                Ok(Row {
-                    notification_id: r.get(0)?,
-                    id: r.get(1)?,
-                    title: r.get(2)?,
-                    status: r.get(3)?,
-                    output: r.get(4)?,
-                    error: r.get(5)?,
-                    recovery: r.get(6)?,
-                    time_created: r.get(7)?,
-                    time_updated: r.get(8)?,
-                })
-            })?
-            .collect()
-    };
-    query().unwrap_or_else(|error| {
-        eprintln!("job read failed: {error}");
-        Vec::new()
-    })
+impl Drop for Unblock {
+    fn drop(&mut self) {
+        self.jobs.remove_block(&self.id, &self.session);
+    }
 }

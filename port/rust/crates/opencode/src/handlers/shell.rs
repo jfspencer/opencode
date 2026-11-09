@@ -1,5 +1,5 @@
-//! Shells, PTYs and jobs (handlers/shell.ts, shell-error.ts, pty.ts, persistent-pty.ts, job.ts), and the session
-//! endpoints that run on them (`session.shell`, `session.environment`, `session.background` in handlers/session.ts).
+//! Shells and PTYs (handlers/shell.ts, shell-error.ts, pty.ts, persistent-pty.ts), and the session endpoints that run
+//! on them (`session.shell`, `session.environment` in handlers/session.ts).
 
 use std::sync::Arc;
 
@@ -18,7 +18,6 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         "shell.list" | "shell.create" | "shell.get" | "shell.output" | "shell.remove" => {
             shell(request, &decoded, &located.expect("located endpoint")).await
         }
-        "experimental.job.list" => job_list(app, request, &decoded),
         _ => super::fallback(app, request),
     }
 }
@@ -95,73 +94,7 @@ async fn shell(request: &Request, decoded: &Decoded, location: &Arc<Location>) -
     }
 }
 
-/// `job.list` (handlers/job.ts with `SessionBackground.list`): the background jobs, filtered by kind and status, and
-/// by session (with its descendants when asked).
-fn job_list(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
-    let query = &decoded.query;
-    let session_id = json::get_str(query, "sessionID");
-    if let Some(id) = session_id {
-        session::require(&app.db.lock().unwrap(), id)?;
-    }
-    let kind = json::get_str(query, "kind");
-    let status = json::get_str(query, "status");
-    let descendants = matches!(json::get(query, "descendants"), Some(Json::Bool(true)))
-        || json::get_str(query, "descendants") == Some("true");
-    let items: Vec<crate::job::Item> = crate::job::jobs()
-        .background_jobs(app)
-        .into_iter()
-        .filter(|item| kind.is_none_or(|k| item.kind() == k) && status.is_none_or(|s| item.status.as_str() == s))
-        .collect();
-    let items: Vec<Json> = match session_id {
-        None => items.iter().map(|item| item.to_json()).collect(),
-        Some(ancestor) if !descendants => {
-            items.iter().filter(|item| item.session() == ancestor).map(|item| item.to_json()).collect()
-        }
-        Some(ancestor) => {
-            let db = app.db.lock().unwrap();
-            let mut parents: std::collections::HashMap<String, Option<String>> = std::collections::HashMap::new();
-            items
-                .iter()
-                .filter(|item| descends(&db, &mut parents, item.session(), ancestor))
-                .map(|item| item.to_json())
-                .collect()
-        }
-    };
-    let mut o = Obj::new();
-    o.set("data", Json::Array(items));
-    Ok(super::encoded(request, &o.done()))
-}
-
-/// `descends`: whether `from` is `ancestor` or one of its descendants.
-fn descends(
-    db: &rusqlite::Connection,
-    parents: &mut std::collections::HashMap<String, Option<String>>,
-    from: &str,
-    ancestor: &str,
-) -> bool {
-    let mut seen = std::collections::HashSet::new();
-    let mut current = Some(from.to_owned());
-    while let Some(id) = current {
-        if id == ancestor {
-            return true;
-        }
-        if !seen.insert(id.clone()) {
-            return false;
-        }
-        let parent = match parents.get(&id) {
-            Some(cached) => cached.clone(),
-            None => {
-                let parent = session::get(db, &id).ok().flatten().and_then(|s| json::get_str(&s.info, "parentID").map(str::to_owned));
-                parents.insert(id.clone(), parent.clone());
-                parent
-            }
-        };
-        current = parent;
-    }
-    false
-}
-
-/// The session endpoints built on shells and jobs (handlers/session.ts).
+/// The session endpoints built on shells (handlers/session.ts).
 pub async fn session(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
     let session_id = request.param("sessionID");
     match request.route.operation {
@@ -182,35 +115,6 @@ pub async fn session(app: &App, request: &Request, decoded: &Decoded) -> Result<
             }
             Ok(Response::no_content())
         }
-        "session.background" => {
-            session::require(&app.db.lock().unwrap(), session_id)?;
-            background(app, session_id)?;
-            Ok(Response::no_content())
-        }
         _ => super::fallback(app, request),
-    }
-}
-
-/// `Session.background`: the session's blocking work moves to the background, and the model is told so.
-fn background(app: &App, session_id: &str) -> Result<()> {
-    let moved = crate::job::jobs().background_all(app, session_id, None);
-    if moved.is_empty() {
-        return Ok(());
-    }
-    let mut lines = vec![
-        "User requested that active blocking work be moved to the background.".to_owned(),
-        String::new(),
-        "Backgrounded work:".to_owned(),
-    ];
-    for job in &moved {
-        let title = job.title.as_deref().filter(|t| !t.is_empty()).unwrap_or(&job.id);
-        lines.push(format!("- {}: {title}", job.ty));
-    }
-    lines.push(String::new());
-    lines.push("The backgrounded work is still unfinished. Move on to other work if you can. If there is nothing else useful to do, finish your response. Do not wait, sleep, poll, or report the backgrounded work as complete until a later completion notification is added to the conversation.".to_owned());
-    match session::shell::synthetic(app, None, session_id, None, &lines.join("\n"), None, None, true) {
-        Ok(_) => Ok(()),
-        Err(session::shell::SyntheticError::NotFound) => Err(session::missing(session_id)),
-        Err(session::shell::SyntheticError::Conflict(_)) => Err(Failure::defect()),
     }
 }

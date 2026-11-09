@@ -8,8 +8,8 @@
 //! The execution's lifecycle events are `session.execution.started` (which claims the session: `time_suspended`)
 //! and one terminal event per busy period: `succeeded`, `failed` (with the session error) or `interrupted` (with
 //! its reason); their projections set the session's busy and idle times. A claim that survives the process is
-//! picked up at the next boot ([`resume_suspended`]). TODO(port): cancelling the session's background jobs on
-//! interruption.
+//! picked up at the next boot ([`resume_suspended`]). A deliberate interruption cancels the session's own job (a
+//! subagent's run); [`Executions::run`] joins or starts a busy period and resolves with its [`Exit`].
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -48,8 +48,16 @@ impl Cancel {
     }
 }
 
+/// How a busy period ended (the exit its joiners get, `SessionRunCoordinator.run`).
+#[derive(Debug, Clone)]
+pub enum Exit {
+    Succeeded,
+    Failed(opencode_protocol::Json),
+    Interrupted,
+}
+
 struct Execution {
-    done: watch::Sender<bool>,
+    done: watch::Sender<Option<Exit>>,
     scope: Promotable,
     pending: Option<Promotable>,
     stopping: bool,
@@ -123,8 +131,30 @@ impl Executions {
                 None => return,
             };
             let mut receiver = receiver;
-            let _ = receiver.wait_for(|done| *done).await;
+            let _ = receiver.wait_for(Option::is_some).await;
         }
+    }
+
+    /// `SessionRunCoordinator.run`: joins the active execution, or starts one that drains even without new input,
+    /// and resolves with its exit. The execution starts (or is joined) at the call, not when the future is polled;
+    /// a stopping execution is waited out, then a fresh one runs.
+    pub fn run(&self, app: &App, session: &str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Exit> + Send>> {
+        let mut map = self.map.lock().unwrap();
+        let stopping = map.get(session).map(|execution| execution.stopping);
+        if stopping.is_none() {
+            start(app, &mut map, session, true, Promotable::Input);
+        }
+        let mut receiver = map.get(session).expect("started").done.subscribe();
+        drop(map);
+        let app = app.arc();
+        let session = session.to_owned();
+        Box::pin(async move {
+            let exit = receiver.wait_for(Option::is_some).await.ok().and_then(|exit| exit.clone()).unwrap_or(Exit::Interrupted);
+            if stopping != Some(true) {
+                return exit;
+            }
+            app.sessions.executions.run(&app, &session).await
+        })
     }
 }
 
@@ -186,7 +216,7 @@ pub fn resume_suspended(app: &App) {
 }
 
 fn start(app: &App, map: &mut HashMap<String, Execution>, session: &str, force: bool, scope: Promotable) {
-    let (done, _) = watch::channel(false);
+    let (done, _) = watch::channel(None);
     let cancel = Cancel::default();
     map.insert(
         session.to_owned(),
@@ -248,17 +278,21 @@ async fn run(app: Arc<App>, session: String, force: bool, scope: Promotable, can
     .flatten();
     let mut data = Obj::new();
     data.str("sessionID", &session);
-    let published = match result {
-        Ok(()) => crate::session::publish_event(&app, "session.execution.succeeded", data.done(), None, None),
+    let (published, exit) = match result {
+        Ok(()) => (crate::session::publish_event(&app, "session.execution.succeeded", data.done(), None, None), Exit::Succeeded),
         Err(Stop::Interrupted) => {
             // An execution that stopped itself (a declined tool call) was stopped by the user.
             let reason = reason.unwrap_or(if cancel.is_cancelled() { "shutdown" } else { "user" });
+            // A deliberate stop cancels the session's own job (a subagent's); shutdown keeps it for recovery.
+            if reason != "shutdown" {
+                app.sessions.jobs.cancel(&app, &session);
+            }
             data.str("reason", reason);
-            crate::session::publish_event(&app, "session.execution.interrupted", data.done(), None, None)
+            (crate::session::publish_event(&app, "session.execution.interrupted", data.done(), None, None), Exit::Interrupted)
         }
         Err(Stop::Failed(error)) => {
-            data.set("error", error);
-            crate::session::publish_event(&app, "session.execution.failed", data.done(), None, None)
+            data.set("error", error.clone());
+            (crate::session::publish_event(&app, "session.execution.failed", data.done(), None, None), Exit::Failed(error))
         }
     };
     if let Err(error) = published {
@@ -266,7 +300,7 @@ async fn run(app: Arc<App>, session: String, force: bool, scope: Promotable, can
     }
     let mut map = executions.map.lock().unwrap();
     let Some(execution) = map.remove(&session) else { return };
-    let _ = execution.done.send(true);
+    execution.done.send_replace(Some(exit));
     if let Some(next) = execution.pending {
         start(&app, &mut map, &session, false, next);
     }

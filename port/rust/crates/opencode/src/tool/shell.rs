@@ -278,7 +278,7 @@ struct CancelOnDrop {
 impl Drop for CancelOnDrop {
     fn drop(&mut self) {
         if let Some((app, id)) = self.job.take() {
-            job::jobs().cancel(&app, &id);
+            app.sessions.jobs.cancel(&app, &id);
         }
     }
 }
@@ -286,7 +286,6 @@ impl Drop for CancelOnDrop {
 /// `notifyWhenDone`: once the backgrounded job ends, its outcome is admitted to the session as a synthetic notice.
 fn notify_when_done(
     app: Arc<crate::app::App>,
-    location: crate::bus::LocationRef,
     session_id: String,
     job_id: String,
     shell_id: String,
@@ -294,8 +293,7 @@ fn notify_when_done(
     settled: watch::Receiver<Option<ToolOutput>>,
 ) {
     tokio::spawn(async move {
-        let (info, _) = job::jobs().wait(&job_id, None).await;
-        let Some(info) = info else { return };
+        let Some(info) = app.sessions.jobs.wait(&job_id).await else { return };
         let state = match info.status {
             job::Status::Running => return,
             job::Status::Completed => result::NotificationState::Completed,
@@ -316,21 +314,23 @@ fn notify_when_done(
         let shell_output = output.as_ref().map(shell_output);
         let notice = result::notification(&shell_id, Some(&job_id), &command, state, &text, shell_output.as_ref());
         let metadata = crate::session::shell::notification_metadata(&notice);
-        let admitted = crate::session::shell::synthetic(
+        let admitted = crate::session::subagent::synthetic(
             &app,
-            Some(location),
-            &session_id,
-            info.notification_id.clone(),
-            &notice.text,
-            Some(&command),
-            Some(metadata),
-            true,
+            crate::session::subagent::Synthetic {
+                id: info.notification_id.clone(),
+                session: session_id,
+                text: notice.text,
+                description: Some(command),
+                metadata: Some(metadata),
+                resume: true,
+                located: true,
+            },
         );
         if admitted.is_err() {
             return;
         }
         if let Some(notification) = &info.notification_id {
-            job::jobs().complete_background(&app, notification);
+            app.sessions.jobs.complete_background(&app, notification);
         }
     });
 }
@@ -385,7 +385,9 @@ async fn execute(context: Context, raw: Json) -> Result<Output, Failure> {
             let mut guard = RemoveOnDrop { shell: Some((service.clone(), info.id.clone())) };
             let outcome = service.result(&info, max_lines, max_bytes).await;
             guard.shell = None;
-            let Some(capture) = outcome.capture else { return Err(shell::NotFound(info.id.clone()).message()) };
+            let Some(capture) = outcome.capture else {
+                return Err(job::RunError::Failed(shell::NotFound(info.id.clone()).message()));
+            };
             let output = result::output(&outcome.info.result_info(), Some(&capture));
             let completed = result::completed(&output, timeout);
             let text = result::result_messages(&completed).join("\n\n");
@@ -395,7 +397,7 @@ async fn execute(context: Context, raw: Json) -> Result<Output, Failure> {
     };
     let mut job_metadata = Obj::new();
     job_metadata.str("sessionID", &session_id).str("shellID", &info.id);
-    let started = job::jobs().start(
+    let started = app.sessions.jobs.start(
         &app,
         StartInput {
             // Code Mode children share a tool-call ID, but each shell owns its job.
@@ -409,20 +411,19 @@ async fn execute(context: Context, raw: Json) -> Result<Output, Failure> {
                 command: info.command.clone(),
             }),
             notification_id: None,
-            run: Box::pin(work),
         },
+        move || Box::pin(work),
     );
     let notify = |settled: watch::Receiver<Option<ToolOutput>>| {
-        let ids = (started.id.clone(), info.id.clone(), info.command.clone());
-        notify_when_done(app.clone(), location.reference(), session_id.clone(), ids.0, ids.1, ids.2, settled)
+        notify_when_done(app.clone(), session_id.clone(), started.id.clone(), info.id.clone(), info.command.clone(), settled)
     };
     if input.background {
-        job::jobs().background(&app, &started.id);
+        app.sessions.jobs.background(&app, &started.id);
         notify(settled);
         return Ok(tool_result(&result::background(&info.id, &info.file)));
     }
     let mut cancel = CancelOnDrop { job: Some((app.clone(), started.id.clone())) };
-    let blocked = job::jobs().block(&started.id, &session_id).await;
+    let blocked = app.sessions.jobs.block(&started.id, &session_id).await;
     cancel.job = None;
     match blocked {
         Some(Blocked::Backgrounded(_)) => {

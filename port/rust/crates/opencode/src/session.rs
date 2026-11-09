@@ -20,6 +20,7 @@ pub mod runner;
 pub mod shell;
 pub mod skill;
 pub mod step;
+pub mod subagent;
 pub mod title;
 
 use std::collections::HashSet;
@@ -43,10 +44,11 @@ pub struct Sessions {
     /// Sessions being removed: background work must not admit input into them.
     removing: Mutex<HashSet<String>>,
     pub executions: execution::Executions,
+    pub jobs: std::sync::Arc<crate::job::Jobs>,
 }
 
 impl Sessions {
-    /// Whether the session is being removed (`Session.synthetic` refuses it then).
+    /// Whether the session is being removed (`Session.synthetic` refuses it).
     pub fn is_removing(&self, session_id: &str) -> bool {
         self.removing.lock().unwrap().contains(session_id)
     }
@@ -626,35 +628,41 @@ pub fn view(app: &App, session_id: &str, idle: i64) -> Result<()> {
     publish(app, "session.viewed", data.done(), None).map(drop)
 }
 
-pub fn remove(app: &App, session_id: &str) -> Result<()> {
-    let session = require(&app.db.lock().unwrap(), session_id)?;
-    app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
-    let result = (|| {
-        // The handler stops the session's own execution first. TODO(port): interrupt and await descendants'
-        // executions, close its model transport.
-        crate::job::jobs().cancel_session(app, session_id);
-        let children: Vec<String> = {
-            let db = app.db.lock().unwrap();
-            let mut statement =
-                db.prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC").map_err(fatal)?;
-            statement
-                .query_map(params![session_id], |row| row.get(0))
-                .map_err(fatal)?
-                .collect::<rusqlite::Result<_>>()
-                .map_err(fatal)?
-        };
-        for child in children {
-            remove(app, &child)?;
+/// `Session.remove`: stops the session's work (its execution, its jobs), removes its children, then the session.
+pub fn remove<'a>(app: &'a App, session_id: &'a str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>> {
+    Box::pin(async move {
+        let session = require(&app.db.lock().unwrap(), session_id)?;
+        app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
+        let result = async {
+            app.sessions.executions.interrupt(session_id, "user");
+            app.sessions.executions.await_idle(session_id).await;
+            app.sessions.jobs.cancel_session(app, session_id);
+            // TODO(port): close the session's model transport.
+            let children: Vec<String> = {
+                let db = app.db.lock().unwrap();
+                let mut statement = db
+                    .prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC")
+                    .map_err(fatal)?;
+                statement
+                    .query_map(params![session_id], |row| row.get(0))
+                    .map_err(fatal)?
+                    .collect::<rusqlite::Result<_>>()
+                    .map_err(fatal)?
+            };
+            for child in children {
+                remove(app, &child).await?;
+            }
+            shell::clear_environment(session_id);
+            let mut data = Obj::new();
+            data.str("sessionID", session.id());
+            publish(app, "session.deleted", data.done(), None)?;
+            let mut db = app.db.lock().unwrap();
+            app.bus.remove(&mut db, session_id).map_err(fatal)
         }
-        shell::clear_environment(session_id);
-        let mut data = Obj::new();
-        data.str("sessionID", session.id());
-        publish(app, "session.deleted", data.done(), None)?;
-        let mut db = app.db.lock().unwrap();
-        app.bus.remove(&mut db, session_id).map_err(fatal)
-    })();
-    app.sessions.removing.lock().unwrap().remove(session_id);
-    result
+        .await;
+        app.sessions.removing.lock().unwrap().remove(session_id);
+        result
+    })
 }
 
 /// The filter of a session list (`Session.ListFilter`) and its anchor, as a cursor carries them.

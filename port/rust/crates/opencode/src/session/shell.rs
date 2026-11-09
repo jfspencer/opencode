@@ -63,52 +63,6 @@ pub fn output_limits(inventory: &crate::inventory::Inventory) -> (u64, u64) {
     )
 }
 
-/// Why a synthetic notice was not admitted (`Session.synthetic`'s errors).
-#[derive(Debug)]
-pub enum SyntheticError {
-    NotFound,
-    Conflict(String),
-}
-
-/// `Session.synthetic`: admits a synthetic input; unless `resume` is false (or a revert is staged) it wakes the session.
-/// Its event carries the location of the services that admitted it, if any.
-#[allow(clippy::too_many_arguments)]
-pub fn synthetic(
-    app: &App,
-    location: Option<crate::bus::LocationRef>,
-    session_id: &str,
-    id: Option<String>,
-    text: &str,
-    description: Option<&str>,
-    metadata: Option<Json>,
-    resume: bool,
-) -> std::result::Result<Json, SyntheticError> {
-    let exists = session::get(&app.db.lock().unwrap(), session_id).ok().flatten().is_some();
-    if !exists || app.sessions.is_removing(session_id) {
-        return Err(SyntheticError::NotFound);
-    }
-    let input_id = id.unwrap_or_else(session::message::create_id);
-    let mut payload = Obj::new();
-    payload.str("text", text);
-    payload.opt_str("description", description);
-    payload.opt("metadata", metadata);
-    let mut item = Obj::new();
-    item.str("type", "synthetic").set("payload", payload.done()).str("delivery", "steer");
-    let admitted = match session::inbox::admit(app, &input_id, session_id, item.done(), location) {
-        Ok(Ok(admitted)) => admitted,
-        Ok(Err(_)) => return Err(SyntheticError::Conflict(input_id)),
-        Err(_) => return Err(SyntheticError::NotFound),
-    };
-    let reverted = session::get(&app.db.lock().unwrap(), session_id)
-        .ok()
-        .flatten()
-        .is_some_and(|s| json::get(&s.info, "revert").is_some_and(|r| !matches!(r, Json::Null)));
-    if resume && !reverted {
-        app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
-    }
-    Ok(admitted)
-}
-
 /// `startFailure` (server/src/handlers/shell-error.ts): what the API answers for a command that could not start.
 pub fn start_failure(error: &shell::StartError, cwd: &str) -> Failure {
     if error.cause.bad_argument() {
@@ -161,7 +115,7 @@ pub async fn run(app: &Arc<App>, session_id: &str, id: Option<String>, command: 
                 let text = format!("User shell command failed to start:\n{command}\n\n{}", error.message());
                 let mut meta = Obj::new();
                 meta.str("source", "shell").str("state", "error");
-                let _ = synthetic(&app, Some(location.reference()), &session_id, None, &text, Some(&command), Some(meta.done()), false);
+                let _ = synthetic(&app, &session_id, text, Some(command.clone()), meta.done());
                 return Err(start_failure(&error, &location.directory));
             }
         };
@@ -188,10 +142,27 @@ pub async fn run(app: &Arc<App>, session_id: &str, id: Option<String>, command: 
             terminal.capture.as_ref(),
         );
         let metadata = notification_metadata(&notice);
-        let _ = synthetic(&app, Some(location.reference()), &session_id, None, &notice.text, None, Some(metadata), false);
+        let _ = synthetic(&app, &session_id, notice.text, None, metadata);
         Ok(())
     });
     task.await.unwrap_or_else(|_| Err(Failure::defect()))
+}
+
+/// A notice of the user's command, left in the inbox without waking the session (`resume: false`), published in the
+/// session's location.
+fn synthetic(app: &App, session_id: &str, text: String, description: Option<String>, metadata: Json) -> std::result::Result<(), ()> {
+    session::subagent::synthetic(
+        app,
+        session::subagent::Synthetic {
+            id: None,
+            session: session_id.to_owned(),
+            text,
+            description,
+            metadata: Some(metadata),
+            resume: false,
+            located: true,
+        },
+    )
 }
 
 fn publish(app: &App, ty: &'static str, data: Json, id: Option<String>, location: &crate::location::Location) -> Result<()> {
