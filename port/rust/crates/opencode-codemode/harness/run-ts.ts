@@ -4,7 +4,7 @@
 // `output` is the text core's `execute` tool hands to the model (core/src/codemode/tool.ts `formatResult`).
 //
 // usage: bun harness/run-ts.ts corpus.jsonl > ts.jsonl
-import { CodeMode, Tool } from "../../../../.reference/packages/codemode/src/index.ts"
+import { CodeMode, Extension, Tool } from "../../../../.reference/packages/codemode/src/index.ts"
 import { Effect, Schema } from "../../../../.reference/packages/codemode/node_modules/effect/dist/index.js"
 
 type Behavior =
@@ -25,12 +25,60 @@ type ToolSpec = {
   timing?: "sync" | "yield"
 }
 
+// Host globals described as data (harness/README.md): each builds a host function or object.
+type GlobalSpec =
+  | { kind: "echo"; async?: boolean }
+  | { kind: "args"; async?: boolean }
+  | { kind: "value"; value: unknown; async?: boolean }
+  | { kind: "throw"; name?: string; message: string; fields?: Record<string, unknown>; async?: boolean }
+  | { kind: "response"; body: string }
+  | { kind: "object"; members: Record<string, GlobalSpec> }
+
+const hostError = (spec: { name?: string; message: string; fields?: Record<string, unknown> }) => {
+  const types: Record<string, ErrorConstructor> = { TypeError, RangeError, SyntaxError, Error }
+  const error = new (types[spec.name ?? "Error"] ?? Error)(spec.message)
+  if (spec.name && !types[spec.name]) error.name = spec.name
+  Object.assign(error, spec.fields ?? {})
+  return error
+}
+
+const buildGlobal = (spec: GlobalSpec): unknown => {
+  const mark = (fn: (...args: Array<unknown>) => unknown, async?: boolean) => (async ? Extension.async(fn) : fn)
+  switch (spec.kind) {
+    case "echo":
+      return mark((...args) => (spec.async ? Promise.resolve(args[0]) : args[0]), spec.async)
+    case "args":
+      return mark((...args) => (spec.async ? Promise.resolve(args) : args), spec.async)
+    case "value":
+      return mark(() => (spec.async ? Promise.resolve(spec.value) : spec.value), spec.async)
+    case "throw":
+      return mark(() => (spec.async ? Promise.reject(hostError(spec)) : (() => { throw hostError(spec) })()), spec.async)
+    case "response":
+      return Extension.async(async (url: unknown) => {
+        const bytes = new TextEncoder().encode(spec.body)
+        return {
+          url: String(url),
+          status: 200,
+          ok: true,
+          headers: { get: (name: string) => (name === "content-type" ? "application/json" : null) },
+          text: async () => new TextDecoder().decode(bytes),
+          json: async () => JSON.parse(new TextDecoder().decode(bytes)),
+          bytes: async () => bytes,
+          sync: () => "sync",
+        }
+      })
+    case "object":
+      return Object.fromEntries(Object.entries(spec.members).map(([name, member]) => [name, buildGlobal(member)]))
+  }
+}
+
 type Case = {
   name: string
   code: string
   tools?: Array<ToolSpec>
   bindings?: Record<string, unknown>
   limits?: { timeoutMs?: number; maxToolCalls?: number; maxOutputBytes?: number }
+  extensions?: Array<{ name: string; globals: Record<string, GlobalSpec> }>
 }
 
 const behave = (spec: ToolSpec) => {
@@ -101,7 +149,17 @@ for (const line of lines) {
       tools: buildTools(item.tools ?? []) as never,
       ...(item.bindings ? { bindings: item.bindings as never } : {}),
       ...(item.limits ? { limits: item.limits } : {}),
-    }),
+      ...(item.extensions
+        ? {
+            extensions: item.extensions.map((extension) =>
+              Extension.make({
+                name: extension.name,
+                globals: Object.fromEntries(Object.entries(extension.globals).map(([name, spec]) => [name, buildGlobal(spec)])),
+              }),
+            ),
+          }
+        : {}),
+    } as never),
   )
   process.stdout.write(JSON.stringify({ name: item.name, result, output: formatResult(result) }) + "\n")
 }

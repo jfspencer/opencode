@@ -4,7 +4,10 @@
 //! usage: cargo run --example codemode_run -- corpus.jsonl > rust.jsonl
 
 use opencode_codemode::json::{self, Json, JsonObj};
-use opencode_codemode::{ExecuteOptions, Execution, Hooks, JsStr, Limits, Runtime, ToolDef, ToolOutcome, ToolOutput};
+use opencode_codemode::{
+    ExecuteOptions, Execution, Extension, HostError, HostFunction, HostReturn, HostValue, Hooks, JsStr, Limits, Runtime,
+    ToolDef, ToolOutcome, ToolOutput,
+};
 use std::cell::Cell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -70,6 +73,139 @@ impl std::future::Future for YieldOnce {
         cx.waker().wake_by_ref();
         std::task::Poll::Pending
     }
+}
+
+fn json_to_host(value: &Json) -> HostValue {
+    match value {
+        Json::Null => HostValue::Null,
+        Json::Bool(b) => HostValue::Bool(*b),
+        Json::Num(n) => HostValue::Num(*n),
+        Json::Str(s) => HostValue::Str(s.clone()),
+        Json::Arr(items) => HostValue::Array(items.iter().map(|i| Some(json_to_host(i))).collect()),
+        Json::Obj(obj) => HostValue::Object(obj.iter().map(|(k, v)| (k.clone(), json_to_host(v))).collect()),
+    }
+}
+
+fn function(name: &str, length: u32, asynchronous: bool, call: impl Fn(Vec<HostValue>) -> HostReturn + 'static) -> HostValue {
+    HostValue::Function(HostFunction { name: name.into(), length, asynchronous, call: Rc::new(call) })
+}
+
+/// run-ts.ts's asynchronous globals return promises, which settle a host turn after the call at the earliest.
+fn settle(asynchronous: bool, outcome: Result<HostValue, HostValue>) -> HostReturn {
+    if !asynchronous {
+        return HostReturn::Value(outcome);
+    }
+    HostReturn::Async(Box::pin(async move {
+        YieldOnce(false).await;
+        outcome
+    }))
+}
+
+fn string(text: &str) -> HostValue {
+    HostValue::Str(JsStr::from(text))
+}
+
+/// The host global harness/run-ts.ts builds from the same description (its functions are anonymous arrows, so their
+/// `name` is empty unless an object literal names them).
+fn build_global(spec: &JsonObj) -> HostValue {
+    let asynchronous = matches!(spec.get("async"), Some(Json::Bool(true)));
+    match text(spec.get("kind")).as_str() {
+        "echo" => function("", 0, asynchronous, move |args| {
+            settle(asynchronous, Ok(args.into_iter().next().unwrap_or(HostValue::Undefined)))
+        }),
+        "args" => function("", 0, asynchronous, move |args| {
+            settle(asynchronous, Ok(HostValue::Array(args.into_iter().map(Some).collect())))
+        }),
+        "value" => {
+            let value = json_to_host(spec.get("value").unwrap_or(&Json::Null));
+            function("", 0, asynchronous, move |_| settle(asynchronous, Ok(value.clone())))
+        }
+        "throw" => {
+            let name = spec.get("name").map(|_| text(spec.get("name"))).unwrap_or_else(|| "Error".into());
+            let mut fields = Vec::new();
+            // run-ts.ts constructs TypeError, RangeError, SyntaxError and Error; any other name is assigned, which
+            // makes it an own field.
+            if !["TypeError", "RangeError", "SyntaxError", "Error"].contains(&name.as_str()) {
+                fields.push((JsStr::from("name"), string(&name)));
+            }
+            if let Some(Json::Obj(extra)) = spec.get("fields") {
+                fields.extend(extra.iter().map(|(k, v)| (k.clone(), json_to_host(v))));
+            }
+            let error = HostError { name, message: JsStr::from(text(spec.get("message"))), cause: None, fields };
+            function("", 0, asynchronous, move |_| settle(asynchronous, Err(HostValue::Error(error.clone()))))
+        }
+        "response" => {
+            let body = text(spec.get("body"));
+            function("", 1, true, move |args| {
+                let url = match args.first() {
+                    Some(HostValue::Str(s)) => HostValue::Str(s.clone()),
+                    Some(HostValue::Url(href)) => string(href),
+                    _ => string("undefined"),
+                };
+                let text_body = body.clone();
+                let json_body = body.clone();
+                let bytes_body = body.clone();
+                let get = function("get", 1, false, |args| {
+                    let hit = matches!(args.first(), Some(HostValue::Str(s)) if s.eq_str("content-type"));
+                    HostReturn::Value(Ok(if hit { string("application/json") } else { HostValue::Null }))
+                });
+                let response = HostValue::Object(vec![
+                    (JsStr::from("url"), url),
+                    (JsStr::from("status"), HostValue::Num(200.0)),
+                    (JsStr::from("ok"), HostValue::Bool(true)),
+                    (JsStr::from("headers"), HostValue::Object(vec![(JsStr::from("get"), get)])),
+                    (JsStr::from("text"), function("text", 0, true, move |_| settle(true, Ok(string(&text_body))))),
+                    (
+                        JsStr::from("json"),
+                        function("json", 0, true, move |_| {
+                            let units: Vec<u16> = json_body.encode_utf16().collect();
+                            let parsed = match json::parse(&units) {
+                                Ok(value) => Ok(json_to_host(&value)),
+                                Err(message) => Err(HostValue::Error(HostError {
+                                    name: "SyntaxError".into(),
+                                    message: JsStr::from(message.to_string()),
+                                    cause: None,
+                                    fields: Vec::new(),
+                                })),
+                            };
+                            settle(true, parsed)
+                        }),
+                    ),
+                    (
+                        JsStr::from("bytes"),
+                        function("bytes", 0, true, move |_| settle(true, Ok(HostValue::Bytes(bytes_body.clone().into_bytes())))),
+                    ),
+                    (JsStr::from("sync"), function("sync", 0, false, |_| HostReturn::Value(Ok(string("sync"))))),
+                ]);
+                settle(true, Ok(response))
+            })
+        }
+        "object" => match spec.get("members") {
+            Some(Json::Obj(members)) => HostValue::Object(
+                members.iter().filter_map(|(k, v)| v.as_obj().map(|member| (k.clone(), build_global(member)))).collect(),
+            ),
+            _ => HostValue::Object(Vec::new()),
+        },
+        _ => HostValue::Undefined,
+    }
+}
+
+fn extensions(case: &JsonObj) -> Vec<Extension> {
+    let Some(Json::Arr(items)) = case.get("extensions") else { return Vec::new() };
+    items
+        .iter()
+        .filter_map(|item| item.as_obj())
+        .map(|item| Extension {
+            name: text(item.get("name")),
+            globals: match item.get("globals") {
+                Some(Json::Obj(globals)) => globals
+                    .iter()
+                    .filter_map(|(name, spec)| spec.as_obj().map(|spec| (name.to_rust_lossy(), build_global(spec))))
+                    .collect(),
+                _ => Vec::new(),
+            },
+        })
+        .collect()
 }
 
 async fn run_case(case: &JsonObj) -> Json {
@@ -143,7 +279,7 @@ async fn run_case(case: &JsonObj) -> Json {
         _ => Vec::new(),
     };
     let code = text(case.get("code"));
-    let options = ExecuteOptions { limits, bindings, handler, hooks: Hooks::default() };
+    let options = ExecuteOptions { limits, bindings, handler, hooks: Hooks::default(), extensions: extensions(case) };
     match runtime.execute(&code, options).await {
         Execution::Done(result) => {
             let mut line = JsonObj::new();

@@ -115,6 +115,98 @@ if (kind === "tools") {
   add("timeoutAsync", `console.log("before"); await new Promise(() => {})`, { limits: { timeoutMs: 50 } })
 }
 
+if (kind === "extensions") {
+  const web = [
+    {
+      name: "web",
+      globals: {
+        later: { kind: "echo", async: true },
+        keep: { kind: "echo" },
+        args: { kind: "args" },
+        argsLater: { kind: "args", async: true },
+        settings: { kind: "value", value: { retries: 3, nested: { deep: true }, list: [1, "two", null] } },
+        fail: { kind: "throw", name: "TypeError", message: "bad thing", fields: { code: "E_BAD", errno: -2 } },
+        failPlain: { kind: "throw", message: "plain" },
+        failLater: { kind: "throw", name: "CustomError", message: "later bad", async: true },
+        failRef: { kind: "throw", name: "ReferenceError", message: "ref", fields: { stack: "hidden", constructor: 1, path: "/x" } },
+        fetch: { kind: "response", body: '{"a":[1,2],"b":"x"}' },
+        fs: {
+          kind: "object",
+          members: {
+            readFile: { kind: "echo", async: true },
+            stat: { kind: "value", value: { size: 3 } },
+            nested: { kind: "object", members: { deep: { kind: "args" } } },
+          },
+        },
+      },
+    },
+  ]
+  const programs: Record<string, string> = {
+    basics: `return [await later(1), keep({ a: [1, 2] }), typeof later, later.name, later.length, settings(), typeof fs, typeof fs.readFile, await fs.readFile("p"), fs.stat(), fs.nested.deep(1, 2)]`,
+    promiseShape: `const p = later(5); return [p instanceof Promise, typeof p.then, await p, await Promise.all([later(1), later(2)]), await Promise.race([later("a"), later("b")])]`,
+    crossing: `${T}return [args(new Date(0), /x/g, new Map([[1, { a: 2 }]]), new Set([1, "s"]), new URL("https://a.b/c?d=1"), new Uint8Array([1, 2]), [1, , 3], new URLSearchParams("a=1&b=2"), new Headers({ "x-a": "1" }))]`,
+    crossingNoBytes: `return args(new Date(0), /x/g, new Map([[1, { a: 2 }]]), new Set([1, "s"]), new URL("https://a.b/c?d=1"), [1, , 3], new URLSearchParams("a=1&b=2"), new Headers({ "x-a": "1" }), new Error("e"), -0, NaN, "\u{1F600}")`,
+    bytesBack: `const r = await fetch("x"); const b = await r.bytes(); b[0] = 0; return [b instanceof Uint8Array, b[0], (await r.bytes())[0]]`,
+    crossingTypes: `const [d, r, m, s, u, b, h, sp] = args(new Date(0), /x/gi, new Map([[1, 2]]), new Set([1]), new URL("https://a.b/c"), new Uint8Array([1, 2]), [1, , 3], new URLSearchParams("q=1")); return [d instanceof Date, d.getTime(), r instanceof RegExp, r.flags, m instanceof Map, m.get(1), s.has(1), u instanceof URL, u.href, b instanceof Uint8Array, b.length, 1 in h, h.length, sp.get("q")]`,
+    rejected: `${T}return [t(() => args(() => 1)), t(() => args(Promise.resolve(1))), t(() => args(Symbol.iterator)), t(() => { const o = {}; o.self = [o]; return args(o) }), t(() => args(1, [2, { f() {} }])), t(() => args(new Error("x", { cause: () => 1 })))]`,
+    rejectedLater: `${T}let r; try { await argsLater(() => 1) } catch (e) { r = e.message } return [r, t(() => argsLater(function named() {}))]`,
+    sharedNotCircular: `const shared = { v: 1 }; return args([shared, shared], { a: shared, b: shared })`,
+    errorsCross: `${T}let caught; try { fail() } catch (e) { caught = [e.name, e.message, e.code, e.errno, e instanceof TypeError, Object.keys(e), String(e)] } let later; try { await failLater() } catch (e) { later = [e.name, e.message, e instanceof Error, Object.keys(e)] } let ref; try { failRef() } catch (e) { ref = [e.name, e instanceof ReferenceError, e.path, e.constructor === ReferenceError, Object.keys(e)] } return [caught, later, ref, t(() => failPlain())]`,
+    errorArgs: `const e = new TypeError("arg", { cause: { why: 1 } }); e.code = 7; const [back] = args(e); return [back instanceof TypeError, back.message, back.code, back.cause, Object.keys(back)]`,
+    aggregateArg: `const [back] = args(new AggregateError([1], "agg")); return [back.name, back.message, back instanceof AggregateError]`,
+    uncaught: `fail()`,
+    uncaughtPlain: `failPlain()`,
+    uncaughtLater: `await failLater()`,
+    unhandledLater: `failLater(); return 1`,
+    unhandledAfterJob: `failLater(); await null; return 1`,
+    unhandledAfterHost: `failLater(); await later(1); return 1`,
+    handledLate: `const p = failLater(); await later(1); try { await p } catch (e) { return e.message }`,
+    completionOrder: `const log = []; const a = later("a").then(() => log.push("a")); const b = fs.readFile("b").then(() => log.push("b")); keep(1); await Promise.all([a, b]); return log`,
+    fetchLike: `const res = await fetch("https://a.test/"); return [res.status, res.ok, res.headers.get("content-type"), res.headers.get("x"), await res.text(), await res.json(), [...(await res.bytes())].length, typeof res.json, res.json.name, res.json.length, res.headers.get.length, res.sync(), res.url, fetch.length]`,
+    fetchUrlArg: `const res = await fetch(new URL("https://b.test/p")); return res.url`,
+    ordering: `const log = []; const p = later("v"); p.then(() => log.push("later")); Promise.resolve().then(() => log.push("r1")).then(() => log.push("r2")).then(() => log.push("r3")); await null; log.push("a1"); await p; log.push("a2"); return log`,
+    orderingSync: `const log = []; Promise.resolve().then(() => log.push("r1")); log.push(keep("k")); await null; return log`,
+    notConstructible: `${T}return [t(() => new later()), t(() => new fs.readFile()), t(() => new keep())]`,
+    asCallbacks: `return [[1, 2, 3].map(keep), [3, 1, 2].sort((a, b) => keep(a) - keep(b)), await Promise.all([1, 2].map(later))]`,
+    thisAndCall: `return [keep.call(null, 4), keep.apply(null, [5]), keep.bind(null, 6)(), typeof keep.bind(null)]`,
+    asValues: `${T}const o = { keep }; return [o.keep(1), JSON.stringify({ keep }), t(() => structuredClone(keep)), Object.keys(fs), typeof keep.prototype, keep === keep, fs.readFile === fs.readFile]`,
+    returnFunction: `return keep`,
+    returnObject: `return fs`,
+    returnPromise: `return later(3)`,
+    mutateGlobalObject: `${T}fs.extra = 1; fs.readFile = 2; return [fs.extra, fs.readFile, t(() => { keep = 1 })]`,
+    shadowLocal: `const keep = (x) => x * 2; return keep(2)`,
+    depth: `${T}let a = []; for (let i = 0; i < 40; i++) a = [a]; return [t(() => keep(a)), t(() => args(a))]`,
+    depthOk: `let a = []; for (let i = 0; i < 20; i++) a = [a]; return JSON.stringify(keep(a)).length`,
+    longArray: `${T}return [t(() => keep(new Array(20000).fill(0)).length), keep(new Array(5).fill(1))]`,
+    deepResult: `${T}let s = settings(); s.nested.deep = false; return [settings().nested.deep, s.list]`,
+    holes: `const r = keep([1, , 3]); return [r.length, 1 in r, r]`,
+    objectKeys: `return keep({ b: 1, a: 2, 1: "x", 0: "y", [Symbol.iterator]: 1 })`,
+    getterArg: `${T}let n = 0; const o = { get v() { n++; return n } }; return [t(() => keep(o)), n]`,
+    classArg: `${T}class A { constructor() { this.x = 1 } } return [t(() => keep(new A())), t(() => keep(Object.create(null)))]`,
+    awaitInLoop: `const out = []; for (let i = 0; i < 5; i++) out.push(await later(i)); return out`,
+    forAwait: `const out = []; for await (const v of [later(1), later(2), 3]) out.push(v); return out`,
+    asyncInAsync: `const f = async (x) => (await later(x)) + (await fs.readFile(x)); return [await f(1), await Promise.allSettled([failLater(), later(2)])]`,
+    imports: `import fsModule, { readFile } from "fs"; return [typeof fsModule, typeof readFile]`,
+    requireIt: `${T}return t(() => typeof require("fs"))`,
+    logs: `console.log(keep("logged"), later); console.log(fs); return 1`,
+  }
+  for (const [name, code] of Object.entries(programs)) add(name, code, { extensions: web })
+  add("twoExtensions", `return [a(1), b(2)]`, {
+    extensions: [
+      { name: "one", globals: { a: { kind: "echo" } } },
+      { name: "two", globals: { b: { kind: "args" } } },
+    ],
+  })
+  add("withTools", `return [await tools.echo({ x: keep(1) }), keep(await tools.echo({ y: 2 }))]`, {
+    extensions: [{ name: "one", globals: { keep: { kind: "echo" } } }],
+    tools: [{ path: "echo", input: { type: "object", properties: { x: { type: "number" }, y: { type: "number" } } } }],
+  })
+  add("withLimits", `const out = []; for (let i = 0; i < 3; i++) out.push(await later(i)); return out`, {
+    extensions: [{ name: "one", globals: { later: { kind: "echo", async: true } } }],
+    limits: { maxToolCalls: 1 },
+  })
+}
+
 if (kind === "matrix") {
   const values = [`undefined`, `null`, `true`, `false`, `0`, `-0`, `1`, `-1.5`, `NaN`, `Infinity`, `""`, `"0"`, `"1e3"`, `" 12 "`, `"abc"`, `[]`, `[1]`, `[1,2]`, `{}`, `{ valueOf() { return 3 } }`, `{ toString() { return "s" } }`, `new Date(0)`, `/x/g`, `Symbol.iterator`]
   const binary = ["+", "-", "*", "/", "%", "**", "==", "!=", "===", "!==", "<", "<=", ">", ">=", "&", "|", "^", "<<", ">>", ">>>"]

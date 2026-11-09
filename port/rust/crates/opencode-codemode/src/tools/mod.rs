@@ -74,6 +74,10 @@ pub type ToolHandler = Rc<dyn Fn(String, Option<Json>) -> Fut<ToolOutcome>>;
 pub struct Hooks {
     pub tool_start: Option<Rc<dyn Fn(&str, Option<&Json>)>>,
     pub tool_end: Option<Rc<dyn Fn(&str, CallStatus)>>,
+    /// `(extension, name, args)` for a call to an extension global or a global object's function.
+    pub extension_start: Option<crate::extensions::ExtensionHook>,
+    /// `(extension, name, status)`.
+    pub extension_end: Option<Rc<dyn Fn(&str, &str, CallStatus)>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

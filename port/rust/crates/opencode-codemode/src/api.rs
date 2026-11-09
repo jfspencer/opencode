@@ -67,6 +67,8 @@ pub struct ExecuteOptions {
     pub bindings: Vec<(String, Json)>,
     /// Runs each admitted tool call.
     pub handler: ToolHandler,
+    /// Host globals, after the bindings (see `Extension::validate`).
+    pub extensions: Vec<crate::extensions::Extension>,
     pub hooks: Hooks,
 }
 
@@ -381,8 +383,15 @@ async fn run_program(prepared: Rc<Prepared>, program: Rc<crate::parser::ast::Pro
     let calls = session.calls.clone();
     let logs: Rc<RefCell<Vec<JsStr>>> = Default::default();
     let bindings = options.bindings.clone();
+    let extensions = options.extensions.clone();
+    let hooks = options.hooks.clone();
     let ctx = Interp::new(session, logs.clone(), move |ctx| {
-        bindings.iter().map(|(name, value)| (JsStr::from(name.as_str()), crate::interp::data::from_json(ctx, value))).collect()
+        let mut globals: Vec<(JsStr, crate::interp::value::Value)> = bindings
+            .iter()
+            .map(|(name, value)| (JsStr::from(name.as_str()), crate::interp::data::from_json(ctx, value)))
+            .collect();
+        globals.extend(crate::extensions::extension_globals(ctx, &extensions, hooks.extension_start, hooks.extension_end));
+        globals
     });
     let main = {
         let (ctx, program) = (ctx.clone(), program.clone());
