@@ -7,6 +7,10 @@
 //!
 //! Nodes live in an arena; a node's tree is its `root`. Edges are evaluated lazily (`to` is the name resolved from
 //! the dependent upward, `error` from that), which is what arborist's eager reloads keep its cached edges equal to.
+//!
+//! TODO(port): peer groups that conflict through a cycle of peer dependencies: arborist can fail such an install
+//! (ERESOLVE) where this places the tree without the conflicted dependency (`harness/npm/run.sh` with seed 2 shows
+//! one such case in 60; the formatters' real packages have no peer dependencies).
 
 use std::collections::{HashMap, HashSet};
 use std::future::Future;
