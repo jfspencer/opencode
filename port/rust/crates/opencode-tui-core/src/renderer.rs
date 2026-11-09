@@ -701,10 +701,9 @@ fn dispatch_event(event: Event) {
                 } else if sequence.starts_with("\x1b]") {
                     effects = s.replies.handle_osc(&sequence, &mut s.session, &mut output.borrow_mut(), now, &mut out);
                 }
-                if !effects.handled {
-                    let more = s.replies.handle_sequence(&sequence, &mut s.session, &mut output.borrow_mut(), now, &mut out);
-                    effects = merge(effects, more);
-                }
+                // The palette detector sees every OSC reply; every reply then goes to the renderer's handlers.
+                let more = s.replies.handle_sequence(&sequence, &mut s.session, &mut output.borrow_mut(), now, &mut out);
+                effects = merge(effects, more);
                 s.out = out;
                 effects
             });

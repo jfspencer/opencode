@@ -696,6 +696,7 @@ name = "opencode-tui-core"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "opencode-tui-text",
  "opencode-yoga",
  "tokio",
 ]

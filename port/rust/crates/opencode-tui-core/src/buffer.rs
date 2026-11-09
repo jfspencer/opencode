@@ -161,7 +161,7 @@ fn apply_opacity(color: RGBA, opacity: u8) -> RGBA {
     RGBA::pack(color.red(), color.green(), color.blue(), mul_div_255(color.alpha() as u32, opacity as u32) as u8, color.meta())
 }
 
-fn make_cell(char: u32, fg: RGBA, bg: RGBA, attributes: u32) -> Cell {
+pub(crate) fn make_cell(char: u32, fg: RGBA, bg: RGBA, attributes: u32) -> Cell {
     Cell { char, fg, bg, attributes }
 }
 
@@ -779,7 +779,7 @@ impl OptimizedBuffer {
     }
 
     /// `setCellWithAlphaBlendingCell` (no image placements: a fully transparent cell draws nothing).
-    fn set_cell_blended(&mut self, x: u32, y: u32, cell: Cell) {
+    pub(crate) fn set_cell_blended(&mut self, x: u32, y: u32, cell: Cell) {
         let opacity = self.current_opacity();
         if is_fully_transparent(opacity, cell.fg, cell.bg) {
             return;

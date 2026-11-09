@@ -23,5 +23,6 @@ pub mod renderables;
 pub mod renderer;
 pub mod solid;
 pub mod terminal;
+pub mod text_draw;
 pub mod tree;
 pub mod unicode;

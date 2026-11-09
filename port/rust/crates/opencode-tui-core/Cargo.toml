@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 opencode-yoga = { path = "../opencode-yoga" }
+opencode-tui-text = { path = "../opencode-tui-text" }
 libc.workspace = true
 tokio.workspace = true
 

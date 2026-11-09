@@ -66,7 +66,9 @@ fn main() {
     let local = tokio::task::LocalSet::new();
     local.block_on(&runtime, async {
         renderer::create_cli_renderer(renderer::RendererConfig::default()).await.unwrap();
+        let started = std::time::Instant::now();
         let mode = renderer::wait_for_theme_mode(1000).await;
+        eprintln!("theme mode {:?} after {:?}", mode, started.elapsed());
         let root = tree::root().unwrap();
         let _dispose = render(app, root);
         let _ = mode;
