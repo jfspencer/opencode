@@ -1,16 +1,16 @@
-//! `<textarea>` (`Textarea.ts` over `EditBufferRenderable.ts`): an editable, wrapping text with a placeholder, the
-//! terminal cursor, and content-change and submit callbacks.
+//! `<textarea>` (`Textarea.ts` over `EditBufferRenderable.ts`): `opencode-tui-text`'s EditBuffer and EditorView
+//! (rope edits, undo, word and visual motions, wrapping, the placeholder, the viewport following the cursor,
+//! measuring for Yoga, `drawEditorView`), with the terminal cursor and the content-change, cursor-change and submit
+//! callbacks.
 //!
-//! TODO(port-tui): opencode-tui-text. The edit buffer and editor view (its milestone 2) are not in dev yet: this
-//! keeps the text in a `String`, edits it at a char cursor (insert, backspace, delete, left/right/home/end,
-//! select-all then delete, return to submit, shift+return or a linefeed for a newline) and lays it out and draws it
-//! with the scene Text node, so wrapping, widths and measuring are the text crate's. Undo, word motions, vertical
-//! motion, extmarks, mouse selection and syntax highlighting arrive with the editor view.
+//! TODO(port-tui): Textarea.ts's full key binding table (word motions, line deletes, undo/redo bindings,
+//! `keyBindings`/`keyAliasMap` props), selection by mouse, extmarks and the syntax style prop. Bound here: printable
+//! input, backspace/delete, arrows (visual up/down), home/end, return (submit), shift+return and linefeed
+//! (newline), super+a (select all), ctrl+z/ctrl+shift+z (undo/redo), pastes.
 use std::any::Any;
-use std::cell::RefCell;
 use std::rc::Rc;
 
-use opencode_tui_text::{SceneText, SceneTextOptions, StyledChunk, TextAlign, WidthMethod, WrapMode};
+use opencode_tui_text::{EditBuffer, EditEvent, EditorView, WidthMethod, WrapMode};
 
 use crate::buffer::OptimizedBuffer;
 use crate::color::RGBA;
@@ -20,12 +20,8 @@ use crate::renderables::text::text_context;
 use crate::tree::{self, Element, Kind};
 
 pub struct TextareaKind {
-    pub scene: Rc<RefCell<SceneText>>,
-    pub text: String,
-    /// The cursor, in chars.
-    pub cursor: usize,
-    /// Everything is selected (`selectAll`): the next edit replaces it.
-    pub all_selected: bool,
+    pub buffer: EditBuffer,
+    pub view: Rc<EditorView>,
     pub placeholder: String,
     pub placeholder_color: RGBA,
     pub text_color: RGBA,
@@ -38,78 +34,40 @@ pub struct TextareaKind {
     pub on_cursor_change: Option<Rc<dyn Fn()>>,
 }
 
-fn options(fg: RGBA) -> SceneTextOptions {
-    SceneTextOptions {
-        fg: fg.0,
-        bg: RGBA::from_values(0.0, 0.0, 0.0, 0.0).0,
-        attributes: 0,
-        wrap_mode: WrapMode::Word,
-        text_align: TextAlign::Left,
-        truncate: false,
-        scroll_x: 0.0,
-        scroll_y: 0.0,
-        first_line_offset: 0,
-        tab_indicator: 0,
-        tab_indicator_color: None,
-    }
-}
-
 impl TextareaKind {
-    /// Lays the shown text (the content, or the placeholder while empty) into the scene node.
-    fn sync(&self, focused: bool) {
-        let mut scene = self.scene.borrow_mut();
-        if self.text.is_empty() {
-            let _ = scene.set_styled_text(&[StyledChunk {
-                text: &self.placeholder,
-                fg: Some(self.placeholder_color.0),
-                bg: None,
-                attributes: 0,
-                link: None,
-            }]);
-        } else {
-            let _ = scene.set_text(&self.text);
-        }
+    fn sync_colors(&self, focused: bool) {
         let fg = if focused { self.focused_text_color } else { self.text_color };
-        let _ = scene.set_options(options(fg), || [None, None]);
+        let _ = self.buffer.set_default_fg(Some(fg.0));
+        let _ = self.view.set_placeholder_styled_text(&[(self.placeholder.as_str(), Some(self.placeholder_color.0), None, 0)]);
     }
 
-    fn byte_at(&self, chars: usize) -> usize {
-        self.text.char_indices().nth(chars).map_or(self.text.len(), |(i, _)| i)
-    }
-
-    fn len(&self) -> usize {
-        self.text.chars().count()
-    }
-
-    fn insert(&mut self, value: &str) {
-        if self.all_selected {
-            self.text.clear();
-            self.cursor = 0;
-            self.all_selected = false;
+    /// The edit events of the last call, as the renderable's callbacks.
+    fn emit(&self, el: Element) {
+        let events = self.buffer.take_events();
+        if events.is_empty() {
+            return;
         }
-        let at = self.byte_at(self.cursor);
-        self.text.insert_str(at, value);
-        self.cursor += value.chars().count();
-    }
-
-    fn changed(&self, el: Element) {
-        let focused = el.focused();
-        self.sync(focused);
         el.mark_layout_dirty();
         el.request_render();
+        let content = events.iter().any(|e| matches!(e, EditEvent::ContentChanged));
+        let cursor = events.iter().any(|e| !matches!(e, EditEvent::ContentChanged));
+        if content {
+            if let Some(change) = self.on_content_change.clone() {
+                change();
+            }
+        }
+        if cursor || content {
+            if let Some(change) = self.on_cursor_change.clone() {
+                change();
+            }
+        }
     }
 
-    /// The cursor's cell (column, row) in the laid-out text.
-    fn cursor_cell(&self, width: u32) -> (u32, u32) {
-        let before: String = self.text.chars().take(self.cursor).collect();
-        let mut probe = SceneText::new(WidthMethod::Unicode, &text_context());
-        let _ = probe.set_text(&before);
-        let _ = probe.set_options(options(self.text_color), || [None, None]);
-        probe.apply_layout(width.max(1), u32::MAX / 2);
-        let info = probe.line_info(0, u32::MAX);
-        let row = info.line_width_cols.len().saturating_sub(1) as u32;
-        let col = info.line_width_cols.last().copied().unwrap_or(0);
-        if before.ends_with('\n') { (0, row + 1) } else { (col, row) }
+    fn select_all(&self) {
+        let length = self.view.get_text().chars().count() as u32;
+        if length > 0 {
+            self.view.set_selection(0, length, None, None);
+        }
     }
 }
 
@@ -123,31 +81,32 @@ impl Kind for TextareaKind {
         if bg.a() > 0.0 {
             buffer.fill_rect(x, y, width as i32, height as i32, bg);
         }
-        {
-            let mut scene = self.scene.borrow_mut();
-            if scene.needs_prepare(width, height) {
-                scene.apply_layout(width, height);
-            }
-            scene.draw(y, |src| buffer.draw_text_buffer(src, x, y));
-        }
+        self.view.apply_layout(width, height);
+        self.view.draw(y, |src| buffer.draw_text_buffer(src, x, y));
         if focused {
-            let (col, row) = if self.text.is_empty() { (0, 0) } else { self.cursor_cell(width) };
+            let cursor = self.view.get_visual_cursor();
+            let viewport = self.view.get_viewport();
+            let row = cursor.visual_row.saturating_sub(viewport.y);
+            let col = cursor.visual_col.saturating_sub(viewport.x);
             crate::renderer::set_cursor_color(self.cursor_color);
-            crate::renderer::set_cursor_position((x + col as i32).max(0) as u32, (y + row.min(height.saturating_sub(1)) as i32).max(0) as u32, true);
+            crate::renderer::set_cursor_position(
+                (x + col as i32).max(0) as u32,
+                (y + row.min(height.saturating_sub(1)) as i32).max(0) as u32,
+                true,
+            );
         }
     }
     fn on_resize(&mut self, el: Element, width: f32, height: f32) {
-        self.scene.borrow_mut().apply_layout(width.max(0.0) as u32, height.max(0.0) as u32);
+        self.view.apply_layout(width.max(0.0) as u32, height.max(0.0) as u32);
         el.request_render();
     }
     fn handles_keys(&self) -> bool {
         true
     }
     fn handle_key_press(&mut self, el: Element, key: &mut KeyEvent) -> bool {
-        let name = key.name.clone();
         let modified = key.ctrl || key.meta || key.super_ || key.hyper;
-        let mut content = false;
-        match name.as_str() {
+        let has_selection = self.view.has_selection();
+        let handled = match key.name.as_str() {
             "return" if !key.shift && !modified => {
                 if let Some(submit) = self.on_submit.clone() {
                     submit();
@@ -155,89 +114,98 @@ impl Kind for TextareaKind {
                 return true;
             }
             "return" | "linefeed" if !modified || key.shift => {
-                self.insert("\n");
-                content = true;
+                if has_selection {
+                    let _ = self.view.delete_selected_text();
+                }
+                let _ = self.buffer.new_line();
+                true
             }
             "backspace" if !modified || key.shift => {
-                if self.all_selected {
-                    self.text.clear();
-                    self.cursor = 0;
-                    self.all_selected = false;
-                    content = true;
-                } else if self.cursor > 0 {
-                    let end = self.byte_at(self.cursor);
-                    let start = self.byte_at(self.cursor - 1);
-                    self.text.replace_range(start..end, "");
-                    self.cursor -= 1;
-                    content = true;
+                if has_selection {
+                    let _ = self.view.delete_selected_text();
+                } else {
+                    let _ = self.buffer.delete_char_backward();
                 }
+                true
             }
             "delete" if !modified => {
-                if self.all_selected {
-                    self.text.clear();
-                    self.cursor = 0;
-                    self.all_selected = false;
-                    content = true;
-                } else if self.cursor < self.len() {
-                    let start = self.byte_at(self.cursor);
-                    let end = self.byte_at(self.cursor + 1);
-                    self.text.replace_range(start..end, "");
-                    content = true;
+                if has_selection {
+                    let _ = self.view.delete_selected_text();
+                } else {
+                    let _ = self.buffer.delete_char();
                 }
+                true
             }
             "a" if key.super_ && !key.ctrl => {
-                self.all_selected = !self.text.is_empty();
+                self.select_all();
+                el.request_render();
                 return true;
             }
+            "z" if key.ctrl && !key.shift => {
+                self.buffer.undo();
+                true
+            }
+            "z" if key.ctrl && key.shift => {
+                self.buffer.redo();
+                true
+            }
             "left" if !modified => {
-                self.all_selected = false;
-                self.cursor = self.cursor.saturating_sub(1);
+                self.view.reset_selection();
+                self.buffer.move_cursor_left();
+                true
             }
             "right" if !modified => {
-                self.all_selected = false;
-                self.cursor = (self.cursor + 1).min(self.len());
+                self.view.reset_selection();
+                self.buffer.move_cursor_right();
+                true
+            }
+            "up" if !modified => {
+                self.view.reset_selection();
+                self.view.move_up_visual();
+                true
+            }
+            "down" if !modified => {
+                self.view.reset_selection();
+                self.view.move_down_visual();
+                true
             }
             "home" if !modified => {
-                self.all_selected = false;
-                self.cursor = 0;
+                self.view.reset_selection();
+                let cursor = self.buffer.get_cursor_position();
+                self.buffer.set_cursor(cursor.row, 0);
+                true
             }
             "end" if !modified => {
-                self.all_selected = false;
-                self.cursor = self.len();
+                self.view.reset_selection();
+                let eol = self.buffer.get_eol();
+                self.buffer.set_cursor(eol.row, eol.col);
+                true
             }
             _ => {
-                let printable = !modified
-                    && !key.sequence.is_empty()
-                    && key.sequence.chars().all(|c| !c.is_control());
+                let printable = !modified && !key.sequence.is_empty() && key.sequence.chars().all(|c| !c.is_control());
                 if !printable {
                     return false;
                 }
-                let sequence = key.sequence.clone();
-                self.insert(&sequence);
-                content = true;
+                if has_selection {
+                    let _ = self.view.delete_selected_text();
+                }
+                let _ = self.buffer.insert_text(&key.sequence.clone());
+                true
             }
-        }
-        self.changed(el);
-        if content {
-            if let Some(change) = self.on_content_change.clone() {
-                change();
-            }
-        }
-        if let Some(cursor) = self.on_cursor_change.clone() {
-            cursor();
-        }
-        true
+        };
+        self.emit(el);
+        handled
     }
     fn handles_paste(&self) -> bool {
         true
     }
     fn handle_paste(&mut self, el: Element, event: &mut PasteEvent) {
         let text = event.text();
-        self.insert(&text);
-        self.changed(el);
-        if let Some(change) = self.on_content_change.clone() {
-            change();
+        if self.view.has_selection() {
+            let _ = self.view.delete_selected_text();
         }
+        let _ = self.buffer.insert_text(&text);
+        self.emit(el);
     }
     fn as_any(&self) -> &dyn Any {
         self
@@ -249,14 +217,14 @@ impl Kind for TextareaKind {
 
 /// Creates a `<textarea>` (focusable, word wrapping, a measured height).
 pub fn create_textarea() -> Element {
-    let scene = Rc::new(RefCell::new(SceneText::new(WidthMethod::Unicode, &text_context())));
-    let measured = scene.clone();
+    let buffer = EditBuffer::create(WidthMethod::Unicode, &text_context());
+    let view = Rc::new(EditorView::create(&buffer, 0, 0).expect("editor view"));
+    view.set_wrap_mode(WrapMode::Word);
     let white = RGBA::from_values(1.0, 1.0, 1.0, 1.0);
+    let measured = view.clone();
     let kind = TextareaKind {
-        scene,
-        text: String::new(),
-        cursor: 0,
-        all_selected: false,
+        buffer,
+        view,
         placeholder: String::new(),
         placeholder_color: RGBA::from_hex("#666666"),
         text_color: white,
@@ -268,7 +236,7 @@ pub fn create_textarea() -> Element {
         on_submit: None,
         on_cursor_change: None,
     };
-    kind.sync(false);
+    kind.sync_colors(false);
     let el = tree::create(Box::new(kind), "textarea", false);
     el.set_focusable(true);
     el.set_selectable(true);
@@ -280,7 +248,7 @@ pub fn create_textarea() -> Element {
             MeasureMode::AtMost => 2,
         };
         let absolute = measure_el.with_base(|b| b.position_absolute).unwrap_or(false);
-        measured.borrow_mut().yoga_measure(width, mode, height, absolute)
+        measured.yoga_measure(width, mode, height, absolute)
     })));
     el
 }
@@ -290,7 +258,7 @@ impl Element {
         let focused = self.focused();
         let r = self.with_kind::<TextareaKind, _>(|k| {
             let r = f(k);
-            k.sync(focused);
+            k.sync_colors(focused);
             r
         });
         self.mark_layout_dirty();
@@ -330,16 +298,27 @@ impl Element {
 
     /// `plainText`.
     pub fn textarea_text(self) -> String {
-        self.with_kind::<TextareaKind, _>(|k| k.text.clone()).unwrap_or_default()
+        self.with_kind::<TextareaKind, _>(|k| k.view.get_text()).unwrap_or_default()
     }
 
-    /// `setText(value)` (the cursor goes to the end).
+    /// `setText(value)`: the content replaced, the cursor at the end.
     pub fn set_textarea_text(self, value: &str) {
         self.with_textarea(|k| {
-            k.text = value.to_string();
-            k.cursor = k.len();
-            k.all_selected = false;
+            let _ = k.buffer.set_text(value);
+            let eof = k.buffer.get_eof();
+            k.buffer.set_cursor(eof.row, eof.col);
+            let _ = k.buffer.take_events();
         });
         self.request_render();
+    }
+
+    /// The editor view (`editorView`), for components that need its API.
+    pub fn editor_view(self) -> Option<Rc<EditorView>> {
+        self.with_kind::<TextareaKind, _>(|k| k.view.clone())
+    }
+
+    /// The edit buffer (`editBuffer`).
+    pub fn edit_buffer(self) -> Option<EditBuffer> {
+        self.with_kind::<TextareaKind, _>(|k| k.buffer.clone())
     }
 }
