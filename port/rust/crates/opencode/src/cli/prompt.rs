@@ -258,6 +258,8 @@ fn input() -> &'static std::sync::Mutex<Option<Bytes>> {
 struct Keys {
     bytes: Option<Bytes>,
     pending: Vec<u8>,
+    /// The prompt ended (submitted or cancelled) rather than being abandoned.
+    closed: bool,
     _raw: Option<Raw>,
 }
 
@@ -266,7 +268,7 @@ impl Keys {
         let raw = Raw::enable();
         let bytes = input().lock().unwrap().take();
         let pending = std::mem::take(&mut *READ_AHEAD.lock().unwrap());
-        Keys { bytes, pending, _raw: raw }
+        Keys { bytes, pending, closed: false, _raw: raw }
     }
 
     async fn byte(&mut self, wait: Option<std::time::Duration>) -> Option<u8> {
@@ -349,8 +351,20 @@ impl Keys {
     }
 }
 
+impl Keys {
+    /// `close`: the line after the frame, and the cursor shown again.
+    fn close(&mut self) {
+        stdout("\n\x1b[?25h");
+        self.closed = true;
+    }
+}
+
 impl Drop for Keys {
     fn drop(&mut self) {
+        // A prompt abandoned mid-way (its signal aborted) closes without drawing its last frame.
+        if !self.closed {
+            stdout("\n\x1b[?25h");
+        }
         // What was read ahead (an escape sequence's lookahead) waits for the next prompt too.
         if let Some(bytes) = self.bytes.take() {
             *input().lock().unwrap() = Some(bytes);
@@ -576,10 +590,9 @@ fn reopen(text: &str) -> String {
     out
 }
 
-/// ansi-styles' close code of an open code.
+/// ansi-styles' close code of an open code (a reset, 0, is never reopened).
 fn close_code(open: u32) -> Option<u32> {
     match open {
-
         1 | 2 => Some(22),
         3 => Some(23),
         4 => Some(24),
@@ -658,7 +671,7 @@ async fn run<M: Model>(c: &Clack, model: &mut M, initial: Option<&str>) -> Resul
         let Some(key) = keys.next().await else {
             view.state = State::Cancel;
             draw(c, model, &mut view, &mut previous);
-            stdout("\n\x1b[?25h");
+            keys.close();
             return Err(cancelled());
         };
         let name = key.name.unwrap_or("");
@@ -679,7 +692,7 @@ async fn run<M: Model>(c: &Clack, model: &mut M, initial: Option<&str>) -> Resul
             if model.confirm(char == "y") {
                 view.state = State::Submit;
                 draw(c, model, &mut view, &mut previous);
-                stdout("\n\x1b[?25h");
+                keys.close();
                 return Ok(());
             }
         }
@@ -703,11 +716,11 @@ async fn run<M: Model>(c: &Clack, model: &mut M, initial: Option<&str>) -> Resul
         draw(c, model, &mut view, &mut previous);
         match view.state {
             State::Submit => {
-                stdout("\n\x1b[?25h");
+                keys.close();
                 return Ok(());
             }
             State::Cancel => {
-                stdout("\n\x1b[?25h");
+                keys.close();
                 return Err(cancelled());
             }
             _ => {}
@@ -1289,8 +1302,9 @@ impl Model for Autocomplete<'_> {
     }
 }
 
-/// `autocomplete`: an option found by typing (its label, hint or value), or by moving to it.
-pub async fn autocomplete(c: &Clack, message: &str, options: &[Choice], values: &[String], max_items: usize) -> Result<usize> {
+/// `autocomplete`: an option found by typing (its label, hint or value), or by moving to it; nothing when the search
+/// matched none (the prompt submits anyway).
+pub async fn autocomplete(c: &Clack, message: &str, options: &[Choice], values: &[String], max_items: usize) -> Result<Option<usize>> {
     let matches = |search: &str, index: usize| {
         let term = search.to_lowercase();
         let option = &options[index];
@@ -1300,8 +1314,7 @@ pub async fn autocomplete(c: &Clack, message: &str, options: &[Choice], values: 
     };
     let mut model = Autocomplete { message, max_items: Some(max_items), state: Filtered::new(options, &matches) };
     run(c, &mut model, None).await?;
-    // A submitted autocomplete without a match resolves with nothing.
-    model.state.selected.ok_or_else(|| Fail::error("No option selected"))
+    Ok(model.state.selected)
 }
 
 /// An integration the picker offers (`IntegrationChoice`).

@@ -1029,7 +1029,11 @@ async fn choose_integration(c: &Clack, integrations: &[Json], target: Option<&st
         })
         .collect();
     let values: Vec<String> = configured.iter().map(|i| get_str(i, "id").unwrap_or("").to_owned()).collect();
-    let index = prompt::autocomplete(c, "Select integration", &choices, &values, 8).await?;
+    let Some(index) = prompt::autocomplete(c, "Select integration", &choices, &values, 8).await? else {
+        // TODO(port): TS bug: a search that matches nothing submits `undefined`, which `resolveIntegration` crashes
+        // on (a TypeError, in the JS engine's words); this says what happened instead.
+        return Err(Fail::error("No integration selected"));
+    };
     resolve_integration(&configured, &values[index]).cloned()
 }
 
@@ -1079,5 +1083,7 @@ async fn choose_credential(c: &Clack, integration: &Json, action: &str, target: 
         .collect();
     let values: Vec<String> = credentials.iter().map(|c| get_str(c, "id").unwrap_or("").to_owned()).collect();
     let index = prompt::autocomplete(c, &format!("Select {name} account to {action}"), &choices, &values, 8).await?;
-    Ok(values[index].clone())
+    // TODO(port): TS bug: a search that matches nothing submits `undefined`, sent as the credential ID "undefined" (no
+    // credential: the server does nothing and the command reports success).
+    Ok(index.map_or_else(|| "undefined".to_owned(), |index| values[index].clone()))
 }
