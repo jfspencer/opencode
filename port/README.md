@@ -99,10 +99,32 @@ port/scripts/gen-types.sh check --samples 60 --mutants 4 --seed 3   # a deeper r
 `check` is the proof: TS generates random valid values for each of the ~450 root types (Effect's `Arbitrary`,
 fixed seed), Rust decodes and re-encodes them, and the text must be byte-identical to TS's
 `JSON.stringify(encode(decode(JSON.parse(text))))`. Mutants of each value (wrong types, missing and extra keys,
-broken strings and numbers) must be rejected by Rust wherever TS rejects them, and written identically wherever
-TS accepts them; hand-picked edge cases (the conformance reference config, hooks, codec normalizations) run the
-same way. The generator stops on any schema feature or transformation it does not know, so an upstream change
-cannot silently produce a wrong type; a fresh generation must equal the checked-in code byte for byte.
+broken strings and numbers) must be rejected by Rust wherever TS rejects them, with the same message, and written
+identically wherever TS accepts them; hand-picked edge cases (the conformance reference config, hooks, codec
+normalizations, message order) run the same way, and so does every schema rejection the conformance transcripts
+recorded (`InvalidRequestError` of kind Payload, Query or Params, rebuilt from the transcript), which must also give
+the recorded message. Each root is decoded as HttpApi decodes it: a payload through `Schema.Union(payloadSchemas)`,
+a query through `Schema.toCodecArrayFromSingle(query)`. The generator stops on any schema feature or transformation
+it does not know, so an upstream change cannot silently produce a wrong type; a fresh generation must equal the
+checked-in code byte for byte.
+
+Rejections: `Issue`'s `Display` (also `Issue::message()`) is exactly the text TS's `SchemaError.message` gives for the
+same input, which the TS server puts in `InvalidRequestError.message` (before its own truncation at 1024 characters,
+`packages/server/src/middleware/schema-error.ts`, which the Rust server must apply too). That text is Effect's
+default formatter (`SchemaIssue.makeFormatterDefault`) under HttpApi's parse options, which opencode leaves at
+Effect's defaults: `errors: "first"` (each struct, array or check reports its first problem only), no `reportInput`
+(no `got <value>`), `onExcessProperty: "ignore"`. A leaf is `<message>` or `<message>\n  at ["key"][0]`; a union
+whose candidate members all fail lists each member's leaf, joined by newlines. The generator computes every message
+from the TS AST as Effect does: a type error is `Expected <expected>`, where expected is the identifier (of the last
+check, else of the node) or the node's own text (`string | null`, `"asc" | "desc"`, `{ readonly "type": "x", ... }`),
+unless a `message` annotation replaces it; a failed check is its filter's `message`, else `Expected <its expected
+annotation>`; a missing key is `Missing key` (or `messageMissingKey`); a few codecs' fixed texts (template literals,
+`Schema.Number` under the JSON codec, base64, durations) are read off the TS parser. Decoding follows Effect's
+order: struct keys in declaration order (`key?: never` included), then index signatures in JS key order; checks in
+declaration order; and a union tries only the members Effect's candidate index selects (by runtime type and
+discriminating literal fields, `wire/union.rs`). Failures outside the schema are the server's to word: a body that
+is not JSON is `Expected a valid JSON body` (HttpApiBuilder); an empty JSON body is decoded as `undefined`, which
+reports as `null` does for every payload type.
 
 Mapping rules. A Rust value is the canonical wire form: decoding accepts exactly what TS's `Schema.decode` accepts,
 and encoding writes what TS would write for the decoded value.
@@ -112,10 +134,10 @@ and encoding writes what TS would write for the decoded value.
 | wire context | HTTP bodies use HttpApi's JSON codec (`toCodecJson`); SSE `data` and the config file use the plain encoded side through `JSON.stringify`; path, query and headers use the string tree. One schema can get two types (`FooPlain`) when the contexts differ on the wire. |
 | optional key | `Option<T>`, absent = `None`. `undefined` does not exist in JSON: under the JSON codec `Schema.optional(X)` is `X \| null`, so `Option<Option<X>>` keeps absent and `null` apart; in plain contexts `null` is rejected. opencode's `optional` helper never takes `null`. `key?: never` must be absent. |
 | `X \| null` | `Option<X>` |
-| unions, tagged or not | an enum with one variant per member, tried in declaration order, first match wins (Effect `anyOf`; `oneOf` requires exactly one). Members keep their tag field (a zero-size `lit::` type), so field order and output match. |
+| unions, tagged or not | an enum with one variant per member; the members Effect's candidate index selects for the input are tried in declaration order, first match wins (Effect `anyOf`; `oneOf` requires exactly one). Members keep their tag field (a zero-size `lit::` type), so field order and output match. |
 | literals, literal unions | `lit::X` unit types; enums of unit variants |
 | identified (branded, refined) schemas | newtypes (`SessionID(String)`) with their checks; anonymous refined values get the checks inline |
-| records | `rt::Record<K, V>` (insertion order kept); keys a branded key type rejects are skipped, as in TS; a struct with an index signature gets a `rest` record |
+| records | `rt::Record<K, V>` (JS key order, as TS decodes them); keys a branded key type rejects are skipped, as in TS; a struct with an index signature gets a `rest` record |
 | classes, tagged errors | structs of their encoded fields, `_tag` included |
 | recursion | `Box` where a definition reaches itself other than through `Vec` / `Record` |
 | `Schema.Struct({})` | `rt::NotNull`: any non-null value, returned unchanged (as TS does) |
@@ -130,8 +152,10 @@ sets. Known gaps, also listed at the top of `generated/types.rs`:
 - `session.import` messages: TS first upgrades messages exported before v2.1, Rust only takes the current shape;
 - a union whose overlapping members transform differently: TS encodes with the first member whose decoded side
   fits, Rust with the member that decoded (not observed in the round-trip);
-- a `DateTimeUtcFromMillis` out of range is a TS defect (HTTP 500), not a schema error; Rust rejects it like any
-  invalid value, so the server must map it;
-- error messages (`InvalidRequestError.message`) are not Effect's wording;
+- a `DateTimeUtcFromMillis` out of range is a TS defect (HTTP 500), not a schema error with a message; Rust rejects
+  it with `Invalid date`, so the server must map that to the 500 TS answers (for example `POST
+  /api/session/:sessionID/view` with `{"idle": 9e15}`);
+- the messages are those of the inputs Rust and TS both reject; where acceptance differs (the gaps above and
+  below), so does the outcome;
 - durations beyond 2^127 nanoseconds are rejected (TS uses BigInt); hex/octal/binary `Number()` strings beyond
   2^128 may differ in the last place.

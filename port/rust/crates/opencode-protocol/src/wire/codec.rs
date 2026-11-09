@@ -1,21 +1,50 @@
 //! Wire types for the Effect transformations whose decoding the Rust side reproduces.
+//!
+//! Each `Wire` impl reports the messages Effect gives the schema without annotations; the generated code calls
+//! the `decode_with` forms with the messages the generator computed from the TS AST.
 
 use super::number::{is_js_whitespace, js_number_string, js_string_to_number, js_trim};
 use super::{Issue, Json, Out, Wire, check, parse};
 
-/// `Schema.Number` under the JSON codec: a finite number, or `"NaN"`, `"Infinity"`, `"-Infinity"`.
+/// `Schema.Number` under the JSON codec: a finite number, or `"NaN"`, `"Infinity"`, `"-Infinity"`. Its wire side
+/// is the union `finite | "Infinity" | "-Infinity" | "NaN"`, hence three messages.
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct JsNumber(pub f64);
 
-impl Wire for JsNumber {
-    fn decode(v: &Json) -> Result<Self, Issue> {
+/// The messages of [`JsNumber`]'s wire union.
+#[derive(Debug, Clone, Copy)]
+pub struct JsNumberMessages {
+    /// Neither a number nor a string: the union's expected text.
+    pub te: &'static str,
+    /// A number that is not finite (`1e400`): the finite member's check.
+    pub non_finite: &'static str,
+    /// A string other than the three: the literal union's expected text.
+    pub string: &'static str,
+}
+
+impl JsNumber {
+    pub const MESSAGES: JsNumberMessages = JsNumberMessages {
+        te: "Expected number | \"Infinity\" | \"-Infinity\" | \"NaN\"",
+        non_finite: "Expected a finite number",
+        string: "Expected \"Infinity\" | \"-Infinity\" | \"NaN\"",
+    };
+
+    pub fn decode_with(v: &Json, m: &JsNumberMessages) -> Result<Self, Issue> {
         match v {
             Json::Number(n) if n.is_finite() => Ok(Self(*n)),
+            Json::Number(_) => Err(Issue::new(m.non_finite)),
             Json::String(s) if s == "NaN" => Ok(Self(f64::NAN)),
             Json::String(s) if s == "Infinity" => Ok(Self(f64::INFINITY)),
             Json::String(s) if s == "-Infinity" => Ok(Self(f64::NEG_INFINITY)),
-            _ => Err(Issue::expected("a finite number or \"NaN\" | \"Infinity\" | \"-Infinity\"", v)),
+            Json::String(_) => Err(Issue::new(m.string)),
+            _ => Err(Issue::new(m.te)),
         }
+    }
+}
+
+impl Wire for JsNumber {
+    fn decode(v: &Json) -> Result<Self, Issue> {
+        Self::decode_with(v, &Self::MESSAGES)
     }
     fn encode(&self, out: &mut Out) {
         if self.0.is_finite() { out.number(self.0) } else { out.string(&js_number_string(self.0)) }
@@ -28,8 +57,8 @@ impl Wire for JsNumber {
 pub struct NumberString(pub f64);
 
 impl NumberString {
-    pub fn decode_with(v: &Json, wire: impl Fn(&str) -> Result<(), Issue>) -> Result<f64, Issue> {
-        let s = String::decode(v)?;
+    pub fn decode_with(v: &Json, te: &'static str, wire: impl Fn(&str) -> Result<(), Issue>) -> Result<f64, Issue> {
+        let s = super::string(v, te)?;
         wire(&s)?;
         Ok(js_string_to_number(&s))
     }
@@ -37,7 +66,7 @@ impl NumberString {
 
 impl Wire for NumberString {
     fn decode(v: &Json) -> Result<Self, Issue> {
-        Self::decode_with(v, |_| Ok(())).map(Self)
+        Self::decode_with(v, "Expected string", |_| Ok(())).map(Self)
     }
     fn encode(&self, out: &mut Out) {
         out.string(&js_number_string(self.0))
@@ -50,8 +79,8 @@ pub struct IntString(pub i64);
 
 impl Wire for IntString {
     fn decode(v: &Json) -> Result<Self, Issue> {
-        let n = NumberString::decode_with(v, |_| Ok(()))?;
-        check::int(n)?;
+        let n = NumberString::decode_with(v, "Expected string", |_| Ok(()))?;
+        check::int(n, "Expected an integer")?;
         Ok(Self(n as i64))
     }
     fn encode(&self, out: &mut Out) {
@@ -64,14 +93,25 @@ impl Wire for IntString {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
 pub struct EpochMillis(pub i64);
 
-impl Wire for EpochMillis {
-    fn decode(v: &Json) -> Result<Self, Issue> {
-        let n = f64::decode(v)?;
-        check::finite(n)?;
-        if n.abs() > 8.64e15 {
+impl EpochMillis {
+    /// `te` and `checks` are the wire number's.
+    pub fn decode_with(
+        v: &Json,
+        te: &'static str,
+        checks: impl FnOnce(f64) -> Result<(), Issue>,
+    ) -> Result<Self, Issue> {
+        let n = super::number(v, te)?;
+        checks(n)?;
+        if !n.is_finite() || n.abs() > 8.64e15 {
             return Err(Issue::new("Invalid date"));
         }
         Ok(Self(n.trunc() as i64))
+    }
+}
+
+impl Wire for EpochMillis {
+    fn decode(v: &Json) -> Result<Self, Issue> {
+        Self::decode_with(v, "Expected number", |n| check::finite(n, "Expected a finite number"))
     }
     fn encode(&self, out: &mut Out) {
         out.int(self.0)
@@ -88,12 +128,18 @@ impl Default for NotNull {
     }
 }
 
-impl Wire for NotNull {
-    fn decode(v: &Json) -> Result<Self, Issue> {
+impl NotNull {
+    pub fn decode_with(v: &Json, te: &'static str) -> Result<Self, Issue> {
         match v {
-            Json::Null => Err(Issue::expected("object | array", v)),
+            Json::Null => Err(Issue::new(te)),
             _ => Ok(Self(v.clone())),
         }
+    }
+}
+
+impl Wire for NotNull {
+    fn decode(v: &Json) -> Result<Self, Issue> {
+        Self::decode_with(v, "Expected object | array")
     }
     fn encode(&self, out: &mut Out) {
         out.json(&self.0)
@@ -104,11 +150,21 @@ impl Wire for NotNull {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct JsonString<T>(pub T);
 
+impl<T: Wire> JsonString<T> {
+    pub fn decode_with(
+        v: &Json,
+        te: &'static str,
+        inner: impl FnOnce(&Json) -> Result<T, Issue>,
+    ) -> Result<Self, Issue> {
+        let s = super::string(v, te)?;
+        let parsed = parse(&s).map_err(|_| Issue::new("Expected a valid JSON string"))?;
+        inner(&parsed).map(Self)
+    }
+}
+
 impl<T: Wire> Wire for JsonString<T> {
     fn decode(v: &Json) -> Result<Self, Issue> {
-        let s = String::decode(v)?;
-        let inner = parse(&s).map_err(|_| Issue::new("expected a valid JSON string"))?;
-        T::decode(&inner).map(Self)
+        Self::decode_with(v, "Expected string", T::decode)
     }
     fn encode(&self, out: &mut Out) {
         out.string(&super::to_string(&self.0))
@@ -118,10 +174,11 @@ impl<T: Wire> Wire for JsonString<T> {
 /// `Schema.Trim`: decoding trims with JS `String.prototype.trim`; `wire` checks the raw text, `checks` the result.
 pub fn trim(
     v: &Json,
+    te: &'static str,
     wire: impl Fn(&str) -> Result<(), Issue>,
     checks: impl Fn(&str) -> Result<(), Issue>,
 ) -> Result<String, Issue> {
-    let s = String::decode(v)?;
+    let s = super::string(v, te)?;
     wire(&s)?;
     let t = js_trim(&s).to_owned();
     checks(&t)?;
@@ -134,12 +191,12 @@ pub struct Base64(pub Vec<u8>);
 
 const ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-impl Wire for Base64 {
-    fn decode(v: &Json) -> Result<Self, Issue> {
-        let s = String::decode(v)?;
+impl Base64 {
+    pub fn decode_with(v: &Json, te: &'static str, invalid: &'static str) -> Result<Self, Issue> {
+        let s = super::string(v, te)?;
         // effect/encoding/Base64.decode: strip CR/LF; length % 4 == 0; '=' only as the last one or two characters.
         let s: Vec<char> = s.chars().filter(|c| *c != '\n' && *c != '\r').collect();
-        let invalid = || Issue::new("expected a valid Base64 string");
+        let invalid = || Issue::new(invalid);
         if s.len() % 4 != 0 {
             return Err(invalid());
         }
@@ -162,6 +219,12 @@ impl Wire for Base64 {
         }
         bytes.truncate(bytes.len() - missing);
         Ok(Self(bytes))
+    }
+}
+
+impl Wire for Base64 {
+    fn decode(v: &Json) -> Result<Self, Issue> {
+        Self::decode_with(v, "Expected string", "Expected a valid Base64 string")
     }
     fn encode(&self, out: &mut Out) {
         let mut s = String::with_capacity(self.0.len().div_ceil(3) * 4);
@@ -299,9 +362,15 @@ impl std::fmt::Display for Duration {
     }
 }
 
+impl Duration {
+    pub fn decode_with(v: &Json, te: &'static str, invalid: &'static str) -> Result<Self, Issue> {
+        Self::parse(&super::string(v, te)?).ok_or_else(|| Issue::new(invalid))
+    }
+}
+
 impl Wire for Duration {
     fn decode(v: &Json) -> Result<Self, Issue> {
-        Self::parse(&String::decode(v)?).ok_or_else(|| Issue::new("expected a valid Duration string"))
+        Self::decode_with(v, "Expected string", "Expected a valid Duration string")
     }
     fn encode(&self, out: &mut Out) {
         out.string(&self.to_string())
