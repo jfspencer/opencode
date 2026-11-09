@@ -175,6 +175,11 @@ The evaluator in `interp/`:
   run out of JS stack in TS. Rust's parser limit (8 MiB of parser stack) is not exact there. A stress run of 136
   such programs found 10 that differ in that band, for example `((…1…))` nested 2,500 deep: TS overflowed after
   JIT warm-up, while Rust evaluates it. At 1,000 and at 20,000 levels the results match (`deep.jsonl`).
+- **RegExp** (`src/jsregex`) matches JSC on 671,451 generated cases, with these residual differences:
+  - JSC's Yarr interpreter gives up on catastrophic backtracking at a match limit, but its JIT does not, so the
+    result depends on usage history. The port gives up after 50 million choice points per `exec`.
+  - JSC throws RangeError past about 37,000 nested groups; the port accepts the pattern.
+  - Properties of strings are verified over Emoji 17 candidates only.
 - **`localeCompare`** approximates ICU root collation: ASCII punctuation order, common expansions, and accents as
   secondary differences. It matches on every corpus case, but it is not the full collation algorithm.
 - **Dates outside UTC** use the system tz database, which can be newer than bun's ICU. The conformance suite runs
