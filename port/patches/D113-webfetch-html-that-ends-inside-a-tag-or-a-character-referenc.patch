@@ -1,0 +1,178 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:48:42 -0700
+Subject: [PATCH] D113 webfetch: HTML that ends inside a tag or a character
+ reference converts cleanly
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: webfetch converts HTML with htmlparser2 8.0.2, which mishandles input that ends inside markup:
+- after `</name ` or `<name/` with no `>` it replays the input's last UTF-16 unit as text: `<p>a</p></div foo` gives
+  markdown "a\n\no" and text "ao"; `a</b 😀` gives a lone surrogate;
+- `<s` and `<t` at the end (script, style and title detection) stay as text: `x<s` gives "xs", while `x<b` gives "x";
+- a hex reference without digits at the end loses the text before it: `<p>hello world &#x` gives "";
+- an open tag cut off by the end is closed without having been opened, so html-markdown.ts closes the wrong
+  frame: `<ul><li>a<b ` gives "- a**", `<p>a<em ` gives "a*".
+Fixed (patches/htmlparser2@8.0.2.patch, a patched dependency like upstream's others): a tag the input ends inside
+is dropped, as the tokenizer already did for most tag states (and as HTML parsing does at end of file); the
+parser no longer closes it; a reference without digits stays text with the text before it ("hello world &#x").
+Found by the Rust opencode-html crate's differential harness.
+Scenarios: tools-webfetch.test.ts "markup cut off at the end of a page" (new)
+Upstream tests: packages/core/test/tool-webfetch.test.ts adds a test
+
+diff --git a/bun.lock b/bun.lock
+index b69fcdb874..310930adf4 100644
+--- a/bun.lock
++++ b/bun.lock
+@@ -996,6 +996,7 @@
+   ],
+   "patchedDependencies": {
+     "@ai-sdk/openai-compatible@2.0.41": "patches/@ai-sdk%2Fopenai-compatible@2.0.41.patch",
++    "htmlparser2@8.0.2": "patches/htmlparser2@8.0.2.patch",
+     "@tanstack/virtual-core@3.17.8": "patches/@tanstack%2Fvirtual-core@3.17.8.patch",
+     "@brendonovich/vite-plugin-opencode@0.1.3": "patches/@brendonovich%2Fvite-plugin-opencode@0.1.3.patch",
+     "electron-updater@6.8.9": "patches/electron-updater@6.8.9.patch",
+diff --git a/package.json b/package.json
+index eeca58c4f0..f673672c5d 100644
+--- a/package.json
++++ b/package.json
+@@ -181,6 +181,7 @@
+     "app-builder-lib@26.15.7": "patches/app-builder-lib@26.15.7.patch",
+     "electron-updater@6.8.9": "patches/electron-updater@6.8.9.patch",
+     "@pierre/trees@1.0.0-beta.6": "patches/@pierre%2Ftrees@1.0.0-beta.6.patch",
+-    "@brendonovich/vite-plugin-opencode@0.1.3": "patches/@brendonovich%2Fvite-plugin-opencode@0.1.3.patch"
++    "@brendonovich/vite-plugin-opencode@0.1.3": "patches/@brendonovich%2Fvite-plugin-opencode@0.1.3.patch",
++    "htmlparser2@8.0.2": "patches/htmlparser2@8.0.2.patch"
+   }
+ }
+diff --git a/packages/core/test/tool-webfetch.test.ts b/packages/core/test/tool-webfetch.test.ts
+index 6c3458dbfd..73558af9ae 100644
+--- a/packages/core/test/tool-webfetch.test.ts
++++ b/packages/core/test/tool-webfetch.test.ts
+@@ -185,6 +185,17 @@ describe("WebFetchTool helpers", () => {
+     expect(first.length).toBeLessThanOrEqual(html.length)
+   })
+ 
++  test("drops a tag the input ends inside and keeps a reference without digits as text", () => {
++    expect(WebFetchTool.convertHTMLToMarkdown("<p>a</p></div foo")).toBe("a")
++    expect(WebFetchTool.extractTextFromHTML("a</b \u{1f600}")).toBe("a")
++    expect(WebFetchTool.convertHTMLToMarkdown("<p>a</p><div/")).toBe("a")
++    expect(WebFetchTool.convertHTMLToMarkdown("x<s")).toBe("x")
++    expect(WebFetchTool.convertHTMLToMarkdown("x<t")).toBe("x")
++    expect(WebFetchTool.convertHTMLToMarkdown("<ul><li>a<b ")).toBe("- a")
++    expect(WebFetchTool.convertHTMLToMarkdown("<p>a<em ")).toBe("a")
++    expect(WebFetchTool.convertHTMLToMarkdown("<p>hello world &#x")).toBe("hello world &#x")
++  })
++
+   test("defaults to the production byte budget with room for closing syntax", () => {
+     const output = WebFetchTool.convertHTMLToMarkdown("x".repeat(WebFetchTool.MAX_RESPONSE_BYTES))
+     expect(WebFetchTool.MAX_RESPONSE_BYTES).toBe(5 * 1024 * 1024)
+diff --git a/patches/htmlparser2@8.0.2.patch b/patches/htmlparser2@8.0.2.patch
+new file mode 100644
+index 0000000000..a8c27584ad
+--- /dev/null
++++ b/patches/htmlparser2@8.0.2.patch
+@@ -0,0 +1,102 @@
++diff --git a/lib/Tokenizer.js b/lib/Tokenizer.js
++--- a/lib/Tokenizer.js
+++++ b/lib/Tokenizer.js
++@@ -889,12 +889,18 @@
++         else if (this.state === State.InNumericEntity &&
++             this.allowLegacyEntity()) {
++             this.emitNumericEntity(false);
++-            // All trailing data will have been consumed
+++            // A reference without digits stays text, and so does the text before it
+++            if (this.sectionStart < endIndex) {
+++                this.cbs.ontext(this.sectionStart, endIndex);
+++            }
++         }
++         else if (this.state === State.InHexEntity &&
++             this.allowLegacyEntity()) {
++             this.emitNumericEntity(false);
++-            // All trailing data will have been consumed
+++            // A reference without digits stays text, and so does the text before it
+++            if (this.sectionStart < endIndex) {
+++                this.cbs.ontext(this.sectionStart, endIndex);
+++            }
++         }
++         else if (this.state === State.InTagName ||
++             this.state === State.BeforeAttributeName ||
++@@ -904,7 +910,11 @@
++             this.state === State.InAttributeValueSq ||
++             this.state === State.InAttributeValueDq ||
++             this.state === State.InAttributeValueNq ||
++-            this.state === State.InClosingTagName) {
+++            this.state === State.InClosingTagName ||
+++            this.state === State.AfterClosingTagName ||
+++            this.state === State.InSelfClosingTag ||
+++            this.state === State.BeforeSpecialS ||
+++            this.state === State.SpecialStartSequence) {
++             /*
++              * If we are currently in an opening or closing tag, us not calling the
++              * respective callback signals that the tag should be ignored.
++diff --git a/lib/esm/Tokenizer.js b/lib/esm/Tokenizer.js
++--- a/lib/esm/Tokenizer.js
+++++ b/lib/esm/Tokenizer.js
++@@ -885,12 +885,18 @@
++         else if (this.state === State.InNumericEntity &&
++             this.allowLegacyEntity()) {
++             this.emitNumericEntity(false);
++-            // All trailing data will have been consumed
+++            // A reference without digits stays text, and so does the text before it
+++            if (this.sectionStart < endIndex) {
+++                this.cbs.ontext(this.sectionStart, endIndex);
+++            }
++         }
++         else if (this.state === State.InHexEntity &&
++             this.allowLegacyEntity()) {
++             this.emitNumericEntity(false);
++-            // All trailing data will have been consumed
+++            // A reference without digits stays text, and so does the text before it
+++            if (this.sectionStart < endIndex) {
+++                this.cbs.ontext(this.sectionStart, endIndex);
+++            }
++         }
++         else if (this.state === State.InTagName ||
++             this.state === State.BeforeAttributeName ||
++@@ -900,7 +906,11 @@
++             this.state === State.InAttributeValueSq ||
++             this.state === State.InAttributeValueDq ||
++             this.state === State.InAttributeValueNq ||
++-            this.state === State.InClosingTagName) {
+++            this.state === State.InClosingTagName ||
+++            this.state === State.AfterClosingTagName ||
+++            this.state === State.InSelfClosingTag ||
+++            this.state === State.BeforeSpecialS ||
+++            this.state === State.SpecialStartSequence) {
++             /*
++              * If we are currently in an opening or closing tag, us not calling the
++              * respective callback signals that the tag should be ignored.
++diff --git a/lib/Parser.js b/lib/Parser.js
++--- a/lib/Parser.js
+++++ b/lib/Parser.js
++@@ -390,6 +390,10 @@
++     /** @internal */
++     Parser.prototype.onend = function () {
++         var _a, _b;
+++        // An open tag the input ended inside was never reported (the tokenizer drops it), so it is not closed either
+++        if (this.tagname && !this.isVoidElement(this.tagname)) {
+++            this.stack.pop();
+++        }
++         if (this.cbs.onclosetag) {
++             // Set the end index for all remaining tags
++             this.endIndex = this.startIndex;
++diff --git a/lib/esm/Parser.js b/lib/esm/Parser.js
++--- a/lib/esm/Parser.js
+++++ b/lib/esm/Parser.js
++@@ -363,6 +363,10 @@
++     /** @internal */
++     onend() {
++         var _a, _b;
+++        // An open tag the input ended inside was never reported (the tokenizer drops it), so it is not closed either
+++        if (this.tagname && !this.isVoidElement(this.tagname)) {
+++            this.stack.pop();
+++        }
++         if (this.cbs.onclosetag) {
++             // Set the end index for all remaining tags
++             this.endIndex = this.startIndex;

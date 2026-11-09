@@ -1,0 +1,55 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:50:35 -0700
+Subject: [PATCH] D115 webfetch: an HTML content type is recognized in any case
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: webfetch.ts converts a page only when its content type includes "text/html", compared case-sensitively,
+while media types are case-insensitive (RFC 9110 §8.3.1) and the same file's mimeFrom lowercases them for the
+textual check. A page served as `Text/HTML` with format markdown or text came back as raw HTML.
+Fixed: the check lowercases the content type first.
+Found by the Rust opencode-html crate's differential harness.
+Scenarios: tools-webfetch.test.ts "markup cut off at the end of a page" (new; its page is served as Text/HTML)
+Upstream tests: packages/core/test/tool-webfetch.test.ts adds a test
+
+diff --git a/packages/core/src/tool/plugin/webfetch.ts b/packages/core/src/tool/plugin/webfetch.ts
+index 56407820fd..d9bb543f54 100644
+--- a/packages/core/src/tool/plugin/webfetch.ts
++++ b/packages/core/src/tool/plugin/webfetch.ts
+@@ -119,7 +119,8 @@ const mimeFrom = (contentType: string) => contentType.split(";", 1)[0]?.trim().t
+ const isImageAttachment = (mime: string) =>
+   mime.startsWith("image/") && mime !== "image/svg+xml" && mime !== "image/vnd.fastbidsheet"
+ const convert = (content: string, contentType: string, format: Format) => {
+-  if (!contentType.includes("text/html")) return content
++  // Media types are case-insensitive (RFC 9110 §8.3.1), as mimeFrom has it.
++  if (!contentType.toLowerCase().includes("text/html")) return content
+   if (format === "markdown") return convertHTMLToMarkdown(content)
+   if (format === "text") return extractTextFromHTML(content)
+   return content
+diff --git a/packages/core/test/tool-webfetch.test.ts b/packages/core/test/tool-webfetch.test.ts
+index b313b8b3b9..b691dd9601 100644
+--- a/packages/core/test/tool-webfetch.test.ts
++++ b/packages/core/test/tool-webfetch.test.ts
+@@ -635,6 +635,20 @@ describe("WebFetchTool registration", () => {
+     }),
+   )
+ 
++  it.effect("converts HTML whatever the case of its content type", () =>
++    Effect.gen(function* () {
++      reset()
++      respond = () =>
++        Effect.succeed(new Response("<h1>Hello</h1><p>world</p>", { headers: { "content-type": "Text/HTML" } }))
++      const registry = yield* Tool.Service
++
++      expect(yield* executeTool(registry, call({ url: "https://1.1.1.1", format: "markdown" }))).toMatchObject({
++        status: "completed",
++        content: [{ type: "text", text: "# Hello\n\nworld" }],
++      })
++    }),
++  )
++
+   it.effect("converts deeply nested HTML without overflowing", () =>
+     Effect.gen(function* () {
+       reset()
