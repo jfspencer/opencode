@@ -464,6 +464,19 @@ for (let k = 0; k < Math.round(20000 * scale); k++) {
   })
 }
 
+// ---- JSC's size limits (nesting deeper than about 37,000 groups is a RangeError from a native stack check, which
+// the port does not reproduce) ------------------------------------------------------------------------------------
+regex("a".repeat(1 << 20), "", ["a"], false)
+regex("a".repeat((1 << 20) + 1), "", [], false)
+regex("*" + "a".repeat(1 << 20), "", [], false)
+regex("(a)".repeat(32768), "", [], false)
+regex("(a)".repeat(32768) + "(?<n>b)", "", [], false)
+regex("(a)".repeat(32769), "", [], false)
+regex("(a)".repeat(32769) + "(", "", [], false)
+regex("(?:".repeat(20000) + "a" + ")".repeat(20000), "", ["a", "b"], false)
+regex("(?=".repeat(5000) + "a" + ")".repeat(5000), "", ["a"], false)
+regex("[".repeat(20000) + "a" + "]".repeat(20000), "v", ["a"], false)
+
 for (const digits of ["4294967295", "4294967296", "9007199254740993", "9223372036854775807", "9223372036854775808",
   "18446744073709551615", "18446744073709551616", "99999999999999999999999"]) {
   for (const pattern of [`a{${digits}}`, `{${digits}}`, `a{${digits},}`, `a{1,${digits}}`, `a{${digits}`, `\\${digits}`, `(a)\\${digits}`])

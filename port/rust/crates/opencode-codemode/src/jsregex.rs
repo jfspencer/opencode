@@ -118,6 +118,8 @@ const FLAGS_MESSAGE: &str = "Invalid flags supplied to RegExp constructor.";
 
 /// Recently compiled patterns: a regex literal evaluated in a loop makes a new RegExp object each time.
 const COMPILE_CACHE_SIZE: usize = 32;
+/// Longer patterns are not kept, so the cache stays small.
+const COMPILE_CACHE_MAX_PATTERN: usize = 1024;
 
 type CacheEntry = (Rc<[u16]>, Flags, Rc<Compiled>);
 
@@ -143,11 +145,13 @@ impl JsRegExp {
             Some(compiled) => compiled,
             None => {
                 let compiled = Rc::new(Self::compile(pattern, parsed_flags)?);
-                COMPILE_CACHE.with(|cache| {
-                    let mut cache = cache.borrow_mut();
-                    cache.insert(0, (Rc::from(pattern), key_flags, compiled.clone()));
-                    cache.truncate(COMPILE_CACHE_SIZE);
-                });
+                if pattern.len() <= COMPILE_CACHE_MAX_PATTERN {
+                    COMPILE_CACHE.with(|cache| {
+                        let mut cache = cache.borrow_mut();
+                        cache.insert(0, (Rc::from(pattern), key_flags, compiled.clone()));
+                        cache.truncate(COMPILE_CACHE_SIZE);
+                    });
+                }
                 compiled
             }
         };

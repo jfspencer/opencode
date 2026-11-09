@@ -207,6 +207,19 @@ fn main() {
             let count = jsregex::match_global(&re, &text).map_or(0, |m| m.len());
             println!("{:>8.1} ms  {count:>8}  /{pattern}/{flags}", started.elapsed().as_secs_f64() * 1000.0);
         }
+        // One long match through a loop with a capture: the backtrack stack grows with the input.
+        let long: Vec<u16> = "ab".repeat(1 << 19).encode_utf16().collect();
+        for pattern in ["(a|b)*", "(?:(a)|b)*", "(ab)*$"] {
+            let re = JsRegExp::new(&units(pattern), &[]).expect("bench pattern");
+            let started = std::time::Instant::now();
+            let end = re.exec(&long).map(|m| m.end());
+            println!("{:>8.1} ms  {end:?}  /{pattern}/ on 1M", started.elapsed().as_secs_f64() * 1000.0);
+        }
+        if let Ok(status) = std::fs::read_to_string("/proc/self/status") {
+            for line in status.lines().filter(|l| l.starts_with("VmHWM")) {
+                println!("{line}");
+            }
+        }
         return;
     }
     let max_reports: usize = args.get(1).and_then(|a| a.parse().ok()).unwrap_or(40);

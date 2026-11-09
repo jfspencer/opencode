@@ -33,6 +33,13 @@ pub const INVALID_CLASS_SET_CHARACTER: &str = "invalid class set character";
 pub const INVALID_MODIFIER: &str = "invalid regular expression modifier";
 pub const PATTERN_TOO_LONG: &str = "pattern exceeds string length limits";
 pub const CLASS_STRING_UNMATCHED: &str = "missing terminating } for class string disjunction";
+pub const TOO_MANY_CAPTURES: &str = "too many captures";
+
+pub const PATTERN_TOO_LARGE: &str = "regular expression too large";
+
+/// JSC's limits on capturing groups and on the pattern's length (checked before anything else).
+const MAX_CAPTURES: u32 = 32768;
+const MAX_PATTERN_LENGTH: usize = 1 << 20;
 
 type Fail = &'static str;
 
@@ -104,6 +111,9 @@ pub struct ParseFlags {
 }
 
 pub fn parse(pattern: &[u16], flags: ParseFlags) -> Result<Parsed, Fail> {
+    if pattern.len() > MAX_PATTERN_LENGTH {
+        return Err(PATTERN_TOO_LARGE);
+    }
     let mut parser = Parser::new(pattern, flags, u32::MAX, true);
     let node = parser.parse_tokens()?;
     // Yarr's handleIllegalReferences: numeric references beyond the group count, `\k` identity escapes in a
@@ -628,7 +638,7 @@ impl<'a> Parser<'a> {
                                 return Err(DUPLICATE_GROUP_NAME);
                             }
                         }
-                        self.num_subpatterns += 1;
+                        self.count_capture()?;
                         let index = self.num_subpatterns;
                         self.names.push((name, index, path));
                         self.open_frame(FrameKind::Capture(index));
@@ -638,11 +648,20 @@ impl<'a> Parser<'a> {
                 _ => self.parse_modifiers()?,
             }
         } else {
-            self.num_subpatterns += 1;
+            self.count_capture()?;
             let index = self.num_subpatterns;
             self.open_frame(FrameKind::Capture(index));
             self.frames.last_mut().unwrap().groups_before = index - 1;
         }
+        Ok(())
+    }
+
+    /// A capturing group opens: JSC refuses the one past its limit right away.
+    fn count_capture(&mut self) -> Result<(), Fail> {
+        if self.num_subpatterns >= MAX_CAPTURES {
+            return Err(TOO_MANY_CAPTURES);
+        }
+        self.num_subpatterns += 1;
         Ok(())
     }
 
