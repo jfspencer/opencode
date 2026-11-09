@@ -7,6 +7,8 @@
 //!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
 //! - [`prompt`]: the composer (component/prompt, prompt/, feature-plugins/prompt); [`startup`]: the launch
 //!   arguments (`--continue`, `--session`, `--fork`, `--prompt`); [`fuzzysort`]: fuzzysort with keys.
+//! - [`ui`]: the dialog framework; [`component`]: the dialogs and the command palette; [`themes`]: `useThemes()`;
+//!   [`model_preference`]: model.json.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -66,6 +68,10 @@
 //! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`. A custom renderable
 //! (`extend({ name: XRenderable })`) is a `Kind` made with `tree::create`; a TextRenderable subclass is
 //! `renderables::text::create_text_with(|text| Box::new(Sub { text, .. }))`, delegating to the inner `TextKind`.
+//! A subclass kind returns its superclass part from `Kind::base_kind`, so `with_kind::<Super, _>` (and the
+//! superclass's setters, e.g. `set_fg` on a `<code>`) reach it. `<markdown>` and `<code>` are
+//! `elements::markdown()` / `elements::code()` with `set_markdown_*` / `set_code_content`, `set_filetype`, ...; the
+//! theme's syntax style is `syntax::current_syntax()`.
 //!
 //! **Keybinds** ([`keymap`], `context/keymap.tsx` over `opencode-tui-input`'s `@opentui/keymap`): a layer is
 //! `keymap::create_layer(move || Layer { mode, enabled, target, priority, commands, bindings, .. })`, re-run in an
@@ -80,6 +86,13 @@
 //! component that binds the same key wins over them, as in TS. The textarea itself then only inserts printable
 //! keys; its edit methods are `el.textarea_action(TextareaAction::..)`, and its `traits` are
 //! `textarea_traits`/`set_textarea_traits`.
+//!
+//! **Dialogs** ([`ui::dialog`], `ui/dialog.tsx`): `ui::dialog::use_dialog()` gives `show(|| component(my_dialog))`,
+//! `replace(view, on_close, key, size)` and `clear()`; a dialog is built from `dialog_layout`/`dialog_header`/
+//! `dialog_footer`, a list is `ui::dialog_select::dialog_select(SelectProps::new(title, options))` (filtering,
+//! groups, actions with keys), a text field `ui::dialog_prompt::dialog_prompt`. Inside a dialog,
+//! `ui::theme::use_theme()` reads the dialog surface (`ThemeContextProvider`). The palette lists every reachable
+//! command with `palette(true)`; [`themes`] is `useThemes()`.
 //!
 //! **The theme** is `tui().theme` (a signal of [`ResolvedTheme`](theme::ResolvedTheme), which derefs to the token
 //! tree: `theme.text.muted`, `theme.background.raised.base`); `util::rgba(color)` converts a token to a renderable
@@ -110,19 +123,32 @@
 //!
 //! Divergences and stand-ins are listed at the top of each module and marked `TODO(port-tui)`.
 pub mod app;
+pub mod border;
 pub mod commands;
+pub mod component;
 pub mod config;
 pub mod config_context;
 pub mod ctx;
 pub mod data;
+pub mod diff_viewer;
+pub mod form;
 pub mod fuzzysort;
 pub mod home;
 pub mod interactivity;
 pub mod keymap;
 pub mod local;
+pub mod model_preference;
+pub mod permission;
 pub mod prompt;
+pub mod reconnecting;
 pub mod session;
+pub mod spinner;
 pub mod startup;
+pub mod subagents;
+pub mod syntax;
 pub mod theme;
+pub mod themes;
 pub mod toast;
+pub mod tools;
+pub mod ui;
 pub mod util;

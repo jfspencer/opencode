@@ -952,8 +952,11 @@ scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
 tui/nav-args.test.ts › args: --continue without any session
+tui/nav-dialogs.test.ts › dialogs: escape closes a dialog opened from another
+tui/nav-dialogs.test.ts › dialogs: status
 tui/nav-exit.test.ts › exit: /exit
 tui/nav-exit.test.ts › exit: /q alias
+tui/nav-exit.test.ts › exit: ctrl+c in a dialog closes the dialog
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
 tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
@@ -970,6 +973,7 @@ tui/nav-home.test.ts › narrow home screen at 30x16
 tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
+tui/nav-keybinds.test.ts › keybinds: shortcuts shown in the palette follow the configuration
 tui/nav-keybinds.test.ts › keybinds: the leader times out
 tui/nav-mention.test.ts › mentions: @ lists skills and subagents, then files once there is a query
 tui/nav-mention.test.ts › mentions: a line range
@@ -977,6 +981,11 @@ tui/nav-mention.test.ts › mentions: an @ in the middle of a word is not a ment
 tui/nav-mention.test.ts › mentions: deleting a mention removes it whole
 tui/nav-mention.test.ts › mentions: subagents
 tui/nav-mention.test.ts › mentions: tab completes a directory
+tui/nav-palette.test.ts › command palette: ctrl+p again while open
+tui/nav-palette.test.ts › command palette: open a setting
+tui/nav-palette.test.ts › command palette: run help
+tui/nav-palette.test.ts › command palette: run switch theme
+tui/nav-palette.test.ts › command palette: the selected command runs on enter
 tui/nav-paste.test.ts › paste: a path that doesn't exist is text
 tui/nav-paste.test.ts › paste: control characters and escape sequences are dropped
 tui/nav-paste.test.ts › paste: full mode inserts large text

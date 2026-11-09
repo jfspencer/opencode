@@ -170,8 +170,21 @@ pub trait Kind: Any {
         Vec::new()
     }
     fn destroy(&mut self, _el: Element) {}
+    /// The superclass part of a kind that extends another (a `CodeRenderable` is a `TextBufferRenderable`):
+    /// [`Element::with_kind`] finds the superclass through it, so its setters work on the subclass.
+    fn base_kind(&mut self) -> Option<&mut dyn Kind> {
+        None
+    }
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+/// `kind` as `K`, or its superclass part ([`Kind::base_kind`]) as `K`.
+fn downcast_chain<K: Kind>(kind: &mut dyn Kind) -> Option<&mut K> {
+    if kind.as_any().is::<K>() {
+        return kind.as_any_mut().downcast_mut::<K>();
+    }
+    kind.base_kind().and_then(downcast_chain::<K>)
 }
 
 /// See [`Kind::child_frame`].
@@ -202,6 +215,8 @@ pub(crate) struct Handlers {
     pub size_change: Option<Rc<dyn Fn()>>,
     pub render_before: Option<PaintHook>,
     pub render_after: Option<PaintHook>,
+    /// `onLifecyclePass` with `renderer.registerLifecyclePass(el)`: runs every frame before layout.
+    pub lifecycle_pass: Option<Rc<dyn Fn()>>,
     /// `on(event, listener)` for named events ("resize", "focused", "blurred", "destroyed", custom ones).
     pub listeners: Vec<(&'static str, u64, Rc<dyn Fn()>)>,
 }
@@ -399,13 +414,13 @@ impl Element {
         })
     }
 
-    /// Runs `f` on the node's kind, downcast to `K`. The kind is taken out of the arena while `f` runs, so `f` may
-    /// use the tree; a nested call on the same node returns None.
+    /// Runs `f` on the node's kind, downcast to `K` (or to its superclass part, see [`Kind::base_kind`]). The kind is
+    /// taken out of the arena while `f` runs, so `f` may use the tree; a nested call on the same node returns None.
     pub fn with_kind<K: Kind, R>(self, f: impl FnOnce(&mut K) -> R) -> Option<R> {
         let mut kind = with_tree(|t| {
             t.slots.get_mut(self.index as usize).filter(|s| s.generation == self.generation).and_then(|s| s.kind.take())
         })?;
-        let result = kind.as_any_mut().downcast_mut::<K>().map(f);
+        let result = downcast_chain::<K>(kind.as_mut()).map(f);
         with_tree(|t| {
             if let Some(slot) = t.slots.get_mut(self.index as usize).filter(|s| s.generation == self.generation) {
                 if slot.kind.is_none() {
@@ -1142,6 +1157,13 @@ impl Element {
         self.with_base_mut(|b| b.handlers.size_change = handler);
     }
 
+    /// `el.onLifecyclePass = hook` with `renderer.registerLifecyclePass(el)` (`None` unregisters): the hook runs
+    /// every frame before layout, in place of the kind's own pass.
+    pub fn set_on_lifecycle_pass(self, hook: Option<Rc<dyn Fn()>>) {
+        self.with_base_mut(|b| b.handlers.lifecycle_pass = hook);
+        request_render();
+    }
+
     pub fn set_render_before(self, hook: Option<PaintHook>) {
         self.with_base_mut(|b| b.handlers.render_before = hook);
         request_render();
@@ -1353,6 +1375,11 @@ const MAX_LAYOUT_ROUNDS: usize = 8;
 pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
     let Some(root) = root() else { return };
     for el in visible_preorder(root) {
+        let hook = el.with_base(|b| b.handlers.lifecycle_pass.clone()).flatten();
+        if let Some(hook) = hook {
+            hook();
+            continue;
+        }
         let needs = el.with_dyn_kind(|k| k.needs_lifecycle_pass()).unwrap_or(false);
         if needs {
             el.with_dyn_kind(|k| k.lifecycle_pass(el));

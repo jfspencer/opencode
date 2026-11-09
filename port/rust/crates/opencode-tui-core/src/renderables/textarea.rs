@@ -18,7 +18,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 
-use opencode_tui_text::{EditBuffer, EditEvent, EditorView, SelectionBehavior, WidthMethod, WrapMode};
+use opencode_tui_text::{EditBuffer, EditEvent, EditorView, SelectionBehavior, WrapMode};
 
 use crate::buffer::OptimizedBuffer;
 use crate::color::RGBA;
@@ -689,7 +689,7 @@ impl Kind for TextareaKind {
 
 /// Creates a `<textarea>` (focusable, word wrapping, a measured height).
 pub fn create_textarea() -> Element {
-    let buffer = EditBuffer::create(WidthMethod::Unicode, &text_context());
+    let buffer = EditBuffer::create(crate::renderer::width_method(), &text_context());
     let view = Rc::new(EditorView::create(&buffer, 0, 0).expect("editor view"));
     view.set_wrap_mode(WrapMode::Word);
     let white = RGBA::from_values(1.0, 1.0, 1.0, 1.0);

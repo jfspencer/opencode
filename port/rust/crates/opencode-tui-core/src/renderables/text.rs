@@ -6,7 +6,7 @@ use std::any::Any;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use opencode_tui_text::{SceneText, SceneTextOptions, StyledChunk, TextContext, WidthMethod};
+use opencode_tui_text::{SceneText, SceneTextOptions, StyledChunk, TextContext};
 pub use opencode_tui_text::{TextAlign, WrapMode};
 
 use crate::buffer::OptimizedBuffer;
@@ -24,16 +24,13 @@ pub struct TextChunk {
     pub link: Option<String>,
 }
 
-thread_local! {
-    static TEXT_CONTEXT: TextContext = TextContext::new();
-}
-
-/// The renderer's text context (links shared by every text buffer).
+/// The renderer's text context: the grapheme and link pools shared by every text buffer and frame buffer
+/// ([`crate::pool::context`]).
 pub fn text_context() -> TextContext {
-    TEXT_CONTEXT.with(|c| c.clone())
+    crate::pool::context()
 }
 
-fn default_options() -> SceneTextOptions {
+pub(crate) fn default_options() -> SceneTextOptions {
     SceneTextOptions {
         fg: RGBA::from_values(1.0, 1.0, 1.0, 1.0).0,
         bg: RGBA::from_values(0.0, 0.0, 0.0, 0.0).0,
@@ -181,7 +178,7 @@ pub fn create_text() -> Element {
 /// does not override and whose `as_any`/`as_any_mut` return the inner [`TextKind`], so every text setter (and
 /// `is::<TextKind>()`) works on the subclass as on a `<text>`.
 pub fn create_text_with(wrap: impl FnOnce(TextKind) -> Box<dyn Kind>) -> Element {
-    let scene = Rc::new(RefCell::new(SceneText::new(WidthMethod::Unicode, &text_context())));
+    let scene = Rc::new(RefCell::new(SceneText::new(crate::renderer::width_method(), &text_context())));
     let options = default_options();
     let measured = scene.clone();
     let el = tree::create(wrap(TextKind { scene, options, dirty: false, manual: false }), "text", false);

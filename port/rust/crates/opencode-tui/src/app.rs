@@ -113,9 +113,13 @@ pub async fn run(input: TuiInput) -> i32 {
             toast: crate::toast::Toasts::new(),
         };
         provide_context(context(), t.clone());
+        crate::themes::install(registry, mode, t.config_context.clone(), t.theme);
         crate::keymap::install(&t);
+        crate::local::install();
+        // DialogProvider: its layer after its children.
+        let dialog = crate::ui::dialog::provide();
         let view = component(app_view);
-        insert(root, view, At::Only);
+        insert(root, View::list([view, crate::ui::dialog::dialog_layer(dialog)]), At::Only);
     });
     tokio::task::spawn_local(data_for_load.load_location_data());
     renderer::request_render();
@@ -159,14 +163,26 @@ fn app_view() -> View {
         switch(
             vec![
                 when(move || route.with(|r| *r == Route::Home), || component(crate::home::home)),
-                when(move || route.with(|r| matches!(r, Route::Session { .. })), || View::Empty),
+                when(move || route.with(|r| matches!(r, Route::Session { .. })), move || {
+                    // --continue starts on a "dummy" placeholder until the latest session is known.
+                    // TODO(port-tui): the tabs slice: `<SessionFrame sessionID verticalTabsWidth>` around the route.
+                    show_keyed(
+                        move || route.with(|r| match r {
+                            Route::Session { session_id } if session_id != "dummy" => Some(session_id.clone()),
+                            _ => None,
+                        }),
+                        |_| component(crate::session::route::session_route),
+                        None,
+                    )
+                }),
             ],
             None,
         ),
         At::Only,
     );
-    // `<Slot path="app" />`: the built-in plugins' app slot (the prompt's /btw).
-    crate::prompt::footer::install_btw();
+    // <Slot path="app" />.
+    insert(column, component(crate::component::app_slot::app_slot), At::End);
+    insert(root, component(crate::reconnecting::reconnecting_overlay), At::End);
     insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
 }

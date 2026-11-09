@@ -15,6 +15,7 @@
 //! previews, cursor styles, and a live config (the paste summary toggle).
 pub mod attachment;
 pub mod autocomplete;
+pub mod composer;
 pub mod draft_stash;
 pub mod footer;
 pub mod frecency;
@@ -571,7 +572,7 @@ impl State {
             return;
         }
         let line_count = pasted.matches('\n').count() + 1;
-        let full = self.t.config.prompt.as_ref().and_then(|p| p.paste.as_deref()) == Some("full");
+        let full = self.t.config_context.data_untracked().prompt.as_ref().and_then(|p| p.paste.as_deref()) == Some("full");
         if (line_count >= 3 || text::js_len(&pasted) > 150) && !full {
             let cursor = self.ta.cursor_offset() as i64;
             let existing = self.ta.extmarks().get_all_for_type_id(self.part_type.get()).into_iter().find(|extmark| {
@@ -706,12 +707,13 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
     });
     // TODO(port-tui): the editor context (pending IDE selections).
     let Some(agent) = s.local.agent_current() else { return false };
-    let Some((provider_id, model_id, variant)) = s.local.model_selection() else {
+    let Some(selection) = s.local.model_selection() else {
         s.prompt_model_warning();
         return false;
     };
+    let (provider_id, model_id, variant) = (selection.provider_id.clone(), selection.model_id.clone(), selection.variant.clone());
     let uses_model = s.session_id.is_none() || mode != Mode::Shell;
-    if uses_model && !s.local.model_available(&provider_id, &model_id) {
+    if uses_model && !s.local.available(Some(&selection.model())) {
         s.toast.show(
             ToastInput::new(Variant::Warning, format!("{provider_id}/{model_id} is not available in this session's location"))
                 .title("Model unavailable"),
@@ -796,7 +798,10 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
         let client = client.clone();
         let target = target.clone();
         let model = model_json.clone();
+        let local = s.local.clone();
+        let (provider_id, model_id, variant, agent_id) = (provider_id.clone(), model_id.clone(), variant.clone(), agent.id.clone());
         move || {
+            let cancel = local.track_session_commit(&target, &provider_id, &model_id, variant.as_deref(), &agent_id);
             let call = client.call_named(
                 "session.switchModel",
                 &obj! { "sessionID" => target.as_str(), "model" => model.clone() },
@@ -804,13 +809,13 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
             );
             async move {
                 call.await.map(|_| ()).map_err(|error| {
+                    cancel();
                     opencode_tui_sync::client::Error::malformed(format!("Failed to switch model: {}", error.message()))
                 })
             }
         }
     };
 
-    // TODO(port-tui): `local.model.trackSessionCommit` (the session's remembered selection).
     if trimmed.is_empty() {
         // Blank enter in an existing session commits the composer's selection, then hands off to the route.
         let result = async {
@@ -1819,8 +1824,12 @@ pub fn prompt(props: PromptProps) -> View {
         let props = metadata::MetadataProps {
             shell: Rc::new(move || s.mode.get() == Mode::Shell),
             agent: Rc::new(move || agent_label.get()),
-            // TODO(port-tui): `local.permission.mode === "autoaccept"` (--auto and the session's permissions).
-            auto: Rc::new(|| false),
+            // `local.permission.mode === "autoaccept"` (context/permission.tsx).
+            auto: {
+                let auto = t.args.auto;
+                let config = t.config_context.clone();
+                Rc::new(move || auto || config.data().session.permissions == "autoaccept")
+            },
             model: Rc::new(move || display.with(|d| d.as_ref().map(|d| d.model.clone()).unwrap_or_default())),
             provider: Rc::new(move || display.with(|d| d.as_ref().map(|d| d.provider.clone()).unwrap_or_default())),
             variant: Rc::new(move || display.with(|d| d.as_ref().and_then(|d| d.variant.clone()))),

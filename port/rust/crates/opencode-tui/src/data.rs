@@ -47,6 +47,7 @@ pub fn object(entries: Vec<(&str, Json)>) -> Json {
 #[derive(Clone, Debug, PartialEq)]
 pub struct AgentInfo {
     pub id: String,
+    pub description: Option<String>,
     pub mode: String,
     pub hidden: bool,
     pub color: Option<String>,
@@ -156,6 +157,7 @@ fn agents_of(list: &Json) -> Vec<AgentInfo> {
         .iter()
         .map(|a| AgentInfo {
             id: get_str(a, "id").unwrap_or_default().to_string(),
+            description: get_str(a, "description").map(str::to_string),
             mode: get_str(a, "mode").unwrap_or("primary").to_string(),
             hidden: matches!(get(a, "hidden"), Some(Json::Bool(true))),
             color: get_str(a, "color").map(str::to_string),
@@ -305,17 +307,8 @@ impl Data {
         let Some(location) = self.directory.get_untracked().map(|d| object(vec![("directory", Json::String(d))])) else {
             return;
         };
-        let loads = [
-            self.store.location.agent.sync(Some(&location)),
-            self.store.location.provider.sync(Some(&location)),
-            self.store.location.model.sync(Some(&location)),
-            self.store.location.config.sync(Some(&location)),
-            // The prompt's slash commands, skills and references (TS: `location.sync` loads every catalog).
-            self.store.location.command.sync(Some(&location)),
-            self.store.location.skill.sync(Some(&location)),
-            self.store.location.reference.sync(Some(&location)),
-            self.store.location.vcs.sync(Some(&location)),
-        ];
+        // context/data.tsx: `Promise.all([data.location.sync(ref), data.location.config.sync(ref)])`.
+        let loads = [self.store.location.sync(Some(&location)), self.store.location.config.sync(Some(&location))];
         for load in loads {
             let _ = load.wait().await;
         }

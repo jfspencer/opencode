@@ -283,11 +283,10 @@ pub fn home() -> View {
             if sent.get() {
                 return;
             }
-            // TODO(port-tui): `local.model.ready` (the model preferences).
-            if !local.catalog_ready() {
+            if !local.model_ready() || !local.catalog_ready() {
                 return;
             }
-            if local.agent_current().is_none() || local.model_selection().is_none() {
+            if local.agent_current().is_none() || local.model_current().is_none() {
                 return;
             }
             let Some(text) = args_prompt.as_deref() else { return };
