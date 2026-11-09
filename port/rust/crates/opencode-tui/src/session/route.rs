@@ -3,9 +3,10 @@
 //! keybindings, and the composer area (prompt, permission and form prompts).
 //!
 //! TODO(port-tui): of Session's providers and features, not here yet: the epilogue (`epilogue.session`), the
-//! location context (`currentLocation`), session tabs (scroll anchors and group disclosure are kept per route
-//! instance), the composer (subagents and terminals), the go-upsell offer on free-limit failures, queued prompts and
-//! their dialog, and the dialogs the commands open (rename, timeline, fork, export) and the clipboard.
+//! location's recovery (`currentLocation.error`, `<SessionLocationMissing>`), session tabs (scroll anchors and group
+//! disclosure are kept per route instance), the composer (subagents and terminals), the go-upsell offer on
+//! free-limit failures, undoing queued prompts, and the dialogs the commands open (timeline, fork, export) and the
+//! clipboard.
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -15,7 +16,7 @@ use opencode_tui_core::elements::{box_, scrollbox, text};
 use opencode_tui_core::layout::Value;
 use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderables::scrollbox::{
-    LinearScrollAccel, MacOSScrollAccel, ScrollAcceleration, ScrollBarOptions, ScrollUnit, StickyStart,
+    ScrollBarOptions, ScrollUnit, StickyStart,
 };
 use opencode_tui_core::renderer;
 use opencode_tui_core::solid::*;
@@ -89,6 +90,7 @@ type Continuations = Rc<RefCell<Vec<Box<dyn FnOnce()>>>>;
 /// The route's state, shared by its handlers (TS keeps these in the component's closure).
 struct State {
     t: crate::ctx::Tui,
+    dialog: crate::ui::dialog::DialogContext,
     session_id: String,
     scroll: Cell<Option<Element>>,
     rows: Rows,
@@ -271,8 +273,9 @@ impl State {
             let away = preserve || this.is_away_from_bottom();
             this.away_from_bottom.set(away);
             if !away {
-                // TODO(port-tui): the renderer's selection (`renderer.getSelection()`).
-                this.hidden_rows.set(None);
+                if opencode_tui_core::selection::get_selection().is_none() {
+                    this.hidden_rows.set(None);
+                }
                 scroll.set_sticky_scroll(true);
             }
             this.save_scroll_anchor(false);
@@ -419,13 +422,15 @@ impl State {
             );
             if let Some(target) = target {
                 this.jump_to_message(target.id);
-                // TODO(port-tui): dialogs: dialog.clear().
+                this.dialog.clear();
                 return;
             }
             if !next && untrack(|| data.store.session.message.more(&this.session_id)) {
                 let me = this.clone();
                 this.history().prepend(0.0, Some(Box::new(move || me.scroll_to_message(next, user_only))));
+                return;
             }
+            this.dialog.clear();
         }));
     }
 
@@ -450,14 +455,17 @@ impl State {
     fn move_transcript(self: &Rc<Self>, delta: f64) {
         self.clear_message_navigation();
         if delta < 0.0 && self.reveal_older_rows(delta) {
+            self.dialog.clear();
             return;
         }
         if delta > 0.0 && self.reveal_newer_rows(delta) {
+            self.dialog.clear();
             return;
         }
         let Some(scroll) = self.scroll() else { return };
         scroll.scroll_by(delta, ScrollUnit::Absolute);
         self.update_away_from_bottom();
+        self.dialog.clear();
     }
 
     /// `session.first`.
@@ -566,23 +574,7 @@ impl State {
         }));
         let start = start.borrow().clone().expect("start");
         self.history().after(Box::new(move || start()));
-    }
-}
-
-/// `getScrollAcceleration(config)` (util/scroll.ts).
-fn scroll_acceleration(config: &crate::config::Resolved) -> Rc<dyn ScrollAcceleration> {
-    struct CustomSpeedScroll(f64);
-    impl ScrollAcceleration for CustomSpeedScroll {
-        fn tick(&self, _now: f64) -> f64 {
-            self.0
-        }
-        fn reset(&self) {}
-    }
-    let _ = LinearScrollAccel;
-    match config.scroll.as_ref() {
-        Some(scroll) if scroll.acceleration == Some(true) => Rc::new(MacOSScrollAccel::new(None, None, None)),
-        Some(scroll) if scroll.speed.is_some() => Rc::new(CustomSpeedScroll(scroll.speed.unwrap_or(3.0))),
-        _ => Rc::new(CustomSpeedScroll(3.0)),
+        self.dialog.clear();
     }
 }
 
@@ -670,8 +662,40 @@ pub fn session(props: SessionProps) -> View {
             None,
         )
     };
-    // TODO(port-tui): `local.permission.mode` ("autoaccept" replies to every request).
-    let prompted_permissions = create_memo_equals(move || permissions.get(), None);
+    // `usePermission().mode` (context/permission.tsx): `--auto`, else the config's `session.permissions`.
+    let autoaccept = {
+        let t = t.clone();
+        create_memo(move || t.args.auto || t.config_context.data().session.permissions == "autoaccept")
+    };
+    let prompted_permissions = create_memo_equals(move || if autoaccept.get() { Vec::new() } else { permissions.get() }, None);
+    {
+        let t = t.clone();
+        let auto_approved: Rc<RefCell<std::collections::HashSet<String>>> = Rc::default();
+        create_effect(move || {
+            if !autoaccept.get() {
+                return;
+            }
+            for request in permissions.get() {
+                let id = request.str("id").unwrap_or_default().to_string();
+                if !auto_approved.borrow_mut().insert(id.clone()) {
+                    continue;
+                }
+                let input = opencode_tui_sync::obj! {
+                    "sessionID" => request.str("sessionID").unwrap_or(""),
+                    "decision" => "once",
+                    "requestID" => id.as_str(),
+                };
+                let promise = untrack(|| t.data.store.session.permission.reply(input));
+                let (auto_approved, toast) = (auto_approved.clone(), t.toast.clone());
+                tokio::task::spawn_local(async move {
+                    if let Err(error) = promise.wait().await {
+                        auto_approved.borrow_mut().remove(&id);
+                        toast.error(error.message());
+                    }
+                });
+            }
+        });
+    }
     let forms = {
         let (data, sid) = (data.clone(), sid.clone());
         create_memo_equals(
@@ -832,6 +856,7 @@ pub fn session(props: SessionProps) -> View {
     let (latest_hovered, set_latest_hovered) = create_signal(false);
     let state = Rc::new(State {
         t: t.clone(),
+        dialog: crate::ui::dialog::use_dialog(),
         session_id: sid.clone(),
         scroll: Cell::new(None),
         rows,
@@ -1005,6 +1030,11 @@ pub fn session(props: SessionProps) -> View {
             }
         });
     }
+    // TODO(port-tui): the prompt slice: the `--prompt` auto-submit effect.
+    {
+        let sid = sid.clone();
+        crate::usage::use_usage_alerts(Rc::new(move || sid.clone()));
+    }
     {
         let st = state.clone();
         let scroll_ref = props.scroll_ref.clone();
@@ -1027,6 +1057,7 @@ pub fn session(props: SessionProps) -> View {
     }
 
     let prompt_ref: Rc<RefCell<Option<PromptRef>>> = Rc::new(RefCell::new(None));
+    let pending = super::pending::Pending::new(t.clone(), sid.clone());
 
     // ---- commands ----
     let global_commands = {
@@ -1053,7 +1084,10 @@ pub fn session(props: SessionProps) -> View {
             let (a, b) = (st.clone(), st.clone());
             vec![
                 Command::new("session.first", move || a.first()).title("First message").group("Session").bind(Bind::Off),
-                Command::new("session.last", move || b.to_bottom()).title("Last message").group("Session").bind(Bind::Off),
+                Command::new("session.last", move || {
+                    b.to_bottom();
+                    b.dialog.clear();
+                }).title("Last message").group("Session").bind(Bind::Off),
             ]
         }
     };
@@ -1062,14 +1096,16 @@ pub fn session(props: SessionProps) -> View {
         let config_state = t.config_context.clone();
         let data = data.clone();
         let sid = sid.clone();
+        let pending = pending.clone();
         move || -> Vec<Command> {
             let toggle = |id: &str, title: String, mutate: Rc<dyn Fn(&mut Json)>| {
-                let (config_state, toast) = (config_state.clone(), st.t.toast.clone());
+                let (config_state, toast, dialog) = (config_state.clone(), st.t.toast.clone(), st.dialog.clone());
                 Command::new(id, move || {
                     let mutate = mutate.clone();
                     if let Err(error) = config_state.update(move |draft| mutate(draft)) {
                         toast.error(error);
                     }
+                    dialog.clear();
                 })
                 .title(title)
                 .group("Session")
@@ -1099,7 +1135,10 @@ pub fn session(props: SessionProps) -> View {
             let (n1, n2, n3, n4) = (st.clone(), st.clone(), st.clone(), st.clone());
             let levels = [Verbosity::Low, Verbosity::Medium, Verbosity::High];
             let next_level = levels[(levels.iter().position(|l| *l == verbosity.get()).unwrap_or(1) + 1) % 3];
-            let session_command = |id: &str, title: &str| Command::new(id, || {}).title(title).group("Session").palette(true).bind(Bind::Off);
+            let session_command = |id: &str, title: &str| {
+                let dialog = st.dialog.clone();
+                Command::new(id, move || dialog.clear()).title(title).group("Session").palette(true).bind(Bind::Off)
+            };
             let call = {
                 let (client, toast) = (st.t.data.client.clone(), st.t.toast.clone());
                 move |name: &'static str, input: Json| {
@@ -1117,7 +1156,8 @@ pub fn session(props: SessionProps) -> View {
                 let call = call.clone();
                 Command::with_input("session.rename", move |input| {
                     let Some(input) = input else {
-                        // TODO(port-tui): the dialogs slice: `DialogSessionRename.show(dialog, sessionID, title)`.
+                        let title = untrack(|| st.t.data.store.session.get(&sid)).and_then(|s| s.str("title").map(str::to_string));
+                        crate::component::dialog_session_rename::show(&st.dialog, &sid, title);
                         return true;
                     };
                     let title = input.trim().to_string();
@@ -1160,6 +1200,7 @@ pub fn session(props: SessionProps) -> View {
                             toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, error.message()));
                         }
                     });
+                    st.dialog.clear();
                 })
                 .title("Compact session")
                 .group("Session")
@@ -1168,9 +1209,17 @@ pub fn session(props: SessionProps) -> View {
                 .slash("compact", &[])
             };
             let redo = {
-                let call = call.clone();
+                let (client, toast, dialog) = (st.t.data.client.clone(), st.t.toast.clone(), st.dialog.clone());
                 let input = sid_json();
-                Command::new("session.redo", move || call("session.revert.clear", input.clone()))
+                Command::new("session.redo", move || {
+                    let (client, toast, dialog, input) = (client.clone(), toast.clone(), dialog.clone(), input.clone());
+                    tokio::task::spawn_local(async move {
+                        if let Err(error) = client.call_named("session.revert.clear", &input, Default::default()).await {
+                            toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, error.message()).duration(5000));
+                        }
+                        dialog.clear();
+                    });
+                })
                     .title("Redo")
                     .group("Session")
                     .palette(true)
@@ -1179,9 +1228,12 @@ pub fn session(props: SessionProps) -> View {
                     .slash("redo", &[])
             };
             let background = {
-                let call = call.clone();
+                let (call, dialog) = (call.clone(), st.dialog.clone());
                 let input = sid_json();
-                Command::new("session.background", move || call("session.background", input.clone()))
+                Command::new("session.background", move || {
+                    call("session.background", input.clone());
+                    dialog.clear();
+                })
                     .title("Background blocking tools")
                     .group("Session")
                     .bind(Bind::Off)
@@ -1194,6 +1246,7 @@ pub fn session(props: SessionProps) -> View {
                     if let Some(id) = parent_id.clone() {
                         st.t.route.set(Route::Session { session_id: id });
                     }
+                    st.dialog.clear();
                 })
                 .title("Go to parent session")
                 .group("Session")
@@ -1201,6 +1254,16 @@ pub fn session(props: SessionProps) -> View {
                 .enabled(enabled)
             };
             let queued = !pending_users.with(|p| p.iter().all(|i| i.str("delivery") != Some("queue")));
+            let queued_list = move || {
+                pending_users.with(|p| {
+                    p.iter()
+                        .filter(|i| i.str("delivery") == Some("queue"))
+                        .map(|i| {
+                            (i.str("id").unwrap_or_default().to_string(), i.get("payload").and_then(|p| p.str("text")).unwrap_or_default().to_string())
+                        })
+                        .collect::<Vec<_>>()
+                })
+            };
             vec![
                 rename,
                 // TODO(port-tui): the dialogs slice: DialogTimeline, DialogFork.
@@ -1232,15 +1295,122 @@ pub fn session(props: SessionProps) -> View {
                 Command::new("session.message.previous", move || n2.scroll_to_message(false, false)).title("Previous message").group("Session").bind(Bind::Off),
                 Command::new("session.message.user.next", move || n3.scroll_to_message(true, true)).title("Next user message").group("Session").bind(Bind::Off),
                 Command::new("session.message.user.previous", move || n4.scroll_to_message(false, true)).title("Previous user message").group("Session").bind(Bind::Off),
-                // TODO(port-tui): the clipboard context and the export dialogs.
-                session_command("messages.copy", "Copy last assistant message").slash("copy", &[]),
-                session_command("session.copy.id", "Copy session ID"),
-                session_command("session.copy", "Copy session transcript"),
+                Command::new("messages.copy", {
+                    let (data, sid, dialog, toast) = (data.clone(), sid.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let messages = untrack(|| data.store.session.message.list(&sid));
+                        // `messagesBeforeRevert()`.
+                        let revert = untrack(|| session.get()).and_then(|s| s.get("revert").and_then(|r| r.str("messageID")).map(str::to_string));
+                        let end = revert.and_then(|id| messages.iter().position(|m| m.str("id") == Some(id.as_str()))).unwrap_or(messages.len());
+                        let last = messages[..end].iter().rev().find(|m| {
+                            m.str("type") == Some("assistant")
+                                || (m.str("type") == Some("compaction")
+                                    && m.str("status") == Some("completed")
+                                    && !m.str("summary").unwrap_or_default().trim().is_empty())
+                        });
+                        let Some(last) = last else {
+                            toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "No assistant messages found"));
+                            dialog.clear();
+                            return;
+                        };
+                        let text = if last.str("type") == Some("assistant") {
+                            last.arr("content")
+                                .map(Vec::as_slice)
+                                .unwrap_or_default()
+                                .iter()
+                                .filter(|part| part.str("type") == Some("text"))
+                                .map(|part| part.str("text").unwrap_or_default())
+                                .collect::<Vec<_>>()
+                                .join("\n")
+                                .trim()
+                                .to_string()
+                        } else {
+                            last.str("summary").unwrap_or_default().trim().to_string()
+                        };
+                        if text.is_empty() {
+                            toast.show(crate::toast::ToastInput::new(
+                                crate::toast::Variant::Error,
+                                "No text content found in last assistant message",
+                            ));
+                            dialog.clear();
+                            return;
+                        }
+                        let toast = toast.clone();
+                        tokio::task::spawn_local(async move {
+                            match crate::selection::write_clipboard(&text).await {
+                                Ok(()) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Success, "Message copied to clipboard!")),
+                                Err(_) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy to clipboard")),
+                            }
+                        });
+                        dialog.clear();
+                    }
+                })
+                .title("Copy last assistant message")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off)
+                .slash("copy", &[]),
+                Command::new("session.copy.id", {
+                    let (sid, dialog, toast) = (sid.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let (sid, toast) = (sid.clone(), toast.clone());
+                        tokio::task::spawn_local(async move {
+                            match crate::selection::write_clipboard(&sid).await {
+                                Ok(()) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Success, "Session ID copied to clipboard!")),
+                                Err(_) => toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy session ID")),
+                            }
+                        });
+                        dialog.clear();
+                    }
+                })
+                .title("Copy session ID")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off),
+                Command::new("session.copy", {
+                    let (client, dialog, toast) = (data.client.clone(), st.dialog.clone(), st.t.toast.clone());
+                    move || {
+                        let Some(info) = untrack(|| session.get()) else { return };
+                        let (client, dialog, toast) = (client.clone(), dialog.clone(), toast.clone());
+                        tokio::task::spawn_local(async move {
+                            let input = opencode_tui_sync::obj! { "sessionID" => info.str("id").unwrap_or_default() };
+                            let copied = match client.call_named("experimental.session.export", &input, Default::default()).await {
+                                Ok(response) => {
+                                    let transcript = response.json();
+                                    let messages = transcript.arr("messages").cloned().unwrap_or_default();
+                                    let content = super::transcript::format_session_transcript(
+                                        transcript.get("info").unwrap_or(&Json::Null),
+                                        &messages,
+                                        true,
+                                        true,
+                                    );
+                                    crate::selection::write_clipboard(&content).await.is_ok()
+                                }
+                                Err(_) => false,
+                            };
+                            toast.show(if copied {
+                                crate::toast::ToastInput::new(crate::toast::Variant::Success, "Session transcript copied to clipboard!")
+                            } else {
+                                crate::toast::ToastInput::new(crate::toast::Variant::Error, "Failed to copy session transcript")
+                            });
+                            dialog.clear();
+                        });
+                    }
+                })
+                .title("Copy session transcript")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off),
+                // TODO(port-tui): DialogExportOptions and DialogExportResult (ui/dialog-export-*.tsx).
                 session_command("session.export", "Export session transcript").slash("export", &[]),
                 background,
                 // TODO(port-tui): the prompt slice's composer (subagent picker) and the queued prompts dialog.
                 session_command("session.child.first", "Toggle subagent picker"),
-                Command::new("session.queued_prompts", || {}).title("View queued prompts").group("Prompt").palette(true).bind(Bind::Off).enabled(queued),
+                Command::new("session.queued_prompts", {
+                    let (pending, dialog) = (pending.clone(), st.dialog.clone());
+                    move || pending.open_queued(&dialog, Rc::new(queued_list))
+                })
+                .title("View queued prompts").group("Prompt").palette(true).bind(Bind::Off).enabled(queued),
                 parent,
             ]
         }
@@ -1353,10 +1523,15 @@ pub fn session(props: SessionProps) -> View {
             let config = t.config_context.clone();
             Rc::new(move || config.data())
         },
-        mutate_pending: Rc::new(|_action: PendingAction, _id: &str| {
-            // TODO(port-tui): `session.inbox.update` / `cancel` through the client, and their toasts.
-            opencode_tui_sync::runtime::Deferred::resolved(false)
-        }),
+        mutate_pending: {
+            let pending = pending.clone();
+            Rc::new(move |action: PendingAction, id: &str| pending.mutate(action, id))
+        },
+        open_pending_steer: {
+            let (pending, dialog) = (pending.clone(), state.dialog.clone());
+            let render_filter = !t.config.new_designs();
+            Rc::new(move |id: String| pending.open_steer(&dialog, id, render_filter))
+        },
         pending_delivery: Rc::new(move |id: &str| pending_deliveries.with(|list| list.iter().find(|(i, _)| i == id).map(|(_, d)| d.clone()))),
     };
     let mut view = View::Empty;
@@ -1421,7 +1596,7 @@ pub fn session(props: SessionProps) -> View {
                 }
                 scroll.set_sticky_start(Some(StickyStart::Bottom));
                 scroll.set_flex_grow(Some(1.0));
-                bind_always(move || scroll_acceleration(&tui().config_context.data()), move |a| scroll.set_scroll_acceleration(a));
+                bind_always(move || crate::ui::scroll::scroll_acceleration(&tui().config_context.data()), move |a| scroll.set_scroll_acceleration(a));
                 {
                     let st = st.clone();
                     scroll.set_on_mouse(
@@ -1551,6 +1726,7 @@ pub fn session(props: SessionProps) -> View {
                 let muted_for = muted_for.clone();
                 let sid = st_view.session_id.clone();
                 // `<Show when={!composer.open && !disabled() && queuedPrompts().length > 0}><QueuedPromptDock/>`.
+                let (pending_for_dock, st_dock) = (pending.clone(), st_view.clone());
                 let queued_prompts = move || {
                     pending_users.with(|p| {
                         p.iter()
@@ -1568,7 +1744,11 @@ pub fn session(props: SessionProps) -> View {
                         move || !disabled.get() && !queued_prompts().is_empty(),
                         move || {
                             // TODO(port-tui): the dialogs slice: the queued prompts DialogSelect (`openQueuedPrompts`).
-                            super::extras::queued_prompt_dock(Rc::new(queued_prompts), Rc::new(|| {}))
+                            let (pending, dialog) = (pending_for_dock.clone(), st_dock.dialog.clone());
+                            super::extras::queued_prompt_dock(
+                                Rc::new(queued_prompts),
+                                Rc::new(move || pending.open_queued(&dialog, Rc::new(queued_prompts))),
+                            )
                         },
                         None,
                     ),
@@ -1596,6 +1776,29 @@ pub fn session(props: SessionProps) -> View {
                                     None,
                                 )
                             }),
+                            when(
+                                {
+                                    let current_location = current_location.clone();
+                                    move || {
+                                        let error = current_location.error();
+                                        super::location_missing::location_missing(
+                                            error.as_ref().map(|e| &e.location),
+                                            session.get().as_deref(),
+                                        )
+                                    }
+                                },
+                                {
+                                    let sid = sid.clone();
+                                    move || {
+                                        let Some(info) = untrack(|| session.get()) else { return View::Empty };
+                                        super::location_missing::session_location_missing(
+                                            info.get("location").and_then(|l| l.str("directory")).unwrap_or_default().to_string(),
+                                            info.str("projectID").unwrap_or_default().to_string(),
+                                            sid.clone(),
+                                        )
+                                    }
+                                },
+                            ),
                             when(move || !disabled.get(), move || {
                                 let prompt_for = prompt_for.clone();
                                 let muted = muted_for.clone();
@@ -1644,7 +1847,7 @@ pub fn session(props: SessionProps) -> View {
                         ],
                         None,
                     ),
-                    At::Only,
+                    At::End,
                 );
                 View::list([View::Node(holder), View::Node(jump_row), View::Node(composer)])
             },

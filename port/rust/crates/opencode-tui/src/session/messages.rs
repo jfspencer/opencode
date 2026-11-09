@@ -168,7 +168,21 @@ pub fn user_message(message: Message) -> View {
             insert_node(outer, inner, None);
             inner.set_on_mouse(Some(MouseEventType::Over), Some(Rc::new(move |_| set_hover.set(true))));
             inner.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| set_hover.set(false))));
-            // TODO(port-tui): the dialogs slice: the pending-steer DialogSelect and DialogMessage on mouse up.
+            {
+                let (ctx, message) = (ctx.clone(), message.clone());
+                inner.set_on_mouse(
+                    Some(MouseEventType::Up),
+                    Some(Rc::new(move |_| {
+                        if super::render_context::has_selected_text() {
+                            return;
+                        }
+                        if untrack(|| delivery.get()).as_deref() == Some("steer") {
+                            (ctx.open_pending_steer)(str_of(&untrack(|| message()), "id"));
+                        }
+                        // TODO(port-tui): the dialogs slice: `<DialogMessage messageID sessionID>` otherwise.
+                    })),
+                );
+            }
             inner.set_padding(Edge::Top, Some(Value::Point(1.0)));
             inner.set_padding(Edge::Bottom, Some(Value::Point(1.0)));
             inner.set_padding(Edge::Left, Some(Value::Point(2.0)));
@@ -216,13 +230,7 @@ fn chips(items: Memo<Vec<Json>>, skill: bool) -> View {
                         let label = span();
                         insert_node(chip, label, None);
                         bind_always(
-                            move || {
-                                theme.with(|th| {
-                                    let light = tui().theme.with(|_| false);
-                                    let _ = light;
-                                    (rgba(th.hue.accent[200]), rgba(th.background.raised.base))
-                                })
-                            },
+                            move || theme.with(|th| (rgba(th.hue.accent[200]), rgba(th.background.raised.base))),
                             move |(bg, fg)| label.set_span_style(Some(fg), Some(bg), text_attributes::BOLD, text_attributes::BOLD),
                         );
                         let name = span();
@@ -326,6 +334,7 @@ pub fn assistant_footer(message: Message) -> View {
         let message = message.clone();
         create_memo(move || message().get("retry").is_some())
     };
+    let limit_notice = crate::usage::use_limit_notice(message.clone());
     let m = message.clone();
     let error_view = show(
         move || has_error.get() && !interrupted.get() && !has_retry.get(),
@@ -335,7 +344,9 @@ pub fn assistant_footer(message: Message) -> View {
             switch(
                 vec![
                     when(move || free_limit.get(), move || free_limit_notice(m.clone())),
-                    // TODO(port-tui): `useLimitNotice` / `<UsageLimitNotice>` (component/usage.tsx) for go limits.
+                    when(move || limit_notice.with(Option::is_some), move || {
+                        crate::usage::usage_limit_notice(Rc::new(move || limit_notice.get()))
+                    }),
                 ],
                 Some(Rc::new(move || {
                     let wrap = padded(3.0);
@@ -516,13 +527,58 @@ fn assistant_retry(retry: Rc<dyn Fn() -> Option<Json>>) -> View {
 }
 
 /// `<FreeLimitNotice message>`.
+/// `Locale.time(at)`: `toLocaleTimeString(undefined, { timeStyle: "short" })` in en-US as Bun writes it ("3:05 PM",
+/// a plain space before the period).
+fn locale_time(at: f64) -> Option<String> {
+    let date = crate::usage_limits::local_time(at)?;
+    let hour = match date.hours % 12 {
+        0 => 12,
+        h => h,
+    };
+    Some(format!("{hour}:{:02} {}", date.minutes, if date.hours < 12 { "AM" } else { "PM" }))
+}
+
+/// `Locale.datetime(at)`: the time, then `toLocaleDateString()` in en-US ("1/5/2026").
+fn locale_datetime(at: f64) -> Option<String> {
+    let date = crate::usage_limits::local_time(at)?;
+    Some(format!("{} · {}/{}/{}", locale_time(at)?, date.month + 1, date.day, date.year))
+}
+
+/// `freeLimitReset(delay, base)`: when the free allowance resets, as a time today or a date and time.
+pub(crate) fn free_limit_reset(delay: Option<f64>, base: f64) -> Option<String> {
+    let delay = delay?;
+    if !delay.is_finite() || delay < 0.0 || delay > 7.0 * 86_400_000.0 || !base.is_finite() {
+        return None;
+    }
+    let at = base + delay;
+    let date = crate::usage_limits::local_time(at)?;
+    let now = crate::usage_limits::now_ms();
+    let today = crate::usage_limits::local_time(now)?;
+    if (date.year, date.month, date.day) == (today.year, today.month, today.day) && at - now < 86_400_000.0 {
+        locale_time(at)
+    } else {
+        locale_datetime(at)
+    }
+}
+
 fn free_limit_notice(message: Message) -> View {
     let theme = tui().theme;
     let column = padded(3.0);
     column.set_flex_direction(FlexDirection::Column);
-    // TODO(port-tui): `freeLimitReset` with the locale's time and date formats.
-    let _ = message;
-    insert_node(column, muted_text(|| "You've used today's free messages.".to_string()), None);
+    let reset = create_memo(move || {
+        let m = message();
+        let time = m.get("time");
+        let base = time.and_then(|t| t.num("completed")).or_else(|| time.and_then(|t| t.num("created"))).unwrap_or(f64::NAN);
+        free_limit_reset(m.get("error").and_then(|e| e.num("retryAfterMs")), base)
+    });
+    insert_node(
+        column,
+        muted_text(move || {
+            let reset = reset.get().map(|r| format!(" They reset at {r}.")).unwrap_or_default();
+            format!("You've used today's free messages.{reset}")
+        }),
+        None,
+    );
     let second = text();
     insert_node(column, second, None);
     bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| second.set_fg(Some(c)));
@@ -689,6 +745,9 @@ fn notice_message(message: Message) -> View {
                 wrap.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| set_hover.set(false))));
                 let c2 = child_id.clone();
                 wrap.set_on_mouse(Some(MouseEventType::Up), Some(Rc::new(move |_| {
+                    if super::render_context::has_selected_text() {
+                        return;
+                    }
                     if let Some(id) = c2() {
                         route.set(crate::ctx::Route::Session { session_id: id });
                     }

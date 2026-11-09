@@ -86,6 +86,8 @@ pub struct RenderCtx {
     pub config: Rc<dyn Fn() -> Rc<crate::config::Resolved>>,
     pub mutate_pending: Rc<dyn Fn(PendingAction, &str) -> opencode_tui_sync::runtime::Deferred<bool>>,
     pub pending_delivery: Rc<dyn Fn(&str) -> Option<String>>,
+    /// Opens the pending-steer dialog of a user message (move to queue, delete).
+    pub open_pending_steer: Rc<dyn Fn(String)>,
 }
 
 thread_local! {
@@ -99,4 +101,10 @@ pub fn context() -> Context<RenderCtx> {
 /// `use()`.
 pub fn use_ctx() -> RenderCtx {
     use_context(context()).expect("useContext must be used within a Session component")
+}
+
+/// `renderer.getSelection()?.getSelectedText()` is not empty: the release that ends a selection does not act as a
+/// click.
+pub fn has_selected_text() -> bool {
+    opencode_tui_core::selection::get_selection().is_some_and(|s| !s.selected_text().is_empty())
 }

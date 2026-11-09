@@ -12,6 +12,7 @@
 //! | [`anchors`] | `anchors.ts`, `anchor-view.tsx` |
 //! | [`mount_budget`], [`message_navigation`], [`history`] | `mount-budget.ts`, `message-navigation.ts`, `history.ts` |
 //! | [`render_context`] | `render-context.tsx` |
+//! | [`location_missing`] | `location-missing.tsx` |
 //!
 //! TODO(port-tui): the prompt slice: creating the session (with `--session`'s new ID), selecting its model and
 //! agent, and sending the prompt from home.
@@ -23,14 +24,17 @@ pub mod extras;
 pub mod group_view;
 pub mod grouping;
 pub mod history;
+pub mod location_missing;
 pub mod message_navigation;
 pub mod message_parts;
 pub mod messages;
 pub mod mount_budget;
 pub mod parts;
+pub mod pending;
 pub mod render_context;
 pub mod route;
 pub mod rows;
+pub mod transcript;
 
 pub fn submit_from_home(t: &Tui, value: String) {
     let trimmed = value.trim();
