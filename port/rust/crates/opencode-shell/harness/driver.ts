@@ -20,16 +20,19 @@ import {
   escapeTargeted,
   labelTargeted,
   large,
+  memberTargeted,
   nested,
   pathText,
   pick,
   powerShellCommandLine,
   random,
   shellCommand,
+  sinkTargeted,
   wildcardPair,
   zshTargeted,
   type Random,
 } from "./generate"
+import { captureCases } from "./capture"
 
 const args = process.argv.slice(2)
 const option = (name: string) => {
@@ -168,10 +171,11 @@ function generated() {
   for (let i = 0; i < casesPerFamily / 4; i++) {
     addCommand(nested(rand, false), rand)
     add({ fn: "scanPowerShell", input: nested(rand, true) })
-    for (const command of [zshTargeted(rand), escapeTargeted(rand)]) addCommand(command, rand)
-    const label = labelTargeted(rand)
-    add({ fn: "scanPowerShell", input: label })
-    add({ fn: "parse", command: label, shell: "/usr/bin/pwsh", cwd: "/workspace" })
+    for (const command of [zshTargeted(rand), escapeTargeted(rand), sinkTargeted(rand)]) addCommand(command, rand)
+    for (const command of [labelTargeted(rand), memberTargeted(rand)]) {
+      add({ fn: "scanPowerShell", input: command })
+      add({ fn: "parse", command, shell: "/usr/bin/pwsh", cwd: "/workspace" })
+    }
   }
   for (let i = 0; i < Math.min(60, casesPerFamily / 50); i++) {
     const text = large(rand)
@@ -230,6 +234,14 @@ const recorded = args.includes("--no-upstream") ? 0 : recordUpstream()
 const fromScenarios = scenarioCommands()
 const beforeGenerated = cases.length
 generated()
+// Shell.result's capture has no pure TS function: the TS Shell service answers these (capture.ts).
+const precomputed = new Map<Case, string>()
+if (!only || only === "capture") {
+  for (const item of await captureCases(core, out, random(seed + 1), Math.max(30, casesPerFamily / 20))) {
+    cases.push(item.case as Case)
+    precomputed.set(item.case as Case, item.answer)
+  }
+}
 console.log(`corpus: ${recorded} recorded upstream inputs, ${fromScenarios} scenario commands (goldens and sources), ${cases.length - beforeGenerated} generated cases; ${cases.length} cases in all`)
 
 // The TS answers, in the canonical form the Rust harness writes.
@@ -255,6 +267,8 @@ function canonicalScan(result: any) {
 }
 
 function expected(value: Case): string {
+  const answer = precomputed.get(value)
+  if (answer !== undefined) return answer
   switch (value.fn) {
     case "scan":
       return canonicalScan(ShellScan.scan(value.input, value.dialect))

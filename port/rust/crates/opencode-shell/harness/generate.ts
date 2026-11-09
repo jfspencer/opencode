@@ -136,7 +136,7 @@ function compound(rand: Random, depth: number): string {
   const body = () => list(rand, depth + 1)
   switch (int(rand, 14)) {
     case 0: return `if ${body()}; then ${body()}; ${chance(rand, 0.3) ? `else ${body()}; ` : ""}fi`
-    case 1: return `for ${pick(rand, VARIABLES)} in ${shellWord(rand, depth)} ${shellWord(rand, depth)}; do ${body()}; done`
+    case 1: return `for ${pick(rand, [...VARIABLES, "in", "do", ""])}${pick(rand, [" ", "\n", "; ", " \\\n", "\n\n"])}${pick(rand, ["in", "in", "do", ""])} ${shellWord(rand, depth)} ${shellWord(rand, depth)}${pick(rand, ["; ", "\n"])}do ${body()}; done`
     case 2: return `while ${body()}; do ${body()}; done`
     case 3: return `until ${body()}; do ${body()}; done`
     case 4: return `case ${shellWord(rand, depth)} in ${pick(rand, ["a", "(a|b)", "*", "a)"])}) ${body()};; ${pick(rand, ["", "b) x;&", "*) y;;&"])} esac`
@@ -208,7 +208,8 @@ export function powerShellWord(rand: Random, depth = 0): string {
   if (n < 0.5) return `"${pick(rand, ["a", "$x", "`$x", "a`tb", '""', "$(Get-Date)", "${x}", "`u{1F600}", "`u{d800}", "`u{110000}", "`", "$($x.y)", "a`\nb"])}"`
   if (n < 0.58) return pick(rand, ["$x", "$x.Prop", "$x.Method()", "$x[0]", "$_", "$?", "$$", "$^", "$x::y", "${x}.y", "$x?.y", "$x..y", "$:x"])
   if (n < 0.66 && depth < 3) return `${pick(rand, ["$(", "@(", "(", "{", "@{", "["])}${powerShellList(rand, depth + 1)}${pick(rand, [")", ")", ")", "}", "}", "]"])}`
-  if (n < 0.7) return `@${pick(rand, ["'", '"'])}\n${pick(rand, ["body", "$x", "$(id)", "a'@b"])}\n${pick(rand, ["'", '"'])}@`
+  if (n < 0.7)
+    return `@${pick(rand, ["'", '"'])}${pick(rand, ["", "", " ", "x", "\t", " x"])}${pick(rand, ["\n", "\r\n", "\r", ""])}${pick(rand, ["body", "$x", "$(id)", "a'@b", "`$x", "${x}"])}${pick(rand, ["\n", "\r\n", "\r"])}${pick(rand, ["'", '"'])}@`
   if (n < 0.76) return pick(rand, ["[int]", "[System.IO.Path]::GetTempPath()", "[string]$x", "[Type]::new()", "[x]::y"])
   if (n < 0.82) return `\`${pick(rand, ODD)}`
   if (n < 0.86) return pick(rand, ["<# c #>", "# c", "#", "<#"])
@@ -317,6 +318,44 @@ export function escapeTargeted(rand: Random): string {
   const sink = pick(rand, [`echo $((${name}))`, `echo \${arr[$${name}]}`, `printf -v ${name} '%s' y`, `eval "$${name}"`, `let ${name}`, `[[ $${name} -eq 1 ]]`, `declare -n r=${name}`, `read ${name}`, `echo \${!${name}}`, `test -v ${name}`, `echo ${name}`, `(( ${name} ))`])
   const assign = pick(rand, [`${name}=${value}`, `export ${name}=${value}`, `declare ${name}=${value}`, `read ${name} <<< ${value}`, `for ${name} in ${value}; do :; done`, `${name}=(${value})`, `local ${name}=$(printf ${value})`])
   return `${assign}${pick(rand, ["; ", "\n", " && "])}${sink}`
+}
+
+// Bound values that reach a sink only through a construct no word records: parameters in heredoc bodies and
+// conditionals, Zsh flag groups, line continuations inside arrays and conditionals.
+export function sinkTargeted(rand: Random): string {
+  const bound = pick(rand, ["x='$(a)[1]'", "x='`a`'", "y=$(printf '\\x5b')", "a=('$(b)')", "read v <<< '{a}[1]'", ""])
+  const use = pick(rand, [
+    "cat <<E\n${PS4}\nE\n",
+    "cat <<E\n${PS4:-x}\nE\n",
+    "[[ ${PS4} ]]",
+    "(( ${PS4} ))",
+    "echo ${(s:P:)y}",
+    "echo ${(j:P:)y}",
+    "echo ${(sxPx)y}",
+    "echo ${(P)y}",
+    "echo ${(s:a:P)y}",
+    "arr=(a \\\nb)",
+    "arr=(a\\\n b)",
+    "[[ a \\\n== b ]]",
+    "[[ a ==\\\n b ]]",
+    "[[ a \\\n]]",
+    "[[ a\\\n ]]",
+    "[[ -v a \\\n]] && b",
+    "[[ a \\b\n]]",
+    "[[ ( a \\\n) ]]",
+    "[[ a \\\n# c\n]]",
+    "ls @(a\\\nb)",
+    "case x in (a\\\n)) y;; esac",
+  ])
+  return `${bound}${bound ? pick(rand, ["; ", "\n"]) : ""}${use}`
+}
+
+export function memberTargeted(rand: Random): string {
+  return `${pick(rand, ["Write-Output ", "", "$r = ", "& "])}${pick(rand, [
+    "[int][string]$x", "$a[0][1]", "[T][U]::x", "$x[0][1].y", "[a]x[b]", "$a[1] [2]", "$x.a:b", "$x.a:b()", "$x.a.b:c()",
+    "$x.y-:z", "$x.a::b()", "$x::a.b()", "[T]::a.b()", "$x?.a()", "$x.a?.b()", "$x.a..b", "$x. a()", "${x}.a()",
+    "$x.a:b:c", "@{a=1}.a()", "(1).a()", "$x.'a'()", '$x."a"()', "$x.a`b()",
+  ])}${pick(rand, ["", " | Out-Null", "; y", " # c"])}`
 }
 
 export function labelTargeted(rand: Random): string {

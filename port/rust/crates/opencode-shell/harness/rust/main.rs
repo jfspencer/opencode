@@ -172,6 +172,16 @@ fn state(value: &str) -> NotificationState {
     }
 }
 
+fn bytes(case: &Value, key: &str) -> Vec<u8> {
+    case.array(key)
+        .iter()
+        .map(|b| match b {
+            Value::Number(n) => *n as u8,
+            _ => panic!("a byte"),
+        })
+        .collect()
+}
+
 fn answer(case: &Value, host: &HarnessHost) -> String {
     let function = case.text("fn");
     match function.as_str() {
@@ -266,18 +276,9 @@ fn answer(case: &Value, host: &HarnessHost) -> String {
                 capture(case).as_ref(),
             ))
         }
-        "utf8" => {
-            let bytes: Vec<u8> = case.array("bytes").iter().map(|b| match b {
-                Value::Number(n) => *n as u8,
-                _ => panic!("a byte"),
-            }).collect();
-            text(&String::from_utf8_lossy(&bytes))
-        }
+        "utf8" => text(&String::from_utf8_lossy(&bytes(case, "bytes"))),
         "capture" => {
-            let bytes: Vec<u8> = case.array("tail").iter().map(|b| match b {
-                Value::Number(n) => *n as u8,
-                _ => panic!("a byte"),
-            }).collect();
+            let bytes = bytes(case, "tail");
             let c = result::capture(
                 &bytes,
                 case.num("size") as u64,
@@ -287,6 +288,21 @@ fn answer(case: &Value, host: &HarnessHost) -> String {
                 &case.text("file"),
             );
             object(&[("output", Some(text(&c.output))), ("truncated", Some(c.truncated.to_string()))])
+        }
+        "page" => {
+            let bytes = bytes(case, "bytes");
+            let page = result::page(
+                case.num("size") as u64,
+                case.opt_num("cursor").map(|n| n as u64),
+                case.opt_num("limit").map(|n| n as u64),
+                |start, length| bytes.iter().skip(start as usize).take(length as usize).copied().collect(),
+            );
+            object(&[
+                ("output", Some(text(&page.output))),
+                ("cursor", Some(page.cursor.to_string())),
+                ("size", Some(page.size.to_string())),
+                ("truncated", Some(page.truncated.to_string())),
+            ])
         }
         other => panic!("unknown function {other}"),
     }

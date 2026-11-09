@@ -50,6 +50,44 @@ pub struct Metadata {
 /// Text of `ShellResult.unavailable`, the output of a shell whose capture is gone.
 pub const UNAVAILABLE: &str = "Shell command output is no longer available.";
 
+/// `Shell.Output`: one page of a command's output file.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Page {
+    pub output: String,
+    pub cursor: u64,
+    pub size: u64,
+    pub truncated: bool,
+}
+
+/// `ShellResult.unavailable`: the page a session gets for a shell whose output is gone.
+pub fn unavailable() -> Page {
+    let size = UNAVAILABLE.len() as u64;
+    Page { output: UNAVAILABLE.into(), cursor: size, size, truncated: false }
+}
+
+/// The page size `Shell.output` reads when the request names none.
+pub const DEFAULT_PAGE_LIMIT: u64 = 65536;
+
+/// `Shell.output(id, { cursor, limit })` over an output file of `size` bytes; `read(start, length)` returns the
+/// bytes the file holds there (fewer when it is shorter, none on a read error).
+pub fn page(size: u64, cursor: Option<u64>, limit: Option<u64>, read: impl FnOnce(u64, u64) -> Vec<u8>) -> Page {
+    let cursor = cursor.unwrap_or(0);
+    let limit = limit.unwrap_or(DEFAULT_PAGE_LIMIT);
+    // An empty page reads nothing; a zero-length read stream would be out of range.
+    if cursor >= size || limit == 0 {
+        return Page { output: String::new(), cursor: cursor.min(size), size, truncated: false };
+    }
+    let length = limit.min(size - cursor);
+    let mut bytes = read(cursor, length);
+    bytes.truncate(length as usize);
+    Page {
+        output: String::from_utf8_lossy(&bytes).into_owned(),
+        cursor: cursor + bytes.len() as u64,
+        size,
+        truncated: false,
+    }
+}
+
 /// `Shell.result`'s capture: `tail` is the last `min(max_bytes, size)` bytes of the output file (what
 /// `output(id, { cursor: size - maxBytes, limit: maxBytes })` reads), `size` its length, `newlines` the newlines
 /// counted while it streamed, `file` its path. `max_lines` and `max_bytes` are the `tool_output` limits

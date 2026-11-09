@@ -96,9 +96,20 @@ The TS side runs with this process's home, user and environment; the harness pas
   `Buffer#toString("utf8")` byte sequence by byte sequence, but `capture` itself has no exported TS counterpart, so
   its arithmetic is checked by the conformance scenarios that truncate output (`shell-tool`), not here.
 
-## TS defects reproduced (to be fixed upstream by a deviation patch)
+## TS defects reproduced (to be fixed in the reference by a deviation patch)
 
-- PowerShell `$env:NAME` reads `process.env[NAME]` with a plain property access, so an `Object.prototype` member
-  is "set": `cd $env:toString` under pwsh records the directory `function toString() { [native code] }`
-  (`$env:__proto__` gives `[object Object]`, `$env:constructor` `function Object() { [native code] }`). The port
-  matches it (`parse.rs`, `environment`).
+The port matches TS in each case; each needs the deviation patch, then the port follows the fixed behavior.
+
+- **Quoted wrapper names escape the wrapper rule** (`bashPrefix`, parse.ts). The wrapper table is looked up by
+  the *raw* word, so `'sudo' ls` (or `\sudo ls`, `"sudo" ls`, `s''udo ls`) saves `'sudo' *`, which matches
+  `'sudo' rm -rf /`. Unquoted, `sudo ls` saves `sudo ls *`, as the comment on `WRAPPERS` intends.
+- **Quoted command names escape the arity table** (`prefix`, same cause): `'git' status` saves `'git' *`, which
+  matches `'git' push --force`; `git status` saves `git status *`.
+- **A quoted `cd` escapes directory tracking** (`unwrapDirectoryCommand`, same cause): `'cd' /tmp && touch x`
+  reports no directories, so no `external_directory` access is asked, while `cd /tmp && touch x` reports `/tmp`.
+  (`c\d /tmp` likewise.)
+- **`$env:<Object.prototype member>`** (`environment`, parse.ts): PowerShell `$env:NAME` reads `process.env[NAME]`
+  with a plain property access, so `cd $env:toString` under pwsh reports the directory
+  `function toString() { [native code] }` (`$env:__proto__` gives `[object Object]`, `$env:constructor`
+  `function Object() { [native code] }`). Reproduced in `parse.rs` (`environment`).
+- Minor: `Wildcard.match`'s `?` matches one UTF-16 unit (the regex has no `u` flag), so `a?` does not match `a😀`.
