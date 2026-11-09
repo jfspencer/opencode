@@ -14,11 +14,12 @@
 //!
 //! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error. The
 //! Code Mode catalog is the reference configuration's (`codemode-catalog.json`, the `opencode.*` tools), until the
-//! Code Mode tools are registered here; descriptions that depend on the inventory (the subagent list, skills) are
-//! the reference configuration's. Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
+//! Code Mode tools are registered here; descriptions that depend on the inventory (skills) are the reference
+//! configuration's (the subagent list is live: [`subagent::describe`]). Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
 //! successful result with [`output::truncate`].
 
 pub mod output;
+pub mod subagent;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -193,7 +194,10 @@ const DEFINITIONS: &[(&str, &str)] =
 fn builtin() -> Vec<Arc<dyn Tool>> {
     DEFINITIONS
         .iter()
-        .map(|(name, text)| Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>)
+        .map(|(name, text)| match *name {
+            subagent::NAME => Arc::new(subagent::Subagent::new(definition(name, text))) as Arc<dyn Tool>,
+            _ => Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>,
+        })
         .collect()
 }
 
