@@ -180,7 +180,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         return Err(not_found(&key.directory));
     };
     // Read the config and plugin sources before taking the database.
-    let inventory = crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?);
+    let inventory = crate::inventory::Shared::new(crate::inventory::Inventory::load(key, &resolved.directory).await?);
     {
         let mut db = app.db.lock().unwrap();
         app.projects.persist(&mut db, &app.bus, &resolved).map_err(crate::app::fatal)?;

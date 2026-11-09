@@ -18,7 +18,10 @@
 //! the reference configuration's. Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
 //! successful result with [`output::truncate`].
 
+pub mod arguments;
 pub mod output;
+pub mod skill;
+pub mod webfetch;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -193,7 +196,14 @@ const DEFINITIONS: &[(&str, &str)] =
 fn builtin() -> Vec<Arc<dyn Tool>> {
     DEFINITIONS
         .iter()
-        .map(|(name, text)| Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>)
+        .map(|(name, text)| {
+            let definition = definition(name, text);
+            match *name {
+                "skill" => Arc::new(skill::Skill { definition }) as Arc<dyn Tool>,
+                "webfetch" => Arc::new(webfetch::WebFetch { definition }),
+                _ => Arc::new(Unported { definition }),
+            }
+        })
         .collect()
 }
 

@@ -3,10 +3,13 @@
 //! session's instruction state. The first admission is the session's baseline (rendered at the start of every model
 //! request); later changes are chronological updates (`session.instructions.updated` with `text`, a system message).
 //!
-//! The sources, in TS's order (most shared first): the Code Mode catalog (`core/codemode`), skill guidance
-//! (`core/skill-guidance`), then the built-ins (`core/date`, `core/environment`). TODO(port): MCP and reference
-//! instructions (out of scope, always empty in the reference configuration), instruction discovery (AGENTS.md and
-//! friends), session instruction entries.
+//! The sources, in TS's order (most shared first): the Code Mode catalog (`core/codemode`), reference guidance
+//! (`core/reference-guidance`, reference/instructions.ts), skill guidance (`core/skill-guidance`), discovered
+//! instructions (`core/instructions`: AGENTS.md files and config `instructions`, see [`crate::instruction_discovery`],
+//! rendered by instruction-discovery.ts with jsdiff patches for edits), the built-ins (`core/date`,
+//! `core/environment`), then the session's API-managed entries. A source that is unavailable (a discovery that
+//! failed) keeps its stored value; with nothing stored it blocks the session's first admission. TODO(port): MCP
+//! instructions (out of scope, always empty in the reference configuration).
 
 use opencode_protocol::Json;
 use rusqlite::{Connection, OptionalExtension, Transaction, params};
@@ -21,6 +24,8 @@ use crate::json::{self, Obj};
 pub struct Source {
     pub key: String,
     pub value: Option<Json>,
+    /// The read failed temporarily (`Instructions.unavailable`): the stored value stands.
+    pub unavailable: bool,
     render: Render,
 }
 
@@ -39,12 +44,12 @@ impl Source {
         changed: fn(&Json, &Json) -> Option<String>,
         removed: fn(&Json) -> Option<String>,
     ) -> Self {
-        Source { key: key.to_owned(), value, render: Render::Core { initial, changed, removed } }
+        Source { key: key.to_owned(), value, unavailable: false, render: Render::Core { initial, changed, removed } }
     }
 
     /// An instruction entry's source (`api/<key>`); a removed entry has no value.
     pub fn entry(key: &str, value: Option<Json>) -> Self {
-        Source { key: format!("api/{key}"), value, render: Render::Entry(key.to_owned()) }
+        Source { key: format!("api/{key}"), value, unavailable: false, render: Render::Entry(key.to_owned()) }
     }
 
     fn initial(&self, value: &Json) -> Option<String> {
@@ -72,45 +77,11 @@ impl Source {
     }
 }
 
-/// `JSON.stringify(value, null, 2)`.
-fn pretty(value: &Json, indent: usize, out: &mut String) {
-    let pad = |n: usize| "  ".repeat(n);
-    match value {
-        Json::Array(items) if !items.is_empty() => {
-            out.push_str("[\n");
-            for (i, item) in items.iter().enumerate() {
-                out.push_str(&pad(indent + 1));
-                pretty(item, indent + 1, out);
-                out.push_str(if i + 1 < items.len() { ",\n" } else { "\n" });
-            }
-            out.push_str(&pad(indent));
-            out.push(']');
-        }
-        Json::Object(fields) if !fields.is_empty() => {
-            out.push_str("{\n");
-            for (i, (key, item)) in fields.iter().enumerate() {
-                out.push_str(&pad(indent + 1));
-                out.push_str(&json::text(&json::string(key)));
-                out.push_str(": ");
-                pretty(item, indent + 1, out);
-                out.push_str(if i + 1 < fields.len() { ",\n" } else { "\n" });
-            }
-            out.push_str(&pad(indent));
-            out.push('}');
-        }
-        other => out.push_str(&json::text(other)),
-    }
-}
-
 /// `renderBlock`: an entry's value as session context (strings as they are, other values as indented JSON).
 fn entry_block(key: &str, value: &Json) -> String {
     let rendered = match value {
         Json::String(text) => text.clone(),
-        other => {
-            let mut out = String::new();
-            pretty(other, 0, &mut out);
-            out
-        }
+        other => crate::tool::arguments::pretty(other),
     };
     format!("<context key=\"{key}\">\n{rendered}\n</context>")
 }
@@ -259,6 +230,141 @@ fn skills_removed(_previous: &Json) -> Option<String> {
     Some("Skill guidance is no longer available. Do not use any previously listed skill.".into())
 }
 
+// --- References (reference/instructions.ts) -----------------------------------------------------------------------
+
+fn reference_entries(references: &[Json]) -> Vec<String> {
+    references
+        .iter()
+        .flat_map(|reference| {
+            let mut lines = vec![
+                "  <reference>".to_owned(),
+                format!("    <name>{}</name>", json::get_str(reference, "name").unwrap_or_default()),
+                format!("    <path>{}</path>", json::get_str(reference, "path").unwrap_or_default()),
+            ];
+            if let Some(description) = json::get_str(reference, "description") {
+                lines.push(format!("    <description>{description}</description>"));
+            }
+            lines.push("  </reference>".to_owned());
+            lines
+        })
+        .collect()
+}
+
+fn references_render(value: &Json) -> Option<String> {
+    let Json::Array(references) = value else { return None };
+    let mut lines = vec![
+        "Project references provide additional directories that can be accessed when relevant.".to_owned(),
+        "<available_references>".to_owned(),
+    ];
+    lines.extend(reference_entries(references));
+    lines.push("</available_references>".to_owned());
+    Some(lines.join("\n"))
+}
+
+fn references_changed(previous: &Json, current: &Json) -> Option<String> {
+    let (Json::Array(before), Json::Array(after)) = (previous, current) else { return references_render(current) };
+    let name = |r: &Json| json::get_str(r, "name").unwrap_or_default().to_owned();
+    let differs =
+        |a: &Json, b: &Json| json::get(a, "path") != json::get(b, "path") || json::get(a, "description") != json::get(b, "description");
+    let added: Vec<Json> = after.iter().filter(|r| !before.iter().any(|b| name(b) == name(r))).cloned().collect();
+    let removed: Vec<String> = before.iter().filter(|r| !after.iter().any(|a| name(a) == name(r))).map(name).collect();
+    let changed: Vec<Json> =
+        after.iter().filter(|r| before.iter().find(|b| name(b) == name(r)).is_some_and(|b| differs(b, r))).cloned().collect();
+    if added.is_empty() && changed.is_empty() && removed.is_empty() {
+        return references_render(current).map(|text| {
+            format!("The available project references have changed. This list supersedes the previous reference list.\n{text}")
+        });
+    }
+    let mut lines = Vec::new();
+    if !added.is_empty() {
+        lines.push("New project references are available in addition to those previously listed:".to_owned());
+        lines.extend(reference_entries(&added));
+    }
+    if !changed.is_empty() {
+        lines.push(
+            "The following project references have changed. Each entry replaces the previously listed reference with the same name:"
+                .to_owned(),
+        );
+        lines.extend(reference_entries(&changed));
+    }
+    if !removed.is_empty() {
+        lines.push(format!(
+            "The following project references are no longer available and must not be used: {}.",
+            removed.join(", ")
+        ));
+    }
+    Some(lines.join("\n"))
+}
+
+fn references_removed(_previous: &Json) -> Option<String> {
+    Some("Project reference guidance is no longer available. Do not use previously listed references.".into())
+}
+
+/// `ReferenceInstructions.load`: the references that describe themselves, by name (`localeCompare`), as
+/// `{name, path, description}`; `None` (removed) when there are none.
+pub fn reference_guidance(references: &[opencode_protocol::types::ReferenceInfo]) -> Option<Json> {
+    let mut available: Vec<&opencode_protocol::types::ReferenceInfo> =
+        references.iter().filter(|reference| reference.description.is_some()).collect();
+    available.sort_by(|a, b| crate::collate::compare(&a.name, &b.name));
+    if available.is_empty() {
+        return None;
+    }
+    Some(Json::Array(
+        available
+            .into_iter()
+            .map(|reference| {
+                let mut o = Obj::new();
+                o.str("name", &reference.name).str("path", &reference.path);
+                o.opt_str("description", reference.description.as_deref());
+                o.done()
+            })
+            .collect(),
+    ))
+}
+
+// --- Discovered instructions (instruction-discovery.ts) -----------------------------------------------------------
+
+fn files(value: &Json) -> Option<Vec<(String, String)>> {
+    let Json::Array(items) = value else { return None };
+    items
+        .iter()
+        .map(|item| Some((json::get_str(item, "path")?.to_owned(), json::get_str(item, "content")?.to_owned())))
+        .collect()
+}
+
+fn files_text(files: &[(String, String)]) -> String {
+    files.iter().map(|(path, content)| format!("Instructions from: {path}\n{content}")).collect::<Vec<_>>().join("\n\n")
+}
+
+fn discovered_render(value: &Json) -> Option<String> {
+    files(value).map(|files| files_text(&files))
+}
+
+fn discovered_changed(previous: &Json, current: &Json) -> Option<String> {
+    let (Some(before), Some(after)) = (files(previous), files(current)) else { return discovered_render(current) };
+    let mut parts = Vec::new();
+    for (path, _) in before.iter().filter(|(path, _)| !after.iter().any(|(p, _)| p == path)) {
+        parts.push(format!("The instructions from {path} no longer apply."));
+    }
+    for file in after.iter().filter(|(path, _)| !before.iter().any(|(p, _)| p == path)) {
+        parts.push(format!("New instructions apply from:\n{}", files_text(std::slice::from_ref(file))));
+    }
+    for (path, content) in &after {
+        let Some((_, old)) = before.iter().find(|(p, c)| p == path && c != content) else { continue };
+        let patch = crate::jsdiff::create_patch(path, old, content, "", "", 3);
+        let hunks = patch.find("@@").map(|i| &patch[i..]).unwrap_or_default();
+        let diff = format!("The instructions from {path} changed. Here's the diff:\n```diff\n{}\n```", hunks.trim_end());
+        let replacement = format!("The instructions changed:\n{}", files_text(&[(path.clone(), content.clone())]));
+        // The shorter of the two, in UTF-16 units as JS measures.
+        parts.push(if diff.encode_utf16().count() < replacement.encode_utf16().count() { diff } else { replacement });
+    }
+    (!parts.is_empty()).then(|| parts.join("\n\n"))
+}
+
+fn discovered_removed(_previous: &Json) -> Option<String> {
+    Some("Previously loaded instructions no longer apply.".into())
+}
+
 // --- Built-ins (instructions/builtins.ts) -------------------------------------------------------------------------
 
 fn date_render(value: &Json) -> Option<String> {
@@ -342,6 +448,7 @@ pub fn sources(
     git: bool,
     catalog: Option<Json>,
     skills: Option<Json>,
+    inventory: &crate::inventory::Inventory,
 ) -> Vec<Source> {
     let environment = [
         "<env>".to_owned(),
@@ -356,9 +463,16 @@ pub fn sources(
         "</env>".to_owned(),
     ]
     .join("\n");
+    let discovered = inventory.instructions.value();
+    let mut instructions =
+        Source::core("core/instructions", discovered.clone().flatten(), discovered_render, discovered_changed, discovered_removed);
+    instructions.unavailable = discovered.is_none();
+    let references = reference_guidance(&inventory.references);
     vec![
         Source::core("core/codemode", catalog, code_mode_render, code_mode_changed, code_mode_removed),
+        Source::core("core/reference-guidance", references, references_render, references_changed, references_removed),
         Source::core("core/skill-guidance", skills, skills_render, skills_changed, skills_removed),
+        instructions,
         Source::core("core/date", Some(json::string(&date_string(db))), date_render, date_changed, none),
         Source::core("core/environment", Some(json::string(&environment)), environment_render, environment_changed, none),
     ]
@@ -401,15 +515,46 @@ struct Admission {
     text: String,
 }
 
+/// Why sources could not be observed.
+#[derive(Debug)]
+pub enum Error {
+    Db(rusqlite::Error),
+    /// `Instructions.InitializationBlocked`: a source is unavailable and the session has no instructions yet.
+    Blocked(Vec<String>),
+}
+
+impl From<rusqlite::Error> for Error {
+    fn from(error: rusqlite::Error) -> Self {
+        Error::Db(error)
+    }
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::Db(error) => write!(f, "{error}"),
+            Error::Blocked(keys) => write!(f, "Instruction initialization blocked by unavailable sources: {}", keys.join(", ")),
+        }
+    }
+}
+
+/// The keys of the unavailable sources.
+fn blocked(sources: &[Source]) -> Vec<String> {
+    sources.iter().filter(|s| s.unavailable).map(|s| s.key.clone()).collect()
+}
+
 /// Observes the sources against the session's recorded state; `None` when nothing changed since it.
-fn observe(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::Result<Option<Admission>> {
+fn observe(db: &Connection, session: &str, sources: &[Source]) -> std::result::Result<Option<Admission>, Error> {
     let stored = state(db, session)?;
     let initial = stored.is_none();
+    if initial && !blocked(sources).is_empty() {
+        return Err(Error::Blocked(blocked(sources)));
+    }
     let previous = stored.as_ref().map(|s| s.current.clone()).unwrap_or_else(json::object);
     let mut delta = Obj::new();
     let mut blobs: Vec<(String, Json)> = Vec::new();
     let mut changes: Vec<(&Source, Option<Json>)> = Vec::new();
-    for source in sources {
+    for source in sources.iter().filter(|source| !source.unavailable) {
         match &source.value {
             None => {
                 if json::get(&previous, &source.key).is_some() {
@@ -454,7 +599,14 @@ fn observe(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::Resu
 
 /// `InstructionState.prepare`: observes the sources and admits what changed (the whole baseline the first time).
 pub fn prepare(app: &App, session: &str, sources: &[Source], location: &LocationRef) -> Result<()> {
-    let observed = observe(&app.db.lock().unwrap(), session, sources).map_err(fatal)?;
+    let observed = observe(&app.db.lock().unwrap(), session, sources).map_err(|error| match error {
+        Error::Db(error) => fatal(error),
+        blocked => {
+            let mut o = Obj::new();
+            o.str("_tag", "Instructions.InitializationBlocked").str("message", &blocked.to_string());
+            crate::http::Failure::new(500, o.done())
+        }
+    })?;
     let Some(Admission { initial, delta, blobs, text }) = observed else { return Ok(()) };
     let mut data = Obj::new();
     data.str("sessionID", session).set("delta", delta);
@@ -483,8 +635,11 @@ pub fn prepare(app: &App, session: &str, sources: &[Source], location: &Location
 
 /// `InstructionState.preview`: the initial instructions and the pending update as the next step would see them,
 /// without recording anything.
-pub fn preview(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::Result<(Vec<(String, String)>, String)> {
+pub fn preview(db: &Connection, session: &str, sources: &[Source]) -> std::result::Result<(Vec<(String, String)>, String), Error> {
     if state(db, session)?.is_none() {
+        if !blocked(sources).is_empty() {
+            return Err(Error::Blocked(blocked(sources)));
+        }
         let initial = sources
             .iter()
             .filter_map(|source| source.value.as_ref().and_then(|value| source.initial(value)).map(|text| (source.key.clone(), text)))
