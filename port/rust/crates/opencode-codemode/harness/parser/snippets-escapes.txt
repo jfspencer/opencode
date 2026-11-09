@@ -1,0 +1,184 @@
+### Programs with four-digit unicode escapes, written `%uXXXX` here: snippets.ts turns `%u` followed by four hex
+### digits into a backslash-u, so that these stay escapes (and not the characters they denote) in every editor.
+### Same format as snippets.txt.
+'%u0041\u{41}\u{10FFFF}\u{0000000041}'
+'%u2028'
+'%u2029'
+'%ud800%udc00'
+'%udbff%udfff'
+'%u004'
+'%u00G1'
+'\x4%u0041'
+`\n\x41%u0041\u{41}`
+`%u2028`
+tag`%u004`
+tag`%u00G1`
+/(?<$>a)(?<_b>b)(?<%u0063>c)(?<\u{64}>d)/
+/(?<a%u0062>a)/
+/(?<%ud835%udc9c>a)/
+/(?<%ud835%udc9c>a)/u
+/(?<%ud835>a)/
+/(?<a%ud835%udc9c>a)/
+/(?<a\u{1d49c}>a)/
+/(?<%u0031>a)/
+/(?<a%u0024>a)/
+/(?<a%u200c>a)/
+/(?<a%u200d>a)/
+/(?<%u200c>a)/
+/(?<a\u>a)/
+/(?<a\x41>a)/
+/%u0041/
+/%ud835%udc9c/u
+/%ud835%u0041/u
+/%ud835%udc9c/
+/[%u0041-%u005A]/
+/[%u005A-%u0041]/
+/[%uD83D%uDE00-%uD83D%uDE02]/u
+/[%uD83D%uDE02-%uD83D%uDE00]/u
+/[%uD83D%uDE00-%uD83D%uDE02]/
+/[%uD83D%uDE00-%uD83D%uDE02]/v
+/\k<%u0061>(?<a>.)/
+/(?<a>.)\k<%u0061>/
+%u0061
+a%u0062
+%u0030
+a%u0020
+%u0024
+%u005f
+%u00e9
+%u2118
+%u212e
+%u309b
+%u00b7
+a%u00b7
+%u0300
+a%u0300
+%u200c
+a%u200c
+a%u200d
+%ud835%udc9c
+a%ud835%udc9c
+%ud835
+var %u0061 = 1
+var a%u0062 = 2; ab
+var %u0069f
+var %u0069n
+var %u0074his
+var %u0079ield
+var y%u0069eld
+var %u006cet
+var %u0061sync
+var %u0061wait
+%u0069f (a) b
+%u0076ar x
+%u0074his
+%u006eew X
+n%u0065w X
+%u0069mport("x")
+i%u006dport.meta
+import.m%u0065ta
+x = import.m%u0065ta
+import.%u006d%u0065%u0074%u0061
+new.t%u0061rget
+function f() { new.t%u0061rget }
+function f() { x = new.%u0074arget }
+%u0061sync function f() {}
+%u0061sync () => 1
+%u0061sync x => 1
+async %u0066unction f() {}
+l%u0065t x = 1
+%u006cet
+%u006cet[0] = 1
+le%u0074 = 1
+({ g%u0065t x() {} })
+({ s%u0065t x(v) {} })
+({ %u0061sync x() {} })
+({ %u0061sync: 1 })
+({ %u0061sync })
+({ g%u0065t })
+({ %u0069f: 1 })
+({ %u0069f })
+class A { st%u0061tic x() {} }
+class A { %u0073tatic { } }
+class A { %u0061sync x() {} }
+class A { g%u0065t x() {} }
+class A { %u0063onstructor() {} %u0063onstructor() {} }
+class A { %u0070rototype = 1 }
+class A { static %u0070rototype = 1 }
+class %u0061 {}
+for (x %u006ff y) {}
+for (%u006cet x of y) {}
+for (x i%u006e y) {}
+function* g() { y%u0069eld }
+function* g() { var y%u0069eld }
+async function f() { %u0061wait x }
+async function f() { var %u0061wait }
+function f() { %u0061wait x }
+%u0061wait x
+a.%u0069f
+a.%u0063lass
+a.%u0066unction
+a?.%u0069f
+class A { #%u0061; m() { this.#a } }
+class A { #a%u0062; m() { this.#ab } }
+class A { #a; m() { this.#%u0061 } }
+class A { #%u0063onstructor }
+%u0061: x
+%u0061: while (1) break a
+a: while (1) break %u0061
+{ using %u0061 = 1 }
+{ %u0075sing x = 1 }
+async function f() { { %u0061wait using x = 1 } }
+async function f() { { await %u0075sing x = 1 } }
+for (%u0075sing x of y) {}
+for (%u0061sync of x) {}
+for (%u0061sync of => 1;;) {}
+%u0074ypeof x
+%u0076oid x
+%u0064elete x
+x %u0069n y
+x %u0069nstanceof y
+%u0074rue
+%u006eull
+%u0066alse
+%u0074hrow 1
+%u0072eturn 1
+%u0073uper.x
+class A extends B { m() { %u0073uper.x } }
+class A %u0065xtends B {}
+%u0064o ; while (0)
+d%u006f ; while (0)
+%u0065xport var a
+%u0069mport a from "b"
+%u0069mport "b"
+import {a %u0061s b} from "c"
+import * %u0061s a from "b"
+import a %u0066rom "b"
+export {a %u0061s b}
+export * %u0061s a from "b"
+export {a} %u0066rom "b"
+import a from "b" %u0077ith {type: "json"}
+import a from "b" with {%u0074ype: "json"}
+"use%u0020strict"; 010
+"%u0075se strict"; 010
+'use strict%u0000'; 010
+"use strict"; "%u0030"
+"use strict"; "\0%u0030"
+"\0%u0030"
+x = "%ud800"
+x = "%udc00"
+x = "%udc00%ud800"
+x = `%ud800`
+tag`%ud800`
+x = /%ud800/
+x = /%ud800/u
+x = /[%ud800]/u
+x = /[%ud800-%udbff]/u
+x = /[%udbff-%ud800]/u
+import {"%ud800" as a} from "b"
+export {a as "%ud800"} from "b"
+export {"%ud83d%ude00" as a} from "b"
+export * as "%udfff" from "b"
+import {"a%ud800b" as a} from "b"
+import a from "b" with {"%ud800": "x", "%ud800": "y"}
+({ "%ud800": 1, "%ud800": 2 })
