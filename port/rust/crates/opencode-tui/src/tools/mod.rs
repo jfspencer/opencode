@@ -14,7 +14,6 @@ pub mod patch_diff;
 pub mod path_format;
 pub mod presentation;
 pub mod scroll;
-pub mod standin;
 pub mod todo;
 
 pub use parts::{tool_images, tool_part};

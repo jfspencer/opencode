@@ -31,9 +31,9 @@ use super::display::*;
 use super::filetype::filetype;
 use super::patch_diff::{DiffProps, PatchDiffProps, patch_diff};
 use super::path_format::use_path_formatter;
-use super::standin::{
-    DiffWrapMode, INLINE_TOOL_ICON_WIDTH, InlineToolRowProps, SpinnerProps, inline_tool_row, spinner, tool_display, use_ctx,
-};
+use crate::session::message_parts::{INLINE_TOOL_ICON_WIDTH, InlineToolRowProps, inline_tool_row, tool_display};
+use crate::session::render_context::{DiffWrapMode, RenderCtx, use_ctx};
+use crate::spinner::{SpinnerProps, spinner};
 use super::todo::{parse_todos, todo_item};
 use crate::ctx::{Route, tui};
 use crate::util::{rgba, string_width, titlecase};
@@ -144,11 +144,14 @@ pub fn tool_part(part: PartFn, images: Option<bool>) -> View {
         ],
         Some(fallback),
     );
-    View::list([content, show(move || images != Some(false), move || tool_images(vec![part.clone()]), None)])
+    View::list([content, show(move || images != Some(false), move || {
+        let part = part.clone();
+        tool_images(Rc::new(move || vec![part()]))
+    }, None)])
 }
 
 /// `<ToolImages parts>`.
-pub fn tool_images(parts: Vec<PartFn>) -> View {
+pub fn tool_images(parts: Rc<dyn Fn() -> Vec<Rc<Json>>>) -> View {
     // TODO(port-tui): SessionImages (`<image>` previews when `session.image_preview` is on).
     let ctx = use_ctx();
     let _ = parts;
@@ -248,8 +251,8 @@ fn inline_tool(props: InlineToolProps) -> View {
     inline_tool_row(InlineToolRowProps {
         icon: props.icon.clone(),
         icon_color: None,
-        color: Rc::new(move || fg.get()),
-        error_color: Rc::new(move || Some(rgba(theme.with(|t| t.text.feedback.error.base)))),
+        color: Some(Rc::new(move || fg.get())),
+        error_color: Some(Rc::new(move || Some(rgba(theme.with(|t| t.text.feedback.error.base))))),
         failed: Rc::new(move || failed.get()),
         denied: Rc::new(move || denied.get()),
         error: Rc::new(move || error.get()),
@@ -263,13 +266,13 @@ fn inline_tool(props: InlineToolProps) -> View {
         spinner: props.spinner.clone().unwrap_or_else(|| Rc::new(|| false)),
         status: props.status.clone(),
         children: props.children.clone(),
-        on_mouse_over: Some(Rc::new(move || {
+        on_mouse_over: Some(Rc::new(move |_| {
             if clickable.get_untracked() {
                 set_hover.set(true);
             }
         })),
-        on_mouse_out: Some(Rc::new(move || set_hover.set(false))),
-        on_mouse_up: Some(Rc::new(move || {
+        on_mouse_out: Some(Rc::new(move |_| set_hover.set(false))),
+        on_mouse_up: Some(Rc::new(move |_| {
             if failed.get_untracked() {
                 if let Some(f) = &on_error_click {
                     return f();
@@ -441,7 +444,8 @@ fn block_tool(props: BlockToolProps) -> View {
                             let spinner_color = spinner_color.clone();
                             spinner(SpinnerProps {
                                 children: Some(Rc::new(move || View::from(title.get().unwrap_or_default().trim_start_matches("# ").to_string()))),
-                                color: Some(Rc::new(move || spinner_color())),
+                                color: Some(Rc::new(move || Some(spinner_color()))),
+                                ..SpinnerProps::default()
                             })
                         },
                         Some(plain),
@@ -480,7 +484,8 @@ fn block_tool(props: BlockToolProps) -> View {
                                     let spinner_color = spinner_color.clone();
                                     spinner(SpinnerProps {
                                         children: Some(Rc::new(move || View::from(label().trim_start_matches("# ").to_string()))),
-                                        color: Some(Rc::new(move || spinner_color())),
+                                        color: Some(Rc::new(move || Some(spinner_color()))),
+                                ..SpinnerProps::default()
                                     })
                                 },
                                 Some(Rc::new(move || {
@@ -920,7 +925,7 @@ pub fn shell_display(props: ShellDisplayProps) -> View {
                                 let row = box_();
                                 row.set_flex_direction(FlexDirection::Row);
                                 row.set_gap(2, Some(Value::Point(1.0)));
-                                insert(row, spinner(SpinnerProps { children: None, color: Some(Rc::new(move || color.get())) }), At::End);
+                                insert(row, spinner(SpinnerProps { children: None, color: Some(Rc::new(move || Some(color.get()))), ..SpinnerProps::default() }), At::End);
                                 let el = text();
                                 insert_node(row, el, None);
                                 bind_always(move || color.get(), move |c| el.set_fg(Some(c)));
@@ -960,7 +965,7 @@ pub fn shell_display(props: ShellDisplayProps) -> View {
                         let status = status.clone();
                         memo_view(move || {
                             if is_running.get() || status() == "streaming" {
-                                spinner(SpinnerProps { children: Some(Rc::new(|| txt("Writing command…"))), color: Some(Rc::new(move || color.get())) })
+                                spinner(SpinnerProps { children: Some(Rc::new(|| txt("Writing command…"))), color: Some(Rc::new(move || Some(color.get()))), ..SpinnerProps::default() })
                             } else {
                                 let el = text();
                                 bind_always(move || rgba(theme.with(|t| t.text.muted)), move |c| el.set_fg(Some(c)));
@@ -1508,7 +1513,7 @@ pub fn parse_apply_patch_files(value: Option<&Json>) -> Vec<PatchFile> {
 }
 
 /// The diff view the config and the width choose (`view()`).
-fn diff_view(ctx: &super::standin::RenderCtx) -> Rc<dyn Fn() -> DiffView> {
+fn diff_view(ctx: &RenderCtx) -> Rc<dyn Fn() -> DiffView> {
     let config = ctx.config.clone();
     let width = ctx.width.clone();
     Rc::new(move || match config().diffs.as_ref().and_then(|d| d.view.clone()).as_deref() {
