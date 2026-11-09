@@ -165,7 +165,8 @@ impl Locations {
     }
 
     /// `LocationServiceMap.reload`: every booted location is shut down, then booted again.
-    pub async fn reload(&self, app: &App) -> Result<(), Failure> {
+    /// Boots every location again; the first that failed, with its failure.
+    pub async fn reload(&self, app: &App) -> Result<(), (LocationRef, Failure)> {
         let references = self.keys();
         for reference in &references {
             self.invalidate(app, reference);
@@ -173,11 +174,18 @@ impl Locations {
         let mut failure = None;
         for reference in &references {
             if let Err(error) = self.get(app, reference).await {
-                failure.get_or_insert(error);
+                failure.get_or_insert((reference.clone(), error));
             }
         }
         failure.map_or(Ok(()), Err)
     }
+}
+
+/// `fs.access(directory, { readable: true })`.
+pub fn readable(directory: &str) -> bool {
+    let Ok(path) = std::ffi::CString::new(directory) else { return false };
+    // SAFETY: `path` is a valid NUL-terminated string for the duration of the call.
+    unsafe { libc::access(path.as_ptr(), libc::R_OK) == 0 }
 }
 
 async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
@@ -195,6 +203,15 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     let Ok(root) = std::fs::canonicalize(&key.directory).map(|p| p.to_string_lossy().into_owned()) else {
         return Err(not_found(&key.directory));
     };
+    // FileSystem's boot probes the real directory's readability (Linux realpath succeeds on an unreadable one), after
+    // the project is recorded and activated: `DirectoryAccessDeniedError`, which no request maps, so the server dies
+    // on it. Workspace placements skip the probe.
+    if key.workspace_id.is_none() && !readable(&root) {
+        let mut db = app.db.lock().unwrap();
+        app.projects.persist(&mut db, &app.bus, &resolved).map_err(crate::app::fatal)?;
+        app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;
+        return Err(crate::app::defect(format!("Access denied to directory: {}", key.directory)));
+    }
     // Read the config and plugin sources before taking the database.
     let inventory = crate::inventory::Shared::load(key, &resolved.directory).await?;
     {
