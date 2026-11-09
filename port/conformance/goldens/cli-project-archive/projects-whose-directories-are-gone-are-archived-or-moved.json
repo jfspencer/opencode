@@ -1,0 +1,292 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Fgone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/gone",
+            "project": {
+              "canonical": "<sandbox>/places/gone",
+              "directory": "<sandbox>/places/gone",
+              "id": "<hash_1>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Fkept"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/kept",
+            "project": {
+              "canonical": "<sandbox>/places/kept",
+              "directory": "<sandbox>/places/kept",
+              "id": "<hash_2>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Ffirst-clone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/first-clone",
+            "project": {
+              "canonical": "<sandbox>/places/first-clone",
+              "directory": "<sandbox>/places/first-clone",
+              "id": "<hash_3>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Fsecond-clone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/second-clone",
+            "project": {
+              "canonical": "<sandbox>/places/second-clone",
+              "directory": "<sandbox>/places/second-clone",
+              "id": "<hash_3>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": null,
+              "previous": null
+            },
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/project"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "canonical": "<sandbox>/places/second-clone",
+              "id": "<hash_3>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "vcs": "git"
+            },
+            {
+              "canonical": "<sandbox>/places/kept",
+              "id": "<hash_2>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/project?archived=true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "canonical": "<sandbox>/places/second-clone",
+              "id": "<hash_3>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "vcs": "git"
+            },
+            {
+              "canonical": "<sandbox>/places/kept",
+              "id": "<hash_2>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            },
+            {
+              "canonical": "<sandbox>/places/gone",
+              "id": "<hash_1>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "archived": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Fgone"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/gone",
+            "project": {
+              "canonical": "<sandbox>/places/gone",
+              "directory": "<sandbox>/places/gone",
+              "id": "<hash_1>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/project"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "canonical": "<sandbox>/places/gone",
+              "id": "<hash_1>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            },
+            {
+              "canonical": "<sandbox>/places/second-clone",
+              "id": "<hash_3>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              },
+              "vcs": "git"
+            },
+            {
+              "canonical": "<sandbox>/places/kept",
+              "id": "<hash_2>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

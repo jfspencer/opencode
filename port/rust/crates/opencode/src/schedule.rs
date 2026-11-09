@@ -8,8 +8,8 @@
 //! [`doorbell`]. A firing admits the prompt with an ID derived from the run count (`msg_<schedule>_<run>`), so a retry
 //! after a crash reconciles with the earlier admission.
 //!
-//! TODO(port): the schedule tools (tool/plugin/schedule.ts, `schedule_*` in the Code Mode catalog while the flag is
-//! on) and the `/schedule` command; releasing the lease when the process shuts down.
+//! Out of scope: the schedule tools' execution (tool/plugin/schedule.ts, `schedule_*` in the Code Mode catalog) and
+//! the `/schedule` command, which exist only while the experimental `schedules` flag is on.
 
 pub mod check;
 pub mod cron;
@@ -38,6 +38,8 @@ const DEFAULT_UNTIL_AFTER: i64 = 24 * HOUR;
 const LATE_AFTER: i64 = 60_000;
 /// The loop re-reads the table at least this often, so clock jumps and missed doorbells are caught.
 const MAX_SLEEP: i64 = 30_000;
+/// How many due schedules a tick fires at once.
+const TICK_CONCURRENCY: usize = 4;
 const LEADER_KEY: &str = "schedule:leader";
 const LEADER_TTL: i64 = 2 * MAX_SLEEP;
 /// How long a due schedule waits before its location's flag is read again, while schedules are off there.
@@ -715,6 +717,12 @@ pub fn start(app: &Arc<App>) {
     });
 }
 
+/// The loop ends with the server: a lease it holds is released (`Effect.ensuring(releaseLeader)`), so another
+/// process sharing the database can lead at once.
+pub fn stop(app: &App) {
+    release_leader(app, &mut LoopState::default());
+}
+
 async fn round(app: &Arc<App>, state: &mut LoopState) {
     let bell = doorbell();
     bell.close();
@@ -792,33 +800,45 @@ async fn tick_at(app: &App, now: i64) {
             }
         }
     };
-    // TODO(port): TS fires up to four due schedules concurrently.
+    // Up to four fire at once, in due order.
+    let concurrency = if due.len() > 1 { TICK_CONCURRENCY } else { 1 };
+    let mut firing = tokio::task::JoinSet::new();
     for row in due {
-        match step(app, &row, now).await {
-            Ok(()) => {}
-            Err(Fault::DirectoryNotFound) => update(
+        if firing.len() >= concurrency {
+            firing.join_next().await;
+        }
+        let app = app.arc();
+        firing.spawn(async move { fire_due(&app, &row, now).await });
+    }
+    while firing.join_next().await.is_some() {}
+}
+
+/// One due schedule of a tick: fired, else paused (its folder is gone) or backed off.
+async fn fire_due(app: &App, row: &Row, now: i64) {
+    match step(app, row, now).await {
+        Ok(()) => {}
+        Err(Fault::DirectoryNotFound) => update(
+            app,
+            row,
+            vec![
+                ("status", Value::Text("paused".into())),
+                ("last_outcome", Value::Text("failed".into())),
+                ("retry_at", Value::Null),
+                ("time_updated", Value::Integer(now)),
+            ],
+        ),
+        Err(Fault::Other(cause)) => {
+            // Back off rather than retrying a failing prompt on every tick.
+            eprintln!("schedule failed to fire: {} {cause}", row.id);
+            update(
                 app,
-                &row,
+                row,
                 vec![
-                    ("status", Value::Text("paused".into())),
                     ("last_outcome", Value::Text("failed".into())),
-                    ("retry_at", Value::Null),
+                    ("retry_at", Value::Integer(now + FAILED_RETRY)),
                     ("time_updated", Value::Integer(now)),
                 ],
-            ),
-            Err(Fault::Other(cause)) => {
-                // Back off rather than retrying a failing prompt on every tick.
-                eprintln!("schedule failed to fire: {} {cause}", row.id);
-                update(
-                    app,
-                    &row,
-                    vec![
-                        ("last_outcome", Value::Text("failed".into())),
-                        ("retry_at", Value::Integer(now + FAILED_RETRY)),
-                        ("time_updated", Value::Integer(now)),
-                    ],
-                );
-            }
+            );
         }
     }
 }

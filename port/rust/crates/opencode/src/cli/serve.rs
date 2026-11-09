@@ -241,7 +241,8 @@ pub async fn run(input: &Input) -> Result {
     }
     crate::schedule::start(&app);
     crate::location_activity::start(&app);
-    let server = tokio::spawn(crate::http::serve(app, listener));
+    crate::project::start_sweep(&app);
+    let server = tokio::spawn(crate::http::serve(app.clone(), listener));
     let ended = match (mode, &registration) {
         (Mode::Stdio, _) => tokio::select! {
             code = signals() => Ended::Signal(code),
@@ -254,6 +255,7 @@ pub async fn run(input: &Input) -> Result {
         _ => Ended::Signal(signals().await),
     };
     server.abort();
+    crate::schedule::stop(&app);
     if let Some((file, info)) = &registration {
         if service::owns(file, info) {
             let _ = std::fs::remove_file(file);

@@ -1,0 +1,92 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/location?location[directory]=%2Ftmp%2F<root-name>%2Fcli-<project-name>%2Fplaces%2Frecent"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "directory": "<sandbox>/places/recent",
+            "project": {
+              "canonical": "<sandbox>/places/recent",
+              "directory": "<sandbox>/places/recent",
+              "id": "<hash_1>"
+            }
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/session"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "cursor": {
+              "next": null,
+              "previous": null
+            },
+            "data": []
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "GET",
+          "/api/project?archived=true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "canonical": "<sandbox>/places/recent",
+              "id": "<hash_1>",
+              "sandboxes": [],
+              "time": {
+                "active": "<time>",
+                "created": "<time>",
+                "updated": "<time>"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}
