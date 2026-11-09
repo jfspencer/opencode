@@ -179,11 +179,15 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `bus.rs` | `core/src/bus.ts`: durable events get the next sequence of their aggregate and are projected in their commit's transaction; payloads are not retained (as with `opencode serve`); live subscribers get every event after it commits |
 | `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot, reload and eviction, and its announcements |
 | `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
+| `session/`, `llm.rs`, `llm/` | `core/src/session/*` (runner, execution, step, inbox, context, prompt, command, instructions, retry, title, move) and the OpenRouter chat-completions transport (`llm/http.rs`: proxy-aware rustls) |
+| `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
+| `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
 
-Status (2026-11-08): 90 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
-system, version control, worktrees, config, agents, providers and models. The execution loop, tools, permissions,
-compaction and snapshots are in progress. Release builds peak at a median of about 9 MiB per server process on the
-passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
+system, version control, worktrees, config, agents, providers and models, and the execution loop (prompts, streaming
+over OpenRouter, titles, retries, errors, interrupts, commands, attachments, instruction entries, session moves).
+Tools, permissions, compaction, snapshots, subagents, schedules and session transfer are in progress. Release builds
+peak at about 9 to 12 MiB per server process on the passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
 endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
