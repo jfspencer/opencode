@@ -95,14 +95,14 @@ cliScenario(
       { waitFor: "● Alpha session", type: "\x1b[A" },
       { waitFor: "● Beta session", type: "\r" },
     ])
-    // Typing filters by title, hint or ID.
+    // Typing filters by title, hint or ID (text no random ID or time can contain, so the matches are fixed).
     await ctx.terminal(["session", "export", "--sanitize"], [
-      { waitFor: "Select session to export", type: "alp" },
+      { waitFor: "Select session to export", type: "alpha ses" },
       { waitFor: "(1 match)", type: "\r" },
     ])
-    // A search without matches, then backspace and the arrows.
+    // A search without matches ("!" is in no ID or hint), then backspace and the arrows.
     await ctx.terminal(["session", "export"], [
-      { waitFor: "Select session to export", type: "zzz" },
+      { waitFor: "Select session to export", type: "!!!" },
       { waitFor: "No matches found", type: "\x7f\x7f\x7f" },
       { waitFor: "Search: _", type: "\x1b[B" },
       { waitFor: "● Beta session", type: "\r" },
