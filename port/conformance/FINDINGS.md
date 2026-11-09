@@ -79,9 +79,8 @@ Status as of 2026-11-07, upstream 6a89e9f.
   handling missed. It now answers 404 `FileNotFoundError`, as a missing path does.
 - D220: `PATCH /api/project/:id` with a relative `canonical` answered 500 with an empty body, even for an unknown
   project (the absolute-path column throws before the lookup); now 400 `InvalidRequestError`, like D201.
-- D221: `GET /api/agent/:id` and `GET /api/provider/:id` answered before the location's plugins loaded: as a
-  location's first request, 404 for `general` or `openrouter`, and `build` without its configured model and
-  description. They now wait, like their list routes (D207).
+- D221: `GET /api/agent/:id` answered before the location's plugins loaded: as a location's first request, 404 for
+  `general`, and `build` without its configured model and description. It now waits, like the list (#59082).
 - D222: `PUT /api/session/:id/environment` accepted a NUL, after which every shell command of the session failed
   as "The command contains a NUL character" on field `command`; the PUT is now a 400 `invalid_environment`.
 
@@ -145,6 +144,9 @@ Status as of 2026-11-07, upstream 6a89e9f.
 - Reasoning without `reasoning_details` is not echoed back, and another model's reasoning is dropped after a
   switch: deliberate (upstream #37708, `to-llm-message.ts`).
 - A `write` permission rule has no effect: `edit` governs write and patch (`permissions.mdx`, `migrate-v1.mdx`).
+- `GET /api/provider/:id` answers from the current catalog without waiting for the location's plugins, while the
+  list waits: upstream kept the single read nonblocking on purpose (#59082), and its test asserts it ("single
+  provider reads stay nonblocking"). On a cold location it races the plugins, so no scenario reads it first.
 - A tool failure whose cause no rule classifies has type `unknown` (the read tool's binary, offset, path-kind and
   media-limit errors; webfetch's and shell's wrapped errors), while a failure without a cause is `tool.execution`.
   `toSessionError` classifies by the wrapped cause on purpose (#38367), upstream tests assert `unknown` for these
