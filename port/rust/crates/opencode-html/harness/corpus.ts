@@ -307,7 +307,8 @@ export function eofQuirk(rng: Rng) {
 }
 
 /** `</a ` or `<br/` left open at the end of input after a chunk boundary, with the boundary on either side of an
- * astral character: htmlparser2 then emits text that starts at the last unit of the oldest chunk it holds. */
+ * astral character: unpatched htmlparser2 emitted text that started at the last unit of the oldest chunk it held;
+ * since D113 the tag is dropped. */
 export function wrappedSlices() {
   const out: string[] = []
   for (const tail of ["</a ", "<br/"])
@@ -321,7 +322,8 @@ export function wrappedSlices() {
   return out
 }
 
-/** Text that runs out of budget between the halves of a surrogate pair (an astral entity is two text events). */
+/** Text that runs out of budget at an astral character (unpatched htmlparser2 emitted an astral entity as two text
+ * events, one surrogate each, so the budget could cut between them; since D114 it is one). */
 export function splitAtBudget() {
   const out: string[] = []
   for (let r = 0; r < 9; r++)

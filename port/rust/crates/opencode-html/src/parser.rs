@@ -1,23 +1,24 @@
-//! htmlparser2 8.0.2's `Tokenizer` and `Parser` (`lib/esm/Tokenizer.js`, `lib/esm/Parser.js`), with the options the
-//! webfetch converters pass (none: HTML mode, entities decoded, tag and attribute names lower-cased, `/>` and CDATA
-//! not recognized outside foreign content), reduced to the events they listen to: `onopentag`, `ontext` and
-//! `onclosetag`.
+//! htmlparser2 8.0.2's `Tokenizer` and `Parser` (`lib/esm/Tokenizer.js`, `lib/esm/Parser.js`) as the TS reference
+//! patches them (`patches/htmlparser2@8.0.2.patch`), with the options the webfetch converters pass (none: HTML mode,
+//! entities decoded, tag and attribute names lower-cased, `/>` and CDATA not recognized outside foreign content),
+//! reduced to the events they listen to: `onopentag`, `ontext` and `onclosetag`.
+//!
+//! The patch (deviations D113 and D114) changes what happens at the end of input and for astral entities:
+//! - a tag the input ends inside is dropped in every tag state, `</name `, `<name/` and the `<s`, `<sc`, `<t`
+//!   prefixes of script, style and title included (upstream replayed the last UTF-16 unit as text, or kept the
+//!   prefix), and `onend` does not close an open tag it never reported;
+//! - a hex reference without digits at the end (`&#x`) stays text, with the text before it;
+//! - an astral named entity (`&Afr;`) is one code point, not two text events of one surrogate each.
 //!
 //! The tokenizer runs on the UTF-8 bytes of the input instead of UTF-16 code units. Every transition the tokenizer
 //! makes on a non-ASCII unit is the same for all such units (and the entity trie has no non-ASCII branch), so a byte
-//! walk visits the same states; the arithmetic on positions only ever spans ASCII characters. What a byte walk cannot
-//! express directly is a position between the two halves of a surrogate pair, which the TS converter creates when
-//! one of its 64 Ki-unit chunks ends inside an astral character: the tokenizer then emits the text up to the high
-//! surrogate at the end of the chunk. Positions are therefore kept doubled (`2 * byte`, plus one for "after the high
-//! surrogate of the character at `byte`"), and slices that start or end there carry the lone halves.
-//!
-//! `Parser#getSlice` keeps the chunks written so far and drops them lazily; when a section start is -1 (htmlparser2
-//! reaches end of input after `</name ` or `<name/` with no `>`), its `slice(-1 - offset)` wraps around to the end of
-//! the oldest chunk still held. That bookkeeping is reproduced (`buf`), so the wrapped text is the same.
+//! walk visits the same states; the arithmetic on positions only ever spans ASCII characters. Every chunk the
+//! converters write ends between characters (D114), so every position is a character boundary and every text event
+//! is whole characters. A section start of -1 (after `</name ` or in a tag's attributes) is never sliced: the states
+//! that hold one are the tag states the input can only end in by dropping the tag.
 
 use crate::entities::{HTML_DECODE_TREE, VALUE_LENGTH, determine_branch, replace_code_point};
 use crate::js::{self, JsString};
-use std::borrow::Cow;
 
 /// The attributes of an open tag, in source order, the first of each name kept (a plain object in TS, where
 /// `__proto__` cannot be set to a string).
@@ -45,8 +46,7 @@ impl Attributes {
 /// The callbacks a converter defines.
 pub(crate) trait Handler {
     fn open_tag(&mut self, name: &str, attributes: &Attributes);
-    /// A text event, as a JS string in generalized UTF-8 (it may start with a lone low surrogate or end with a lone
-    /// high one).
+    /// A text event, as UTF-8 (whole characters).
     fn text(&mut self, text: &[u8]);
     fn close_tag(&mut self, name: &str);
 }
@@ -191,26 +191,22 @@ fn is_html_integration_element(name: &str) -> bool {
 }
 
 /// The section start TS writes as -1.
-const NO_SECTION: i64 = -2;
+const NO_SECTION: i64 = -1;
 
 /// How the input is written to the parser.
 pub(crate) enum Writes {
     /// One `parser.write(html)` (webfetch.ts `extractTextFromHTML`).
     Whole,
-    /// `parser.write(html.slice(i, i + units))` for every `i` in steps of `units` UTF-16 code units
-    /// (html-markdown.ts).
+    /// `parser.write` of successive slices of `units` UTF-16 code units, one less where the slice would end inside
+    /// a surrogate pair (html-markdown.ts).
     Chunks(usize),
 }
 
 pub(crate) struct Parser<'a, H: Handler> {
     input: &'a [u8],
     pub(crate) handler: H,
-    /// Doubled positions where the written chunks start, then the end of the input.
-    bounds: Vec<i64>,
-    /// Byte ranges the tokenizer walks for each chunk (a split astral character belongs to the earlier one).
+    /// The byte range of each written chunk.
     ranges: Vec<(usize, usize)>,
-    /// The chunk `Parser.buffers[0]` holds.
-    buf: usize,
 
     state: State,
     base_state: State,
@@ -237,46 +233,36 @@ pub(crate) struct Parser<'a, H: Handler> {
 impl<'a, H: Handler> Parser<'a, H> {
     pub(crate) fn new(input: &'a str, writes: Writes, handler: H) -> Self {
         let input = input.as_bytes();
-        let mut bounds = vec![0i64];
         let mut ranges = Vec::new();
         match writes {
             Writes::Whole => ranges.push((0, input.len())),
             Writes::Chunks(units) => {
-                // Walk the UTF-16 length; a chunk boundary inside an astral character splits it.
+                // Walk the UTF-16 length: a chunk ends after `units` units, or before an astral character that
+                // would straddle that, and the next one is `units` long from there.
                 let mut start = 0usize;
                 let mut count = 0usize;
-                let mut next = units;
+                let mut end = units;
                 let mut i = 0usize;
                 while i < input.len() {
                     let len = utf8_len(input[i]);
                     let u16_len = if len == 4 { 2 } else { 1 };
-                    if count == next {
+                    if count + u16_len > end {
                         ranges.push((start, i));
-                        bounds.push(2 * i as i64);
                         start = i;
-                        next += units;
-                    } else if count + u16_len > next {
-                        ranges.push((start, i + len));
-                        bounds.push(2 * i as i64 + 1);
-                        start = i + len;
-                        next += units;
+                        end = count + units;
                     }
                     count += u16_len;
                     i += len;
                 }
-                // The last chunk; it is empty when it holds only the low half of a split character.
-                if count > 0 {
+                if !input.is_empty() {
                     ranges.push((start, input.len()));
                 }
             }
         }
-        bounds.push(2 * input.len() as i64);
         Parser {
             input,
             handler,
-            bounds,
             ranges,
-            buf: 0,
             state: State::Text,
             base_state: State::Text,
             section_start: 0,
@@ -306,90 +292,40 @@ impl<'a, H: Handler> Parser<'a, H> {
             self.index = start;
             self.end = end;
             self.parse();
-            self.cleanup(self.bounds[chunk + 1]);
+            self.cleanup();
         }
         self.finish();
         self.handler
     }
 
-    // ---- Parser#getSlice
-
-    fn get_slice(&mut self, start: i64, end: i64) -> Cow<'a, [u8]> {
-        let last = self.bounds.len() - 2;
-        while self.buf < last && start >= self.bounds[self.buf + 1] {
-            self.buf += 1;
-        }
-        let begin = if start < 0 { self.wrapped_start() } else { start };
-        let slice = self.slice(begin, end);
-        while self.buf < last && end > self.bounds[self.buf + 1] {
-            self.buf += 1;
-        }
-        slice
+    /// `Parser#getSlice`: the input between two positions.
+    fn get_slice(&self, start: i64, end: i64) -> &'a [u8] {
+        debug_assert!(start >= 0, "a section start of -1 is never sliced");
+        let start = start.max(0) as usize;
+        let end = end.max(0) as usize;
+        if end <= start { &[] } else { &self.input[start..end] }
     }
 
-    /// Where `buffers[0].slice(-1 - bufferOffset)` starts: the last UTF-16 unit of the first chunk, or (for any later
-    /// chunk, whose offset is past its length) the chunk's start.
-    fn wrapped_start(&self) -> i64 {
-        if self.buf > 0 {
-            return self.bounds[self.buf];
-        }
-        let b = self.bounds[1];
-        if b & 1 == 1 {
-            // The chunk ends with a high surrogate, which the next chunk's low surrogate completes.
-            return b - 1;
-        }
-        let byte = (b / 2) as usize;
-        if byte == 0 {
-            return 0;
-        }
-        let mut s = byte - 1;
-        while s > 0 && self.input[s] & 0xc0 == 0x80 {
-            s -= 1;
-        }
-        if byte - s == 4 { 2 * s as i64 + 1 } else { 2 * s as i64 }
-    }
-
-    fn slice(&self, start: i64, end: i64) -> Cow<'a, [u8]> {
-        if end <= start {
-            return Cow::Borrowed(&[]);
-        }
-        let (sb, sh) = ((start >> 1) as usize, start & 1 == 1);
-        let (eb, eh) = ((end >> 1) as usize, end & 1 == 1);
-        if !sh && !eh {
-            return Cow::Borrowed(&self.input[sb..eb]);
-        }
-        let mut out = Vec::with_capacity(eb - sb + 6);
-        let from = if sh {
-            let (_, low) = surrogates(self.input, sb);
-            js::push_code_point_raw(&mut out, low);
-            sb + 4
-        } else {
-            sb
-        };
-        out.extend_from_slice(&self.input[from..eb]);
-        if eh {
-            let (high, _) = surrogates(self.input, eb);
-            js::push_code_point_raw(&mut out, high);
-        }
-        Cow::Owned(out)
+    /// A tag or attribute name, lower-cased.
+    fn name(&self, start: usize, end: usize) -> String {
+        js::to_lower_case(&String::from_utf8_lossy(self.get_slice(start as i64, end as i64)))
     }
 
     // ---- Parser callbacks (from the tokenizer)
 
     fn cb_text(&mut self, start: i64, end: i64) {
         let data = self.get_slice(start, end);
-        self.handler.text(&data);
+        self.handler.text(data);
     }
 
     fn cb_text_entity(&mut self, cp: u32) {
         let mut data = Vec::with_capacity(4);
-        js::push_code_point_raw(&mut data, cp);
+        js::push_code_point(&mut data, cp);
         self.handler.text(&data);
     }
 
     fn cb_open_tag_name(&mut self, start: usize, end: usize) {
-        let name = self.get_slice(2 * start as i64, 2 * end as i64);
-        let name = js::to_lower_case(&js::into_string(name.into_owned()));
+        let name = self.name(start, end);
         self.emit_open_tag(name);
     }
 
@@ -430,8 +366,7 @@ impl<'a, H: Handler> Parser<'a, H> {
     }
 
     fn cb_close_tag(&mut self, start: usize, end: usize) {
-        let name = self.get_slice(2 * start as i64, 2 * end as i64);
-        let name = js::to_lower_case(&js::into_string(name.into_owned()));
+        let name = self.name(start, end);
         if is_foreign_context_element(&name) || is_html_integration_element(&name) {
             self.foreign_context.pop();
         }
@@ -471,13 +406,12 @@ impl<'a, H: Handler> Parser<'a, H> {
     }
 
     fn cb_attrib_name(&mut self, start: usize, end: usize) {
-        let name = self.get_slice(2 * start as i64, 2 * end as i64);
-        self.attribname = js::to_lower_case(&js::into_string(name.into_owned()));
+        self.attribname = self.name(start, end);
     }
 
     fn cb_attrib_data(&mut self, start: i64, end: i64) {
         let data = self.get_slice(start, end);
-        js::push(&mut self.attribvalue, &data);
+        js::push(&mut self.attribvalue, data);
     }
 
     fn cb_attrib_entity(&mut self, cp: u32) {
@@ -492,12 +426,6 @@ impl<'a, H: Handler> Parser<'a, H> {
             }
             attribs.insert(&self.attribname, js::into_string(value));
         }
-    }
-
-    /// `ondeclaration`, `onprocessinginstruction`, `oncdata`: no listener, but the slice they take still moves the
-    /// parser's chunk bookkeeping.
-    fn cb_unheard_slice(&mut self, start: i64, end: i64) {
-        self.get_slice(start, end);
     }
 
     // ---- Tokenizer
@@ -541,7 +469,7 @@ impl<'a, H: Handler> Parser<'a, H> {
     }
 
     fn at(&self) -> i64 {
-        2 * self.index as i64
+        self.index as i64
     }
 
     fn state_text(&mut self, c: u8) {
@@ -576,11 +504,11 @@ impl<'a, H: Handler> Parser<'a, H> {
         if self.sequence_index == seq.len() {
             if c == b'>' || is_whitespace(c) {
                 let end_of_text = self.index - seq.len();
-                if self.section_start < 2 * end_of_text as i64 {
-                    self.cb_text(self.section_start, 2 * end_of_text as i64);
+                if self.section_start < end_of_text as i64 {
+                    self.cb_text(self.section_start, end_of_text as i64);
                 }
                 self.is_special = false;
-                self.section_start = 2 * (end_of_text + 2) as i64;
+                self.section_start = (end_of_text + 2) as i64;
                 self.state_in_closing_tag_name(c);
                 return;
             }
@@ -609,7 +537,7 @@ impl<'a, H: Handler> Parser<'a, H> {
                 self.state = State::InCommentLike;
                 self.current_sequence = Sequence::CdataEnd;
                 self.sequence_index = 0;
-                self.section_start = self.at() + 2;
+                self.section_start = self.at() + 1;
             }
         } else {
             self.sequence_index = 0;
@@ -635,11 +563,9 @@ impl<'a, H: Handler> Parser<'a, H> {
         if c == seq[self.sequence_index] {
             self.sequence_index += 1;
             if self.sequence_index == seq.len() {
-                if self.current_sequence == Sequence::CdataEnd {
-                    self.cb_unheard_slice(self.section_start, self.at() - 4);
-                }
+                // `oncdata` and `oncomment`: no listener.
                 self.sequence_index = 0;
-                self.section_start = self.at() + 2;
+                self.section_start = self.at() + 1;
                 self.state = State::Text;
             }
         } else if self.sequence_index == 0 {
@@ -661,10 +587,10 @@ impl<'a, H: Handler> Parser<'a, H> {
     fn state_before_tag_name(&mut self, c: u8) {
         if c == b'!' {
             self.state = State::BeforeDeclaration;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else if c == b'?' {
             self.state = State::InProcessingInstruction;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else if c.is_ascii_alphabetic() {
             let lower = c | 0x20;
             self.section_start = self.at();
@@ -683,7 +609,7 @@ impl<'a, H: Handler> Parser<'a, H> {
 
     fn state_in_tag_name(&mut self, c: u8) {
         if is_end_of_tag_section(c) {
-            self.cb_open_tag_name((self.section_start / 2) as usize, self.index);
+            self.cb_open_tag_name(self.section_start as usize, self.index);
             self.section_start = NO_SECTION;
             self.state = State::BeforeAttributeName;
             self.state_before_attribute_name(c);
@@ -702,7 +628,7 @@ impl<'a, H: Handler> Parser<'a, H> {
 
     fn state_in_closing_tag_name(&mut self, c: u8) {
         if c == b'>' || is_whitespace(c) {
-            self.cb_close_tag((self.section_start / 2) as usize, self.index);
+            self.cb_close_tag(self.section_start as usize, self.index);
             self.section_start = NO_SECTION;
             self.state = State::AfterClosingTagName;
             self.state_after_closing_tag_name(c);
@@ -713,7 +639,7 @@ impl<'a, H: Handler> Parser<'a, H> {
         if c == b'>' || self.fast_forward_to(b'>') {
             self.state = State::Text;
             self.base_state = State::Text;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         }
     }
 
@@ -727,7 +653,7 @@ impl<'a, H: Handler> Parser<'a, H> {
                 self.state = State::Text;
             }
             self.base_state = self.state;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else if c == b'/' {
             self.state = State::InSelfClosingTag;
         } else if !is_whitespace(c) {
@@ -741,7 +667,7 @@ impl<'a, H: Handler> Parser<'a, H> {
             self.cb_self_closing_tag();
             self.state = State::Text;
             self.base_state = State::Text;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
             self.is_special = false;
         } else if !is_whitespace(c) {
             self.state = State::BeforeAttributeName;
@@ -751,7 +677,7 @@ impl<'a, H: Handler> Parser<'a, H> {
 
     fn state_in_attribute_name(&mut self, c: u8) {
         if c == b'=' || is_end_of_tag_section(c) {
-            self.cb_attrib_name((self.section_start / 2) as usize, self.index);
+            self.cb_attrib_name(self.section_start as usize, self.index);
             self.section_start = NO_SECTION;
             self.state = State::AfterAttributeName;
             self.state_after_attribute_name(c);
@@ -775,10 +701,10 @@ impl<'a, H: Handler> Parser<'a, H> {
     fn state_before_attribute_value(&mut self, c: u8) {
         if c == b'"' {
             self.state = State::InAttributeValueDq;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else if c == b'\'' {
             self.state = State::InAttributeValueSq;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else if !is_whitespace(c) {
             self.section_start = self.at();
             self.state = State::InAttributeValueNq;
@@ -820,19 +746,18 @@ impl<'a, H: Handler> Parser<'a, H> {
         }
     }
 
+    /// `ondeclaration`, `onprocessinginstruction`, `oncomment`: no listener.
     fn state_in_declaration(&mut self, c: u8) {
         if c == b'>' || self.fast_forward_to(b'>') {
-            self.cb_unheard_slice(self.section_start, self.at());
             self.state = State::Text;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         }
     }
 
     fn state_in_processing_instruction(&mut self, c: u8) {
         if c == b'>' || self.fast_forward_to(b'>') {
-            self.cb_unheard_slice(self.section_start, self.at());
             self.state = State::Text;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         }
     }
 
@@ -841,7 +766,7 @@ impl<'a, H: Handler> Parser<'a, H> {
             self.state = State::InCommentLike;
             self.current_sequence = Sequence::CommentEnd;
             self.sequence_index = 2;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         } else {
             self.state = State::InDeclaration;
         }
@@ -849,9 +774,8 @@ impl<'a, H: Handler> Parser<'a, H> {
 
     fn state_in_special_comment(&mut self, c: u8) {
         if c == b'>' || self.fast_forward_to(b'>') {
-            // `oncomment`: no listener, and the parser takes no slice without one.
             self.state = State::Text;
-            self.section_start = self.at() + 2;
+            self.section_start = self.at() + 1;
         }
     }
 
@@ -897,13 +821,13 @@ impl<'a, H: Handler> Parser<'a, H> {
                 self.trie_index += value_length;
             } else {
                 let entity_start = self.index + 1 - self.entity_excess;
-                if 2 * entity_start as i64 > self.section_start {
-                    self.emit_partial(self.section_start, 2 * entity_start as i64);
+                if entity_start as i64 > self.section_start {
+                    self.emit_partial(self.section_start, entity_start as i64);
                 }
                 self.entity_result = self.trie_index as u32;
                 self.trie_index += value_length;
                 self.entity_excess = 0;
-                self.section_start = self.at() + 2;
+                self.section_start = self.at() + 1;
                 if value_length == 0 {
                     self.emit_named_entity();
                 }
@@ -922,8 +846,15 @@ impl<'a, H: Handler> Parser<'a, H> {
             1 => self.emit_code_point((HTML_DECODE_TREE[r] & !VALUE_LENGTH) as u32),
             2 => self.emit_code_point(HTML_DECODE_TREE[r + 1] as u32),
             3 => {
-                self.emit_code_point(HTML_DECODE_TREE[r + 1] as u32);
-                self.emit_code_point(HTML_DECODE_TREE[r + 2] as u32);
+                let first = HTML_DECODE_TREE[r + 1] as u32;
+                let second = HTML_DECODE_TREE[r + 2] as u32;
+                // (patched) An astral character, stored as its two UTF-16 units, is one code point.
+                if (0xd800..=0xdbff).contains(&first) && (0xdc00..=0xdfff).contains(&second) {
+                    self.emit_code_point((first - 0xd800) * 0x400 + (second - 0xdc00) + 0x10000);
+                } else {
+                    self.emit_code_point(first);
+                    self.emit_code_point(second);
+                }
             }
             _ => {}
         }
@@ -943,10 +874,10 @@ impl<'a, H: Handler> Parser<'a, H> {
         let entity_start = self.index - self.entity_excess - 1;
         let number_start = entity_start + 2 + (self.state == State::InHexEntity) as usize;
         if number_start != self.index {
-            if 2 * entity_start as i64 > self.section_start {
-                self.emit_partial(self.section_start, 2 * entity_start as i64);
+            if entity_start as i64 > self.section_start {
+                self.emit_partial(self.section_start, entity_start as i64);
             }
-            self.section_start = 2 * (self.index + strict as usize) as i64;
+            self.section_start = (self.index + strict as usize) as i64;
             self.emit_code_point(replace_code_point(self.entity_result));
         }
         self.state = self.base_state;
@@ -994,8 +925,9 @@ impl<'a, H: Handler> Parser<'a, H> {
         self.base_state == State::Text || self.base_state == State::InSpecialTag
     }
 
-    /// Emits what has been read at the end of a written chunk; `boundary` is where the chunk ends.
-    fn cleanup(&mut self, boundary: i64) {
+    /// Emits what has been read at the end of a written chunk.
+    fn cleanup(&mut self) {
+        let boundary = self.at();
         if self.section_start != boundary {
             if self.state == State::Text || (self.state == State::InSpecialTag && self.sequence_index == 0) {
                 self.cb_text(self.section_start, boundary);
@@ -1017,6 +949,10 @@ impl<'a, H: Handler> Parser<'a, H> {
         if self.section_start < self.at() {
             self.handle_trailing_data();
         }
+        // `Parser#onend` (patched): an open tag the input ended inside was never reported, so it is not closed.
+        if !self.tagname.is_empty() && !is_void_element(&self.tagname) {
+            self.stack.pop();
+        }
         for index in (0..self.stack.len()).rev() {
             let name = self.stack[index].clone();
             self.handler.close_tag(&name);
@@ -1024,13 +960,15 @@ impl<'a, H: Handler> Parser<'a, H> {
     }
 
     fn handle_trailing_data(&mut self) {
-        let end_index = 2 * self.input.len() as i64;
+        let end_index = self.input.len() as i64;
         if self.state == State::InCommentLike {
-            if self.current_sequence == Sequence::CdataEnd {
-                self.cb_unheard_slice(self.section_start, end_index);
-            }
+            // `oncdata` and `oncomment`: no listener.
         } else if matches!(self.state, State::InNumericEntity | State::InHexEntity) && self.allow_legacy_entity() {
             self.emit_numeric_entity(false);
+            // (patched) A reference without digits stays text, and so does the text before it.
+            if self.section_start < end_index {
+                self.cb_text(self.section_start, end_index);
+            }
         } else if matches!(
             self.state,
             State::InTagName
@@ -1042,7 +980,13 @@ impl<'a, H: Handler> Parser<'a, H> {
                 | State::InAttributeValueDq
                 | State::InAttributeValueNq
                 | State::InClosingTagName
+                // (patched) The tag is dropped in these too.
+                | State::AfterClosingTagName
+                | State::InSelfClosingTag
+                | State::BeforeSpecialS
+                | State::SpecialStartSequence
         ) {
+            // The tag the input ends inside is dropped.
         } else {
             self.cb_text(self.section_start, end_index);
         }
@@ -1072,12 +1016,4 @@ fn utf8_len(lead: u8) -> usize {
         0xe0..=0xef => 3,
         _ => 4,
     }
-}
-
-/// The UTF-16 halves of the astral character at byte `i`.
-fn surrogates(input: &[u8], i: usize) -> (u32, u32) {
-    let (cp, len) = js::decode_at(input, i);
-    debug_assert_eq!(len, 4);
-    let v = cp - 0x10000;
-    (0xd800 + (v >> 10), 0xdc00 + (v & 0x3ff))
 }
