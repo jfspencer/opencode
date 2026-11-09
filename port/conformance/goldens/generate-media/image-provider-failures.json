@@ -1,0 +1,396 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "No auth credentials found",
+        "providerID": "openrouter",
+        "reason": "authentication",
+        "status": 401
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "prompt": "Attempt 0"
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/image"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "Blocked",
+        "providerID": "openrouter",
+        "reason": "content_filter",
+        "status": 400
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "prompt": "Attempt 1"
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/image"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "Bad size",
+        "providerID": "openrouter",
+        "reason": "invalid_request",
+        "status": 400
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "prompt": "Attempt 2"
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/image"
+    },
+    {
+      "body": {
+        "data": {
+          "images": [
+            {
+              "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+              "mime": "image/png",
+              "type": "image"
+            }
+          ],
+          "native": {
+            "openrouter": {}
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "prompt": "Attempt 3"
+      },
+      "status": 200,
+      "url": "/api/experimental/generate/image"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "Insufficient credits",
+        "providerID": "openrouter",
+        "reason": "rate_limit",
+        "status": 402
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "prompt": "Attempt 4"
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/image"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 0"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      },
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 1"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      },
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 2"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      },
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 3"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      },
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 3"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      },
+      {
+        "body": {
+          "model": "google/gemini-3-pro-image",
+          "prompt": "Attempt 4"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images/generations"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<root>/config/opencode",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,563 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "System One answers do not match the requested questions",
+        "providerID": "openrouter",
+        "reason": "provider",
+        "status": 200
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "System One returned an invalid response",
+        "providerID": "openrouter",
+        "reason": "provider",
+        "status": 200
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "System One returned an invalid response",
+        "providerID": "openrouter",
+        "reason": "provider",
+        "status": 200
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "_tag": "ProviderRequestError",
+        "message": "No auth credentials found",
+        "providerID": "openrouter",
+        "reason": "authentication",
+        "status": 401
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 502,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "data": {
+          "answers": [
+            {
+              "name": "spam",
+              "probability": 0.5,
+              "type": "predicate"
+            }
+          ],
+          "native": {
+            "openrouter": {
+              "model": "typesafe/system-one"
+            }
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "message": "System One choice options are strings; \"pick\" has a boolean and a string with the same text"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "choices": [
+              {
+                "value": true
+              },
+              {
+                "value": "true"
+              }
+            ],
+            "instructions": "Pick",
+            "name": "pick",
+            "type": "choice"
+          }
+        ]
+      },
+      "status": 400,
+      "url": "/api/experimental/generate/decisions"
+    },
+    {
+      "body": {
+        "_tag": "UnsupportedModelError",
+        "capability": "decision",
+        "message": "openrouter/google/gemini-3-pro-image is a image model, not a decision model",
+        "modelID": "google/gemini-3-pro-image",
+        "providerID": "openrouter"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Hello",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "google/gemini-3-pro-image",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          }
+        ]
+      },
+      "status": 422,
+      "url": "/api/experimental/generate/decisions"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      },
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      },
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      },
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      },
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      },
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            }
+          },
+          "state": "Hello"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<root>/config/opencode",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}
