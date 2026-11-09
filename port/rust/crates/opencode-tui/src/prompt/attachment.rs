@@ -341,3 +341,30 @@ pub fn path_to_file_url(path: &str) -> String {
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::prompt::history::Range;
+
+    fn image(text: &str) -> PromptFile {
+        PromptFile { uri: "data:image/png;base64,AA".into(), mention: Some(Range { start: 0, end: 0, text: text.into() }), ..PromptFile::default() }
+    }
+
+    #[test]
+    fn labels_number_after_the_highest() {
+        assert_eq!(prompt_attachment_label(None, "data:image/png;base64,BB", Some("a.png"), None), "[Image 1]");
+        let files = [image("[Image 3]")];
+        assert_eq!(prompt_attachment_label(Some(&files), "data:image/png;base64,BB", Some("a.png"), None), "[Image 4]");
+        assert_eq!(prompt_attachment_label(Some(&files), "data:application/pdf;base64,BB", Some("d.pdf"), None), "[PDF 1]");
+    }
+
+    #[test]
+    fn pasted_paths() {
+        assert_eq!(parse_pasted_filepaths("/a/b.png /c/d.png"), vec!["/a/b.png", "/c/d.png"]);
+        assert_eq!(parse_pasted_filepaths("'/a b.png' /c\\ d.png"), vec!["/a b.png", "/c d.png"]);
+        assert_eq!(parse_pasted_filepaths("\"/unterminated"), Vec::<String>::new());
+        assert_eq!(normalize_pasted_filepath("file:///tmp/x%20y.png"), "/tmp/x y.png");
+        assert_eq!(normalize_pasted_filepath("'/tmp/a\\ b.png'"), "/tmp/a b.png");
+    }
+}

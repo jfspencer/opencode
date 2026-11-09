@@ -8,8 +8,8 @@
 //! [`stash`] and [`attachment`]), `prompt/*` ([`history`], [`stash`], [`frecency`], [`text`], [`attachment`]) and
 //! `feature-plugins/prompt/*` ([`footer`]: footer, goal, btw).
 //!
-//! TODO(port-tui): stand-ins until their owners land: dialogs (`dialog.replace`/`clear` and the stack: the skill,
-//! stash, image preview, integration and workspace dialogs are not opened), the editor context (IDE selections),
+//! TODO(port-tui): stand-ins until their owners land: the skill, stash, integration and workspace dialogs (not
+//! opened), the editor context (IDE selections),
 //! `openEditor`, the clipboard (`prompt.paste` without a bracketed paste), the worktree move (`usePromptMove`: no
 //! pending destination), usage limits, directory recents (`useStorage`), `tui.prompt.append` events, the terminal environment (`variables` of a local server), image
 //! previews, cursor styles, and a live config (the paste summary toggle).
@@ -20,6 +20,7 @@ pub mod draft_stash;
 pub mod footer;
 pub mod frecency;
 pub mod history;
+pub mod image_preview;
 pub mod input;
 pub mod metadata;
 pub mod persistence;
@@ -181,6 +182,7 @@ struct State {
     t: Tui,
     local: Local,
     toast: Toasts,
+    dialog: crate::ui::dialog::DialogContext,
     session_id: Option<String>,
     disabled_prop: Rc<dyn Fn() -> bool>,
     muted_prop: Option<Rc<dyn Fn() -> bool>>,
@@ -606,6 +608,21 @@ impl State {
         });
     }
 
+    /// `openImagePreview(initial)`.
+    fn open_image_preview(&self, initial: usize) {
+        let images: Vec<image_preview::PreviewImage> = self.prompt.with_untracked(|p| {
+            attachment::deduplicate_prompt_images(p.files.as_deref().unwrap_or(&[]))
+                .into_iter()
+                .filter(|f| f.uri.starts_with("data:image/"))
+                .map(|f| image_preview::PreviewImage { uri: f.uri, mention: f.mention.map(|m| m.text) })
+                .collect()
+        });
+        if images.is_empty() {
+            return;
+        }
+        self.dialog.show(move || image_preview::dialog_image_preview(images.clone(), initial));
+    }
+
     fn prompt_model_warning(&self) {
         self.toast.show(ToastInput::new(Variant::Warning, "Connect an integration to send prompts").duration(3000));
         // TODO(port-tui): the dialogs slice: `dialog.replace(<DialogIntegration />)` when no integration is connected.
@@ -1014,6 +1031,7 @@ pub fn prompt(props: PromptProps) -> View {
         t: t.clone(),
         local: local.clone(),
         toast: t.toast.clone(),
+        dialog: crate::ui::dialog::use_dialog(),
         session_id: props.session_id.clone(),
         disabled_prop: props.disabled.clone(),
         muted_prop: props.muted.clone(),
@@ -1139,6 +1157,7 @@ pub fn prompt(props: PromptProps) -> View {
                 let s = s.clone();
                 Rc::new(move |_: Option<String>| {
                     s.clear_prompt();
+                    s.dialog.clear();
                     true
                 })
             };
@@ -1150,7 +1169,10 @@ pub fn prompt(props: PromptProps) -> View {
                     }
                     let state = s.clone();
                     tokio::task::spawn_local(async move {
-                        submit(state, Delivery::Steer).await;
+                        let dialog = state.dialog.clone();
+                        if submit(state, Delivery::Steer).await {
+                            dialog.clear();
+                        }
                     });
                     true
                 })
@@ -1169,7 +1191,10 @@ pub fn prompt(props: PromptProps) -> View {
                     }
                     let state = s.clone();
                     tokio::task::spawn_local(async move {
-                        submit(state, Delivery::Queue).await;
+                        let dialog = state.dialog.clone();
+                        if submit(state, Delivery::Queue).await {
+                            dialog.clear();
+                        }
                     });
                     true
                 })
@@ -1216,6 +1241,7 @@ pub fn prompt(props: PromptProps) -> View {
                         });
                         s.interrupt.set(0);
                     }
+                    s.dialog.clear();
                     true
                 })
             };
@@ -1234,6 +1260,14 @@ pub fn prompt(props: PromptProps) -> View {
                     tokio::task::spawn_local(async move {
                         let _ = call.await;
                     });
+                    s.dialog.clear();
+                    true
+                })
+            };
+            let images_view = {
+                let s = s.clone();
+                Rc::new(move |_: Option<String>| {
+                    s.open_image_preview(0);
                     true
                 })
             };
@@ -1248,8 +1282,7 @@ pub fn prompt(props: PromptProps) -> View {
                     // TODO(port-tui): the editor context.
                     Command { enabled: Some(Enabled::Bool(false)), ..prompt_command("prompt.editor_context.clear", "Remove editor context", "Prompt", noop()) },
                     prompt_command("prompt.paste", "Paste", "Prompt", paste),
-                    // TODO(port-tui): the dialogs slice: DialogImagePreview.
-                    Command { enabled: Some(Enabled::Bool(images_enabled)), ..prompt_command("prompt.images.view", "View image attachments", "Prompt", noop()) },
+                    Command { enabled: Some(Enabled::Bool(images_enabled)), ..prompt_command("prompt.images.view", "View image attachments", "Prompt", images_view) },
                     Command { enabled: Some(Enabled::Bool(running)), ..prompt_command("session.interrupt", "Interrupt session", "Session", interrupt) },
                     Command { enabled: Some(Enabled::Bool(running)), ..prompt_command("session.background", "Background blocking tools", "Session", background) },
                     // TODO(port-tui): `openEditor` (the external editor).
@@ -1336,8 +1369,7 @@ pub fn prompt(props: PromptProps) -> View {
             if s.input.is_destroyed() {
                 return;
             }
-            // TODO(port-tui): the dialogs slice: `dialog.stack.length > 0`.
-            if visible.as_ref().is_some_and(|v| !v()) || disabled() {
+            if visible.as_ref().is_some_and(|v| !v()) || disabled() || !s.dialog.is_empty() {
                 if s.input.focused() {
                     s.input.blur();
                 }
@@ -1380,6 +1412,7 @@ pub fn prompt(props: PromptProps) -> View {
                     }
                     s.stash.push(&prompt);
                     s.reset_composer();
+                    s.dialog.clear();
                     true
                 }) as Rc<dyn Fn(Option<String>) -> bool>
             };
@@ -1392,6 +1425,7 @@ pub fn prompt(props: PromptProps) -> View {
                         s.restore_extmarks_from_prompt(&entry.prompt);
                         s.ta.goto_buffer_end();
                     }
+                    s.dialog.clear();
                     true
                 }) as Rc<dyn Fn(Option<String>) -> bool>
             };

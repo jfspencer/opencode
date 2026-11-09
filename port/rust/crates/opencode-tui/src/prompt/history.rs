@@ -335,3 +335,27 @@ impl History {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn entry(text: &str) -> PromptInfo {
+        PromptInfo { text: text.into(), ..empty_prompt() }
+    }
+
+    #[test]
+    fn moves_through_entries_like_ts() {
+        let state = HistoryState { index: 0, history: vec![entry("one"), entry("two")] };
+        let history = History { path: String::new(), state: Rc::new(RefCell::new(state)) };
+        // Up from an empty prompt: the newest entry, then the one before; past the oldest, nothing.
+        assert_eq!(history.move_(-1, "").map(|p| p.text), Some("two".into()));
+        assert_eq!(history.move_(-1, "two").map(|p| p.text), Some("one".into()));
+        assert_eq!(history.move_(-1, "one"), None);
+        // An edited entry does not move.
+        assert_eq!(history.move_(1, "edited"), None);
+        assert_eq!(history.move_(1, "one").map(|p| p.text), Some("two".into()));
+        assert_eq!(history.move_(1, "two"), Some(empty_prompt()));
+        assert_eq!(history.move_(1, ""), None);
+    }
+}
