@@ -97,11 +97,12 @@ pub async fn run(input: TuiInput) -> i32 {
     let _dispose = create_root(move |_dispose| {
         let dimensions = create_signal((renderer::width(), renderer::height())).0;
         renderer::on_resize(move |w, h| dimensions.set((w, h)));
+        let initial_route = crate::startup::initial_route(&args);
         let t = Tui {
             app,
             args,
             paths,
-            route: create_signal(Route::Home).0,
+            route: create_signal(initial_route).0,
             theme: theme_signal(theme),
             dimensions,
             data,
@@ -113,6 +114,7 @@ pub async fn run(input: TuiInput) -> i32 {
         };
         provide_context(context(), t.clone());
         crate::keymap::install(&t);
+        crate::managed_textarea::install();
         let view = component(app_view);
         insert(root, view, At::Only);
     });
@@ -129,6 +131,7 @@ fn app_view() -> View {
     let theme = t.theme;
     let route = t.route;
     crate::commands::install(&t);
+    crate::startup::install(&t);
     let root = opencode_tui_core::elements::box_();
     bind(move || dimensions.get(), move |(w, h)| {
         root.set_width(Some(Value::Point(w as f32)));
@@ -163,6 +166,8 @@ fn app_view() -> View {
         ),
         At::Only,
     );
+    // `<Slot path="app" />`: the built-in plugins' app slot (the prompt's /btw).
+    crate::prompt::footer::install_btw();
     insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
 }

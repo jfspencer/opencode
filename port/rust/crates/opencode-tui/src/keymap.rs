@@ -10,9 +10,6 @@
 //! own, bumped on mount too). The host's platform metadata reports super and hyper as unknown (the renderer does
 //! not expose the kitty keyboard capability; only `primaryModifier` bindings read it, and the TUI has none).
 //! `registerManagedTextareaLayer` (the textarea's own keys through the keymap) is the prompt slice's.
-//! TODO(port-tui): [`shortcuts`] (the defaults as written, for the prompt's hints) is a stand-in the prompt slice
-//! replaces with [`use_shortcuts`]; [`install_prompt_clear`] is the prompt's `prompt.clear` until the prompt slice
-//! registers it.
 use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -519,7 +516,6 @@ pub fn install(t: &Tui) {
         mode_dispose();
         VALUE.with(|v| *v.borrow_mut() = None);
     });
-    install_prompt_clear(t);
 }
 
 /// The Provider's binding expander: `enter`, `esc`, `pgdown`, `pgup` as the key names they alias.
@@ -930,56 +926,4 @@ pub fn use_pending_sequence() -> Memo<Vec<(String, Option<String>)>> {
 pub fn use_leader_active() -> impl Fn() -> bool + Clone + 'static {
     let pending = use_pending_sequence();
     move || pending.with(|parts| parts.first().is_some_and(|(_, token)| token.as_deref() == Some("leader")))
-}
-
-/// TODO(port-tui): the prompt slice. `keymap.shortcuts(command)[0]` for every command from the defaults as written
-/// in `config/keybind.ts`, for the prompt's hints until it reads [`use_shortcuts`].
-pub fn shortcuts() -> HashMap<&'static str, String> {
-    let mut out = HashMap::new();
-    for (name, default, _) in keybind::DEFINITIONS {
-        let value = default.trim_matches('"');
-        if value == "none" {
-            continue;
-        }
-        if let Some(first) = value.split(',').next() {
-            out.insert(*name, first.replace("<leader>", "ctrl+x "));
-        }
-    }
-    out
-}
-
-/// TODO(port-tui): the prompt slice registers `prompt.clear` (component/prompt/index.tsx: the command in its global
-/// layer, its binding on the focused input while the prompt has text). Until then, this does.
-fn install_prompt_clear(t: &Tui) {
-    let prompt = t.prompt.clone();
-    create_layer(move || Layer {
-        mode: Some("global"),
-        commands: vec![
-            Command::new("prompt.clear", {
-                let prompt = prompt.clone();
-                move || {
-                    let input = *prompt.borrow();
-                    if let Some(input) = input.filter(|i| i.is_alive()) {
-                        input.set_textarea_text("");
-                    }
-                }
-            })
-            .title("Clear prompt")
-            .group("Prompt")
-            .bind(Bind::Off),
-        ],
-        ..Layer::default()
-    });
-    let prompt = t.prompt.clone();
-    create_layer(move || {
-        let prompt = prompt.clone();
-        Layer {
-            enabled: Some(Enabled::Fn(Rc::new(move || {
-                let input = *prompt.borrow();
-                input.is_some_and(|i| i.is_alive() && i.focused() && !i.textarea_text().is_empty())
-            }))),
-            bindings: vec!["prompt.clear"],
-            ..Layer::default()
-        }
-    });
 }

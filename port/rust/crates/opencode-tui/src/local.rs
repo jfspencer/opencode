@@ -155,6 +155,26 @@ impl Local {
         );
     }
 
+    /// `local.agent.current()`.
+    pub fn agent_current(&self) -> Option<AgentInfo> {
+        self.agent.get()
+    }
+
+    /// `local.model.selection()`: (providerID, modelID, variant).
+    pub fn model_selection(&self) -> Option<(String, String, Option<String>)> {
+        self.selection.get()
+    }
+
+    /// `local.model.available(model)`: the model is in the location's catalog.
+    pub fn model_available(&self, provider_id: &str, model_id: &str) -> bool {
+        self.data.models.with(|models| models.as_ref().is_some_and(|m| m.iter().any(|x| x.provider_id == provider_id && x.id == model_id)))
+    }
+
+    /// `local.model.catalogReady`.
+    pub fn catalog_ready(&self) -> bool {
+        self.data.models.with(|m| m.is_some())
+    }
+
     /// Whether the lists the display needs have loaded (`loading` in promptDisplay).
     pub fn ready(&self) -> bool {
         self.data.agents.with(|a| a.is_some()) && self.data.models.with(|m| m.is_some())

@@ -304,6 +304,11 @@ impl Data {
             self.store.location.provider.sync(Some(&location)),
             self.store.location.model.sync(Some(&location)),
             self.store.location.config.sync(Some(&location)),
+            // The prompt's slash commands, skills and references (TS: `location.sync` loads every catalog).
+            self.store.location.command.sync(Some(&location)),
+            self.store.location.skill.sync(Some(&location)),
+            self.store.location.reference.sync(Some(&location)),
+            self.store.location.vcs.sync(Some(&location)),
         ];
         for load in loads {
             let _ = load.wait().await;

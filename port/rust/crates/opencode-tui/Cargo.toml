@@ -23,3 +23,5 @@ getrandom.workspace = true
 libc.workspace = true
 # fuzzysort's accent removal (NFD of Latin runs).
 unicode-normalization.workspace = true
+# Pasted attachments as data: URIs.
+base64.workspace = true

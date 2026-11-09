@@ -13,12 +13,22 @@ use opencode_tui_core::solid::*;
 use opencode_tui_core::tree::{Align, Edge, FlexDirection};
 
 use crate::ctx::tui;
-use crate::prompt::{PromptProps, PromptRef, prompt};
+use crate::prompt::history::PromptInfo;
+use crate::prompt::{Placeholders, PromptProps, PromptRef, prompt};
 use crate::util::rgba;
 
 const LOGO_LEFT: [&str; 4] = ["                   ", "█▀▀█ █▀▀█ █▀▀█ █▀▀▄", "█__█ █__█ █^^^ █__█", "▀▀▀▀ █▀▀▀ ▀▀▀▀ ▀~~▀"];
 const LOGO_RIGHT: [&str; 4] = ["             ▄     ", "█▀▀▀ █▀▀█ █▀▀█ █▀▀█", "█___ █__█ █__█ █^^^", "▀▀▀▀ ▀▀▀▀ ▀▀▀▀ ▀▀▀▀"];
 const GO_RIGHT: [&str; 4] = ["    ", "█▀▀█", "█__█", "▀▀▀▀"];
+
+/// Home's prompt placeholders (`placeholder`).
+const PLACEHOLDER_NORMAL: [&str; 3] = ["Fix a TODO in the codebase", "What is the tech stack of this project?", "Fix broken tests"];
+const PLACEHOLDER_SHELL: [&str; 3] = ["ls -la", "git status", "pwd"];
+
+thread_local! {
+    /// `once`: --prompt was put in a home prompt.
+    static ARGS_PROMPT_SET: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
 
 /// `tint(base, overlay, alpha)` (theme/color.ts).
 fn tint(base: RGBA, overlay: RGBA, alpha: f64) -> RGBA {
@@ -192,11 +202,6 @@ pub fn home() -> View {
     let dimensions = t.dimensions;
     let (logo_width, set_logo_width) = create_signal(0.0f32);
     let _ = logo_width;
-    let on_submit: Rc<dyn Fn(String)> = {
-        let t = t.clone();
-        Rc::new(move |value: String| crate::session::submit_from_home(&t, value))
-    };
-
     let root = box_();
     let b2 = box_();
     let b3 = box_();
@@ -225,28 +230,64 @@ pub fn home() -> View {
     b6.set_padding(Edge::Top, Some(Value::Point(1.0)));
     b6.set_flex_shrink(Some(0.0));
     b6.set_position_type(false);
-    let prompt_ref: Rc<std::cell::RefCell<Option<PromptRef>>> = Default::default();
+    let (prompt_ref, set_prompt_ref) = create_signal_with(None::<PromptRef>, None);
     {
-        let prompt_ref = prompt_ref.clone();
         let args_prompt = t.args.prompt.clone();
+        // `bind`: --prompt goes into the first home prompt, once.
+        let bind_ref = move |r: Option<PromptRef>| {
+            set_prompt_ref.set(r.clone());
+            let Some(r) = r else { return };
+            let Some(text) = args_prompt.clone() else { return };
+            if ARGS_PROMPT_SET.with(|once| once.replace(true)) {
+                return;
+            }
+            r.set(&PromptInfo { text, files: Some(vec![]), agents: Some(vec![]), skills: None, pasted: vec![], mode: None });
+        };
         insert(
             b6,
             component(move || {
                 prompt(PromptProps {
                     session_id: None,
                     visible: None,
+                    // TODO(port-tui): `forms().length > 0` (global forms on home).
                     disabled: Rc::new(|| false),
-                    on_ref: Rc::new(move |r: PromptRef| {
-                        if let Some(text) = args_prompt.as_deref() {
-                            r.set(text);
-                        }
-                        *prompt_ref.borrow_mut() = Some(r);
-                    }),
-                    on_submit,
+                    muted: None,
+                    on_submit: None,
+                    on_empty_submit: None,
+                    on_ref: Rc::new(bind_ref.clone()),
+                    placeholders: Placeholders {
+                        normal: PLACEHOLDER_NORMAL.iter().map(|s| s.to_string()).collect(),
+                        shell: PLACEHOLDER_SHELL.iter().map(|s| s.to_string()).collect(),
+                    },
                 })
             }),
             At::Only,
         );
+    }
+    // Wait for everything submit needs before auto-submitting --prompt; it runs once.
+    {
+        let local = crate::local::local();
+        let args_prompt = t.args.prompt.clone();
+        let sent = std::cell::Cell::new(false);
+        create_effect(move || {
+            let Some(r) = prompt_ref.get() else { return };
+            if sent.get() {
+                return;
+            }
+            // TODO(port-tui): `local.model.ready` (the model preferences).
+            if !local.catalog_ready() {
+                return;
+            }
+            if local.agent_current().is_none() || local.model_selection().is_none() {
+                return;
+            }
+            let Some(text) = args_prompt.as_deref() else { return };
+            if r.current_tracked().text != text {
+                return;
+            }
+            sent.set(true);
+            r.submit();
+        });
     }
     b7.set_flex_grow(Some(1.0));
     b7.set_min_height(Some(Value::Point(0.0)));
