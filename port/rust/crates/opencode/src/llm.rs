@@ -6,6 +6,7 @@
 //! The runner reads a model's events through [`stream`], which applies the transport's timeouts (headers, each
 //! chunk, the whole request) as `packages/ai/src/route/transport/http.ts` does.
 
+mod certificate;
 pub mod error;
 pub mod http;
 pub mod openrouter;

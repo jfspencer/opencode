@@ -95,7 +95,8 @@ export async function fakeNetwork(
   const tlsPort = (host: string) => {
     let port = secure.get(host)
     if (!port) {
-      const server = tls.createServer(leaf(host), exchange("https"))
+      const kind = badCertificateKind(host)
+      const server = tls.createServer(kind ? badLeaf(kind, host) : leaf(host), exchange("https"))
       servers.push(server)
       port = listen(server)
       secure.set(host, port)
@@ -274,6 +275,86 @@ function leaf(host: string) {
   const result = { cert: readFileSync(cert, "utf8"), key: readFileSync(key, "utf8") }
   leaves.set(host, result)
   return result
+}
+
+// Hosts under `.cert.test` stand for servers whose certificate a client must refuse; the first label says how:
+// `self-signed`, `expired`, `not-yet-valid`, `wrong-name` (the per-run CA's leaf for another name), `unknown-issuer` (a
+// lone leaf of a CA nobody trusts), `unknown-chain` (that leaf with the untrusted CA's intermediate),
+// and `root-in-chain` (the leaf with the untrusted root itself). Every other host gets a leaf of the per-run CA, as
+// before.
+const BAD_CERTIFICATES = [
+  "self-signed",
+  "expired",
+  "not-yet-valid",
+  "wrong-name",
+  "unknown-issuer",
+  "unknown-chain",
+  "root-in-chain",
+] as const
+type BadCertificate = (typeof BAD_CERTIFICATES)[number]
+
+function badCertificateKind(host: string): BadCertificate | undefined {
+  if (!host.endsWith(".cert.test")) return undefined
+  return BAD_CERTIFICATES.find((kind) => host.split(".")[0] === kind)
+}
+
+function badLeaf(kind: BadCertificate, host: string) {
+  const dir = certDir()
+  const name = `bad-${kind}`
+  const file = (suffix: string) => path.join(dir, `${name}.${suffix}`)
+  const key = () => openssl(["genpkey", "-algorithm", "EC", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-out", file("key")])
+  const ext = (san: string) => {
+    writeFileSync(file("ext"), `subjectAltName=${san}\nbasicConstraints=CA:FALSE\nextendedKeyUsage=serverAuth\n`)
+    return file("ext")
+  }
+  const sign = (issuer: { cert: string; key: string }, san: string, validity: string[]) => {
+    key()
+    openssl(["req", "-new", "-key", file("key"), "-out", file("csr"), "-subj", `/CN=${host}`])
+    openssl(
+      ["x509", "-req", "-in", file("csr"), "-CA", issuer.cert, "-CAkey", issuer.key, "-set_serial", "1"],
+      ["-out", file("pem"), "-extfile", ext(san), ...validity],
+    )
+  }
+  const days = ["-days", "365"]
+  const untrusted = () => {
+    const cert = path.join(dir, "untrusted-ca.pem")
+    const caKey = path.join(dir, "untrusted-ca.key")
+    if (!existsSync(cert))
+      openssl(
+        ["req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-nodes", "-keyout", caKey],
+        ["-out", cert, "-days", "3650", "-subj", "/CN=untrusted conformance CA"],
+        ["-addext", "basicConstraints=critical,CA:TRUE", "-addext", "keyUsage=critical,keyCertSign,cRLSign"],
+      )
+    return { cert, key: caKey }
+  }
+  const chain: string[] = []
+  if (kind === "self-signed") {
+    key()
+    openssl(["req", "-x509", "-key", file("key"), "-out", file("pem"), "-days", "365", "-subj", `/CN=${host}`], ["-addext", `subjectAltName=DNS:${host}`])
+  } else if (kind === "expired") sign(authority(), `DNS:${host}`, ["-not_before", "20200101000000Z", "-not_after", "20200102000000Z"])
+  else if (kind === "not-yet-valid") sign(authority(), `DNS:${host}`, ["-not_before", "20990101000000Z", "-not_after", "21000101000000Z"])
+  else if (kind === "wrong-name") sign(authority(), "DNS:somewhere-else.test", days)
+  else if (kind === "unknown-issuer") sign(untrusted(), `DNS:${host}`, days)
+  else if (kind === "root-in-chain") {
+    sign(untrusted(), `DNS:${host}`, days)
+    chain.push(readFileSync(untrusted().cert, "utf8"))
+  } else {
+    // An intermediate of the untrusted CA signs the leaf; the server sends both.
+    const root = untrusted()
+    const intermediate = { cert: path.join(dir, "untrusted-intermediate.pem"), key: path.join(dir, "untrusted-intermediate.key") }
+    if (!existsSync(intermediate.cert)) {
+      openssl(["genpkey", "-algorithm", "EC", "-pkeyopt", "ec_paramgen_curve:prime256v1", "-out", intermediate.key])
+      openssl(["req", "-new", "-key", intermediate.key, "-out", `${intermediate.cert}.csr`, "-subj", "/CN=untrusted intermediate"])
+      writeFileSync(`${intermediate.cert}.ext`, "basicConstraints=critical,CA:TRUE\nkeyUsage=critical,keyCertSign,cRLSign\n")
+      openssl(
+        ["x509", "-req", "-in", `${intermediate.cert}.csr`, "-CA", root.cert, "-CAkey", root.key, "-set_serial", "2"],
+        ["-out", intermediate.cert, "-days", "3650", "-extfile", `${intermediate.cert}.ext`],
+      )
+    }
+    sign(intermediate, `DNS:${host}`, days)
+    chain.push(readFileSync(intermediate.cert, "utf8"))
+  }
+  return { cert: readFileSync(file("pem"), "utf8") + chain.join(""), key: readFileSync(file("key"), "utf8") }
 }
 
 function openssl(...args: string[][]) {
