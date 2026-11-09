@@ -103,15 +103,24 @@ The TS side runs with this process's home, user and environment; the harness pas
 
 The harness is itself checked by mutation (`bun harness/mutants.ts [count] [seed]`: random operator mutants of
 the scanner, parser and helpers, `<`/`<=`, `+ 1`/`+ 2`, `&&`/`||`, `==`/`!=`, `true`/`false`, `break`/`continue`,
-each built and run against a quick corpus; it restores every file it touches). Three sweeps (60, 60 and 50
-mutants) plus hand-picked ones; each survivor either got a generator family that catches it or was shown
-equivalent. Every mutant that changes behavior is now caught. The equivalent ones: an assignment word ending in
+each built and run against a quick corpus; it restores every file it touches; `all` with `MUTANTS_ONLY=file:from-to,...`
+runs every site of the lines a change touched). Three sweeps (60, 60 and 50 mutants) plus hand-picked ones; each
+survivor either got a generator family that catches it or was shown equivalent. The D116–D119 changes had every site
+of their lines swept (44 mutants), plus 16 hand-picked ones that each revert one piece of the new logic. Every mutant
+that changes behavior is now caught. The equivalent ones: an assignment word ending in
 `=` is never one character; a `<<` at the end of input fails before its prefix is used; the character after `/`
 always resets the segment state; an escaped character in double quotes cannot be the first to break a static word;
 a sticky `u`-flag regex never starts mid-pair after an ASCII `@` or `$`; a PowerShell command reaches the comment
 branch's `finishCommand` without words only as a bare invocation, invalid either way; `function_head` is only
 called at a real character; an escaped CR before LF inside PowerShell double quotes gives the same word whether
-the LF goes with the escape or not. One is not caught: the work budget's off-by-one (`budget < 0` against
+the LF goes with the escape or not. Three more are equivalent:
+- `unwrap_directory_command` meets index 0 only for a head it already found outside `CWD`.
+- `bash_prefix` reads no value past the words it was given, so the raw words' values serve as well as the
+  redirect-cut words' values.
+- A PowerShell head in `CWD` is a bare name whose value is itself, so the `powershell ||` of the plain-`cd` test
+  changes nothing.
+
+One is not caught: the work budget's off-by-one (`budget < 0` against
 `<= 0`), observable only by an input that exhausts exactly 2,097,152 steps.
 
 ## Known gaps

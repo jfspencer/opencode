@@ -251,7 +251,7 @@ resources, saved patterns, arity and wrapper tables, directory changes; `FileAcc
 offsets and `?` wildcards count what TS counts. `harness/check.sh` compares the TS modules and the crate as JSON,
 byte for byte, on the inputs upstream's own shell, permission and tool tests produce, the conformance scenarios'
 commands, generated and mutated commands, and the real TS `Shell` service's capture and paging: 0 differences on about
-396k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
+416k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
 is regenerated (`bun harness/gen-unicode.ts`). See the crate's README.
 
 `rust/crates/opencode-codemode` is the default code-mode interpreter (the bytecode VM is not ported): what
