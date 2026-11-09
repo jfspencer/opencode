@@ -3,9 +3,10 @@
 //! keybindings, and the composer area (prompt, permission and form prompts).
 //!
 //! TODO(port-tui): of Session's providers and features, not here yet: the epilogue (`epilogue.session`), the
-//! location context (`currentLocation`), session tabs (scroll anchors and group disclosure are kept per route
-//! instance), the composer (subagents and terminals), the go-upsell offer on free-limit failures, queued prompts and
-//! their dialog, and the dialogs the commands open (rename, timeline, fork, export) and the clipboard.
+//! location's recovery (`currentLocation.error`, `<SessionLocationMissing>`), session tabs (scroll anchors and group
+//! disclosure are kept per route instance), the composer (subagents and terminals), the go-upsell offer on
+//! free-limit failures, undoing queued prompts, and the dialogs the commands open (timeline, fork, export) and the
+//! clipboard.
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -660,8 +661,40 @@ pub fn session(props: SessionProps) -> View {
             None,
         )
     };
-    // TODO(port-tui): `local.permission.mode` ("autoaccept" replies to every request).
-    let prompted_permissions = create_memo_equals(move || permissions.get(), None);
+    // `usePermission().mode` (context/permission.tsx): `--auto`, else the config's `session.permissions`.
+    let autoaccept = {
+        let t = t.clone();
+        create_memo(move || t.args.auto || t.config_context.data().session.permissions == "autoaccept")
+    };
+    let prompted_permissions = create_memo_equals(move || if autoaccept.get() { Vec::new() } else { permissions.get() }, None);
+    {
+        let t = t.clone();
+        let auto_approved: Rc<RefCell<std::collections::HashSet<String>>> = Rc::default();
+        create_effect(move || {
+            if !autoaccept.get() {
+                return;
+            }
+            for request in permissions.get() {
+                let id = request.str("id").unwrap_or_default().to_string();
+                if !auto_approved.borrow_mut().insert(id.clone()) {
+                    continue;
+                }
+                let input = opencode_tui_sync::obj! {
+                    "sessionID" => request.str("sessionID").unwrap_or(""),
+                    "decision" => "once",
+                    "requestID" => id.as_str(),
+                };
+                let promise = untrack(|| t.data.store.session.permission.reply(input));
+                let (auto_approved, toast) = (auto_approved.clone(), t.toast.clone());
+                tokio::task::spawn_local(async move {
+                    if let Err(error) = promise.wait().await {
+                        auto_approved.borrow_mut().remove(&id);
+                        toast.error(error.message());
+                    }
+                });
+            }
+        });
+    }
     let forms = {
         let (data, sid) = (data.clone(), sid.clone());
         create_memo_equals(
