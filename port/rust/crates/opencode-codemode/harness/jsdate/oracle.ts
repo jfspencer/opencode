@@ -2,7 +2,7 @@
 // JavaScriptCore and prints one JSON array per line. `examples/jsdate_check.rs` recomputes each case with
 // `opencode_codemode::jsdate` and reports differences. Run both under the same TZ (see check.sh).
 //
-// usage: TZ=UTC bun harness/jsdate/oracle.ts [scale] > cases.jsonl     (scale 1 = about 420,000 checked values)
+// usage: TZ=UTC bun harness/jsdate/oracle.ts [scale] [seed] > cases.jsonl   (scale 1 = about 420,000 checked values)
 //
 // Lines (numbers: JSON numbers, or the strings "NaN", "Infinity", "-Infinity", "-0"):
 //   ["g", t, ...17 getter results]                      getters, in jsdate::Getter order
@@ -14,6 +14,7 @@
 //   ["p", string, result]                               Date.parse(string)
 
 const scale = Number(process.argv[2] ?? "1")
+const seed = Number(process.argv[3] ?? 0x5eedda7e)
 
 function mulberry32(seed: number) {
   let a = seed >>> 0
@@ -26,7 +27,7 @@ function mulberry32(seed: number) {
   }
 }
 
-const random = mulberry32(0x5eed_da7e)
+const random = mulberry32(seed)
 const int = (lo: number, hi: number) => lo + Math.floor(random() * (hi - lo + 1))
 const pick = <T>(items: ReadonlyArray<T>): T => items[Math.floor(random() * items.length)]
 const chance = (p: number) => random() < p

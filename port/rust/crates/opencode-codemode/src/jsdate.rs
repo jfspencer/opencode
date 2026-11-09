@@ -143,7 +143,7 @@ pub fn set(t: f64, setter: Setter, args: &[f64]) -> f64 {
             | Setter::UtcMonth
             | Setter::UtcFullYear
     );
-    let base = if t.is_nan() {
+    let base = if !t.is_finite() {
         // Only the full-year setters start an invalid date over, from +0.
         if !matches!(setter, Setter::FullYear | Setter::UtcFullYear) {
             return f64::NAN;

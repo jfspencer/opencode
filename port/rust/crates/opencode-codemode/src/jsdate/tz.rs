@@ -106,19 +106,11 @@ impl Zone {
 
     /// The offset (milliseconds east of UTC) to subtract from the local time `t` (finite milliseconds) to get UTC.
     ///
-    /// Outside the time value range (±8.64e15 ms) JSC gets the offset of the zone's final rule, as if the current
-    /// rules had always applied (it shows in the far past, where the real offset is local mean time).
+    /// Outside the time value range (±8.64e15 ms), bun takes the offset at V8's "equivalent time": the same month,
+    /// day and time of day in a year between 2008 and 2035 with the same leap-ness and first weekday.
     pub(super) fn offset_for_local(&self, t: f64) -> f64 {
-        let secs = clamp_secs((t / 1000.0).floor());
-        let offset = if t.abs() > super::MAX_TIME { self.final_local_secs(secs) } else { self.local_secs(secs) };
-        offset as f64 * 1000.0
-    }
-
-    fn final_local_secs(&self, local: i64) -> i32 {
-        match &self.footer {
-            Some(footer) => footer.local_secs(local, i64::MIN).unwrap_or(footer.std),
-            None => self.types[self.kinds.last().copied().unwrap_or(0)].offset,
-        }
+        let t = if t.abs() > super::MAX_TIME { equivalent_time(t) } else { t };
+        self.local_secs(clamp_secs((t / 1000.0).floor())) as f64 * 1000.0
     }
 
     fn at_utc_secs(&self, secs: i64) -> (i32, bool) {
@@ -164,6 +156,18 @@ impl Zone {
         }
         self.initial().offset
     }
+}
+
+/// V8's DateCache::EquivalentTime.
+fn equivalent_time(t: f64) -> f64 {
+    let days = (t / 86_400_000.0).floor();
+    let within = t - days * 86_400_000.0;
+    let (year, month, day) = civil_from_days(days.clamp(-1e12, 1e12) as i64);
+    let jan1 = days_from_civil(year, 1, 1);
+    let week_day = (jan1 + 4).rem_euclid(7);
+    let recent = if is_leap(year) { 1956 } else { 1967 } + (week_day * 12) % 28;
+    let equivalent = 2008 + (recent + 3 * 28 - 2008) % 28;
+    (days_from_civil(equivalent, month, 1) + day as i64 - 1) as f64 * 86_400_000.0 + within
 }
 
 /// Keeps second counts far outside any date's range from overflowing the rule arithmetic.
@@ -442,15 +446,16 @@ fn parse_tzif(b: &[u8]) -> Option<Tzif> {
     Some(Tzif { times, kinds, types, footer })
 }
 
+/// ICU's daylight flag per transition. A daylight period is negative DST when standard periods with a larger
+/// offset surround it (a daylight period next to another zone line's standard time, as in wartime Europe, is not).
 fn icu_dst_flags(tzif: &Tzif) -> Vec<bool> {
     let n = tzif.times.len();
     let ty = |i: usize| tzif.types[tzif.kinds[i]];
-    let negative = |i: usize| {
-        ty(i).dst
-            && ((i > 0 && !ty(i - 1).dst && ty(i - 1).offset > ty(i).offset)
-                || (i + 1 < n && !ty(i + 1).dst && ty(i + 1).offset > ty(i).offset))
-    };
     let footer_negative = matches!(&tzif.footer, Some(Posix { std, dst: Some(d) }) if d.offset < *std);
+    let negative = |i: usize| {
+        let above = |j: usize| !ty(j).dst && ty(j).offset > ty(i).offset;
+        ty(i).dst && i > 0 && above(i - 1) && if i + 1 < n { above(i + 1) } else { footer_negative }
+    };
     (0..n)
         .map(|i| {
             if ty(i).dst {
