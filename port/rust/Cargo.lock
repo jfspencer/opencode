@@ -701,6 +701,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "opencode-yoga"
+version = "0.1.0"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "openssl-probe"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
