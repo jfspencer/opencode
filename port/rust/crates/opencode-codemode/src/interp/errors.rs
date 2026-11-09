@@ -278,10 +278,16 @@ pub fn normalize_error(ctx: &Ctx, error: &Fail) -> Diagnostic {
             };
             Diagnostic::new(DiagnosticKind::ExecutionFailure, js_concat(&[&JsStr::from("Uncaught: "), &message]))
         }
-        Fail::Host(host) => Diagnostic::new(
-            if host.0.eq_str("SyntaxError") { DiagnosticKind::ParseError } else { DiagnosticKind::ExecutionFailure },
-            host.1.clone(),
-        ),
+        Fail::Host(host) => {
+            let message = host.1.to_rust_lossy().to_lowercase();
+            if host.0.eq_str("RangeError") && (message.contains("call stack") || message.contains("recursion")) {
+                return Diagnostic::new(DiagnosticKind::ExecutionFailure, "Execution exceeded the maximum nesting depth.");
+            }
+            Diagnostic::new(
+                if host.0.eq_str("SyntaxError") { DiagnosticKind::ParseError } else { DiagnosticKind::ExecutionFailure },
+                host.1.clone(),
+            )
+        }
         // Not Errors in TS: `String(error)` of a plain object.
         Fail::GenReturn(_) | Fail::Interrupt => Diagnostic::new(DiagnosticKind::ExecutionFailure, "[object Object]"),
     }

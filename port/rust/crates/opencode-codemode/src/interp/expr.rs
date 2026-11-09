@@ -175,13 +175,24 @@ impl Frame {
 
     /// Evaluates an expression, keeping an optional chain's short-circuit (None) for the chain that contains it.
     pub fn eval_opt<'a>(&'a self, node: &'a Expr) -> LFut<'a, R<Option<Value>>> {
-        Box::pin(async move {
+        let cost = match node {
+            Expr::Identifier(_) | Expr::Literal(_) | Expr::This(_) | Expr::Function(_) => 0,
+            Expr::Binary(_) => 2,
+            Expr::Logical(_) => 4,
+            Expr::Call(_) | Expr::New(_) | Expr::TaggedTemplate(_) => 7,
+            _ => 4,
+        };
+        let work: LFut<'a, R<Option<Value>>> = Box::pin(async move {
             match node {
                 Expr::Member(member) => self.eval_member(member).await,
                 Expr::Call(call) => self.eval_call(call).await,
                 other => self.eval_value(other).await.map(Some),
             }
-        })
+        });
+        if cost == 0 {
+            return work;
+        }
+        Box::pin(crate::interp::runner::nested(&self.ctx, cost, work))
     }
 
     async fn eval_value(&self, node: &Expr) -> R<Value> {
@@ -828,6 +839,13 @@ impl Frame {
                         PropKey::Sym(Sym::AsyncIterator) => JsStr::from("[Symbol.asyncIterator]"),
                         other => other.to_js(),
                     };
+                    // acorn leaves a shorthand default (`{a = 1}`) inside an object literal it accepts as an expression;
+                    // evaluating that AssignmentPattern is unsupported, as in TS.
+                    if prop.shorthand
+                        && let Expr::Assignment(assignment) = &prop.value
+                    {
+                        return Err(unsupported_syntax("AssignmentPattern", loc_of(assignment.span)));
+                    }
                     let value = self.eval_named(&prop.value, &name).await?;
                     define(&object, key, value, DATA);
                 }

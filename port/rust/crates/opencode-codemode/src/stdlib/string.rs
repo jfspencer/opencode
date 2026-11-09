@@ -149,7 +149,26 @@ pub fn locale_compare(a: &JsStr, b: &JsStr) -> f64 {
             use unicode_normalization::UnicodeNormalization;
             text.to_rust_lossy().nfd().collect()
         };
+        // Expansions: these letters sort as two (`æ` as `ae`, `ß` as `ss`), a tertiary step apart from the pair.
+        let mut expanded: Vec<(char, u32)> = Vec::new();
         for ch in decomposed.chars() {
+            let pair = match ch {
+                'æ' => Some(("ae", 2)),
+                'Æ' => Some(("AE", 3)),
+                'œ' => Some(("oe", 2)),
+                'Œ' => Some(("OE", 3)),
+                'ß' => Some(("ss", 2)),
+                'ẞ' => Some(("SS", 3)),
+                'ĳ' => Some(("ij", 2)),
+                'Ĳ' => Some(("IJ", 3)),
+                _ => None,
+            };
+            match pair {
+                Some((text, mark)) => expanded.extend(text.chars().map(|c| (c, mark))),
+                None => expanded.push((ch, u32::from(ch.is_uppercase()))),
+            }
+        }
+        for (ch, case) in expanded {
             if unicode_normalization::char::is_combining_mark(ch) {
                 secondary.push(ch as u32);
                 continue;
@@ -158,7 +177,10 @@ pub fn locale_compare(a: &JsStr, b: &JsStr) -> f64 {
             // The root collation's primary order: whitespace, punctuation and symbols (ASCII ones in their
             // collation order), digits, then letters.
             const SYMBOLS: &str = "_-,;:!?.'\"()[]{}@*/\\&#%`^+<=>|~$";
-            let (class, weight) = if ch.is_whitespace() {
+            let (class, weight) = if ch == '\u{FFFD}' {
+                // Unpaired surrogates read as U+FFFD, which sorts after every letter.
+                (5, 0)
+            } else if ch.is_whitespace() {
                 (1, ch as u32)
             } else if let Some(at) = SYMBOLS.find(ch) {
                 (2, at as u32)
@@ -171,7 +193,7 @@ pub fn locale_compare(a: &JsStr, b: &JsStr) -> f64 {
             };
             primary.push((class << 24) | weight);
             secondary.push(0);
-            tertiary.push(if ch.is_uppercase() { 1 } else { 0 });
+            tertiary.push(case);
         }
         (primary, secondary, tertiary)
     }

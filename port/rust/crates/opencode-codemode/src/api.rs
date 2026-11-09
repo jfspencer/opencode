@@ -231,10 +231,14 @@ fn parse_failure(message: &str, line: u32, column: u32) -> Diagnostic {
     }
 }
 
+const PARSER_STACK: usize = 8 * 1024 * 1024;
+
 /// acorn's parse plus the export check (parseProgram).
 pub fn parse_program(code: &str) -> Result<crate::parser::ast::Program, Diagnostic> {
     let units: Vec<u16> = code.encode_utf16().collect();
-    let program = crate::parser::parse(&units).map_err(|error| {
+    // acorn gives up at about 3,900 nested parentheses under bun; 8 MiB of parser stack reaches about as deep.
+    let parsed = stacker::grow(PARSER_STACK + 1024 * 1024, || crate::parser::parse_with_stack_limit(&units, PARSER_STACK));
+    let program = parsed.map_err(|error| {
         // acorn exhausting the JS stack is a RangeError, not a SyntaxError: it fails the execution as a defect.
         if error.message == crate::parser::STACK_OVERFLOW_MESSAGE {
             return Diagnostic::new(DiagnosticKind::ExecutionFailure, "Execution exceeded the maximum nesting depth.");

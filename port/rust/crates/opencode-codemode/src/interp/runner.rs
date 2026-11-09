@@ -196,6 +196,7 @@ pub struct Runner {
     resume: RefCell<Option<Input>>,
     depth: Cell<usize>,
     native_depth: Cell<usize>,
+    eval_cost: Cell<usize>,
     stopping: Cell<bool>,
     waker: RefCell<Option<Waker>>,
     /// The intrinsic `Promise.prototype.then`.
@@ -219,6 +220,7 @@ impl Default for Runner {
             resume: Default::default(),
             depth: Cell::new(0),
             native_depth: Cell::new(0),
+            eval_cost: Cell::new(0),
             stopping: Cell::new(false),
             waker: Default::default(),
             intrinsic_then: Default::default(),
@@ -669,11 +671,14 @@ impl Future for Activation {
         let ctx = self.ctx.clone();
         let runner = &ctx.runner;
         runner.depth.set(runner.depth.get() + 1);
-        // Built-ins nest on the host stack only within one activation; a program call starts afresh.
+        // Built-ins and nested expressions use the host stack only within one activation; a program call starts
+        // afresh.
         let natives = runner.native_depth.replace(0);
+        let nesting = runner.eval_cost.replace(0);
         let fut = &mut self.fut;
         let result = stacker::maybe_grow(256 * 1024, 4 * 1024 * 1024, || fut.as_mut().poll(cx));
         runner.native_depth.set(natives);
+        runner.eval_cost.set(nesting);
         runner.depth.set(runner.depth.get() - 1);
         result
     }
@@ -715,6 +720,39 @@ impl Runner {
 /// JavaScriptCore's stack overflow, as a host error escaping a built-in.
 pub fn host_stack_overflow() -> Fail {
     Fail::Host(Rc::new((crate::jsstr::JsStr::from("RangeError"), crate::jsstr::JsStr::from("Maximum call stack size exceeded."))))
+}
+
+/// How much host stack nested expressions may use within one activation, in the units of `eval_cost`. TS evaluates
+/// nested expressions recursively on the JS stack, which JavaScriptCore exhausts at about 23,000 nested `+`, 11,000
+/// `&&`, or 6,500 chained calls; the costs are those proportions.
+pub const MAX_EVAL_COST: usize = 46_000;
+
+/// One nested expression's evaluation, charged `cost` units of host stack while it is polled.
+pub struct Nested<F> {
+    ctx: Ctx,
+    cost: usize,
+    fut: F,
+}
+
+impl<F: Future<Output = R<T>> + Unpin, T> Future for Nested<F> {
+    type Output = R<T>;
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<R<T>> {
+        let ctx = self.ctx.clone();
+        let runner = &ctx.runner;
+        let used = runner.eval_cost.get() + self.cost;
+        if used > MAX_EVAL_COST {
+            return Poll::Ready(Err(host_stack_overflow()));
+        }
+        runner.eval_cost.set(used);
+        let fut = &mut self.fut;
+        let result = stacker::maybe_grow(128 * 1024, 2 * 1024 * 1024, || Pin::new(fut).poll(cx));
+        runner.eval_cost.set(used - self.cost);
+        result
+    }
+}
+
+pub fn nested<F: Future<Output = R<T>> + Unpin, T>(ctx: &Ctx, cost: usize, fut: F) -> Nested<F> {
+    Nested { ctx: ctx.clone(), cost, fut }
 }
 
 pub fn native_work(ctx: &Ctx, fut: Fut<R<Value>>) -> Fut<R<Value>> {
