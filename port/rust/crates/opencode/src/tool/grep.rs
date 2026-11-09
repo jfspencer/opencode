@@ -1,8 +1,5 @@
 //! The grep tool (packages/core/src/tool/plugin/grep.ts): lines matching a ripgrep pattern (or literal text) in a
 //! file or under a directory of the location, grouped by file.
-//!
-//! TODO(port): TS shows each matched line with the newline ripgrep reports for it, so the listing has a blank line
-//! after every match; kept as TS does.
 
 use opencode_protocol::Json;
 
@@ -29,7 +26,9 @@ fn model_content(matches: &[Match], truncated: bool) -> String {
             current = &item.path;
             lines.push(format!("{}:", item.path));
         }
-        lines.push(format!("  Line {}: {}", item.line, item.text));
+        // ripgrep's line text ends with the line's terminator; the listing puts one line per match (D120).
+        let text = item.text.strip_suffix('\n').map(|text| text.strip_suffix('\r').unwrap_or(text)).unwrap_or(&item.text);
+        lines.push(format!("  Line {}: {}", item.line, text));
     }
     if truncated {
         lines.push(String::new());
@@ -68,6 +67,10 @@ impl Grep {
         context.assert(ask).await?;
         let root = target.absolute.clone();
         let kind = file_search::path_type(&root, &display).map_err(failure)?;
+        // Anything else (a FIFO, a socket) would otherwise search the directory around it (D122).
+        if kind != "file" && kind != "directory" {
+            return Err(failure(format!("Search path is not a file or directory: {display}")));
+        }
         let cwd = if kind == "directory" { root.clone() } else { dirname(&root) };
         let file = (kind == "file").then(|| crate::text::basename(&root).to_owned());
         let search = GrepInput {
@@ -105,5 +108,17 @@ impl Tool for Grep {
 
     fn execute<'a>(&'a self, context: Context, input: Json) -> Execution<'a> {
         Box::pin(self.run(context, input))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn one_line_per_match() {
+        let found = |line, text: &str| Match { path: "/project/a.txt".into(), line, text: text.into() };
+        let matches = [found(1, "one\n"), found(2, "two\r\n"), found(3, "last")];
+        assert_eq!(model_content(&matches, false), "Found 3 matches\n/project/a.txt:\n  Line 1: one\n  Line 2: two\n  Line 3: last");
     }
 }
