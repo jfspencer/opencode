@@ -627,4 +627,29 @@ mod tests {
         let added = create_patch("f", "", "x\n", "", "", 3);
         assert!(added.ends_with("@@ -0,0 +1,1 @@\n+x\n"));
     }
+
+    #[test]
+    fn apply_and_reverse() {
+        let cases = [
+            ("alpha\nbeta\ngamma\n", "alpha\nBETA\ngamma\n"),
+            ("", "brand new\n"),
+            ("one\ntwo\n", "one\ntwo\nthree\n"),
+            ("a\nb", "a\nc"),
+            ("a\nb\n", "a\nb"),
+            ("a\nb", "a\nb\n"),
+            ("x\r\ny\r\n", "x\r\nz\r\n"),
+        ];
+        for (old, new) in cases {
+            let patch = create_patch_without_headers("f.txt", old, new, 4);
+            let hunks = parse_patch(&patch).unwrap().remove(0);
+            assert_eq!(apply_patch(old, &hunks).as_deref(), Some(new), "{patch}");
+            assert_eq!(apply_patch(new, &reverse_patch(&hunks)).as_deref(), Some(old), "{patch}");
+        }
+        // A hunk that fits nowhere.
+        let hunks = parse_patch(&create_patch_without_headers("f", "a\nb\n", "a\nc\n", 4)).unwrap().remove(0);
+        assert_eq!(apply_patch("x\ny\n", &hunks), None);
+        // A hunk found away from where its header says.
+        assert_eq!(apply_patch("top\na\nb\n", &hunks).as_deref(), Some("top\na\nc\n"));
+        assert!(parse_patch("@@ -1,2 +1,1 @@\n-a\n").is_err());
+    }
 }
