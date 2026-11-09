@@ -388,7 +388,9 @@ pub fn read(files: &dyn Files, input: &str, resource: &str, page: Page) -> Resul
             return Err(binary(resource));
         }
         let decoded = decode(&first);
-        let content = decoded.split('\n').map(clamp_line).collect::<Vec<_>>().join("\n");
+        // Lines end without their CR, as in pages (D121).
+        let lines = decoded.split('\n').map(|line| clamp_line(line.strip_suffix('\r').unwrap_or(line)));
+        let content = lines.collect::<Vec<_>>().join("\n");
         return Ok(Content::File { content, base64: false, mime: mime_type() });
     }
     let (offset, limit) = (page.offset(), page.limit());
@@ -470,6 +472,11 @@ mod tests {
     fn pages() {
         let files = memory("one\r\ntwo\r\nthree\r\n");
         assert_eq!(page(read(&files, "/a.txt", "a.txt", Page { offset: Some(2), limit: None })), ("two\nthree".into(), 2, None));
+        // A whole read drops the CRs too (D121).
+        match read(&files, "/a.txt", "a.txt", Page { offset: None, limit: None }) {
+            Ok(Content::File { content, .. }) => assert_eq!(content, "one\ntwo\nthree\n"),
+            other => panic!("not a file: {other:?}"),
+        }
         let files = memory("alpha\nbeta");
         match read(&files, "/a.txt", "a.txt", Page { offset: Some(3), limit: None }) {
             Err(ReadError::Message(message)) => assert_eq!(message, "Offset 3 is out of range for this file (2 lines)"),

@@ -586,6 +586,7 @@ scenarios/tools-question.test.ts › question with an unanswered question
 scenarios/tools-question.test.ts › question with no questions or without options
 scenarios/tools-question.test.ts › question with one choice answered by option
 scenarios/tools-question.test.ts › question with several questions and a multiselect
+scenarios/tools-read.test.ts › grep on a special file
 scenarios/tools-read.test.ts › read a special file
 scenarios/tools-read.test.ts › read absolute and home paths
 scenarios/tools-read.test.ts › read binary files
