@@ -6,7 +6,7 @@
 //! Exit codes follow `NodeRuntime.runMain`: a failure is 1 (its `Cause.pretty` on stderr), help with errors 1,
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
-//! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
+//! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, the TUI (the
 //! default command), `--wizard`; see `dispatch`.
 
 mod auth;
@@ -17,14 +17,17 @@ mod commands;
 mod connection;
 mod help;
 mod out;
+mod pair;
 mod parse;
 mod paths;
+mod qr;
 mod run;
 mod serve;
 mod service;
 mod spec;
 mod stats;
 mod tool;
+mod tunnel;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -193,8 +196,9 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["api"] => commands::api(globals, input).await,
         ["auth", name] => auth::command(name, globals, input).await,
         ["acp"] => acp::command(globals, input).await,
+        ["pair"] => pair::command(input).await,
         // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
-        // uninstall, pair).
+        // uninstall).
         _ => unavailable(path),
     }
 }
