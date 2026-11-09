@@ -31,7 +31,7 @@ export type Turn =
       readonly truncate?: boolean
     }
   | { readonly status: number; readonly body?: unknown; readonly headers?: Record<string, string> }
-  | { readonly raw: string; readonly status?: number; readonly headers?: Record<string, string> }
+  | { readonly raw: string | Uint8Array; readonly status?: number; readonly headers?: Record<string, string> }
 
 export interface ProviderRequest {
   readonly index: number
