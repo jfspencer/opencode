@@ -6,6 +6,7 @@ mod auth;
 mod bus;
 mod collate;
 mod db;
+mod flag;
 mod fs;
 mod fuzzysort;
 mod generate;
@@ -13,6 +14,7 @@ mod handlers;
 mod inventory;
 mod http;
 mod id;
+mod job;
 mod json;
 mod llm;
 mod location;
@@ -20,11 +22,13 @@ mod permission;
 mod process;
 mod project;
 mod project_icon;
+mod schedule;
 mod session;
 mod text;
 mod tool;
 mod vcs;
 mod worktree;
+mod zone;
 
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -184,6 +188,7 @@ fn serve(options: Serve) {
         }
         // Turns a previous process left mid-way continue (restart continuity).
         session::execution::resume_suspended(&app);
+        schedule::start(&app);
         let server = tokio::spawn(http::serve(app, listener));
         shutdown_signal().await;
         server.abort();

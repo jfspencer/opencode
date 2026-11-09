@@ -156,15 +156,14 @@ fn namespace_line(namespace: &Json) -> String {
     format!("- {} ({label}){description}", json::get_str(namespace, "name").unwrap_or_default())
 }
 
+/// `searchSignature` (@opencode/codemode): the global `search` function a partial catalog points to.
+const SEARCH_SIGNATURE: &str = "search({\n  query?: string,\n  namespace?: string,\n  /** @integer @exclusiveMinimum 0 */\n  limit?: number,\n  /** @integer @minimum 0 */\n  offset?: number,\n}): {\n  items: Array<{\n      path: string,\n      description: string,\n      signature: string,\n    }>,\n  /** @integer @minimum 0 */\n  remaining: number,\n  next: {\n      /** @integer @minimum 0 */\n      offset: number,\n    } | null,\n}";
+
 fn code_mode_render(catalog: &Json) -> Option<String> {
     let total = json::get_num(catalog, "total").unwrap_or(0.0);
     let shown = json::get_num(catalog, "shown").unwrap_or(0.0);
     if total == 0.0 {
         return Some("No Code Mode tools are currently available. Later Code Mode catalog updates may add or remove tools. Do not call `execute` unless there is at least one available Code Mode tool.".into());
-    }
-    if shown < total {
-        // TODO(port): the partial catalog's `search(...)` guidance (needs the codemode search signature).
-        return None;
     }
     let mut lines = Vec::new();
     if let Some(Json::Array(namespaces)) = json::get(catalog, "namespaces") {
@@ -175,8 +174,15 @@ fn code_mode_render(catalog: &Json) -> Option<String> {
             }
         }
     }
+    let partial = shown < total;
+    let guidance = if partial {
+        format!("The catalog is partial. Before calling a tool that is not listed below, find it with the global `search(...)` function. Do not guess tool names. Each result's `path` is the complete call expression: write it out as code, for example `await tools.ns.tool_name({{ ... }})`. Do not use it as a key such as `tools[path]`.\n\n- {SEARCH_SIGNATURE}")
+    } else {
+        "The catalog is complete. Do not guess tool names.".to_owned()
+    };
     Some(format!(
-        "# Code Mode\n\nThe tools listed below cannot be called directly: they only work as JavaScript inside the `execute` tool. Every other tool you have is a normal tool call: call it directly, never inside `execute`.\n\nThe catalog is complete. Do not guess tool names.\n\n## Code Mode tools (call only inside `execute`)\n\n{}",
+        "# Code Mode\n\nThe tools listed below{} cannot be called directly: they only work as JavaScript inside the `execute` tool. Every other tool you have is a normal tool call: call it directly, never inside `execute`.\n\n{guidance}\n\n## Code Mode tools (call only inside `execute`)\n\n{}",
+        if partial { ", and `search`," } else { "" },
         lines.join("\n")
     ))
 }

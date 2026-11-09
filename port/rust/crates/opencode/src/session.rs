@@ -623,7 +623,8 @@ pub fn remove(app: &App, session_id: &str) -> Result<()> {
     app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
     let result = (|| {
         // The handler stops the session's own execution first. TODO(port): interrupt and await descendants'
-        // executions, cancel the session's jobs, close its model transport.
+        // executions, close its model transport.
+        crate::job::jobs().cancel_session(app, session_id);
         let children: Vec<String> = {
             let db = app.db.lock().unwrap();
             let mut statement =

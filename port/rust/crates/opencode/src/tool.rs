@@ -19,6 +19,7 @@
 //! successful result with [`output::truncate`].
 
 pub mod output;
+pub mod schedule;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -52,6 +53,8 @@ pub struct Context {
     pub directory: String,
     /// Publishes `session.tool.progress` with the given metadata.
     pub progress: Arc<dyn Fn(Json) + Send + Sync>,
+    /// `Permission.Unattended` while a schedule check runs the call (see [`crate::permission::Requester`]).
+    pub unattended: Option<Vec<Json>>,
 }
 
 /// A successful execution (`Tool.NormalizedResult`): `content` is a non-empty array of `Tool.Content`
@@ -92,6 +95,7 @@ impl Context {
             session_id: self.session_id.clone(),
             agent: Some(self.agent.clone()),
             source: Some(crate::permission::Source { message_id: self.message_id.clone(), id: self.call_id.clone() }),
+            unattended: self.unattended.clone(),
         }
     }
 
