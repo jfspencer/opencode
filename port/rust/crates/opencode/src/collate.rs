@@ -4,12 +4,16 @@
 //! filesystem.ts, skill.ts, tool/read-filesystem.ts, ...): use [`compare`] wherever TS calls `localeCompare`.
 //!
 //! The weights are the DUCET (`generated/collation.bin`, by `port/rust/gen/src/collation.ts`); input is normalized
-//! to NFD first, as ICU's canonical closure makes equivalent strings compare equal.
-//! TODO(port): discontiguous contractions (UCA S2.1.1-S2.1.3, combining marks between the characters of a
-//! contraction); CLDR root's few differences from the DUCET (Tibetan, a handful of symbols); characters added after
-//! Unicode 13 weigh as unassigned.
+//! to NFD first, as ICU's canonical closure makes equivalent strings compare equal. Checked against Bun on random
+//! strings of Latin, Greek, Cyrillic, Hangul, Thai, Arabic, Devanagari, Tibetan, symbols and controls.
+//! TODO(port): CLDR root orders Han ideographs by radical and stroke count (Unihan kRSUnicode) where the DUCET uses
+//! code point order per block: the two agree inside the core block, except its late additions, but not across the
+//! extension blocks. Characters added after Unicode 13 weigh as unassigned.
 
 use std::cmp::Ordering;
+
+#[cfg(test)]
+use opencode_protocol::Json;
 
 use unicode_normalization::UnicodeNormalization;
 
@@ -110,28 +114,55 @@ impl Table {
     }
 }
 
+fn combining_class(cp: u32) -> u8 {
+    char::from_u32(cp).map(unicode_normalization::char::canonical_combining_class).unwrap_or(0)
+}
+
 /// The collation elements of a string (UCA S1-S2, non-ignorable).
 fn elements(text: &str) -> Vec<u32> {
     let table = table();
-    let chars: Vec<u32> = text.nfd().map(|c| c as u32).collect();
+    let mut chars: Vec<u32> = text.nfd().map(|c| c as u32).collect();
     let mut out = Vec::with_capacity(chars.len() + 2);
     let mut index = 0;
     while index < chars.len() {
-        if let Some((len, packed)) = table.contraction(&chars[index..]) {
-            out.extend(table.elements(packed));
-            index += len;
-            continue;
+        // S2.1: the longest contiguous match.
+        let (mut matched, mut packed) = match table.contraction(&chars[index..]) {
+            Some((len, packed)) => (chars[index..index + len].to_vec(), Some(packed)),
+            None => (vec![chars[index]], table.single(chars[index])),
+        };
+        let next = index + matched.len();
+        // S2.1.1-S2.1.3: an unblocked combining mark after the match that extends it into a contraction is taken
+        // out of the string and joins the match.
+        let mut scan = next;
+        let mut last_skipped = 0u8;
+        while scan < chars.len() && matched.len() < 3 {
+            let class = combining_class(chars[scan]);
+            if class == 0 {
+                break;
+            }
+            if last_skipped < class {
+                let mut candidate = matched.clone();
+                candidate.push(chars[scan]);
+                if let Some((len, found)) = table.contraction(&candidate).filter(|(len, _)| *len == candidate.len()) {
+                    debug_assert_eq!(len, candidate.len());
+                    matched = candidate;
+                    packed = Some(found);
+                    chars.remove(scan);
+                    continue;
+                }
+            }
+            last_skipped = class;
+            scan += 1;
         }
-        let cp = chars[index];
-        match table.single(cp) {
+        match packed {
             Some(packed) => out.extend(table.elements(packed)),
             None => {
-                let (aaaa, bbbb) = table.implicit(cp);
+                let (aaaa, bbbb) = table.implicit(chars[index]);
                 out.push((aaaa << 14) | (0x20 << 5) | 0x02);
                 out.push(bbbb << 14);
             }
         }
-        index += 1;
+        index = next;
     }
     out
 }
@@ -169,6 +200,37 @@ pub fn compare(a: &str, b: &str) -> Ordering {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A sample sorted by Bun: `COLLATE_SAMPLE=<file> cargo test -p opencode collate -- --ignored`, the file holding
+    /// `{ items, sorted }` (items in random order, then `items.toSorted((a, b) => a.localeCompare(b))`).
+    #[test]
+    #[ignore]
+    fn sorts_sample_like_bun() {
+        let path = std::env::var("COLLATE_SAMPLE").expect("COLLATE_SAMPLE");
+        let sample = crate::json::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let strings = |key: &str| -> Vec<String> {
+            crate::json::array(crate::json::get(&sample, key).unwrap())
+                .unwrap()
+                .iter()
+                .map(|v| match v {
+                    Json::String(s) => s.clone(),
+                    _ => panic!("not a string"),
+                })
+                .collect()
+        };
+        let mut items = strings("items");
+        items.sort_by(|a, b| compare(a, b));
+        let expected = strings("sorted");
+        let wrong: Vec<String> = items
+            .iter()
+            .zip(&expected)
+            .enumerate()
+            .filter(|(_, (a, b))| a != b)
+            .take(20)
+            .map(|(i, (a, b))| format!("{i}: rust {a:?} bun {b:?}"))
+            .collect();
+        assert!(wrong.is_empty(), "{}", wrong.join("\n"));
+    }
 
     /// Orders recorded from Bun (`items.toSorted((a, b) => a.localeCompare(b))`).
     #[test]

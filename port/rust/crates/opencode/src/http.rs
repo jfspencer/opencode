@@ -179,7 +179,7 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
     let query = parts.uri.query().map(parse_query).unwrap_or_default();
     let headers = parts.headers;
 
-    if !crate::auth::authorized(&app, &headers, &query) {
+    if !crate::auth::authorized(&app, &raw_path, &headers, &query) {
         return finish(crate::auth::unauthorized(&headers));
     }
 

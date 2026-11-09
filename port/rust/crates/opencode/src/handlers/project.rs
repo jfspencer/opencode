@@ -113,8 +113,6 @@ fn server_info() -> Json {
 
 const PAIRING_TTL: Duration = Duration::from_secs(5 * 60);
 const PAIRING_CAPACITY: usize = 1_000;
-/// `ServerAuth.SESSION_TTL_SECONDS`.
-const SESSION_TTL_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 fn codes() -> &'static Mutex<HashMap<String, Instant>> {
     static CODES: std::sync::OnceLock<Mutex<HashMap<String, Instant>>> = std::sync::OnceLock::new();
@@ -148,34 +146,11 @@ fn pairing_consume(code: &str) -> bool {
     codes().lock().unwrap().remove(code).is_some_and(|issued| issued.elapsed() < PAIRING_TTL)
 }
 
-fn hmac_sha256(key: &[u8], message: &[u8]) -> [u8; 32] {
-    use sha2::{Digest, Sha256};
-    let mut block = [0u8; 64];
-    if key.len() > 64 {
-        block[..32].copy_from_slice(&Sha256::digest(key));
-    } else {
-        block[..key.len()].copy_from_slice(key);
-    }
-    let inner: Vec<u8> = block.iter().map(|b| b ^ 0x36).collect();
-    let outer: Vec<u8> = block.iter().map(|b| b ^ 0x5c).collect();
-    let inner_hash = Sha256::new().chain_update(&inner).chain_update(message).finalize();
-    Sha256::new().chain_update(&outer).chain_update(inner_hash).finalize().into()
-}
-
-/// `ServerAuth.issueSession`: `<expiry seconds>.<signature>`, signed with a key derived from the password.
-pub fn issue_session(password: &str) -> String {
-    use base64::Engine;
-    let expires = (crate::id::now() / 1000 + SESSION_TTL_SECONDS).to_string();
-    let key = hmac_sha256(password.as_bytes(), b"opencode-session-v1");
-    let signature = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(hmac_sha256(&key, expires.as_bytes()));
-    format!("{expires}.{signature}")
-}
-
 /// `GET /auth/connect/:code`: exchanges a pairing code for a session token (as JSON for API clients, as a cookie
 /// and a redirect for browser navigations).
 fn server_connect(app: &App, request: &Request) -> Response {
     let browser = request.header("accept").is_some_and(|accept| accept.contains("text/html"));
-    let token = pairing_consume(request.param("code")).then(|| app.password.as_deref().map(issue_session)).flatten();
+    let token = pairing_consume(request.param("code")).then(|| app.password.as_deref().map(crate::auth::issue_session)).flatten();
     let Some(token) = token else {
         if !browser {
             let mut o = Obj::new();
@@ -195,14 +170,13 @@ fn server_connect(app: &App, request: &Request) -> Response {
         o.str("token", &token);
         return Response::value(200, &o.done());
     }
-    // Browsers share cookies across ports on the same host, so the name carries the port (`sessionCookieName`).
-    let port = request.header("host").and_then(|host| host.rsplit_once(':')).map(|(_, port)| port).filter(|p| !p.is_empty());
-    let name = port.map(|port| format!("opencode_session_{port}")).unwrap_or_else(|| "opencode_session".into());
+    let name = crate::auth::session_cookie_name(request.header("host"));
+    let max_age = crate::auth::SESSION_TTL_SECONDS;
     Response {
         status: 302,
         headers: vec![
             ("location", "/".into()),
-            ("set-cookie", format!("{name}={token}; Max-Age={SESSION_TTL_SECONDS}; Path=/; HttpOnly; SameSite=Lax")),
+            ("set-cookie", format!("{name}={token}; Max-Age={max_age}; Path=/; HttpOnly; SameSite=Lax")),
         ],
         body: Body::Empty,
     }
