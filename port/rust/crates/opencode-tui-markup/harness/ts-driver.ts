@@ -297,6 +297,75 @@ export async function markdownRender(c: any) {
   }
 }
 
+// ---- diffs: jsdiff as @opentui/core resolves it, and the arguments DiffRenderable hands each pane's gutter.
+export const jsdiff = await import(Bun.resolveSync("diff", coreDir))
+let sides: any[] = []
+const diffProto = core.DiffRenderable.prototype as any
+const createOrUpdateSide = diffProto.createOrUpdateSide
+diffProto.createOrUpdateSide = function (side: string, target: any, colors: Map<number, any>, signs: Map<number, any>, numbers: Map<number, number>, hide: Set<number>, width: string) {
+  sides.push({
+    side,
+    content: target.content,
+    lineColors: [...colors].map(([k, v]) => [k, { gutter: rgba(v.gutter), content: rgba(v.content) }]),
+    lineSigns: [...signs].map(([k, v]) => [k, { after: v.after, afterColor: rgba(v.afterColor) }]),
+    lineNumbers: [...numbers],
+    hideLineNumbers: [...hide].sort((a, b) => a - b),
+    width,
+  })
+  return createOrUpdateSide.call(this, side, target, colors, signs, numbers, hide, width)
+}
+
+export function diff(c: any) {
+  let patches: unknown
+  try {
+    patches = { patches: plain(jsdiff.parsePatch(c.diff)) }
+  } catch (error) {
+    patches = { error: String((error as Error).message) }
+  }
+  sides = []
+  const r = new core.DiffRenderable(renderer, { diff: c.diff, view: c.view, syntaxStyle, treeSitterClient: client })
+  try {
+    const error = r.errorTextRenderable ? r.errorTextRenderable.chunks.map((ch: any) => ch.text).join("") : null
+    return { ...(patches as object), sides, hunkStartLines: [...r._hunkStartLines], errorText: error }
+  } finally {
+    r.destroyRecursively()
+  }
+}
+
+// ---- tables: TextTableRenderable.computeLayout with every cell measure it asks for recorded.
+export function table(c: any) {
+  const content = c.cells.map((row: (string | null)[]) => row.map((t) => (t === null ? null : [{ __isChunk: true, text: t }])))
+  const r: any = new core.TextTableRenderable(renderer, { content, ...c.options })
+  try {
+    const measures: any[] = []
+    r._cells.forEach((row: any[], ri: number) =>
+      row.forEach((cell: any, ci: number) => {
+        const view = cell.textBufferView
+        const measure = view.measureForDimensions.bind(view)
+        view.measureForDimensions = (width: number, height: number) => {
+          const m = measure(width, height)
+          measures.push([ri, ci, width, m ? { lineCount: m.lineCount, widthColsMax: m.widthColsMax } : null])
+          return m
+        }
+      }),
+    )
+    const layout = r.computeLayout(r.resolveLayoutWidthConstraint(c.maxWidth ?? undefined))
+    return {
+      layout: {
+        columnWidths: layout.columnWidths,
+        rowHeights: layout.rowHeights,
+        columnOffsets: layout.columnOffsets,
+        rowOffsets: layout.rowOffsets,
+        tableWidth: layout.tableWidth,
+        tableHeight: layout.tableHeight,
+      },
+      measures,
+    }
+  } finally {
+    r.destroyRecursively()
+  }
+}
+
 export async function run(c: any): Promise<unknown> {
   switch (c.op) {
     case "lex":
@@ -311,6 +380,10 @@ export async function run(c: any): Promise<unknown> {
       return code(c)
     case "markdownRender":
       return markdownRender(c)
+    case "diff":
+      return diff(c)
+    case "table":
+      return table(c)
     default:
       throw new Error(`unknown op ${c.op}`)
   }

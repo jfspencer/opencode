@@ -7,8 +7,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
-import { codeSamples, goldenTexts, markedDocuments, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
-import { dispose, run } from "./ts-driver"
+import { codeSamples, goldenDiffs, goldenTexts, markedDocuments, randomDiff, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
+import { dispose, jsdiff, run, table } from "./ts-driver"
 
 const argv = process.argv.slice(2)
 const arg = (name: string, fallback?: string) => {
@@ -87,6 +87,41 @@ for (const doc of documents) {
   if (caseRng.chance(0.2) && text.includes("]("))
     add(`render-hyperlinks/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: true, hyperlinks: true, content: text })
 }
+// Diffs: parsePatch and the unified and split line models.
+for (const d of goldenDiffs()) {
+  add("diff/goldens", d.name, { op: "diff", diff: d.diff, view: "unified" })
+  add("diff-split/goldens", d.name, { op: "diff", diff: d.diff, view: "split" })
+}
+for (let i = 0; i < count; i++) {
+  const text = randomDiff(caseRng, jsdiff)
+  add("diff/random", `random#${i}`, { op: "diff", diff: text, view: caseRng.chance(0.5) ? "split" : "unified" })
+}
+
+// Tables: computeLayout over random cells and options, replaying the cell measures TS takes (the text slice's).
+const CELL_WORDS = ["a", "bb", "ccc", "alpha beta", "gamma-delta epsilon", "日本語", "😀😀", "long-unbreakable-word-here", "x y z w v u", ""]
+for (let i = 0; i < count; i++) {
+  const rows = caseRng.int(5)
+  const cols = 1 + caseRng.int(5)
+  const cells = Array.from({ length: rows }, () =>
+    Array.from({ length: cols - (caseRng.chance(0.1) ? 1 : 0) }, () =>
+      caseRng.chance(0.05) ? null : Array.from({ length: 1 + caseRng.int(4) }, () => caseRng.pick(CELL_WORDS)).join(caseRng.pick([" ", "\n"])),
+    ),
+  )
+  const options: any = {
+    wrapMode: caseRng.pick(["none", "char", "word", "word"]),
+    columnWidthMode: caseRng.pick(["content", "full"]),
+    columnFitter: caseRng.pick(["proportional", "balanced"]),
+    cellPaddingX: caseRng.int(3),
+    cellPaddingY: caseRng.int(2),
+    columnGap: caseRng.int(3),
+    border: caseRng.chance(0.7),
+  }
+  if (caseRng.chance(0.3)) options.outerBorder = caseRng.chance(0.5)
+  const input: any = { op: "table", cells, options, maxWidth: caseRng.chance(0.15) ? null : 4 + caseRng.int(80) }
+  input.tsMeasures = (table(input) as any).measures
+  add("table/random", `random#${i}`, input)
+}
+
 // Markdown highlighting of whole documents (the conceal path frames depend on).
 for (const doc of documents) {
   if (doc.markdown.length > 6000) continue

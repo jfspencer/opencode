@@ -7,6 +7,7 @@ mod json;
 use json::J;
 use opencode_tui_markup::js::JsString;
 use opencode_tui_markup::links;
+use opencode_tui_markup::{diff, table};
 use opencode_tui_markup::markdown::{
     BorderStyle, BoxRole, CodeNode, ColumnFitter, ColumnWidthMode, InternalBlockMode, Markdown, MarkdownOptions, MarkdownTableOptions,
     MarkdownTableStyle, Node, WrapMode,
@@ -469,6 +470,208 @@ fn markdown_render_case(case: &Value) -> J {
     J::Arr(out)
 }
 
+fn patch_json(p: &diff::StructuredPatch) -> J {
+    let mut f: Vec<(&'static str, J)> = Vec::new();
+    let mut opt_s = |k: &'static str, v: &Option<JsString>| {
+        if let Some(v) = v {
+            f.push((k, J::js(v)));
+        }
+    };
+    opt_s("index", &p.index);
+    opt_s("oldFileName", &p.old_file_name);
+    opt_s("newFileName", &p.new_file_name);
+    opt_s("oldHeader", &p.old_header);
+    opt_s("newHeader", &p.new_header);
+    opt_s("oldMode", &p.old_mode);
+    opt_s("newMode", &p.new_mode);
+    for (k, v) in [
+        ("isGit", p.is_git),
+        ("isRename", p.is_rename),
+        ("isCopy", p.is_copy),
+        ("isCreate", p.is_create),
+        ("isDelete", p.is_delete),
+        ("isBinary", p.is_binary),
+    ] {
+        if let Some(v) = v {
+            f.push((k, J::Bool(v)));
+        }
+    }
+    f.push((
+        "hunks",
+        J::Arr(
+            p.hunks
+                .iter()
+                .map(|h| {
+                    J::Obj(vec![
+                        ("oldStart", J::Num(h.old_start)),
+                        ("oldLines", J::Num(h.old_lines)),
+                        ("newStart", J::Num(h.new_start)),
+                        ("newLines", J::Num(h.new_lines)),
+                        ("lines", J::Arr(h.lines.iter().map(J::js).collect())),
+                    ])
+                })
+                .collect(),
+        ),
+    ));
+    J::Obj(f)
+}
+
+fn side_json(side: &str, m: &diff::SideModel, width: &str) -> J {
+    J::Obj(vec![
+        ("side", J::s(side)),
+        ("content", J::js(&m.content)),
+        (
+            "lineColors",
+            J::Arr(
+                m.line_colors
+                    .iter()
+                    .map(|(k, v)| {
+                        J::Arr(vec![
+                            J::Num(*k as f64),
+                            J::Obj(vec![("gutter", rgba(Some(v.gutter))), ("content", rgba(Some(v.content)))]),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ),
+        (
+            "lineSigns",
+            J::Arr(
+                m.line_signs
+                    .iter()
+                    .map(|(k, v)| {
+                        J::Arr(vec![J::Num(*k as f64), J::Obj(vec![("after", J::s(v.after)), ("afterColor", rgba(Some(v.after_color)))])])
+                    })
+                    .collect(),
+            ),
+        ),
+        ("lineNumbers", J::Arr(m.line_numbers.iter().map(|(k, v)| J::Arr(vec![J::Num(*k as f64), J::Num(*v)])).collect())),
+        ("hideLineNumbers", J::Arr(m.hide_line_numbers.iter().map(|&k| J::Num(k as f64)).collect())),
+        ("width", J::s(width)),
+    ])
+}
+
+fn diff_case(case: &Value) -> J {
+    let text = s(case, "diff");
+    let mut f: Vec<(&'static str, J)> = Vec::new();
+    match diff::parse_patch(&text) {
+        Ok(patches) => f.push(("patches", J::Arr(patches.iter().map(patch_json).collect()))),
+        Err(e) => f.push(("error", J::s(&e))),
+    }
+    let mut sides = Vec::new();
+    let mut hunk_starts: Vec<usize> = Vec::new();
+    let mut error_text = J::Null;
+    match diff::parse_diff(&text) {
+        diff::ParsedDiff::None => {}
+        diff::ParsedDiff::Error(message) => error_text = J::s(&message),
+        diff::ParsedDiff::Patch(patch) if !patch.hunks.is_empty() => {
+            let model = diff::DiffModel { patch: &patch, colors: diff::DiffColors::default() };
+            if case["view"].as_str() == Some("split") {
+                let view = model.split_view(None);
+                sides.push(side_json("left", &view.left, "50%"));
+                sides.push(side_json("right", &view.right, "50%"));
+                hunk_starts = view.hunk_start_lines;
+            } else {
+                let (side, starts) = model.unified_view();
+                sides.push(side_json("left", &side, "100%"));
+                hunk_starts = starts;
+            }
+        }
+        diff::ParsedDiff::Patch(_) => {}
+    }
+    f.push(("sides", J::Arr(sides)));
+    f.push(("hunkStartLines", J::Arr(hunk_starts.iter().map(|&n| J::Num(n as f64)).collect())));
+    f.push(("errorText", error_text));
+    J::Obj(f)
+}
+
+fn table_case(case: &Value) -> J {
+    let cells: Vec<Vec<Option<String>>> = case["cells"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|row| row.as_array().unwrap().iter().map(|c| c.as_str().map(str::to_owned)).collect())
+        .collect();
+    let o = &case["options"];
+    let num = |k: &str| o.get(k).and_then(|v| v.as_f64());
+    let wrap = match o.get("wrapMode").and_then(|v| v.as_str()) {
+        Some("none") => WrapMode::None,
+        Some("char") => WrapMode::Char,
+        _ => WrapMode::Word,
+    };
+    let border = o.get("border").and_then(|v| v.as_bool()).unwrap_or(true);
+    let options = table::TableOptions {
+        wrap_mode: wrap,
+        column_width_mode: if o.get("columnWidthMode").and_then(|v| v.as_str()) == Some("content") {
+            ColumnWidthMode::Content
+        } else {
+            ColumnWidthMode::Full
+        },
+        column_fitter: if o.get("columnFitter").and_then(|v| v.as_str()) == Some("balanced") {
+            ColumnFitter::Balanced
+        } else {
+            ColumnFitter::Proportional
+        },
+        cell_padding_x: table::resolve_non_negative(num("cellPaddingX").or(num("cellPadding")), 0),
+        cell_padding_y: table::resolve_non_negative(num("cellPaddingY").or(num("cellPadding")), 0),
+        column_gap: table::resolve_non_negative(num("columnGap"), 0),
+        border,
+        outer_border: o.get("outerBorder").and_then(|v| v.as_bool()).unwrap_or(border),
+    };
+    let columns = cells.iter().map(|r| r.len()).max().unwrap_or(0);
+    let t = table::Table { rows: cells.len(), columns, options };
+    // Replay the measures TS recorded; a measure TS never asked for is a difference.
+    let recorded: Vec<(usize, usize, u32, Option<table::Measure>)> = case["tsMeasures"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|m| {
+            let m = m.as_array().unwrap();
+            let result = m[3].as_object().map(|o| table::Measure {
+                line_count: o["lineCount"].as_u64().unwrap() as u32,
+                width_cols_max: o["widthColsMax"].as_u64().unwrap() as u32,
+            });
+            (m[0].as_u64().unwrap() as usize, m[1].as_u64().unwrap() as usize, m[2].as_u64().unwrap() as u32, result)
+        })
+        .collect();
+    let mut asked: Vec<J> = Vec::new();
+    let mut measurer = |row: usize, col: usize, width: u32| -> Option<table::Measure> {
+        let found = recorded.iter().find(|(r, c, w, _)| *r == row && *c == col && *w == width);
+        let result = found.and_then(|f| f.3);
+        asked.push(J::Arr(vec![
+            J::Num(row as f64),
+            J::Num(col as f64),
+            J::Num(width as f64),
+            match (found, result) {
+                (None, _) => J::s("not measured by TS"),
+                (Some(_), None) => J::Null,
+                (Some(_), Some(m)) => J::Obj(vec![
+                    ("lineCount", J::Num(m.line_count as f64)),
+                    ("widthColsMax", J::Num(m.width_cols_max as f64)),
+                ]),
+            },
+        ]));
+        result
+    };
+    let max = case.get("maxWidth").and_then(|v| v.as_f64());
+    let layout = t.compute_layout(t.resolve_layout_width_constraint(max), &mut measurer);
+    let ints = |v: &[i64]| J::Arr(v.iter().map(|&n| J::Num(n as f64)).collect());
+    J::Obj(vec![
+        (
+            "layout",
+            J::Obj(vec![
+                ("columnWidths", ints(&layout.column_widths)),
+                ("rowHeights", ints(&layout.row_heights)),
+                ("columnOffsets", ints(&layout.column_offsets)),
+                ("rowOffsets", ints(&layout.row_offsets)),
+                ("tableWidth", J::Num(layout.table_width as f64)),
+                ("tableHeight", J::Num(layout.table_height as f64)),
+            ]),
+        ),
+        ("measures", J::Arr(asked)),
+    ])
+}
+
 fn s(v: &Value, key: &str) -> JsString {
     JsString::from(v[key].as_str().unwrap_or_else(|| panic!("case field {key}")))
 }
@@ -504,6 +707,8 @@ fn answer(case: &Value) -> J {
         "highlight" => highlight_case(case),
         "code" => code_case(case),
         "markdownRender" => markdown_render_case(case),
+        "diff" => diff_case(case),
+        "table" => table_case(case),
         other => panic!("unknown op {other}"),
     }
 }
