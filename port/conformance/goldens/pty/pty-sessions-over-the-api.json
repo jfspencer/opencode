@@ -1,0 +1,640 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "-l"
+          ],
+          "command": "/bin/bash",
+          "cwd": "<project>",
+          "id": "<pty_1>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Terminal <tail-of-pty_1>"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "/",
+          "id": "<pty_2>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Cat"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "/bin/cat",
+        "cwd": "/",
+        "title": "Cat"
+      },
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "args": [
+              "-l"
+            ],
+            "command": "/bin/bash",
+            "cwd": "<project>",
+            "id": "<pty_1>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Terminal <tail-of-pty_1>"
+          },
+          {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "/",
+            "id": "<pty_2>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Cat"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "/",
+          "id": "<pty_2>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Cat"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty/<pty_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "/",
+          "id": "<pty_2>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Renamed"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "size": {
+          "cols": 100,
+          "rows": 30
+        },
+        "title": "Renamed"
+      },
+      "status": 200,
+      "url": "/api/pty/<pty_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "/",
+          "id": "<pty_2>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Renamed"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {},
+      "status": 200,
+      "url": "/api/pty/<pty_2>"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected a value greater than 0\n  at [\"size\"][\"rows\"]"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "size": {
+          "cols": 100,
+          "rows": 0
+        }
+      },
+      "status": 400,
+      "url": "/api/pty/<pty_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "-l",
+            "-c",
+            "exit 3"
+          ],
+          "command": "/bin/sh",
+          "cwd": "<project>",
+          "id": "<pty_3>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Exits"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "args": [
+          "-c",
+          "exit 3"
+        ],
+        "command": "/bin/sh",
+        "title": "Exits"
+      },
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "-l",
+            "-c",
+            "exit 3"
+          ],
+          "command": "/bin/sh",
+          "cwd": "<project>",
+          "exitCode": 3,
+          "id": "<pty_3>",
+          "pid": "<pid>",
+          "status": "exited",
+          "title": "Exits"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty/<pty_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "-l",
+            "-c",
+            "exit 3"
+          ],
+          "command": "/bin/sh",
+          "cwd": "<project>",
+          "exitCode": 3,
+          "id": "<pty_3>",
+          "pid": "<pid>",
+          "status": "exited",
+          "title": "Still here"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "size": {
+          "cols": 10,
+          "rows": 10
+        },
+        "title": "Still here"
+      },
+      "status": 200,
+      "url": "/api/pty/<pty_3>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_2>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_3>"
+    },
+    {
+      "body": {
+        "data": [],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_4>",
+        "ptyID": "<pty_4>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/pty/<pty_4>"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_4>",
+        "ptyID": "<pty_4>"
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "title": "x"
+      },
+      "status": 404,
+      "url": "/api/pty/<pty_4>"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_4>",
+        "ptyID": "<pty_4>"
+      },
+      "kind": "http",
+      "method": "DELETE",
+      "status": 404,
+      "url": "/api/pty/<pty_4>"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Params",
+        "message": "Expected a string starting with \"pty\"\n  at [\"ptyID\"]"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 400,
+      "url": "/api/pty/not-a-pty"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected string\n  at [\"command\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": 42
+      },
+      "status": 400,
+      "url": "/api/pty"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [
+              "-l"
+            ],
+            "command": "/bin/bash",
+            "cwd": "<project>",
+            "id": "<pty_1>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Terminal <tail-of-pty_1>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "/",
+            "id": "<pty_2>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Cat"
+          }
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "/",
+            "id": "<pty_2>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Renamed"
+          }
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "/",
+            "id": "<pty_2>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Renamed"
+          }
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [
+              "-l",
+              "-c",
+              "exit 3"
+            ],
+            "command": "/bin/sh",
+            "cwd": "<project>",
+            "id": "<pty_3>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Exits"
+          }
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "exitCode": 3,
+          "id": "<pty_3>"
+        },
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.exited"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [
+              "-l",
+              "-c",
+              "exit 3"
+            ],
+            "command": "/bin/sh",
+            "cwd": "<project>",
+            "exitCode": 3,
+            "id": "<pty_3>",
+            "pid": "<pid>",
+            "status": "exited",
+            "title": "Still here"
+          }
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_1>"
+        },
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_2>"
+        },
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_3>"
+        },
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -1,0 +1,381 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "<project>",
+          "id": "<pty_1>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Script"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "args": [
+          "sh",
+          "-c",
+          "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+        ],
+        "command": "/usr/bin/env",
+        "title": "Script"
+      },
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "closed": {
+        "code": 1000,
+        "reason": ""
+      },
+      "frames": [
+        {
+          "control": {
+            "cursor": 0
+          }
+        },
+        {
+          "sent": "hello\r"
+        },
+        {
+          "text": "hello\r\ngot hello xterm-256color 1\r\n24 80\r\n"
+        }
+      ],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/pty/<pty_1>/connect"
+    },
+    {
+      "closed": {
+        "code": 1000,
+        "reason": ""
+      },
+      "frames": [
+        {
+          "text": "hello\r\ngot hello xterm-256color 1\r\n24 80\r\n"
+        },
+        {
+          "control": {
+            "cursor": 42
+          }
+        },
+        {
+          "sent": "again\r"
+        },
+        {
+          "text": "again\r\n30 100\r\n"
+        }
+      ],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/pty/<pty_1>/connect?cursor=0"
+    },
+    {
+      "closed": {
+        "code": 1000,
+        "reason": ""
+      },
+      "frames": [
+        {
+          "control": {
+            "cursor": 42
+          }
+        },
+        {
+          "text": "again\r\n30 100\r\n"
+        },
+        {
+          "sent": "q\r"
+        }
+      ],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/pty/<pty_1>/connect?cursor=-1"
+    },
+    {
+      "closed": {
+        "code": 1000,
+        "reason": ""
+      },
+      "frames": [
+        {
+          "text": "got hello xterm-256color 1\r\n24 80\r\n"
+        },
+        {
+          "control": {
+            "cursor": 42
+          }
+        },
+        {
+          "text": "again\r\n30 100\r\n"
+        }
+      ],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/pty/<pty_1>/connect?cursor=7"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "<project>",
+          "id": "<pty_1>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Script"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "PUT",
+      "request": {
+        "size": {
+          "cols": 100,
+          "rows": 30
+        }
+      },
+      "status": 200,
+      "url": "/api/pty/<pty_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "<project>",
+          "exitCode": 7,
+          "id": "<pty_1>",
+          "pid": "<pid>",
+          "status": "exited",
+          "title": "Script"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/pty/<pty_1>"
+    },
+    {
+      "closed": {
+        "code": 4404,
+        "reason": "session exited"
+      },
+      "frames": [],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/pty/<pty_1>/connect"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/pty/<pty_1>/connect"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [
+              "sh",
+              "-c",
+              "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "<project>",
+            "id": "<pty_1>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Script"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [
+              "sh",
+              "-c",
+              "read a; stty -echo; printf \"got %s %s %s\\n\" \"$a\" \"$TERM\" \"$OPENCODE_TERMINAL\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 7"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "<project>",
+            "id": "<pty_1>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Script"
+          }
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "exitCode": 7,
+          "id": "<pty_1>"
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.exited"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_1>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      }
+    ]
+  },
+  "files": {}
+}

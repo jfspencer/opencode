@@ -47,6 +47,13 @@ process.env.GIT_CONFIG_NOSYSTEM = "1"
 process.env.GIT_AUTHOR_NAME = process.env.GIT_COMMITTER_NAME = "Conformance"
 process.env.GIT_AUTHOR_EMAIL = process.env.GIT_COMMITTER_EMAIL = "conformance@example.invalid"
 process.env.GIT_AUTHOR_DATE = process.env.GIT_COMMITTER_DATE = "2026-01-01T00:00:00Z"
+// Persistent terminals run in the `opencode-pty` daemon, which a server starts on first use and owns. Every
+// implementation runs the reference's own build of it (OPENCODE_PTY_BIN, which the reference reads first), with its
+// runtime directory in the sandbox state (XDG_STATE_HOME) and its socket in the sandbox, not the user's
+// /tmp/opencode-pty-<uid> where their real service's daemons listen.
+const pty = await import(Bun.resolveSync("@opencode/pty", path.join(import.meta.dir, "../ref/packages/core")))
+process.env.OPENCODE_PTY_BIN = pty.binaryPath as string
+process.env.OPENCODE_PTY_SOCKET_DIR = dir("pty")
 
 // The server also boots an instance at its own working directory. Keep it inside the sandbox: from the repo
 // it would load the repo's own .opencode config (whose references trigger git clones over the network).

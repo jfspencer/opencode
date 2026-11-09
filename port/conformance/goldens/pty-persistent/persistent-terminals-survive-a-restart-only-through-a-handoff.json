@@ -1,0 +1,393 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "printf \"ready\\n\"; read a; stty -echo; printf \"got %s\\n\" \"$a\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 5"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "<project>",
+          "foregroundProcess": null,
+          "id": "<pty_persistent_1>",
+          "output": {
+            "head": 0,
+            "tail": 0
+          },
+          "pid": "<pid>",
+          "sessionID": "<ses_1>",
+          "size": {
+            "cols": 40,
+            "rows": 6
+          },
+          "status": "running",
+          "title": "Kept",
+          "userTitle": null
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "args": [
+          "sh",
+          "-c",
+          "printf \"ready\\n\"; read a; stty -echo; printf \"got %s\\n\" \"$a\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 5"
+        ],
+        "command": "/usr/bin/env",
+        "cwd": "<project>",
+        "env": {},
+        "size": {
+          "cols": 40,
+          "rows": 6
+        },
+        "title": "Kept"
+      },
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/terminal"
+    },
+    {
+      "body": {
+        "handoff": {
+          "directory": "<root>/state/opencode/pty/<uuid_1>",
+          "expiresAt": "<time>",
+          "instanceID": "<token_1>",
+          "ticket": "<token_2>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/experimental/persistent-pty/handoff"
+    },
+    {
+      "kind": "restart"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; stty -echo; printf \"got %s\\n\" \"$a\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 5"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "<project>",
+            "foregroundProcess": "sh",
+            "id": "<pty_persistent_1>",
+            "output": {
+              "head": 0,
+              "tail": 7
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_1>",
+            "size": {
+              "cols": 40,
+              "rows": 6
+            },
+            "status": "running",
+            "title": "Kept",
+            "userTitle": null
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/terminal"
+    },
+    {
+      "closed": {
+        "code": 1000,
+        "reason": ""
+      },
+      "frames": [
+        {
+          "message": {
+            "attachmentID": "after",
+            "generation": 1,
+            "info": {
+              "args": [
+                "sh",
+                "-c",
+                "printf \"ready\\n\"; read a; stty -echo; printf \"got %s\\n\" \"$a\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 5"
+              ],
+              "command": "/usr/bin/env",
+              "cwd": "<project>",
+              "foregroundProcess": "sh",
+              "id": "<pty_persistent_1>",
+              "output": {
+                "head": 0,
+                "tail": 7
+              },
+              "pid": "<pid>",
+              "sessionID": "<ses_1>",
+              "size": {
+                "cols": 40,
+                "rows": 6
+              },
+              "status": "running",
+              "title": "Kept",
+              "userTitle": null
+            },
+            "inputProtocol": 0,
+            "replay": {
+              "availableOffset": 0,
+              "endOffset": 7,
+              "requestedOffset": 0,
+              "truncated": false
+            },
+            "role": "controller",
+            "type": "attached"
+          }
+        },
+        {
+          "output": "ready\r\n"
+        },
+        {
+          "message": {
+            "endOffset": 7,
+            "type": "replay_complete"
+          }
+        },
+        {
+          "message": {
+            "attachmentID": "after",
+            "generation": 1,
+            "type": "controller_changed"
+          }
+        },
+        {
+          "sent": "hello\r"
+        },
+        {
+          "output": "hello\r\ngot hello\r\n6 40\r\n"
+        }
+      ],
+      "kind": "socket",
+      "opened": true,
+      "url": "/api/experimental/persistent-pty/<pty_persistent_1>/connect?attachment_id=after"
+    },
+    {
+      "kind": "restart"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/terminal"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_persistent_1>",
+        "ptyID": "<pty_persistent_1>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/persistent-pty/<pty_persistent_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "terminal": {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; stty -echo; printf \"got %s\\n\" \"$a\"; stty size; read b; printf \"%s\\n\" \"$b\"; stty size; read c; exit 5"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "<project>",
+            "foregroundProcess": null,
+            "id": "<pty_persistent_1>",
+            "output": {
+              "head": 0,
+              "tail": 0
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_1>",
+            "size": {
+              "cols": 40,
+              "rows": 6
+            },
+            "status": "running",
+            "title": "Kept",
+            "userTitle": null
+          }
+        },
+        "id": "<evt_12>",
+        "type": "persistent-pty.added"
+      }
+    ]
+  },
+  "files": {}
+}

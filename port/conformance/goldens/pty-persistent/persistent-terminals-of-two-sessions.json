@@ -1,0 +1,540 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "/",
+          "foregroundProcess": null,
+          "id": "<pty_persistent_1>",
+          "output": {
+            "head": 0,
+            "tail": 0
+          },
+          "pid": "<pid>",
+          "sessionID": "<ses_1>",
+          "size": {
+            "cols": 80,
+            "rows": 24
+          },
+          "status": "running",
+          "title": "One",
+          "userTitle": null
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "args": [
+          "sh",
+          "-c",
+          "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+        ],
+        "command": "/usr/bin/env",
+        "env": {},
+        "title": "One"
+      },
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/terminal"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "/",
+          "foregroundProcess": null,
+          "id": "<pty_persistent_2>",
+          "output": {
+            "head": 0,
+            "tail": 0
+          },
+          "pid": "<pid>",
+          "sessionID": "<ses_2>",
+          "size": {
+            "cols": 80,
+            "rows": 24
+          },
+          "status": "running",
+          "title": "Two",
+          "userTitle": null
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "args": [
+          "sh",
+          "-c",
+          "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+        ],
+        "command": "/usr/bin/env",
+        "env": {},
+        "title": "Two"
+      },
+      "status": 200,
+      "url": "/api/experimental/session/<ses_2>/terminal"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "/",
+            "foregroundProcess": "sh",
+            "id": "<pty_persistent_1>",
+            "output": {
+              "head": 0,
+              "tail": 7
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_1>",
+            "size": {
+              "cols": 80,
+              "rows": 24
+            },
+            "status": "running",
+            "title": "One",
+            "userTitle": null
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_1>/terminal"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "/",
+            "foregroundProcess": "sh",
+            "id": "<pty_persistent_2>",
+            "output": {
+              "head": 0,
+              "tail": 7
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_2>",
+            "size": {
+              "cols": 80,
+              "rows": 24
+            },
+            "status": "running",
+            "title": "Two",
+            "userTitle": null
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_2>/terminal"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/session/<ses_2>"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_2>/terminal"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_persistent_2>",
+        "ptyID": "<pty_persistent_2>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/experimental/persistent-pty/<pty_persistent_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [
+            "sh",
+            "-c",
+            "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "/",
+          "foregroundProcess": "sh",
+          "id": "<pty_persistent_1>",
+          "output": {
+            "head": 0,
+            "tail": 7
+          },
+          "pid": "<pid>",
+          "sessionID": "<ses_1>",
+          "size": {
+            "cols": 80,
+            "rows": 24
+          },
+          "status": "running",
+          "title": "One",
+          "userTitle": null
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/persistent-pty/<pty_persistent_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/experimental/persistent-pty/<pty_persistent_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>",
+          "terminal": {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "/",
+            "foregroundProcess": null,
+            "id": "<pty_persistent_2>",
+            "output": {
+              "head": 0,
+              "tail": 0
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_2>",
+            "size": {
+              "cols": 80,
+              "rows": 24
+            },
+            "status": "running",
+            "title": "Two",
+            "userTitle": null
+          }
+        },
+        "id": "<evt_12>",
+        "type": "persistent-pty.added"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_2>"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 1,
+          "version": 2
+        },
+        "id": "<evt_13>",
+        "type": "session.deleted"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "ptyID": "<pty_persistent_2>",
+          "sessionID": "<ses_2>"
+        },
+        "id": "<evt_14>",
+        "type": "persistent-pty.removed"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "terminal": {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "/",
+            "foregroundProcess": null,
+            "id": "<pty_persistent_1>",
+            "output": {
+              "head": 0,
+              "tail": 0
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_1>",
+            "size": {
+              "cols": 80,
+              "rows": 24
+            },
+            "status": "running",
+            "title": "One",
+            "userTitle": null
+          }
+        },
+        "id": "<evt_16>",
+        "type": "persistent-pty.added"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "ptyID": "<pty_persistent_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_17>",
+        "type": "persistent-pty.removed"
+      }
+    ]
+  },
+  "files": {}
+}

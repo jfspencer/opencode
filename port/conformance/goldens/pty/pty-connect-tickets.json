@@ -1,0 +1,330 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "<project>",
+          "id": "<pty_1>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Cat"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "/bin/cat",
+        "title": "Cat"
+      },
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "data": {
+          "args": [],
+          "command": "/bin/cat",
+          "cwd": "<project>",
+          "id": "<pty_2>",
+          "pid": "<pid>",
+          "status": "running",
+          "title": "Other"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "command": "/bin/cat",
+        "title": "Other"
+      },
+      "status": 200,
+      "url": "/api/pty"
+    },
+    {
+      "body": {
+        "_tag": "ForbiddenError",
+        "message": "Invalid PTY connect token request"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect-token"
+    },
+    {
+      "body": {
+        "_tag": "ForbiddenError",
+        "message": "Invalid PTY connect token request"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect-token"
+    },
+    {
+      "body": {
+        "_tag": "ForbiddenError",
+        "message": "Invalid PTY connect token request"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect-token"
+    },
+    {
+      "body": {
+        "data": {
+          "expires_in": 60,
+          "ticket": "<uuid_1>"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/pty/<pty_1>/connect-token"
+    },
+    {
+      "body": {
+        "data": {
+          "expires_in": 60,
+          "ticket": "<uuid_2>"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 200,
+      "url": "/api/pty/<pty_2>/connect-token"
+    },
+    {
+      "body": {
+        "_tag": "PtyNotFoundError",
+        "message": "PTY session not found: <pty_3>",
+        "ptyID": "<pty_3>"
+      },
+      "kind": "http",
+      "method": "POST",
+      "status": 404,
+      "url": "/api/pty/<pty_3>/connect-token"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect?ticket=<uuid_2>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect?ticket=<uuid_3>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 403,
+      "url": "/api/pty/<pty_1>/connect"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/pty/<pty_3>/connect"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/pty/<pty_2>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "<project>",
+            "id": "<pty_1>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Cat"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "info": {
+            "args": [],
+            "command": "/bin/cat",
+            "cwd": "<project>",
+            "id": "<pty_2>",
+            "pid": "<pid>",
+            "status": "running",
+            "title": "Other"
+          }
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_1>"
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "id": "<pty_2>"
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "pty.deleted"
+      }
+    ]
+  },
+  "files": {}
+}

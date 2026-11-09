@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 04:59:26 -0700
+Subject: [PATCH] D223 core: a terminal's login flag comes before its arguments
+
+Upstream: a terminal whose command is a login shell (bash, zsh, sh...) gets `-l` appended after the caller's
+arguments, so `POST /api/pty { command: "/bin/bash", args: ["-c", "make"] }` runs `bash -c make -l`: the flag
+becomes the script's $0 and the shell is not a login shell. Only a terminal without arguments got what the flag
+was added for.
+Fixed: the flag leads (`bash -l -c make`); a terminal without arguments is unchanged (`["-l"]`).
+Scenarios: pty.test.ts "pty sessions over the API"
+Upstream tests: packages/core/test/pty/pty-session.test.ts adds a test
+
+diff --git a/packages/core/src/pty.ts b/packages/core/src/pty.ts
+index 5af2f902f1..598b1f7280 100644
+--- a/packages/core/src/pty.ts
++++ b/packages/core/src/pty.ts
+@@ -166,7 +166,8 @@ const layer = Layer.effect(
+     const create = Effect.fn("Pty.create")(function* (input: CreateInput) {
+       const id = ID.ascending()
+       const command = input.command || (yield* shell.resolve({ priority: "config" }))
+-      const args = ShellSelect.login(command) ? [...(input.args ?? []), "-l"] : [...(input.args ?? [])]
++      // The login flag leads: after `-c script` it would be the script's $0, not an option.
++      const args = ShellSelect.login(command) ? ["-l", ...(input.args ?? [])] : [...(input.args ?? [])]
+       const cwd = input.cwd || location.directory
+       const env = {
+         ...process.env,
+diff --git a/packages/core/test/pty/pty-session.test.ts b/packages/core/test/pty/pty-session.test.ts
+index 40a779a495..ebe85bbc77 100644
+--- a/packages/core/test/pty/pty-session.test.ts
++++ b/packages/core/test/pty/pty-session.test.ts
+@@ -221,4 +221,16 @@ describe("pty create defaults", () => {
+       expect(info.title).toBe("configured")
+     }),
+   )
++
++  configuredTest("puts the login flag before the caller's arguments", () =>
++    Effect.gen(function* () {
++      if (!configuredShell) return
++      const pty = yield* Pty.Service
++      const info = yield* Effect.acquireRelease(
++        pty.create({ command: configuredShell, args: ["-c", "exit 0"], title: "script" }),
++        (created) => pty.remove(created.id).pipe(Effect.ignore),
++      )
++      expect(info.args).toEqual(["-l", "-c", "exit 0"])
++    }),
++  )
+ })
