@@ -134,6 +134,7 @@ impl<'a> Parser<'a> {
 
     /// Parses lvalue (assignable) atom.
     pub(super) fn parse_binding_atom(&mut self) -> R<Pat> {
+        self.check_stack()?;
         match self.ty {
             Tok::BracketL => {
                 let node = self.start_node();

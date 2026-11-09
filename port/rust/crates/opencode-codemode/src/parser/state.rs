@@ -1,6 +1,7 @@
 //! The parser object: token state, the context stack, scopes, labels and private names, and the helpers acorn
 //! keeps in `parseutil.js`, `location.js`, `node.js` and `scope.js`.
 
+use super::STACK_OVERFLOW_MESSAGE;
 use super::ast::{Position, Span, SyntaxError};
 use super::chars::{is_js_space, is_new_line};
 use crate::jsstr::JsStr;
@@ -475,11 +476,27 @@ pub(super) struct Parser<'a> {
     pub scope_stack: Vec<Scope>,
     pub private_name_stack: Vec<PrivateNames>,
     atoms: HashMap<Box<[u16]>, Atom>,
+    /// The address of a local in the frame that started the parse, and how far below it the parser may recurse.
+    stack_base: usize,
+    stack_limit: usize,
+    #[cfg(test)]
+    pub max_stack_used: usize,
+}
+
+/// The current stack address, for the recursion guard.
+#[inline(always)]
+pub(super) fn stack_address() -> usize {
+    let marker = 0u8;
+    std::hint::black_box(&marker) as *const u8 as usize
 }
 
 impl<'a> Parser<'a> {
-    pub(super) fn new(input: &'a [u16]) -> Parser<'a> {
+    pub(super) fn new(input: &'a [u16], stack_limit: usize) -> Parser<'a> {
         let mut parser = Parser {
+            stack_base: stack_address(),
+            stack_limit,
+            #[cfg(test)]
+            max_stack_used: 0,
             input,
             pos: 0,
             line_start: 0,
@@ -626,6 +643,43 @@ impl<'a> Parser<'a> {
 
     pub(super) fn unexpected(&self) -> Fail {
         self.raise(self.start, "Unexpected token")
+    }
+
+    /// Fails the parse, where acorn would overflow the JS stack, before the Rust one overflows: at every
+    /// recursive descent point the parser checks how much stack it has used since the parse began.
+    #[inline(always)]
+    pub(super) fn check_stack(&mut self) -> R<()> {
+        let used = self.stack_base.saturating_sub(stack_address());
+        #[cfg(test)]
+        {
+            self.max_stack_used = self.max_stack_used.max(used);
+        }
+        if used > self.stack_limit {
+            let loc = self.line_info(self.start);
+            return Err(Fail::Syntax(Box::new(SyntaxError { message: STACK_OVERFLOW_MESSAGE.to_string(), pos: self.start as u32, loc })));
+        }
+        Ok(())
+    }
+
+    /// The guard for a chain the parser builds in a loop (`a + b + c`, `a.b.c()`): its `links` nested nodes cost
+    /// no parser stack, but dropping (or walking) the tree recurses once per link.
+    pub(super) fn check_chain(&mut self, links: usize) -> R<()> {
+        // Stack per link of a recursive walk such as the tree's drop glue, generously.
+        const LINK_COST: usize = if cfg!(debug_assertions) { 192 } else { 64 };
+        if links % 64 != 0 {
+            return Ok(());
+        }
+        let used = self.stack_base.saturating_sub(stack_address());
+        if used + links * LINK_COST > self.stack_limit {
+            let loc = self.line_info(self.start);
+            return Err(Fail::Syntax(Box::new(SyntaxError { message: STACK_OVERFLOW_MESSAGE.to_string(), pos: self.start as u32, loc })));
+        }
+        Ok(())
+    }
+
+    #[cfg(test)]
+    pub(super) fn stack_base_for_test(&self) -> usize {
+        self.stack_base - stack_address()
     }
 
     pub(super) fn cur_position(&self) -> Position {

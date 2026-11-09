@@ -66,6 +66,7 @@ impl<'a> Parser<'a> {
 
     /// Parse an assignment expression, including applications of operators like `+=`.
     pub(super) fn parse_maybe_assign(&mut self, for_init: ForInit, ref_de: Option<&mut DestructuringErrors>) -> R<Expr> {
+        self.check_stack()?;
         if self.is_contextual("yield") {
             if self.in_generator() {
                 return self.parse_yield(for_init);
@@ -178,7 +179,11 @@ impl<'a> Parser<'a> {
 
     /// Parse binary operators with the operator precedence parsing algorithm.
     fn parse_expr_op(&mut self, mut left: Expr, left_start: Start, min_prec: i32, for_init: ForInit) -> R<Expr> {
+        // acorn recurses for each operator here; the loop builds the same left-nested tree.
+        let mut links = 0;
         loop {
+            links += 1;
+            self.check_chain(links)?;
             let Some(mut prec) = self.ty.binop() else { return Ok(left) };
             if for_init.truthy() && self.ty == Tok::In {
                 return Ok(left);
@@ -225,33 +230,16 @@ impl<'a> Parser<'a> {
         inc_dec: bool,
         for_init: ForInit,
     ) -> R<Expr> {
+        self.check_stack()?;
         let start = self.start_node();
         let mut expr;
         if self.is_contextual("await") && self.can_await() {
             expr = self.parse_await(for_init)?;
             saw_unary = true;
         } else if self.ty.prefix() {
-            let node = self.start_node();
-            let update = self.ty == Tok::IncDec;
-            let operator = self.op_value();
-            self.next()?;
-            let argument = self.parse_maybe_unary(None, true, update, for_init)?;
-            self.check_expression_errors(ref_de.as_deref())?;
-            if update {
-                self.check_lval_simple_expr(&argument, Bind::None)?;
-            } else if self.strict && operator == "delete" && matches!(argument, Expr::Identifier(_)) {
-                return Err(self.raise(node.pos, "Deleting local variable in strict mode"));
-            } else if operator == "delete" && is_private_field_access(&argument) {
-                return Err(self.raise(node.pos, "Private fields can not be deleted"));
-            } else {
-                saw_unary = true;
-            }
-            let span = self.finish(node);
-            expr = if update {
-                Expr::Update(Box::new(UpdateExpression { span, operator, prefix: true, argument }))
-            } else {
-                Expr::Unary(Box::new(UnaryExpression { span, operator, argument }))
-            };
+            let unary;
+            (expr, unary) = self.parse_prefix_unary(ref_de.as_deref(), for_init)?;
+            saw_unary |= unary;
         } else if !saw_unary && self.ty == Tok::PrivateId {
             if for_init.truthy() || self.private_name_stack.is_empty() {
                 return Err(self.unexpected());
@@ -283,6 +271,33 @@ impl<'a> Parser<'a> {
             return self.build_binary(start, expr, right, "**", false);
         }
         Ok(expr)
+    }
+
+    /// The prefix-operator branch of `parseMaybeUnary`; also says whether it counts as a unary operator for `**`.
+    fn parse_prefix_unary(&mut self, ref_de: Option<&DestructuringErrors>, for_init: ForInit) -> R<(Expr, bool)> {
+        let node = self.start_node();
+        let update = self.ty == Tok::IncDec;
+        let operator = self.op_value();
+        self.next()?;
+        let argument = self.parse_maybe_unary(None, true, update, for_init)?;
+        self.check_expression_errors(ref_de)?;
+        let mut saw_unary = false;
+        if update {
+            self.check_lval_simple_expr(&argument, Bind::None)?;
+        } else if self.strict && operator == "delete" && matches!(argument, Expr::Identifier(_)) {
+            return Err(self.raise(node.pos, "Deleting local variable in strict mode"));
+        } else if operator == "delete" && is_private_field_access(&argument) {
+            return Err(self.raise(node.pos, "Private fields can not be deleted"));
+        } else {
+            saw_unary = true;
+        }
+        let span = self.finish(node);
+        let expr = if update {
+            Expr::Update(Box::new(UpdateExpression { span, operator, prefix: true, argument }))
+        } else {
+            Expr::Unary(Box::new(UnaryExpression { span, operator, argument }))
+        };
+        Ok((expr, saw_unary))
     }
 
     /// Parse call, dot, and `[]`-subscript expressions.
@@ -326,6 +341,7 @@ impl<'a> Parser<'a> {
         };
         let mut optional_chained = false;
 
+        let mut links = 0;
         loop {
             match self.parse_subscript(base, start, no_calls, maybe_async_arrow, optional_chained, for_init)? {
                 Subscript::New(element) => {
@@ -338,6 +354,8 @@ impl<'a> Parser<'a> {
                         optional_chained = true;
                     }
                     base = element;
+                    links += 1;
+                    self.check_chain(links)?;
                 }
                 Subscript::Same(element) | Subscript::Arrow(element) => {
                     if optional_chained {
@@ -431,114 +449,131 @@ impl<'a> Parser<'a> {
 
     /// Parse an atomic expression.
     pub(super) fn parse_expr_atom(&mut self, ref_de: Option<&mut DestructuringErrors>, for_init: ForInit, for_new: bool) -> R<Expr> {
+        self.check_stack()?;
         // If a division operator appears in an expression position, the tokenizer got confused, and we force it to
         // read a regexp instead.
         if self.ty == Tok::Slash {
             self.read_regexp()?;
         }
 
+        // Each case is its own function so that this frame, on every level of expression nesting, stays small.
         let can_be_arrow = self.potential_arrow_at == self.start as i64;
         match self.ty {
-            Tok::Super => {
-                if !self.allow_super() {
-                    return Err(self.raise(self.start, "'super' keyword outside a method"));
-                }
-                let node = self.start_node();
-                self.next()?;
-                if self.ty == Tok::ParenL && !self.allow_direct_super() {
-                    return Err(self.raise(node.pos, "super() call outside constructor of a subclass"));
-                }
-                if self.ty != Tok::Dot && self.ty != Tok::BracketL && self.ty != Tok::ParenL {
-                    return Err(self.unexpected());
-                }
-                Ok(Expr::Super(self.finish(node)))
-            }
+            Tok::Super => self.parse_super_atom(),
             Tok::This => {
                 let node = self.start_node();
                 self.next()?;
                 Ok(Expr::This(self.finish(node)))
             }
-            Tok::Name => {
-                let start = self.start_node();
-                let contains_esc = self.contains_esc;
-                let id = self.parse_ident(false)?;
-                if !contains_esc && &*id.name == "async" && !self.can_insert_semicolon() && self.eat(Tok::Function)? {
-                    self.override_context(Ctx::FExpr);
-                    let function = self.parse_function(start, 0, true, for_init)?;
-                    return Ok(Expr::Function(Rc::new(function)));
-                }
-                if can_be_arrow && !self.can_insert_semicolon() {
-                    if self.eat(Tok::Arrow)? {
-                        let params = vec![ArrowParam::Expr(Expr::Identifier(Box::new(id)))];
-                        let function = self.parse_arrow_expression(start, params, false, for_init)?;
-                        return Ok(Expr::Function(Rc::new(function)));
-                    }
-                    if &*id.name == "async"
-                        && self.ty == Tok::Name
-                        && !contains_esc
-                        && (!self.potential_arrow_in_for_await || !self.value_is("of") || self.contains_esc)
-                    {
-                        let id = self.parse_ident(false)?;
-                        if self.can_insert_semicolon() || !self.eat(Tok::Arrow)? {
-                            return Err(self.unexpected());
-                        }
-                        let params = vec![ArrowParam::Expr(Expr::Identifier(Box::new(id)))];
-                        let function = self.parse_arrow_expression(start, params, true, for_init)?;
-                        return Ok(Expr::Function(Rc::new(function)));
-                    }
-                }
-                Ok(Expr::Identifier(Box::new(id)))
-            }
+            Tok::Name => self.parse_name_atom(can_be_arrow, for_init),
             Tok::Regexp | Tok::Num | Tok::String => Ok(Expr::Literal(Box::new(self.parse_literal()?))),
-            Tok::Null | Tok::True | Tok::False => {
-                let node = self.start_node();
-                let value = match self.ty {
-                    Tok::Null => LitValue::Null,
-                    Tok::True => LitValue::Boolean(true),
-                    _ => LitValue::Boolean(false),
-                };
-                let raw: Rc<str> = Rc::from(self.ty.keyword().unwrap());
-                self.next()?;
-                Ok(Expr::Literal(Box::new(Literal { span: self.finish(node), value, raw })))
-            }
-            Tok::ParenL => {
-                let start = self.start;
-                let expr = self.parse_paren_and_distinguish_expression(can_be_arrow, for_init)?;
-                if let Some(de) = ref_de {
-                    if de.parenthesized_assign < 0 && !matches!(expr, Expr::Identifier(_) | Expr::Member(_)) {
-                        de.parenthesized_assign = start as i64;
-                    }
-                    if de.parenthesized_bind < 0 {
-                        de.parenthesized_bind = start as i64;
-                    }
-                }
-                Ok(expr)
-            }
-            Tok::BracketL => {
-                let node = self.start_node();
-                self.next()?;
-                let elements = self.parse_expr_list(Tok::BracketR, true, true, ref_de)?;
-                Ok(Expr::Array(Box::new(ArrayExpression { span: self.finish(node), elements })))
-            }
+            Tok::Null | Tok::True | Tok::False => self.parse_keyword_literal(),
+            Tok::ParenL => self.parse_paren_atom(ref_de, can_be_arrow, for_init),
+            Tok::BracketL => self.parse_array_atom(ref_de),
             Tok::BraceL => {
                 self.override_context(Ctx::BExpr);
                 self.parse_obj_expr(ref_de)
             }
-            Tok::Function => {
-                let node = self.start_node();
-                self.next()?;
-                let function = self.parse_function(node, 0, false, ForInit::No)?;
-                Ok(Expr::Function(Rc::new(function)))
-            }
-            Tok::Class => {
-                let node = self.start_node();
-                Ok(Expr::Class(Box::new(self.parse_class(node, Some(false))?)))
-            }
+            Tok::Function => self.parse_function_atom(),
+            Tok::Class => self.parse_class_atom(),
             Tok::New => self.parse_new(),
             Tok::BackQuote => Ok(Expr::Template(Box::new(self.parse_template(false)?))),
             Tok::Import => self.parse_expr_import(for_new),
             _ => Err(self.unexpected()),
         }
+    }
+
+    fn parse_super_atom(&mut self) -> R<Expr> {
+        if !self.allow_super() {
+            return Err(self.raise(self.start, "'super' keyword outside a method"));
+        }
+        let node = self.start_node();
+        self.next()?;
+        if self.ty == Tok::ParenL && !self.allow_direct_super() {
+            return Err(self.raise(node.pos, "super() call outside constructor of a subclass"));
+        }
+        // The `super` keyword can appear as `super [ Expression ]`, `super . IdentifierName`, `super ( Arguments )`.
+        if self.ty != Tok::Dot && self.ty != Tok::BracketL && self.ty != Tok::ParenL {
+            return Err(self.unexpected());
+        }
+        Ok(Expr::Super(self.finish(node)))
+    }
+
+    fn parse_name_atom(&mut self, can_be_arrow: bool, for_init: ForInit) -> R<Expr> {
+        let start = self.start_node();
+        let contains_esc = self.contains_esc;
+        let id = self.parse_ident(false)?;
+        if !contains_esc && &*id.name == "async" && !self.can_insert_semicolon() && self.eat(Tok::Function)? {
+            self.override_context(Ctx::FExpr);
+            let function = self.parse_function(start, 0, true, for_init)?;
+            return Ok(Expr::Function(Rc::new(function)));
+        }
+        if can_be_arrow && !self.can_insert_semicolon() {
+            if self.eat(Tok::Arrow)? {
+                let params = vec![ArrowParam::Expr(Expr::Identifier(Box::new(id)))];
+                let function = self.parse_arrow_expression(start, params, false, for_init)?;
+                return Ok(Expr::Function(Rc::new(function)));
+            }
+            if &*id.name == "async"
+                && self.ty == Tok::Name
+                && !contains_esc
+                && (!self.potential_arrow_in_for_await || !self.value_is("of") || self.contains_esc)
+            {
+                let id = self.parse_ident(false)?;
+                if self.can_insert_semicolon() || !self.eat(Tok::Arrow)? {
+                    return Err(self.unexpected());
+                }
+                let params = vec![ArrowParam::Expr(Expr::Identifier(Box::new(id)))];
+                let function = self.parse_arrow_expression(start, params, true, for_init)?;
+                return Ok(Expr::Function(Rc::new(function)));
+            }
+        }
+        Ok(Expr::Identifier(Box::new(id)))
+    }
+
+    fn parse_keyword_literal(&mut self) -> R<Expr> {
+        let node = self.start_node();
+        let value = match self.ty {
+            Tok::Null => LitValue::Null,
+            Tok::True => LitValue::Boolean(true),
+            _ => LitValue::Boolean(false),
+        };
+        let raw: Rc<str> = Rc::from(self.ty.keyword().unwrap());
+        self.next()?;
+        Ok(Expr::Literal(Box::new(Literal { span: self.finish(node), value, raw })))
+    }
+
+    fn parse_paren_atom(&mut self, ref_de: Option<&mut DestructuringErrors>, can_be_arrow: bool, for_init: ForInit) -> R<Expr> {
+        let start = self.start;
+        let expr = self.parse_paren_and_distinguish_expression(can_be_arrow, for_init)?;
+        if let Some(de) = ref_de {
+            if de.parenthesized_assign < 0 && !matches!(expr, Expr::Identifier(_) | Expr::Member(_)) {
+                de.parenthesized_assign = start as i64;
+            }
+            if de.parenthesized_bind < 0 {
+                de.parenthesized_bind = start as i64;
+            }
+        }
+        Ok(expr)
+    }
+
+    fn parse_array_atom(&mut self, ref_de: Option<&mut DestructuringErrors>) -> R<Expr> {
+        let node = self.start_node();
+        self.next()?;
+        let elements = self.parse_expr_list(Tok::BracketR, true, true, ref_de)?;
+        Ok(Expr::Array(Box::new(ArrayExpression { span: self.finish(node), elements })))
+    }
+
+    fn parse_function_atom(&mut self) -> R<Expr> {
+        let node = self.start_node();
+        self.next()?;
+        let function = self.parse_function(node, 0, false, ForInit::No)?;
+        Ok(Expr::Function(Rc::new(function)))
+    }
+
+    fn parse_class_atom(&mut self) -> R<Expr> {
+        let node = self.start_node();
+        Ok(Expr::Class(Box::new(self.parse_class(node, Some(false))?)))
     }
 
     fn parse_expr_import(&mut self, for_new: bool) -> R<Expr> {

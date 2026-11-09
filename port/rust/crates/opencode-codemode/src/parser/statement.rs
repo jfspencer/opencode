@@ -165,6 +165,7 @@ impl<'a> Parser<'a> {
 
     /// Parse a single statement.
     pub(super) fn parse_statement(&mut self, context: StmtCtx, top_level: bool, exports: Option<&mut HashSet<Vec<u16>>>) -> R<Stmt> {
+        self.check_stack()?;
         let mut starttype = self.ty;
         let node = self.start_node();
         let mut kind: Option<VarKind> = None;
