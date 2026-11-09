@@ -26,8 +26,49 @@ pub fn shortcuts() -> HashMap<&'static str, String> {
     out
 }
 
+/// Whether a key event is one written binding (`ctrl+x`, `shift+tab`, `f3`; no sequences).
+fn matches(binding: &str, key: &opencode_tui_core::input::KeyEvent) -> bool {
+    let parts: Vec<String> = binding.to_lowercase().split('+').map(str::to_string).collect();
+    let Some((name, modifiers)) = parts.split_last() else { return false };
+    let has = |m: &str| modifiers.iter().any(|x| x == m);
+    let name = match name.as_str() {
+        "enter" => "return",
+        "esc" => "escape",
+        other => other,
+    };
+    key.name == name
+        && key.ctrl == has("ctrl")
+        && key.shift == has("shift")
+        && key.meta == (has("alt") || has("meta") || has("option"))
+        && key.super_ == has("super")
+}
+
+/// The commands the stand-in dispatches through the configured bindings (`config.keybinds.get(command)`).
+fn configured_commands(t: &Tui) -> Vec<(String, std::rc::Rc<dyn Fn()>)> {
+    let mut out: Vec<(String, std::rc::Rc<dyn Fn()>)> = Vec::new();
+    let local = crate::local::local();
+    let handlers: Vec<(&str, std::rc::Rc<dyn Fn()>)> = vec![
+        ("model.cycle_favorite", std::rc::Rc::new({
+            let local = local.clone();
+            move || local.cycle_favorite(1)
+        })),
+        ("model.cycle_favorite_reverse", std::rc::Rc::new(move || local.cycle_favorite(-1))),
+    ];
+    for (command, handler) in handlers {
+        for binding in t.config.keybinds.get(command) {
+            if let opencode_protocol::Json::String(key) = binding.key() {
+                if !key.contains("<leader>") && key != "none" {
+                    out.push((key.clone(), handler.clone()));
+                }
+            }
+        }
+    }
+    out
+}
+
 /// Registers the global bindings the stand-in dispatches.
 pub fn install(t: &Tui) {
+    let configured = configured_commands(t);
     let prompt = t.prompt.clone();
     let exit = t.exit.clone();
     // The leader (ctrl+x) arms a second key for `leader.timeout` ms.
@@ -47,6 +88,11 @@ pub fn install(t: &Tui) {
             let leader = leader.clone();
             renderer::set_timeout(timeout as u64, move || leader.set(false));
             key.prevent_default();
+            return;
+        }
+        if let Some((_, run)) = configured.iter().find(|(binding, _)| matches(binding, key)) {
+            key.prevent_default();
+            run();
             return;
         }
         let plain_ctrl = key.ctrl && !key.meta && !key.shift && !key.super_;

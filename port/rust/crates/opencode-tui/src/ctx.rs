@@ -65,6 +65,8 @@ pub struct Tui {
     pub prompt: Rc<RefCell<Option<Element>>>,
     /// `useExit()`.
     pub exit: Rc<dyn Fn()>,
+    /// `useToast()`.
+    pub toast: crate::toast::Toasts,
 }
 
 thread_local! {

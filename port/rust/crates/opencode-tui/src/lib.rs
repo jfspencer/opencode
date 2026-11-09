@@ -3,8 +3,8 @@
 //! # Modules
 //!
 //! - [`app`]: `run` and `<App>` (app.tsx); [`ctx`]: what the providers give components; [`home`], [`prompt`],
-//!   [`local`], [`keymap`], [`session`], [`data`]: the home route and what it reads; [`util`]: locale, path and color
-//!   helpers.
+//!   [`local`], [`keymap`], [`session`], [`data`]: the home route and what it reads; [`toast`]: toasts; [`util`]:
+//!   locale, path and color helpers.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -94,4 +94,5 @@ pub mod local;
 pub mod prompt;
 pub mod session;
 pub mod theme;
+pub mod toast;
 pub mod util;

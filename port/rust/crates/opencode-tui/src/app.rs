@@ -107,6 +107,7 @@ pub async fn run(input: TuiInput) -> i32 {
             config: resolved,
             prompt: Rc::new(RefCell::new(None)),
             exit: Rc::new(|| renderer::destroy()),
+            toast: crate::toast::Toasts::new(),
         };
         provide_context(context(), t.clone());
         crate::keymap::install(&t);
@@ -159,5 +160,6 @@ fn app_view() -> View {
         ),
         At::Only,
     );
+    insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
 }
