@@ -35,3 +35,11 @@ rustls-native-certs.workspace = true
 unicode-normalization.workspace = true
 sha2.workspace = true
 libc.workspace = true
+# Image normalization as the reference runs it: photon-node 0.3.4's image 0.24.9 with the same formats (its codec
+# versions are pinned in Cargo.lock: png 0.17.14, jpeg-decoder 0.3.1, gif 0.13.1, tiff 0.9.1, flate2 1.0.34,
+# miniz_oxide 0.8.0, fdeflate 0.3.6, weezl 0.1.8).
+image = { version = "=0.24.9", default-features = false, features = ["gif", "jpeg", "ico", "png", "pnm", "tga", "tiff", "webp", "bmp", "hdr", "dxt", "dds", "farbfeld"] }
+# The WebAssembly build has no SIMD: the scalar IDCT and color conversion.
+jpeg-decoder = { version = "=0.3.1", default-features = false, features = ["platform_independent"] }
+# The wasm target's `sinf` (compiler-builtins' libm), for the Lanczos kernel.
+libm = "0.2"

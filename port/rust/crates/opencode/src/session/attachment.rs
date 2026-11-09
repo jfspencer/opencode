@@ -1,9 +1,7 @@
 //! Prompt attachments (packages/core/src/session/prompt.ts `materializeAttachment`, packages/core/src/mime.ts): a
 //! prompt's file inputs (`file:` URIs, directories, `data:` URLs) become `Prompt.FileAttachment`s with their bytes
-//! inline (base64). Stored media blobs are behind `experimental.media_blob`, off in releases, so files stay inline.
-//!
-//! TODO(port): image normalization (`Image.normalize`: images over 2000×2000 or 5 MiB, and large PNGs, are re-encoded;
-//! images are kept as they are, undecodable ones included), `media:` refs.
+//! inline (base64), images normalized as tool results' are ([`crate::tool::file_media`]); a `media:` ref a client read
+//! back re-admits its stored blob. Storing them as blobs is the inbox's (`experimental.media_blob`).
 
 use base64::Engine;
 use opencode_protocol::Json;
@@ -216,7 +214,7 @@ fn decode_data_url(uri: &str, label: &str) -> Result<Vec<u8>, String> {
 /// `materializeAttachment`: an input attachment (`PromptInput.FileAttachment`) as a `Prompt.FileAttachment`, or the
 /// `AttachmentError` message. A `media:` ref (from an `experimental-media-uri` read) re-admits its stored blob, whose
 /// bytes were normalized when first admitted.
-pub fn materialize(db: &std::sync::Mutex<rusqlite::Connection>, input: &Json) -> Result<Json, String> {
+pub async fn materialize(db: &std::sync::Mutex<rusqlite::Connection>, input: &Json) -> Result<Json, String> {
     let uri = json::get_str(input, "uri").unwrap_or_default();
     let name = json::get_str(input, "name");
     let given_source = json::get(input, "source").filter(|s| !matches!(s, Json::Null)).cloned();
@@ -258,12 +256,28 @@ pub fn materialize(db: &std::sync::Mutex<rusqlite::Connection>, input: &Json) ->
         }
         _ => resolved.bytes,
     };
+    let (data, mime) = normalize_image(base64().encode(&content), mime, &label).await?;
     let mut o = Obj::new();
-    o.str("data", &base64().encode(&content)).str("mime", mime).set("source", resolved.source);
+    o.str("data", &data).str("mime", mime).set("source", resolved.source);
     o.opt_str("name", name.or(resolved.name.as_deref()));
     o.opt("description", json::get(input, "description").filter(|v| !matches!(v, Json::Null)).cloned());
     o.opt("mention", json::get(input, "mention").filter(|v| !matches!(v, Json::Null)).cloned());
     Ok(o.done())
+}
+
+/// `normalizeImageAttachment`: an image of a type the resizer decodes, normalized like a tool's
+/// ([`crate::tool::file_media`]); one that cannot be decoded or made to fit fails the prompt. Others pass unchanged.
+async fn normalize_image(data: String, mime: &'static str, label: &str) -> Result<(String, &'static str), String> {
+    use crate::tool::file_media::{self, Normalized};
+    if !matches!(mime, "image/png" | "image/jpeg" | "image/gif" | "image/webp" | "image/bmp") {
+        return Ok((data, mime));
+    }
+    match file_media::normalize_async(mime.to_owned(), data.clone()).await {
+        Normalized::Unchanged => Ok((data, mime)),
+        Normalized::Content { data, mime } => Ok((data, mime)),
+        Normalized::DecodeError => Err(format!("Image could not be decoded: {label}")),
+        Normalized::SizeError { width, height, bytes } => Err(file_media::size_error(label, width, height, bytes)),
+    }
 }
 
 #[cfg(test)]

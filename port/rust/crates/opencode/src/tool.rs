@@ -320,7 +320,10 @@ impl Snapshot {
     pub async fn execute(&self, name: &str, context: Context, input: Json) -> Result<Output, Failure> {
         match self.tools.iter().find(|tool| tool.definition().name == name) {
             // `normalizeImages` of the result's content (after the tool's own `execute.after` hooks).
-            Some(tool) => tool.execute(context, input).await.map(|output| Output { content: file_media::normalize_content(output.content), ..output }),
+            Some(tool) => {
+                let output = tool.execute(context, input).await?;
+                Ok(Output { content: file_media::normalize_content(output.content).await, ..output })
+            }
             None => Err(Failure::Error(ToolError::new(format!(
                 "No tool named \"{name}\" is currently available. Please use a tool from the available tool list."
             )))),
