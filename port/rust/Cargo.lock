@@ -682,7 +682,13 @@ version = "0.1.0"
 name = "opencode-tui"
 version = "0.1.0"
 dependencies = [
+ "getrandom 0.4.3",
+ "indexmap",
+ "libc",
+ "opencode-protocol",
  "opencode-tui-core",
+ "regex",
+ "sha1",
 ]
 
 [[package]]
