@@ -2,10 +2,10 @@
 //! are invalidated (`location.reload`, `debug.location.evict`, a repository initialized in them).
 //!
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
-//! what they registered. TODO(port): the services themselves (config, agents, commands, skills, ...): the boot
-//! announces them in the order the TS server's built-in plugins do. What they register is the location's
-//! [`crate::inventory::Inventory`]. Shutting a location down (`LocationLifecycle.shutdown`) announces
-//! `location.shutdown`; TODO(port): it also closes the location's permission requests, forms and RPC clients.
+//! what they registered, in the order the TS server's built-in plugins do. What they register (config, agents,
+//! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
+//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) announces `location.shutdown`;
+//! TODO(port): it also closes the location's permission requests, forms and RPC clients.
 //! TODO(port): the idle sweep (location-activity.ts: a location unused for an hour, or its configured
 //! `experimental.location_idle_timeout`, is evicted); the location watcher (filesystem/location-watcher.ts: the
 //! repository's HEAD is watched, its changes announced as `filesystem.changed` and the VCS branch re-read). A
@@ -28,8 +28,8 @@ pub struct Location {
     pub project: ProjectRef,
     /// The repository the project resolved (`Location.Interface.vcs`).
     pub vcs: Option<crate::project::Vcs>,
-    #[allow(dead_code)]
-    pub inventory: crate::inventory::Inventory,
+    /// What the location's config and plugins register (replaced as a whole when its config changes).
+    pub inventory: crate::inventory::Shared,
     /// The directory with symlinks resolved (`FileSystem`'s confinement root).
     pub root: String,
     /// The location's VCS service (`Vcs.Service`).
@@ -46,7 +46,19 @@ pub struct ProjectRef {
 }
 
 impl Location {
-    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`).
+    /// The current inventory snapshot (see [`crate::inventory`]).
+    pub fn inventory(&self) -> std::sync::Arc<crate::inventory::Inventory> {
+        self.inventory.get()
+    }
+
+    /// The location's reference on events.
+    pub fn reference(&self) -> LocationRef {
+        LocationRef { directory: self.directory.clone(), workspace_id: self.workspace_id.clone() }
+    }
+
+    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`), for `location.get` (TODO(port)); located
+    /// answers carry only `Location.PublicRef`.
+    #[allow(dead_code)]
     pub fn info(&self) -> Json {
         let mut project = Obj::new();
         project.str("id", &self.project.id).str("directory", &self.project.directory).str("canonical", &self.project.canonical);
@@ -55,11 +67,6 @@ impl Location {
         o.opt_str("workspaceID", self.workspace_id.as_deref());
         o.set("project", project.done());
         o.done()
-    }
-
-    /// `Location.Ref` of this location.
-    pub fn reference(&self) -> LocationRef {
-        LocationRef { directory: self.directory.clone(), workspace_id: self.workspace_id.clone() }
     }
 }
 
@@ -168,6 +175,8 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     let Ok(root) = std::fs::canonicalize(&key.directory).map(|p| p.to_string_lossy().into_owned()) else {
         return Err(not_found(&key.directory));
     };
+    // Read the config and plugin sources before taking the database.
+    let inventory = crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?);
     {
         let mut db = app.db.lock().unwrap();
         app.projects.persist(&mut db, &app.bus, &resolved).map_err(crate::app::fatal)?;
@@ -179,7 +188,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         workspace_id: key.workspace_id.clone(),
         project: ProjectRef { id: resolved.id.clone(), directory: resolved.directory, canonical: resolved.canonical },
         vcs: resolved.vcs,
-        inventory: crate::inventory::Inventory::load(key)?,
+        inventory,
         search: crate::fs::Search::new(&root),
         root,
         version_control,

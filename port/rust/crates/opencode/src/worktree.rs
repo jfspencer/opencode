@@ -165,7 +165,8 @@ async fn load(app: &App, canonical: &str) -> Result<Settings, Error> {
     let id: String = location.project.id.encode_utf16().take(6).map(|u| char::from_u32(u as u32).unwrap_or('\u{fffd}')).collect();
     let mut directory = format!("{data}/opencode/worktree/{id}");
     // The `worktree.directory` config option (config/plugin/worktree.ts).
-    if let Some(configured) = crate::json::get(&location.inventory.config, "worktree").and_then(|w| crate::json::get_str(w, "directory")) {
+    let inventory = location.inventory();
+    if let Some(configured) = inventory.latest(|config| config.worktree.as_ref()).map(|w| w.directory.as_str()) {
         directory = match configured.strip_prefix("~/") {
             Some(rest) => {
                 let home = std::env::var("OPENCODE_TEST_HOME").or_else(|_| std::env::var("HOME")).unwrap_or_default();

@@ -128,9 +128,6 @@ fn session_list(app: &App, decoded: &Decoded) -> Result<Response> {
     Ok(Response::value(200, &o.done()))
 }
 
-/// Built-in agents (packages/core/src/agent.ts). TODO(port): agents from config and markdown files.
-const BUILT_IN_AGENTS: &[&str] = &["build", "general", "explore", "compaction", "title", "summary", "plan"];
-
 async fn session_create(app: &App, decoded: &Decoded) -> Result<Response> {
     let payload = &decoded.payload;
     let present = |key: &str| json::get(payload, key).filter(|v| !matches!(v, Json::Null)).cloned();
@@ -147,8 +144,8 @@ async fn session_create(app: &App, decoded: &Decoded) -> Result<Response> {
             None => crate::location::canonical(&location),
             Some(parent) => session::require(&app.db.lock().unwrap(), parent)?.location,
         };
-        app.locations.get(app, &target).await?;
-        if !BUILT_IN_AGENTS.contains(&agent) {
+        let located = app.locations.get(app, &target).await?;
+        if located.inventory().agent(agent).is_none() {
             let mut o = Obj::new();
             o.str("_tag", "AgentNotFoundError").str("agentID", agent).str("message", &format!("Agent not found: {agent}"));
             return Err(Failure::new(404, o.done()));
