@@ -127,7 +127,10 @@ files, all normalized.
    schemas are in any golden's provider request (`tools`).
 5. **Deterministic or it doesn't count.** Fix nondeterminism in the scenario (fixed inputs, explicit
    ordering, waiting for the state you record), or as a documented equality rule. Never paper over a real
-   behavior difference.
+   behavior difference. A file change after the location booted reaches the server through its file watcher
+   (in TS, 120–215 ms later), while the recording ends after 150 ms without events: wait for the events the
+   change causes (`ctx.until`), make the change before the location's first request (`boot: false`), or turn
+   the watcher off (`server: { filewatcher: false }`).
 6. **No network.** Everything outbound goes through the fake; the sandbox (`lib/preload.ts`) isolates HOME,
    XDG dirs, the working directory, and the terminal/shell identity.
    Each test process gets one sandbox in `/tmp` and removes it when it ends (`CONFORMANCE_KEEP_SANDBOX=1`
@@ -154,10 +157,21 @@ Each rule states that the difference it hides is not observable behavior.
   opencode's own text, so any implementation's single-line diagnostic masks the same way. Built-in errors
   whose message is entirely the engine's (`toFixed()` range, `String.fromCodePoint`, `Number(symbol)`) are
   recorded by error type only, in the scenario itself.
+- **HTTP client diagnostics:** the HTTP client's own words for a failed connection, which opencode passes
+  through, are masked as `<runtime message>` (Bun's fetch: ``The socket connection was closed unexpectedly. For more
+  information, pass `verbose: true` …``, `Unable to connect. Is the computer able to access the url?`). The rule is
+  anchored on opencode's text: the rest of the message after `Connection lost while reading the response: `,
+  after a network error code and `: ` (`ECONNRESET: `, `ConnectionRefused: `; the runtime codes opencode knows), and
+  after the CLI's `Could not reach server at <url>: `. The code itself stays exact: opencode writes it into the
+  message and its retry decisions read it (a one-shot generation retries only codes of a connection that never
+  opened). An implementation reports the same failures with the same codes, in its own words.
 - **Out of scope:** the startup probes of local model servers (LM Studio, Ollama, vLLM) are not recorded.
 - **Settling waits for the event stream:** the stream reaches the harness on its own connection and can lag
   an HTTP response. Once a session has settled (`ctx.prompt`, `ctx.settle`, `ctx.wait`), the harness reads the
   session's durable log and waits until the stream has delivered its last event, so `ctx.events` is complete.
+  The log's last events can be usage records (`session.usage.recorded`, for a title or compaction call), which
+  the server keeps off the stream; it answers each with a public `session.usage.updated`, and the harness counts
+  those instead (`delivered` in `lib/scenario.ts`).
 - **Title generation first:** a generated title runs beside the session's first step, so its events would
   land among the step's at random. The fake model holds an untitled session's first response until the title
   is applied (or its request failed): title events always come first, for any implementation. Settling a

@@ -1,0 +1,124 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 00:33:04 -0700
+Subject: [PATCH] D221 server: agent and provider lookups wait for plugins
+
+Upstream: GET /api/agent/:agentID and GET /api/provider/:providerID answer as soon as the location is built, before
+its plugins have registered agents and providers, while their list routes wait (D207, #62569). As a location's
+first request, GET /api/agent/general and GET /api/provider/openrouter answer 404 (AgentNotFoundError,
+ProviderNotFoundError), and GET /api/agent/build answers a half-built agent: the built-in definition without the
+config's model, description or color.
+Fixed: both lookups wait for plugin activation like the list routes (503 ServiceUnavailableError when it times
+out; agent.get now declares it, provider.get already did).
+Scenarios: project-agents.test.ts "agent and provider lookups on a location's first request" (new)
+Upstream tests: packages/server/test/agent-get.test.ts (new); client and openapi.json regenerated
+
+diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
+index b3b808234c..e13a0ca174 100644
+--- a/packages/client/src/promise/generated/client.ts
++++ b/packages/client/src/promise/generated/client.ts
+@@ -541,7 +541,7 @@ export function make(options: ClientOptions) {
+             path: `/api/agent/${encodeURIComponent(input.agentID)}`,
+             query: { location: input["location"] },
+             successStatus: 200,
+-            declaredStatuses: [400, 401, 404],
++            declaredStatuses: [400, 401, 404, 503],
+             empty: false,
+           },
+           requestOptions,
+diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
+index 6cd6c16c3e..44b54801bc 100644
+--- a/packages/protocol/openapi.json
++++ b/packages/protocol/openapi.json
+@@ -456,6 +456,16 @@
+                 }
+               }
+             }
++          },
++          "503": {
++            "description": "ServiceUnavailableError",
++            "content": {
++              "application/json": {
++                "schema": {
++                  "$ref": "#/components/schemas/ServiceUnavailableErrorEncoded"
++                }
++              }
++            }
+           }
+         },
+         "description": "Retrieve a single currently registered agent.",
+diff --git a/packages/protocol/src/groups/agent.ts b/packages/protocol/src/groups/agent.ts
+index eecf67af08..faf18fe6ee 100644
+--- a/packages/protocol/src/groups/agent.ts
++++ b/packages/protocol/src/groups/agent.ts
+@@ -26,7 +26,7 @@ export const AgentGroup = HttpApiGroup.make("server.agent")
+       params: { agentID: Agent.ID },
+       query: LocationQuery,
+       success: Location.response(Agent.Info),
+-      error: AgentNotFoundError,
++      error: [AgentNotFoundError, ServiceUnavailableError],
+     })
+       .annotateMerge(locationQueryOpenApi)
+       .annotateMerge(
+diff --git a/packages/server/src/handlers/agent.ts b/packages/server/src/handlers/agent.ts
+index eff3bb9497..72220b3cbb 100644
+--- a/packages/server/src/handlers/agent.ts
++++ b/packages/server/src/handlers/agent.ts
+@@ -16,6 +16,7 @@ export const AgentHandler = HttpApiBuilder.group(Api, "server.agent", (handlers)
+     .handle(
+       "agent.get",
+       Effect.fn(function* (ctx) {
++        yield* awaitPlugins
+         const agent = yield* Agent.Service.use((service) => service.get(ctx.params.agentID))
+         if (!agent)
+           return yield* new AgentNotFoundError({
+diff --git a/packages/server/src/handlers/provider.ts b/packages/server/src/handlers/provider.ts
+index 3b0bdf4a49..0bb1d183e2 100644
+--- a/packages/server/src/handlers/provider.ts
++++ b/packages/server/src/handlers/provider.ts
+@@ -19,6 +19,7 @@ export const ProviderHandler = HttpApiBuilder.group(Api, "server.provider", (han
+       .handle(
+         "provider.get",
+         Effect.fn(function* (ctx) {
++          yield* awaitPlugins
+           const providers = yield* Provider.Service
+           const provider = yield* providers.get(ctx.params.providerID)
+           if (!provider)
+diff --git a/packages/server/test/agent-get.test.ts b/packages/server/test/agent-get.test.ts
+new file mode 100644
+index 0000000000..3a729a3388
+--- /dev/null
++++ b/packages/server/test/agent-get.test.ts
+@@ -0,0 +1,32 @@
++import fs from "node:fs/promises"
++import path from "node:path"
++import { expect } from "bun:test"
++import { Effect } from "effect"
++import { tmpdir } from "../../core/test/fixture/tmpdir"
++import { it } from "../../core/test/lib/effect"
++import { startServer } from "./fixture/server"
++
++it.live("waits for plugin initialization before getting an agent", () =>
++  Effect.gen(function* () {
++    const tmp = yield* Effect.acquireDisposable(Effect.promise(() => tmpdir("opencode-agent-endpoint-")))
++    yield* Effect.promise(() =>
++      fs.writeFile(
++        path.join(tmp.path, "opencode.json"),
++        JSON.stringify({ agents: { build: { description: "Configured build" } } }),
++      ),
++    )
++    const server = yield* startServer(tmp.path)
++    const get = (route: string) =>
++      Effect.promise(async () => {
++        const url = new URL(route, server.base)
++        url.searchParams.set("location[directory]", tmp.path)
++        const response = await fetch(url, { headers: server.headers })
++        return { status: response.status, body: await response.json() }
++      })
++
++    // The first request to the location: the configured description is applied by a config plugin.
++    const build = yield* get("/api/agent/build")
++    expect(build.status).toBe(200)
++    expect(build.body).toMatchObject({ data: { id: "build", description: "Configured build" } })
++  }),
++)

@@ -49,8 +49,7 @@ async fn run(app: &App, request: &Request) -> Result<Response> {
         Middleware::None => None,
         Middleware::Location => Some(app.locations.get(app, &request_location(app, request)).await?),
         // The form middleware's undocumented `global` session stands for the request's location (MCP elicitations
-        // without a session). TODO(port): `session.form.list` of a session without live capabilities answers
-        // `{data: []}` without booting its location.
+        // without a session).
         Middleware::Form if request.param("sessionID") == "global" => {
             Some(app.locations.get(app, &request_location(app, request)).await?)
         }
@@ -60,6 +59,11 @@ async fn run(app: &App, request: &Request) -> Result<Response> {
                 return Err(Failure::invalid("Invalid session ID", Some("sessionID"), None));
             }
             let stored = session::require(&app.db.lock().unwrap(), id)?;
+            // Forms live in memory: a session whose location is not loaded has none pending, and listing them must
+            // not boot it.
+            if route.operation == "session.form.list" && app.locations.cached(&stored.location).is_none() {
+                return Ok(crate::handlers::data(Json::Array(vec![])));
+            }
             Some(app.locations.get(app, &stored.location).await?)
         }
     };

@@ -14,12 +14,18 @@
 //!
 //! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error. The
 //! Code Mode catalog is the reference configuration's (`codemode-catalog.json`, the `opencode.*` tools), until the
-//! Code Mode tools are registered here; descriptions that depend on the inventory (skills; subagents are live) are
-//! the reference configuration's. Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
+//! Code Mode tools are registered here (the subagent description is live; the skill tool's is static in TS). Plugin
+//! `tool.execute.before/after` hooks, input repair. The loop bounds every
 //! successful result with [`output::truncate`].
 
+pub mod arguments;
 pub mod output;
+pub mod shell;
+mod question;
+pub mod schedule;
+pub mod skill;
 pub mod subagent;
+pub mod webfetch;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -53,6 +59,8 @@ pub struct Context {
     pub directory: String,
     /// Publishes `session.tool.progress` with the given metadata.
     pub progress: Arc<dyn Fn(Json) + Send + Sync>,
+    /// `Permission.Unattended` while a schedule check runs the call (see [`crate::permission::Requester`]).
+    pub unattended: Option<Vec<Json>>,
 }
 
 /// A successful execution (`Tool.NormalizedResult`): `content` is a non-empty array of `Tool.Content`
@@ -93,6 +101,7 @@ impl Context {
             session_id: self.session_id.clone(),
             agent: Some(self.agent.clone()),
             source: Some(crate::permission::Source { message_id: self.message_id.clone(), id: self.call_id.clone() }),
+            unattended: self.unattended.clone(),
         }
     }
 
@@ -194,9 +203,16 @@ const DEFINITIONS: &[(&str, &str)] =
 fn builtin() -> Vec<Arc<dyn Tool>> {
     DEFINITIONS
         .iter()
-        .map(|(name, text)| match *name {
-            subagent::NAME => Arc::new(subagent::Subagent::new(definition(name, text))) as Arc<dyn Tool>,
-            _ => Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>,
+        .map(|(name, text)| {
+            let definition = definition(name, text);
+            match *name {
+                "shell" => shell::tool(definition),
+                "question" => Arc::new(question::Question { definition }) as Arc<dyn Tool>,
+                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
+                "skill" => Arc::new(skill::Skill { definition }),
+                "webfetch" => Arc::new(webfetch::WebFetch { definition }),
+                _ => Arc::new(Unported { definition }),
+            }
         })
         .collect()
 }

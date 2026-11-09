@@ -49,6 +49,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(Response::no_content())
         }
         "session.synthetic" => synthetic(app, request, &decoded),
+        "session.shell" | "session.environment" => super::shell::session(app, request, &decoded).await,
         "session.switchAgent" => {
             let session_id = request.param("sessionID");
             let stored = session::require(&app.db.lock().unwrap(), session_id)?;
@@ -85,14 +86,20 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
                 )),
             }
         }
-        "session.message.list" => messages(app, request, &decoded),
+        "session.message.list" => messages(app, request, &decoded).await,
         "session.message.get" => {
             let session_id = request.param("sessionID");
             let message_id = request.param("messageID");
+            let refs = media_refs(app, request, session_id).await?;
             let db = app.db.lock().unwrap();
             session::require(&db, session_id)?;
             match session::message::get(&db, message_id).map_err(fatal)? {
-                Some((owner, message)) if owner == session_id => Ok(data(session::message::wire(&message))),
+                Some((owner, message)) if owner == session_id => {
+                    let mut read = [message];
+                    session::blob::prepare(&db, &mut read, refs).map_err(fatal)?;
+                    let [message] = read;
+                    Ok(data(session::message::wire(&message)))
+                }
                 _ => {
                     let mut o = Obj::new();
                     o.str("_tag", "MessageNotFoundError").str("sessionID", session_id).str("messageID", message_id);
@@ -172,7 +179,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             let db = app.db.lock().unwrap();
             let session_id = request.param("sessionID");
             session::require(&db, session_id)?;
-            // `SessionHistory.load(.., "latest")`. TODO(port): from the latest completed compaction on.
+            // `SessionHistory.load(.., "latest")`: from the latest completed compaction on.
             let history = session::message::history(&db, session_id).map_err(fatal)?;
             Ok(data(Json::Array(history.iter().map(session::message::wire).collect())))
         }
@@ -198,6 +205,69 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         "experimental.session.skill" => {
             session::skill::activate(app, request.param("sessionID"), &decoded.payload).await?;
             Ok(Response::no_content())
+        }
+        "experimental.session.import" => {
+            let directory = json::get(&decoded.payload, "location").and_then(|l| json::get_str(l, "directory")).map(str::to_owned);
+            if directory.as_ref().is_some_and(|d| !d.starts_with('/')) {
+                return Err(relative_directory("location.directory"));
+            }
+            let location = match json::get(&decoded.payload, "location").filter(|l| !matches!(l, Json::Null)) {
+                Some(location) => LocationRef {
+                    directory: directory.unwrap_or_default(),
+                    workspace_id: json::get_str(location, "workspaceID").map(str::to_owned),
+                },
+                None => LocationRef::directory(app.cwd.clone()),
+            };
+            // Transcripts exported before v2.1 carry older names for native data: decoding upgrades them first.
+            let mut payload = decoded.payload.clone();
+            let raw = std::str::from_utf8(&request.body).ok().and_then(json::parse);
+            if let Some(Json::Array(messages)) = raw.as_ref().and_then(|raw| json::get(raw, "messages")) {
+                let upgraded: Option<Vec<Json>> = session::transfer::legacy_messages(messages)
+                    .iter()
+                    .map(|message| t::SessionMessageInfo::decode(message).ok().map(|info| json::of(&info)))
+                    .collect();
+                if let Some(upgraded) = upgraded {
+                    json::set(&mut payload, "messages", Json::Array(upgraded));
+                }
+            }
+            let stored = session::transfer::import(app, &payload, location).await?;
+            Ok(data(stored.wire()))
+        }
+        "experimental.session.export" => {
+            let sanitize = matches!(json::get(&decoded.query, "sanitize"), Some(Json::Bool(true)))
+                || json::get_str(&decoded.query, "sanitize") == Some("true");
+            let exported = session::transfer::export(app, request.param("sessionID"), sanitize)?;
+            let mut o = Obj::new();
+            o.set("data", exported);
+            Ok(super::encoded(request, &o.done()))
+        }
+        "experimental.session.stats" => {
+            let query = t::ExperimentalSessionStatsQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
+            let timezone = query.timezone.clone().unwrap_or_else(|| "UTC".into());
+            let zone = crate::zone::Zone::named(&timezone)
+                .ok_or_else(|| Failure::invalid(format!("Invalid time zone: {timezone}"), None, None))?;
+            let tools = match query.tools {
+                Some(t::ExperimentalSessionStatsQueryTools::None) => "none",
+                Some(t::ExperimentalSessionStatsQueryTools::Detail) => "detail",
+                _ => "summary",
+            };
+            let input = session::stats::Input {
+                from: query.from.as_ref().map(|n| n.0),
+                to: query.to.as_ref().map(|n| n.0),
+                project: query.project.as_ref().map(|p| p.0.as_str()),
+                zone,
+                tools,
+            };
+            let result = session::stats::get(&app.db.lock().unwrap(), &input, crate::id::now() as f64).map_err(fatal)?;
+            let stats = result.map_err(|_| Failure::invalid("Stats range must end after it starts", None, None))?;
+            let mut o = Obj::new();
+            o.set("data", stats);
+            Ok(super::encoded(request, &o.done()))
+        }
+        "session.fork" => {
+            let before = json::get_str(&decoded.payload, "before");
+            let stored = session::transfer::fork(app, request.param("sessionID"), before).await?;
+            Ok(data(stored.wire()))
         }
         "session.revert.stage" => {
             let payload = &decoded.payload;
@@ -395,6 +465,16 @@ fn synthetic(app: &App, request: &Request, decoded: &Decoded) -> Result<Response
 
 const DEFAULT_MESSAGES_LIMIT: i64 = 50;
 
+/// Whether a read keeps `media:` refs: the client opted in (`wantsMediaRefs`) and the session's location stores media
+/// as blobs (`Session.messagesWithRefs`, which reads the location's config).
+async fn media_refs(app: &App, request: &Request, session_id: &str) -> Result<bool> {
+    if !session::blob::wants_refs(request.header("x-opencode-capabilities")) {
+        return Ok(false);
+    }
+    let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+    Ok(session::blob::enabled_for(app, &stored.location).await)
+}
+
 fn invalid_cursor(message: &str) -> Failure {
     let mut o = Obj::new();
     o.str("_tag", "InvalidCursorError").str("message", message);
@@ -425,7 +505,7 @@ fn parse_message_cursor(text: &str) -> Option<(String, String, String)> {
 }
 
 /// `GET /api/session/:id/message`: one page of messages in order, with cursors to move through the timeline.
-fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+async fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
     let session_id = request.param("sessionID");
     let query = &decoded.query;
     let cursor = json::get_str(query, "cursor").filter(|c| !c.is_empty());
@@ -445,6 +525,7 @@ fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response>
         _ => None,
     }
     .unwrap_or(DEFAULT_MESSAGES_LIMIT);
+    let refs = media_refs(app, request, session_id).await?;
     let db = app.db.lock().unwrap();
     session::require(&db, session_id)?;
     let input = session::message::ListInput {
@@ -454,7 +535,8 @@ fn messages(app: &App, request: &Request, decoded: &Decoded) -> Result<Response>
         ty: json::get_str(query, "type").map(str::to_owned),
         cursor: decoded_cursor.map(|(id, _, direction)| (id, direction)),
     };
-    let rows = session::message::list(&db, &input).map_err(fatal)?;
+    let mut rows = session::message::list(&db, &input).map_err(fatal)?;
+    session::blob::prepare(&db, &mut rows, refs).map_err(fatal)?;
     drop(db);
     let id = |m: &Json| json::get_str(m, "id").unwrap_or_default().to_owned();
     let mut cursors = Obj::new();

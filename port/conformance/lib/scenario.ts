@@ -198,14 +198,10 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
           }),
         )
         if (response.status !== 200) return void (await response.text())
-        const last = Math.max(
-          -1,
-          ...[...(await response.text()).matchAll(/"seq":(\d+)/g)].map((match) => Number(match[1])),
-        )
+        // The log holds no payloads (the server keeps none), only the session's latest sequence.
+        const last = Math.max(-1, ...[...(await response.text()).matchAll(/"seq":(\d+)/g)].map((match) => Number(match[1])))
         const deadline = Date.now() + 10_000
-        const received = () =>
-          events.some((event: any) => event?.durable?.aggregateID === sessionID && Number(event?.durable?.seq) >= last)
-        while (last >= 0 && !received() && Date.now() < deadline)
+        while (last >= 0 && !delivered(events, sessionID, last) && Date.now() < deadline)
           await new Promise((resolve) => setTimeout(resolve, 10))
       }
       // Title generation first (lib/openrouter.ts, titleOrder): the server says whether a session is untitled.
@@ -427,6 +423,32 @@ function eventSession(event: unknown): string | undefined {
 }
 
 const eventGroup = (event: unknown) => eventSession(event) ?? "global"
+
+/**
+ * Whether the stream has delivered every event of the session's durable log through sequence `last`. The stream
+ * delivers a session's events in order, so a sequence at or past `last` proves it. Without one, the sequences
+ * not delivered are either still on their way or durable events the stream never carries: the server's filter
+ * (isOpenCodeEvent, server/src/event-feed.ts) keeps internal events off it, and the only one published is
+ * `session.usage.recorded` (title and compaction calls). The server answers each with a public
+ * `session.usage.updated`, after it commits; it also answers every step end, and every failed step that cost
+ * something (core/src/session/projector.ts). So the usage updates beyond those the delivered steps explain prove
+ * as many usage records delivered, and everything published before them.
+ */
+function delivered(events: readonly any[], sessionID: string, last: number) {
+  const seqs = new Set(
+    events.filter((event) => event?.durable?.aggregateID === sessionID).map((event) => Number(event.durable.seq)),
+  )
+  if ([...seqs].some((seq) => seq >= last)) return true
+  const own = events.filter((event) => eventSession(event) === sessionID)
+  const missing = last + 1 - [...seqs].filter((seq) => seq <= last).length
+  const updates = own.filter((event) => event.type === "session.usage.updated").length
+  const steps = own.filter(
+    (event) =>
+      event.type === "session.step.ended" ||
+      (event.type === "session.step.failed" && event.data?.cost !== undefined && event.data?.tokens !== undefined),
+  ).length
+  return missing <= updates - steps
+}
 
 const IN_PROCESS = "http://opencode.local"
 

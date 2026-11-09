@@ -494,7 +494,7 @@
           "at": "<time>",
           "attempt": 2,
           "error": {
-            "message": "ConnectionRefused: Unable to connect. Is the computer able to access the url?",
+            "message": "ConnectionRefused: <runtime message>",
             "type": "provider.transport"
           },
           "sessionID": "<ses_1>"

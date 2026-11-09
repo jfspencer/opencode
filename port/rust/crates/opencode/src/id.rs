@@ -33,6 +33,11 @@ fn create(descending: bool, timestamp: u64) -> String {
         last.1 += 1;
         last.1
     };
+    encode(descending, timestamp, counter)
+}
+
+/// The identifier of one timestamp and counter, with fresh random characters.
+fn encode(descending: bool, timestamp: u64, counter: u64) -> String {
     // JS BigInt arithmetic: the 48 low bits of the (possibly negated) value are what is printed.
     let current = (timestamp as u128) * 0x1000 + counter as u128;
     let value = if descending { !current } else { current };
@@ -95,12 +100,13 @@ pub fn uuid() -> String {
 mod tests {
     #[test]
     fn layout() {
-        let a = super::create(false, 1_767_225_600_000);
-        let b = super::create(false, 1_767_225_600_000);
+        // `encode`, not `create`: tests running in parallel share `create`'s per-millisecond counter.
+        let a = super::encode(false, 1_767_225_600_000, 1);
+        let b = super::encode(false, 1_767_225_600_000, 2);
         assert_eq!(a.len(), 26);
         assert!(a[..12] < b[..12]);
-        let d = super::create(true, 1_767_225_600_000);
-        let e = super::create(true, 1_767_225_600_001);
+        let d = super::encode(true, 1_767_225_600_000, 1);
+        let e = super::encode(true, 1_767_225_600_001, 1);
         assert!(e[..12] < d[..12]);
     }
 }

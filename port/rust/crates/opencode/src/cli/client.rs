@@ -176,7 +176,7 @@ fn is_json(answer: &Answer) -> bool {
 
 /// A raw request (`fetch`); `Err` carries the transport failure's Bun message.
 pub async fn fetch(method: &str, url: &str, headers: &[(String, String)], body: Option<String>) -> Result<Answer, String> {
-    let response = http::request(method, url, headers, body).await.map_err(|f| fetch_message(&f))?;
+    let response = http::send(method, url, headers, body.unwrap_or_default()).await.map_err(|f| fetch_message(&f))?;
     let status = response.status;
     let headers = response.headers.clone();
     let body = response.text().await.map_err(|f| fetch_message(&f))?;
@@ -268,7 +268,7 @@ impl Client {
         let url = format!("{}/api/event", self.endpoint.url.trim_end_matches('/'));
         let mut headers = self.endpoint.headers();
         headers.push(("accept".into(), "text/event-stream".into()));
-        let response = http::request("GET", &url, &headers, None)
+        let response = http::send("GET", &url, &headers, String::new())
             .await
             .map_err(|f| ClientError::Transport(fetch_message(&f)))?;
         if response.status != 200 {

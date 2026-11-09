@@ -252,12 +252,11 @@ where
 
 /// Sends a `POST` and returns once the response head arrives.
 pub async fn post(url: &str, headers: &[(String, String)], body: String) -> Result<Response, Failure> {
-    request("POST", url, headers, Some(body)).await
+    send("POST", url, headers, body).await
 }
 
-/// Sends a request (no body when `body` is `None`) and returns once the response head arrives.
-pub async fn request(method: &str, url: &str, headers: &[(String, String)], body: Option<String>) -> Result<Response, Failure> {
-    let body = body.unwrap_or_default();
+/// Sends a request (`Accept: */*` unless the headers name one) and returns once the response head arrives.
+pub async fn send(method: &str, url: &str, headers: &[(String, String)], body: String) -> Result<Response, Failure> {
     let target = parse(url).ok_or_else(|| Failure::new(FailureKind::Other, format!("invalid URL {url}")))?;
     let via = proxy(&target);
     let host_header = if (target.secure && target.port == 443) || (!target.secure && target.port == 80) {

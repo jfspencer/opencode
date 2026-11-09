@@ -14,6 +14,17 @@
     {
       "body": {
         "_tag": "FileNotFoundError",
+        "message": "File not found: README.md/x",
+        "path": "README.md/x"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/read/README.md/x"
+    },
+    {
+      "body": {
+        "_tag": "FileNotFoundError",
         "message": "File not found: src",
         "path": "src"
       },

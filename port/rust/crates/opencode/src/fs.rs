@@ -62,8 +62,12 @@ pub struct File {
     pub mtime: Option<i64>,
 }
 
+/// A path that does not exist, or that runs through a file (ENOTDIR), names nothing (D219); any other failure dies.
 fn not_found_or_die(error: std::io::Error, path: &str) -> Error {
-    if error.kind() == std::io::ErrorKind::NotFound { Error::NotFound(NotFound(path.to_owned())) } else { Error::Defect(Defect(error)) }
+    match error.kind() {
+        std::io::ErrorKind::NotFound | std::io::ErrorKind::NotADirectory => Error::NotFound(NotFound(path.to_owned())),
+        _ => Error::Defect(Defect(error)),
+    }
 }
 
 /// `path.resolve(base, input)`.

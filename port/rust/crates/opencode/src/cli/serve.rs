@@ -231,6 +231,7 @@ pub async fn run(input: &Input) -> Result {
 
     // Turns a previous process left mid-way continue (restart continuity).
     crate::session::execution::resume_suspended(&app);
+    crate::schedule::start(&app);
     let server = tokio::spawn(crate::http::serve(app, listener));
     let ended = match (mode, &registration) {
         (Mode::Stdio, _) => tokio::select! {

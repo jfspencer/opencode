@@ -138,7 +138,7 @@
         ],
         "exit": 1,
         "stderr": [
-          "Error: Could not reach server at http://127.0.0.1:<port-1>: Unable to connect. Is the computer able to access the url?",
+          "Error: Could not reach server at http://127.0.0.1:<port-1>: <runtime message>",
           ""
         ],
         "stdout": ""

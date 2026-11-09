@@ -31,6 +31,7 @@ def in_scope(path):
     #   no `opencode mini`, no v1 storage migration, no AI SDK bridge, hardcoded OpenRouter access point
     #   (no model catalog/resolver, no pricing), no MCP, no legacy v1 config/schema formats, and the tools the
     #   reference config hides (image generation, websearch), no fff file search (ripgrep + fuzzysort instead).
+    # No Windows (2026-11-09): `win32` branches never run on Linux, so they never enter the backlog.
     if pkg == "tui" and re.match(r"(mini/|feature-plugins/sidebar/mcp\.tsx|config/v1/|theme/v1\.ts)", rest):
         return False
     if pkg == "cli" and re.match(r"(mini(-host)?\.ts|commands/handlers/(mini|mcp/))", rest):
