@@ -5,6 +5,8 @@
 //! - [`app`]: `run` and `<App>` (app.tsx); [`commands`]: App's command registry; [`ctx`]: what the providers give
 //!   components; [`home`], [`prompt`], [`local`], [`session`], [`data`]: the home route and what it reads;
 //!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
+//! - [`ui`]: the dialog framework; [`component`]: the dialogs and the command palette; [`themes`]: `useThemes()`;
+//!   [`model_preference`]: model.json.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -74,6 +76,13 @@
 //! `keymap::use_commands()` (the palette's list), `keymap::use_shortcuts().get/all(id)` (hints, formatted as TS
 //! formats them). App's command registry is [`commands`].
 //!
+//! **Dialogs** ([`ui::dialog`], `ui/dialog.tsx`): `ui::dialog::use_dialog()` gives `show(|| component(my_dialog))`,
+//! `replace(view, on_close, key, size)` and `clear()`; a dialog is built from `dialog_layout`/`dialog_header`/
+//! `dialog_footer`, a list is `ui::dialog_select::dialog_select(SelectProps::new(title, options))` (filtering,
+//! groups, actions with keys), a text field `ui::dialog_prompt::dialog_prompt`. Inside a dialog,
+//! `ui::theme::use_theme()` reads the dialog surface (`ThemeContextProvider`). The palette lists every reachable
+//! command with `palette(true)`; [`themes`] is `useThemes()`.
+//!
 //! **The theme** is `tui().theme` (a signal of [`ResolvedTheme`](theme::ResolvedTheme), which derefs to the token
 //! tree: `theme.text.muted`, `theme.background.raised.base`); `util::rgba(color)` converts a token to a renderable
 //! color. **The client** is `tui().data.client` ([`opencode_tui_sync::client::Client`], every operation by name:
@@ -104,6 +113,7 @@
 //! Divergences and stand-ins are listed at the top of each module and marked `TODO(port-tui)`.
 pub mod app;
 pub mod commands;
+pub mod component;
 pub mod config;
 pub mod config_context;
 pub mod ctx;
@@ -117,5 +127,7 @@ pub mod model_preference;
 pub mod prompt;
 pub mod session;
 pub mod theme;
+pub mod themes;
 pub mod toast;
+pub mod ui;
 pub mod util;
