@@ -164,6 +164,7 @@ const curated: string[] = [
   "[a-zA-Z]+", "[^\\s\\d]", "[\\W\\d]", "[^\\W]", "[\\S\\s]+?",
   // escapes
   "\\n", "\\t", "\\r", "\\f", "\\v", "\\0", "\\00", "\\01", "\\012", "\\123", "\\377", "\\400", "\\8", "\\9", "\\18",
+  "\\0100", "\\0042*", "[\\0100-\\u017f]", "\\00000", "\\1234", "\\3777", "\\777", "[\\0123]", "[\\3777]", "(a)\\0100",
   "\\x41", "\\x4", "\\xg", "\\u0041", "\\u004", "\\u{41}", "\\u{1F600}", "\\uD83D\\uDE00", "\\uD83D", "\\uDE00",
   "\\u{D83D}\\u{DE00}", "\\uD83D\\u{DE00}", "\\u{110000}", "\\u{}", "\\u{0041", "\\cJ", "\\cj", "\\c1", "\\c", "\\c*",
   "\\a", "\\q", "\\-", "\\/", "\\k", "\\k<a>", "\\k<a", "\\p", "\\p{L}", "\\P{L}", "\\p{Lu}", "\\p{Script=Greek}",
@@ -210,6 +211,9 @@ const curated: string[] = [
   "[^[\\q{ab}]]", "[(]", "[)]", "[{]", "[}]", "[|]", "[\\(]", "[\\&]", "[\\!]", "[\\#]", "[\\z]", "[[]]", "[a-b-c]",
   "[\\q{abc}a-c]", "[\\q{KK|ſ}]", "[\\w--k]", "[^\\P{Ll}]", "\\P{Ll}", "[^[a-c]--b]", "[[a-c]--[b]]+",
   "[\\p{ASCII}--\\p{L}]", "[\\q{😀|👍🏽}\\p{Emoji}]", "[[\\q{ab}a]&&[\\q{ab}]]", "[\\q{ab|a}]b",
+  "[[^\\q{}]]", "[[^\\q{}a]]", "[[^!\\q{}]]", "[^[^\\q{}]]", "[^\\p{RGI_Emoji}&&a]", "[^a&&\\p{RGI_Emoji}]", "[^\\q{}&&a]",
+  "[^a--\\q{ab}]", "[^\\q{ab}--a]", "[^[\\q{ab}--\\q{ab}]]", "[[^\\q{}][^\\q{}]]", "[a-\\q{b}]", "[a-\\q{", "[\\d-\\q{}]",
+  "[^a\\p{RGI_Emoji}[a]&&[a]]", "[^\\p{RGI_Emoji}a&&[a]]", "[^[a]\\q{ab}--a]", "[^\\q{ab}[a]--a]",
   // Annex B
   "]", "}", "{", "a{", "a{1", "a{,1}", "a{1,", "x{1}{2}", "{1}", "{1,2}", "a{2,1}", "a{1}?", "a{1}??", "^*", "$*",
   "(?:a){2}?", "\\c\\d", "a\\", "\\", "\\]",
@@ -421,6 +425,15 @@ for (let k = 0; k < Math.round(20000 * scale); k++) {
     if (depth > 0) for (const t of tokens) walk(prefix + t, depth - 1)
   }
   walk("", 4)
+  // Which negated classes "may contain strings" depends on the operand order and on nesting.
+  const stringOperands = ["\\q{ab}", "\\p{RGI_Emoji}", "[\\q{ab}]", "\\q{}", "\\q{a|}", "a"]
+  const orders = ["X&&a", "a&&X", "X&&[a]", "aX&&[a]", "X[a]&&[a]", "[a]X&&[a]", "X--a", "a--X", "aX--[a]", "X[a]--[a]",
+    "X&&", "X--", "X[a]&&", "X", "aX", "X[a]", "a&&X&&a", "a--X--a", "X\\d&&a", "\\dX--a", "X&&[a][a]", "X&&a[a]"]
+  for (const operand of stringOperands)
+    for (const order of orders) {
+      const body = order.replaceAll("X", operand)
+      for (const pattern of [`[^${body}]`, `[[^${body}]]`, `[^[^${body}]]`, `[${body}]`]) regex(pattern, "v", ["ab", "a", ""], false)
+    }
   // A nested class starts in the state its parent was in, so nested classes get their own walk.
   const nestedTokens = ["a", "\\d", "[a]", "\\q{ab}", "&&", "--", "-", "&", "!", "(", "]", "\\-"]
   const parents = ["", "a", "\\d", "[a]", "\\q{ab}", "ab", "a&&b", "a&&\\d", "a-b", "\\-", "a&&"]

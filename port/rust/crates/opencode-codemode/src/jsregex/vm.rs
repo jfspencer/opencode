@@ -108,10 +108,27 @@ impl Compiler {
 
     /// One iteration of a loop: its captures are cleared first (RepeatMatcher step 4).
     fn emit_iteration(&mut self, body: &Node, captures: (u32, u32), back: bool) {
-        if captures.0 < captures.1 {
-            self.insts.push(Inst::ClearCaptures { from: captures.0, to: captures.1 });
-        }
+        self.emit_clear(body, captures);
         self.emit(body, back);
+    }
+
+    /// Clears a loop body's groups, except those every iteration sets and the body never refers back to: their
+    /// clearing could not be observed (the iteration overwrites them, and undoing it restores them).
+    fn emit_clear(&mut self, body: &Node, captures: (u32, u32)) {
+        let mut referenced = Vec::new();
+        backref_groups(body, &mut referenced);
+        let mut start = None;
+        for g in captures.0..=captures.1 {
+            let clear = g < captures.1 && (referenced.contains(&g) || !always_sets(body, g));
+            match (clear, start) {
+                (true, None) => start = Some(g),
+                (false, Some(from)) => {
+                    self.insts.push(Inst::ClearCaptures { from, to: g });
+                    start = None;
+                }
+                _ => {}
+            }
+        }
     }
 
     /// The characters any of `nodes` can start with, as a set index, when that is known for all of them.
@@ -241,9 +258,7 @@ impl Compiler {
                 let head = self.pc();
                 self.insts.push(Inst::RepLoop { reg, min: *min, max: *max, greedy: *greedy, body: head + 1, exit: 0 });
                 self.insts.push(Inst::RepIter { reg });
-                if captures.0 < captures.1 {
-                    self.insts.push(Inst::ClearCaptures { from: captures.0, to: captures.1 });
-                }
+                self.emit_clear(body, *captures);
                 self.emit(body, back);
                 self.insts.push(Inst::RepEnd { reg, min: *min, head });
                 let exit = self.pc();
@@ -316,6 +331,31 @@ fn min_length(node: &Node) -> u64 {
         Node::Capture { body, .. } | Node::Group(body) => deep(|| min_length(body)),
         Node::Repeat { body, min, .. } => *min as u64 * deep(|| min_length(body)),
         _ => 0,
+    }
+}
+
+/// Whether every match of `node` sets group `g`.
+fn always_sets(node: &Node, g: u32) -> bool {
+    match node {
+        Node::Capture { index, body } => *index == g || deep(|| always_sets(body, g)),
+        Node::Seq(nodes) => nodes.iter().any(|n| deep(|| always_sets(n, g))),
+        Node::Alt(alternatives) => alternatives.iter().all(|n| deep(|| always_sets(n, g))),
+        Node::Group(body) => deep(|| always_sets(body, g)),
+        Node::Repeat { body, min, .. } => *min >= 1 && deep(|| always_sets(body, g)),
+        Node::Look { negate: false, body, .. } => deep(|| always_sets(body, g)),
+        _ => false,
+    }
+}
+
+/// Every group a backreference in `node` refers to.
+fn backref_groups(node: &Node, out: &mut Vec<u32>) {
+    match node {
+        Node::BackRef { groups, .. } => out.extend_from_slice(groups),
+        Node::Seq(nodes) | Node::Alt(nodes) => nodes.iter().for_each(|n| deep(|| backref_groups(n, out))),
+        Node::Capture { body, .. } | Node::Group(body) | Node::Look { body, .. } | Node::Repeat { body, .. } => {
+            deep(|| backref_groups(body, out))
+        }
+        _ => {}
     }
 }
 
@@ -394,7 +434,15 @@ struct Machine<'p, 't> {
     caps: Vec<usize>,
     regs: Vec<usize>,
     stack: Vec<Bt>,
+    /// Alternation and loop choice points this search may still resume (see BACKTRACK_BUDGET).
+    budget: u64,
 }
+
+/// How many alternation and loop choice points one search (an exec) may resume before it gives up and reports no
+/// match, as JSC's Yarr interpreter does when it exhausts its match limit, instead of backtracking exponentially
+/// for ever. Single-character loops giving back characters are not counted, so plain scans of long texts never
+/// run out.
+const BACKTRACK_BUDGET: u64 = 50_000_000;
 
 impl Program {
     pub fn capture_count(&self) -> u32 {
@@ -410,6 +458,7 @@ impl Program {
             caps: vec![UNSET; 2 * (self.capture_count as usize + 1)],
             regs: vec![UNSET; self.regs],
             stack: Vec::new(),
+            budget: BACKTRACK_BUDGET,
         };
         let mut pos = from;
         loop {
@@ -426,6 +475,9 @@ impl Program {
                     machine.caps[0] = pos;
                     machine.caps[1] = end;
                     return Some(machine.caps);
+                }
+                if machine.budget == 0 {
+                    return None;
                 }
             }
             if sticky || pos >= text.len() {
@@ -736,6 +788,9 @@ impl<'p, 't> Machine<'p, 't> {
                     let height = self.stack.len();
                     let body = *body;
                     let matched = deep(|| self.run(body, pos, height)).is_some();
+                    if self.budget == 0 {
+                        return None;
+                    }
                     if matched && !*negate {
                         // Atomic: drop the body's choice points, keep its capture undo records.
                         let mut keep = height;
@@ -770,6 +825,10 @@ impl<'p, 't> Machine<'p, 't> {
                 }
                 match self.stack.pop().unwrap() {
                     Bt::Branch { pc: p, pos: q } => {
+                        if self.budget == 0 {
+                            return None;
+                        }
+                        self.budget -= 1;
                         pc = p;
                         pos = q as usize;
                         break;

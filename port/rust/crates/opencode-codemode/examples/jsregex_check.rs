@@ -197,6 +197,22 @@ fn main() {
         }
         return;
     }
+    // `--giveup <pattern> <flags> <subject prefix>`: the first n at which an exec on prefix×n + "cab" stops finding
+    // the match after it (the backtracking budget ran out), with the time it took.
+    if args.get(1).map(String::as_str) == Some("--giveup") {
+        let re = JsRegExp::new(&units(&args[2]), &units(&args[3])).expect("pattern");
+        for n in 1..200 {
+            let text = units(&(args[4].repeat(n) + "cab"));
+            let started = std::time::Instant::now();
+            let found = re.exec(&text).is_some();
+            if !found {
+                println!("gives up at n={n} ({:.0} ms)", started.elapsed().as_secs_f64() * 1000.0);
+                return;
+            }
+        }
+        println!("never gave up below 200");
+        return;
+    }
     // `--bench`: global match counts over a 1 MB text, timed (compare with harness/jsregex/bench.ts).
     if args.get(1).map(String::as_str) == Some("--bench") {
         let line = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.\n";

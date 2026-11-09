@@ -209,6 +209,9 @@ enum Context {
     ClassSet,
 }
 
+/// A group name, its group index, and its alternative path (for the duplicate-name rule).
+type NamedGroup = (Vec<u16>, u32, Vec<(u32, u32)>);
+
 struct Parser<'a> {
     p: &'a [u16],
     i: usize,
@@ -221,8 +224,7 @@ struct Parser<'a> {
     forward_allowed: bool,
     num_subpatterns: u32,
     max_seen_backref: u32,
-    /// Group names with their group index and alternative path.
-    names: Vec<(Vec<u16>, u32, Vec<(u32, u32)>)>,
+    names: Vec<NamedGroup>,
     forward_refs: Vec<Vec<u16>>,
     k_identity_seen: bool,
     frames: Vec<Frame>,
@@ -284,10 +286,11 @@ impl ClassValue {
         self.may_contain_strings |= other.may_contain_strings;
     }
 
+    /// "May contain strings" stays the left operand's (JSC narrows it only for a nested class operand, see
+    /// SetLevel::nested), as for a subtraction.
     fn intersect(&mut self, other: ClassValue) {
         self.set = self.set.intersect(&other.set);
         self.strings.retain(|s| other.strings.contains(s));
-        self.may_contain_strings &= other.may_contain_strings;
     }
 
     fn subtract(&mut self, other: ClassValue) {
@@ -982,15 +985,16 @@ impl<'a> Parser<'a> {
                 self.i += 1;
                 if !in_class {
                     let state = self.i;
-                    if !self.at_end() && self.consume() == '<' as u32 {
-                        if let Some(name) = self.try_consume_group_name()? {
-                            if self.names.iter().any(|(n, _, _)| *n == name) {
-                                return Ok(Escape::NamedBackRef(name));
-                            }
-                            if self.forward_allowed {
-                                self.forward_refs.push(name.clone());
-                                return Ok(Escape::NamedBackRef(name));
-                            }
+                    if !self.at_end()
+                        && self.consume() == '<' as u32
+                        && let Some(name) = self.try_consume_group_name()?
+                    {
+                        if self.names.iter().any(|(n, _, _)| *n == name) {
+                            return Ok(Escape::NamedBackRef(name));
+                        }
+                        if self.forward_allowed {
+                            self.forward_refs.push(name.clone());
+                            return Ok(Escape::NamedBackRef(name));
                         }
                     }
                     self.i = state;
@@ -1030,10 +1034,13 @@ impl<'a> Parser<'a> {
         Ok(Escape::Char(self.consume()))
     }
 
+    /// A legacy octal escape: at most three digits, and at most 0o377.
     fn consume_octal(&mut self) -> u32 {
         let mut n = self.consume() - 0x30;
-        while n < 32 && !self.at_end() && (0x30..=0x37).contains(&self.peek()) {
+        let mut digits = 1;
+        while digits < 3 && n < 32 && !self.at_end() && (0x30..=0x37).contains(&self.peek()) {
             n = n * 8 + (self.consume() - 0x30);
+            digits += 1;
         }
         n
     }
@@ -1297,7 +1304,7 @@ impl<'a> Parser<'a> {
         if strings.is_empty() && !has_empty {
             return Node::Class(close(&value.set));
         }
-        strings.sort_by(|a, b| b.len().cmp(&a.len()));
+        strings.sort_by_key(|s| std::cmp::Reverse(s.len()));
         let mut alternatives: Vec<Node> = strings
             .into_iter()
             .map(|s| {
@@ -1362,6 +1369,9 @@ impl<'a> Parser<'a> {
                             if !self.try_consume(b'{') {
                                 return Err(INVALID_IDENTITY_ESCAPE);
                             }
+                            if levels.last().unwrap().in_range() {
+                                return Err(INVALID_CLASS_SET_CHARACTER);
+                            }
                             let value = self.parse_class_string_disjunction()?;
                             levels.last_mut().unwrap().strings(value)?;
                         }
@@ -1419,16 +1429,24 @@ impl<'a> Parser<'a> {
         if self.icase { unicode::unicode_folding().canon(c) } else { c }
     }
 
+    /// A level's value at its `]`. Negating a class that may contain strings is an error; JSC counts the empty
+    /// string (when actually present) only for the outermost class, and a negated nested class keeps it.
     fn end_set_level(&self, level: SetLevel, top: bool) -> Result<ClassValue, Fail> {
         let negate = level.negate;
-        let value = level.end(top)?;
+        let dangling = top && level.op != SetOp::Union && level.state == SetState::Operator;
+        let value = level.end()?;
+        let has_empty = value.strings.iter().any(|s| s.is_empty());
+        if negate && (value.may_contain_strings || (top && has_empty)) {
+            return Err(NEGATED_MAY_CONTAIN_STRINGS);
+        }
+        if dangling {
+            return Err(INVALID_CLASS_SET_CHARACTER);
+        }
         if !negate {
             return Ok(value);
         }
-        if value.may_contain_strings {
-            return Err(NEGATED_MAY_CONTAIN_STRINGS);
-        }
-        Ok(ClassValue { set: self.complement_v(&value.set), strings: Vec::new(), may_contain_strings: false })
+        let strings = if has_empty { vec![Vec::new()] } else { Vec::new() };
+        Ok(ClassValue { set: self.complement_v(&value.set), strings, may_contain_strings: false })
     }
 
     /// An escape in a v-flag class standing for one character.
@@ -1465,7 +1483,8 @@ impl<'a> Parser<'a> {
                 if s.len() == 1 {
                     value.set.add(s[0]);
                 } else {
-                    value.may_contain_strings = true;
+                    // Only strings of two or more characters make a class one that "may contain strings".
+                    value.may_contain_strings |= s.len() > 1;
                     if !value.strings.contains(&s) {
                         value.strings.push(s);
                     }
@@ -1560,6 +1579,11 @@ impl SetLevel {
         }
     }
 
+    /// After a range's `-` (only a character may follow).
+    fn in_range(&self) -> bool {
+        matches!(self.state, SetState::CharHyphen(_) | SetState::ClassHyphen)
+    }
+
     /// In an intersection or subtraction an escape may only follow the operator.
     fn refuses_escape(&self) -> bool {
         self.op != SetOp::Union && self.state != SetState::Operator
@@ -1644,6 +1668,10 @@ impl SetLevel {
     }
 
     fn nested(&mut self, value: ClassValue) {
+        // "May contain strings" survives an intersection with anything but a nested class.
+        if self.op == SetOp::Intersect {
+            self.value.may_contain_strings &= value.may_contain_strings;
+        }
         self.apply(value);
         self.state = SetState::Nested;
     }
@@ -1678,11 +1706,10 @@ impl SetLevel {
         Ok(())
     }
 
-    fn end(mut self, top: bool) -> Result<ClassValue, Fail> {
-        match self.state {
-            SetState::CharHyphen(_) | SetState::ClassHyphen => return Err(INVALID_CLASS_SET_CHARACTER),
-            SetState::Operator if top && self.op != SetOp::Union => return Err(INVALID_CLASS_SET_CHARACTER),
-            _ => {}
+    /// The level's value at its `]` (a dangling operator is the caller's to judge).
+    fn end(mut self) -> Result<ClassValue, Fail> {
+        if self.in_range() {
+            return Err(INVALID_CLASS_SET_CHARACTER);
         }
         self.flush();
         Ok(self.value)
