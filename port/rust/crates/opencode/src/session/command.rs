@@ -4,8 +4,10 @@
 //!
 //! A command that runs as a subagent starts a child session as a background subagent job ([`session::subagent`]).
 //!
-//! TODO(port): `goal` (plugin/goal.ts), MCP prompts, the
-//! interleaved output of interpolated shell commands (stdout, then stderr).
+//! `goal` is the goal plugin's ([`session::goal`]).
+//!
+//! Out of scope: MCP prompts (MCP is dropped). TODO(port): the interleaved output of interpolated shell commands
+//! (stdout, then stderr).
 
 use opencode_protocol::Json;
 
@@ -72,8 +74,12 @@ pub async fn execute(app: &App, session_id: &str, input: &Json) -> Result<()> {
     let prompt_text = match &command.kind {
         Kind::Init => commands::append(&commands::PROMPT_INITIALIZE.replace("${path}", &location.project.directory), text),
         Kind::Review => commands::append(&commands::PROMPT_REVIEW.replace("${path}", &location.project.directory), text),
-        // TODO(port): the goal loop.
-        Kind::Goal => return Err(execution_error(name, "The goal command is not yet supported by the Rust port")),
+        Kind::Goal => {
+            return session::goal::command(app, session_id, input).await.map_err(|error| match error {
+                session::goal::CommandError::Message(message) => execution_error(name, &message),
+                session::goal::CommandError::Failure(failure) => failure,
+            });
+        }
         Kind::Config(config) => {
             let agent = config.agent.as_deref();
             let command_agent = match agent {

@@ -14,6 +14,9 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "experimental.generate.image" => crate::generate::image(app, &decoded.payload).await.map(super::data),
         "experimental.generate.decisions" => crate::generate::decisions(app, &decoded.payload).await.map(super::data),
+        // The only RPC a built-in plugin registers is the goal plugin's.
+        "rpc.call" => crate::session::goal::rpc(app, request.param("rpcID"), request.param("method"), &decoded.payload)
+            .map(|output| Response::value(200, &output)),
         _ => super::fallback(app, request),
     }
 }

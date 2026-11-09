@@ -133,22 +133,34 @@ fn session_unavailable(message: &str) -> Failure {
 /// session. Failures retry under the step policy (`ModelRetry.retry`); what still fails is a 503.
 pub async fn session(app: &App, session_id: &str, prompt: &str) -> Result<Json> {
     crate::session::require(&app.db.lock().unwrap(), session_id)?;
-    let request = crate::session::runner::generate_request(&app.arc(), session_id, prompt)
-        .await
-        .map_err(|message| session_unavailable(&message))?;
+    match session_text(&app.arc(), session_id, prompt).await {
+        Ok(text) => {
+            let mut data = Obj::new();
+            data.str("text", &text);
+            Ok(data.done())
+        }
+        Err(Ok(message)) => Err(session_unavailable(&message)),
+        Err(Err(error)) => Err(session_unavailable(&error.message)),
+    }
+}
+
+/// `Session.generate`'s text (plugins' `ctx.session.generate`): `Err(Ok)` is why the context could not be selected,
+/// `Err(Err)` the provider's failure once the step policy gave up on it.
+pub async fn session_text(
+    app: &Arc<App>,
+    session_id: &str,
+    prompt: &str,
+) -> std::result::Result<String, std::result::Result<String, AIError>> {
+    let request = crate::session::runner::generate_request(app, session_id, prompt).await.map_err(Ok)?;
     let mut retry = Retry::default();
     loop {
         match once(&request).await {
-            Ok(text) => {
-                let mut data = Obj::new();
-                data.str("text", &text);
-                return Ok(data.done());
-            }
+            Ok(text) => return Ok(text),
             Err(error) => match retry.decide(&error, error.retryable()) {
                 Some(decision) if decision.retry => {
                     tokio::time::sleep(std::time::Duration::from_millis(decision.delay as u64)).await;
                 }
-                _ => return Err(session_unavailable(&error.message)),
+                _ => return Err(Err(error)),
             },
         }
     }
