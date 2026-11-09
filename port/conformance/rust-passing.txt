@@ -80,6 +80,81 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/project-agents.test.ts › agents from markdown files
+scenarios/project-agents.test.ts › built-in agents
+scenarios/project-agents.test.ts › custom agents from config
+scenarios/project-agents.test.ts › default agent from config
+scenarios/project-agents.test.ts › default agent that is a subagent falls back to build
+scenarios/project-agents.test.ts › no selectable primary agent
+scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
+scenarios/project-commands.test.ts › command list on a location's first request
+scenarios/project-commands.test.ts › command list without custom commands
+scenarios/project-commands.test.ts › commands from config and markdown files
+scenarios/project-config.test.ts › available shells
+scenarios/project-config.test.ts › config documents with project config disabled
+scenarios/project-config.test.ts › config documents without project files
+scenarios/project-config.test.ts › config from parent directories of a nested location
+scenarios/project-config.test.ts › env and file substitution in config
+scenarios/project-config.test.ts › invalid fields are dropped while valid ones are kept
+scenarios/project-config.test.ts › invalid native config sections
+scenarios/project-config.test.ts › malformed and non-object config documents are rejected
+scenarios/project-config.test.ts › patch the global config shell
+scenarios/project-config.test.ts › project config files layer in priority order
+scenarios/project-fs.test.ts › conditional reads
+scenarios/project-fs.test.ts › find files and directories
+scenarios/project-fs.test.ts › find from the home directory
+scenarios/project-fs.test.ts › find in a directory without version control
+scenarios/project-fs.test.ts › list directories
+scenarios/project-fs.test.ts › read errors and confinement
+scenarios/project-fs.test.ts › read files
+scenarios/project-fs.test.ts › read with byte ranges
+scenarios/project-fs.test.ts › watch and unwatch files
+scenarios/project-fs.test.ts › write files
+scenarios/project-projects.test.ts › a moved checkout replaces the missing canonical directory
+scenarios/project-projects.test.ts › debug loaded locations and evict one
+scenarios/project-projects.test.ts › git repository without commits shares the global project
+scenarios/project-projects.test.ts › heap dump into an unusable directory
+scenarios/project-projects.test.ts › linked git worktree resolves to the main checkout
+scenarios/project-projects.test.ts › location of the default and a nested directory
+scenarios/project-projects.test.ts › markerless project adopted when a repository appears above it
+scenarios/project-projects.test.ts › mercurial marker with a cached project ID
+scenarios/project-projects.test.ts › mercurial marker without the hg tool
+scenarios/project-projects.test.ts › pairing codes
+scenarios/project-projects.test.ts › project ID cached in the git directory
+scenarios/project-projects.test.ts › project icon from a favicon
+scenarios/project-projects.test.ts › project icon from an asset catalog
+scenarios/project-projects.test.ts › project icon from an icon composer bundle
+scenarios/project-projects.test.ts › project icon from an icon composer bundle with a solid fill
+scenarios/project-projects.test.ts › project icon from windows resources
+scenarios/project-projects.test.ts › project of a git repository is keyed by its root commit
+scenarios/project-projects.test.ts › project of a plain directory
+scenarios/project-projects.test.ts › reload every loaded location
+scenarios/project-projects.test.ts › server info
+scenarios/project-projects.test.ts › update project metadata
+scenarios/project-skills.test.ts › built-in skills
+scenarios/project-skills.test.ts › references on a location's first request
+scenarios/project-skills.test.ts › skills from config directories and compatibility roots
+scenarios/project-vcs.test.ts › binary, empty and special file names in the diff
+scenarios/project-vcs.test.ts › branch listing with search and limit
+scenarios/project-vcs.test.ts › detached head and branch switches
+scenarios/project-vcs.test.ts › feature branch review base and diffs
+scenarios/project-vcs.test.ts › initialize a repository
+scenarios/project-vcs.test.ts › initialize with a provider whose tool is unavailable
+scenarios/project-vcs.test.ts › repository without commits
+scenarios/project-vcs.test.ts › review base inferred from the branch it was created from
+scenarios/project-vcs.test.ts › untracked folders collapse in folder mode
+scenarios/project-vcs.test.ts › vcs routes from a nested location
+scenarios/project-vcs.test.ts › vcs routes on a clean repository
+scenarios/project-vcs.test.ts › vcs routes on a location's first request
+scenarios/project-vcs.test.ts › vcs routes outside a repository
+scenarios/project-vcs.test.ts › working copy status and diff
+scenarios/project-worktree.test.ts › create a worktree at a ref and from a linked worktree
+scenarios/project-worktree.test.ts › create, list and remove worktrees
+scenarios/project-worktree.test.ts › refresh discovers and forgets worktrees
+scenarios/project-worktree.test.ts › removing a dirty worktree requires force
+scenarios/project-worktree.test.ts › worktree directory from config
+scenarios/project-worktree.test.ts › worktree routes for unknown projects and non-git projects
+scenarios/project-worktree.test.ts › worktree start command and name collisions
 scenarios/session-api-control.test.ts › read the durable session log
 scenarios/session-api-control.test.ts › switch the agent
 scenarios/session-api-control.test.ts › switch the model and its reasoning variant
@@ -115,7 +190,9 @@ scenarios/session-api-prompt.test.ts › queue a prompt behind the running turn
 scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
 scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
+scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
+scenarios/shell-api.test.ts › list available shells
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools.test.ts › malformed tool arguments
 scenarios/tools.test.ts › unknown tool

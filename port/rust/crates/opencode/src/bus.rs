@@ -96,14 +96,20 @@ pub struct Bus {
     order: Mutex<()>,
 }
 
-/// The data field naming a durable event's aggregate. TODO(port): emit it into the generated manifest.
+/// The data field naming a durable event's aggregate (the manifest's `durable.aggregate`).
 pub fn aggregate_field(ty: &str) -> &'static str {
-    if ty == "worktree.resolved" { "projectID" } else { "sessionID" }
+    EVENTS
+        .iter()
+        .find(|e| e.r#type == ty)
+        .and_then(|e| e.aggregate)
+        .or_else(|| INTERNAL.iter().find(|(t, _, _)| *t == ty).map(|(_, _, aggregate)| *aggregate))
+        .unwrap_or_else(|| panic!("{ty} is not a durable event"))
 }
 
 /// Durable events that are not part of the public manifest: they take a sequence number of their aggregate and are
 /// projected, but never reach clients (`session.usage.recorded`, packages/schema/src/session-event.ts).
-const INTERNAL: &[(&str, u32)] = &[("session.usage.recorded", 1)];
+/// Each is `(type, version, aggregate field)`.
+const INTERNAL: &[(&str, u32, &str)] = &[("session.usage.recorded", 1, "sessionID")];
 
 /// Durable version of an event type from the manifest; `None` for ephemeral events.
 pub fn durable_version(ty: &str) -> Option<u32> {
@@ -111,11 +117,11 @@ pub fn durable_version(ty: &str) -> Option<u32> {
         .iter()
         .find(|e| e.r#type == ty)
         .and_then(|e| e.version)
-        .or_else(|| INTERNAL.iter().find(|(t, _)| *t == ty).map(|(_, v)| *v))
+        .or_else(|| INTERNAL.iter().find(|(t, _, _)| *t == ty).map(|(_, v, _)| *v))
 }
 
 fn internal(ty: &str) -> bool {
-    INTERNAL.iter().any(|(t, _)| *t == ty)
+    INTERNAL.iter().any(|(t, _, _)| *t == ty)
 }
 
 impl Bus {

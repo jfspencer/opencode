@@ -3,8 +3,7 @@
 //! `queue` input waits for the turn to end. Admission is `session.inbox.enqueued`, promotion
 //! `session.inbox.delivered` (whose projection moves the row into `session_message`).
 //!
-//! TODO(port): attachments (files, agents, skills) and their media blobs, move items, the `session.prompt` plugin
-//! hook.
+//! TODO(port): media blobs for attachments (`experimental.media_blob`).
 
 use opencode_protocol::Json;
 use rusqlite::{Connection, OptionalExtension, Transaction, params};
@@ -26,10 +25,11 @@ pub enum Promotable {
 /// A pending row at a boundary (`SessionInbox.Promotion`).
 #[derive(Debug, Clone)]
 pub struct Promotion {
-    #[allow(dead_code)]
     pub id: String,
     pub ty: String,
     pub delivery: String,
+    /// A move's destination (`MovePayload`); prompts are promoted by ID, so their payload is not read.
+    pub payload: Option<Json>,
 }
 
 impl Promotion {
@@ -49,7 +49,8 @@ struct Row {
 
 impl Row {
     fn promotion(&self) -> Promotion {
-        Promotion { id: self.id.clone(), ty: self.ty.clone(), delivery: self.delivery.clone() }
+        let payload = (self.ty == "move").then(|| json::parse(&self.payload).unwrap_or_else(json::object));
+        Promotion { id: self.id.clone(), ty: self.ty.clone(), delivery: self.delivery.clone(), payload }
     }
 
     fn control(&self) -> bool {
@@ -130,6 +131,18 @@ pub fn next_promotable(db: &Connection, session: &str, promotable: Promotable) -
         return Ok(None);
     }
     Ok(first_queued(db, session)?.map(|row| row.promotion()))
+}
+
+/// `SessionInbox.moveIDs`: the session's pending moves, oldest first.
+pub fn move_ids(db: &Connection, session: &str) -> rusqlite::Result<Vec<String>> {
+    Ok(rows(
+        db,
+        &format!("SELECT {COLUMNS} FROM session_inbox WHERE session_id = ?1 AND type = 'move' ORDER BY enqueued_seq ASC"),
+        params![session],
+    )?
+    .into_iter()
+    .map(|row| row.id)
+    .collect())
 }
 
 /// `SessionInbox.has`: whether input of a scope waits (`None` is any delivery).

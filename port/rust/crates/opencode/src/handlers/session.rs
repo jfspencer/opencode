@@ -43,7 +43,14 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             }
             Ok(data(active.done()))
         }
-        "session.prompt" => prompt(app, request, &decoded).await,
+        "session.prompt" => {
+            let admitted = session::prompt::submit(app, request.param("sessionID"), &decoded.payload).await?;
+            Ok(data(wire_inbox(&admitted)))
+        }
+        "session.command" => {
+            session::command::execute(app, request.param("sessionID"), &decoded.payload).await?;
+            Ok(Response::no_content())
+        }
         "session.synthetic" => synthetic(app, request, &decoded),
         "session.switchAgent" => {
             let session_id = request.param("sessionID");
@@ -51,35 +58,17 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             let agent = json::get_str(&decoded.payload, "agent").unwrap_or_default().to_owned();
             // Agents are registered by the location's plugins.
             let location = app.locations.get(app, &stored.location).await?;
-            if location.inventory.agent(&agent).is_none() {
+            if location.inventory().agent(&agent).is_none() {
                 let mut o = Obj::new();
                 o.str("_tag", "AgentNotFoundError").str("agentID", &agent).str("message", &format!("Agent not found: {agent}"));
                 return Err(Failure::new(404, o.done()));
             }
-            let previous = json::get_str(&stored.info, "agent").map(str::to_owned);
-            let mut data = Obj::new();
-            data.str("sessionID", session_id).str("agent", &agent);
-            data.opt_str("previous", previous.as_deref());
-            session::publish_event(app, "session.agent.selected", data.done(), None, None).map_err(fatal)?;
-            session::plan::selected(app, session_id, &agent, previous.as_deref(), &stored.location);
+            session::prompt::switch_agent(app, session_id, &agent, None)?;
             Ok(Response::no_content())
         }
         "session.switchModel" => {
-            let session_id = request.param("sessionID");
-            let stored = session::require(&app.db.lock().unwrap(), session_id)?;
             let model = json::get(&decoded.payload, "model").cloned().unwrap_or(Json::Null);
-            let current = json::get(&stored.info, "model");
-            let field = |m: Option<&Json>, key: &str| m.and_then(|m| json::get_str(m, key)).map(str::to_owned);
-            let same = field(current, "providerID") == field(Some(&model), "providerID")
-                && field(current, "id") == field(Some(&model), "id")
-                && field(current, "variant").unwrap_or_else(|| "default".into())
-                    == field(Some(&model), "variant").unwrap_or_else(|| "default".into());
-            if !same {
-                let mut data = Obj::new();
-                data.str("sessionID", session_id).set("model", model);
-                data.opt("previous", current.cloned());
-                session::publish_event(app, "session.model.selected", data.done(), None, None).map_err(fatal)?;
-            }
+            session::prompt::switch_model(app, request.param("sessionID"), model, None)?;
             Ok(Response::no_content())
         }
         "session.compact" => {
@@ -93,7 +82,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
                     app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
                     Ok(data(wire_inbox(&admitted)))
                 }
-                Err(_) => Err(conflict(
+                Err(_) => Err(session::prompt::conflict(
                     format!("Compaction input ID conflicts with an existing durable record: {input_id}"),
                     &input_id,
                 )),
@@ -153,7 +142,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             let result = session::inbox::mutate(app, session_id, inbox_id, "session.inbox.delivery.changed", Some(&delivery));
             if result.is_err() {
                 session::require(&app.db.lock().unwrap(), session_id)?;
-                return Err(conflict(format!("Pending input cannot change to {delivery}: {inbox_id}"), inbox_id));
+                return Err(session::prompt::conflict(format!("Pending input cannot change to {delivery}: {inbox_id}"), inbox_id));
             }
             if delivery == "steer" {
                 app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
@@ -174,6 +163,45 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(Response::no_content())
         }
         "experimental.session.log" => session_log(app, request, &decoded),
+        "session.generate" => {
+            let prompt = json::get_str(&decoded.payload, "prompt").unwrap_or_default().to_owned();
+            Ok(data(crate::generate::session(app, request.param("sessionID"), &prompt).await?))
+        }
+        "session.move" => {
+            session::moves::request(app, request.param("sessionID"), &decoded.payload).await?;
+            Ok(Response::no_content())
+        }
+        "session.context" => {
+            let db = app.db.lock().unwrap();
+            let session_id = request.param("sessionID");
+            session::require(&db, session_id)?;
+            // `SessionHistory.load(.., "latest")`. TODO(port): from the latest completed compaction on.
+            let history = session::message::history(&db, session_id).map_err(fatal)?;
+            Ok(data(Json::Array(history.iter().map(session::message::wire).collect())))
+        }
+        "experimental.session.instructions.entry.list" => {
+            let db = app.db.lock().unwrap();
+            let session_id = request.param("sessionID");
+            session::require(&db, session_id)?;
+            Ok(data(session::entries::list(&db, session_id).map_err(fatal)?))
+        }
+        "experimental.session.instructions.entry.put" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            let value = json::get(&decoded.payload, "value").cloned().unwrap_or(Json::Null);
+            session::entries::put(app, session_id, request.param("key"), &value)?;
+            Ok(Response::no_content())
+        }
+        "experimental.session.instructions.entry.remove" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            session::entries::remove(app, session_id, request.param("key"))?;
+            Ok(Response::no_content())
+        }
+        "experimental.session.skill" => {
+            session::skill::activate(app, request.param("sessionID"), &decoded.payload).await?;
+            Ok(Response::no_content())
+        }
         "session.revert.stage" => {
             let session_id = request.param("sessionID");
             let message_id = json::get_str(&decoded.payload, "messageID").unwrap_or_default();
@@ -258,9 +286,6 @@ fn session_list(app: &App, decoded: &Decoded) -> Result<Response> {
     Ok(Response::value(200, &o.done()))
 }
 
-/// Built-in agents (packages/core/src/agent.ts). TODO(port): agents from config and markdown files.
-const BUILT_IN_AGENTS: &[&str] = &["build", "general", "explore", "compaction", "title", "summary", "plan"];
-
 async fn session_create(app: &App, decoded: &Decoded) -> Result<Response> {
     let payload = &decoded.payload;
     let present = |key: &str| json::get(payload, key).filter(|v| !matches!(v, Json::Null)).cloned();
@@ -277,8 +302,8 @@ async fn session_create(app: &App, decoded: &Decoded) -> Result<Response> {
             None => crate::location::canonical(&location),
             Some(parent) => session::require(&app.db.lock().unwrap(), parent)?.location,
         };
-        app.locations.get(app, &target).await?;
-        if !BUILT_IN_AGENTS.contains(&agent) {
+        let located = app.locations.get(app, &target).await?;
+        if located.inventory().agent(agent).is_none() {
             let mut o = Obj::new();
             o.str("_tag", "AgentNotFoundError").str("agentID", agent).str("message", &format!("Agent not found: {agent}"));
             return Err(Failure::new(404, o.done()));
@@ -326,57 +351,6 @@ async fn session_update(app: &App, request: &Request, decoded: &Decoded) -> Resu
     Ok(Response::no_content())
 }
 
-fn conflict(message: String, resource: &str) -> Failure {
-    let mut o = Obj::new();
-    o.str("_tag", "ConflictError").str("message", &message).str("resource", resource);
-    Failure::new(409, o.done())
-}
-
-/// `Session.prompt`: admits the input (idempotently by ID), then wakes the session unless `resume` is `false`.
-async fn prompt(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
-    let session_id = request.param("sessionID");
-    let stored = session::require(&app.db.lock().unwrap(), session_id)?;
-    let payload = &decoded.payload;
-    let present = |key: &str| json::get(payload, key).filter(|v| !matches!(v, Json::Null)).cloned();
-    let message_id = json::get_str(payload, "id").map(str::to_owned).unwrap_or_else(session::message::create_id);
-    let delivery = json::get_str(payload, "delivery").unwrap_or("steer").to_owned();
-    let existing =
-        session::inbox::reconcile(&app.db.lock().unwrap(), &message_id, session_id, "user", &delivery).map_err(fatal)?;
-    let admitted = match existing {
-        Err(_) => {
-            return Err(conflict(
-                format!("Prompt message ID conflicts with an existing durable record: {message_id}"),
-                &message_id,
-            ));
-        }
-        Ok(Some(existing)) => existing,
-        Ok(None) => {
-            // Preparation runs in the session's location (its plugins hook the prompt).
-            app.locations.get(app, &stored.location).await?;
-            // TODO(port): attachments (files, agents, skills), the `session.prompt` hook, committing a staged revert.
-            let mut item_payload = Obj::new();
-            item_payload.str("text", json::get_str(payload, "text").unwrap_or_default());
-            item_payload.opt("agents", present("agents"));
-            item_payload.opt("metadata", present("metadata"));
-            let mut item = Obj::new();
-            item.str("type", "user").set("payload", item_payload.done()).str("delivery", &delivery);
-            match session::inbox::admit(app, &message_id, session_id, item.done(), Some(stored.location.clone()))? {
-                Ok(admitted) => admitted,
-                Err(_) => {
-                    return Err(conflict(
-                        format!("Prompt message ID conflicts with an existing durable record: {message_id}"),
-                        &message_id,
-                    ));
-                }
-            }
-        }
-    };
-    if json::get_bool(payload, "resume") != Some(false) {
-        app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
-    }
-    Ok(data(wire_inbox(&admitted)))
-}
-
 /// An inbox item through the response schema.
 fn wire_inbox(item: &Json) -> Json {
     match t::SessionInboxInfo::decode(item) {
@@ -405,7 +379,7 @@ fn synthetic(app: &App, request: &Request, decoded: &Decoded) -> Result<Response
     let admitted = match session::inbox::admit(app, &input_id, session_id, item.done(), None)? {
         Ok(admitted) => admitted,
         Err(_) => {
-            return Err(conflict(
+            return Err(session::prompt::conflict(
                 format!("Synthetic input ID conflicts with an existing durable record: {input_id}"),
                 &input_id,
             ));

@@ -40,8 +40,12 @@ pub struct Model {
     pub name: String,
     pub base_url: String,
     pub api_key: Option<String>,
-    /// Provider options from the model's settings, its variant and the agent (`reasoning`, `usage`, ...).
+    /// Provider options from the model's settings and its variant (`reasoning`, `usage`, ...).
     pub options: Json,
+    /// Request headers of the provider, model and variant (`settings.headers` of the route).
+    pub headers: Vec<(String, String)>,
+    /// A body overlay of the provider, model and variant, deep-merged into the request body (`http.body`).
+    pub body: Option<Json>,
     pub limit_context: f64,
     pub limit_output: f64,
     pub cost: Vec<Json>,
@@ -161,6 +165,18 @@ pub enum Event {
     Finish,
 }
 
+/// `mergeJsonRecords(base, overlay)`: records merge key by key (the base's keys keep their places, new ones follow);
+/// any other overlay value replaces.
+fn merge_records(base: &mut Json, overlay: &Json) {
+    let Json::Object(fields) = overlay else { return };
+    for (key, value) in fields {
+        match (crate::json::get_mut(base, key), value) {
+            (Some(existing @ Json::Object(_)), Json::Object(_)) => merge_records(existing, value),
+            _ => crate::json::set(base, key, value.clone()),
+        }
+    }
+}
+
 const DEFAULT_HTTP_TIMEOUT_MS: u64 = 300_000;
 const DEFAULT_CHUNK_TIMEOUT_MS: u64 = 900_000;
 
@@ -177,11 +193,21 @@ async fn run(request: &Request, events: &mpsc::Sender<Result<Event, AIError>>) -
     let model = &request.model;
     let url = format!("{}/chat/completions", model.base_url.trim_end_matches('/'));
     let body = openrouter::body(request);
+    // `bodyWithOverlay`: the configured body overlay is deep-merged into the request body.
+    let body = match &model.body {
+        Some(overlay) => {
+            let mut merged = crate::json::parse(&body).unwrap_or_else(crate::json::object);
+            merge_records(&mut merged, overlay);
+            crate::json::text(&merged)
+        }
+        None => body,
+    };
     let mut headers: Vec<(String, String)> = Vec::new();
     if let Some(key) = &model.api_key {
         headers.push(("Authorization".into(), format!("Bearer {key}")));
     }
     headers.push(("Content-Type".into(), "application/json".into()));
+    headers.extend(model.headers.iter().cloned());
     headers.extend(request.headers.iter().cloned());
     let started = tokio::time::Instant::now();
     let total = model.timeouts.total.map(Duration::from_millis);

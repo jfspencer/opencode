@@ -275,6 +275,35 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             o.opt("description", get("description").cloned());
             insert(tx, event, &o.done())?;
         }
+        "session.moved" => {
+            // `adapter.getLocation`: where the session was.
+            let previous: Option<(String, Option<String>, String, Option<String>)> = tx
+                .query_row(
+                    "SELECT directory, workspace_id, project_id, path FROM session_v2 WHERE id = ?1",
+                    rusqlite::params![session],
+                    |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+                )
+                .optional()?;
+            let mut o = base(&id_from_event(&event.id), "location-switched", metadata, created);
+            o.opt("location", get("location").cloned());
+            o.opt("projectID", get("projectID").cloned());
+            o.opt("subpath", get("subpath").cloned());
+            if let Some((directory, workspace, project, subpath)) = previous {
+                let mut location = Obj::new();
+                location.str("directory", &directory);
+                location.opt_str("workspaceID", workspace.as_deref());
+                let mut before = Obj::new();
+                before.set("location", location.done()).str("projectID", &project);
+                before.opt_str("subpath", subpath.as_deref());
+                o.set("previous", before.done());
+            }
+            insert(tx, event, &o.done())?;
+        }
+        "session.skill.activated" => {
+            let mut o = base(&id_from_event(&event.id), "skill", metadata, created);
+            o.str("skill", &get_str("id")).str("name", &get_str("name")).str("text", &get_str("text"));
+            insert(tx, event, &o.done())?;
+        }
         "session.agent.selected" => {
             let previous = match get("previous") {
                 Some(previous) => Some(previous.clone()),

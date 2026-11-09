@@ -74,6 +74,12 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                         let joined = format!("{}\n{text}", json::get_str(previous, "content").unwrap_or_default());
                         json::set(previous, "content", json::string(&joined));
                     }
+                    // A user message with content parts (attachments) gets the update as one more text part.
+                    Some(previous) if json::get_str(previous, "role") == Some("user") => {
+                        if let Some(Json::Array(content)) = json::get_mut(previous, "content") {
+                            content.push(lower_user_part(&UserPart::Text(text)));
+                        }
+                    }
                     _ => {
                         let mut o = Obj::new();
                         o.str("role", "user").str("content", &text);
@@ -82,16 +88,14 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                 }
             }
             Message::User(parts) => {
-                // TODO(port): media parts lower to `image_url` / `file` content arrays.
-                let text: String = parts
-                    .iter()
-                    .map(|part| match part {
-                        UserPart::Text(text) => text.as_str(),
-                        UserPart::Media { .. } => "",
-                    })
-                    .collect();
                 let mut o = Obj::new();
-                o.str("role", "user").str("content", &text);
+                o.str("role", "user");
+                if parts.iter().all(|part| matches!(part, UserPart::Text(_))) {
+                    let text: String = parts.iter().map(|part| if let UserPart::Text(text) = part { text.as_str() } else { "" }).collect();
+                    o.str("content", &text);
+                } else {
+                    o.set("content", Json::Array(parts.iter().map(lower_user_part).collect()));
+                }
                 messages.push(o.done());
             }
             Message::Tool(results) => {
@@ -110,6 +114,33 @@ fn lower_messages(request: &Request) -> Vec<Json> {
         }
     }
     messages
+}
+
+/// A user content part (`lowerUserMessage` / `lowerMedia`): PDFs as inline `file` parts, images and videos as data URLs.
+/// Other media never get here: attachments only lower images and PDFs, and unsupported media became text.
+fn lower_user_part(part: &UserPart) -> Json {
+    let mut o = Obj::new();
+    match part {
+        UserPart::Text(text) => {
+            o.str("type", "text").str("text", text);
+        }
+        UserPart::Media { mime, data, filename } => {
+            let mime = mime.to_lowercase();
+            let url = format!("data:{mime};base64,{data}");
+            let mut inner = Obj::new();
+            if mime == "application/pdf" {
+                inner.str("filename", filename.as_deref().unwrap_or("document.pdf")).str("file_data", &url);
+                o.str("type", "file").set("file", inner.done());
+            } else if mime.starts_with("video/") {
+                inner.str("url", &url);
+                o.str("type", "video_url").set("video_url", inner.done());
+            } else {
+                inner.str("url", &url);
+                o.str("type", "image_url").set("image_url", inner.done());
+            }
+        }
+    }
+    o.done()
 }
 
 fn reasoning_details(native: &Option<Json>) -> Option<&Vec<Json>> {

@@ -208,11 +208,20 @@ async fn run(app: Arc<App>, session: String, force: bool, scope: Promotable, can
     let executions = &app.sessions.executions;
     let mut force = force;
     let mut scope = scope;
+    let mut moved: Option<(Option<i64>, bool)> = None;
     let result = loop {
-        let result = crate::session::runner::drain(&app, &session, force, scope, &cancel).await;
+        let (continuation, stepped) = moved.take().unwrap_or((None, false));
+        let input = crate::session::runner::Drain { force, promotable: scope, continuation, stepped };
+        let result = crate::session::runner::drain(&app, &session, input, &cancel).await;
         force = false;
-        if let Err(stop) = result {
-            break Err(stop);
+        match result {
+            Err(stop) => break Err(stop),
+            // A move continues the turn in the session's new location.
+            Ok(crate::session::runner::Drained::Moved { continuation, stepped }) => {
+                moved = Some((continuation, stepped));
+                continue;
+            }
+            Ok(crate::session::runner::Drained::Complete) => {}
         }
         // The doorbell: drain again when work arrived during the drain.
         let next = {

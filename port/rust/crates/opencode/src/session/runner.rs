@@ -2,9 +2,10 @@
 //! pending input (all steers; at the idle boundary also one queued input), prepares the step's context (agent,
 //! tools, instructions, model, history), starts title generation for an untitled session's first input, and runs
 //! steps until the model stops calling tools. `runStep` owns the step policy: retries (`session.retry.scheduled`),
-//! continuation after a stream that broke after output (a synthetic message), and the output-limit streak.
+//! continuation after a stream that broke after output (a synthetic message), and the output-limit streak. A `move`
+//! item at a boundary moves the session and ends the drain as `Moved`; the turn continues in the new location.
 //!
-//! TODO(port): compaction (automatic, overflow recovery, manual items in the inbox), session moves (`move` items),
+//! TODO(port): compaction (automatic, overflow recovery, manual items in the inbox),
 //! location reloads mid-turn, the `experimental.idle` plugin hook, background jobs.
 
 use std::sync::Arc;
@@ -62,12 +63,26 @@ struct Loaded {
     model: Arc<llm::Model>,
 }
 
-/// `prepareContext` (`SessionContext.select` + `InstructionState.prepare`).
-async fn select(app: &Arc<App>, session_id: &str) -> Result<Loaded, Stop> {
+/// A boundary's selection (`SessionContext.Selection`), before the model is resolved.
+struct Selected {
+    session: Json,
+    agent_id: String,
+    agent: Json,
+    location: Arc<Location>,
+    reference: LocationRef,
+    tools: crate::tool::Snapshot,
+    sources: Vec<instructions::Source>,
+    inventory: Arc<crate::inventory::Inventory>,
+}
+
+/// `prepareContext` (`SessionContext.select` + `InstructionState.prepare`); `record` false only selects (a preview).
+async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Selected, Stop> {
     let stored = crate::session::require(&app.db.lock().unwrap(), session_id).map_err(failed)?;
     let location = app.locations.get(app, &stored.location).await.map_err(failed)?;
     let info = stored.info.clone();
-    let (agent_id, agent) = context::select_agent(&location.inventory, &info).map_err(Stop::Failed)?;
+    // One inventory snapshot per step: plugins may reload mid-turn.
+    let inventory = location.inventory();
+    let (agent_id, agent) = context::select_agent(&inventory, &info).map_err(Stop::Failed)?;
     // Session permissions narrow the tool snapshot the way they narrow discovery.
     let mut rules: Vec<Json> = match json::get(&agent, "permissions") {
         Some(Json::Array(rules)) => rules.clone(),
@@ -77,19 +92,34 @@ async fn select(app: &Arc<App>, session_id: &str) -> Result<Loaded, Stop> {
         rules.extend(session_rules.iter().cloned());
     }
     let tools = crate::tool::registry().snapshot(&rules);
-    // `location.vcs?.type === "git"` (TODO(port): read it from the location once it records its VCS).
-    let git = crate::project::up(&[".git"], &location.directory, None).is_some_and(|found| found.ends_with("/.git"));
-    let sources = instructions::sources(
-        &app.db.lock().unwrap(),
-        &location.directory,
-        &location.project.directory,
-        git,
-        tools.code_mode_catalog.clone(),
-    );
+    let git = location.vcs.as_ref().is_some_and(|vcs| vcs.kind == "git");
+    let sources = {
+        let db = app.db.lock().unwrap();
+        let mut sources = instructions::sources(
+            &db,
+            &location.directory,
+            &location.project.directory,
+            git,
+            tools.code_mode_catalog.clone(),
+            instructions::skill_guidance(&inventory.skills, &rules),
+        );
+        // API-managed entries come last: they vary the most between sessions.
+        sources.extend(crate::session::entries::sources(&db, session_id).map_err(|e| failed(fatal(e)))?);
+        sources
+    };
     let reference = stored.location.clone();
-    instructions::prepare(app, session_id, &sources, &reference).map_err(failed)?;
-    let model = context::resolve_model(&location.inventory, &info, Some(&agent)).map_err(Stop::Failed)?;
-    Ok(Loaded { session: info, agent_id, agent, location, reference, tools, sources, model })
+    if record {
+        instructions::prepare(app, session_id, &sources, &reference).map_err(failed)?;
+    }
+    Ok(Selected { session: info, agent_id, agent, location, reference, tools, sources, inventory })
+}
+
+/// `SessionContext.load`: resolves the selection's model. It runs after promotion, so input whose model is unavailable
+/// is still delivered before the turn fails.
+fn load(selected: Selected) -> Result<Loaded, Stop> {
+    let Selected { session, agent_id, agent, location, reference, tools, sources, inventory } = selected;
+    let model = context::resolve_model(&inventory, &session, Some(&agent)).map_err(Stop::Failed)?;
+    Ok(Loaded { session, agent_id, agent, location, reference, tools, sources, model })
 }
 
 /// Fails stale tool calls of a turn a dead process left behind (`settleStaleToolCalls`).
@@ -130,18 +160,35 @@ fn settle_stale_tool_calls(app: &App, session: &str, location: &LocationRef) -> 
     Ok(())
 }
 
+/// A drain's input (`DrainInput`): `continuation` is the step a turn that moved resumes at, `stepped` whether a step
+/// already ran before it moved.
+pub struct Drain {
+    pub force: bool,
+    pub promotable: Promotable,
+    pub continuation: Option<i64>,
+    pub stepped: bool,
+}
+
+/// How a drain ended (`DrainResult`).
+pub enum Drained {
+    Complete,
+    /// The session moved at a boundary; the turn continues in its new location.
+    Moved { continuation: Option<i64>, stepped: bool },
+}
+
 /// One drain (`SessionRunner.drain`).
-pub async fn drain(app: &Arc<App>, session: &str, force: bool, promotable: Promotable, cancel: &Cancel) -> Result<(), Stop> {
+pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel) -> Result<Drained, Stop> {
+    let Drain { force, promotable, continuation, stepped } = input;
     let mut force = force;
-    let mut continuing = false;
-    let mut step: i64 = 1;
+    let mut continuing = continuation.is_some();
+    let mut step: i64 = continuation.unwrap_or(1);
     let mut entering = true;
-    let mut stepped = false;
-    if !force {
+    let mut stepped = stepped;
+    if !force && !continuing && !stepped {
         let pending = inbox::next_promotable(&app.db.lock().unwrap(), session, Promotable::Input).map_err(|e| failed(fatal(e)))?;
-        let Some(pending) = pending else { return Ok(()) };
+        let Some(pending) = pending else { return Ok(Drained::Complete) };
         if promotable == Promotable::Steer && pending.delivery == "queue" && !pending.control() {
-            return Ok(());
+            return Ok(Drained::Complete);
         }
     }
     let location = crate::session::require(&app.db.lock().unwrap(), session).map_err(failed)?.location;
@@ -154,41 +201,47 @@ pub async fn drain(app: &Arc<App>, session: &str, force: bool, promotable: Promo
         let loaded = loop {
             let scope = if entering || !continuing { Promotable::Input } else { Promotable::Steer };
             let pending = inbox::next_promotable(&app.db.lock().unwrap(), session, scope).map_err(|e| failed(fatal(e)))?;
+            if let Some(next) = pending.as_ref().filter(|p| p.ty == "move") {
+                crate::session::moves::deliver(app, session, next).map_err(failed)?;
+            }
             if !continuing && pending.as_ref().is_none_or(|p| p.delivery != "steer") {
                 entering = true;
                 step = 1;
             }
-            // TODO(port): compaction and move controls. Until they are ported, a control at the boundary ends the drain
-            // and stays pending.
+            if pending.as_ref().is_some_and(|p| p.ty == "move") {
+                return Ok(Drained::Moved { continuation: continuing.then_some(step), stepped: !continuing && stepped });
+            }
+            // TODO(port): compaction controls. Until they are ported, a compaction at the boundary ends the drain and
+            // stays pending.
             if pending.as_ref().is_some_and(|p| p.control()) {
-                return Ok(());
+                return Ok(Drained::Complete);
             }
             if !force
                 && !continuing
                 && pending.as_ref().is_none_or(|p| p.delivery == "queue" && promotable == Promotable::Steer)
             {
                 if pending.is_some() || !stepped {
-                    return Ok(());
+                    return Ok(Drained::Complete);
                 }
                 // The session would go idle (TODO(port): the `experimental.idle` hook).
                 if !inbox::has(&app.db.lock().unwrap(), session, None).map_err(|e| failed(fatal(e)))? {
-                    return Ok(());
+                    return Ok(Drained::Complete);
                 }
                 continue;
             }
-            let loaded = select(app, session).await?;
+            let selected = select(app, session, true).await?;
             let scope = if entering && !continuing { promotable } else { Promotable::Steer };
-            let Some(promoted) = inbox::promote(app, session, scope, &loaded.reference).map_err(failed)? else { continue };
+            let Some(promoted) = inbox::promote(app, session, scope, &selected.reference).map_err(failed)? else { continue };
             if promoted > 0
-                && json::get(&loaded.session, "parentID").is_none()
-                && crate::session::title::untitled(&loaded.session)
+                && json::get(&selected.session, "parentID").is_none()
+                && crate::session::title::untitled(&selected.session)
             {
                 crate::session::title::spawn(app, session);
             }
             if promoted > 0 {
                 step = 1;
             }
-            break loaded;
+            break load(selected)?;
         };
         continuing = run_step(app, session, loaded, step, cancel).await?;
         stepped = true;
@@ -196,6 +249,63 @@ pub async fn drain(app: &Arc<App>, session: &str, force: bool, promotable: Promo
         force = false;
         entering = false;
     }
+}
+
+/// The request's system parts (`baseTranscript` with the `context` hooks): the agent's prompt, the model's identity, the
+/// initial instructions, then the worktree hint.
+fn system(loaded: &Loaded, initial: &[(String, String)]) -> Vec<String> {
+    let names = loaded.tools.names();
+    let mut system = vec![match json::get_str(&loaded.agent, "system") {
+        Some(system) => system.to_owned(),
+        None => context::system_prompt(&names),
+    }];
+    let joined = initial.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n");
+    if !joined.is_empty() {
+        system.push(joined);
+    }
+    system.retain(|part| !part.is_empty());
+    system.insert(1.min(system.len()), context::identity(&loaded.model.name, &loaded.model.reference));
+    system.push(context::WORKTREE_HINT.to_owned());
+    system
+}
+
+/// `SessionGenerate.generate`'s request: the session's context as the next step would send it (its settled history and
+/// any pending instruction update, recorded nowhere), then the prompt, without an output limit. `Err` is the message of
+/// what kept the context from being selected.
+pub async fn generate_request(app: &Arc<App>, session_id: &str, prompt: &str) -> Result<llm::Request, String> {
+    let reason = |stop: Stop| match stop {
+        Stop::Failed(error) => json::get_str(&error, "message").unwrap_or_default().to_owned(),
+        Stop::Interrupted => "Interrupted".to_owned(),
+    };
+    let loaded = select(app, session_id, false).await.and_then(load).map_err(reason)?;
+    let (history, initial, update) = {
+        let db = app.db.lock().unwrap();
+        let mut history = message::history(&db, session_id).map_err(|e| e.to_string())?;
+        // An active assistant may hold an unresolved tool call: only the settled prefix is previewed.
+        if let Some(unsettled) = history.iter().position(|m| {
+            json::get_str(m, "type") == Some("assistant") && json::get(m, "time").and_then(|t| json::get(t, "completed")).is_none()
+        }) {
+            history.truncate(unsettled);
+        }
+        let (initial, update) = instructions::preview(&db, session_id, &loaded.sources).map_err(|e| e.to_string())?;
+        (history, initial, update)
+    };
+    let mut messages = context::messages(&history, &loaded.model.reference);
+    if !update.is_empty() {
+        messages.push(llm::Message::System(update));
+    }
+    messages.push(llm::Message::User(vec![llm::UserPart::Text(prompt.to_owned())]));
+    context::unsupported_parts(&mut messages, &loaded.model.input, &loaded.model.provider);
+    Ok(llm::Request {
+        model: loaded.model.clone(),
+        system: system(&loaded, &initial),
+        messages,
+        tools: loaded.tools.definitions().cloned().collect(),
+        tool_choice: None,
+        max_tokens: None,
+        prompt_cache_key: Some(context::cache_key(&loaded.session)),
+        headers: context::headers(&loaded.session),
+    })
 }
 
 /// Builds the step's request (`baseTranscript` + `SessionModelRequest.primary` with the context hooks).
@@ -208,24 +318,13 @@ fn request(app: &App, loaded: &Loaded, step_limit: bool) -> Result<llm::Request,
         let initial = instructions::initial(&db, session_id, &loaded.sources).map_err(|e| failed(fatal(e)))?;
         (history, initial)
     };
-    let names = loaded.tools.names();
-    let mut system = vec![match json::get_str(&loaded.agent, "system") {
-        Some(system) => system.to_owned(),
-        None => context::system_prompt(&names),
-    }];
-    let joined = initial.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n");
-    if !joined.is_empty() {
-        system.push(joined);
-    }
-    system.retain(|part| !part.is_empty());
-    // The `context` hooks: the model's identity after the prompt, then the worktree hint.
-    system.insert(1.min(system.len()), context::identity(&loaded.model.name, &loaded.model.reference));
-    system.push(context::WORKTREE_HINT.to_owned());
+    let system = system(loaded, &initial);
     let mut messages = context::messages(&history, &loaded.model.reference);
     if step_limit {
         messages.push(llm::Message::Assistant(vec![llm::AssistantPart::Text { text: MAX_STEPS_PROMPT.into(), native: None }]));
     }
     crate::session::plan::reconcile(&mut messages, &loaded.agent_id);
+    context::unsupported_parts(&mut messages, &loaded.model.input, &loaded.model.provider);
     // TODO(port): `SessionCompaction.estimatePrompt` (the measured and estimated prompt size).
     let estimated = (system.iter().map(String::len).sum::<usize>() / 4) as f64;
     Ok(llm::Request {
@@ -274,7 +373,7 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
     loop {
         let loaded = match initial.take() {
             Some(loaded) => loaded,
-            None => select(app, session).await?,
+            None => load(select(app, session, true).await?)?,
         };
         // TODO(port): automatic compaction before the step.
         let limit = json::get_num(&loaded.agent, "steps").is_some_and(|steps| step as f64 >= steps);

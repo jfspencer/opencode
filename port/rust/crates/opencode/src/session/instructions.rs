@@ -19,11 +19,100 @@ use crate::json::{self, Obj};
 
 /// One source: its key, its current value (`None` when the source is gone), and how it renders.
 pub struct Source {
-    pub key: &'static str,
+    pub key: String,
     pub value: Option<Json>,
-    render: fn(&Json) -> Option<String>,
-    changed: fn(&Json, &Json) -> Option<String>,
-    removed: fn(&Json) -> Option<String>,
+    render: Render,
+}
+
+/// How a source renders: as its initial text, as a change, or as its removal.
+enum Render {
+    Core { initial: fn(&Json) -> Option<String>, changed: fn(&Json, &Json) -> Option<String>, removed: fn(&Json) -> Option<String> },
+    /// An API-managed entry (session/instruction-entry.ts), by its client-facing key.
+    Entry(String),
+}
+
+impl Source {
+    fn core(
+        key: &str,
+        value: Option<Json>,
+        initial: fn(&Json) -> Option<String>,
+        changed: fn(&Json, &Json) -> Option<String>,
+        removed: fn(&Json) -> Option<String>,
+    ) -> Self {
+        Source { key: key.to_owned(), value, render: Render::Core { initial, changed, removed } }
+    }
+
+    /// An instruction entry's source (`api/<key>`); a removed entry has no value.
+    pub fn entry(key: &str, value: Option<Json>) -> Self {
+        Source { key: format!("api/{key}"), value, render: Render::Entry(key.to_owned()) }
+    }
+
+    fn initial(&self, value: &Json) -> Option<String> {
+        match &self.render {
+            Render::Core { initial, .. } => initial(value),
+            Render::Entry(key) => Some(entry_block(key, value)),
+        }
+    }
+
+    fn changed(&self, previous: &Json, value: &Json) -> Option<String> {
+        match &self.render {
+            Render::Core { changed, .. } => changed(previous, value),
+            Render::Entry(key) => Some(format!(
+                "The context under \"{key}\" changed and supersedes the previous value:\n{}",
+                entry_block(key, value)
+            )),
+        }
+    }
+
+    fn removed(&self, previous: &Json) -> Option<String> {
+        match &self.render {
+            Render::Core { removed, .. } => removed(previous),
+            Render::Entry(key) => Some(format!("The context under \"{key}\" no longer applies. Disregard it.")),
+        }
+    }
+}
+
+/// `JSON.stringify(value, null, 2)`.
+fn pretty(value: &Json, indent: usize, out: &mut String) {
+    let pad = |n: usize| "  ".repeat(n);
+    match value {
+        Json::Array(items) if !items.is_empty() => {
+            out.push_str("[\n");
+            for (i, item) in items.iter().enumerate() {
+                out.push_str(&pad(indent + 1));
+                pretty(item, indent + 1, out);
+                out.push_str(if i + 1 < items.len() { ",\n" } else { "\n" });
+            }
+            out.push_str(&pad(indent));
+            out.push(']');
+        }
+        Json::Object(fields) if !fields.is_empty() => {
+            out.push_str("{\n");
+            for (i, (key, item)) in fields.iter().enumerate() {
+                out.push_str(&pad(indent + 1));
+                out.push_str(&json::text(&json::string(key)));
+                out.push_str(": ");
+                pretty(item, indent + 1, out);
+                out.push_str(if i + 1 < fields.len() { ",\n" } else { "\n" });
+            }
+            out.push_str(&pad(indent));
+            out.push('}');
+        }
+        other => out.push_str(&json::text(other)),
+    }
+}
+
+/// `renderBlock`: an entry's value as session context (strings as they are, other values as indented JSON).
+fn entry_block(key: &str, value: &Json) -> String {
+    let rendered = match value {
+        Json::String(text) => text.clone(),
+        other => {
+            let mut out = String::new();
+            pretty(other, 0, &mut out);
+            out
+        }
+    };
+    format!("<context key=\"{key}\">\n{rendered}\n</context>")
 }
 
 /// `canonical`: JSON with object keys sorted (UTF-16 code unit order, as JS `<` compares).
@@ -220,9 +309,29 @@ pub fn global_tmp() -> String {
     std::fs::canonicalize(&path).map(|p| p.to_string_lossy().into_owned()).unwrap_or(path)
 }
 
-/// STAND-IN for the skills inventory: the built-in skills the reference configuration lists.
-fn skills() -> Json {
-    json::parse(include_str!("standin-skills.json")).expect("skills are JSON")
+/// `SkillInstructions.load`: the skills the ruleset does not deny that describe themselves and may be invoked by the
+/// model, by ID (`localeCompare`), as `{id, name, description}`; `None` (removed) when there are none.
+pub fn skill_guidance(skills: &[opencode_protocol::types::SkillInfo], rules: &[Json]) -> Option<Json> {
+    let mut available: Vec<&opencode_protocol::types::SkillInfo> = skills
+        .iter()
+        .filter(|skill| crate::tool::evaluate("skill", &skill.id.0, rules) != "deny")
+        .filter(|skill| skill.description.is_some() && skill.autoinvoke != Some(false))
+        .collect();
+    available.sort_by(|a, b| crate::collate::compare(&a.id.0, &b.id.0));
+    if available.is_empty() {
+        return None;
+    }
+    Some(Json::Array(
+        available
+            .into_iter()
+            .map(|skill| {
+                let mut o = Obj::new();
+                o.str("id", &skill.id.0).str("name", &skill.name.0);
+                o.str("description", skill.description.as_deref().unwrap_or_default());
+                o.done()
+            })
+            .collect(),
+    ))
 }
 
 /// The session's sources (`SessionContext.select`'s `Instructions.combine`).
@@ -232,6 +341,7 @@ pub fn sources(
     project_directory: &str,
     git: bool,
     catalog: Option<Json>,
+    skills: Option<Json>,
 ) -> Vec<Source> {
     let environment = [
         "<env>".to_owned(),
@@ -246,22 +356,11 @@ pub fn sources(
         "</env>".to_owned(),
     ]
     .join("\n");
-    let skills = skills();
-    let skills = match &skills {
-        Json::Array(list) if list.is_empty() => None,
-        _ => Some(skills),
-    };
     vec![
-        Source { key: "core/codemode", value: catalog, render: code_mode_render, changed: code_mode_changed, removed: code_mode_removed },
-        Source { key: "core/skill-guidance", value: skills, render: skills_render, changed: skills_changed, removed: skills_removed },
-        Source { key: "core/date", value: Some(json::string(&date_string(db))), render: date_render, changed: date_changed, removed: none },
-        Source {
-            key: "core/environment",
-            value: Some(json::string(&environment)),
-            render: environment_render,
-            changed: environment_changed,
-            removed: none,
-        },
+        Source::core("core/codemode", catalog, code_mode_render, code_mode_changed, code_mode_removed),
+        Source::core("core/skill-guidance", skills, skills_render, skills_changed, skills_removed),
+        Source::core("core/date", Some(json::string(&date_string(db))), date_render, date_changed, none),
+        Source::core("core/environment", Some(json::string(&environment)), environment_render, environment_changed, none),
     ]
 }
 
@@ -292,9 +391,19 @@ fn blob(db: &Connection, hash: &str) -> rusqlite::Result<Option<Json>> {
     Ok(text.flatten().and_then(|t| json::parse(&t)))
 }
 
-/// `InstructionState.prepare`: observes the sources and admits what changed (the whole baseline the first time).
-pub fn prepare(app: &App, session: &str, sources: &[Source], location: &LocationRef) -> Result<()> {
-    let stored = state(&app.db.lock().unwrap(), session).map_err(fatal)?;
+/// What observing the sources against the recorded state found (`Instructions.diff`).
+struct Admission {
+    /// No state was recorded: the observation is the epoch's baseline.
+    initial: bool,
+    delta: Json,
+    blobs: Vec<(String, Json)>,
+    /// `Instructions.renderUpdate`: the changed sources' texts (empty for the baseline).
+    text: String,
+}
+
+/// Observes the sources against the session's recorded state; `None` when nothing changed since it.
+fn observe(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::Result<Option<Admission>> {
+    let stored = state(db, session)?;
     let initial = stored.is_none();
     let previous = stored.as_ref().map(|s| s.current.clone()).unwrap_or_else(json::object);
     let mut delta = Obj::new();
@@ -303,17 +412,17 @@ pub fn prepare(app: &App, session: &str, sources: &[Source], location: &Location
     for source in sources {
         match &source.value {
             None => {
-                if json::get(&previous, source.key).is_some() {
-                    delta.str(source.key, "removed");
+                if json::get(&previous, &source.key).is_some() {
+                    delta.str(&source.key, "removed");
                     changes.push((source, None));
                 }
             }
             Some(value) => {
                 let next = hash(value);
-                if json::get_str(&previous, source.key) == Some(next.as_str()) {
+                if json::get_str(&previous, &source.key) == Some(next.as_str()) {
                     continue;
                 }
-                delta.str(source.key, &next);
+                delta.str(&source.key, &next);
                 blobs.push((next, value.clone()));
                 changes.push((source, Some(value.clone())));
             }
@@ -322,28 +431,31 @@ pub fn prepare(app: &App, session: &str, sources: &[Source], location: &Location
     let delta = delta.done();
     let empty = matches!(&delta, Json::Object(o) if o.is_empty());
     if !initial && empty {
-        return Ok(());
+        return Ok(None);
     }
-    let text = if initial {
-        String::new()
-    } else {
-        let db = app.db.lock().unwrap();
-        let mut parts = Vec::new();
+    let mut parts = Vec::new();
+    if !initial {
         for (source, next) in &changes {
-            let before = match json::get_str(&previous, source.key) {
-                Some(hash) => blob(&db, hash).map_err(fatal)?,
+            let before = match json::get_str(&previous, &source.key) {
+                Some(hash) => blob(db, hash)?,
                 None => None,
             };
             let text = match (before, next) {
-                (Some(before), None) => (source.removed)(&before),
+                (Some(before), None) => source.removed(&before),
                 (None, None) => None,
-                (Some(before), Some(next)) => (source.changed)(&before, next),
-                (None, Some(next)) => (source.render)(next),
+                (Some(before), Some(next)) => source.changed(&before, next),
+                (None, Some(next)) => source.initial(next),
             };
             parts.extend(text);
         }
-        parts.join("\n\n")
-    };
+    }
+    Ok(Some(Admission { initial, delta, blobs, text: parts.join("\n\n") }))
+}
+
+/// `InstructionState.prepare`: observes the sources and admits what changed (the whole baseline the first time).
+pub fn prepare(app: &App, session: &str, sources: &[Source], location: &LocationRef) -> Result<()> {
+    let observed = observe(&app.db.lock().unwrap(), session, sources).map_err(fatal)?;
+    let Some(Admission { initial, delta, blobs, text }) = observed else { return Ok(()) };
     let mut data = Obj::new();
     data.str("sessionID", session).set("delta", delta);
     if !text.is_empty() {
@@ -367,6 +479,20 @@ pub fn prepare(app: &App, session: &str, sources: &[Source], location: &Location
     })
     .map_err(fatal)?;
     Ok(())
+}
+
+/// `InstructionState.preview`: the initial instructions and the pending update as the next step would see them,
+/// without recording anything.
+pub fn preview(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::Result<(Vec<(String, String)>, String)> {
+    if state(db, session)?.is_none() {
+        let initial = sources
+            .iter()
+            .filter_map(|source| source.value.as_ref().and_then(|value| source.initial(value)).map(|text| (source.key.clone(), text)))
+            .collect();
+        return Ok((initial, String::new()));
+    }
+    let update = observe(db, session, sources)?.map(|admission| admission.text).unwrap_or_default();
+    Ok((initial(db, session, sources)?, update))
 }
 
 /// `InstructionState.apply` (the projection of `session.instructions.updated`).
@@ -405,10 +531,10 @@ pub fn initial(db: &Connection, session: &str, sources: &[Source]) -> rusqlite::
     let Some(state) = state(db, session)? else { return Ok(vec![]) };
     let mut out = Vec::new();
     for source in sources {
-        let Some(hash) = json::get_str(&state.initial, source.key) else { continue };
+        let Some(hash) = json::get_str(&state.initial, &source.key) else { continue };
         let Some(value) = blob(db, hash)? else { continue };
-        if let Some(text) = (source.render)(&value) {
-            out.push((source.key.to_owned(), text));
+        if let Some(text) = source.initial(&value) {
+            out.push((source.key.clone(), text));
         }
     }
     Ok(out)

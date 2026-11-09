@@ -220,7 +220,8 @@ pub async fn generate(app: &Arc<App>, session_id: &str) {
         }
     };
     let Ok(location) = app.locations.get(app, &stored.location).await else { return };
-    let inventory = &location.inventory;
+    let inventory = location.inventory();
+    let inventory = &*inventory;
     // `selectTitle`.
     let Some(agent) = context::agent(inventory, "title") else { return };
     let primary = context::select_agent(inventory, &session)

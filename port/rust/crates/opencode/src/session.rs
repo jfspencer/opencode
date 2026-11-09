@@ -4,14 +4,20 @@
 //! periods), [`runner`] and [`step`] (the agent loop), [`context`] (what a step sends), [`instructions`],
 //! [`retry`], [`title`].
 
+pub mod attachment;
+pub mod command;
 pub mod context;
+pub mod entries;
 pub mod execution;
 pub mod inbox;
 pub mod instructions;
 pub mod message;
+pub mod moves;
 pub mod plan;
+pub mod prompt;
 pub mod retry;
 pub mod runner;
+pub mod skill;
 pub mod step;
 pub mod title;
 
@@ -318,6 +324,24 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         "session.model.selected" => {
             message::project(tx, event)?;
             set_session(tx, id, "model = ?1, time_updated = ?2", vec![json_value(json::get(data, "model")), Value::Integer(created)])?;
+        }
+        "session.moved" => {
+            // The message records the location the session leaves, so it is written first.
+            message::project(tx, event)?;
+            let location = json::get(data, "location");
+            let text = |value: Option<&str>| value.map_or(Value::Null, |v| Value::Text(v.to_owned()));
+            set_session(
+                tx,
+                id,
+                "directory = ?1, path = ?2, project_id = COALESCE(?3, project_id), workspace_id = ?4, time_updated = ?5",
+                vec![
+                    text(location.and_then(|l| json::get_str(l, "directory"))),
+                    text(json::get_str(data, "subpath")),
+                    text(json::get_str(data, "projectID").filter(|p| !p.is_empty())),
+                    text(location.and_then(|l| json::get_str(l, "workspaceID"))),
+                    Value::Integer(created),
+                ],
+            )?;
         }
         _ => message::project(tx, event)?,
     }

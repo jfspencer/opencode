@@ -119,3 +119,10 @@ pub fn string(text: &str) -> Json {
 pub fn object() -> Json {
     Json::Object(Default::default())
 }
+
+pub fn array(value: &Json) -> Option<&[Json]> {
+    match value {
+        Json::Array(items) => Some(items),
+        _ => None,
+    }
+}
