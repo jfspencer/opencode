@@ -711,6 +711,7 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "opencode-tui-input",
+ "opencode-tui-markup",
  "opencode-tui-text",
  "opencode-yoga",
  "tokio",
