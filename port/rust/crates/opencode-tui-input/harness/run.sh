@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# The differential check of opencode-tui-input against the reference's @opentui/core 0.8.1 (see harness/oracle.ts):
+# runs the crate's unit tests, has the oracle generate and run the stdin programs through the TS StdinParser on a
+# manual clock, replays them through the Rust crate (examples/input-driver.rs), and compares every answer. Work
+# files go to port/rust/target/opencode-tui-input.
+#
+# usage: port/rust/crates/opencode-tui-input/harness/run.sh [--count N] [--seed S] [--show N]
+set -euo pipefail
+crate=$(cd "$(dirname "$0")/.." && pwd)
+port=$(cd "$crate/../../.." && pwd)
+work="$port/rust/target/opencode-tui-input"
+manifest="$port/rust/Cargo.toml"
+count=20000
+seed=1
+show=3
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --count) count=$2; shift 2 ;;
+    --seed) seed=$2; shift 2 ;;
+    --show) show=$2; shift 2 ;;
+    *) echo "unknown option $1" >&2; exit 2 ;;
+  esac
+done
+[ -d "$port/.reference/packages/tui" ] || {
+  echo "no TS reference at $port/.reference (run port/scripts/worktree-setup.sh in a worktree)" >&2
+  exit 1
+}
+rm -rf "$work"
+mkdir -p "$work"
+
+cargo test -q --manifest-path "$manifest" -p opencode-tui-input >"$work/unit-tests.log" 2>&1 || {
+  cat "$work/unit-tests.log" >&2
+  exit 1
+}
+cargo build -q --release --manifest-path "$manifest" -p opencode-tui-input --example input-driver
+
+bun "$crate/harness/oracle.ts" --programs "$work/stdin-programs.txt" --results "$work/stdin-ts.txt" --count "$count" \
+  --seed "$seed"
+"$port/rust/target/release/examples/input-driver" "$work/stdin-programs.txt" "$work/stdin-rust.txt"
+exec bun "$crate/harness/compare.ts" --work "$work" --name stdin- --show "$show"

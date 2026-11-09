@@ -1,0 +1,32 @@
+[package]
+name = "opencode-tui-sync"
+description = "The TUI's server client and data layer: @opencode/client's promise client and Solid store, and the TUI's data contexts, ported from the TS reference"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+opencode-protocol.workspace = true
+indexmap.workspace = true
+tokio.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+rustls.workspace = true
+tokio-rustls.workspace = true
+rustls-native-certs.workspace = true
+base64.workspace = true
+getrandom.workspace = true
+libc.workspace = true
+# WHATWG URL parsing and joining, as `new URL(path, baseUrl)` does (already a dependency of the opencode crate).
+url = "2.5"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
+
+[[example]]
+name = "sync-driver"
+path = "harness/rust/main.rs"

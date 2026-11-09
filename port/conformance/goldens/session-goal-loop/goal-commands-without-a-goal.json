@@ -1,0 +1,290 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "goal",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>"
+        },
+        "title": "goal"
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "Usage: /goal <objective> | pause | resume | clear"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": ""
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "Usage: /goal <objective> | pause | resume | clear"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "   "
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "No active goal to pause."
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "pause"
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "No paused goal to resume."
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "resume"
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "No goal is set."
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "clear"
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "No active goal to pause."
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "PAUSE"
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    },
+    {
+      "body": {
+        "output": null
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": {
+          "sessionID": "<ses_1>"
+        }
+      },
+      "status": 200,
+      "url": "/api/rpc/opencode.goal/get"
+    },
+    {
+      "body": {
+        "_tag": "CommandExecutionError",
+        "command": "goal",
+        "message": "A goal objective is limited to 4000 characters (got 4001)."
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "name": "goal",
+        "text": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      },
+      "status": 500,
+      "url": "/api/session/<ses_1>/command"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "goal",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

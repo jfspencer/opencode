@@ -1,0 +1,90 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "env",
+      "value": {
+        "OPENROUTER_API_KEY": null
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "■  Select integration",
+          "│  zzz",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "zzz",
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "◇  Select integration",
+          "│  OpenRouter",
+          "│",
+          "◇  Manually enter API Key",
+          "│  ▪▪▪▪▪▪▪▪▪▪▪",
+          "│",
+          "◇  Connected to OpenRouter",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "open",
+            "\u001b[B\u001b[B",
+            "\r",
+            "sk-or-found\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "OpenRouter  OpenRouter                  stored",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

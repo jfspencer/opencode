@@ -12,6 +12,7 @@ pub mod context;
 pub mod diff;
 pub mod entries;
 pub mod execution;
+pub mod goal;
 pub mod inbox;
 pub mod instructions;
 pub mod message;

@@ -9,9 +9,9 @@
 //! [`crate::session::compaction`]'s.
 //!
 //! Each step reads its location as it is then (a reloaded location is booted again) and waits out an inventory
-//! reload in progress (`plugins.awaitActivation`). TODO(port): the `experimental.idle` hook, which the runner fires
-//! with the session's outstanding background work (`SessionBackground.outstanding`) when the session would go idle,
-//! comes with its only built-in user, the goal plugin (`/goal`, unported: see [`crate::session::command`]).
+//! reload in progress (`plugins.awaitActivation`). At the idle boundary the goal plugin's `experimental.idle` hook,
+//! given the session's running background work, may admit input that continues the execution
+//! ([`crate::session::goal`]); external plugins' hooks are out of scope.
 
 use std::sync::Arc;
 
@@ -236,7 +236,13 @@ pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel)
                 if pending.is_some() || !stepped {
                     return Ok(Drained::Complete);
                 }
-                // The session would go idle (the `experimental.idle` hook of the goal plugin goes here).
+                // The session would go idle; the goal plugin (the `experimental.idle` hook) may admit input to keep this
+                // execution working.
+                tokio::select! {
+                    biased;
+                    _ = cancel.cancelled() => return Err(Stop::Interrupted),
+                    _ = crate::session::goal::idle(app, session) => {}
+                }
                 if !inbox::has(&app.db.lock().unwrap(), session, None).map_err(|e| failed(fatal(e)))? {
                     return Ok(Drained::Complete);
                 }
@@ -398,7 +404,9 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
         }
         crate::session::compaction::precompute(app, &compacting, Some(estimate));
         let limit = json::get_num(&loaded.agent, "steps").is_some_and(|steps| step as f64 >= steps);
-        let request = request(&loaded, limit, &compacting, estimate)?;
+        let mut request = request(&loaded, limit, &compacting, estimate)?;
+        // The goal plugin's `context` hook (after plan mode's).
+        crate::session::goal::remind(app, session, &mut request.messages);
         let location = loaded.reference.clone();
         let input = step::Input {
             session: session.to_owned(),

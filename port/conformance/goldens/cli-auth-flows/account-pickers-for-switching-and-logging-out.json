@@ -1,0 +1,197 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "env",
+      "value": {
+        "OPENROUTER_API_KEY": null
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "logout"
+        ],
+        "exit": 1,
+        "screen": [
+          "┌  Log out of an account",
+          "│",
+          "■  No stored credentials found",
+          "│",
+          "└  Failed"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "import"
+        ],
+        "exit": 0,
+        "stderr": [
+          "Imported 2 credentials",
+          ""
+        ],
+        "stdin": "[\n  {\n    \"id\": \"<cred_1>\",\n    \"integrationID\": \"openrouter\",\n    \"label\": \"Work key\",\n    \"active\": true,\n    \"value\": {\n      \"type\": \"key\",\n      \"key\": \"sk-or-work\"\n    }\n  },\n  {\n    \"id\": \"<cred_2>\",\n    \"integrationID\": \"openrouter\",\n    \"label\": \"Home key\",\n    \"active\": false,\n    \"value\": {\n      \"type\": \"key\",\n      \"key\": \"sk-or-home\"\n    }\n  }\n]\n",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "switch"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Switch account",
+          "│",
+          "◇  Select integration",
+          "│  OpenRouter",
+          "│",
+          "◇  Select OpenRouter account to switch to",
+          "│  Home key",
+          "│",
+          "◇  Switched account for OpenRouter",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "\u001b[B",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list",
+          "--format",
+          "json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "connections": [
+                {
+                  "id": "<cred_2>",
+                  "label": "Home key",
+                  "method": "key",
+                  "type": "credential"
+                },
+                {
+                  "id": "<cred_1>",
+                  "label": "Work key",
+                  "method": "key",
+                  "type": "credential"
+                }
+              ],
+              "id": "openrouter",
+              "name": "OpenRouter"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "logout",
+          "openrouter"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Log out of an account",
+          "│",
+          "◇  Select OpenRouter account to log out",
+          "│  Work key",
+          "│",
+          "◇  Removed account from OpenRouter",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "work\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "logout"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Log out of an account",
+          "│",
+          "◇  Select integration",
+          "│  OpenRouter",
+          "│",
+          "■  Select OpenRouter account to log out",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "OpenRouter  Home key                    stored",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

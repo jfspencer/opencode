@@ -20,6 +20,7 @@ mod generate;
 mod npm;
 mod handlers;
 mod instruction_discovery;
+mod integration;
 mod inventory;
 mod http;
 mod id;

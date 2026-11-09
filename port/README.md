@@ -198,8 +198,9 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `pty.rs`, `pty/`, `persistent_pty.rs`, `persistent_pty/`, `handlers/pty.rs`, `http/websocket.rs` | `core/src/pty.ts`, `pty/*`, `persistent-pty/index.ts`, `persistent-pty/daemon.ts`, `server/src/handlers/pty.ts`, `pty-socket.ts`, `persistent-pty.ts`, the ticketed connects of `middleware/authorization.ts`: a location's terminals on openpty (the login flag first, D223; the last 2 Mi UTF-16 units kept for replay; 25 exited kept) and their WebSocket (replay from a cursor, the `0x00{"cursor":N}` frame, live text, 1000 on exit, 4404 when there is nothing to attach); persistent terminals in the reference's `opencode-pty` daemon (`OPENCODE_PTY_BIN`, else `opencode-pty` on `PATH`; protocol 7; started detached on first use; a handoff claimed at startup from `OPENCODE_PTY_HANDOFF`) and their socket (JSON control messages, binary output, controller, observer and framed input, unframed input at the latest size, D224); single-use connect tickets scoped to their location; a minimal RFC 6455 server over hyper's upgrade (one write per frame) |
 | `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
 | `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
+| `generate.rs`, `generate/media.rs`, `session/goal.rs`, `session/title.rs`, `tool/output.rs` | `core/src/generate.ts` and `@opencode/ai`'s OpenRouter media routes (`OpenAIImages` with references, System One decisions: downloads typed from their bytes, retries of what the provider never ran); `plugin/goal.ts` (the `/goal` command, the idle hook's reviewer rounds with stall detection, pauses on failure, interrupt, restart and the 30-minute wait, `kv` storage, the `opencode.goal` RPC and its `changed` events, the context reminder); `selectTitle` (the provider's small model, the primary model's lower variant); `tool-output.ts` (`tool_output` limits, the 7-day sweep at boot and hourly). `llm/openrouter.rs` also places `cache_control` breakpoints for Anthropic and Qwen upstreams (the `cache.ttl` on them, or as `prompt_cache_options` / `prompt_cache_retention`) |
 
-Status (2026-11-09): every server scenario of the standard passes (697 run, 3 skipped by the standard), including the
+Status (2026-11-09): every server scenario of the standard passes (768 run, 3 skipped by the standard), including the
 70 CLI scenarios: session CRUD, projects, locations, the file system, version control, worktrees, config, agents,
 providers and models, the execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots
 and reverts, schedules, session transfer, webfetch, skills and instructions, shell, the file tools and the patch tool,
@@ -214,11 +215,14 @@ endpoint without a handler answers 501 (after the 404 of an unknown session, whi
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
-as not run.
+as not run. TUI scenario files are given as `tui/<file>` (or `tui` for all of them): they run from `conformance/tui`
+against `<binary> --server <url>` in a pseudo-terminal, ledgered as `tui/<file> › <scenario>`; the in-process-only ones
+are skipped, as the harness skips them for a process.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)
 port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
+port/scripts/rust-conformance.sh 3 tui/nav-home.test.ts # TUI scenarios
 port/scripts/rust-conformance.sh --update              # record new passes in the ledger
 CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
 ```

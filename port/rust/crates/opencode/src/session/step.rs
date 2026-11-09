@@ -8,7 +8,12 @@
 //! The start snapshot is captured while the provider request is in flight and recorded on `session.step.started`; a
 //! settled step records the end snapshot and the files changed since the start (see [`crate::snapshot`]).
 //!
-//! TODO(port): provider-hosted tool results, tool progress throttling, `ToolOutput.truncate`.
+//! A local result is bounded by `ToolOutput.truncate` under the location's limits ([`tool::output::bound`]); a tool's
+//! progress updates are published as they come (TS throttles none here: Code Mode throttles its own rows).
+//!
+//! Out of scope: provider-hosted tool results and WebSocket transports (with their `retry-full` recovery). OpenRouter's
+//! chat-completions stream reports neither: hosted tools and WebSocket sessions are Responses API features of other
+//! providers' routes.
 
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -33,7 +38,7 @@ pub enum Outcome {
     Completed { needs_continuation: bool },
     Retry { error: Json, decision: Decision },
     Continue { error: Json, decision: Decision },
-    /// A WebSocket transport's failure before output asks for a fresh request (TODO(port): WebSocket transports).
+    /// A WebSocket transport's failure before output asks for a fresh request (no route in scope has one).
     #[allow(dead_code)]
     RecoverFull,
     OutputLimit { needs_continuation: bool },
@@ -731,6 +736,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         let snapshot = input.tools.clone();
         let context_publisher = publisher.clone();
         let call_id = id.clone();
+        let located = input.located.clone();
         let context = tool::Context {
             app: app.clone(),
             location: input.located.clone(),
@@ -751,7 +757,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             let mut p = publisher.lock().unwrap();
             match result {
                 Ok(output) => {
-                    p.tool_execution(&id, tool::output::truncate(output));
+                    p.tool_execution(&id, tool::output::bound(output, &located));
                     ToolExit::Done
                 }
                 Err(tool::Failure::Error(failure)) => {
@@ -815,7 +821,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         unknown_finish.then(|| AIError::incomplete("The provider response ended with an unknown finish reason."))
     });
     let llm_error = llm_failure.as_ref().filter(|_| !recorded.provider_failed).map(AIError::session_error);
-    // TODO(port): `RecoverFull` for WebSocket transports (`retry-full` recovery).
+    // `RecoverFull` (`retry-full` recovery) is a WebSocket transport's; OpenRouter's chat route has none.
     let _ = input.recover_continuation;
     let decision = match (&llm_failure, &llm_error) {
         (Some(failure), Some(_)) if !failure.context_overflow() => {

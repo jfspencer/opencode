@@ -7,9 +7,9 @@
 //! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
 //! the announcements; the location watcher ([`crate::location_watch`]) starts after them. Shutting a location down
 //! (`LocationLifecycle.shutdown`) rejects its pending permission requests and cancels its pending forms, then
-//! announces `location.shutdown`. TODO(port): between the forms and the announcement TS also closes the location's
-//! RPC registry (`Rpc.close`, which fails the RPC calls still running); the port has no RPC registry yet: its only
-//! built-in registrant is the goal plugin, and `rpc.call` answers 501.
+//! announces `location.shutdown`. Between the forms and the announcement TS also closes the location's RPC registry
+//! (`Rpc.close`), which fails the RPC calls still running: the only built-in RPC, the goal's `get`
+//! ([`crate::session::goal`]), answers at once, so none is ever running then.
 
 use std::sync::{Arc, Mutex};
 
@@ -50,6 +50,8 @@ pub struct Location {
     pub watcher: crate::location_watch::Watcher,
     /// Open client connections (terminal sockets) that keep the idle sweep away (`LocationLifecycle.retain`).
     pub retained: std::sync::atomic::AtomicUsize,
+    /// The location's login attempts (`Integration.Service`).
+    pub integration: crate::integration::Attempts,
 }
 
 #[derive(Debug, Clone)]
@@ -214,6 +216,9 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     }
     let version_control =
         crate::vcs::Service::new(resolved.vcs.as_ref().map(|v| v.kind), &key.directory, &resolved.directory);
+    // A location's `ToolOutput` starts the global `tool-output-cleanup` sweep; its goal plugin follows session events.
+    crate::tool::output::start_cleanup();
+    crate::session::goal::start(app);
     let location = Location {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),
@@ -230,6 +235,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         snapshot: Default::default(),
         watcher: Default::default(),
         retained: Default::default(),
+        integration: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

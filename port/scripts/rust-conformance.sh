@@ -4,7 +4,10 @@
 # but are not ledgered yet are listed, and --update writes them in.
 #
 # usage: port/scripts/rust-conformance.sh [--update] [--release] [shards=6] [scenario files...]
-#   files are relative to port/conformance (default: every server scenario file)
+#   files are relative to port/conformance (default: every server scenario file); `tui/<file>` runs a TUI scenario
+#   file from port/conformance/tui (its bunfig.toml adds the SolidJS transform) against `<binary> --server <url>`
+#   in a pseudo-terminal, and `tui` alone stands for every TUI file. Ledger lines are `<file> › <scenario>` either
+#   way (`tui/home.test.ts › ...`); in-process-only TUI scenarios are skipped, as the harness skips them.
 # The binary is built with the oracle's build identity (OPENCODE_VERSION/OPENCODE_CHANNEL=conformance, see
 # port/conformance/lib/server.ts). CONFORMANCE_MEMORY_LOG and CONFORMANCE_ACTUAL pass through to the run.
 set -uo pipefail
@@ -32,7 +35,10 @@ flags=()
   exit 1
 binary=$root/port/rust/target/$profile/opencode
 
-files=("$@")
+files=()
+for file in "$@"; do
+  if [ "${file%/}" = tui ]; then files+=($(cd "$here" && ls tui/*.test.ts)); else files+=("$file"); fi
+done
 [ ${#files[@]} -eq 0 ] && files=($(cd "$here" && ls scenarios/*.test.ts))
 # The reports of the last run (on disk: /tmp is a small tmpfs the scenarios' sandboxes already fill).
 log=$root/port/rust/target/conformance-logs
@@ -40,10 +46,27 @@ rm -rf "$log" && mkdir -p "$log"
 pids=()
 for k in $(seq 0 $((shards - 1))); do
   shard=()
-  for i in "${!files[@]}"; do [ $((i % shards)) -eq "$k" ] && shard+=("${files[$i]}"); done
-  [ ${#shard[@]} -eq 0 ] && continue
-  (cd "$here" && CONFORMANCE_IMPL=$binary CONFORMANCE_STRICT=1 bun test --reporter=junit \
-    --reporter-outfile="$log/shard-$k.xml" "${shard[@]}" >"$log/shard-$k.log" 2>&1) &
+  tui=()
+  for i in "${!files[@]}"; do
+    [ $((i % shards)) -eq "$k" ] || continue
+    # A TUI file is given to bun as a path (./<file>): a bare name is a filter, and home.test.ts would also pick
+    # nav-home.test.ts.
+    case "${files[$i]}" in
+    tui/*) tui+=("./${files[$i]#tui/}") ;;
+    *) shard+=("${files[$i]}") ;;
+    esac
+  done
+  [ ${#shard[@]} -eq 0 ] && [ ${#tui[@]} -eq 0 ] && continue
+  (
+    if [ ${#shard[@]} -gt 0 ]; then
+      cd "$here" && CONFORMANCE_IMPL=$binary CONFORMANCE_STRICT=1 bun test --reporter=junit \
+        --reporter-outfile="$log/shard-$k.xml" "${shard[@]}" >"$log/shard-$k.log" 2>&1
+    fi
+    if [ ${#tui[@]} -gt 0 ]; then
+      cd "$here/tui" && CONFORMANCE_IMPL=$binary CONFORMANCE_STRICT=1 bun test --reporter=junit \
+        --reporter-outfile="$log/shard-$k-tui.xml" "${tui[@]}" >"$log/shard-$k-tui.log" 2>&1
+    fi
+  ) &
   pids+=($!)
 done
 wait "${pids[@]}"
