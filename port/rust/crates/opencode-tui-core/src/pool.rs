@@ -369,11 +369,10 @@ impl Tracker {
 
     /// `trackUrl`: document membership once per URL (link trackers only).
     pub fn track_url(&mut self, url: &str) -> Option<u32> {
-        if let Some(id) = with_links(|pool| pool.lookup_live(url)) {
-            if self.used.contains_key(&id) {
+        if let Some(id) = with_links(|pool| pool.lookup_live(url))
+            && self.used.contains_key(&id) {
                 return Some(id);
             }
-        }
         let id = with_links(|pool| pool.acquire(url))?;
         self.used.insert(id, 1);
         Some(id)

@@ -120,8 +120,8 @@ fn mul_div_255(a: u32, b: u32) -> u32 {
     (a * b + 127) / 255
 }
 
-fn round_div(n: u32, d: u32) -> u8 {
-    ((n + d / 2) / d) as u8
+fn round_div(n: u32, d: u32) -> u16 {
+    ((n + d / 2) / d) as u16
 }
 
 /// `blendColors`: `src` over `dst0` (or over the backdrop where `dst0` is transparent).
@@ -144,8 +144,11 @@ fn blend_colors(src: RGBA, dst0: RGBA, backdrop: Option<RGBA>) -> RGBA {
         let channel = |s: u8, d: u8| ((s as u32 * sa + d as u32 * inv + 127) / 255) as u8;
         return RGBA::rgb(channel(src.red(), dst.red()), channel(src.green(), dst.green()), channel(src.blue(), dst.blue()), 255);
     }
+    // TODO(port): a TS (native) bug kept as is. Over a nearly transparent destination a channel can round to 256
+    // (`roundDiv` casts it to u8); the reference's release build keeps the 256 in the color's u16 lane, so the
+    // channel reads 0 and its metadata byte 1. The lanes are built from the unclamped values to match.
     let channel = |s: u8, d: u8| round_div(s as u32 * sa + mul_div_255(d as u32 * da, inv), out_a);
-    RGBA::rgb(channel(src.red(), dst.red()), channel(src.green(), dst.green()), channel(src.blue(), dst.blue()), out_a as u8)
+    RGBA([channel(src.red(), dst.red()), channel(src.green(), dst.green()), channel(src.blue(), dst.blue()), out_a as u16])
 }
 
 /// `rgbaComponentToU8` on an f32 (round half away from zero).
@@ -858,6 +861,7 @@ impl OptimizedBuffer {
         self.draw_cell_op(CellOp::Char, code_point, x, y, fg, bg, attributes);
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn draw_cell_op(&mut self, op: CellOp, code_point: u32, x: i32, y: i32, fg: RGBA, bg: RGBA, attributes: u32) {
         if attributes & !ATTRIBUTE_BASE_MASK != 0 || code_point > 0x10ffff || (0xd800..=0xdfff).contains(&code_point) {
             return;
@@ -878,6 +882,7 @@ impl OptimizedBuffer {
     /// `drawText`: one row of text from (x, y); with `bg` `None` each cell keeps its background. A selection
     /// (UTF-16 offsets, as TS slices) draws its part in the selection colors: by default the foreground on the
     /// background (or black).
+    #[allow(clippy::too_many_arguments)]
     pub fn draw_text(&mut self, text: &str, x: i32, y: i32, fg: RGBA, bg: Option<RGBA>, attributes: u32, selection: Option<&TextSelection>) {
         let Some(selection) = selection else {
             self.draw_text_fitted(text, x, y, fg, bg, attributes, 0, false);
@@ -906,6 +911,7 @@ impl OptimizedBuffer {
 
     /// `drawTextFit`: text within `max_width` cells from x, cut on a glyph (with an ellipsis when asked);
     /// nothing when `max_width < 1`.
+    #[allow(clippy::too_many_arguments)]
     pub fn draw_text_fit(&mut self, text: &str, x: i32, y: i32, max_width: i32, fg: RGBA, bg: Option<RGBA>, ellipsis: bool) {
         if max_width < 1 {
             return;
@@ -931,14 +937,12 @@ impl OptimizedBuffer {
         let ascii = unicode::is_ascii_only(text.as_bytes());
         if ascii && !(ellipsis && text.len() > max_width as usize) {
             let clipped = if x < 0 { text.len().min(x.unsigned_abs() as usize) } else { 0 };
-            let mut column = x.max(0) as u32;
-            for &byte in &text.as_bytes()[clipped..] {
+            for (column, &byte) in (x.max(0) as u32..).zip(&text.as_bytes()[clipped..]) {
                 if column as i64 >= end {
                     break;
                 }
                 let background = bg.unwrap_or_else(|| self.bg[self.index(column, row)]);
                 self.set_text_cell(column, row, make_cell(byte as u32, fg, background, attributes));
-                column += 1;
             }
             return;
         }
@@ -1249,16 +1253,14 @@ impl OptimizedBuffer {
             }
         }
 
-        if title_layout.draw {
-            if let Some(text) = title {
+        if title_layout.draw
+            && let Some(text) = title {
                 self.draw_text_fitted(text, title_layout.start_x, start_y, title_color, Some(background_color), 0, 0, false);
             }
-        }
-        if bottom_layout.draw {
-            if let Some(text) = bottom_title {
+        if bottom_layout.draw
+            && let Some(text) = bottom_title {
                 self.draw_text_fitted(text, bottom_layout.start_x, end_y, title_color, Some(background_color), 0, 0, false);
             }
-        }
     }
 
     fn box_title_layout(&self, title: Option<&str>, side: bool, at_side: bool, box_x: i32, width: u32, alignment: u8) -> TitleLayout {
