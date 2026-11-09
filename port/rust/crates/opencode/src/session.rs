@@ -8,6 +8,7 @@ pub mod attachment;
 pub mod command;
 pub mod compaction;
 pub mod context;
+pub mod diff;
 pub mod entries;
 pub mod execution;
 pub mod inbox;
@@ -17,6 +18,7 @@ pub mod moves;
 pub mod plan;
 pub mod prompt;
 pub mod retry;
+pub mod revert;
 pub mod runner;
 pub mod skill;
 pub mod step;
@@ -161,17 +163,6 @@ impl Stored {
 pub fn get(db: &Connection, session_id: &str) -> rusqlite::Result<Option<Stored>> {
     db.query_row(&format!("SELECT {COLUMNS} FROM session_v2 WHERE id = ?1"), params![session_id], Stored::from_row)
         .optional()
-}
-
-pub fn has_message(db: &Connection, session_id: &str, message_id: &str) -> rusqlite::Result<bool> {
-    Ok(db
-        .query_row(
-            "SELECT 1 FROM session_message WHERE id = ?1 AND session_id = ?2",
-            params![message_id, session_id],
-            |_| Ok(()),
-        )
-        .optional()?
-        .is_some())
 }
 
 pub fn require(db: &Connection, session_id: &str) -> Result<Stored> {
@@ -323,6 +314,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         }
         "session.usage.recorded" => apply_usage(tx, id, data, None)?,
         "session.compaction.started" | "session.compaction.ended" | "session.compaction.failed" => compaction::project(tx, event)?,
+        "session.revert.staged" | "session.revert.cleared" | "session.revert.committed" => revert::project(tx, event)?,
         "session.agent.selected" => {
             message::project(tx, event)?;
             set_session(
