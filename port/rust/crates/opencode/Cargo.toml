@@ -29,3 +29,7 @@ tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
 unicode-normalization.workspace = true
 sha2.workspace = true
+# The shell tool's command analysis (crates/opencode-shell); process groups, signals and terminals (already in the
+# lockfile through tokio).
+opencode-shell = { path = "../opencode-shell" }
+libc = "0.2"

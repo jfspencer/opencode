@@ -38,6 +38,8 @@ pub struct Location {
     pub search: crate::fs::Search,
     /// The location's pending permission requests (`Permission.Service`).
     pub permission: crate::permission::Service,
+    /// The location's shell commands (`Shell.Service`).
+    pub shell: Arc<crate::shell::Service>,
 }
 
 #[derive(Debug, Clone)]
@@ -143,6 +145,7 @@ impl Locations {
         if let Some(location) = removed {
             // TODO(port): the order of the services' finalizers against `location.shutdown`.
             location.permission.close(&app.bus, &location.reference());
+            location.shell.close();
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -197,6 +200,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         root,
         version_control,
         permission: Default::default(),
+        shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
     };
     {
         let db = app.db.lock().unwrap();

@@ -26,32 +26,9 @@ fn execution_error(name: &str, message: &str) -> Failure {
     Failure::new(500, o.done())
 }
 
-/// An executable by path or on `PATH`, as its full path.
-fn which(file: &str) -> Option<String> {
-    use std::os::unix::fs::PermissionsExt;
-    let runnable = |path: &str| std::fs::metadata(path).is_ok_and(|m| m.is_file() && m.permissions().mode() & 0o111 != 0);
-    if file.contains('/') {
-        return runnable(file).then(|| file.to_owned());
-    }
-    let path = std::env::var("PATH").unwrap_or_default();
-    path.split(':').filter(|d| !d.is_empty()).map(|dir| format!("{dir}/{file}")).find(|candidate| runnable(candidate))
-}
-
-/// `ShellSelect.resolve({ priority: "config" })` on Unix: the configured shell, else `$SHELL`, else bash, else `sh`.
+/// `ShellSelect.resolve({ priority: "config" })`.
 fn shell(inventory: &Inventory) -> String {
-    let configured = inventory.latest(|c| c.shell.as_deref()).filter(|s| !s.is_empty()).map(str::to_owned);
-    let file = configured.or_else(|| std::env::var("SHELL").ok().filter(|s| !s.is_empty()));
-    file.and_then(|file| which(&file)).or_else(|| which("bash")).unwrap_or_else(|| "/bin/sh".into())
-}
-
-/// `ShellSelect.args`.
-fn shell_args(shell: &str, source: &str) -> Vec<String> {
-    let name = shell.rsplit('/').next().unwrap_or(shell).to_lowercase();
-    match name.as_str() {
-        "cmd" => vec!["/c".into(), source.into()],
-        "pwsh" | "powershell" => ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", source].map(String::from).to_vec(),
-        _ => vec!["-c".into(), source.into()],
-    }
+    crate::shell::select::resolve(crate::shell::select::Priority::Config, inventory)
 }
 
 /// `` !`cmd` `` interpolation: each command runs in the location's directory and is replaced by its output.
@@ -64,7 +41,7 @@ async fn interpolate(text: &str, directory: &str, shell: &str) -> std::result::R
     let mut outputs = Vec::new();
     for source in &sources {
         let output = crate::process::Command::new(shell, directory)
-            .args(shell_args(shell, source))
+            .args(opencode_shell::select::args(shell, source))
             .run()
             .await
             .map_err(|error| format!("Shell interpolation failed for {}: {error}", json::text(&json::string(source))))?;

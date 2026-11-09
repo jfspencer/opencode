@@ -17,6 +17,7 @@ pub mod plan;
 pub mod prompt;
 pub mod retry;
 pub mod runner;
+pub mod shell;
 pub mod skill;
 pub mod step;
 pub mod title;
@@ -42,6 +43,13 @@ pub struct Sessions {
     /// Sessions being removed: background work must not admit input into them.
     removing: Mutex<HashSet<String>>,
     pub executions: execution::Executions,
+}
+
+impl Sessions {
+    /// Whether the session is being removed (`Session.synthetic` refuses it then).
+    pub fn is_removing(&self, session_id: &str) -> bool {
+        self.removing.lock().unwrap().contains(session_id)
+    }
 }
 
 pub fn missing(session_id: &str) -> Failure {
@@ -623,7 +631,8 @@ pub fn remove(app: &App, session_id: &str) -> Result<()> {
     app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
     let result = (|| {
         // The handler stops the session's own execution first. TODO(port): interrupt and await descendants'
-        // executions, cancel the session's jobs, close its model transport.
+        // executions, close its model transport.
+        crate::job::jobs().cancel_session(app, session_id);
         let children: Vec<String> = {
             let db = app.db.lock().unwrap();
             let mut statement =
@@ -637,7 +646,7 @@ pub fn remove(app: &App, session_id: &str) -> Result<()> {
         for child in children {
             remove(app, &child)?;
         }
-        // TODO(port): clear the session's environment variables.
+        shell::clear_environment(session_id);
         let mut data = Obj::new();
         data.str("sessionID", session.id());
         publish(app, "session.deleted", data.done(), None)?;
