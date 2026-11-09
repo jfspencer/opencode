@@ -962,39 +962,32 @@ fn op_str(text: &[u16]) -> &'static str {
     }
 }
 
-/// `parseInt(text, 8)` of a legacy octal literal's digits, correctly rounded.
+/// `parseInt(text, 8)` of a legacy octal literal's digits, as JavaScriptCore (bun) computes it: digit by digit while
+/// exact, and past 2^53 by its `parseIntOverflow`, which sums digit * 8^k from the last digit (not correctly
+/// rounded).
 fn parse_octal(text: &str) -> f64 {
-    let digits = text.trim_start_matches('0');
-    if digits.is_empty() {
-        return 0.0;
+    let digits = text.as_bytes();
+    let mut number = 0f64;
+    for &c in digits {
+        number = number * 8.0 + (c - b'0') as f64;
     }
-    // Exact while the value fits 53 bits; past that, round the binary expansion to nearest-even.
-    let mut bits: Vec<u8> = Vec::with_capacity(digits.len() * 3);
-    for c in digits.bytes() {
-        let d = c - b'0';
-        bits.push((d >> 2) & 1);
-        bits.push((d >> 1) & 1);
-        bits.push(d & 1);
+    if number >= 9007199254740992.0 {
+        number = 0.0;
+        let mut multiplier = 1f64;
+        for &c in digits.iter().rev() {
+            let digit = (c - b'0') as f64;
+            if multiplier == f64::INFINITY {
+                if digit != 0.0 {
+                    number = f64::INFINITY;
+                    break;
+                }
+            } else {
+                number += digit * multiplier;
+            }
+            multiplier *= 8.0;
+        }
     }
-    let first = bits.iter().position(|&b| b == 1).unwrap_or(bits.len());
-    let bits = &bits[first..];
-    if bits.len() <= 53 {
-        return bits.iter().fold(0f64, |acc, &b| acc * 2.0 + b as f64);
-    }
-    let mut mantissa: u64 = 0;
-    for &b in &bits[..53] {
-        mantissa = mantissa * 2 + b as u64;
-    }
-    let round_bit = bits[53];
-    let sticky = bits[54..].iter().any(|&b| b == 1);
-    if round_bit == 1 && (sticky || mantissa & 1 == 1) {
-        mantissa += 1;
-    }
-    let exponent = (bits.len() - 53) as i32;
-    if exponent > 1100 {
-        return f64::INFINITY;
-    }
-    (mantissa as f64) * 2f64.powi(exponent)
+    number
 }
 
 /// The decimal digits of a non-negative integer written in `radix` (digits only, no prefix or separators).
