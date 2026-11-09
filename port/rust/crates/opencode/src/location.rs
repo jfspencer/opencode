@@ -38,6 +38,8 @@ pub struct Location {
     pub search: crate::fs::Search,
     /// The location's pending permission requests (`Permission.Service`).
     pub permission: crate::permission::Service,
+    /// The location's snapshot store (`Snapshot.Service`).
+    pub snapshot: crate::snapshot::Service,
 }
 
 #[derive(Debug, Clone)]
@@ -198,6 +200,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         root,
         version_control,
         permission: Default::default(),
+        snapshot: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

@@ -7,6 +7,7 @@
 pub mod attachment;
 pub mod command;
 pub mod context;
+pub mod diff;
 pub mod entries;
 pub mod execution;
 pub mod inbox;
@@ -16,9 +17,11 @@ pub mod moves;
 pub mod plan;
 pub mod prompt;
 pub mod retry;
+pub mod revert;
 pub mod runner;
 pub mod skill;
 pub mod step;
+pub mod subagent;
 pub mod title;
 
 use std::collections::HashSet;
@@ -42,6 +45,14 @@ pub struct Sessions {
     /// Sessions being removed: background work must not admit input into them.
     removing: Mutex<HashSet<String>>,
     pub executions: execution::Executions,
+    pub jobs: std::sync::Arc<crate::job::Jobs>,
+}
+
+impl Sessions {
+    /// Whether the session is being removed (`Session.synthetic` refuses it).
+    pub fn is_removing(&self, session_id: &str) -> bool {
+        self.removing.lock().unwrap().contains(session_id)
+    }
 }
 
 pub fn missing(session_id: &str) -> Failure {
@@ -151,17 +162,6 @@ impl Stored {
 pub fn get(db: &Connection, session_id: &str) -> rusqlite::Result<Option<Stored>> {
     db.query_row(&format!("SELECT {COLUMNS} FROM session_v2 WHERE id = ?1"), params![session_id], Stored::from_row)
         .optional()
-}
-
-pub fn has_message(db: &Connection, session_id: &str, message_id: &str) -> rusqlite::Result<bool> {
-    Ok(db
-        .query_row(
-            "SELECT 1 FROM session_message WHERE id = ?1 AND session_id = ?2",
-            params![message_id, session_id],
-            |_| Ok(()),
-        )
-        .optional()?
-        .is_some())
 }
 
 pub fn require(db: &Connection, session_id: &str) -> Result<Stored> {
@@ -312,6 +312,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.usage.recorded" => apply_usage(tx, id, data, None)?,
+        "session.revert.staged" | "session.revert.cleared" | "session.revert.committed" => revert::project(tx, event)?,
         "session.agent.selected" => {
             message::project(tx, event)?;
             set_session(
@@ -618,34 +619,41 @@ pub fn view(app: &App, session_id: &str, idle: i64) -> Result<()> {
     publish(app, "session.viewed", data.done(), None).map(drop)
 }
 
-pub fn remove(app: &App, session_id: &str) -> Result<()> {
-    let session = require(&app.db.lock().unwrap(), session_id)?;
-    app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
-    let result = (|| {
-        // The handler stops the session's own execution first. TODO(port): interrupt and await descendants'
-        // executions, cancel the session's jobs, close its model transport.
-        let children: Vec<String> = {
-            let db = app.db.lock().unwrap();
-            let mut statement =
-                db.prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC").map_err(fatal)?;
-            statement
-                .query_map(params![session_id], |row| row.get(0))
-                .map_err(fatal)?
-                .collect::<rusqlite::Result<_>>()
-                .map_err(fatal)?
-        };
-        for child in children {
-            remove(app, &child)?;
+/// `Session.remove`: stops the session's work (its execution, its jobs), removes its children, then the session.
+pub fn remove<'a>(app: &'a App, session_id: &'a str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>> {
+    Box::pin(async move {
+        let session = require(&app.db.lock().unwrap(), session_id)?;
+        app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
+        let result = async {
+            app.sessions.executions.interrupt(session_id, "user");
+            app.sessions.executions.await_idle(session_id).await;
+            app.sessions.jobs.cancel_session(app, session_id);
+            // TODO(port): close the session's model transport.
+            let children: Vec<String> = {
+                let db = app.db.lock().unwrap();
+                let mut statement = db
+                    .prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC")
+                    .map_err(fatal)?;
+                statement
+                    .query_map(params![session_id], |row| row.get(0))
+                    .map_err(fatal)?
+                    .collect::<rusqlite::Result<_>>()
+                    .map_err(fatal)?
+            };
+            for child in children {
+                remove(app, &child).await?;
+            }
+            // TODO(port): clear the session's environment variables.
+            let mut data = Obj::new();
+            data.str("sessionID", session.id());
+            publish(app, "session.deleted", data.done(), None)?;
+            let mut db = app.db.lock().unwrap();
+            app.bus.remove(&mut db, session_id).map_err(fatal)
         }
-        // TODO(port): clear the session's environment variables.
-        let mut data = Obj::new();
-        data.str("sessionID", session.id());
-        publish(app, "session.deleted", data.done(), None)?;
-        let mut db = app.db.lock().unwrap();
-        app.bus.remove(&mut db, session_id).map_err(fatal)
-    })();
-    app.sessions.removing.lock().unwrap().remove(session_id);
-    result
+        .await;
+        app.sessions.removing.lock().unwrap().remove(session_id);
+        result
+    })
 }
 
 /// The filter of a session list (`Session.ListFilter`) and its anchor, as a cursor carries them.

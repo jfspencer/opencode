@@ -5,8 +5,10 @@
 //! Deltas are batched as TS batches them: a fragment's pending text is published 100 ms after it first became
 //! pending, or earlier when another block starts or the fragment ends, so the published order matches TS's.
 //!
-//! TODO(port): start/end snapshots and changed files (`Snapshot.capture` in git projects), provider-hosted tool
-//! results, tool progress throttling, `ToolOutput.truncate`.
+//! The start snapshot is captured while the provider request is in flight and recorded on `session.step.started`; a
+//! settled step records the end snapshot and the files changed since the start (see [`crate::snapshot`]).
+//!
+//! TODO(port): provider-hosted tool results, tool progress throttling, `ToolOutput.truncate`.
 
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -149,6 +151,8 @@ pub struct Publisher {
     text: Fragments,
     reasoning: Fragments,
     tool_input: Fragments,
+    /// The start snapshot (`pendingSnapshot`, joined before the step starts).
+    snapshot: Option<String>,
 }
 
 impl Publisher {
@@ -176,7 +180,7 @@ impl Publisher {
         let mut o = Obj::new();
         o.str("sessionID", &self.session).str("agent", &self.agent).set("model", self.model.clone());
         o.str("assistantMessageID", &self.assistant);
-        // TODO(port): `snapshot` (the start snapshot in git projects).
+        o.opt_str("snapshot", self.snapshot.as_deref());
         o.int("started", self.started_at);
         self.publish("session.step.started", o.done());
         self.assistant.clone()
@@ -402,7 +406,7 @@ impl Publisher {
     }
 
     /// `publishStepFailure`.
-    pub fn publish_step_failure(&mut self, usage: Option<(Json, Json)>) {
+    pub fn publish_step_failure(&mut self, usage: Option<(Json, Json)>, terminal: &crate::snapshot::Terminal) {
         let Some(failure) = self.failure.clone() else { return };
         self.start_assistant();
         let mut o = self.base();
@@ -417,6 +421,7 @@ impl Publisher {
         if let Some((cost, tokens)) = usage {
             o.set("cost", cost).set("tokens", tokens);
         }
+        terminal.write(&mut o);
         self.publish("session.step.failed", o.done());
     }
 
@@ -662,7 +667,10 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         text: Fragments::default(),
         reasoning: Fragments::default(),
         tool_input: Fragments::default(),
+        snapshot: None,
     }));
+    // The start snapshot only has to exist before local tools run, so it is captured while the request is in flight.
+    let mut start_snapshot = crate::snapshot::Pending::start(&input.located);
     let request = Arc::new(input.request);
     let (sender, mut receiver) = mpsc::channel::<Result<Event, AIError>>(64);
     let streaming = {
@@ -695,6 +703,18 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             }
             Some(Ok(event)) => event,
         };
+        if !publisher.lock().unwrap().started() {
+            // Wait here, where cancellation still works.
+            let snapshot = tokio::select! {
+                biased;
+                _ = input.cancel.cancelled() => {
+                    stream_interrupted = true;
+                    break;
+                }
+                snapshot = start_snapshot.join() => snapshot,
+            };
+            publisher.lock().unwrap().snapshot = snapshot;
+        }
         let call = {
             let mut p = publisher.lock().unwrap();
             if p.record().provider_failed {
@@ -739,6 +759,12 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
     }
     streaming.abort();
     drop(receiver);
+    // Cancelled before the start snapshot existed: record nothing, as when the capture preceded the request.
+    if stream_interrupted && !publisher.lock().unwrap().started() && !start_snapshot.finished() {
+        return Err(Stop::Interrupted);
+    }
+    let start = start_snapshot.join().await;
+    publisher.lock().unwrap().snapshot = start.clone();
     publisher.lock().unwrap().flush();
     if publisher.lock().unwrap().started() {
         publisher.lock().unwrap().streamed();
@@ -752,7 +778,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
     loop {
         let joined = tokio::select! {
             biased;
-            _ = input.cancel.cancelled(), if !stream_interrupted => {
+            _ = input.cancel.cancelled(), if !stream_interrupted && !tools_interrupted => {
                 tools.abort_all();
                 tools_interrupted = true;
                 continue;
@@ -766,6 +792,9 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             Some(Err(_)) => tools_interrupted = true,
         }
     }
+    // The end snapshot and the files changed since the start, once every tool has settled (only a settled step
+    // records them; the publisher is not held across the capture).
+    let terminal = crate::snapshot::Terminal::capture(&input.located, start.as_deref()).await;
     let mut p = publisher.lock().unwrap();
     // TODO(port): context overflow recovery by compaction before output (`recoverOverflow`).
     let recorded = p.record();
@@ -819,10 +848,10 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
     }
     let record = p.record();
     if record.finish.is_some() || record.failure.is_some() {
-        // TODO(port): the end snapshot and changed files.
+        let terminal = &terminal;
         let usage = record.finish.as_ref().map(|f| usage(f.usage.as_ref(), &input.model.cost));
         if record.failure.is_some() {
-            p.publish_step_failure(usage.clone());
+            p.publish_step_failure(usage.clone(), terminal);
         }
         if let (Some(settlement), Some((cost, tokens)), None) = (&record.finish, &usage, &record.failure) {
             let assistant = p.start_assistant();
@@ -832,6 +861,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             o.opt_str("rawFinish", settlement.raw.as_deref());
             o.opt("native", settlement.native.clone());
             o.set("cost", cost.clone()).set("tokens", tokens.clone());
+            terminal.write(&mut o);
             p.publish("session.step.ended", o.done());
         }
     }

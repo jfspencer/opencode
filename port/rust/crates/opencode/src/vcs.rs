@@ -5,10 +5,11 @@
 //! initialize its first repository, and selects neither. The branch information (`Vcs.Info`) is read when the
 //! location boots and kept; `vcs.branch.updated` announces a change of the current branch.
 //!
+//! Snapshots (packages/core/src/snapshot.ts over git.ts's index, tree and object operations) are
+//! [`crate::snapshot`].
+//!
 //! TODO(port): refreshing the branch when the repository's HEAD changes (the file watcher's `filesystem.changed`
-//! events); providers registered by external plugins; snapshots (packages/core/src/snapshot.ts over the index,
-//! tree and object operations of git.ts: `Git.tree.capture/files/diff/restore`, `Git.index.refresh/ignored`,
-//! `Git.objects.pack`), which the execution loop records per step.
+//! events); providers registered by external plugins.
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;

@@ -8,7 +8,7 @@ use opencode_protocol::Wire;
 use opencode_protocol::types as t;
 
 use super::data;
-use crate::api::{Decoded, event_stream, not_implemented};
+use crate::api::{Decoded, event_stream};
 use crate::app::{App, fatal};
 use crate::bus::LocationRef;
 use crate::http::{Failure, Request, Response, Result};
@@ -26,13 +26,10 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(data(stored.wire()))
         }
         "session.update" => session_update(app, request, &decoded).await,
-        "session.remove" => {
-            let session_id = request.param("sessionID");
-            session::require(&app.db.lock().unwrap(), session_id)?;
-            // Stop the session's work before it goes. TODO(port): the same for its descendants.
-            app.sessions.executions.interrupt(session_id, "user");
-            app.sessions.executions.await_idle(session_id).await;
-            session::remove(app, session_id).map(|_| Response::no_content())
+        "session.remove" => session::remove(app, request.param("sessionID")).await.map(|_| Response::no_content()),
+        "session.background" => {
+            session::subagent::background_session(app, request.param("sessionID")).await?;
+            Ok(Response::no_content())
         }
         "session.active" => {
             let mut active = Obj::new();
@@ -73,8 +70,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "session.compact" => {
             let session_id = request.param("sessionID");
-            session::require(&app.db.lock().unwrap(), session_id)?;
-            // TODO(port): committing a staged revert first.
+            let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+            session::revert::commit(app, &stored, None)?;
             let input_id = json::get_str(&decoded.payload, "id").map(str::to_owned).unwrap_or_else(session::message::create_id);
             let delivery = json::get_str(&decoded.payload, "delivery").unwrap_or("steer");
             match session::inbox::admit_compaction(app, &input_id, session_id, delivery)? {
@@ -203,17 +200,20 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(Response::no_content())
         }
         "session.revert.stage" => {
-            let session_id = request.param("sessionID");
-            let message_id = json::get_str(&decoded.payload, "messageID").unwrap_or_default();
-            if !session::has_message(&app.db.lock().unwrap(), session_id, message_id).map_err(fatal)? {
-                let mut o = Obj::new();
-                o.str("_tag", "MessageNotFoundError").str("sessionID", session_id).str("messageID", message_id);
-                o.str("message", &format!("Message not found: {message_id}"));
-                return Err(Failure::new(404, o.done()));
-            }
-            // TODO(port): staging a revert (snapshots).
-            Err(not_implemented(operation))
+            let payload = &decoded.payload;
+            let message_id = json::get_str(payload, "messageID").unwrap_or_default();
+            let files = json::get_bool(payload, "files");
+            Ok(data(session::revert::stage(app, request.param("sessionID"), message_id, files).await?))
         }
+        "session.revert.clear" => {
+            session::revert::clear(app, request.param("sessionID")).await?;
+            Ok(Response::no_content())
+        }
+        "session.revert.commit" => {
+            session::revert::commit_staged(app, request.param("sessionID"))?;
+            Ok(Response::no_content())
+        }
+        "session.diff" => Ok(data(session::diff::turn(app, request.param("sessionID"), &decoded.query).await?)),
         _ => super::fallback(app, request),
     }
 }
