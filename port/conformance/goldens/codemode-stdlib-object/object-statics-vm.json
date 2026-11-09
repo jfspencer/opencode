@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -172,7 +172,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -220,7 +220,7 @@
               ]
             },
             {
-              "content": "{\n  \"freeze\": [\n    [\n      \"Cannot assign to read only property 'a'.\",\n      \"Cannot add property c, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 1,\n      \"n\": {\n        \"b\": 5\n      }\n    },\n    true,\n    true,\n    false\n  ],\n  \"seal\": [\n    [\n      \"Cannot add property b, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 2\n    },\n    false,\n    true\n  ],\n  \"preventExtensions\": [\n    [\n      \"Cannot add property b, object is not extensible.\"\n    ],\n    {},\n    false,\n    true,\n    true\n  ],\n  \"empty non-extensible\": [\n    true,\n    true\n  ],\n  \"primitives\": [\n    1,\n    \"s\",\n    null,\n    true,\n    true,\n    false\n  ],\n  \"freeze map\": [\n    1,\n    true\n  ],\n  \"freeze bytes\": \"!TypeError: Cannot freeze array buffer views with elements.\",\n  \"seal bytes\": \"!TypeError: Cannot seal array buffer views with elements.\",\n  \"freeze empty bytes\": [\n    true,\n    false\n  ],\n  \"freeze function\": [\n    \"Cannot add property x, object is not extensible.\",\n    true\n  ],\n  \"frozen read-only builtin\": \"Cannot assign to read only property 'PI'.\",\n  \"prototype methods\": [\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true\n  ],\n  \"hasOwnProperty receiver\": \"!TypeError: Object.prototype.hasOwnProperty called on incompatible receiver a string.\",\n  \"toString tags\": [\n    \"[object Object]\",\n    \"[object Array]\",\n    \"[object String]\",\n    \"[object Number]\",\n    \"[object Boolean]\",\n    \"[object Null]\",\n    \"[object Undefined]\",\n    \"[object Function]\",\n    \"[object Date]\",\n    \"[object RegExp]\",\n    \"[object Map]\",\n    \"[object Set]\",\n    \"[object WeakMap]\",\n    \"[object WeakSet]\",\n    \"[object Error]\",\n    \"[object Promise]\",\n    \"[object URL]\",\n    \"[object URLSearchParams]\",\n    \"[object Headers]\",\n    \"[object Uint8Array]\",\n    \"[object Iterator]\",\n    \"[object Generator]\",\n    \"[object Object]\",\n    \"[object Object]\"\n  ],\n  \"arguments tag\": \"[object Arguments]\",\n  \"toLocaleString\": [\n    \"TS\",\n    \"1,2\",\n    \"5\"\n  ],\n  \"valueOf null\": \"!TypeError: Object.prototype.valueOf called on null or undefined.\",\n  \"valueOf primitive\": 7,\n  \"in operator\": [\n    true,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"spread\": {\n    \"0\": \"h\",\n    \"1\": \"i\",\n    \"a\": 1,\n    \"b\": 2\n  },\n  \"proto key\": [\n    [\n      \"__proto__\"\n    ],\n    5,\n    true\n  ],\n  \"integer key order\": [\n    \"1\",\n    \"2\",\n    \"b\",\n    \"a\",\n    \"-1\",\n    \"01\"\n  ],\n  \"computed keys\": {\n    \"2\": \"two\",\n    \"null\": \"n\",\n    \"1,2\": \"arr\",\n    \"obj\": \"o\"\n  },\n  \"delete\": [\n    true,\n    {\n      \"b\": 2\n    },\n    true\n  ],\n  \"function props\": [\n    \"f\",\n    2,\n    [\n      \"extra\"\n    ],\n    1\n  ],\n  \"function name readonly\": \"!TypeError: Cannot assign to read only property 'name'.\"\n}",
+              "content": "{\n  \"freeze\": [\n    [\n      \"Cannot assign to read only property 'a'.\",\n      \"Cannot add property c, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 1,\n      \"n\": {\n        \"b\": 5\n      }\n    },\n    true,\n    true,\n    false\n  ],\n  \"seal\": [\n    [\n      \"Cannot add property b, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 2\n    },\n    false,\n    true\n  ],\n  \"preventExtensions\": [\n    [\n      \"Cannot add property b, object is not extensible.\"\n    ],\n    {},\n    false,\n    true,\n    true\n  ],\n  \"empty non-extensible\": [\n    true,\n    true\n  ],\n  \"primitives\": [\n    1,\n    \"s\",\n    null,\n    true,\n    true,\n    false\n  ],\n  \"freeze map\": [\n    1,\n    true\n  ],\n  \"freeze bytes\": \"!TypeError: Cannot freeze array buffer views with elements.\",\n  \"seal bytes\": \"!TypeError: Cannot seal array buffer views with elements.\",\n  \"freeze empty bytes\": [\n    true,\n    false\n  ],\n  \"freeze function\": [\n    \"Cannot add property x, object is not extensible.\",\n    true\n  ],\n  \"frozen read-only builtin\": \"Cannot assign to read only property 'PI'.\",\n  \"prototype methods\": [\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true\n  ],\n  \"hasOwnProperty receiver\": \"!TypeError: Object.prototype.hasOwnProperty called on incompatible receiver a string.\",\n  \"toString tags\": [\n    \"[object Object]\",\n    \"[object Array]\",\n    \"[object String]\",\n    \"[object Number]\",\n    \"[object Boolean]\",\n    \"[object Null]\",\n    \"[object Undefined]\",\n    \"[object Function]\",\n    \"[object Date]\",\n    \"[object RegExp]\",\n    \"[object Map]\",\n    \"[object Set]\",\n    \"[object WeakMap]\",\n    \"[object WeakSet]\",\n    \"[object Error]\",\n    \"[object Promise]\",\n    \"[object URL]\",\n    \"[object URLSearchParams]\",\n    \"[object Headers]\",\n    \"[object Uint8Array]\",\n    \"[object Iterator]\",\n    \"[object Generator]\",\n    \"[object Math]\",\n    \"[object JSON]\"\n  ],\n  \"arguments tag\": \"[object Arguments]\",\n  \"toLocaleString\": [\n    \"TS\",\n    \"1,2\",\n    \"5\"\n  ],\n  \"valueOf null\": \"!TypeError: Object.prototype.valueOf called on null or undefined.\",\n  \"valueOf primitive\": 7,\n  \"in operator\": [\n    true,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"spread\": {\n    \"0\": \"h\",\n    \"1\": \"i\",\n    \"a\": 1,\n    \"b\": 2\n  },\n  \"proto key\": [\n    [\n      \"__proto__\"\n    ],\n    5,\n    true\n  ],\n  \"integer key order\": [\n    \"1\",\n    \"2\",\n    \"b\",\n    \"a\",\n    \"-1\",\n    \"01\"\n  ],\n  \"computed keys\": {\n    \"2\": \"two\",\n    \"null\": \"n\",\n    \"1,2\": \"arr\",\n    \"obj\": \"o\"\n  },\n  \"delete\": [\n    true,\n    {\n      \"b\": 2\n    },\n    true\n  ],\n  \"function props\": [\n    \"f\",\n    2,\n    [\n      \"extra\"\n    ],\n    1\n  ],\n  \"function name readonly\": \"!TypeError: Cannot assign to read only property 'name'.\"\n}",
               "role": "tool",
               "tool_call_id": "call_1"
             }
@@ -397,7 +397,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -496,6 +496,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -508,10 +543,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -527,41 +562,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -569,7 +569,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -820,7 +820,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "{\n  \"freeze\": [\n    [\n      \"Cannot assign to read only property 'a'.\",\n      \"Cannot add property c, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 1,\n      \"n\": {\n        \"b\": 5\n      }\n    },\n    true,\n    true,\n    false\n  ],\n  \"seal\": [\n    [\n      \"Cannot add property b, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 2\n    },\n    false,\n    true\n  ],\n  \"preventExtensions\": [\n    [\n      \"Cannot add property b, object is not extensible.\"\n    ],\n    {},\n    false,\n    true,\n    true\n  ],\n  \"empty non-extensible\": [\n    true,\n    true\n  ],\n  \"primitives\": [\n    1,\n    \"s\",\n    null,\n    true,\n    true,\n    false\n  ],\n  \"freeze map\": [\n    1,\n    true\n  ],\n  \"freeze bytes\": \"!TypeError: Cannot freeze array buffer views with elements.\",\n  \"seal bytes\": \"!TypeError: Cannot seal array buffer views with elements.\",\n  \"freeze empty bytes\": [\n    true,\n    false\n  ],\n  \"freeze function\": [\n    \"Cannot add property x, object is not extensible.\",\n    true\n  ],\n  \"frozen read-only builtin\": \"Cannot assign to read only property 'PI'.\",\n  \"prototype methods\": [\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true\n  ],\n  \"hasOwnProperty receiver\": \"!TypeError: Object.prototype.hasOwnProperty called on incompatible receiver a string.\",\n  \"toString tags\": [\n    \"[object Object]\",\n    \"[object Array]\",\n    \"[object String]\",\n    \"[object Number]\",\n    \"[object Boolean]\",\n    \"[object Null]\",\n    \"[object Undefined]\",\n    \"[object Function]\",\n    \"[object Date]\",\n    \"[object RegExp]\",\n    \"[object Map]\",\n    \"[object Set]\",\n    \"[object WeakMap]\",\n    \"[object WeakSet]\",\n    \"[object Error]\",\n    \"[object Promise]\",\n    \"[object URL]\",\n    \"[object URLSearchParams]\",\n    \"[object Headers]\",\n    \"[object Uint8Array]\",\n    \"[object Iterator]\",\n    \"[object Generator]\",\n    \"[object Object]\",\n    \"[object Object]\"\n  ],\n  \"arguments tag\": \"[object Arguments]\",\n  \"toLocaleString\": [\n    \"TS\",\n    \"1,2\",\n    \"5\"\n  ],\n  \"valueOf null\": \"!TypeError: Object.prototype.valueOf called on null or undefined.\",\n  \"valueOf primitive\": 7,\n  \"in operator\": [\n    true,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"spread\": {\n    \"0\": \"h\",\n    \"1\": \"i\",\n    \"a\": 1,\n    \"b\": 2\n  },\n  \"proto key\": [\n    [\n      \"__proto__\"\n    ],\n    5,\n    true\n  ],\n  \"integer key order\": [\n    \"1\",\n    \"2\",\n    \"b\",\n    \"a\",\n    \"-1\",\n    \"01\"\n  ],\n  \"computed keys\": {\n    \"2\": \"two\",\n    \"null\": \"n\",\n    \"1,2\": \"arr\",\n    \"obj\": \"o\"\n  },\n  \"delete\": [\n    true,\n    {\n      \"b\": 2\n    },\n    true\n  ],\n  \"function props\": [\n    \"f\",\n    2,\n    [\n      \"extra\"\n    ],\n    1\n  ],\n  \"function name readonly\": \"!TypeError: Cannot assign to read only property 'name'.\"\n}",
+              "text": "{\n  \"freeze\": [\n    [\n      \"Cannot assign to read only property 'a'.\",\n      \"Cannot add property c, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 1,\n      \"n\": {\n        \"b\": 5\n      }\n    },\n    true,\n    true,\n    false\n  ],\n  \"seal\": [\n    [\n      \"Cannot add property b, object is not extensible.\",\n      \"Cannot delete property 'a'.\"\n    ],\n    {\n      \"a\": 2\n    },\n    false,\n    true\n  ],\n  \"preventExtensions\": [\n    [\n      \"Cannot add property b, object is not extensible.\"\n    ],\n    {},\n    false,\n    true,\n    true\n  ],\n  \"empty non-extensible\": [\n    true,\n    true\n  ],\n  \"primitives\": [\n    1,\n    \"s\",\n    null,\n    true,\n    true,\n    false\n  ],\n  \"freeze map\": [\n    1,\n    true\n  ],\n  \"freeze bytes\": \"!TypeError: Cannot freeze array buffer views with elements.\",\n  \"seal bytes\": \"!TypeError: Cannot seal array buffer views with elements.\",\n  \"freeze empty bytes\": [\n    true,\n    false\n  ],\n  \"freeze function\": [\n    \"Cannot add property x, object is not extensible.\",\n    true\n  ],\n  \"frozen read-only builtin\": \"Cannot assign to read only property 'PI'.\",\n  \"prototype methods\": [\n    true,\n    false,\n    true,\n    true,\n    true,\n    false,\n    true\n  ],\n  \"hasOwnProperty receiver\": \"!TypeError: Object.prototype.hasOwnProperty called on incompatible receiver a string.\",\n  \"toString tags\": [\n    \"[object Object]\",\n    \"[object Array]\",\n    \"[object String]\",\n    \"[object Number]\",\n    \"[object Boolean]\",\n    \"[object Null]\",\n    \"[object Undefined]\",\n    \"[object Function]\",\n    \"[object Date]\",\n    \"[object RegExp]\",\n    \"[object Map]\",\n    \"[object Set]\",\n    \"[object WeakMap]\",\n    \"[object WeakSet]\",\n    \"[object Error]\",\n    \"[object Promise]\",\n    \"[object URL]\",\n    \"[object URLSearchParams]\",\n    \"[object Headers]\",\n    \"[object Uint8Array]\",\n    \"[object Iterator]\",\n    \"[object Generator]\",\n    \"[object Math]\",\n    \"[object JSON]\"\n  ],\n  \"arguments tag\": \"[object Arguments]\",\n  \"toLocaleString\": [\n    \"TS\",\n    \"1,2\",\n    \"5\"\n  ],\n  \"valueOf null\": \"!TypeError: Object.prototype.valueOf called on null or undefined.\",\n  \"valueOf primitive\": 7,\n  \"in operator\": [\n    true,\n    true,\n    true,\n    true,\n    true\n  ],\n  \"spread\": {\n    \"0\": \"h\",\n    \"1\": \"i\",\n    \"a\": 1,\n    \"b\": 2\n  },\n  \"proto key\": [\n    [\n      \"__proto__\"\n    ],\n    5,\n    true\n  ],\n  \"integer key order\": [\n    \"1\",\n    \"2\",\n    \"b\",\n    \"a\",\n    \"-1\",\n    \"01\"\n  ],\n  \"computed keys\": {\n    \"2\": \"two\",\n    \"null\": \"n\",\n    \"1,2\": \"arr\",\n    \"obj\": \"o\"\n  },\n  \"delete\": [\n    true,\n    {\n      \"b\": 2\n    },\n    true\n  ],\n  \"function props\": [\n    \"f\",\n    2,\n    [\n      \"extra\"\n    ],\n    1\n  ],\n  \"function name readonly\": \"!TypeError: Cannot assign to read only property 'name'.\"\n}",
               "type": "text"
             }
           ],

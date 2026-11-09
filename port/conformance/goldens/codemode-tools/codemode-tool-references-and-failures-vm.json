@@ -530,7 +530,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
                       "type": "text"
                     }
                   ],
@@ -1067,7 +1067,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+                      "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
                       "type": "text"
                     }
                   ],
@@ -1145,7 +1145,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1184,7 +1184,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1207,7 +1207,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -1242,7 +1242,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1265,7 +1265,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1319,7 +1319,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1342,7 +1342,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1415,7 +1415,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1438,7 +1438,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1530,7 +1530,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1553,7 +1553,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1664,7 +1664,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1687,7 +1687,7 @@
               ]
             },
             {
-              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "content": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1959,7 +1959,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -2058,6 +2058,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_9>",
           "model": {
@@ -2070,10 +2105,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -2089,41 +2124,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -2131,7 +2131,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -2197,7 +2197,7 @@
           "assistantMessageID": "<msg_9>",
           "content": [
             {
-              "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"function\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    false,\n    false,\n    false,\n    true\n  ],\n  \"in\": \"TypeError: Binary operators require data values.\",\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
+              "text": "{\n  \"roots\": [\n    \"opencode\",\n    \"browser\"\n  ],\n  \"keys\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"forIn\": [\n    \"session_rename\",\n    \"session_move\",\n    \"worktree_create\",\n    \"worktree_list\",\n    \"worktree_remove\",\n    \"models\"\n  ],\n  \"types\": [\n    \"object\",\n    \"object\",\n    \"function\",\n    \"function\"\n  ],\n  \"string\": \"[object Object]\",\n  \"stringNamespace\": \"[object Object]\",\n  \"json\": \"{}\",\n  \"template\": \"[object Object]\",\n  \"identity\": [\n    true,\n    true,\n    true,\n    true\n  ],\n  \"in\": true,\n  \"concat\": \"TypeError: Binary operators require data values.\",\n  \"optional\": \"function\",\n  \"missing\": \"function\",\n  \"entries\": \"TypeError: Object.entries(...) cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"spread\": \"TypeError: Object spread cannot read tool references: they are not plain data. Use Object.keys(tools) for names, or search({ query }) for signatures.\",\n  \"bracket\": 1\n}",
               "type": "text"
             }
           ],

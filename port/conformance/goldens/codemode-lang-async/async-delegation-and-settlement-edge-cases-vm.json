@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,65 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
-              },
-              "role": "system"
-            },
-            {
-              "content": "Run the async delegation and settlement edge cases programs",
-              "role": "user"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "tools": {
-            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "chat",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      },
-      {
-        "body": {
-          "max_completion_tokens": 256000,
-          "messages": [
-            {
-              "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -194,25 +136,6 @@
               "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
@@ -245,7 +168,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -290,25 +213,6 @@
               "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
@@ -341,7 +245,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -393,7 +297,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -402,7 +306,103 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the async delegation and settlement edge cases programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst syncIt = () => ({ [Symbol.iterator]() { let i = 0; return {\\n  next: (v) => ({ value: \\\"n\\\" + i++ + \\\":\\\" + v, done: false }),\\n  return: (v) => { log.push(\\\"sync return \\\" + v); return { value: \\\"ret:\\\" + v, done: true } },\\n  throw: (e) => { log.push(\\\"sync throw \\\" + e); return { value: \\\"recovered\\\", done: false } },\\n} } })\\nasync function* outer() { const r = yield* syncIt(); return r }\\nconst o1 = outer()\\nconst r1 = [await o1.next(\\\"ignored\\\"), await o1.next(\\\"second\\\"), await o1.return(\\\"R\\\"), await o1.next()]\\nconst o2 = outer()\\nconst r2 = [await o2.next(), await o2.throw(\\\"E\\\"), await o2.return(\\\"done\\\")]\\nconst bare = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }) } } })\\nasync function* outer2() { yield* bare() }\\nconst o3 = outer2()\\nconst r3 = [await o3.next(), await o3.return(\\\"bare return\\\")]\\nconst o4 = outer2()\\nawait o4.next()\\nconst r4 = await o4.throw(new Error(\\\"no throw method\\\")).catch((e) => e.name + \\\": \\\" + e.message)\\nconst badReturn = () => ({ [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5, throw: () => 6 } } })\\nasync function* outer5() { yield* badReturn() }\\nconst o5 = outer5()\\nawait o5.next()\\nconst r5 = await o5.return(\\\"x\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst o5b = outer5()\\nawait o5b.next()\\nconst r5b = await o5b.throw(\\\"y\\\").catch((e) => e.name + \\\": \\\" + e.message)\\nconst rejecting = () => ({ [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"rejected value\\\")), done: false }), return: () => { log.push(\\\"closed on rejection\\\"); return {} } } } })\\nasync function* outer3() { yield* rejecting() }\\nconst r6 = await outer3().next().catch((e) => e.message)\\nlet r7\\ntry { for await (const v of rejecting()) log.push(\\\"never \\\" + v) } catch (e) { r7 = e.message }\\nasync function* outer4() { yield* [1, 2, 3] }\\nconst o6 = outer4()\\nconst r8 = [await o6.next(), await o6.return(\\\"arr ret\\\"), await o6.next()]\\nconst o7 = outer4()\\nawait o7.next()\\nconst r9 = await o7.throw(new Error(\\\"arr throw\\\")).catch((e) => e.message)\\nconst doneFirst = () => ({ [Symbol.iterator]() { return { next: () => ({ value: \\\"final\\\", done: true }) } } })\\nasync function* outer8() { const r = yield* doneFirst(); yield \\\"after \\\" + r }\\nconst r10 = []\\nfor await (const v of outer8()) r10.push(v)\\nreturn { log, r1, r2, r3, r4, r5, r5b, r6, r7, r8, r9, r10 }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [\n    \"sync return R\",\n    \"sync throw E\",\n    \"sync return done\",\n    \"closed on rejection\",\n    \"closed on rejection\"\n  ],\n  \"r1\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"n1:second\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:R\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r2\": [\n    {\n      \"value\": \"n0:undefined\",\n      \"done\": false\n    },\n    {\n      \"value\": \"recovered\",\n      \"done\": false\n    },\n    {\n      \"value\": \"ret:done\",\n      \"done\": true\n    }\n  ],\n  \"r3\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"bare return\",\n      \"done\": true\n    }\n  ],\n  \"r4\": \"TypeError: The delegated iterator does not provide a throw() method.\",\n  \"r5\": \"TypeError: Iterator return() result must be an object.\",\n  \"r5b\": \"TypeError: Iterator throw() result must be an object.\",\n  \"r6\": \"rejected value\",\n  \"r7\": \"rejected value\",\n  \"r8\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"arr ret\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"r9\": \"The delegated iterator does not provide a throw() method.\",\n  \"r10\": [\n    \"after final\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const log = []\\nconst ag = (async function* () { try { yield 1 } finally { log.push(\\\"cleanup\\\") } })()\\nconst fresh = await ag.return(Promise.resolve(\\\"resolved before start\\\"))\\nconst after = await ag.next()\\nconst ag2 = (async function* () { yield 1 })()\\nawait ag2.next()\\nawait ag2.next()\\nconst completed = await ag2.return(Promise.resolve(\\\"on completed\\\"))\\nconst ag3 = (async function* () { yield 1 })()\\nconst rejectedReturn = await ag3.return(Promise.reject(new Error(\\\"rejected return\\\"))).catch((e) => e.message)\\nconst ag4 = (async function* () { yield 1 })()\\nconst throwFresh = await ag4.throw(new Error(\\\"thrown before start\\\")).catch((e) => e.message)\\nconst ag5 = (async function* () { const x = yield 1; yield x })()\\nconst queued = await Promise.all([ag5.next(), ag5.next(\\\"queued value\\\"), ag5.next(), ag5.return(\\\"q\\\")])\\nconst sg = (function* () { yield 1 })()\\nconst syncReturnFresh = [sg.return(\\\"fresh\\\"), sg.next()]\\nconst sg2 = (function* () { yield 1 })()\\nlet syncThrowFresh\\ntry { sg2.throw(\\\"boom\\\") } catch (e) { syncThrowFresh = e }\\nlet acc = 0\\nacc += await Promise.resolve(5)\\nacc = (await Promise.resolve(acc)) * 2\\nlet ref = { n: 1 }\\nref.n += await Promise.resolve(2)\\nref[\\\"n\\\"] *= await 3\\nconst raceEmpty = await Promise.race([]).catch?.((e) => e.message)\\nreturn { log, fresh, after, completed, rejectedReturn, throwFresh, queued, syncReturnFresh, syncThrowFresh, acc, ref, raceEmpty }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"log\": [],\n  \"fresh\": {\n    \"value\": \"resolved before start\",\n    \"done\": true\n  },\n  \"after\": {\n    \"done\": true\n  },\n  \"completed\": {\n    \"value\": \"on completed\",\n    \"done\": true\n  },\n  \"rejectedReturn\": \"rejected return\",\n  \"throwFresh\": \"thrown before start\",\n  \"queued\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"queued value\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    },\n    {\n      \"value\": \"q\",\n      \"done\": true\n    }\n  ],\n  \"syncReturnFresh\": [\n    {\n      \"value\": \"fresh\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"syncThrowFresh\": \"boom\",\n  \"acc\": 10,\n  \"ref\": {\n    \"n\": 9\n  },\n  \"raceEmpty\": \"Promise.race([]) would never settle; provide at least one promise or value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -456,7 +456,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -508,7 +508,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -517,7 +517,7 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -590,7 +590,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -642,7 +642,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -651,7 +651,7 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -743,7 +743,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -795,7 +795,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -804,7 +804,7 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -915,7 +915,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -967,7 +967,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -976,7 +976,7 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1106,7 +1106,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -1158,7 +1158,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
+                    "arguments": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -1167,7 +1167,7 @@
               ]
             },
             {
-              "content": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "content": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1458,7 +1458,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -1557,6 +1557,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -1569,10 +1604,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -1588,41 +1623,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -1630,7 +1630,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -1992,7 +1992,7 @@
           "assistantMessageID": "<msg_4>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"code\":\"const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \\\"no throw\\\" } catch (e) { return e.message } })\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}"
+          "text": "{\"code\":\"const tried = await (() => { try { return Promise.try(5).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.name + \\\": \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.name + \\\": \\\" + e.message } })()\\nconst tried2 = await (async () => { try { return await Promise.try(\\\"str\\\") } catch (e) { return e.message } })()\\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \\\"s\\\", {}, Symbol.iterator, new Date(0), /r/, new Error(\\\"e\\\"), new URL(\\\"https://example.com\\\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \\\"fulfilled\\\", (e) => \\\"rejected \\\" + e.message) } catch (e) { return \\\"threw \\\" + e.message } }))\\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \\\"iterated\\\" } catch (e) { return e.message } })\\nlet spins = 0\\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"original reason\\\")), done: false }), return: () => { throw new Error(\\\"close failed\\\") } } } }\\nlet closeThrows\\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\\\"reason wins\\\")), done: false }), return: () => 5 } } }\\nlet closeBad\\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -2012,7 +2012,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "code": "const tried = (() => { try { return Promise.try(5) } catch (e) { return e.name + \": \" + e.message } })()\nconst tried2 = await (async () => { try { return await Promise.try(\"str\") } catch (e) { return e.message } })()\nconst describes = [[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \"s\", {}, Symbol.iterator, new Date(0), /r/, new Error(\"e\"), new URL(\"https://example.com\"), new Uint8Array(1), new Headers()].map((v) => { try { Promise.try(v); return \"no throw\" } catch (e) { return e.message } })\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \"iterated\" } catch (e) { return e.message } })\nlet spins = 0\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"original reason\")), done: false }), return: () => { throw new Error(\"close failed\") } } } }\nlet closeThrows\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"reason wins\")), done: false }), return: () => 5 } } }\nlet closeBad\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }"
+            "code": "const tried = await (() => { try { return Promise.try(5).then(() => \"fulfilled\", (e) => \"rejected \" + e.name + \": \" + e.message) } catch (e) { return \"threw \" + e.name + \": \" + e.message } })()\nconst tried2 = await (async () => { try { return await Promise.try(\"str\") } catch (e) { return e.message } })()\nconst describes = await Promise.all([[1], Promise.resolve(), (function* () {})(), [].values(), new Map(), new Set(), null, 5, \"s\", {}, Symbol.iterator, new Date(0), /r/, new Error(\"e\"), new URL(\"https://example.com\"), new Uint8Array(1), new Headers()].map((v) => { try { return Promise.try(v).then(() => \"fulfilled\", (e) => \"rejected \" + e.message) } catch (e) { return \"threw \" + e.message } }))\nconst notIterables = [Promise.resolve(), (async function* () {})(), new WeakMap(), () => 1].map((v) => { try { for (const x of v) {} return \"iterated\" } catch (e) { return e.message } })\nlet spins = 0\nfor (let i = 0; i < 10000; i++) { await null; spins++ }\nconst rejecting = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"original reason\")), done: false }), return: () => { throw new Error(\"close failed\") } } } }\nlet closeThrows\ntry { for await (const v of rejecting) {} } catch (e) { closeThrows = e.message }\nconst rejectingBadClose = { [Symbol.iterator]() { return { next: () => ({ value: Promise.reject(new Error(\"reason wins\")), done: false }), return: () => 5 } } }\nlet closeBad\ntry { for await (const v of rejectingBadClose) {} } catch (e) { closeBad = e.message }\nreturn { tried, tried2, describes, notIterables, spins, closeThrows, closeBad }"
           },
           "sessionID": "<ses_1>"
         },
@@ -2050,7 +2050,7 @@
           "assistantMessageID": "<msg_4>",
           "content": [
             {
-              "text": "{\n  \"tried\": \"TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"Promise.try expects a function, received an array.\",\n    \"Promise.try expects a function, received an un-awaited Promise.\",\n    \"Promise.try expects a function, received a generator.\",\n    \"Promise.try expects a function, received an iterator.\",\n    \"Promise.try expects a function, received a Map.\",\n    \"Promise.try expects a function, received a Set.\",\n    \"Promise.try expects a function, received null.\",\n    \"Promise.try expects a function, received a number.\",\n    \"Promise.try expects a function, received a string.\",\n    \"Promise.try expects a function, received a data object.\",\n    \"Promise.try expects a function, received a symbol.\",\n    \"Promise.try expects a function, received a Date.\",\n    \"Promise.try expects a function, received a RegExp.\",\n    \"Promise.try expects a function, received an Error.\",\n    \"Promise.try expects a function, received a URL.\",\n    \"Promise.try expects a function, received a Uint8Array.\",\n    \"Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
+              "text": "{\n  \"tried\": \"rejected TypeError: Promise.try expects a function, received a number.\",\n  \"tried2\": \"Promise.try expects a function, received a string.\",\n  \"describes\": [\n    \"rejected Promise.try expects a function, received an array.\",\n    \"rejected Promise.try expects a function, received an un-awaited Promise.\",\n    \"rejected Promise.try expects a function, received a generator.\",\n    \"rejected Promise.try expects a function, received an iterator.\",\n    \"rejected Promise.try expects a function, received a Map.\",\n    \"rejected Promise.try expects a function, received a Set.\",\n    \"rejected Promise.try expects a function, received null.\",\n    \"rejected Promise.try expects a function, received a number.\",\n    \"rejected Promise.try expects a function, received a string.\",\n    \"rejected Promise.try expects a function, received a data object.\",\n    \"rejected Promise.try expects a function, received a symbol.\",\n    \"rejected Promise.try expects a function, received a Date.\",\n    \"rejected Promise.try expects a function, received a RegExp.\",\n    \"rejected Promise.try expects a function, received an Error.\",\n    \"rejected Promise.try expects a function, received a URL.\",\n    \"rejected Promise.try expects a function, received a Uint8Array.\",\n    \"rejected Promise.try expects a function, received a Headers.\"\n  ],\n  \"notIterables\": [\n    \"for...of requires an iterable value, received an un-awaited Promise.\",\n    \"for...of requires an iterable value, received a generator.\",\n    \"for...of requires an iterable value, received a WeakMap.\",\n    \"for...of requires an iterable value, received a function.\"\n  ],\n  \"spins\": 10000,\n  \"closeThrows\": \"original reason\",\n  \"closeBad\": \"reason wins\"\n}",
               "type": "text"
             }
           ],

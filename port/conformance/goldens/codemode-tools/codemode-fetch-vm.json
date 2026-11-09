@@ -213,7 +213,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+                      "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
                       "type": "text"
                     }
                   ],
@@ -511,7 +511,7 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+                      "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
                       "type": "text"
                     }
                   ],
@@ -600,12 +600,12 @@
                 "state": {
                   "content": [
                     {
-                      "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+                      "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
                       "type": "text"
                     }
                   ],
                   "input": {
-                    "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+                    "code": "// HTTP framing headers belong to the transport, not to the response the program reads.\nconst FRAMING = [\"date\", \"connection\", \"keep-alive\", \"transfer-encoding\", \"content-length\"]\nconst text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
                   },
                   "metadata": {
                     "toolCalls": [
@@ -711,7 +711,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -750,7 +750,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -764,7 +764,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -773,7 +773,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -808,7 +808,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -822,7 +822,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -831,7 +831,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -850,7 +850,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -885,7 +885,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -899,7 +899,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -908,7 +908,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -927,7 +927,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -981,7 +981,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -995,7 +995,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -1004,7 +1004,7 @@
               ]
             },
             {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1023,122 +1023,7 @@
               ]
             },
             {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const results = {}\\nfor (const [label, url] of Object.entries({ file: \\\"file:///etc/passwd\\\", creds: \\\"https://user:pw@api.example.com/echo\\\", unanswered: \\\"https://unanswered.example.com/\\\" })) {\\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry { await (await fetch(\\\"https://api.example.com/bad-json\\\")).json() } catch (error) { results.badJson = error.name }\\nfor (const [label, init] of Object.entries({\\n  dateBody: { method: \\\"POST\\\", body: new Date(0) },\\n  mapHeaders: { headers: new Map([[\\\"a\\\", \\\"b\\\"]]) },\\n  headersObj: { headers: new Headers({ \\\"x-h\\\": \\\"1\\\" }) },\\n  regexBody: { method: \\\"POST\\\", body: /re/g },\\n  setBody: { method: \\\"POST\\\", body: new Set([1]) },\\n  urlBody: { method: \\\"POST\\\", body: new URL(\\\"https://x.example.com/\\\") },\\n  arrayBody: { method: \\\"POST\\\", body: [1, 2] },\\n  fnInit: { method: \\\"POST\\\", body: () => 1 },\\n  promiseInit: { method: \\\"POST\\\", body: Promise.resolve(1) },\\n  errorBody: { method: \\\"POST\\\", body: new TypeError(\\\"bad\\\", { cause: new Error(\\\"root\\\") }) },\\n  deep: { method: \\\"POST\\\", body: JSON.parse(\\\"[\\\".repeat(40) + \\\"]\\\".repeat(40)) },\\n})) {\\n  try { const r = await fetch(\\\"https://api.example.com/echo\\\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry {\\n  const looped = { headers: {} }\\n  looped.headers.self = looped\\n  await fetch(\\\"https://api.example.com/echo\\\", looped)\\n} catch (error) { results.circular = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "tools": {
-            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "chat",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      },
-      {
-        "body": {
-          "max_completion_tokens": 256000,
-          "messages": [
-            {
-              "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
-              },
-              "role": "system"
-            },
-            {
-              "content": "Call the API",
-              "role": "user"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1176,7 +1061,122 @@
               ]
             },
             {
-              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Call the API",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const post = await fetch(\\\"https://api.example.com/echo\\\", {\\n  method: \\\"post\\\",\\n  headers: { \\\"content-type\\\": \\\"application/json\\\", authorization: \\\"Bearer secret\\\", \\\"x-trace\\\": \\\"1\\\" },\\n  body: JSON.stringify({ hello: \\\"world\\\" }),\\n})\\nconst form = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PUT\\\", headers: [[\\\"x-pairs\\\", \\\"yes\\\"]], body: new URLSearchParams({ a: \\\"1\\\", b: \\\"two\\\" }) })\\nconst binary = await fetch(\\\"https://api.example.com/echo\\\", { method: \\\"PATCH\\\", body: new TextEncoder().encode(\\\"bytes body\\\") })\\nconst head = await fetch(\\\"https://api.example.com/text\\\", { method: \\\"HEAD\\\" })\\nreturn { post: await post.json(), form: await form.json(), binary: await binary.json(), head: [head.status, await head.text()] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const path of [\\\"r301\\\", \\\"r302\\\", \\\"r303\\\", \\\"r307\\\", \\\"r308\\\", \\\"cross\\\"]) {\\n  const response = await fetch(\\\"https://api.example.com/\\\" + path, { method: \\\"POST\\\", headers: { authorization: \\\"Bearer x\\\", \\\"content-type\\\": \\\"text/plain\\\" }, body: \\\"payload\\\" })\\n  const echoed = await response.json()\\n  results[path] = { redirected: response.redirected, url: response.url, method: echoed.method, body: echoed.body, auth: echoed.headers.authorization ?? null }\\n}\\nfor (const path of [\\\"to-ftp\\\", \\\"to-creds\\\", \\\"loop/0\\\", \\\"no-location\\\"]) {\\n  try { const r = await fetch(\\\"https://api.example.com/\\\" + path); results[path] = [r.status, r.redirected] } catch (error) { results[path] = error.name + \\\": \\\" + error.message }\\n}\\nconst see = await fetch(\\\"https://api.example.com/r303\\\", { method: \\\"HEAD\\\" })\\nresults.seeOtherHead = see.status\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"r301\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r302\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r303\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"GET\",\n    \"body\": null,\n    \"auth\": \"Bearer x\"\n  },\n  \"r307\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"r308\": {\n    \"redirected\": true,\n    \"url\": \"https://api.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": \"Bearer x\"\n  },\n  \"cross\": {\n    \"redirected\": true,\n    \"url\": \"https://other.example.com/echo\",\n    \"method\": \"POST\",\n    \"body\": \"payload\",\n    \"auth\": null\n  },\n  \"to-ftp\": \"Error: fetch cannot follow a redirect to ftp: URLs.\",\n  \"to-creds\": \"Error: fetch cannot follow a redirect with credentials in the URL.\",\n  \"loop/0\": \"Error: Too many redirects (more than 20)\",\n  \"no-location\": [\n    302,\n    false\n  ],\n  \"seeOtherHead\": 200\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"const results = {}\\nfor (const [label, url] of Object.entries({ file: \\\"file:///etc/passwd\\\", creds: \\\"https://user:pw@api.example.com/echo\\\", unanswered: \\\"https://unanswered.example.com/\\\" })) {\\n  try { const r = await fetch(url); results[label] = [r.status, await r.text()] } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry { await (await fetch(\\\"https://api.example.com/bad-json\\\")).json() } catch (error) { results.badJson = error.name }\\nfor (const [label, init] of Object.entries({\\n  dateBody: { method: \\\"POST\\\", body: new Date(0) },\\n  mapHeaders: { headers: new Map([[\\\"a\\\", \\\"b\\\"]]) },\\n  headersObj: { headers: new Headers({ \\\"x-h\\\": \\\"1\\\" }) },\\n  regexBody: { method: \\\"POST\\\", body: /re/g },\\n  setBody: { method: \\\"POST\\\", body: new Set([1]) },\\n  urlBody: { method: \\\"POST\\\", body: new URL(\\\"https://x.example.com/\\\") },\\n  arrayBody: { method: \\\"POST\\\", body: [1, 2] },\\n  fnInit: { method: \\\"POST\\\", body: () => 1 },\\n  promiseInit: { method: \\\"POST\\\", body: Promise.resolve(1) },\\n  errorBody: { method: \\\"POST\\\", body: new TypeError(\\\"bad\\\", { cause: new Error(\\\"root\\\") }) },\\n  deep: { method: \\\"POST\\\", body: JSON.parse(\\\"[\\\".repeat(40) + \\\"]\\\".repeat(40)) },\\n})) {\\n  try { const r = await fetch(\\\"https://api.example.com/echo\\\", init); results[label] = (await r.json()).body } catch (error) { results[label] = error.name + \\\": \\\" + error.message }\\n}\\ntry {\\n  const looped = { headers: {} }\\n  looped.headers.self = looped\\n  await fetch(\\\"https://api.example.com/echo\\\", looped)\\n} catch (error) { results.circular = error.name + \\\": \\\" + error.message }\\nreturn results\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1572,7 +1572,7 @@
         "url": "https://api.example.com/bad-json"
       },
       {
-        "body": "Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)",
+        "body": "<date> 00:00:00 GMT+0000 (Coordinated Universal Time)",
         "headers": {},
         "kind": "other",
         "method": "POST",
@@ -1791,7 +1791,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -1890,6 +1890,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_8>",
           "model": {
@@ -1902,10 +1937,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -1921,10 +1956,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
+          "seq": 8,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -1933,45 +1968,10 @@
       {
         "created": "<time>",
         "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 8,
-          "version": 1
-        },
-        "id": "<evt_19>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      },
-      {
-        "created": "<time>",
-        "data": {
           "assistantMessageID": "<msg_8>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"code\":\"const text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => k !== \\\"date\\\") },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}"
+          "text": "{\"code\":\"// HTTP framing headers belong to the transport, not to the response the program reads.\\nconst FRAMING = [\\\"date\\\", \\\"connection\\\", \\\"keep-alive\\\", \\\"transfer-encoding\\\", \\\"content-length\\\"]\\nconst text = await fetch(\\\"https://api.example.com/text\\\")\\nconst json = await fetch(\\\"https://api.example.com/echo?q=1#fragment\\\")\\nconst bytes = await fetch(\\\"https://api.example.com/bytes\\\")\\nconst created = await fetch(new URL(\\\"https://api.example.com/created\\\"))\\nconst missing = await fetch(\\\"https://api.example.com/missing\\\")\\nreturn {\\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\\n    contentType: text.headers.get(\\\"Content-Type\\\"), custom: text.headers.get(\\\"x-custom\\\"), has: [text.headers.has(\\\"x-custom\\\"), text.headers.has(\\\"nope\\\")],\\n    none: text.headers.get(\\\"nope\\\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\\n  json: await json.json(),\\n  bytes: Array.from(await bytes.bytes()),\\n  created: [created.status, await created.json()],\\n  missing: [missing.ok, missing.status, await missing.text()],\\n}\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -1991,7 +1991,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "code": "const text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => k !== \"date\") },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
+            "code": "// HTTP framing headers belong to the transport, not to the response the program reads.\nconst FRAMING = [\"date\", \"connection\", \"keep-alive\", \"transfer-encoding\", \"content-length\"]\nconst text = await fetch(\"https://api.example.com/text\")\nconst json = await fetch(\"https://api.example.com/echo?q=1#fragment\")\nconst bytes = await fetch(\"https://api.example.com/bytes\")\nconst created = await fetch(new URL(\"https://api.example.com/created\"))\nconst missing = await fetch(\"https://api.example.com/missing\")\nreturn {\n  text: { url: text.url, status: text.status, statusText: text.statusText, ok: text.ok, redirected: text.redirected, body: await text.text(),\n    contentType: text.headers.get(\"Content-Type\"), custom: text.headers.get(\"x-custom\"), has: [text.headers.has(\"x-custom\"), text.headers.has(\"nope\")],\n    none: text.headers.get(\"nope\"), entries: text.headers.entries().filter(([k]) => !FRAMING.includes(k)) },\n  json: await json.json(),\n  bytes: Array.from(await bytes.bytes()),\n  created: [created.status, await created.json()],\n  missing: [missing.ok, missing.status, await missing.text()],\n}"
           },
           "sessionID": "<ses_1>"
         },
@@ -2029,7 +2029,7 @@
           "assistantMessageID": "<msg_8>",
           "content": [
             {
-              "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
+              "text": "{\n  \"text\": {\n    \"url\": \"https://api.example.com/text\",\n    \"status\": 200,\n    \"statusText\": \"OK\",\n    \"ok\": true,\n    \"redirected\": false,\n    \"body\": \"hello text\",\n    \"contentType\": \"text/plain\",\n    \"custom\": \"yes\",\n    \"has\": [\n      true,\n      false\n    ],\n    \"none\": null,\n    \"entries\": [\n      [\n        \"content-type\",\n        \"text/plain\"\n      ],\n      [\n        \"x-custom\",\n        \"yes\"\n      ]\n    ]\n  },\n  \"json\": {\n    \"method\": \"GET\",\n    \"url\": \"https://api.example.com/echo?q=1\",\n    \"headers\": {},\n    \"body\": null\n  },\n  \"bytes\": [\n    65,\n    66\n  ],\n  \"created\": [\n    201,\n    {\n      \"id\": 7\n    }\n  ],\n  \"missing\": [\n    false,\n    404,\n    \"{\\\"error\\\":\\\"missing\\\"}\"\n  ]\n}",
               "type": "text"
             }
           ],
@@ -2247,7 +2247,7 @@
           "assistantMessageID": "<msg_7>",
           "content": [
             {
-              "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"hello text\"\n  ]\n}",
+              "text": "{\n  \"post\": {\n    \"method\": \"POST\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"authorization\": \"Bearer secret\",\n      \"content-type\": \"application/json\"\n    },\n    \"body\": {\n      \"hello\": \"world\"\n    }\n  },\n  \"form\": {\n    \"method\": \"PUT\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {\n      \"content-type\": \"application/x-www-form-urlencoded;charset=UTF-8\"\n    },\n    \"body\": \"a=1&b=two\"\n  },\n  \"binary\": {\n    \"method\": \"PATCH\",\n    \"url\": \"https://api.example.com/echo\",\n    \"headers\": {},\n    \"body\": \"bytes body\"\n  },\n  \"head\": [\n    200,\n    \"\"\n  ]\n}",
               "type": "text"
             }
           ],
@@ -2723,7 +2723,7 @@
           "assistantMessageID": "<msg_5>",
           "content": [
             {
-              "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
+              "text": "{\n  \"file\": \"Error: fetch cannot be used for filesystem access.\",\n  \"creds\": \"TypeError: fetch cannot be used with credentials in the URL.\",\n  \"unanswered\": [\n    599,\n    \"{\\\"error\\\":\\\"conformance: network access denied\\\"}\"\n  ],\n  \"badJson\": \"SyntaxError\",\n  \"dateBody\": \"<date> 00:00:00 GMT+0000 (Coordinated Universal Time)\",\n  \"mapHeaders\": null,\n  \"headersObj\": null,\n  \"regexBody\": \"/re/g\",\n  \"setBody\": \"[object Set]\",\n  \"urlBody\": \"https://x.example.com/\",\n  \"arrayBody\": 12,\n  \"fnInit\": \"TypeError: Argument 2 to fetch contains a function, which cannot be passed to an extension.\",\n  \"promiseInit\": \"TypeError: Argument 2 to fetch contains an un-awaited Promise, which cannot be passed to an extension.\",\n  \"errorBody\": \"TypeError: bad\",\n  \"deep\": \"TypeError: Argument 2 to fetch exceeds the maximum value depth of 32.\",\n  \"circular\": \"TypeError: Object assignment result contains a circular value.\"\n}",
               "type": "text"
             }
           ],

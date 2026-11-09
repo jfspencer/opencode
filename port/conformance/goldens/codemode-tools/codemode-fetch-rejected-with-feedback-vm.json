@@ -174,7 +174,7 @@
         "data": [
           {
             "id": "<msg_4>",
-            "outcome": "succeeded",
+            "outcome": "interrupted",
             "time": {
               "created": "<time>"
             },
@@ -184,49 +184,14 @@
             "agent": "build",
             "content": [
               {
-                "text": "Done.",
-                "type": "text"
-              }
-            ],
-            "cost": 0,
-            "finish": "stop",
-            "id": "<msg_5>",
-            "model": {
-              "id": "deepseek/deepseek-v4.1-flash-1017",
-              "providerID": "openrouter",
-              "variant": "max"
-            },
-            "rawFinish": "stop",
-            "time": {
-              "completed": "<time>",
-              "created": "<time>",
-              "streamed": "<time>"
-            },
-            "tokens": {
-              "cache": {
-                "read": 0,
-                "write": 0
-              },
-              "input": 100,
-              "output": 10,
-              "reasoning": 0
-            },
-            "type": "assistant"
-          },
-          {
-            "agent": "build",
-            "content": [
-              {
                 "executed": false,
                 "id": "call_conformance_0",
                 "name": "execute",
                 "state": {
-                  "content": [
-                    {
-                      "text": "Error: ",
-                      "type": "text"
-                    }
-                  ],
+                  "error": {
+                    "message": "The user declined this tool call",
+                    "type": "aborted"
+                  },
                   "input": {
                     "code": "try { await fetch(\"https://api.example.com/created\") } catch (error) { return error.name + \": \" + error.message }"
                   },
@@ -240,10 +205,9 @@
                         "status": "error",
                         "tool": "fetch"
                       }
-                    ],
-                    "truncated": false
+                    ]
                   },
-                  "status": "completed"
+                  "status": "error"
                 },
                 "time": {
                   "completed": "<time>",
@@ -254,7 +218,11 @@
               }
             ],
             "cost": 0,
-            "finish": "tool-calls",
+            "error": {
+              "message": "Step interrupted",
+              "type": "aborted"
+            },
+            "finish": "error",
             "id": "<msg_3>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
@@ -379,7 +347,7 @@
         "data": [
           {
             "id": "<msg_4>",
-            "outcome": "succeeded",
+            "outcome": "interrupted",
             "time": {
               "created": "<time>"
             },
@@ -389,49 +357,14 @@
             "agent": "build",
             "content": [
               {
-                "text": "Done.",
-                "type": "text"
-              }
-            ],
-            "cost": 0,
-            "finish": "stop",
-            "id": "<msg_5>",
-            "model": {
-              "id": "deepseek/deepseek-v4.1-flash-1017",
-              "providerID": "openrouter",
-              "variant": "max"
-            },
-            "rawFinish": "stop",
-            "time": {
-              "completed": "<time>",
-              "created": "<time>",
-              "streamed": "<time>"
-            },
-            "tokens": {
-              "cache": {
-                "read": 0,
-                "write": 0
-              },
-              "input": 100,
-              "output": 10,
-              "reasoning": 0
-            },
-            "type": "assistant"
-          },
-          {
-            "agent": "build",
-            "content": [
-              {
                 "executed": false,
                 "id": "call_conformance_0",
                 "name": "execute",
                 "state": {
-                  "content": [
-                    {
-                      "text": "Error: ",
-                      "type": "text"
-                    }
-                  ],
+                  "error": {
+                    "message": "The user declined this tool call",
+                    "type": "aborted"
+                  },
                   "input": {
                     "code": "try { await fetch(\"https://api.example.com/created\") } catch (error) { return error.name + \": \" + error.message }"
                   },
@@ -445,10 +378,9 @@
                         "status": "error",
                         "tool": "fetch"
                       }
-                    ],
-                    "truncated": false
+                    ]
                   },
-                  "status": "completed"
+                  "status": "error"
                 },
                 "time": {
                   "completed": "<time>",
@@ -459,7 +391,11 @@
               }
             ],
             "cost": 0,
-            "finish": "tool-calls",
+            "error": {
+              "message": "Step interrupted",
+              "type": "aborted"
+            },
+            "finish": "error",
             "id": "<msg_3>",
             "model": {
               "id": "deepseek/deepseek-v4.1-flash-1017",
@@ -572,7 +508,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -611,7 +547,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -635,83 +571,6 @@
             },
             {
               "content": "Error: The user rejected fetching https://api.example.com/text: Not that one.",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "tools": {
-            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "chat",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      },
-      {
-        "body": {
-          "max_completion_tokens": 256000,
-          "messages": [
-            {
-              "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
-              },
-              "role": "system"
-            },
-            {
-              "content": "Fetch with approval",
-              "role": "user"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"try { await fetch(\\\"https://api.example.com/text\\\") } catch (error) { return error.name + \\\": \\\" + error.message }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "Error: The user rejected fetching https://api.example.com/text: Not that one.",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"try { await fetch(\\\"https://api.example.com/created\\\") } catch (error) { return error.name + \\\": \\\" + error.message }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "Error: ",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -888,7 +747,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -987,6 +846,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -999,10 +893,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -1018,41 +912,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -1060,7 +919,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -1392,12 +1251,10 @@
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_3>",
-          "content": [
-            {
-              "text": "Error: ",
-              "type": "text"
-            }
-          ],
+          "error": {
+            "message": "The user declined this tool call",
+            "type": "aborted"
+          },
           "executed": false,
           "id": "call_conformance_0",
           "metadata": {
@@ -1410,8 +1267,7 @@
                 "status": "error",
                 "tool": "fetch"
               }
-            ],
-            "truncated": false
+            ]
           },
           "sessionID": "<ses_1>"
         },
@@ -1424,14 +1280,17 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.tool.success"
+        "type": "session.tool.failed"
       },
       {
         "created": "<time>",
         "data": {
           "assistantMessageID": "<msg_3>",
           "cost": 0,
-          "finish": "tool-calls",
+          "error": {
+            "message": "Step interrupted",
+            "type": "aborted"
+          },
           "rawFinish": "tool_calls",
           "sessionID": "<ses_1>",
           "tokens": {
@@ -1453,7 +1312,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.step.ended"
+        "type": "session.step.failed"
       },
       {
         "created": "<time>",
@@ -1476,15 +1335,8 @@
       {
         "created": "<time>",
         "data": {
-          "agent": "build",
-          "assistantMessageID": "<msg_5>",
-          "model": {
-            "id": "deepseek/deepseek-v4.1-flash-1017",
-            "providerID": "openrouter",
-            "variant": "max"
-          },
-          "sessionID": "<ses_1>",
-          "started": "<time>"
+          "reason": "user",
+          "sessionID": "<ses_1>"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -1492,138 +1344,7 @@
           "version": 1
         },
         "id": "<evt_38>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.step.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_5>",
-          "ordinal": 0,
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 22,
-          "version": 1
-        },
-        "id": "<evt_39>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.text.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_5>",
-          "delta": "Done.",
-          "ordinal": 0,
-          "sessionID": "<ses_1>"
-        },
-        "id": "<evt_40>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.text.delta"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_5>",
-          "ordinal": 0,
-          "sessionID": "<ses_1>",
-          "text": "Done."
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 23,
-          "version": 1
-        },
-        "id": "<evt_41>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.text.ended"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_5>",
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 24,
-          "version": 1
-        },
-        "id": "<evt_42>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.step.streamed"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "assistantMessageID": "<msg_5>",
-          "cost": 0,
-          "finish": "stop",
-          "rawFinish": "stop",
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 25,
-          "version": 1
-        },
-        "id": "<evt_43>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.step.ended"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 400,
-            "output": 40,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_44>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 26,
-          "version": 1
-        },
-        "id": "<evt_45>",
-        "type": "session.execution.succeeded"
+        "type": "session.execution.interrupted"
       }
     ]
   },

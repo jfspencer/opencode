@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,65 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
-              },
-              "role": "system"
-            },
-            {
-              "content": "Run the generators and iterators programs",
-              "role": "user"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
-            }
-          ],
-          "model": "deepseek/deepseek-v4.1-flash-1017",
-          "prompt_cache_key": "<ses_1>",
-          "reasoning": {
-            "effort": "max"
-          },
-          "stream": true,
-          "stream_options": {
-            "include_usage": true
-          },
-          "tools": {
-            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
-          },
-          "usage": {
-            "include": true
-          }
-        },
-        "headers": {
-          "authorization": "Bearer sk-or-conformance",
-          "content-type": "application/json"
-        },
-        "kind": "chat",
-        "method": "POST",
-        "url": "https://openrouter.ai/api/v1/chat/completions"
-      },
-      {
-        "body": {
-          "max_completion_tokens": 256000,
-          "messages": [
-            {
-              "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -194,25 +136,6 @@
               "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
@@ -245,7 +168,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -290,25 +213,6 @@
               "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
-            },
-            {
-              "content": null,
-              "role": "assistant",
-              "tool_calls": [
-                {
-                  "function": {
-                    "arguments": "{\"code\":\"async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \\\"end\\\" }\\nconst seen = []\\nfor await (const v of ticker(3)) seen.push(v)\\nconst ag = ticker(2)\\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\\nconst fromSync = []\\nfor await (const v of [Promise.resolve(\\\"p1\\\"), \\\"plain\\\", Promise.resolve(\\\"p2\\\")]) fromSync.push(v)\\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \\\"async\\\" + i++, done: false } : { done: true }), return: async () => { seen.push(\\\"async return\\\"); return { done: true } } } } }\\nfor await (const v of custom) seen.push(v)\\nfor await (const v of custom) { seen.push(\\\"break at \\\" + v); break }\\nasync function* delegating() { yield* ticker(2); yield* [\\\"sync-a\\\", Promise.resolve(\\\"sync-b\\\")]; yield* custom }\\nconst delegated = []\\nfor await (const v of delegating()) delegated.push(v)\\nasync function* withFinally() { try { yield \\\"x\\\"; yield \\\"y\\\" } finally { seen.push(\\\"async gen finally\\\") } }\\nfor await (const v of withFinally()) break\\nconst queued = ticker(3)\\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\\\"stop\\\"), queued.next()])\\nasync function* thrower() { yield 1; throw new Error(\\\"async gen threw\\\") }\\nlet thrownAsync\\ntry { for await (const v of thrower()) seen.push(\\\"got \\\" + v) } catch (e) { thrownAsync = e.message }\\nconst ag2 = ticker(5)\\nawait ag2.next()\\nconst throwIn = await ag2.throw(new Error(\\\"injected\\\")).catch((e) => e.message)\\nlet syncSpread\\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \\\": \\\" + e.message }\\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\\\"yielded rejection\\\")) })()\\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }\"}",
-                    "name": "execute"
-                  },
-                  "id": "call_conformance_0",
-                  "type": "function"
-                }
-              ]
-            },
-            {
-              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
-              "role": "tool",
-              "tool_call_id": "call_conformance_0"
             }
           ],
           "model": "deepseek/deepseek-v4.1-flash-1017",
@@ -341,7 +245,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -402,7 +306,103 @@
               ]
             },
             {
-              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
+              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object AsyncGenerator]\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Run the generators and iterators programs",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* counter(limit) { let i = 0; while (i < limit) { const got = yield i++; if (got) i += got } return \\\"done\\\" }\\nconst g = counter(10)\\nconst steps = [g.next(), g.next(), g.next(5), g.next(), g.return(\\\"early\\\"), g.next()]\\nfunction* withFinally() { try { yield 1; yield 2 } finally { yield \\\"cleanup\\\" } }\\nconst wf = withFinally()\\nconst wfSteps = [wf.next(), wf.return(\\\"r\\\"), wf.next(), wf.next()]\\nfunction* catcher() { while (true) { try { yield \\\"waiting\\\" } catch (e) { yield \\\"caught \\\" + e } } }\\nconst c = catcher()\\nconst cSteps = [c.next(), c.throw(\\\"boom\\\"), c.next(), c.throw(\\\"again\\\")]\\nfunction* thrower() { yield 1 }\\nconst th = thrower()\\nlet thrownOut\\ntry { th.throw(new Error(\\\"not started\\\")) } catch (e) { thrownOut = e.message }\\nconst thAfter = th.next()\\nfunction* inner() { const x = yield \\\"inner1\\\"; yield \\\"inner got \\\" + x; return \\\"inner result\\\" }\\nfunction* outer() { const r = yield* inner(); yield \\\"outer got \\\" + r; yield* [10, 20]; yield* \\\"ab\\\" }\\nconst o = outer()\\nconst oSteps = [o.next(), o.next(\\\"X\\\"), o.next(), o.next(), o.next(), o.next(), o.next(), o.next()]\\nconst genExpr = function* named() { yield named.name }\\nconst objGen = { *items() { yield* [1, 2] } }\\nfunction* fib() { let [a, b] = [0, 1]; while (true) { yield a; [a, b] = [b, a + b] } }\\nconst firstFibs = []\\nfor (const n of fib()) { if (n > 50) break; firstFibs.push(n) }\\nconst isIter = typeof g[Symbol.iterator] === \\\"function\\\" && g[Symbol.iterator]() === g\\nfunction* argsGen(a, { b } = {}) { yield a + b }\\nlet badArg\\ntry { argsGen(1, null) } catch (e) { badArg = e.name }\\nconst running = (function* self() { yield 1 })()\\nreturn { steps, wfSteps, cSteps, thrownOut, thAfter, oSteps, genExpr: [...genExpr()], objGen: [...objGen.items()], firstFibs, isIter, badArg, str: Object.prototype.toString.call(g), from: Array.from(counter(3), (v, i) => v * 10 + i), instance: g instanceof counter, json: JSON.stringify(g) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"steps\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 7,\n      \"done\": false\n    },\n    {\n      \"value\": 8,\n      \"done\": false\n    },\n    {\n      \"value\": \"early\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"wfSteps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"cleanup\",\n      \"done\": false\n    },\n    {\n      \"value\": \"r\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"cSteps\": [\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught boom\",\n      \"done\": false\n    },\n    {\n      \"value\": \"waiting\",\n      \"done\": false\n    },\n    {\n      \"value\": \"caught again\",\n      \"done\": false\n    }\n  ],\n  \"thrownOut\": \"not started\",\n  \"thAfter\": {\n    \"done\": true\n  },\n  \"oSteps\": [\n    {\n      \"value\": \"inner1\",\n      \"done\": false\n    },\n    {\n      \"value\": \"inner got X\",\n      \"done\": false\n    },\n    {\n      \"value\": \"outer got inner result\",\n      \"done\": false\n    },\n    {\n      \"value\": 10,\n      \"done\": false\n    },\n    {\n      \"value\": 20,\n      \"done\": false\n    },\n    {\n      \"value\": \"a\",\n      \"done\": false\n    },\n    {\n      \"value\": \"b\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"genExpr\": [\n    \"named\"\n  ],\n  \"objGen\": [\n    1,\n    2\n  ],\n  \"firstFibs\": [\n    0,\n    1,\n    1,\n    2,\n    3,\n    5,\n    8,\n    13,\n    21,\n    34\n  ],\n  \"isIter\": true,\n  \"badArg\": \"TypeError\",\n  \"str\": \"[object Generator]\",\n  \"from\": [\n    0,\n    11,\n    22\n  ],\n  \"instance\": true,\n  \"json\": \"{}\"\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"function* reentrant() { yield gen.next() }\\nconst gen = reentrant()\\nlet reentry\\ntry { gen.next() } catch (e) { reentry = e.name + \\\": \\\" + e.message }\\nfunction* throwsInside() { yield 1; throw new Error(\\\"gen threw\\\") }\\nconst ti = throwsInside()\\nti.next()\\nlet insideErr\\ntry { ti.next() } catch (e) { insideErr = e.message }\\nconst afterThrow = ti.next()\\nfunction* returnsThrow() { try { yield 1 } finally { throw new Error(\\\"finally threw\\\") } }\\nconst rt = returnsThrow()\\nrt.next()\\nlet finallyErr\\ntry { rt.return() } catch (e) { finallyErr = e.message }\\nconst closing = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => 5 } } }\\nlet badReturn\\ntry { for (const x of closing) break } catch (e) { badReturn = e.name + \\\": \\\" + e.message }\\nconst throwsReturn = { [Symbol.iterator]() { return { next: () => ({ value: 1, done: false }), return: () => { throw new Error(\\\"return threw\\\") } } } }\\nlet consumerWins\\ntry { for (const x of throwsReturn) throw new Error(\\\"consumer error\\\") } catch (e) { consumerWins = e.message }\\nlet cleanupThrow\\ntry { for (const x of throwsReturn) break } catch (e) { cleanupThrow = e.message }\\nconst yieldStarReturn = (function* () { const r = yield* { [Symbol.iterator]() { let i = 0; return { next: () => (i++ < 1 ? { value: \\\"from custom\\\", done: false } : { value: \\\"custom result\\\", done: true }) } } }; yield r })()\\nreturn { reentry, insideErr, afterThrow, finallyErr, badReturn, consumerWins, cleanupThrow, yieldStar: [...yieldStarReturn] }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"reentry\": \"TypeError: Generator is already running.\",\n  \"insideErr\": \"gen threw\",\n  \"afterThrow\": {\n    \"done\": true\n  },\n  \"finallyErr\": \"finally threw\",\n  \"badReturn\": \"TypeError: Iterator return() result must be an object.\",\n  \"consumerWins\": \"consumer error\",\n  \"cleanupThrow\": \"return threw\",\n  \"yieldStar\": [\n    \"from custom\",\n    \"custom result\"\n  ]\n}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"code\":\"async function* ticker(n) { for (let i = 0; i < n; i++) { await null; yield i } return \\\"end\\\" }\\nconst seen = []\\nfor await (const v of ticker(3)) seen.push(v)\\nconst ag = ticker(2)\\nconst manual = [await ag.next(), await ag.next(), await ag.next(), await ag.next()]\\nconst fromSync = []\\nfor await (const v of [Promise.resolve(\\\"p1\\\"), \\\"plain\\\", Promise.resolve(\\\"p2\\\")]) fromSync.push(v)\\nconst custom = { [Symbol.asyncIterator]() { let i = 0; return { next: async () => (i < 2 ? { value: \\\"async\\\" + i++, done: false } : { done: true }), return: async () => { seen.push(\\\"async return\\\"); return { done: true } } } } }\\nfor await (const v of custom) seen.push(v)\\nfor await (const v of custom) { seen.push(\\\"break at \\\" + v); break }\\nasync function* delegating() { yield* ticker(2); yield* [\\\"sync-a\\\", Promise.resolve(\\\"sync-b\\\")]; yield* custom }\\nconst delegated = []\\nfor await (const v of delegating()) delegated.push(v)\\nasync function* withFinally() { try { yield \\\"x\\\"; yield \\\"y\\\" } finally { seen.push(\\\"async gen finally\\\") } }\\nfor await (const v of withFinally()) break\\nconst queued = ticker(3)\\nconst parallel = await Promise.all([queued.next(), queued.next(), queued.return(\\\"stop\\\"), queued.next()])\\nasync function* thrower() { yield 1; throw new Error(\\\"async gen threw\\\") }\\nlet thrownAsync\\ntry { for await (const v of thrower()) seen.push(\\\"got \\\" + v) } catch (e) { thrownAsync = e.message }\\nconst ag2 = ticker(5)\\nawait ag2.next()\\nconst throwIn = await ag2.throw(new Error(\\\"injected\\\")).catch((e) => e.message)\\nlet syncSpread\\ntry { [...ticker(1)] } catch (e) { syncSpread = e.name + \\\": \\\" + e.message }\\nconst rejectedYield = (async function* () { yield Promise.reject(new Error(\\\"yielded rejection\\\")) })()\\nconst rejectedStep = await rejectedYield.next().catch((e) => e.message)\\nreturn { seen, manual, fromSync, delegated, parallel, thrownAsync, throwIn, syncSpread, rejectedStep, tag: Object.prototype.toString.call(ag) }\"}",
+                    "name": "execute"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object AsyncGenerator]\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -421,7 +421,7 @@
               ]
             },
             {
-              "content": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(codemode.iterator)\"\n}",
+              "content": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(Symbol.iterator)\"\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -598,7 +598,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -697,6 +697,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -709,10 +744,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -728,41 +763,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -770,7 +770,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -1190,7 +1190,7 @@
           "assistantMessageID": "<msg_4>",
           "content": [
             {
-              "text": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object Generator]\"\n}",
+              "text": "{\n  \"seen\": [\n    0,\n    1,\n    2,\n    \"async0\",\n    \"async1\",\n    \"break at async0\",\n    \"async return\",\n    \"async gen finally\",\n    \"got 1\"\n  ],\n  \"manual\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"end\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"fromSync\": [\n    \"p1\",\n    \"plain\",\n    \"p2\"\n  ],\n  \"delegated\": [\n    0,\n    1,\n    \"sync-a\",\n    \"sync-b\",\n    \"async0\",\n    \"async1\"\n  ],\n  \"parallel\": [\n    {\n      \"value\": 0,\n      \"done\": false\n    },\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": \"stop\",\n      \"done\": true\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"thrownAsync\": \"async gen threw\",\n  \"throwIn\": \"injected\",\n  \"syncSpread\": \"TypeError: Spread requires a synchronous iterable.\",\n  \"rejectedStep\": \"yielded rejection\",\n  \"tag\": \"[object AsyncGenerator]\"\n}",
               "type": "text"
             }
           ],
@@ -1367,7 +1367,7 @@
           "assistantMessageID": "<msg_5>",
           "content": [
             {
-              "text": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(codemode.iterator)\"\n}",
+              "text": "{\n  \"arr\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"first\": 1,\n  \"others\": [\n    2,\n    3,\n    4\n  ],\n  \"set\": [\n    1,\n    2,\n    3,\n    4\n  ],\n  \"map\": [\n    [\n      1,\n      \"a\"\n    ],\n    [\n      2,\n      \"b\"\n    ]\n  ],\n  \"fromEntries\": {\n    \"k1\": 1,\n    \"k2\": 2\n  },\n  \"grouped\": {\n    \"odd\": [\n      1,\n      3\n    ],\n    \"even\": [\n      2,\n      4\n    ]\n  },\n  \"mapGrouped\": [\n    [\n      false,\n      [\n        1\n      ]\n    ],\n    [\n      true,\n      [\n        2,\n        3\n      ]\n    ]\n  ],\n  \"steps\": [\n    {\n      \"value\": 1,\n      \"done\": false\n    },\n    {\n      \"value\": 2,\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"entries\": [\n    \"a\",\n    \"b\"\n  ],\n  \"maxOf\": 4,\n  \"strIter\": [\n    {\n      \"value\": \"x\",\n      \"done\": false\n    },\n    {\n      \"value\": \"y\",\n      \"done\": false\n    },\n    {\n      \"done\": true\n    }\n  ],\n  \"badIter\": \"TypeError: Iterator method must be a function.\",\n  \"badNext\": \"TypeError: Iterator next must be a function.\",\n  \"asyncSym\": \"symbol\",\n  \"symStr\": \"Symbol(Symbol.iterator)\"\n}",
               "type": "text"
             }
           ],

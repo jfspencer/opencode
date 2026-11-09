@@ -1,0 +1,309 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 04:33:36 -0700
+Subject: [PATCH] D517 code mode: declining a call inside a program ends the
+ turn
+
+Upstream: Permission.assert tunnels a plain "reject" as a defect so that no tool can catch it, and a direct call's
+decline ends the turn as a user interrupt (D213). Inside Code Mode the runtime turns every cause of a host call
+that is not an interrupt into an error the program catches: a declined tool call reaches the program as
+`Permission.DeclinedError`, a declined `fetch` as an `Error` with an empty message, and the program goes on to
+make further calls the user never saw, then the turn continues ("codemode fetch rejected with feedback" recorded
+`"Error: "` and the model's next turn).
+Fixed: the bridge records the decline and ends the host call as an interrupt, which both interpreters propagate
+uncaught (no `catch`, `finally` or rejection handler runs, and `Promise.allSettled` does not observe it); the
+execute call then fails with the decline however the program ended, so the turn ends as a direct call's decline
+does (the call fails with "The user declined this tool call", outcome "interrupted"). A rejection with feedback
+stays an error the program catches. Covers tool calls (the decline as a defect, or attached to a failure as
+SessionModelRequest finds it) and `fetch`.
+Scenarios: codemode-tools.test.ts "codemode fetch rejected with feedback", "codemode tool call rejected" (new),
+both engines
+Upstream tests: packages/core/test/tool-execute.test.ts adds tests (both engines)
+
+diff --git a/packages/core/src/codemode/decline.ts b/packages/core/src/codemode/decline.ts
+new file mode 100644
+index 0000000000..3b883b3680
+--- /dev/null
++++ b/packages/core/src/codemode/decline.ts
+@@ -0,0 +1,60 @@
++export * as CodeModeDecline from "./decline.js"
++
++import { Cause, Context, Effect, Option, Ref } from "effect"
++import { Permission } from "../permission.js"
++import { QuestionTool } from "../tool/plugin/question.js"
++
++export type Decline = Permission.DeclinedError | QuestionTool.CancelledError
++
++/** Where a program's host calls record a decline they met; one per `execute` call. */
++export class Service extends Context.Service<Service, Ref.Ref<Decline | undefined>>()("@opencode/CodeModeDecline") {}
++
++const isDecline = (value: unknown): value is Decline =>
++  value instanceof Permission.DeclinedError || value instanceof QuestionTool.CancelledError
++
++/** The decline in a cause: a defect, a failure, or a failure's attached `error` (as SessionModelRequest finds it). */
++const find = (cause: Cause.Cause<unknown>) =>
++  cause.reasons
++    .flatMap((reason) =>
++      Cause.isDieReason(reason)
++        ? [reason.defect]
++        : Cause.isFailReason(reason)
++          ? [
++              reason.error,
++              typeof reason.error === "object" && reason.error !== null
++                ? (reason.error as { error?: unknown }).error
++                : undefined,
++            ]
++          : [],
++    )
++    .find(isDecline)
++
++/**
++ * A user's plain "no" arrives as a defect so that no tool can catch it (see Permission.assert), but a program would
++ * catch the error its runtime makes of one. Record the decline instead and end the host call as an interrupt, which
++ * neither engine lets the program catch (no `catch` or `finally` runs), so the program ends there.
++ */
++export const stop = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
++  effect.pipe(
++    Effect.catchCause((cause) =>
++      Effect.gen(function* () {
++        const decline = find(cause)
++        const declined = yield* Effect.serviceOption(Service)
++        if (decline === undefined || Option.isNone(declined)) return yield* Effect.failCause(cause)
++        yield* Ref.set(declined.value, decline)
++        return yield* Effect.interrupt
++      }),
++    ),
++  )
++
++/**
++ * Fails a program's `execute` call with the decline one of its calls met, however the program ended, so the turn
++ * stops as it does for a direct call's decline.
++ */
++export const resume = <A, E, R>(declined: Ref.Ref<Decline | undefined>, effect: Effect.Effect<A, E, R>) =>
++  Effect.gen(function* () {
++    const exit = yield* Effect.exit(effect)
++    const decline = yield* Ref.get(declined)
++    if (decline !== undefined) return yield* Effect.die(decline)
++    return yield* exit
++  })
+diff --git a/packages/core/src/codemode/fetch.ts b/packages/core/src/codemode/fetch.ts
+index 2f4ca6b32f..9c0185ed17 100644
+--- a/packages/core/src/codemode/fetch.ts
++++ b/packages/core/src/codemode/fetch.ts
+@@ -4,6 +4,7 @@ import { Extension } from "@opencode/codemode"
+ import { isRecord } from "@opencode/util/record"
+ import { Effect } from "effect"
+ import { Permission } from "../permission.js"
++import { CodeModeDecline } from "./decline.js"
+ import { CodeModeExecution } from "./execution.js"
+ 
+ const TIMEOUT_MS = 30_000
+@@ -43,6 +44,8 @@ const fetch = (input: string | URL, init: Init = {}) =>
+         Effect.catchTag("Permission.CorrectedError", (error) =>
+           Effect.fail(new Error(`The user rejected fetching ${url}: ${error.feedback}`)),
+         ),
++        // A plain "no" stops the turn instead.
++        CodeModeDecline.stop,
+       )
+     // Redirects are followed here so each new URL meets the same deny rules as the webfetch tool's hops.
+     const check = (next: string) =>
+diff --git a/packages/core/src/codemode/tool.ts b/packages/core/src/codemode/tool.ts
+index c63142d07e..84027eff8c 100644
+--- a/packages/core/src/codemode/tool.ts
++++ b/packages/core/src/codemode/tool.ts
+@@ -17,6 +17,7 @@ import { toSessionError } from "../session/to-session-error.js"
+ import { definition, normalizedName } from "../tool/runtime.js"
+ import { Permission } from "../permission.js"
+ import { CodeModeCatalog } from "./catalog.js"
++import { CodeModeDecline } from "./decline.js"
+ import { CodeModeExecution } from "./execution.js"
+ import { CodeModeFetch } from "./fetch.js"
+ 
+@@ -119,6 +120,7 @@ export const create = (
+               yield* Effect.sleep(wait).pipe(Effect.andThen(lock.withPermit(publish)), Effect.forkIn(scope))
+             }),
+           )
++        const declined = yield* Ref.make<CodeModeDecline.Decline | undefined>(undefined)
+         const result = yield* runtime(inventory, (yield* Flag.enabled("codemode_vm")) ? "vm" : "legacy")
+           .execute(code)
+           .pipe(
+@@ -132,6 +134,7 @@ export const create = (
+                     // Progress replaces the execute call's own, so an inner tool's updates would hide the call rows.
+                     progress: () => Effect.void,
+                   }).pipe(
++                    CodeModeDecline.stop,
+                     Effect.mapError((error) => new ToolFailure({ message: toSessionError(error).message, error })),
+                   )
+                   const content = resultContent(executed)
+@@ -148,6 +151,8 @@ export const create = (
+             ),
+             Effect.provideService(CodeModeExecution.Service, context),
+             Effect.provideService(Permission.Service, permission),
++            Effect.provideService(CodeModeDecline.Service, declined),
++            (effect) => CodeModeDecline.resume(declined, effect),
+           )
+         const toolCalls = yield* Ref.get(calls)
+         const collected = (yield* Ref.get(files))
+diff --git a/packages/core/test/tool-execute.test.ts b/packages/core/test/tool-execute.test.ts
+index 9634963568..6b52ee06af 100644
+--- a/packages/core/test/tool-execute.test.ts
++++ b/packages/core/test/tool-execute.test.ts
+@@ -12,7 +12,7 @@ import { ConfigExperimental } from "@opencode/schema/config/experimental"
+ import { Session } from "@opencode/schema/session"
+ import { SessionMessage } from "@opencode/schema/session-message"
+ import type { Info } from "@opencode/schema/tool"
+-import { Deferred, Effect, Fiber, Layer, Schema } from "effect"
++import { Cause, Deferred, Effect, Exit, Fiber, Layer, Schema } from "effect"
+ import { TestClock } from "effect/testing"
+ import { it } from "./lib/effect"
+ import { permissionService } from "./lib/permission"
+@@ -27,6 +27,22 @@ const context = {
+ 
+ const allowAll = permissionService({ assert: () => Effect.void })
+ 
++/** A tool that records where the program called it. */
++const markTool = (marks: Array<string>): Info => ({
++  name: "mark",
++  description: "Record a mark",
++  input: Schema.Struct({ at: Schema.String }),
++  output: Schema.String,
++  execute: (input) => Effect.sync(() => (marks.push(input.at), { output: input.at })),
++})
++
++/** Whether an execute call failed with nothing but a decline, as a direct call's decline fails. */
++const declinedBy = (exit: Exit.Exit<unknown, unknown>) =>
++  Exit.isFailure(exit) &&
++  exit.cause.reasons.length === 1 &&
++  Cause.isDieReason(exit.cause.reasons[0]!) &&
++  exit.cause.reasons[0].defect instanceof Permission.DeclinedError
++
+ const createCodeMode = (tools: ReadonlyMap<string, Info>, permission = allowAll) =>
+   CodeModeTool.create({ tools }, (_, tool, input, context) => execute(tool, input, context), permission)
+ 
+@@ -245,6 +261,27 @@ describe.each([
+       expect(hits).toEqual([])
+     })
+ 
++    test("a plain rejection of fetch ends the program and fails the call with the decline", async () => {
++      hits.length = 0
++      const marks: Array<string> = []
++      const declined = permissionService({ assert: () => Effect.die(new Permission.DeclinedError()) })
++      const exit = await runFlagged(
++        createCodeMode(new Map([["mark", markTool(marks)]]), declined)
++          .execute(
++            {
++              code: `try { await fetch("${server.url.origin}/declined") } catch (e) { await tools.mark({ at: "catch" }) } finally { await tools.mark({ at: "finally" }) }
++return await tools.mark({ at: "after" })`,
++            },
++            context,
++          )
++          .pipe(Effect.exit),
++      )
++
++      expect(declinedBy(exit)).toBe(true)
++      expect(marks).toEqual([])
++      expect(hits).toEqual([])
++    })
++
+     test("a URL denied for webfetch is never requested and rejects like a failed fetch", async () => {
+       hits.length = 0
+       const url = `${server.url.origin}/denied`
+@@ -264,6 +301,98 @@ describe.each([
+     })
+   })
+ 
++  describe("declined tool calls", () => {
++    const declinedTools = (marks: Array<string>) =>
++      new Map<string, Info>([
++        ["mark", markTool(marks)],
++        [
++          "declined",
++          {
++            name: "declined",
++            description: "Fail because the user declined approval",
++            input: Schema.Struct({}),
++            output: Schema.String,
++            execute: () => Effect.die(new Permission.DeclinedError()),
++          },
++        ],
++        [
++          "wrapped",
++          {
++            name: "wrapped",
++            description: "Fail with a decline attached to a tool error",
++            input: Schema.Struct({}),
++            output: Schema.String,
++            execute: () =>
++              Effect.fail(new Tool.Error({ message: "Wrapped decline", error: new Permission.DeclinedError() })),
++          },
++        ],
++        [
++          "corrected",
++          {
++            name: "corrected",
++            description: "Fail with the user's feedback",
++            input: Schema.Struct({}),
++            output: Schema.String,
++            execute: () => Effect.fail(new Tool.Error({ message: "Use another tool" })),
++          },
++        ],
++      ])
++
++    for (const name of ["declined", "wrapped"]) {
++      test(`a ${name} call ends the program uncaught and fails the call with the decline`, async () => {
++        const marks: Array<string> = []
++        const exit = await runFlagged(
++          createCodeMode(declinedTools(marks))
++            .execute(
++              {
++                code: `try { await tools.${name}({}) } catch (e) { await tools.mark({ at: "catch" }) } finally { await tools.mark({ at: "finally" }) }
++return await tools.mark({ at: "after" })`,
++              },
++              context,
++            )
++            .pipe(Effect.exit),
++        )
++
++        expect(declinedBy(exit)).toBe(true)
++        expect(marks).toEqual([])
++      })
++    }
++
++    test("a settled-promise combinator does not observe a decline", async () => {
++      const marks: Array<string> = []
++      const exit = await runFlagged(
++        createCodeMode(declinedTools(marks))
++          .execute(
++            {
++              code: `const settled = await Promise.allSettled([tools.declined({})])
++await tools.mark({ at: settled[0].status })`,
++            },
++            context,
++          )
++          .pipe(Effect.exit),
++      )
++
++      expect(declinedBy(exit)).toBe(true)
++      expect(marks).toEqual([])
++    })
++
++    test("a rejection with feedback stays an error the program catches", async () => {
++      const marks: Array<string> = []
++      const result = await runFlagged(
++        createCodeMode(declinedTools(marks)).execute(
++          {
++            code: `try { await tools.corrected({}) } catch (e) { await tools.mark({ at: e.message }) }
++return "went on"`,
++          },
++          context,
++        ),
++      )
++
++      expect(result.output.output).toBe("went on")
++      expect(marks).toEqual(["Use another tool"])
++    })
++  })
++
+   test("execute supports callable namespace tools", async () => {
+     const callable: Info = {
+       name: "admin",

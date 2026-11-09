@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -125,7 +125,7 @@
                 {
                   "function": {
                     "arguments": {
-                      "<blob>": "3f0405d1fb5c7033a0a48e79d6fec46bd809d0476eac7bfb549483ed3cb9a80b"
+                      "<blob>": "de11ee59b985334ff455b0f9ed02fdd51d35d73185e424ef8364addf630c9d63"
                     },
                     "name": "execute"
                   },
@@ -135,7 +135,7 @@
               ]
             },
             {
-              "content": "{\n  \"getters\": [\n    \"getFullYear=2024\",\n    \"getMonth=1\",\n    \"getDate=29\",\n    \"getDay=4\",\n    \"getHours=13\",\n    \"getMinutes=45\",\n    \"getSeconds=30\",\n    \"getMilliseconds=123\",\n    \"getUTCFullYear=2024\",\n    \"getUTCMonth=1\",\n    \"getUTCDate=29\",\n    \"getUTCDay=4\",\n    \"getUTCHours=13\",\n    \"getUTCMinutes=45\",\n    \"getUTCSeconds=30\",\n    \"getUTCMilliseconds=123\",\n    \"getTimezoneOffset=0\"\n  ],\n  \"formats\": [\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"Thu Feb 29 2024\",\n    \"13:45:30 GMT+0000 (Coordinated Universal Time)\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"2/29/2024, 1:45:30 PM\",\n    \"2/29/2024\",\n    \"1:45:30 PM\"\n  ],\n  \"numbers\": [\n    1709214330123,\n    1709214330123,\n    1709214330123,\n    5147130123,\n    \"2024-02-29 13:45:30.123Z1\",\n    \"2024-02-29 13:45:30.123Z\"\n  ],\n  \"constructors\": [\n    \"1970-01-01 00:00:00.000Z\",\n    1588748889000,\n    \"2020-05-06 00:00:00.000Z\",\n    \"2020-01-31 01:02:03.004Z\",\n    \"2020-01-01 00:00:00.000Z\",\n    true,\n    1000,\n    null\n  ],\n  \"constructor object\": \"1970-01-02 00:00:00.000Z\",\n  \"constructor string object\": \"2001-02-03 00:00:00.000Z\",\n  \"extra components ignored\": \"2020-02-02 03:04:05.006Z\",\n  \"invalid\": [\n    \"NaN\",\n    \"Invalid Date\",\n    null,\n    \"NaN\",\n    \"{\\\"x\\\":null}\"\n  ],\n  \"invalid toISOString\": \"!RangeError: Invalid time value.\",\n  \"statics\": [\n    \"946684800000\",\n    \"946684800000\",\n    \"946684800000\",\n    \"NaN\",\n    \"number\",\n    \"Date\",\n    \"7\"\n  ],\n  \"Date() string\": \"string\",\n  \"Date.now positive\": true,\n  \"new Date() now\": [\n    true,\n    true\n  ],\n  \"setters\": [\n    [\n      86400000,\n      86400005,\n      86400006,\n      86407008,\n      86409008,\n      87011012,\n      87191012,\n      137716017,\n      152116017,\n      1620916017,\n      1707316017,\n      13544116017,\n      18814516017,\n      1896286516017,\n      1927822516017\n    ],\n    \"2031-02-02 18:15:16.017Z\"\n  ],\n  \"setters on invalid\": [\n    \"NaN\",\n    \"NaN\",\n    \"1577836800000\",\n    \"2020-01-01 00:00:00.000Z\"\n  ],\n  \"setTime invalid\": \"NaN\",\n  \"setter coercion order\": [\n    [\n      \"h\",\n      \"m\"\n    ],\n    \"1970-01-01 01:02:00.000Z\"\n  ],\n  \"receiver\": \"!TypeError: Date.prototype.getTime called on incompatible receiver a data object.\",\n  \"instanceof\": [\n    true,\n    \"[object Date]\",\n    true\n  ],\n  \"compare\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"clone and mutate\": [\n    1999,\n    2024\n  ]\n}",
+              "content": "{\n  \"getters\": [\n    \"getFullYear=2024\",\n    \"getMonth=1\",\n    \"getDate=29\",\n    \"getDay=4\",\n    \"getHours=13\",\n    \"getMinutes=45\",\n    \"getSeconds=30\",\n    \"getMilliseconds=123\",\n    \"getUTCFullYear=2024\",\n    \"getUTCMonth=1\",\n    \"getUTCDate=29\",\n    \"getUTCDay=4\",\n    \"getUTCHours=13\",\n    \"getUTCMinutes=45\",\n    \"getUTCSeconds=30\",\n    \"getUTCMilliseconds=123\",\n    \"getTimezoneOffset=0\"\n  ],\n  \"formats\": [\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"<date>\",\n    \"13:45:30 GMT+0000 (Coordinated Universal Time)\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"2/29/2024, 1:45:30 PM\",\n    \"2/29/2024\",\n    \"1:45:30 PM\"\n  ],\n  \"numbers\": [\n    1709214330123,\n    1709214330123,\n    1709214330123,\n    5147130123,\n    \"2024-02-29 13:45:30.123Z1\",\n    \"2024-02-29 13:45:30.123Z\"\n  ],\n  \"constructors\": [\n    \"1970-01-01 00:00:00.000Z\",\n    1588748889000,\n    \"2020-05-06 00:00:00.000Z\",\n    \"2020-01-31 01:02:03.004Z\",\n    \"2020-01-01 00:00:00.000Z\",\n    true,\n    1000,\n    null\n  ],\n  \"constructor object\": \"1970-01-02 00:00:00.000Z\",\n  \"constructor string object\": \"2001-02-03 00:00:00.000Z\",\n  \"extra components ignored\": \"2020-02-02 03:04:05.006Z\",\n  \"invalid\": [\n    \"NaN\",\n    \"Invalid Date\",\n    null,\n    \"NaN\",\n    \"{\\\"x\\\":null}\"\n  ],\n  \"invalid toISOString\": \"!RangeError: Invalid time value.\",\n  \"statics\": [\n    \"946684800000\",\n    \"946684800000\",\n    \"946684800000\",\n    \"NaN\",\n    \"number\",\n    \"Date\",\n    \"7\"\n  ],\n  \"Date() string\": \"string\",\n  \"Date.now positive\": true,\n  \"new Date() now\": [\n    true,\n    true\n  ],\n  \"setters\": [\n    [\n      86400000,\n      86400005,\n      86400006,\n      86407008,\n      86409008,\n      87011012,\n      87191012,\n      137716017,\n      152116017,\n      1620916017,\n      1707316017,\n      13544116017,\n      18814516017,\n      1896286516017,\n      1927822516017\n    ],\n    \"2031-02-02 18:15:16.017Z\"\n  ],\n  \"setters on invalid\": [\n    \"NaN\",\n    \"NaN\",\n    \"1577836800000\",\n    \"2020-01-01 00:00:00.000Z\"\n  ],\n  \"setTime invalid\": \"NaN\",\n  \"setter coercion order\": [\n    [\n      \"h\",\n      \"m\"\n    ],\n    \"1970-01-01 01:02:00.000Z\"\n  ],\n  \"receiver\": \"!TypeError: Date.prototype.getTime called on incompatible receiver a data object.\",\n  \"instanceof\": [\n    true,\n    \"[object Date]\",\n    true\n  ],\n  \"compare\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"clone and mutate\": [\n    1999,\n    2024\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_0"
             }
@@ -312,7 +312,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -411,6 +411,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -423,10 +458,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -442,10 +477,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
+          "seq": 8,
           "version": 1
         },
-        "id": "<evt_17>",
+        "id": "<evt_19>",
         "location": {
           "directory": "<project>"
         },
@@ -454,46 +489,11 @@
       {
         "created": "<time>",
         "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
-          "seq": 8,
-          "version": 1
-        },
-        "id": "<evt_19>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.renamed"
-      },
-      {
-        "created": "<time>",
-        "data": {
           "assistantMessageID": "<msg_2>",
           "id": "call_0",
           "sessionID": "<ses_1>",
           "text": {
-            "<blob>": "3f0405d1fb5c7033a0a48e79d6fec46bd809d0476eac7bfb549483ed3cb9a80b"
+            "<blob>": "de11ee59b985334ff455b0f9ed02fdd51d35d73185e424ef8364addf630c9d63"
           }
         },
         "durable": {
@@ -514,7 +514,9 @@
           "executed": false,
           "id": "call_0",
           "input": {
-            "code": "const r = {}\nconst show = (v) => v === undefined ? \"<undefined>\" : typeof v === \"number\" && (!Number.isFinite(v) || Object.is(v, -0)) ? \"<\" + (Object.is(v, -0) ? \"-0\" : String(v)) + \">\" : v\nconst t = (k, f) => { try { r[k] = show(f()) } catch (e) { r[k] = \"!\" + (e && e.name) + \": \" + (e && e.message) } }\nconst num = (v) => typeof v === \"number\" ? (Number.isNaN(v) ? \"NaN\" : Object.is(v, -0) ? \"-0\" : String(v)) : v\n// ISO timestamps are kept readable: the recorder would otherwise mask them as wall-clock times.\nconst D = (v) => typeof v === \"string\" ? v.replace(/(\\d{4}-\\d{2}-\\d{2})T(\\d{2}:)/g, \"$1 $2\") : Array.isArray(v) ? v.map(D) : v\nconst d = new Date(Date.UTC(2024, 1, 29, 13, 45, 30, 123))\nt(\"getters\", () => [\"getFullYear\", \"getMonth\", \"getDate\", \"getDay\", \"getHours\", \"getMinutes\", \"getSeconds\", \"getMilliseconds\", \"getUTCFullYear\", \"getUTCMonth\", \"getUTCDate\", \"getUTCDay\", \"getUTCHours\", \"getUTCMinutes\", \"getUTCSeconds\", \"getUTCMilliseconds\", \"getTimezoneOffset\"].map((name) => name + \"=\" + d[name]()))\nt(\"formats\", () => D([d.toISOString(), d.toJSON(), String(d), d.toString(), d.toDateString(), d.toTimeString(), d.toUTCString(), d.toGMTString(), d.toLocaleString(), d.toLocaleDateString(), d.toLocaleTimeString()]))\nt(\"numbers\", () => D([d.getTime(), d.valueOf(), +d, d - new Date(Date.UTC(2024, 0, 1)), d + 1, `${d}`]))\nt(\"constructors\", () => D([new Date(0).toISOString(), new Date(\"<iso-time>\").getTime(), new Date(\"2020-05-06\").toISOString(), new Date(2020, 0, 31, 1, 2, 3, 4).toISOString(), new Date(2020, 0).toISOString(), new Date(d).getTime() === d.getTime(), new Date(1e3).getTime(), new Date(\"1e3\").getTime()]))\nt(\"constructor object\", () => D(new Date({ valueOf() { return 86400000 } }).toISOString()))\nt(\"constructor string object\", () => D(new Date({ toString() { return \"<iso-time>\" }, valueOf() { return {} } }).toISOString()))\nt(\"extra components ignored\", () => D(new Date(2020, 1, 2, 3, 4, 5, 6, 7, 8).toISOString()))\nt(\"invalid\", () => { const x = new Date(\"nope\"); return [x.getTime(), String(x), x.toJSON(), x.getFullYear(), JSON.stringify({ x })].map(num) })\nt(\"invalid toISOString\", () => new Date(NaN).toISOString())\nt(\"statics\", () => [Date.UTC(2000, 0, 1), Date.UTC(2000), Date.parse(\"<iso-time>\"), Date.parse(\"garbage\"), typeof Date.now(), Date.name, Date.length].map(num))\nt(\"Date() string\", () => typeof Date())\nt(\"Date.now positive\", () => Date.now() > 1600000000000)\nt(\"new Date() now\", () => { const n = new Date(); return [n instanceof Date, n.getTime() > 1600000000000] })\nt(\"setters\", () => {\n  const x = new Date(Date.UTC(2020, 0, 1))\n  const out = []\n  out.push(x.setTime(86400000))\n  out.push(x.setMilliseconds(5))\n  out.push(x.setUTCMilliseconds(6))\n  out.push(x.setSeconds(7, 8))\n  out.push(x.setUTCSeconds(9))\n  out.push(x.setMinutes(10, 11, 12))\n  out.push(x.setUTCMinutes(13))\n  out.push(x.setHours(14, 15, 16, 17))\n  out.push(x.setUTCHours(18))\n  out.push(x.setDate(19))\n  out.push(x.setUTCDate(20))\n  out.push(x.setMonth(5, 6))\n  out.push(x.setUTCMonth(7))\n  out.push(x.setFullYear(2030, 1, 2))\n  out.push(x.setUTCFullYear(2031))\n  return [out, D(x.toISOString())]\n})\nt(\"setters on invalid\", () => { const x = new Date(NaN); return [x.setHours(1), x.setMonth(2), x.setFullYear(2020), D(x.toISOString())].map(num) })\nt(\"setTime invalid\", () => { const x = new Date(0); return num(x.setTime(NaN)) })\nt(\"setter coercion order\", () => { const x = new Date(0); const log = []; x.setUTCHours({ valueOf() { log.push(\"h\"); return 1 } }, { valueOf() { log.push(\"m\"); return 2 } }); return [log, D(x.toISOString())] })\nt(\"receiver\", () => Date.prototype.getTime.call({}))\nt(\"instanceof\", () => [d instanceof Date, Object.prototype.toString.call(d), Object.getPrototypeOf(d) === Date.prototype])\nt(\"compare\", () => [d > new Date(0), d < new Date(0), new Date(5) == 5, new Date(5).getTime() === 5])\nt(\"clone and mutate\", () => { const c = new Date(d); c.setUTCFullYear(1999); return [c.getUTCFullYear(), d.getUTCFullYear()] })\nreturn r"
+            "code": {
+              "<blob>": "00bccaa41d75a99ab56444ee1e9fe7310b7289cfc5ef89b5d48920c1ab327e75"
+            }
           },
           "sessionID": "<ses_1>"
         },
@@ -552,7 +554,7 @@
           "assistantMessageID": "<msg_2>",
           "content": [
             {
-              "text": "{\n  \"getters\": [\n    \"getFullYear=2024\",\n    \"getMonth=1\",\n    \"getDate=29\",\n    \"getDay=4\",\n    \"getHours=13\",\n    \"getMinutes=45\",\n    \"getSeconds=30\",\n    \"getMilliseconds=123\",\n    \"getUTCFullYear=2024\",\n    \"getUTCMonth=1\",\n    \"getUTCDate=29\",\n    \"getUTCDay=4\",\n    \"getUTCHours=13\",\n    \"getUTCMinutes=45\",\n    \"getUTCSeconds=30\",\n    \"getUTCMilliseconds=123\",\n    \"getTimezoneOffset=0\"\n  ],\n  \"formats\": [\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"Thu Feb 29 2024\",\n    \"13:45:30 GMT+0000 (Coordinated Universal Time)\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"2/29/2024, 1:45:30 PM\",\n    \"2/29/2024\",\n    \"1:45:30 PM\"\n  ],\n  \"numbers\": [\n    1709214330123,\n    1709214330123,\n    1709214330123,\n    5147130123,\n    \"2024-02-29 13:45:30.123Z1\",\n    \"2024-02-29 13:45:30.123Z\"\n  ],\n  \"constructors\": [\n    \"1970-01-01 00:00:00.000Z\",\n    1588748889000,\n    \"2020-05-06 00:00:00.000Z\",\n    \"2020-01-31 01:02:03.004Z\",\n    \"2020-01-01 00:00:00.000Z\",\n    true,\n    1000,\n    null\n  ],\n  \"constructor object\": \"1970-01-02 00:00:00.000Z\",\n  \"constructor string object\": \"2001-02-03 00:00:00.000Z\",\n  \"extra components ignored\": \"2020-02-02 03:04:05.006Z\",\n  \"invalid\": [\n    \"NaN\",\n    \"Invalid Date\",\n    null,\n    \"NaN\",\n    \"{\\\"x\\\":null}\"\n  ],\n  \"invalid toISOString\": \"!RangeError: Invalid time value.\",\n  \"statics\": [\n    \"946684800000\",\n    \"946684800000\",\n    \"946684800000\",\n    \"NaN\",\n    \"number\",\n    \"Date\",\n    \"7\"\n  ],\n  \"Date() string\": \"string\",\n  \"Date.now positive\": true,\n  \"new Date() now\": [\n    true,\n    true\n  ],\n  \"setters\": [\n    [\n      86400000,\n      86400005,\n      86400006,\n      86407008,\n      86409008,\n      87011012,\n      87191012,\n      137716017,\n      152116017,\n      1620916017,\n      1707316017,\n      13544116017,\n      18814516017,\n      1896286516017,\n      1927822516017\n    ],\n    \"2031-02-02 18:15:16.017Z\"\n  ],\n  \"setters on invalid\": [\n    \"NaN\",\n    \"NaN\",\n    \"1577836800000\",\n    \"2020-01-01 00:00:00.000Z\"\n  ],\n  \"setTime invalid\": \"NaN\",\n  \"setter coercion order\": [\n    [\n      \"h\",\n      \"m\"\n    ],\n    \"1970-01-01 01:02:00.000Z\"\n  ],\n  \"receiver\": \"!TypeError: Date.prototype.getTime called on incompatible receiver a data object.\",\n  \"instanceof\": [\n    true,\n    \"[object Date]\",\n    true\n  ],\n  \"compare\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"clone and mutate\": [\n    1999,\n    2024\n  ]\n}",
+              "text": "{\n  \"getters\": [\n    \"getFullYear=2024\",\n    \"getMonth=1\",\n    \"getDate=29\",\n    \"getDay=4\",\n    \"getHours=13\",\n    \"getMinutes=45\",\n    \"getSeconds=30\",\n    \"getMilliseconds=123\",\n    \"getUTCFullYear=2024\",\n    \"getUTCMonth=1\",\n    \"getUTCDate=29\",\n    \"getUTCDay=4\",\n    \"getUTCHours=13\",\n    \"getUTCMinutes=45\",\n    \"getUTCSeconds=30\",\n    \"getUTCMilliseconds=123\",\n    \"getTimezoneOffset=0\"\n  ],\n  \"formats\": [\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"2024-02-29 13:45:30.123Z\",\n    \"<date>\",\n    \"13:45:30 GMT+0000 (Coordinated Universal Time)\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"Thu, 29 Feb 2024 13:45:30 GMT\",\n    \"2/29/2024, 1:45:30 PM\",\n    \"2/29/2024\",\n    \"1:45:30 PM\"\n  ],\n  \"numbers\": [\n    1709214330123,\n    1709214330123,\n    1709214330123,\n    5147130123,\n    \"2024-02-29 13:45:30.123Z1\",\n    \"2024-02-29 13:45:30.123Z\"\n  ],\n  \"constructors\": [\n    \"1970-01-01 00:00:00.000Z\",\n    1588748889000,\n    \"2020-05-06 00:00:00.000Z\",\n    \"2020-01-31 01:02:03.004Z\",\n    \"2020-01-01 00:00:00.000Z\",\n    true,\n    1000,\n    null\n  ],\n  \"constructor object\": \"1970-01-02 00:00:00.000Z\",\n  \"constructor string object\": \"2001-02-03 00:00:00.000Z\",\n  \"extra components ignored\": \"2020-02-02 03:04:05.006Z\",\n  \"invalid\": [\n    \"NaN\",\n    \"Invalid Date\",\n    null,\n    \"NaN\",\n    \"{\\\"x\\\":null}\"\n  ],\n  \"invalid toISOString\": \"!RangeError: Invalid time value.\",\n  \"statics\": [\n    \"946684800000\",\n    \"946684800000\",\n    \"946684800000\",\n    \"NaN\",\n    \"number\",\n    \"Date\",\n    \"7\"\n  ],\n  \"Date() string\": \"string\",\n  \"Date.now positive\": true,\n  \"new Date() now\": [\n    true,\n    true\n  ],\n  \"setters\": [\n    [\n      86400000,\n      86400005,\n      86400006,\n      86407008,\n      86409008,\n      87011012,\n      87191012,\n      137716017,\n      152116017,\n      1620916017,\n      1707316017,\n      13544116017,\n      18814516017,\n      1896286516017,\n      1927822516017\n    ],\n    \"2031-02-02 18:15:16.017Z\"\n  ],\n  \"setters on invalid\": [\n    \"NaN\",\n    \"NaN\",\n    \"1577836800000\",\n    \"2020-01-01 00:00:00.000Z\"\n  ],\n  \"setTime invalid\": \"NaN\",\n  \"setter coercion order\": [\n    [\n      \"h\",\n      \"m\"\n    ],\n    \"1970-01-01 01:02:00.000Z\"\n  ],\n  \"receiver\": \"!TypeError: Date.prototype.getTime called on incompatible receiver a data object.\",\n  \"instanceof\": [\n    true,\n    \"[object Date]\",\n    true\n  ],\n  \"compare\": [\n    true,\n    false,\n    false,\n    true\n  ],\n  \"clone and mutate\": [\n    1999,\n    2024\n  ]\n}",
               "type": "text"
             }
           ],

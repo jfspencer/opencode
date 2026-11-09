@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -133,7 +133,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -168,7 +168,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -191,7 +191,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -245,7 +245,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -268,7 +268,7 @@
               ]
             },
             {
-              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "content": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -483,7 +483,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -582,6 +582,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -594,10 +629,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -613,41 +648,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -655,7 +655,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -721,7 +721,7 @@
           "assistantMessageID": "<msg_2>",
           "content": [
             {
-              "text": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(codemode.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\n%s and %d fmt 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
+              "text": "logged\n\nLogs:\nstring 1 true null undefined NaN 0\n{\"a\":1,\"nested\":{\"b\":[1,2,{\"c\":3}]}} [1,\"two\",[3]]\n[opaque reference] [opaque reference] [opaque reference]\nMap(1) [[\"k\",{\"v\":1}]] Set(2) [1,\"a\"] <iso-time> /re/gi\nError: logged error TypeError: typed\n[Promise (await it to get its value)] [opaque reference] Symbol(Symbol.iterator)\ninfo\n[warn] warn\n[error] error\n[debug] debug\n\nfmt and 5\n{\"name\":\"circ\",\"list\":[1]}\nhttps://example.com/x q=1 Uint8Array(2) [1,2]\n[null,null,,3]\nmulti\nline\nWeakMap { <items unknown> } WeakSet { <items unknown> } Headers {\"a\":\"1\"} 1,2 [<iso-time>] {\"d\":<iso-time>,\"u\":https://x.test/}",
               "type": "text"
             }
           ],
