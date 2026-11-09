@@ -127,7 +127,10 @@ files, all normalized.
    schemas are in any golden's provider request (`tools`).
 5. **Deterministic or it doesn't count.** Fix nondeterminism in the scenario (fixed inputs, explicit
    ordering, waiting for the state you record), or as a documented equality rule. Never paper over a real
-   behavior difference.
+   behavior difference. A file change after the location booted reaches the server through its file watcher
+   (in TS, 120–215 ms later), while the recording ends after 150 ms without events: wait for the events the
+   change causes (`ctx.until`), make the change before the location's first request (`boot: false`), or turn
+   the watcher off (`server: { filewatcher: false }`).
 6. **No network.** Everything outbound goes through the fake; the sandbox (`lib/preload.ts`) isolates HOME,
    XDG dirs, the working directory, and the terminal/shell identity.
    Each test process gets one sandbox in `/tmp` and removes it when it ends (`CONFORMANCE_KEEP_SANDBOX=1`
