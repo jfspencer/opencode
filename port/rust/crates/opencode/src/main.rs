@@ -8,17 +8,23 @@ mod collate;
 mod db;
 mod fs;
 mod fuzzysort;
+mod generate;
 mod handlers;
 mod inventory;
 mod http;
 mod id;
+mod job;
 mod json;
+mod llm;
 mod location;
+mod permission;
 mod process;
 mod project;
 mod project_icon;
 mod session;
+mod snapshot;
 mod text;
+mod tool;
 mod vcs;
 mod worktree;
 
@@ -126,7 +132,24 @@ fn format_address(address: SocketAddr) -> String {
     }
 }
 
+/// `Global` (packages/util/src/global.ts) creates its directories when the server starts.
+fn create_global_directories() {
+    let home = std::env::var("HOME").unwrap_or_default();
+    let xdg = |name: &str, fallback: &str| {
+        std::env::var(name).ok().filter(|v| !v.is_empty()).unwrap_or_else(|| format!("{home}/{fallback}"))
+    };
+    let data = format!("{}/opencode", xdg("XDG_DATA_HOME", ".local/share"));
+    let cache = format!("{}/opencode", xdg("XDG_CACHE_HOME", ".cache"));
+    let state = format!("{}/opencode", xdg("XDG_STATE_HOME", ".local/state"));
+    let config = generate::global_config();
+    for dir in [data.clone(), config, state, format!("{data}/log"), format!("{cache}/bin"), format!("{data}/repos")] {
+        let _ = std::fs::create_dir_all(dir);
+    }
+    session::instructions::global_tmp();
+}
+
 fn serve(options: Serve) {
+    create_global_directories();
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("tokio runtime");
     runtime.block_on(async move {
         let environment_password = std::env::var("OPENCODE_PASSWORD")
@@ -135,7 +158,8 @@ fn serve(options: Serve) {
         let password = environment_password.clone().unwrap_or_else(random_password);
         let db = db::open(&database_path()).unwrap_or_else(|e| usage(&e));
         let cwd = project::absolutize(".");
-        let app = Arc::new(App {
+        let app = Arc::new_cyclic(|me| App {
+            me: me.clone(),
             password: Some(password.clone()),
             cwd,
             db: Mutex::new(db),
@@ -160,6 +184,8 @@ fn serve(options: Serve) {
         if environment_password.is_none() {
             println!("server password {password}");
         }
+        // Turns a previous process left mid-way continue (restart continuity).
+        session::execution::resume_suspended(&app);
         let server = tokio::spawn(http::serve(app, listener));
         shutdown_signal().await;
         server.abort();

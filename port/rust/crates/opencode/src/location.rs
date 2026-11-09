@@ -36,6 +36,10 @@ pub struct Location {
     pub version_control: crate::vcs::Service,
     /// The location's file search (`FileSystemSearch.Service`).
     pub search: crate::fs::Search,
+    /// The location's pending permission requests (`Permission.Service`).
+    pub permission: crate::permission::Service,
+    /// The location's snapshot store (`Snapshot.Service`).
+    pub snapshot: crate::snapshot::Service,
 }
 
 #[derive(Debug, Clone)]
@@ -139,6 +143,8 @@ impl Locations {
     pub fn invalidate(&self, app: &App, reference: &LocationRef) {
         let removed = self.booted.lock().unwrap().shift_remove(&canonical(reference));
         if let Some(location) = removed {
+            // TODO(port): the order of the services' finalizers against `location.shutdown`.
+            location.permission.close(&app.bus, &location.reference());
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -192,6 +198,8 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         search: crate::fs::Search::new(&root),
         root,
         version_control,
+        permission: Default::default(),
+        snapshot: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

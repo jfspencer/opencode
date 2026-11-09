@@ -171,20 +171,30 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
 | `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
 | `handlers/` | `server/src/handlers/*.ts`, one module per area of the API (`handlers/mod.rs` routes an operation by its name) |
-| `inventory.rs` | `core/src/config*.ts`, `agent.ts`, `provider.ts`, `model.ts`, ...: what a location's config and built-in plugins register (agents, providers, models), loaded at boot |
+| `inventory.rs`, `inventory/` | `core/src/config.ts`, `config/*`, `agent.ts`, `provider.ts`, `model.ts`, `command.ts`, `skill.ts`, `reference.ts` and the plugins that fill them: config discovery, substitution, JSONC, v2 normalization; agents, providers and models (no catalog), commands, skills, references; the dropped features' endpoints answer as TS does with nothing configured. `inventory/yaml.rs` is js-yaml 3.15.2 `safeLoad`, `inventory/markdown.rs` gray-matter 4.0.3 (both checked against the real libraries); built-in texts and the plugin and integration tables are recorded from the reference (`inventory/builtin/`). `Location::inventory()` is a snapshot; a config change rebuilds it and announces what changed |
+| `vcs.rs`, `worktree.rs` | `core/src/vcs.ts`, `vcs/patch.ts`, `plugin/vcs/git.ts`, `hg.ts`, `worktree.ts`, `worktree/*`: through the git CLI |
+| `fs.rs`, `fuzzysort.rs`, `collate.rs` | `core/src/filesystem.ts`, `search.ts`, `file-watch.ts`, `ripgrep.ts` (ripgrep from `PATH` or `$XDG_CACHE_HOME/opencode/bin`, never downloaded); fuzzysort 3.1's `go` with its exact scores and tie order; `localeCompare` (UCA over the DUCET 13.0 table in `generated/collation.bin`, made by `gen/src/collation.ts` from Perl's `allkeys.txt`) |
+| `process.rs`, `text.rs`, `project_icon.rs` | `AppProcess.run` (its "Command failed" text), JS string helpers, `project/icon.ts` |
 | `db.rs` | `core/src/database`: the same pragmas, and a fresh database is bootstrapped with upstream's exact DDL and migration journal (`src/generated/database.rs`, from `schema.gen.ts` and `migration.gen.ts` by `gen/src/database.ts`), so either server opens a database the other created |
 | `bus.rs` | `core/src/bus.ts`: durable events get the next sequence of their aggregate and are projected in their commit's transaction; payloads are not retained (as with `opencode serve`); live subscribers get every event after it commits |
-| `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot and its announcements |
+| `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot, reload and eviction, and its announcements |
 | `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
+| `session/`, `llm.rs`, `llm/` | `core/src/session/*` (runner, execution, step, inbox, context, prompt, command, instructions, retry, title, move) and the OpenRouter chat-completions transport (`llm/http.rs`: proxy-aware rustls) |
+| `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
+| `job.rs`, `session/subagent.rs`, `tool/subagent.rs` | `core/src/job.ts`, `job/*`, `session/subagent-job.ts`, `subagent-completion.ts`, `background.ts`, `tool/plugin/subagent.ts`, subagent commands: a process-local job registry (one generation per job; block, background, cancel; backgrounded work kept in the durable `job` table until its completion notice is admitted); a subagent is a job running a child session, whose last answer is the tool's result or a synthetic notice that wakes the parent |
+| `snapshot.rs`, `session/revert.rs`, `session/diff.rs` | `core/src/snapshot.ts` over `git.ts`'s store operations, through the git CLI: each project worktree gets a git store under `$XDG_DATA_HOME/opencode/snapshot` that borrows the source's objects and starts from its index; captures go through a temporary index and the source's ignore rules filter what callers see. Steps record their start and end snapshots and changed files; `session/revert.ts` stages, clears and commits reverts (the next prompt or compaction commits a staged one); `session/diff.ts` diffs a turn |
+| `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
 
-Status (2026-11-08): 13 of the 18 session CRUD scenarios pass; the rest of the standard needs agents, config, the
-model loop and tools. On those 18 scenarios the release build peaks at a median 8.3 MiB per server process, the TS
-server at 311.7 MiB. Unported behavior is marked `TODO(port)` in the source; an endpoint without a handler answers 501 (after the 404 of
-an unknown session, which most session routes check first).
+Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
+system, version control, worktrees, config, agents, providers and models, and the execution loop (prompts, streaming
+over OpenRouter, titles, retries, errors, interrupts, commands, attachments, instruction entries, session moves).
+Tools, permissions, compaction, snapshots, subagents, schedules and session transfer are in progress. Release builds
+peak at about 9 to 12 MiB per server process on the passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
-(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the ledger,
-`conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
+(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
+ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` records them.
 
 ```sh
@@ -193,3 +203,36 @@ port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
 port/scripts/rust-conformance.sh --update              # record new passes in the ledger
 CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
 ```
+
+### Support crates
+
+Self-contained ports of the libraries the tools build on, each proven byte for byte against the TS code it replaces
+by a differential harness of its own.
+
+`rust/crates/opencode-html` is the webfetch tool's body processing: `html_to_markdown` (`html-markdown.ts`),
+`html_to_text` (`extractTextFromHTML` in `webfetch.ts`), and in `webfetch` the pure response steps (Accept header,
+content-type checks, body limit, decoding, choice of conversion). Both converters run on a port of htmlparser2 8.0.2's
+Tokenizer and Parser with entities 4.5.0's decode trie, so they see the same events as TS, quirks included. JS string
+semantics are kept over generalized UTF-8 (64 Ki-unit write chunks, astral entities as two surrogate events,
+TextEncoder byte counts); the output is the TS string as TextEncoder encodes it, so a lone surrogate in a TS result
+comes out as U+FFFD. `harness/run.sh` runs the upstream converter tests with a recording preload, then compares TS and
+Rust on the scenario bodies, the recorded upstream inputs, hand-written pages and their mutations, and generated cases
+(tag soup, nesting, chunk boundaries, end of input, list numbers, the budget, content types, decoding, the body
+limit): 0 differences on about 150k cases.
+
+```sh
+port/rust/crates/opencode-html/harness/run.sh                         # entity table, unit tests, upstream tests, differential
+port/rust/crates/opencode-html/harness/run.sh --count 60000 --seed 2  # a deeper run
+port/rust/crates/opencode-html/harness/run.sh --coverage              # needs cargo-llvm-cov
+```
+
+`rust/crates/opencode-shell` is the shell tool's command analysis, dependency-free: `scan` (`shell/scan.ts` for Bash,
+Zsh, POSIX sh and PowerShell, with the same work budget, check order and opaque reasons), `parse` (`shell/parse.ts`:
+resources, saved patterns, arity and wrapper tables, directory changes; `FileAccess.resolvePath`), `wildcard` and
+`permission` (`Wildcard.match`, `Permission.evaluate`), `select` (the pure part of `shell/select.ts`), and `result`
+(`shell/result.ts`: output capture and paging, the tool's result shapes and texts). Strings are UTF-16 inside, so
+offsets and `?` wildcards count what TS counts. `harness/check.sh` compares the TS modules and the crate as JSON,
+byte for byte, on the inputs upstream's own shell, permission and tool tests produce, the conformance scenarios'
+commands, generated and mutated commands, and the real TS `Shell` service's capture and paging: 0 differences on about
+396k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
+is regenerated (`bun harness/gen-unicode.ts`). See the crate's README.

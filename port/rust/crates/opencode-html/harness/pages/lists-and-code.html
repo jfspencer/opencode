@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html><head><title>Lists and code</title></head>
+<body>
+<h1>Installation guide</h1>
+<ol>
+  <li>Download the archive:
+    <pre><code class="language-bash">curl -LO https://example.com/tool-1.2.3.tar.gz
+tar xzf tool-1.2.3.tar.gz</code></pre>
+  </li>
+  <li>Configure it. You can either:
+    <ul>
+      <li>edit <code>~/.toolrc</code> by hand, or</li>
+      <li>run the wizard:
+        <ol type="a">
+          <li><kbd>tool init</kbd></li>
+          <li>answer the prompts</li>
+          <li>review the generated file
+            <ul><li>check the <em>paths</em></li><li>check the <strong>permissions</strong></li></ul>
+          </li>
+        </ol>
+      </li>
+    </ul>
+  </li>
+  <li value="10">Jump to step ten</li>
+  <li>Then eleven</li>
+  <li><p>Multi-paragraph item.</p><p>Second paragraph of the same item.</p><blockquote>And a quote.</blockquote></li>
+</ol>
+<ol start="0"><li>zero</li><li>one</li></ol>
+<ol start="-3"><li>minus three</li><li>minus two</li></ol>
+<ol start="1e2"><li>start 1e2</li></ol>
+<ol start=" 42"><li>forty-two</li></ol>
+<ol reversed start="3"><li>three</li><li>two</li><li>one</li></ol>
+<ul><li>dangling item
+<li>another dangling item
+<li>third <ul><li>nested without closing<li>sibling</ul>
+</ul>
+<li>orphan item outside any list</li>
+<ul><ul><li>double nested</li></ul></ul>
+
+<h2>Code samples</h2>
+<p>Inline: <code>let s = `template ${x}`;</code>, <code>``double``</code>, <code> padded </code>, <code>a ~~ b</code>.</p>
+<pre>
+plain pre with leading newline
+	tab indented
+    space indented
+trailing spaces above
+</pre>
+<pre><code class="lang-rust">fn main() {
+    // Backticks: ``` and tildes: ~~~~
+    println!("{}", "&lt;html&gt; &amp; friends");
+}
+</code></pre>
+<pre><code class="hljs language-diff"><span class="hljs-deletion">- old line</span>
+<span class="hljs-addition">+ new line</span>
+</code></pre>
+<pre>line one<br>line two<br/>line three</pre>
+<pre><b>bold in pre</b> <i>italic in pre</i> <a href="/x">link in pre</a></pre>
+<blockquote><pre>quoted
+code
+block</pre></blockquote>
+<blockquote><blockquote><pre><code class="language-js">deeply.quoted(code)</code></pre></blockquote></blockquote>
+<ul><li><pre>code in a list item
+second line</pre></li></ul>
+<pre></pre>
+<pre>```</pre>
+<pre>~~~ and ```</pre>
+<pre><code class="language-">empty language</code></pre>
+<pre><code class="language-c++ other">c++ language</code></pre>
+<p><code>code with <a href="/doc">a link</a> inside</code> and <a href="/doc"><code>a link with code</code></a>.</p>
+<dl>
+  <dt><code>--verbose</code>, <code>-v</code></dt><dd>Print more output.</dd>
+  <dt><code>--quiet</code></dt><dd>Print less output.<dd>Second definition.</dd>
+  <dt>Term without definition</dt>
+</dl>
+</body></html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en-US" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Array.prototype.flatMap() - JavaScript | Reference</title>
+  <link rel="stylesheet" href="/static/css/main.css">
+  <link rel="canonical" href="https://docs.example.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flatMap">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"TechArticle","headline":"Array.prototype.flatMap()"}</script>
+  <script>
+    window.__CONFIG__ = { locale: "en-US", flags: ["a<b", "c&&d"] };
+    if (document.cookie.indexOf("theme=dark") > -1) { document.documentElement.dataset.theme = "dark"; }
+  </script>
+  <style>.sidebar { width: 20%; } pre > code { font-family: monospace; }</style>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to main content</a>
+  <header class="top-navigation">
+    <nav aria-label="Main">
+      <ul class="menu">
+        <li><a href="/en-US/docs/Web">References</a></li>
+        <li><a href="/en-US/docs/Learn">Guides</a></li>
+        <li><a href="/en-US/plus">Plus</a></li>
+      </ul>
+    </nav>
+    <form role="search" action="/search"><input type="search" name="q" placeholder="Search docs"><button type="submit">Search</button></form>
+  </header>
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/en-US/docs/Web">References</a></li>
+      <li><a href="/en-US/docs/Web/JavaScript">JavaScript</a></li>
+      <li><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></li>
+      <li><a href="#" aria-current="page">flatMap()</a></li>
+    </ol>
+  </nav>
+  <main id="content">
+    <article class="main-page-content" lang="en-US">
+      <header><h1>Array.prototype.flatMap()</h1></header>
+      <div class="section-content">
+        <p>The <strong><code>flatMap()</code></strong> method of <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array"><code>Array</code></a> instances returns a new array formed by applying a given callback function to each element of the array, and then flattening the result by one level. It is identical to a <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map"><code>map()</code></a> followed by a <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat"><code>flat()</code></a> of depth 1 (<code>arr.map(...args).flat()</code>), but slightly more efficient than calling those two methods separately.</p>
+      </div>
+      <section aria-labelledby="try_it">
+        <h2 id="try_it"><a href="#try_it">Try it</a></h2>
+        <iframe class="interactive" height="200" src="https://interactive-examples.example.org/pages/js/array-flatmap.html" title="Interactive example"></iframe>
+      </section>
+      <section aria-labelledby="syntax">
+        <h2 id="syntax"><a href="#syntax">Syntax</a></h2>
+        <div class="code-example"><div class="example-header"><span class="language-name">js</span></div><pre class="brush: js notranslate"><code>flatMap(callbackFn)
+flatMap(callbackFn, thisArg)
+</code></pre></div>
+        <h3 id="parameters">Parameters</h3>
+        <dl>
+          <dt id="callbackfn"><a href="#callbackfn"><code>callbackFn</code></a></dt>
+          <dd>
+            <p>A function to execute for each element in the array. It should return an array containing new elements of the new array, or a single non-array value to be added to the new array. The function is called with the following arguments:</p>
+            <dl>
+              <dt id="element"><a href="#element"><code>element</code></a></dt>
+              <dd><p>The current element being processed in the array.</p></dd>
+              <dt id="index"><a href="#index"><code>index</code></a></dt>
+              <dd><p>The index of the current element being processed in the array.</p></dd>
+              <dt id="array"><a href="#array"><code>array</code></a></dt>
+              <dd><p>The array <code>flatMap()</code> was called upon.</p></dd>
+            </dl>
+          </dd>
+          <dt id="thisarg"><a href="#thisarg"><code>thisArg</code></a> <span class="badge inline optional">Optional</span></dt>
+          <dd><p>A value to use as <code>this</code> when executing <code>callbackFn</code>. See <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#iterative_methods">iterative methods</a>.</p></dd>
+        </dl>
+        <h3 id="return_value">Return value</h3>
+        <p>A new array with each element being the result of the callback function and flattened by a depth of 1.</p>
+      </section>
+      <section aria-labelledby="description">
+        <h2 id="description"><a href="#description">Description</a></h2>
+        <p>The <code>flatMap()</code> method is an <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#iterative_methods">iterative method</a>. See <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map"><code>Array.prototype.map()</code></a> for a detailed description of the callback function. The <code>flatMap()</code> method is identical to <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map"><code>map(callbackFn, thisArg)</code></a> followed by <a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat"><code>flat(1)</code></a> &mdash; for each element, it produces an array of new elements, and concatenates the resulting arrays together to form a new array.</p>
+        <div class="notecard note"><p><strong>Note:</strong> The <code>flatMap()</code> method is <em>generic</em>. It only expects the <code>this</code> value to have a <code>length</code> property and integer-keyed properties.</p></div>
+        <p>The value returned from <code>callbackFn</code> must be an array if it is to be flattened.</p>
+        <h3 id="alternative">Alternative</h3>
+        <h4 id="pre-allocate_and_explicitly_iterate">Pre-allocate and explicitly iterate</h4>
+        <div class="code-example"><pre class="brush: js notranslate"><code class="language-js"><span class="token keyword">const</span> arr <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token number">1</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">,</span> <span class="token number">3</span><span class="token punctuation">,</span> <span class="token number">4</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+
+arr<span class="token punctuation">.</span><span class="token function">flatMap</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">x</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">[</span>x<span class="token punctuation">,</span> x <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token comment">// is equivalent to</span>
+<span class="token keyword">const</span> n <span class="token operator">=</span> arr<span class="token punctuation">.</span>length<span class="token punctuation">;</span>
+<span class="token keyword">const</span> acc <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Array</span><span class="token punctuation">(</span>n <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> i <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">;</span> i <span class="token operator">&lt;</span> n<span class="token punctuation">;</span> i<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> x <span class="token operator">=</span> arr<span class="token punctuation">[</span>i<span class="token punctuation">]</span><span class="token punctuation">;</span>
+  acc<span class="token punctuation">[</span>i <span class="token operator">*</span> <span class="token number">2</span><span class="token punctuation">]</span> <span class="token operator">=</span> x<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+<span class="token comment">// [1, 2, 2, 4, 3, 6, 4, 8]</span>
+</code></pre></div>
+      </section>
+      <section aria-labelledby="specifications">
+        <h2 id="specifications"><a href="#specifications">Specifications</a></h2>
+        <table class="standard-table">
+          <thead><tr><th scope="col">Specification</th></tr></thead>
+          <tbody><tr><td><a href="https://tc39.es/ecma262/multipage/indexed-collections.html#sec-array.prototype.flatmap">ECMAScript Language Specification<br><small># sec-array.prototype.flatmap</small></a></td></tr></tbody>
+        </table>
+      </section>
+      <section aria-labelledby="browser_compatibility">
+        <h2 id="browser_compatibility"><a href="#browser_compatibility">Browser compatibility</a></h2>
+        <table class="bc-table">
+          <thead>
+            <tr class="bc-platforms"><td></td><th class="bc-platform-desktop" colspan="3">Desktop</th><th colspan="2">Mobile</th></tr>
+            <tr class="bc-browsers"><td></td><th>Chrome</th><th>Edge</th><th>Firefox</th><th>Chrome Android</th><th>Safari on iOS</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row"><code>flatMap</code></th><td class="bc-supports-yes">69</td><td>79</td><td>62</td><td>69</td><td>12</td></tr>
+          </tbody>
+        </table>
+        <details><summary>Legend</summary><p>Tip: you can click/tap on a cell for more information.</p><dl><dt>Full support</dt><dd>Full support</dd></dl></details>
+      </section>
+      <section aria-labelledby="see_also">
+        <h2 id="see_also"><a href="#see_also">See also</a></h2>
+        <ul>
+          <li><a href="https://github.com/zloirock/core-js#ecmascript-array">Polyfill of <code>Array.prototype.flatMap</code> in <code>core-js</code></a></li>
+          <li><a href="/en-US/docs/Web/JavaScript/Guide/Indexed_collections">Indexed collections</a> guide</li>
+          <li><a href="/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/flat"><code>Array.prototype.flat()</code></a></li>
+        </ul>
+      </section>
+    </article>
+    <aside class="metadata"><p>This page was last modified on <time datetime="2025-03-13T19:36:49.000Z">Mar 13, 2025</time> by <a href="/contributors.txt">MDN contributors</a>.</p></aside>
+  </main>
+  <footer class="page-footer"><p>Portions of this content are &copy;1998&ndash;2025 by individual contributors. Content available under <a href="/license">a Creative Commons license</a>.</p></footer>
+  <script src="/static/js/main.js" defer></script>
+</body>
+</html>

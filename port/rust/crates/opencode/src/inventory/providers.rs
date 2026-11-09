@@ -637,6 +637,7 @@ pub struct Statement {
     pub action: String,
     pub resource: String,
     pub effect: String,
+    pub message: Option<String>,
 }
 
 pub fn statements(entries: &[Entry]) -> Vec<Statement> {
@@ -649,6 +650,7 @@ pub fn statements(entries: &[Entry]) -> Vec<Statement> {
                 action: json::get_str(&v, "action").unwrap_or_default().to_owned(),
                 resource: json::get_str(&v, "resource").unwrap_or_default().to_owned(),
                 effect: json::get_str(&v, "effect").unwrap_or_default().to_owned(),
+                message: json::get_str(&v, "message").map(str::to_owned),
             }
         })
         .collect()

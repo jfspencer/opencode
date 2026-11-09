@@ -51,6 +51,8 @@ pub struct Event {
     pub created: i64,
     pub ty: &'static str,
     pub location: Option<LocationRef>,
+    /// Envelope metadata (`PublishOptions.metadata`), written between `created` and `type`.
+    pub metadata: Option<Json>,
     pub data: Json,
     pub durable: Option<Durable>,
 }
@@ -63,6 +65,9 @@ impl Event {
             let mut o = out.object();
             o.key("id").string(&self.id);
             o.key("created").int(self.created);
+            if let Some(metadata) = &self.metadata {
+                o.key("metadata").json(metadata);
+            }
             o.key("type").string(self.ty);
             if let Some(location) = &self.location {
                 o.key("location").json(&location.to_json());
@@ -93,12 +98,30 @@ pub struct Bus {
 
 /// The data field naming a durable event's aggregate (the manifest's `durable.aggregate`).
 pub fn aggregate_field(ty: &str) -> &'static str {
-    EVENTS.iter().find(|e| e.r#type == ty).and_then(|e| e.aggregate).unwrap_or_else(|| panic!("{ty} is not a durable event"))
+    EVENTS
+        .iter()
+        .find(|e| e.r#type == ty)
+        .and_then(|e| e.aggregate)
+        .or_else(|| INTERNAL.iter().find(|(t, _, _)| *t == ty).map(|(_, _, aggregate)| *aggregate))
+        .unwrap_or_else(|| panic!("{ty} is not a durable event"))
 }
+
+/// Durable events that are not part of the public manifest: they take a sequence number of their aggregate and are
+/// projected, but never reach clients (`session.usage.recorded`, packages/schema/src/session-event.ts).
+/// Each is `(type, version, aggregate field)`.
+const INTERNAL: &[(&str, u32, &str)] = &[("session.usage.recorded", 1, "sessionID")];
 
 /// Durable version of an event type from the manifest; `None` for ephemeral events.
 pub fn durable_version(ty: &str) -> Option<u32> {
-    EVENTS.iter().find(|e| e.r#type == ty).and_then(|e| e.version)
+    EVENTS
+        .iter()
+        .find(|e| e.r#type == ty)
+        .and_then(|e| e.version)
+        .or_else(|| INTERNAL.iter().find(|(t, _, _)| *t == ty).map(|(_, v, _)| *v))
+}
+
+fn internal(ty: &str) -> bool {
+    INTERNAL.iter().any(|(t, _, _)| *t == ty)
 }
 
 impl Bus {
@@ -118,6 +141,7 @@ impl Bus {
             created: crate::id::now(),
             ty,
             location: options.location,
+            metadata: None,
             data,
             durable: None,
         }
@@ -142,12 +166,26 @@ impl Bus {
         options: PublishOptions,
         project: impl FnOnce(&Transaction, &Event) -> rusqlite::Result<()>,
     ) -> rusqlite::Result<Event> {
+        self.publish_with(db, ty, data, options, None, project)
+    }
+
+    /// [`Bus::publish`] with envelope metadata.
+    pub fn publish_with(
+        &self,
+        db: &mut Connection,
+        ty: &'static str,
+        data: Json,
+        options: PublishOptions,
+        metadata: Option<Json>,
+        project: impl FnOnce(&Transaction, &Event) -> rusqlite::Result<()>,
+    ) -> rusqlite::Result<Event> {
         let version = durable_version(ty).unwrap_or_else(|| panic!("{ty} is not a durable event"));
         let field = aggregate_field(ty);
         let aggregate =
             json::get_str(&data, field).unwrap_or_else(|| panic!("{ty} without its aggregate {field}")).to_owned();
         let _order = self.order.lock().unwrap();
         let mut event = Self::make(ty, data, options);
+        event.metadata = metadata;
         let tx = db.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate)?;
         let latest = latest_sequence(&tx, &aggregate)?;
         let seq = latest + 1;
@@ -159,7 +197,9 @@ impl Bus {
             params![aggregate, seq],
         )?;
         tx.commit()?;
-        let _ = self.live.send(std::sync::Arc::new(event.clone()));
+        if !internal(ty) {
+            let _ = self.live.send(std::sync::Arc::new(event.clone()));
+        }
         Ok(event)
     }
 

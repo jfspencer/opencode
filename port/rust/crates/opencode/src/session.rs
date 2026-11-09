@@ -1,5 +1,28 @@
 //! Sessions (packages/core/src/session.ts, session/session.ts, session/store.ts, session/projector.ts): every change is
-//! a durable session event, projected into `session_v2` in the event's transaction.
+//! a durable session event, projected into `session_v2` in the event's transaction. The transcript and the execution
+//! loop live in the submodules: [`inbox`] (admitted input), [`message`] (the transcript), [`execution`] (busy
+//! periods), [`runner`] and [`step`] (the agent loop), [`context`] (what a step sends), [`instructions`],
+//! [`retry`], [`title`].
+
+pub mod attachment;
+pub mod command;
+pub mod context;
+pub mod diff;
+pub mod entries;
+pub mod execution;
+pub mod inbox;
+pub mod instructions;
+pub mod message;
+pub mod moves;
+pub mod plan;
+pub mod prompt;
+pub mod retry;
+pub mod revert;
+pub mod runner;
+pub mod skill;
+pub mod step;
+pub mod subagent;
+pub mod title;
 
 use std::collections::HashSet;
 use std::sync::Mutex;
@@ -21,6 +44,15 @@ pub const DEFAULT_LIST_LIMIT: i64 = 50;
 pub struct Sessions {
     /// Sessions being removed: background work must not admit input into them.
     removing: Mutex<HashSet<String>>,
+    pub executions: execution::Executions,
+    pub jobs: std::sync::Arc<crate::job::Jobs>,
+}
+
+impl Sessions {
+    /// Whether the session is being removed (`Session.synthetic` refuses it).
+    pub fn is_removing(&self, session_id: &str) -> bool {
+        self.removing.lock().unwrap().contains(session_id)
+    }
 }
 
 pub fn missing(session_id: &str) -> Failure {
@@ -132,17 +164,6 @@ pub fn get(db: &Connection, session_id: &str) -> rusqlite::Result<Option<Stored>
         .optional()
 }
 
-pub fn has_message(db: &Connection, session_id: &str, message_id: &str) -> rusqlite::Result<bool> {
-    Ok(db
-        .query_row(
-            "SELECT 1 FROM session_message WHERE id = ?1 AND session_id = ?2",
-            params![message_id, session_id],
-            |_| Ok(()),
-        )
-        .optional()?
-        .is_some())
-}
-
 pub fn require(db: &Connection, session_id: &str) -> Result<Stored> {
     get(db, session_id).map_err(fatal)?.ok_or_else(|| missing(session_id))
 }
@@ -238,9 +259,188 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             set_session(tx, id, "time_archived = NULL, time_updated = ?1", vec![Value::Integer(created)])?
         }
         "worktree.resolved" => adopt(tx, data)?,
-        _ => {}
+        "session.inbox.enqueued" => inbox::project_admitted(tx, event)?,
+        "session.inbox.delivered" => inbox::project_delivered(tx, event)?,
+        "session.inbox.cancelled" => inbox::project_cancelled(tx, event)?,
+        "session.inbox.delivery.changed" => inbox::project_delivery_changed(tx, event)?,
+        "session.execution.started" => {
+            set_session(tx, id, "time_busy = ?1", vec![Value::Integer(created)])?;
+            // The execution claim (`SessionStore.claim`).
+            tx.execute(
+                "UPDATE session_v2 SET time_suspended = ?1 WHERE id = ?2 AND time_suspended IS NULL",
+                params![crate::id::now(), id],
+            )?;
+        }
+        "session.execution.succeeded" | "session.execution.failed" | "session.execution.interrupted" => {
+            message::project(tx, event)?;
+            if event.ty == "session.execution.interrupted" && json::get_str(data, "reason") == Some("shutdown") {
+                return Ok(());
+            }
+            let outcome = match event.ty {
+                "session.execution.succeeded" => "succeeded",
+                "session.execution.failed" => "failed",
+                _ => "interrupted",
+            };
+            // Every terminal advances the idle time, even within one millisecond.
+            set_session(
+                tx,
+                id,
+                "time_idle = max(?1, coalesce(time_idle + 1, ?1)), idle_outcome = ?2",
+                vec![Value::Integer(created), Value::Text(outcome.into())],
+            )?;
+            // Deliberate stops release the claim (`SessionStore.release`).
+            tx.execute("UPDATE session_v2 SET time_suspended = NULL, resume_attempts = 0 WHERE id = ?1", params![id])?;
+        }
+        "session.instructions.updated" => {
+            message::project(tx, event)?;
+            instructions::apply(tx, event)?;
+        }
+        "session.step.started" => {
+            message::project(tx, event)?;
+            set_session(tx, id, "time_updated = ?1", vec![Value::Integer(created)])?;
+        }
+        "session.step.ended" => {
+            message::project(tx, event)?;
+            apply_usage(tx, id, data, Some(created))?;
+        }
+        "session.step.failed" => {
+            message::project(tx, event)?;
+            if json::get(data, "cost").is_some() && json::get(data, "tokens").is_some() {
+                apply_usage(tx, id, data, Some(created))?;
+            } else {
+                set_session(tx, id, "time_updated = ?1", vec![Value::Integer(created)])?;
+            }
+        }
+        "session.usage.recorded" => apply_usage(tx, id, data, None)?,
+        "session.revert.staged" | "session.revert.cleared" | "session.revert.committed" => revert::project(tx, event)?,
+        "session.agent.selected" => {
+            message::project(tx, event)?;
+            set_session(
+                tx,
+                id,
+                "agent = ?1, time_updated = ?2",
+                vec![Value::Text(json::get_str(data, "agent").unwrap_or_default().into()), Value::Integer(created)],
+            )?;
+        }
+        "session.model.selected" => {
+            message::project(tx, event)?;
+            set_session(tx, id, "model = ?1, time_updated = ?2", vec![json_value(json::get(data, "model")), Value::Integer(created)])?;
+        }
+        "session.moved" => {
+            // The message records the location the session leaves, so it is written first.
+            message::project(tx, event)?;
+            let location = json::get(data, "location");
+            let text = |value: Option<&str>| value.map_or(Value::Null, |v| Value::Text(v.to_owned()));
+            set_session(
+                tx,
+                id,
+                "directory = ?1, path = ?2, project_id = COALESCE(?3, project_id), workspace_id = ?4, time_updated = ?5",
+                vec![
+                    text(location.and_then(|l| json::get_str(l, "directory"))),
+                    text(json::get_str(data, "subpath")),
+                    text(json::get_str(data, "projectID").filter(|p| !p.is_empty())),
+                    text(location.and_then(|l| json::get_str(l, "workspaceID"))),
+                    Value::Integer(created),
+                ],
+            )?;
+        }
+        _ => message::project(tx, event)?,
     }
     Ok(())
+}
+
+/// `applyUsage`: adds a step's or a side request's usage to the session totals.
+fn apply_usage(tx: &Transaction, id: &str, data: &Json, time_updated: Option<i64>) -> rusqlite::Result<()> {
+    let tokens = json::get(data, "tokens");
+    let n = |key: &str| tokens.and_then(|t| json::get_num(t, key)).unwrap_or(0.0) as i64;
+    let cache = |key: &str| tokens.and_then(|t| json::get(t, "cache")).and_then(|c| json::get_num(c, key)).unwrap_or(0.0) as i64;
+    let cost = json::get_num(data, "cost").unwrap_or(0.0);
+    let mut sql = String::from(
+        "cost = cost + ?1, tokens_input = tokens_input + ?2, tokens_output = tokens_output + ?3, \
+         tokens_reasoning = tokens_reasoning + ?4, tokens_cache_read = tokens_cache_read + ?5, \
+         tokens_cache_write = tokens_cache_write + ?6",
+    );
+    let mut values = vec![
+        Value::Real(cost),
+        Value::Integer(n("input")),
+        Value::Integer(n("output")),
+        Value::Integer(n("reasoning")),
+        Value::Integer(cache("read")),
+        Value::Integer(cache("write")),
+    ];
+    if let Some(time) = time_updated {
+        sql.push_str(", time_updated = ?7");
+        values.push(Value::Integer(time));
+    }
+    set_session(tx, id, &sql, values)
+}
+
+/// `session.usage.updated`: the session's totals, after the usage a step or a side request added.
+fn publish_usage(app: &App, session_id: &str) {
+    let row: Option<(f64, i64, i64, i64, i64, i64)> = app
+        .db
+        .lock()
+        .unwrap()
+        .query_row(
+            "SELECT cost, tokens_input, tokens_output, tokens_reasoning, tokens_cache_read, tokens_cache_write \
+             FROM session_v2 WHERE id = ?1",
+            params![session_id],
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?, r.get(4)?, r.get(5)?)),
+        )
+        .optional()
+        .ok()
+        .flatten();
+    let Some((cost, input, output, reasoning, read, write)) = row else { return };
+    let mut cache = Obj::new();
+    cache.int("read", read).int("write", write);
+    let mut tokens = Obj::new();
+    tokens.int("input", input).int("output", output).int("reasoning", reasoning).set("cache", cache.done());
+    let mut data = Obj::new();
+    data.str("sessionID", session_id).set("cost", Json::Number(cost)).set("tokens", tokens.done());
+    app.bus.emit("session.usage.updated", data.done(), PublishOptions::default());
+}
+
+/// Publishes a durable session event and runs the session projector in its transaction; `commit` runs last in the
+/// same transaction (TS's `PublishOptions.commit`), and an error from it aborts the publication.
+pub fn publish_committed(
+    app: &App,
+    ty: &'static str,
+    data: Json,
+    location: Option<LocationRef>,
+    metadata: Option<Json>,
+    commit: impl FnOnce(&Transaction, &Event) -> rusqlite::Result<()>,
+) -> rusqlite::Result<Event> {
+    let event = {
+        let mut db = app.db.lock().unwrap();
+        app.bus.publish_with(&mut db, ty, data, PublishOptions { id: None, location }, metadata, |tx, event| {
+            project(tx, event)?;
+            commit(tx, event)
+        })?
+    };
+    let session = json::get_str(&event.data, "sessionID").unwrap_or_default();
+    let usage = match ty {
+        "session.step.ended" | "session.usage.recorded" => true,
+        "session.step.failed" => json::get(&event.data, "cost").is_some() && json::get(&event.data, "tokens").is_some(),
+        _ => false,
+    };
+    if usage {
+        publish_usage(app, session);
+    }
+    Ok(event)
+}
+
+/// Publishes a durable session event (see [`publish_committed`]), or an ephemeral one.
+pub fn publish_event(
+    app: &App,
+    ty: &'static str,
+    data: Json,
+    location: Option<LocationRef>,
+    metadata: Option<Json>,
+) -> rusqlite::Result<Event> {
+    if crate::bus::durable_version(ty).is_none() {
+        return Ok(app.bus.emit(ty, data, PublishOptions { id: None, location }));
+    }
+    publish_committed(app, ty, data, location, metadata, |_, _| Ok(()))
 }
 
 /// Sessions whose ownership came from the directory's previous resolution follow its new identity; location,
@@ -363,7 +563,9 @@ pub fn create(app: &App, input: CreateInput) -> Result<Stored> {
         input.permissions.or_else(|| parent.as_ref().and_then(|p| json::get(&p.info, "permissions").cloned())),
     );
     data.opt("model", input.model);
-    match publish(app, "session.created", data.done(), Some(location)) {
+    match publish(app, "session.created", data.done(), Some(location.clone())) {
+        // The location's plugins react to the new session (Plan mode's reminder) once they are running.
+        Ok(_) if app.locations.cached(&location).is_some() => plan::created(app, &session_id, input.agent.as_deref(), &location),
         Ok(_) => {}
         // Concurrent creation lost the projection race: the existing session wins.
         Err(failure) => {
@@ -417,33 +619,41 @@ pub fn view(app: &App, session_id: &str, idle: i64) -> Result<()> {
     publish(app, "session.viewed", data.done(), None).map(drop)
 }
 
-pub fn remove(app: &App, session_id: &str) -> Result<()> {
-    let session = require(&app.db.lock().unwrap(), session_id)?;
-    app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
-    let result = (|| {
-        // TODO(port): interrupt execution, wait for idle, cancel the session's jobs, close its model transport.
-        let children: Vec<String> = {
-            let db = app.db.lock().unwrap();
-            let mut statement =
-                db.prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC").map_err(fatal)?;
-            statement
-                .query_map(params![session_id], |row| row.get(0))
-                .map_err(fatal)?
-                .collect::<rusqlite::Result<_>>()
-                .map_err(fatal)?
-        };
-        for child in children {
-            remove(app, &child)?;
+/// `Session.remove`: stops the session's work (its execution, its jobs), removes its children, then the session.
+pub fn remove<'a>(app: &'a App, session_id: &'a str) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<()>> + Send + 'a>> {
+    Box::pin(async move {
+        let session = require(&app.db.lock().unwrap(), session_id)?;
+        app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
+        let result = async {
+            app.sessions.executions.interrupt(session_id, "user");
+            app.sessions.executions.await_idle(session_id).await;
+            app.sessions.jobs.cancel_session(app, session_id);
+            // TODO(port): close the session's model transport.
+            let children: Vec<String> = {
+                let db = app.db.lock().unwrap();
+                let mut statement = db
+                    .prepare("SELECT id FROM session_v2 WHERE parent_id = ?1 ORDER BY time_updated DESC, id DESC")
+                    .map_err(fatal)?;
+                statement
+                    .query_map(params![session_id], |row| row.get(0))
+                    .map_err(fatal)?
+                    .collect::<rusqlite::Result<_>>()
+                    .map_err(fatal)?
+            };
+            for child in children {
+                remove(app, &child).await?;
+            }
+            // TODO(port): clear the session's environment variables.
+            let mut data = Obj::new();
+            data.str("sessionID", session.id());
+            publish(app, "session.deleted", data.done(), None)?;
+            let mut db = app.db.lock().unwrap();
+            app.bus.remove(&mut db, session_id).map_err(fatal)
         }
-        // TODO(port): clear the session's environment variables.
-        let mut data = Obj::new();
-        data.str("sessionID", session.id());
-        publish(app, "session.deleted", data.done(), None)?;
-        let mut db = app.db.lock().unwrap();
-        app.bus.remove(&mut db, session_id).map_err(fatal)
-    })();
-    app.sessions.removing.lock().unwrap().remove(session_id);
-    result
+        .await;
+        app.sessions.removing.lock().unwrap().remove(session_id);
+        result
+    })
 }
 
 /// The filter of a session list (`Session.ListFilter`) and its anchor, as a cursor carries them.

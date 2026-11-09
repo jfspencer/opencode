@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+<TITLE>Welcome to my HOMEPAGE!!!</TITLE>
+</HEAD>
+<BODY BGCOLOR="#000080" TEXT="#FFFF00" LINK="#00FF00">
+<CENTER><FONT SIZE=+3 FACE="Comic Sans MS">Welcome!</FONT></CENTER>
+<MARQUEE>This page is under construction</MARQUEE>
+<P ALIGN=CENTER><IMG SRC="construction.gif" WIDTH=100 HEIGHT=50 ALT="[Under Construction]"></P>
+<HR SIZE=3 NOSHADE>
+<TABLE BORDER=0 WIDTH=100%>
+<TR><TD WIDTH=150 VALIGN=TOP BGCOLOR=#C0C0C0>
+<A HREF="index.html">Home</A><BR>
+<A HREF="links.html">Links</A><BR>
+<A HREF="guestbook.cgi">Guestbook</A><BR>
+</TD>
+<TD VALIGN=TOP>
+<H2>About me</H2>
+<P>Hi! My name is Bob and I like <B>computers</B>, <I>music</I> and <U>cats</U>.
+<P>Here are my favourite things:
+<UL>
+<LI>Pizza
+<LI>Star Trek
+<LI>HTML &amp; JavaScript
+</UL>
+<P>You are visitor number <FONT COLOR=RED><BLINK>000042</BLINK></FONT>.
+<PRE>
+  /\_/\
+ ( o.o )
+  > ^ <
+</PRE>
+<ADDRESS>Mail me: <A HREF="mailto:bob@example.com">bob@example.com</A></ADDRESS>
+</TD></TR>
+</TABLE>
+<HR>
+<H2>Foreign content</H2>
+<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+  <title>Circle &amp; square</title>
+  <desc>A <b>circle</b> next to a square<br/>with a break</desc>
+  <circle cx="50" cy="50" r="40" stroke="green" stroke-width="4" fill="yellow"/>
+  <rect x="10" y="10" width="30" height="30"/>
+  <text x="10" y="90">SVG text &lt;inside&gt;</text>
+  <foreignObject x="20" y="20" width="160" height="160">
+    <div xmlns="http://www.w3.org/1999/xhtml"><p>HTML inside SVG</p><br/><span/>after self-closed span</div>
+  </foreignObject>
+  <g><path d="M10 10"/><path d="M20 20"></path></g>
+</svg>
+<p>After the SVG: <svg><a href="/svg-link"><text>svg link</text></a></svg> done.</p>
+<math display="block">
+  <mrow><mi>x</mi><mo>=</mo><mfrac><mrow><mo>&minus;</mo><mi>b</mi><mo>&PlusMinus;</mo><msqrt><msup><mi>b</mi><mn>2</mn></msup><mo>&minus;</mo><mn>4</mn><mi>a</mi><mi>c</mi></msqrt></mrow><mrow><mn>2</mn><mi>a</mi></mrow></mfrac></mrow>
+  <annotation-xml encoding="text/html"><p>annotation</p><br/></annotation-xml>
+</math>
+<p>Unbalanced foreign: <svg><g><title>t</title></svg></svg></svg> <math><mi>i</mi></mi></math> <svg/> self-closed svg <div/>still div</p>
+<p>Title outside head: <title>a title &amp; entity</title> after title.</p>
+<textarea>raw-ish <b>textarea</b> content &amp; entity</textarea>
+<xmp><b>xmp</b> content</xmp>
+<plaintext-not>not plaintext</plaintext-not>
+<noembed>noembed content</noembed><noframes>noframes content</noframes>
+</BODY>
+</HTML>
