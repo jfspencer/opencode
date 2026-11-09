@@ -9,8 +9,12 @@ pub mod collapse;
 pub mod diff_util;
 pub mod display;
 pub mod filetype;
+pub mod parts;
 pub mod patch_diff;
 pub mod path_format;
 pub mod presentation;
 pub mod scroll;
+pub mod standin;
 pub mod todo;
+
+pub use parts::{tool_images, tool_part};
