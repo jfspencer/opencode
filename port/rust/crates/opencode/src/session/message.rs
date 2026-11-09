@@ -4,9 +4,10 @@
 //!
 //! Messages are held as JSON in their stored (plain-encoded) shape, `SessionMessage.Info` without `id` and `type`
 //! (which have their own columns); every write goes through the generated `SessionMessageInfo` so the stored text is
-//! exactly what `Schema.encodeSync(SessionMessage.Info)` writes. The write path is the one TS uses with
-//! `experimental.part_rows` off: assistant parts stay inline in `content`. TODO(port): the part-row write path, media
-//! blobs (`SessionBlob.externalize`), legacy row upgrades (`SessionLegacy.message`).
+//! exactly what `Schema.encodeSync(SessionMessage.Info)` writes. Media moves into blobs as it is written
+//! ([`crate::session::blob::externalize`]); with `experimental.part_rows` on, assistant parts are written as
+//! `session_part` rows ([`crate::session::parts`]), else inline in `content` (or into the rows a message already has).
+//! TODO(port): legacy row upgrades (`SessionLegacy.message`).
 
 use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};
@@ -14,6 +15,7 @@ use rusqlite::{Connection, OptionalExtension, Transaction, params};
 
 use crate::bus::Event;
 use crate::json::{self, Obj};
+use crate::session::{blob, parts};
 
 /// A message ID from an event ID (`SessionMessage.ID.fromEvent`).
 pub fn id_from_event(event_id: &str) -> String {
@@ -27,16 +29,47 @@ pub fn create_id() -> String {
     format!("msg_{}", crate::id::ascending())
 }
 
-/// The canonical stored form of a message (`encodeSync(SessionMessage.Info)`), or the value unchanged when it does not
-/// decode (which would be a bug in the projector).
+/// The canonical stored form of a message (`encodeSync(SessionMessage.Info)`, or `SessionStored.User`'s for a user
+/// message whose files are blob refs), or the value unchanged when it does not decode (which would be a bug in the
+/// projector).
 fn canonical(message: &Json) -> Json {
-    match t::SessionMessageInfo::decode(message) {
+    // A ref file (`SessionStored.FileRef`) is a `FileAttachment` without `data`, its `uri` last.
+    let refs: Vec<(usize, Json)> = match json::get(message, "files") {
+        Some(Json::Array(files)) if json::get_str(message, "type") == Some("user") => files
+            .iter()
+            .enumerate()
+            .filter(|(_, file)| json::get(file, "data").is_none())
+            .filter_map(|(index, file)| json::get(file, "uri").map(|uri| (index, uri.clone())))
+            .collect(),
+        _ => vec![],
+    };
+    let mut input = message.clone();
+    if let Some(Json::Array(files)) = json::get_mut(&mut input, "files").filter(|_| !refs.is_empty()) {
+        for (index, _) in &refs {
+            json::remove(&mut files[*index], "uri");
+            json::set(&mut files[*index], "data", json::string(""));
+        }
+    }
+    let mut out = match t::SessionMessageInfo::decode(&input) {
         Ok(info) => json::of(&info),
         Err(issue) => {
             eprintln!("session message does not decode: {issue}");
-            message.clone()
+            return message.clone();
+        }
+    };
+    if let Some(Json::Array(files)) = json::get_mut(&mut out, "files") {
+        for (index, uri) in refs {
+            json::remove(&mut files[index], "data");
+            json::set(&mut files[index], "uri", uri);
         }
     }
+    out
+}
+
+/// A message's `type` column and stored `data` (`encodeSync` without `id` and `type`).
+pub fn stored(message: &Json) -> (String, String) {
+    let (ty, data, _) = data_text(message);
+    (ty, data)
 }
 
 /// `{id, type, ...data}` of a row.
@@ -72,28 +105,107 @@ fn data_text(message: &Json) -> (String, String, i64) {
     (ty, json::text(&data), created)
 }
 
-/// `insertMessage`: a new row at the event's sequence.
+/// `insertMessage`: a new row at the event's sequence. An assistant's content goes to `session_part` rows, the row
+/// keeping an empty envelope.
 pub fn insert(tx: &Transaction, event: &Event, message: &Json) -> rusqlite::Result<()> {
     let id = json::get_str(message, "id").unwrap_or_default().to_owned();
     let session = json::get_str(&event.data, "sessionID").unwrap_or_default();
     let seq = event.durable.as_ref().map(|d| d.seq).unwrap_or(0);
-    let (ty, data, created) = data_text(message);
+    let mut stored = canonical(message);
+    blob::externalize(tx, &mut stored)?;
+    let (ty, mut data, created) = split(stored);
+    let parts = match json::get(&data, "content") {
+        Some(Json::Array(parts)) if ty == "assistant" && !parts.is_empty() => parts.clone(),
+        _ => vec![],
+    };
+    let row = if parts.is_empty() {
+        json::text(&data)
+    } else {
+        let mut envelope = data.clone();
+        json::set(&mut envelope, "content", Json::Array(vec![]));
+        json::text(&envelope)
+    };
     tx.execute(
         "INSERT INTO session_message (id, session_id, type, seq, time_created, time_updated, data) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-        params![id, session, ty, seq, created, crate::id::now(), data],
+        params![id, session, ty, seq, created, crate::id::now(), row],
     )?;
-    Ok(())
+    parts::insert(tx, session, &id, 0, &parts, created, event.created)?;
+    json::set(&mut data, "type", json::string(&ty));
+    blob::record_refs(tx, session, &id, seq, &data)
 }
 
-/// `updateMessage`: rewrites a message's row.
+/// A canonical message's type, data (without `id` and `type`) and creation time.
+fn split(mut canonical: Json) -> (String, Json, i64) {
+    json::remove(&mut canonical, "id");
+    let ty = match json::remove(&mut canonical, "type") {
+        Some(Json::String(ty)) => ty,
+        _ => String::new(),
+    };
+    let created = json::get(&canonical, "time").and_then(|t| json::get_num(t, "created")).unwrap_or(0.0) as i64;
+    (ty, canonical, created)
+}
+
+/// `updateMessage`: rewrites a message's row (a shell or compaction message; assistants go through the projector's
+/// own writes).
 pub fn update(tx: &Transaction, session: &str, message: &Json) -> rusqlite::Result<()> {
+    update_message(tx, crate::id::now(), session, message)
+}
+
+/// `updateMessage` of the write path in scope; `created` is the event's time, for the part rows it writes.
+fn update_message(tx: &Transaction, created_at: i64, session: &str, message: &Json) -> rusqlite::Result<()> {
     let id = json::get_str(message, "id").unwrap_or_default().to_owned();
-    let (ty, data, created) = data_text(message);
-    tx.execute(
-        "UPDATE session_message SET type = ?1, time_created = ?2, time_updated = ?3, data = ?4 WHERE id = ?5 AND session_id = ?6",
-        params![ty, created, crate::id::now(), data, id, session],
-    )?;
+    let assistant = json::get_str(message, "type") == Some("assistant");
+    if blob::storage().part_rows {
+        // Assistant content is written only by the part writes; the row keeps the content it holds (inline for a
+        // legacy row never split, [] once it was).
+        let mut envelope = message.clone();
+        if assistant {
+            json::set(&mut envelope, "content", Json::Array(vec![]));
+        }
+        let (ty, data, created) = data_text(&envelope);
+        let sql = if assistant {
+            "UPDATE session_message SET type = ?1, time_created = ?2, time_updated = ?3, \
+             data = json_set(?4, '$.content', json(coalesce(data -> '$.content', '[]'))) WHERE id = ?5 AND session_id = ?6"
+        } else {
+            "UPDATE session_message SET type = ?1, time_created = ?2, time_updated = ?3, data = ?4 WHERE id = ?5 AND session_id = ?6"
+        };
+        tx.execute(sql, params![ty, created, crate::id::now(), data, id, session])?;
+        return Ok(());
+    }
+    let mut stored = canonical(message);
+    let moved = blob::externalize(tx, &mut stored)?;
+    let (ty, mut data, created) = split(stored);
+    let existing = match json::get(&data, "content") {
+        Some(Json::Array(_)) if assistant => parts::rows(tx, &id)?,
+        _ => vec![],
+    };
+    let row = if existing.is_empty() {
+        json::text(&data)
+    } else {
+        // A message whose parts already live in `session_part` is written into those rows.
+        let mut envelope = data.clone();
+        json::set(&mut envelope, "content", Json::Array(vec![]));
+        json::text(&envelope)
+    };
+    let seq: Option<i64> = tx
+        .query_row(
+            "UPDATE session_message SET type = ?1, time_created = ?2, time_updated = ?3, data = ?4 WHERE id = ?5 AND session_id = ?6 \
+             RETURNING seq",
+            params![ty, created, crate::id::now(), row, id, session],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(seq) = seq else { return Ok(()) };
+    if !existing.is_empty() {
+        let content = json::array(json::get(&data, "content").unwrap_or(&Json::Null)).unwrap_or_default();
+        parts::write(tx, created_at, session, &id, &existing, content)?;
+    }
+    // Most updates only carry existing refs forward; `externalize` moving nothing skips the ref tables.
+    if moved {
+        json::set(&mut data, "type", json::string(&ty));
+        blob::record_refs(tx, session, &id, seq, &data)?;
+    }
     Ok(())
 }
 
@@ -101,12 +213,25 @@ fn row(db: &Connection, sql: &str, args: impl rusqlite::Params) -> rusqlite::Res
     db.query_row(sql, args, |row| Ok(from_row(row.get(0)?, row.get(1)?, &row.get::<_, String>(2)?))).optional()
 }
 
+/// An assistant as the write path in scope reads it: with its part rows folded in, unless parts are written as rows.
+fn assistant_view(db: &Connection, found: Option<Json>) -> rusqlite::Result<Option<Json>> {
+    let Some(message) = found else { return Ok(None) };
+    if blob::storage().part_rows {
+        return Ok(Some(message));
+    }
+    let mut read = [message];
+    blob::with_parts(db, &mut read)?;
+    let [message] = read;
+    Ok(Some(message))
+}
+
 pub fn get_assistant(db: &Connection, session: &str, message_id: &str) -> rusqlite::Result<Option<Json>> {
-    row(
+    let found = row(
         db,
         "SELECT id, type, data FROM session_message WHERE id = ?1 AND session_id = ?2 AND type = 'assistant'",
         params![message_id, session],
-    )
+    )?;
+    assistant_view(db, found)
 }
 
 fn completed(message: &Json) -> bool {
@@ -124,7 +249,7 @@ pub fn current_assistant(db: &Connection, session: &str) -> rusqlite::Result<Opt
         "SELECT id, type, data FROM session_message WHERE session_id = ?1 AND type = 'assistant' ORDER BY seq DESC LIMIT 1",
         params![session],
     )?;
-    Ok(latest.filter(|m| !completed(m) || retrying(m)))
+    assistant_view(db, latest.filter(|m| !completed(m) || retrying(m)))
 }
 
 fn time_mut(message: &mut Json) -> &mut Json {
@@ -150,17 +275,21 @@ fn set_opt(value: &mut Json, key: &str, item: Option<&Json>) {
     }
 }
 
-fn edit_assistant(
-    tx: &Transaction,
-    session: &str,
-    message_id: &str,
-    recipe: impl FnOnce(&mut Json),
-) -> rusqlite::Result<()> {
-    let Some(mut assistant) = get_assistant(tx, session, message_id)? else { return Ok(()) };
+fn session_of(event: &Event) -> &str {
+    json::get_str(&event.data, "sessionID").unwrap_or_default()
+}
+
+/// `updateAssistant` of an assistant read through [`get_assistant`] or [`current_assistant`].
+fn update_assistant(tx: &Transaction, event: &Event, assistant: &Json) -> rusqlite::Result<()> {
+    update_message(tx, event.created, session_of(event), assistant)
+}
+
+fn edit_assistant(tx: &Transaction, event: &Event, message_id: &str, recipe: impl FnOnce(&mut Json)) -> rusqlite::Result<()> {
+    let Some(mut assistant) = get_assistant(tx, session_of(event), message_id)? else { return Ok(()) };
     let before = assistant.clone();
     recipe(&mut assistant);
     if assistant != before {
-        update(tx, session, &assistant)?;
+        update_assistant(tx, event, &assistant)?;
     }
     Ok(())
 }
@@ -168,14 +297,18 @@ fn edit_assistant(
 /// `updateAssistantPart`: the last part of `kind` that matches.
 fn edit_part(
     tx: &Transaction,
-    session: &str,
+    event: &Event,
     message_id: &str,
     kind: &str,
     call_id: Option<&str>,
     incomplete_reasoning: bool,
     recipe: impl FnOnce(&mut Json),
 ) -> rusqlite::Result<()> {
-    edit_assistant(tx, session, message_id, |assistant| {
+    if blob::storage().part_rows {
+        let target = parts::Match { kind, call_id, incomplete_reasoning };
+        return parts::update(tx, event, session_of(event), message_id, target, recipe);
+    }
+    edit_assistant(tx, event, message_id, |assistant| {
         let Some(content) = content_mut(assistant) else { return };
         let found = content.iter_mut().rev().find(|item| {
             json::get_str(item, "type") == Some(kind)
@@ -189,21 +322,25 @@ fn edit_part(
     })
 }
 
-fn append_part(tx: &Transaction, session: &str, message_id: &str, part: Json) -> rusqlite::Result<()> {
-    edit_assistant(tx, session, message_id, |assistant| {
+/// `appendAssistantPart`.
+fn append_part(tx: &Transaction, event: &Event, message_id: &str, part: Json) -> rusqlite::Result<()> {
+    if blob::storage().part_rows {
+        return parts::append(tx, event, session_of(event), message_id, part);
+    }
+    edit_assistant(tx, event, message_id, |assistant| {
         if let Some(content) = content_mut(assistant) {
             content.push(part);
         }
     })
 }
 
-fn clear_current_retry(tx: &Transaction, session: &str) -> rusqlite::Result<()> {
-    let Some(mut assistant) = current_assistant(tx, session)? else { return Ok(()) };
+fn clear_current_retry(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
+    let Some(mut assistant) = current_assistant(tx, session_of(event))? else { return Ok(()) };
     if !retrying(&assistant) {
         return Ok(());
     }
     json::remove(&mut assistant, "retry");
-    update(tx, session, &assistant)
+    update_assistant(tx, event, &assistant)
 }
 
 fn base(id: &str, ty: &str, metadata: Option<&Json>, created: i64) -> Obj {
@@ -245,7 +382,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
                 "session.execution.failed" => "failed",
                 _ => "interrupted",
             };
-            clear_current_retry(tx, session)?;
+            clear_current_retry(tx, event)?;
             if outcome == "interrupted" && json::get_str(data, "reason") == Some("shutdown") {
                 return Ok(());
             }
@@ -351,7 +488,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
                     json::set(&mut next, "start", snapshot.clone());
                     json::set(&mut existing, "snapshot", next);
                 }
-                return update(tx, session, &existing);
+                return update_assistant(tx, event, &existing);
             }
             if let Some(mut current) = current_assistant(tx, session)? {
                 json::remove(&mut current, "retry");
@@ -359,7 +496,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
                 if json::get(time, "completed").is_none() {
                     json::set(time, "completed", Json::Number(created as f64));
                 }
-                update(tx, session, &current)?;
+                update_assistant(tx, event, &current)?;
             }
             let mut o = Obj::new();
             o.str("id", &message_id);
@@ -379,12 +516,12 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             insert(tx, event, &o.done())?;
         }
         "session.step.streamed" => {
-            edit_assistant(tx, session, &get_str("assistantMessageID"), |draft| {
+            edit_assistant(tx, event, &get_str("assistantMessageID"), |draft| {
                 json::set(time_mut(draft), "streamed", Json::Number(created as f64));
             })?;
         }
         "session.step.ended" => {
-            edit_assistant(tx, session, &get_str("assistantMessageID"), |draft| {
+            edit_assistant(tx, event, &get_str("assistantMessageID"), |draft| {
                 json::set(time_mut(draft), "completed", Json::Number(created as f64));
                 set_opt(draft, "finish", get("finish"));
                 set_opt(draft, "rawFinish", get("rawFinish"));
@@ -395,7 +532,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             })?;
         }
         "session.step.failed" => {
-            edit_assistant(tx, session, &get_str("assistantMessageID"), |draft| {
+            edit_assistant(tx, event, &get_str("assistantMessageID"), |draft| {
                 json::set(time_mut(draft), "completed", Json::Number(created as f64));
                 json::set(draft, "finish", get("finish").cloned().unwrap_or_else(|| json::string("error")));
                 set_opt(draft, "rawFinish", get("rawFinish"));
@@ -412,10 +549,10 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         "session.text.started" => {
             let mut part = Obj::new();
             part.str("type", "text").str("text", "");
-            append_part(tx, session, &get_str("assistantMessageID"), part.done())?;
+            append_part(tx, event, &get_str("assistantMessageID"), part.done())?;
         }
         "session.text.ended" => {
-            edit_part(tx, session, &get_str("assistantMessageID"), "text", None, false, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "text", None, false, |part| {
                 json::set(part, "text", json::string(&get_str("text")));
                 set_opt(part, "native", get("native"));
             })?;
@@ -427,10 +564,10 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             let mut time = Obj::new();
             time.int("created", created);
             part.set("time", time.done());
-            append_part(tx, session, &get_str("assistantMessageID"), part.done())?;
+            append_part(tx, event, &get_str("assistantMessageID"), part.done())?;
         }
         "session.reasoning.ended" => {
-            edit_part(tx, session, &get_str("assistantMessageID"), "reasoning", None, true, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "reasoning", None, true, |part| {
                 json::set(part, "text", json::string(&get_str("text")));
                 let start = json::get(part, "time").and_then(|t| json::get_num(t, "created")).unwrap_or(created as f64);
                 let mut time = Obj::new();
@@ -449,11 +586,11 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             let mut part = Obj::new();
             part.str("type", "tool").str("id", &get_str("id")).str("name", &get_str("name"));
             part.set("time", time.done()).set("state", state.done());
-            append_part(tx, session, &get_str("assistantMessageID"), part.done())?;
+            append_part(tx, event, &get_str("assistantMessageID"), part.done())?;
         }
         "session.tool.input.ended" => {
             let id = get_str("id");
-            edit_part(tx, session, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
                 if let Some(state) = json::get_mut(part, "state") {
                     if json::get_str(state, "status") == Some("streaming") {
                         json::set(state, "input", json::string(&get_str("text")));
@@ -463,7 +600,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         }
         "session.tool.called" => {
             let id = get_str("id");
-            edit_part(tx, session, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
                 set_opt(part, "executed", get("executed"));
                 set_opt(part, "native", get("native"));
                 json::set(time_mut(part), "ran", Json::Number(created as f64));
@@ -476,7 +613,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         }
         "session.tool.success" => {
             let id = get_str("id");
-            edit_part(tx, session, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
                 let Some(state) = json::get(part, "state").cloned() else { return };
                 if json::get_str(&state, "status") != Some("running") {
                     return;
@@ -495,7 +632,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         }
         "session.tool.failed" => {
             let id = get_str("id");
-            edit_part(tx, session, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
+            edit_part(tx, event, &get_str("assistantMessageID"), "tool", Some(&id), false, |part| {
                 let Some(state) = json::get(part, "state").cloned() else { return };
                 let status = json::get_str(&state, "status");
                 if status != Some("streaming") && status != Some("running") {
@@ -519,7 +656,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             })?;
         }
         "session.retry.scheduled" => {
-            edit_assistant(tx, session, &get_str("assistantMessageID"), |draft| {
+            edit_assistant(tx, event, &get_str("assistantMessageID"), |draft| {
                 let mut retry = Obj::new();
                 retry.opt("attempt", get("attempt").cloned());
                 retry.opt("at", get("at").cloned());
@@ -623,7 +760,9 @@ pub fn incomplete_assistants(db: &Connection, session: &str) -> rusqlite::Result
         "SELECT id, type, data FROM session_message WHERE session_id = ?1 AND type = 'assistant' \
          AND json_extract(data, '$.time.completed') IS NULL AND seq >= ?2 ORDER BY seq ASC",
     )?;
-    statement
+    let mut rows: Vec<Json> = statement
         .query_map(params![session, boundary], |row| Ok(from_row(row.get(0)?, row.get(1)?, &row.get::<_, String>(2)?)))?
-        .collect()
+        .collect::<rusqlite::Result<_>>()?;
+    blob::prepare(db, &mut rows, false)?;
+    Ok(rows)
 }

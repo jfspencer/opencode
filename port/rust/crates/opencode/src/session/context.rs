@@ -2,9 +2,10 @@
 //! system-prompt.ts, plugin/identity.ts, tool/plugin/opencode.ts): the session's agent and model, its tools and
 //! instructions, and its history as model messages, assembled into the provider request.
 //!
-//! TODO(port): the session plugin hooks (`context`, `model.request`, `http.*`), model-family prompts
-//! (plugin/optimize.ts: GPT, Claude, Kimi, ...), image bounding, the model catalog's small
-//! model.
+//! The model-family prompts of plugin/optimize.ts (GPT, Claude, Kimi, ...) replace the default one ([`model_prompt`]).
+//!
+//! TODO(port): the session plugin hooks of external plugins (`context`, `model.request`, `http.*`), image bounding,
+//! the model catalog's small model.
 
 use std::sync::Arc;
 
@@ -34,6 +35,34 @@ ${OPENCODE_TOOL_GUIDANCE}
 
 /// `SessionSystemPrompt.make`.
 pub fn system_prompt(tools: &[String]) -> String {
+    render(PROMPT, tools)
+}
+
+/// The default system prompt as the model-family plugins render it for `model` (plugin/optimize.ts: OpenAI, Anthropic,
+/// Kimi, Arcee and Meta models get their own template, Claude's appended to the default), over the request's tools.
+pub fn model_prompt(model: &llm::Model, tools: &[String]) -> String {
+    let id = model.id.to_lowercase();
+    let mut prompt = system_prompt(tools);
+    if id.contains("gpt") {
+        prompt = render(if id.contains("astra") { include_str!("prompt/gpt-astra.txt") } else { include_str!("prompt/gpt.txt") }, tools);
+    }
+    if id.contains("claude") {
+        prompt = format!("{prompt}\n\n{}", render(include_str!("prompt/anthropic.txt"), tools));
+    }
+    if id.contains("kimi") {
+        prompt = render(include_str!("prompt/kimi.txt"), tools);
+    }
+    if id.contains("trinity") {
+        prompt = render(include_str!("prompt/trinity.txt"), tools);
+    }
+    if id.contains("muse") {
+        prompt = render(&include_str!("prompt/meta.txt").replace("{{MODEL_NAME}}", &model.name), tools);
+    }
+    prompt
+}
+
+/// `SessionSystemPrompt.render`: the tool guidance for the tools the request offers.
+fn render(prompt: &str, tools: &[String]) -> String {
     let has = |name: &str| tools.iter().any(|t| t == name);
     let mut guidance: Vec<&str> = Vec::new();
     if has("shell") {
@@ -46,7 +75,7 @@ pub fn system_prompt(tools: &[String]) -> String {
     if has("edit") {
         guidance.push("- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.");
     }
-    PROMPT.replacen("${OPENCODE_TOOL_GUIDANCE}", &guidance.join("\n"), 1)
+    prompt.replacen("${OPENCODE_TOOL_GUIDANCE}", &guidance.join("\n"), 1)
 }
 
 /// `IdentityPlugin.identity`.
@@ -152,7 +181,7 @@ fn build(inventory: &Inventory, info: &t::ModelInfo, variant: Option<&str>) -> R
         id: info.id.clone(),
         name: info.name.clone(),
         base_url: json::get_str(&settings, "baseURL").unwrap_or("https://openrouter.ai/api/v1").to_owned(),
-        api_key: json::get_str(&settings, "apiKey").map(str::to_owned).or_else(|| inventory.api_key(&provider_id)),
+        api_key: crate::credential::api_key(inventory, &provider_id, json::get_str(&settings, "apiKey")),
         options,
         headers,
         body: json::get(&model, "body").filter(|b| matches!(b, Json::Object(o) if !o.is_empty())).cloned(),
@@ -458,10 +487,94 @@ const XAI_IMAGE_MIMES: &[&str] = &["image/png", "image/jpeg", "image/webp"];
 /// `unsupportedParts`: media the model cannot read (of a kind it does not take, an image type providers reject, or a
 /// file of unknown kind) become a note, in its own paragraph, asking the model to tell the user.
 ///
-/// A tool result's files (`toolResult` of `replaceMedia`) are replaced the same way, by a text item of the note.
-///
-/// TODO(port): `boundImages` (dropping the oldest images past 25 MiB of inline payload).
+/// A tool result's files (`toolResult` of `replaceMedia`) are replaced the same way, by a text item of the note. Then
+/// the images are bounded ([`bound_images`]), as every request TS builds bounds them after this pass.
 pub fn unsupported_parts(messages: &mut [Message], input: &[String], provider: &str) {
+    unsupported(messages, input, provider);
+    bound_images(messages);
+}
+
+const IMAGE_BYTES_TRIGGER: usize = 25 * 1024 * 1024;
+const IMAGE_BYTES_TARGET: usize = 15 * 1024 * 1024;
+const IMAGE_REMOVED: &str = "[This image was removed to reduce the request size and is no longer visible. Do not make claims about its contents from memory. If needed, retrieve it again with an available tool or ask the user to attach it again.]";
+
+/// `boundImages`: replaying the images in order, the oldest are dropped down to 15 MiB of inline base64 whenever the
+/// kept payload passes 25 MiB, so the replaced prefix (and the provider's prompt cache) only moves every 10 MiB.
+pub fn bound_images(messages: &mut [Message]) {
+    let image = |mime: &str| mime.to_lowercase().starts_with("image/");
+    let file_image = |item: &Json| json::get_str(item, "type") == Some("file") && image(json::get_str(item, "mime").unwrap_or_default());
+    let mut sizes: Vec<usize> = Vec::new();
+    let tool_sizes = |result: &crate::llm::ToolResult, sizes: &mut Vec<usize>| {
+        if let crate::llm::ToolResultValue::Content(content) = &result.value {
+            sizes.extend(content.iter().filter(|item| file_image(item)).map(|item| json::get_str(item, "uri").unwrap_or_default().encode_utf16().count()));
+        }
+    };
+    for message in messages.iter() {
+        match message {
+            Message::User(parts) => sizes.extend(parts.iter().filter_map(|part| match part {
+                UserPart::Media { mime, data, .. } if image(mime) => Some(data.len()),
+                _ => None,
+            })),
+            Message::Tool(results) => results.iter().for_each(|result| tool_sizes(result, &mut sizes)),
+            Message::Assistant(parts) => parts.iter().for_each(|part| {
+                if let crate::llm::AssistantPart::ToolResult(result) = part {
+                    tool_sizes(result, &mut sizes);
+                }
+            }),
+            Message::System(_) => {}
+        }
+    }
+    let (mut cut, mut kept) = (0, 0);
+    for size in &sizes {
+        kept += size;
+        if kept <= IMAGE_BYTES_TRIGGER {
+            continue;
+        }
+        while kept > IMAGE_BYTES_TARGET {
+            kept -= sizes[cut];
+            cut += 1;
+        }
+    }
+    if cut == 0 {
+        return;
+    }
+    let mut index = 0;
+    let mut remove = || {
+        index += 1;
+        index <= cut
+    };
+    let tool_result = |result: &mut crate::llm::ToolResult, remove: &mut dyn FnMut() -> bool| {
+        let crate::llm::ToolResultValue::Content(content) = &mut result.value else { return };
+        for item in content.iter_mut().filter(|item| file_image(item)) {
+            if remove() {
+                let mut o = Obj::new();
+                o.str("type", "text").str("text", IMAGE_REMOVED);
+                *item = o.done();
+            }
+        }
+    };
+    for message in messages.iter_mut() {
+        match message {
+            Message::User(parts) => {
+                for part in parts.iter_mut() {
+                    let UserPart::Media { mime, .. } = part else { continue };
+                    if image(mime) && remove() {
+                        *part = UserPart::Text(format!("\n\n{IMAGE_REMOVED}"));
+                    }
+                }
+            }
+            Message::Tool(results) => results.iter_mut().for_each(|result| tool_result(result, &mut remove)),
+            Message::Assistant(parts) => parts.iter_mut().for_each(|part| {
+                if let crate::llm::AssistantPart::ToolResult(result) = part {
+                    tool_result(result, &mut remove);
+                }
+            }),
+            Message::System(_) => {}
+        }
+    }
+}
+
+fn unsupported(messages: &mut [Message], input: &[String], provider: &str) {
     let note = |mime: &str, filename: Option<&str>| -> Option<String> {
         let modality = modality(mime);
         let images = if provider == "xai" { XAI_IMAGE_MIMES } else { IMAGE_MIMES };

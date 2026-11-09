@@ -47,7 +47,6 @@ pub fn enabled(entries: &[Entry], key: &str) -> bool {
     matches!(crate::app::CHANNEL, "local" | "dev")
 }
 
-#[allow(dead_code)] // The part-row storage's (TODO(port)).
 /// `experimental.part_rows`, which is a setting rather than a flag: on only when the last `experimental` says so.
 pub fn part_rows(entries: &[Entry]) -> bool {
     config::latest(entries, |info| info.experimental.as_ref()).and_then(|e| e.part_rows) == Some(true)

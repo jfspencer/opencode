@@ -1,259 +1,273 @@
-//! Images in tool results (packages/core/src/tool.ts `normalizeImages`, image.ts, image/photon-normalize.ts): every
-//! inline image a tool returns is normalized before it is recorded. One that cannot be decoded is dropped, and a
-//! note says how many were; one within the limits (2000×2000, 5 MiB of base64; a PNG also small: 384 KiB or 256×256
-//! pixels) passes unchanged.
+//! Images in tool results and prompt attachments (packages/core/src/tool.ts `normalizeImages`, image.ts,
+//! image/photon-normalize.ts): an inline image within the limits (2000×2000, 5 MiB of base64; a PNG also small:
+//! 384 KiB or 256×256 pixels) passes unchanged; a PNG that fits becomes a JPEG when that is smaller (unless it has
+//! transparency); a larger image is resized (Lanczos3, to fit, then by quarters) and encoded as the first of PNG and
+//! JPEG at qualities 80, 70, 55, 40 that fits (PNG first for transparent or small images). A tool's undecodable
+//! images are dropped, and those that cannot be made to fit, each with a note.
 //!
-//! TS decodes with photon (image 0.24.9 compiled to WebAssembly). The port checks each format's structure instead:
-//! PNG chunks and their CRCs, JPEG markers up to a frame and a scan, GIF blocks, WebP's RIFF chunks and bitstream
-//! headers; that is what tells the undecodable files in the standard apart, and it gives the dimensions the limits
-//! need. TODO(port): decoding the compressed data itself, and resizing and re-encoding images over the limits (TS
-//! returns a JPEG or PNG re-encoded by photon, or "could not be resized" when nothing fits; here they pass
-//! unchanged).
+//! TS runs photon-node 0.3.4: image 0.24.9 compiled to WebAssembly without SIMD. The port runs the same image 0.24.9
+//! with the same formats and codec versions (Cargo.toml), jpeg-decoder's scalar paths, and its Lanczos3 resampling
+//! re-implemented with the wasm target's `sinf` (libm), so decoding, resizing and encoding give photon's bytes. What
+//! can still differ is other floating-point math the platform's libm does (HDR images' `powf`).
 
 use base64::Engine;
+use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba, RgbaImage};
 use opencode_protocol::Json;
 
 use crate::json::{self, Obj};
 
-const MAX_WIDTH: u64 = 2_000;
-const MAX_HEIGHT: u64 = 2_000;
+/// `Image.Limits` (their defaults; `Image.configure` is for plugins).
+const MAX_WIDTH: u32 = 2_000;
+const MAX_HEIGHT: u32 = 2_000;
 const MAX_BASE64_BYTES: usize = 5 * 1024 * 1024;
 const PNG_PASSTHROUGH_MAX_BASE64_BYTES: usize = 384 * 1024;
 const SMALL_PNG_MAX_PIXELS: u64 = 256 * 256;
+const JPEG_QUALITIES: [u8; 4] = [80, 70, 55, 40];
 
-/// What normalizing one image gave.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// What normalizing one image gave (`PhotonNormalize.Result`).
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Normalized {
     Unchanged,
+    /// Re-encoded: the base64 data and its type.
+    Content { data: String, mime: &'static str },
     DecodeError,
+    /// Nothing fits: the image's size, for `Image.SizeError`.
+    SizeError { width: u32, height: u32, bytes: usize },
 }
 
-fn crc32(bytes: &[u8]) -> u32 {
-    static TABLE: std::sync::OnceLock<[u32; 256]> = std::sync::OnceLock::new();
-    let table = TABLE.get_or_init(|| {
-        let mut table = [0u32; 256];
-        for (n, slot) in table.iter_mut().enumerate() {
-            let mut c = n as u32;
-            for _ in 0..8 {
-                c = if c & 1 != 0 { 0xedb8_8320 ^ (c >> 1) } else { c >> 1 };
+/// `Image.SizeError`'s message.
+pub fn size_error(resource: &str, width: u32, height: u32, bytes: usize) -> String {
+    format!(
+        "Image {resource} is {width}x{height} with base64 size {bytes}, exceeding configured limits {MAX_WIDTH}x{MAX_HEIGHT}/{MAX_BASE64_BYTES} bytes"
+    )
+}
+
+/// `Buffer.from(text, "base64")`: characters outside the alphabets skipped, up to the padding.
+fn decode_base64(text: &str) -> Vec<u8> {
+    let clean: String = text
+        .chars()
+        .take_while(|c| *c != '=')
+        .filter_map(|c| match c {
+            'A'..='Z' | 'a'..='z' | '0'..='9' | '+' | '/' => Some(c),
+            '-' => Some('+'),
+            '_' => Some('/'),
+            _ => None,
+        })
+        .collect();
+    let engine = base64::engine::GeneralPurpose::new(
+        &base64::alphabet::STANDARD,
+        base64::engine::GeneralPurposeConfig::new()
+            .with_decode_padding_mode(base64::engine::DecodePaddingMode::Indifferent)
+            .with_decode_allow_trailing_bits(true),
+    );
+    // A lone trailing character carries no whole byte.
+    let usable = clean.len() - if clean.len() % 4 == 1 { 1 } else { 0 };
+    engine.decode(&clean[..usable]).unwrap_or_default()
+}
+
+/// Base64 uses four bytes per three input bytes, including padding.
+fn base64_length(bytes: &[u8]) -> usize {
+    bytes.len().div_ceil(3) * 4
+}
+
+/// `hasTransparency`: more than 5% of an evenly spaced grid of up to 64×64 pixels is not (nearly) opaque.
+fn has_transparency(pixels: &RgbaImage) -> bool {
+    let (width, height) = pixels.dimensions();
+    let columns = 64.min(width);
+    let rows = 64.min(height);
+    let mut transparent = 0;
+    for row in 0..rows {
+        let y = (((row as f64 + 0.5) * height as f64) / rows as f64).floor() as u32;
+        for column in 0..columns {
+            let x = (((column as f64 + 0.5) * width as f64) / columns as f64).floor() as u32;
+            if pixels.get_pixel(x, y).0[3] < 250 {
+                transparent += 1;
             }
-            *slot = c;
-        }
-        table
-    });
-    !bytes.iter().fold(!0u32, |c, b| table[((c ^ *b as u32) & 0xff) as usize] ^ (c >> 8))
-}
-
-fn be32(bytes: &[u8], at: usize) -> Option<u32> {
-    bytes.get(at..at + 4).map(|b| u32::from_be_bytes([b[0], b[1], b[2], b[3]]))
-}
-
-fn le16(bytes: &[u8], at: usize) -> Option<u16> {
-    bytes.get(at..at + 2).map(|b| u16::from_le_bytes([b[0], b[1]]))
-}
-
-fn le32(bytes: &[u8], at: usize) -> Option<u32> {
-    bytes.get(at..at + 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]))
-}
-
-/// A PNG's dimensions when its chunks are sound: IHDR first and valid, every CRC right, image data, IEND.
-fn png(bytes: &[u8]) -> Option<(u64, u64)> {
-    let mut at = 8;
-    let mut size = None;
-    let mut data = false;
-    loop {
-        let length = be32(bytes, at)? as usize;
-        let kind = bytes.get(at + 4..at + 8)?;
-        let body = bytes.get(at + 8..at + 8 + length)?;
-        let crc = be32(bytes, at + 8 + length)?;
-        if crc32(&bytes[at + 4..at + 8 + length]) != crc {
-            return None;
-        }
-        match kind {
-            b"IHDR" => {
-                if size.is_some() || length != 13 {
-                    return None;
-                }
-                let (width, height) = (be32(body, 0)? as u64, be32(body, 4)? as u64);
-                let (depth, color) = (body[8], body[9]);
-                let valid = match color {
-                    0 => matches!(depth, 1 | 2 | 4 | 8 | 16),
-                    3 => matches!(depth, 1 | 2 | 4 | 8),
-                    2 | 4 | 6 => matches!(depth, 8 | 16),
-                    _ => false,
-                };
-                if width == 0 || height == 0 || !valid || body[10] != 0 || body[11] != 0 || body[12] > 1 {
-                    return None;
-                }
-                size = Some((width, height));
-            }
-            _ if size.is_none() => return None,
-            b"IDAT" => data = true,
-            b"IEND" => return data.then_some(size?),
-            _ => {}
-        }
-        at += 12 + length;
-    }
-}
-
-/// A JPEG's dimensions when its markers reach a frame and a scan.
-fn jpeg(bytes: &[u8]) -> Option<(u64, u64)> {
-    let mut at = 2;
-    let mut size = None;
-    loop {
-        if *bytes.get(at)? != 0xff {
-            return None;
-        }
-        while bytes.get(at) == Some(&0xff) {
-            at += 1;
-        }
-        let marker = *bytes.get(at)?;
-        at += 1;
-        match marker {
-            0xd9 => return None,
-            0xd0..=0xd7 | 0x01 => continue,
-            _ => {}
-        }
-        let length = u16::from_be_bytes([*bytes.get(at)?, *bytes.get(at + 1)?]) as usize;
-        if length < 2 {
-            return None;
-        }
-        let segment = bytes.get(at + 2..at + length)?;
-        match marker {
-            0xc0..=0xc3 | 0xc5..=0xc7 | 0xc9..=0xcb | 0xcd..=0xcf => {
-                let height = u16::from_be_bytes([*segment.get(1)?, *segment.get(2)?]) as u64;
-                let width = u16::from_be_bytes([*segment.get(3)?, *segment.get(4)?]) as u64;
-                let components = *segment.get(5)? as usize;
-                if width == 0 || components == 0 || segment.len() < 6 + components * 3 {
-                    return None;
-                }
-                size = Some((width, height));
-            }
-            // The scan: a frame must come first; its entropy-coded data follows.
-            0xda => return size,
-            _ => {}
-        }
-        at += length;
-    }
-}
-
-/// A GIF's dimensions when its blocks are sound and it has an image.
-fn gif(bytes: &[u8]) -> Option<(u64, u64)> {
-    if !(bytes.starts_with(b"GIF87a") || bytes.starts_with(b"GIF89a")) {
-        return None;
-    }
-    let (width, height) = (le16(bytes, 6)? as u64, le16(bytes, 8)? as u64);
-    let flags = *bytes.get(10)?;
-    let mut at = 13 + if flags & 0x80 != 0 { 3 << ((flags & 7) + 1) } else { 0 };
-    let sub_blocks = |mut at: usize| -> Option<usize> {
-        loop {
-            let size = *bytes.get(at)? as usize;
-            at += 1;
-            if size == 0 {
-                return Some(at);
-            }
-            bytes.get(at..at + size)?;
-            at += size;
-        }
-    };
-    let mut images = 0;
-    loop {
-        match *bytes.get(at)? {
-            0x3b => return (images > 0).then_some((width, height)),
-            0x21 => at = sub_blocks(at + 2)?,
-            0x2c => {
-                let flags = *bytes.get(at + 9)?;
-                at += 10 + if flags & 0x80 != 0 { 3 << ((flags & 7) + 1) } else { 0 };
-                let minimum = *bytes.get(at)?;
-                if !(1..=11).contains(&minimum) {
-                    return None;
-                }
-                at = sub_blocks(at + 1)?;
-                images += 1;
-            }
-            _ => return None,
         }
     }
+    transparent as f64 / (columns * rows) as f64 > 0.05
 }
 
-/// A WebP's dimensions when its RIFF chunks and bitstream header are sound.
-fn webp(bytes: &[u8]) -> Option<(u64, u64)> {
-    let riff = le32(bytes, 4)? as usize;
-    if riff + 8 > bytes.len() || bytes.get(8..12)? != b"WEBP" {
-        return None;
-    }
-    let kind = bytes.get(12..16)?;
-    let length = le32(bytes, 16)? as usize;
-    let chunk = bytes.get(20..20 + length)?;
-    match kind {
-        b"VP8L" => {
-            if *chunk.first()? != 0x2f {
-                return None;
-            }
-            let bits = le32(chunk, 1)?;
-            if bits >> 29 != 0 {
-                return None;
-            }
-            Some(((bits & 0x3fff) as u64 + 1, ((bits >> 14) & 0x3fff) as u64 + 1))
-        }
-        b"VP8 " => {
-            if chunk.get(3..6)? != [0x9d, 0x01, 0x2a] || chunk[0] & 1 != 0 {
-                return None;
-            }
-            let (width, height) = (le16(chunk, 6)? & 0x3fff, le16(chunk, 8)? & 0x3fff);
-            (width > 0 && height > 0).then_some((width as u64, height as u64))
-        }
-        b"VP8X" => {
-            let width = u32::from_le_bytes([*chunk.get(4)?, *chunk.get(5)?, *chunk.get(6)?, 0]) as u64 + 1;
-            let height = u32::from_le_bytes([*chunk.get(7)?, *chunk.get(8)?, *chunk.get(9)?, 0]) as u64 + 1;
-            Some((width, height))
-        }
-        _ => None,
-    }
+/// `get_bytes_jpeg(quality)`: photon's RGBA image written as a JPEG.
+fn jpeg(image: &RgbaImage, quality: u8) -> Vec<u8> {
+    let mut buffer = std::io::Cursor::new(Vec::new());
+    let _ = DynamicImage::ImageRgba8(image.clone()).write_to(&mut buffer, ImageOutputFormat::Jpeg(quality));
+    buffer.into_inner()
 }
 
-/// `Image.normalize` of one base64 image.
+/// `get_bytes`: photon's RGBA image written as a PNG.
+fn png(image: &RgbaImage) -> Vec<u8> {
+    let mut buffer = std::io::Cursor::new(Vec::new());
+    let _ = DynamicImage::ImageRgba8(image.clone()).write_to(&mut buffer, ImageOutputFormat::Png);
+    buffer.into_inner()
+}
+
+/// `PhotonNormalize.normalize` of one base64 image of the declared type `mime`.
 pub fn normalize(mime: &str, data: &str) -> Normalized {
-    let Ok(bytes) = base64::engine::general_purpose::STANDARD.decode(data.trim_end()) else { return Normalized::DecodeError };
-    let size = match crate::session::attachment::detect(&bytes) {
-        "image/png" => png(&bytes),
-        "image/jpeg" => jpeg(&bytes),
-        "image/gif" => gif(&bytes),
-        "image/webp" => webp(&bytes),
-        _ => None,
-    };
-    let Some((width, height)) = size else { return Normalized::DecodeError };
-    let fits = width <= MAX_WIDTH && height <= MAX_HEIGHT && data.len() <= MAX_BASE64_BYTES;
-    let small = mime != "image/png" || data.len() <= PNG_PASSTHROUGH_MAX_BASE64_BYTES || width * height <= SMALL_PNG_MAX_PIXELS;
-    if !(fits && small) {
-        // TODO(port): resizing and re-encoding (see the module doc); the image passes unchanged.
+    let bytes = decode_base64(data);
+    // photon unwraps the decoder's result: an error (or a panic) is a trap the caller sees as a decode error.
+    let decoded = std::panic::catch_unwind(|| image::load_from_memory(&bytes).map(|image| image.to_rgba8()));
+    let Ok(Ok(decoded)) = decoded else { return Normalized::DecodeError };
+    drop(bytes);
+    let (width, height) = decoded.dimensions();
+    let size = data.len();
+    let fits = width <= MAX_WIDTH && height <= MAX_HEIGHT && size <= MAX_BASE64_BYTES;
+    let small_png = size <= PNG_PASSTHROUGH_MAX_BASE64_BYTES || width as u64 * height as u64 <= SMALL_PNG_MAX_PIXELS;
+    if fits && (mime != "image/png" || small_png) {
+        return Normalized::Unchanged;
     }
-    Normalized::Unchanged
+    let transparent = mime != "image/jpeg" && has_transparency(&decoded);
+    // An image that already fits only changes when JPEG makes it smaller.
+    if fits {
+        if transparent {
+            return Normalized::Unchanged;
+        }
+        let encoded = jpeg(&decoded, JPEG_QUALITIES[0]);
+        if base64_length(&encoded) < size {
+            return Normalized::Content { data: base64::engine::general_purpose::STANDARD.encode(encoded), mime: "image/jpeg" };
+        }
+        return Normalized::Unchanged;
+    }
+    let scale = 1f64.min(MAX_WIDTH as f64 / width as f64).min(MAX_HEIGHT as f64 / height as f64);
+    let mut sizes: Vec<(u32, u32)> = Vec::new();
+    for _ in 0..32 {
+        let next = match sizes.last() {
+            None => (((width as f64 * scale).round() as u32).max(1), ((height as f64 * scale).round() as u32).max(1)),
+            Some(&(w, h)) => (
+                if w == 1 { 1 } else { ((w as f64 * 0.75).floor() as u32).max(1) },
+                if h == 1 { 1 } else { ((h as f64 * 0.75).floor() as u32).max(1) },
+            ),
+        };
+        if !sizes.contains(&next) {
+            sizes.push(next);
+        }
+    }
+    for (w, h) in sizes {
+        let resized = if (w, h) == (width, height) { decoded.clone() } else { lanczos3(&decoded, w, h) };
+        let png_first = transparent || w as u64 * h as u64 <= SMALL_PNG_MAX_PIXELS;
+        let mut order: Vec<Option<u8>> = JPEG_QUALITIES.iter().map(|q| Some(*q)).collect();
+        if png_first { order.insert(0, None) } else { order.push(None) }
+        for quality in order {
+            let (candidate, mime) = match quality {
+                None => (png(&resized), "image/png"),
+                Some(quality) => (jpeg(&resized, quality), "image/jpeg"),
+            };
+            if base64_length(&candidate) <= MAX_BASE64_BYTES {
+                return Normalized::Content { data: base64::engine::general_purpose::STANDARD.encode(candidate), mime };
+            }
+        }
+    }
+    Normalized::SizeError { width, height, bytes: size }
 }
 
-/// `normalizeImages`: a tool result's inline images normalized; undecodable ones dropped, with a note.
-pub fn normalize_content(content: Vec<Json>) -> Vec<Json> {
-    let mut decode_errors = 0;
+/// `imageops::resize(image, width, height, Lanczos3)` of image 0.24.9 (`vertical_sample`, then `horizontal_sample`),
+/// with the kernel's `sin` as the wasm target computes it.
+fn lanczos3(image: &RgbaImage, new_width: u32, new_height: u32) -> RgbaImage {
+    const SUPPORT: f32 = 3.0;
+    fn sinc(t: f32) -> f32 {
+        let a = t * std::f32::consts::PI;
+        if t == 0.0 { 1.0 } else { libm::sinf(a) / a }
+    }
+    fn kernel(x: f32) -> f32 {
+        if x.abs() < SUPPORT { sinc(x) * sinc(x / SUPPORT) } else { 0.0 }
+    }
+    /// The bounds and normalized weights of one output position.
+    fn weights(out: u32, size: u32, new_size: u32, ws: &mut Vec<f32>) -> (u32, u32) {
+        let ratio = size as f32 / new_size as f32;
+        let sratio = if ratio < 1.0 { 1.0 } else { ratio };
+        let src_support = SUPPORT * sratio;
+        let input = (out as f32 + 0.5) * ratio;
+        let left = ((input - src_support).floor() as i64).clamp(0, size as i64 - 1) as u32;
+        let right = ((input + src_support).ceil() as i64).clamp(left as i64 + 1, size as i64) as u32;
+        let input = input - 0.5;
+        ws.clear();
+        let mut sum = 0.0;
+        for i in left..right {
+            let w = kernel((i as f32 - input) / sratio);
+            ws.push(w);
+            sum += w;
+        }
+        ws.iter_mut().for_each(|w| *w /= sum);
+        (left, right)
+    }
+    let (width, height) = image.dimensions();
+    let mut ws = Vec::new();
+    // Columns first, into floats.
+    let mut tmp: ImageBuffer<Rgba<f32>, Vec<f32>> = ImageBuffer::new(width, new_height);
+    for outy in 0..new_height {
+        let (left, _) = weights(outy, height, new_height, &mut ws);
+        for x in 0..width {
+            let mut t = (0.0f32, 0.0f32, 0.0f32, 0.0f32);
+            for (i, w) in ws.iter().enumerate() {
+                let p = image.get_pixel(x, left + i as u32).0;
+                t.0 += p[0] as f32 * w;
+                t.1 += p[1] as f32 * w;
+                t.2 += p[2] as f32 * w;
+                t.3 += p[3] as f32 * w;
+            }
+            tmp.put_pixel(x, outy, Rgba([t.0, t.1, t.2, t.3]));
+        }
+    }
+    // Then rows, rounded back to bytes.
+    let mut out: RgbaImage = ImageBuffer::new(new_width, new_height);
+    let byte = |v: f32| v.clamp(0.0, 255.0).round() as u8;
+    for outx in 0..new_width {
+        let (left, _) = weights(outx, width, new_width, &mut ws);
+        for y in 0..new_height {
+            let mut t = (0.0f32, 0.0f32, 0.0f32, 0.0f32);
+            for (i, w) in ws.iter().enumerate() {
+                let p = tmp.get_pixel(left + i as u32, y).0;
+                t.0 += p[0] * w;
+                t.1 += p[1] * w;
+                t.2 += p[2] * w;
+                t.3 += p[3] * w;
+            }
+            out.put_pixel(outx, y, Rgba([byte(t.0), byte(t.1), byte(t.2), byte(t.3)]));
+        }
+    }
+    out
+}
+
+/// [`normalize`] off the runtime's thread (decoding and resizing are CPU work).
+pub async fn normalize_async(mime: String, data: String) -> Normalized {
+    tokio::task::spawn_blocking(move || normalize(&mime, &data)).await.unwrap_or(Normalized::DecodeError)
+}
+
+/// `normalizeImages`: a tool result's inline images normalized; the undecodable ones and those that cannot fit are
+/// dropped, with a note for each kind.
+pub async fn normalize_content(content: Vec<Json>) -> Vec<Json> {
+    let (mut decode_errors, mut size_errors) = (0, 0);
     let mut out = Vec::with_capacity(content.len());
-    for item in content {
-        let image = json::get_str(&item, "type") == Some("file") && json::get_str(&item, "mime").is_some_and(|m| m.starts_with("image/"));
+    for mut item in content {
+        let mime = json::get_str(&item, "mime").unwrap_or_default().to_owned();
+        let image = json::get_str(&item, "type") == Some("file") && mime.starts_with("image/");
         let data = json::get_str(&item, "uri")
             .and_then(|uri| uri.strip_prefix("data:"))
             .and_then(|rest| rest.split_once(','))
             .filter(|(head, _)| head.ends_with(";base64"))
             .map(|(_, data)| data.to_owned());
-        match data.filter(|_| image) {
-            Some(data) if normalize(json::get_str(&item, "mime").unwrap_or_default(), &data) == Normalized::DecodeError => {
-                decode_errors += 1;
+        let Some(data) = data.filter(|_| image) else {
+            out.push(item);
+            continue;
+        };
+        match normalize_async(mime, data).await {
+            Normalized::Unchanged => out.push(item),
+            Normalized::Content { data, mime } => {
+                json::set(&mut item, "uri", json::string(&format!("data:{mime};base64,{data}")));
+                json::set(&mut item, "mime", json::string(mime));
+                out.push(item);
             }
-            _ => out.push(item),
+            Normalized::DecodeError => decode_errors += 1,
+            Normalized::SizeError { .. } => size_errors += 1,
         }
     }
-    if decode_errors > 0 {
-        let mut note = Obj::new();
-        let plural = if decode_errors == 1 { "" } else { "s" };
-        note.str("type", "text").str("text", &format!("[{decode_errors} image{plural} omitted: could not be decoded.]"));
-        out.push(note.done());
+    for (count, text) in [(decode_errors, "could not be decoded."), (size_errors, "could not be resized below the image size limit.")] {
+        if count > 0 {
+            let mut note = Obj::new();
+            let plural = if count == 1 { "" } else { "s" };
+            note.str("type", "text").str("text", &format!("[{count} image{plural} omitted: {text}]"));
+            out.push(note.done());
+        }
     }
     out
 }
@@ -280,10 +294,56 @@ mod tests {
         assert_eq!(normalize("image/jpeg", &encoded(&no_frame)), Normalized::DecodeError);
         let gif = hex("47494638396101000100800000000000ffffff21f90401000000002c00000000010001000002024401003b");
         assert_eq!(normalize("image/gif", &encoded(&gif)), Normalized::Unchanged);
-        let mut webp = b"RIFF".to_vec();
-        webp.extend([26, 0, 0, 0]);
-        webp.extend(b"WEBPVP8L");
-        webp.extend([1u8; 14]);
-        assert_eq!(normalize("image/webp", &encoded(&webp)), Normalized::DecodeError);
+    }
+
+    /// Images recorded through the reference's photon (`IMAGE_CASES=<file>`, see harness/images/run.sh):
+    /// `[{mime, data, result: {_tag: "Unchanged" | "DecodeError"} | {_tag: "Content", mime, data} | {_tag:
+    /// "SizeError", width, height, bytes}}]`.
+    #[test]
+    #[ignore]
+    fn recorded_images() {
+        let path = std::env::var("IMAGE_CASES").expect("IMAGE_CASES names the recorded cases");
+        let cases = json::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let cases = json::array(&cases).unwrap();
+        let mut failures = 0;
+        for (index, case) in cases.iter().enumerate() {
+            let mime = json::get_str(case, "mime").unwrap();
+            let data = json::get_str(case, "data").unwrap();
+            let expected = json::get(case, "result").unwrap();
+            let actual = normalize(mime, data);
+            let same = match (&actual, json::get_str(expected, "_tag").unwrap()) {
+                (Normalized::Unchanged, "Unchanged") | (Normalized::DecodeError, "DecodeError") => true,
+                (Normalized::Content { data, mime }, "Content") => {
+                    Some(*mime) == json::get_str(expected, "mime") && Some(data.as_str()) == json::get_str(expected, "data")
+                }
+                (Normalized::SizeError { width, height, bytes }, "SizeError") => {
+                    json::get_num(expected, "width") == Some(*width as f64)
+                        && json::get_num(expected, "height") == Some(*height as f64)
+                        && json::get_num(expected, "bytes") == Some(*bytes as f64)
+                }
+                _ => false,
+            };
+            if !same {
+                failures += 1;
+                let shown = match &actual {
+                    Normalized::Content { data, mime } => format!("Content {mime} ({} bytes)", data.len()),
+                    other => format!("{other:?}"),
+                };
+                let expected_data = json::get_str(expected, "data").map(|d| d.len());
+                eprintln!("case {index} ({mime}, {} bytes): expected {} {:?} ({expected_data:?}), got {shown}", data.len(), json::get_str(expected, "_tag").unwrap(), json::get_str(expected, "mime"));
+            }
+        }
+        eprintln!("{} image cases, {failures} differences", cases.len());
+        assert_eq!(failures, 0);
+    }
+
+    #[test]
+    fn resizes_large_images() {
+        let image: RgbaImage = ImageBuffer::from_fn(2500, 100, |x, y| Rgba([(x % 256) as u8, (y % 256) as u8, 128, 255]));
+        let data = encoded(&png(&image));
+        let Normalized::Content { data, mime } = normalize("image/png", &data) else { panic!("resized") };
+        assert_eq!(mime, "image/jpeg");
+        let back = image::load_from_memory(&decode_base64(&data)).unwrap();
+        assert_eq!((back.width(), back.height()), (2000, 80));
     }
 }

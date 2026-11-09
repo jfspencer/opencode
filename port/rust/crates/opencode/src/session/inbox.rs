@@ -1,9 +1,8 @@
 //! The session inbox (packages/core/src/session/inbox.ts, session/prompt.ts): admitted input waits in `session_inbox`
 //! until a step boundary promotes it into a visible message. `steer` input joins the running turn at its next step;
 //! `queue` input waits for the turn to end. Admission is `session.inbox.enqueued`, promotion
-//! `session.inbox.delivered` (whose projection moves the row into `session_message`).
-//!
-//! TODO(port): media blobs for attachments (`experimental.media_blob`).
+//! `session.inbox.delivered` (whose projection moves the row into `session_message`). With media stored as blobs, a
+//! pending user payload's files are refs (`SessionBlob.externalizePayload`), restored on read.
 
 use opencode_protocol::Json;
 use rusqlite::{Connection, OptionalExtension, Transaction, params};
@@ -12,6 +11,7 @@ use crate::app::{App, fatal};
 use crate::bus::{Event, LocationRef};
 use crate::http::Result;
 use crate::json::{self, Obj};
+use crate::session::blob;
 
 /// Which pending input a promotion may take (`SessionInbox.Promotable`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,6 +67,27 @@ impl Row {
         o.str("delivery", &self.delivery);
         o.done()
     }
+}
+
+/// The `Info` of rows with their media restored (`SessionBlob.hydrateInbox`), or for clients that fetch media
+/// themselves with refs kept and described (`keepInboxRefs`).
+fn infos(db: &Connection, session: &str, rows: &[Row], refs: bool) -> rusqlite::Result<Vec<Json>> {
+    let mut items: Vec<Json> = rows.iter().map(|row| row.info(session)).collect();
+    let mut payloads: Vec<&mut Json> = items
+        .iter_mut()
+        .filter(|item| !refs || json::get_str(item, "type") == Some("user"))
+        .filter_map(|item| json::get_mut(item, "payload"))
+        .collect();
+    if refs {
+        blob::keep_payload_refs(db, &mut payloads)?;
+    } else {
+        blob::hydrate_payloads(db, &mut payloads)?;
+    }
+    Ok(items)
+}
+
+fn info(db: &Connection, session: &str, row: &Row) -> rusqlite::Result<Json> {
+    Ok(infos(db, session, std::slice::from_ref(row), false)?.remove(0))
 }
 
 fn rows(db: &Connection, sql: &str, args: impl rusqlite::Params) -> rusqlite::Result<Vec<Row>> {
@@ -166,16 +187,14 @@ pub fn has(db: &Connection, session: &str, delivery: Option<&str>) -> rusqlite::
     Ok(found.is_some())
 }
 
-/// `SessionInbox.list`: pending input in admission order.
-pub fn list(db: &Connection, session: &str) -> rusqlite::Result<Vec<Json>> {
-    Ok(rows(
+/// `SessionInbox.list`: pending input in admission order; `refs` keeps blob refs (`listWithRefs`).
+pub fn list(db: &Connection, session: &str, refs: bool) -> rusqlite::Result<Vec<Json>> {
+    let pending = rows(
         db,
         &format!("SELECT {COLUMNS} FROM session_inbox WHERE session_id = ?1 ORDER BY enqueued_seq ASC"),
         params![session],
-    )?
-    .iter()
-    .map(|row| row.info(session))
-    .collect())
+    )?;
+    infos(db, session, &pending, refs)
 }
 
 /// A lifecycle conflict: the ID belongs to another record (`SessionInbox.LifecycleConflict`).
@@ -195,7 +214,9 @@ fn promoted(db: &Connection, session: &str, id: &str, delivery: &str) -> rusqlit
     if owner != session || (ty != "user" && ty != "synthetic") {
         return Ok(Err(Conflict));
     }
-    let message = crate::session::message::from_row(id.to_owned(), ty.clone(), &data);
+    let mut read = [crate::session::message::from_row(id.to_owned(), ty.clone(), &data)];
+    blob::hydrate(db, &mut read)?;
+    let [message] = read;
     let created = json::get(&message, "time").and_then(|t| json::get_num(t, "created")).unwrap_or(0.0) as i64;
     let mut payload = Obj::new();
     payload.str("text", json::get_str(&message, "text").unwrap_or_default());
@@ -228,7 +249,7 @@ pub fn reconcile(
         if row.ty == "compaction" || owner != session || row.ty != ty {
             return Ok(Err(Conflict));
         }
-        return Ok(Ok(Some(row.info(session))));
+        return Ok(Ok(Some(info(db, session, &row)?)));
     }
     match promoted(db, session, id, delivery)? {
         Ok(Some(existing)) if json::get_str(&existing, "type") != Some(ty) => Ok(Err(Conflict)),
@@ -273,7 +294,7 @@ pub fn admit(
         Err(_) => {
             let db = app.db.lock().unwrap();
             match find(&db, id).map_err(fatal)? {
-                Some((owner, row)) if owner == session && row.ty == ty => Ok(Ok(row.info(session))),
+                Some((owner, row)) if owner == session && row.ty == ty => Ok(Ok(info(&db, session, &row).map_err(fatal)?)),
                 _ => Ok(Err(Conflict)),
             }
         }
@@ -315,7 +336,11 @@ pub fn project_admitted(tx: &Transaction, event: &Event) -> rusqlite::Result<()>
         return Err(conflict_error());
     }
     let item = json::get(data, "item").cloned().unwrap_or_else(json::object);
-    let payload = json::get(&item, "payload").cloned().unwrap_or_else(json::object);
+    let mut payload = json::get(&item, "payload").cloned().unwrap_or_else(json::object);
+    if json::get_str(&item, "type") == Some("user") {
+        blob::externalize_payload(tx, &mut payload)?;
+    }
+    let seq = event.durable.as_ref().map(|d| d.seq).unwrap_or(0);
     let inserted = tx.execute(
         "INSERT INTO session_inbox (id, session_id, type, payload, delivery, enqueued_seq, time_created) \
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) ON CONFLICT DO NOTHING",
@@ -325,13 +350,14 @@ pub fn project_admitted(tx: &Transaction, event: &Event) -> rusqlite::Result<()>
             json::get_str(&item, "type").unwrap_or_default(),
             json::text(&payload),
             json::get_str(&item, "delivery").unwrap_or_default(),
-            event.durable.as_ref().map(|d| d.seq).unwrap_or(0),
+            seq,
             event.created,
         ],
     )?;
     if inserted == 0 {
         return Err(conflict_error());
     }
+    blob::record_refs(tx, session, id, seq, &payload)?;
     tx.execute("UPDATE session_v2 SET time_updated = ?1 WHERE id = ?2", params![event.created, session])?;
     Ok(())
 }
@@ -385,14 +411,15 @@ pub fn project_delivered(tx: &Transaction, event: &Event) -> rusqlite::Result<()
 /// `session.inbox.cancelled`.
 pub fn project_cancelled(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
     let data = &event.data;
+    let (id, session) = (json::get_str(data, "inboxID").unwrap_or_default(), json::get_str(data, "sessionID").unwrap_or_default());
     let deleted = tx.execute(
         "DELETE FROM session_inbox WHERE id = ?1 AND session_id = ?2 AND delivery IN ('queue', 'steer')",
-        params![json::get_str(data, "inboxID"), json::get_str(data, "sessionID")],
+        params![id, session],
     )?;
     if deleted == 0 {
         return Err(conflict_error());
     }
-    Ok(())
+    blob::release_message(tx, session, id)
 }
 
 /// `session.inbox.delivery.changed`.

@@ -34,13 +34,14 @@ pub async fn submit(app: &App, session_id: &str, input: &Json) -> Result<Json> {
             // Preparation runs in the session's location (its plugins hook the prompt, its skills are attached).
             let location = app.locations.get(app, &stored.location).await?;
             let files = match present("files") {
-                Some(Json::Array(files)) => Some(Json::Array(
-                    files
-                        .iter()
-                        .map(session::attachment::materialize)
-                        .collect::<std::result::Result<Vec<_>, _>>()
-                        .map_err(|message| Failure::invalid(message, Some("files"), None))?,
-                )),
+                Some(Json::Array(files)) => {
+                    let mut materialized = Vec::with_capacity(files.len());
+                    for file in &files {
+                        let file = session::attachment::materialize(&app.db, file).await;
+                        materialized.push(file.map_err(|message| Failure::invalid(message, Some("files"), None))?);
+                    }
+                    Some(Json::Array(materialized))
+                }
                 _ => None,
             };
             let skills = match present("skills") {

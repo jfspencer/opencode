@@ -5,16 +5,17 @@
 //! reference.ts, usage.ts, migration.ts).
 //!
 //! The plugin list and the integration catalog are those of the TS reference's built-in plugins (recorded from it,
-//! `inventory/builtin/plugins.json` and `integrations.json`); config providers add their integrations.
+//! `inventory/builtin/plugins.json` and `integrations.json`); config providers add their integrations. Stored
+//! credentials ([`crate::credential`]) are integrations' connections, made with an API key (`connect.key`) or created
+//! directly.
 //!
-//! TODO(port): writes to dropped features (adding MCP servers, connecting integrations, storing credentials) answer
-//! 501.
+//! TODO(port): writes to dropped features (adding MCP servers, OAuth, external and command logins) answer 501.
 
 use std::sync::Arc;
 
 use opencode_protocol::Json;
 
-use super::{data, located_data};
+use super::located_data;
 use crate::api::{Decoded, not_implemented};
 use crate::app::App;
 use crate::http::{Failure, Request, Response, Result};
@@ -36,8 +37,9 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
     let operation = request.route.operation;
     // Endpoints outside a location.
     match operation {
-        "credential.list" => return Ok(data(Json::Array(vec![]))),
-        "credential.activate" | "credential.remove" => return Ok(Response::no_content()),
+        "credential.list" | "credential.create" | "credential.update" | "credential.activate" | "credential.remove" => {
+            return credentials(app, request, &decoded).await;
+        }
         "experimental.migration.v1.status" => {
             let mut o = Obj::new();
             o.str("status", "completed");
@@ -171,25 +173,154 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             let server = request.param("server");
             Err(not_found("McpServerNotFoundError", "server", server, format!("MCP server not found: {server}")))
         }
-        "integration.list" => Ok(located_data(&location, Json::Array(integrations(&inventory)))),
+        "integration.list" => {
+            // `integration.connect` decides which integrations are listed.
+            let statements = inventory::providers::statements(&inventory.entries);
+            let listed = integrations(app, &inventory)
+                .into_iter()
+                .filter(|i| inventory::providers::decision(&statements, "integration.connect", json::get_str(i, "id").unwrap_or_default()) != "deny")
+                .collect();
+            Ok(located_data(&location, Json::Array(listed)))
+        }
         "integration.get" => {
             let id = request.param("integrationID");
-            match integrations(&inventory).into_iter().find(|i| json::get_str(i, "id") == Some(id)) {
+            match integrations(app, &inventory).into_iter().find(|i| json::get_str(i, "id") == Some(id)) {
                 Some(integration) => Ok(located_data(&location, integration)),
                 None => Err(integration_not_found(id)),
             }
         }
         "integration.oauth.cancel" | "integration.command.cancel" => Ok(Response::no_content()),
-        "integration.connect.key" | "integration.oauth.status" | "integration.oauth.complete" | "integration.command.status" => {
+        "integration.connect.key" => {
             let id = request.param("integrationID");
-            if !integrations(&inventory).iter().any(|i| json::get_str(i, "id") == Some(id)) {
+            require_connectable(&inventory, id)?;
+            let Some(integration) = integrations(app, &inventory).into_iter().find(|i| json::get_str(i, "id") == Some(id)) else {
+                return Err(integration_not_found(id));
+            };
+            connect_key(app, &integration, &decoded.payload)?;
+            Ok(Response::no_content())
+        }
+        "integration.oauth.status" | "integration.oauth.complete" | "integration.command.status" => {
+            let id = request.param("integrationID");
+            if !integrations(app, &inventory).iter().any(|i| json::get_str(i, "id") == Some(id)) {
                 return Err(integration_not_found(id));
             }
-            // TODO(port): connecting an integration (stores a credential).
+            // TODO(port): OAuth and command logins.
             Err(not_implemented(operation))
         }
         _ => super::fallback(app, request),
     }
+}
+
+/// `requireConnectable`: managed policy's `integration.connect` may refuse an integration.
+fn require_connectable(inventory: &inventory::Inventory, id: &str) -> Result<()> {
+    let statements = inventory::providers::statements(&inventory.entries);
+    if inventory::providers::decision(&statements, "integration.connect", id) != "deny" {
+        return Ok(());
+    }
+    // `ManagedPolicy.statements` words a file document's statements so.
+    Err(Failure::invalid(
+        format!("Blocked by configuration policy: connecting {id} is not allowed"),
+        None,
+        Some("integration_policy"),
+    ))
+}
+
+/// `Integration.connection.key`: validates the form answer and stores the key as a new, selected credential.
+fn connect_key(app: &App, integration: &Json, payload: &Json) -> Result<()> {
+    let id = json::get_str(integration, "id").unwrap_or_default();
+    let methods = json::array(json::get(integration, "methods").unwrap_or(&Json::Null)).unwrap_or_default();
+    let Some(method) = methods.iter().find(|m| json::get_str(m, "type") == Some("key")) else {
+        return Err(crate::app::defect(format!("Key method not found: {id}")));
+    };
+    let answer = json::get(payload, "answer").filter(|a| matches!(a, Json::Object(_))).cloned().unwrap_or_else(json::object);
+    let answered = matches!(&answer, Json::Object(fields) if !fields.is_empty());
+    // `answerError`, failing as `AuthorizationError` (`authorize` in handlers/integration.ts).
+    let invalid = match json::get(method, "form").and_then(json::array) {
+        Some(form) => crate::form::validate_fields(form).or_else(|| crate::form::validate_answer(form, &answer)),
+        None => answered.then(|| "Key method does not accept a form answer".to_owned()),
+    };
+    if let Some(message) = invalid {
+        return Err(Failure::invalid(message, None, Some("integration_authorization")));
+    }
+    let mut value = Obj::new();
+    value.str("type", "key").str("key", json::get_str(payload, "key").unwrap_or_default());
+    if answered {
+        value.set("metadata", answer);
+    }
+    let label = json::get_str(payload, "label").map(str::to_owned);
+    let name = json::get_str(integration, "name").unwrap_or(id);
+    crate::credential::create_labeled(app, id, name, value.done(), label).map_err(crate::app::fatal)?;
+    Ok(())
+}
+
+/// The credential endpoints (handlers/credential.ts): credentials are global, and creating one checks
+/// `integration.connect` in the global config location.
+async fn credentials(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
+    use crate::credential;
+    let id = request.param("credentialID");
+    match request.route.operation {
+        "credential.list" => {
+            let all = credential::all(&app.db.lock().unwrap()).map_err(crate::app::fatal)?;
+            Ok(super::encoded(request, &data_of(Json::Array(credential::entries(&all)))))
+        }
+        "credential.create" => {
+            let payload = &decoded.payload;
+            let integration = json::get_str(payload, "integrationID").unwrap_or_default().to_owned();
+            let global = crate::bus::LocationRef::directory(crate::generate::global_config());
+            let location = app.locations.get(app, &global).await?;
+            require_connectable(&location.inventory(), &integration)?;
+            let requested = json::get_str(payload, "id").map(str::to_owned);
+            if let Some(requested) = &requested {
+                if credential::get(&app.db.lock().unwrap(), requested).map_err(crate::app::fatal)?.is_some() {
+                    let mut o = Obj::new();
+                    o.str("_tag", "ConflictError").str("message", &format!("Credential already exists: {requested}"));
+                    o.str("resource", requested);
+                    return Err(Failure::new(409, o.done()));
+                }
+            }
+            let created = credential::create(
+                app,
+                credential::Create {
+                    id: requested,
+                    integration_id: integration.clone(),
+                    value: json::get(payload, "value").cloned().unwrap_or(Json::Null),
+                    label: json::get_str(payload, "label").map(str::to_owned),
+                    activate: json::get_bool(payload, "activate"),
+                },
+            )
+            .map_err(crate::app::fatal)?;
+            let listed = credential::list(&app.db.lock().unwrap(), &integration).map_err(crate::app::fatal)?;
+            // `entry ?? { ...created, active: false }`.
+            let entry = credential::entries(&listed)
+                .into_iter()
+                .find(|e| json::get_str(e, "id") == Some(created.id.as_str()))
+                .unwrap_or_else(|| {
+                    let mut o = Obj::new();
+                    o.str("id", &created.id).str("integrationID", &created.integration_id).str("label", &created.label);
+                    o.set("value", created.value.clone()).set("active", Json::Bool(false));
+                    o.done()
+                });
+            Ok(super::encoded(request, &data_of(entry)))
+        }
+        "credential.update" => {
+            credential::update_label(app, id, json::get_str(&decoded.payload, "label")).map_err(crate::app::fatal)?;
+            Ok(Response::no_content())
+        }
+        "credential.activate" => {
+            credential::activate(app, id).map_err(crate::app::fatal)?;
+            Ok(Response::no_content())
+        }
+        _ => {
+            credential::remove(app, id).map_err(crate::app::fatal)?;
+            Ok(Response::no_content())
+        }
+    }
+}
+
+fn data_of(value: Json) -> Json {
+    let mut o = Obj::new();
+    o.set("data", value);
+    o.done()
 }
 
 fn integration_not_found(id: &str) -> Failure {
@@ -197,8 +328,9 @@ fn integration_not_found(id: &str) -> Failure {
 }
 
 /// `Integration.list`: the built-in plugins' integrations and the configured providers', by name (`localeCompare`),
-/// each with its environment connections (the env names that are set).
-fn integrations(inventory: &inventory::Inventory) -> Vec<Json> {
+/// each with its connections (`resolveConnections`: its stored credentials, then the env names that are set).
+fn integrations(app: &App, inventory: &inventory::Inventory) -> Vec<Json> {
+    let saved = crate::credential::all(&app.db.lock().unwrap()).unwrap_or_default();
     let mut items: Vec<Json> = match json::parse(INTEGRATIONS) {
         Some(Json::Array(items)) => items,
         _ => vec![],
@@ -249,16 +381,9 @@ fn integrations(inventory: &inventory::Inventory) -> Vec<Json> {
                 .collect(),
             _ => vec![],
         };
-        let connections: Vec<Json> = names
-            .into_iter()
-            .filter(|n| std::env::var(n).is_ok_and(|v| !v.is_empty()))
-            .map(|n| {
-                let mut c = Obj::new();
-                c.str("type", "env").str("name", &n);
-                c.done()
-            })
-            .collect();
-        o.insert("connections".into(), Json::Array(connections));
+        let id = o.get("id").and_then(json::as_str).unwrap_or_default().to_owned();
+        let own: Vec<crate::credential::Info> = saved.iter().filter(|c| c.integration_id == id).cloned().collect();
+        o.insert("connections".into(), Json::Array(crate::credential::connections(&own, &names)));
     }
     items.sort_by(|a, b| {
         let name = |v: &Json| json::get_str(v, "name").unwrap_or_default().to_owned();
