@@ -81,6 +81,10 @@
 //! `tui()` and `use_context` return nothing there, so take what a handler needs (`tui().toast`, signals, the data)
 //! when the component is created, and move it into the closure.
 //!
+//! **Config**: `tui().config` is the config at startup; toggles that commands change read
+//! `tui().config_context.data()` (tracked) and write with `tui().config_context.update(|draft| ..)`, which edits
+//! cli.json through the CLI config service and resolves it again ([`config_context`], config/index.tsx).
+//!
 //! **Toasts**: `tui().toast.show(ToastInput::new(Variant::Info, "...").duration(3000))`, `tui().toast.error(..)`
 //! ([`toast`], ui/toast.tsx); App draws `<Toast>` last.
 //!
@@ -94,6 +98,7 @@
 pub mod app;
 pub mod commands;
 pub mod config;
+pub mod config_context;
 pub mod ctx;
 pub mod data;
 pub mod home;
