@@ -17,7 +17,7 @@ mod connection;
 mod help;
 mod out;
 mod parse;
-mod paths;
+pub mod paths;
 mod run;
 mod serve;
 mod service;

@@ -38,8 +38,7 @@ pub struct Resolved {
 #[derive(Debug, Clone)]
 pub struct Vcs {
     pub kind: &'static str,
-    /// The repository's store (git's common directory, `.hg`). TODO(port): the location watcher watches its HEAD.
-    #[allow(dead_code)]
+    /// The repository's store (git's common directory, `.hg`): where branch metadata lives ([`crate::vcs::changed`]).
     pub store: String,
 }
 

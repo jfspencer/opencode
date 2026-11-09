@@ -1,16 +1,15 @@
 //! Locations (packages/core/src/location*.ts): the services of one directory, booted on first use and kept until they
-//! are invalidated (`location.reload`, `debug.location.evict`, a repository initialized in them).
+//! are invalidated (`location.reload`, `debug.location.evict`, a repository initialized in them, the idle sweep of
+//! [`crate::location_activity`]).
 //!
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
 //! what they registered, in the order the TS server's built-in plugins do. What they register (config, agents,
 //! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
-//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) rejects its pending permission
-//! requests and cancels its pending forms, then announces `location.shutdown`. TODO(port): it also closes the
-//! location's RPC clients (between the forms and the announcement).
-//! TODO(port): the idle sweep (location-activity.ts: a location unused for an hour, or its configured
-//! `experimental.location_idle_timeout`, is evicted); the location watcher (filesystem/location-watcher.ts: the
-//! repository's HEAD is watched, its changes announced as `filesystem.changed` and the VCS branch re-read). A
-//! spawned watcher needs a `'static` handle to the bus, which handlers do not have yet.
+//! the announcements; the location watcher ([`crate::location_watch`]) starts after them. Shutting a location down
+//! (`LocationLifecycle.shutdown`) rejects its pending permission requests and cancels its pending forms, then
+//! announces `location.shutdown`. TODO(port): between the forms and the announcement TS also closes the location's
+//! RPC registry (`Rpc.close`, which fails the RPC calls still running); the port has no RPC registry yet: its only
+//! built-in registrant is the goal plugin, and `rpc.call` answers 501.
 
 use std::sync::{Arc, Mutex};
 
@@ -47,6 +46,10 @@ pub struct Location {
     pub pty: Arc<crate::pty::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
+    /// The repository metadata watch (`LocationWatcher`).
+    pub watcher: crate::location_watch::Watcher,
+    /// Open client connections (terminal sockets) that keep the idle sweep away (`LocationLifecycle.retain`).
+    pub retained: std::sync::atomic::AtomicUsize,
 }
 
 #[derive(Debug, Clone)]
@@ -67,9 +70,8 @@ impl Location {
         LocationRef { directory: self.directory.clone(), workspace_id: self.workspace_id.clone() }
     }
 
-    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`), for `location.get` (TODO(port)); located
+    /// `Location.Info` (`{directory, project: {id, directory, canonical}}`), for `location.get`; located
     /// answers carry only `Location.PublicRef`.
-    #[allow(dead_code)]
     pub fn info(&self) -> Json {
         let mut project = Obj::new();
         project.str("id", &self.project.id).str("directory", &self.project.directory).str("canonical", &self.project.canonical);
@@ -87,6 +89,8 @@ pub struct Locations {
     booted: Mutex<IndexMap<LocationRef, Arc<Location>>>,
     /// Held while a location boots, so concurrent first requests boot it once.
     booting: tokio::sync::Mutex<()>,
+    /// The idle sweep's activity record.
+    pub activity: crate::location_activity::Activity,
 }
 
 /// `LocationServiceMap.canonical`: normalized, without a trailing separator.
@@ -139,6 +143,9 @@ impl Locations {
         let location = Arc::new(boot(app, &key).await?);
         location.inventory.watch(app.arc(), Arc::downgrade(&location));
         self.booted.lock().unwrap().insert(key, location.clone());
+        // The location watcher starts once the plugins have activated.
+        let (app, booted) = (app.arc(), location.clone());
+        tokio::spawn(async move { booted.watcher.reconcile(&app, &booted).await });
         Ok(location)
     }
 
@@ -156,6 +163,7 @@ impl Locations {
             location.forms.close(&app.bus, &location.reference());
             location.shell.close();
             location.pty.close();
+            location.watcher.stop();
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -217,6 +225,8 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
         pty: crate::pty::Service::new(app, key.clone()),
         snapshot: Default::default(),
+        watcher: Default::default(),
+        retained: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

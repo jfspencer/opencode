@@ -174,8 +174,15 @@ mod inotify {
             if mask & libc::IN_IGNORED != 0 {
                 if let Some((_, users)) = self.descriptors.remove(&wd) {
                     for id in users {
-                        if let Some(Subscriber::Tree { descriptors, .. }) = self.subscribers.get_mut(&id) {
-                            descriptors.remove(&wd);
+                        match self.subscribers.get_mut(&id) {
+                            Some(Subscriber::Tree { descriptors, .. }) => {
+                                descriptors.remove(&wd);
+                            }
+                            // Its directory is gone: the watch ends (its sender is dropped).
+                            Some(Subscriber::File { .. }) => {
+                                self.subscribers.remove(&id);
+                            }
+                            None => {}
                         }
                     }
                 }

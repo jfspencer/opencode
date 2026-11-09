@@ -28,6 +28,8 @@ mod job;
 mod json;
 mod llm;
 mod location;
+mod location_activity;
+mod location_watch;
 mod permission;
 mod persistent_pty;
 mod process;

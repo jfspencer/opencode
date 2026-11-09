@@ -240,6 +240,7 @@ pub async fn run(input: &Input) -> Result {
         crate::session::execution::resume_suspended(&app);
     }
     crate::schedule::start(&app);
+    crate::location_activity::start(&app);
     let server = tokio::spawn(crate::http::serve(app, listener));
     let ended = match (mode, &registration) {
         (Mode::Stdio, _) => tokio::select! {

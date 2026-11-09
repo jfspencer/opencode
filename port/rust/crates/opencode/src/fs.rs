@@ -2,8 +2,8 @@
 //! ripgrep.ts, ripgrep/binary.ts): reading files confined to the location, listing directories, writing files, fuzzy
 //! file search (ripgrep's file list ranked by fuzzysort; the port omits fff) and file watches.
 //!
-//! TODO(port): the file watcher itself (watched files announce `filesystem.changed`); downloading ripgrep when none is
-//! installed (`RipgrepBinary`: the port uses `rg` from `PATH` or `<XDG_CACHE_HOME>/opencode/bin`).
+//! Watched files announce `filesystem.changed` on their location. Without `rg` on `PATH` or in
+//! `<XDG_CACHE_HOME>/opencode/bin`, the pinned ripgrep release is downloaded there (`RipgrepBinary`).
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -261,20 +261,151 @@ fn scan_limit(location: &Location) -> usize {
     if location.vcs.is_some() && !is_home(&location.directory) { 9_007_199_254_740_991 } else { 100_000 }
 }
 
-/// `RipgrepBinary.filepath`: `rg` from `PATH`, else the copy in opencode's cache.
-pub fn ripgrep() -> Option<String> {
+/// Why ripgrep is unavailable: a failure its callers report in their own words (the download's HTTP request or a file
+/// write failed), or a defect, whose message they pass on (verification, extraction, an unsupported platform).
+#[derive(Debug, Clone)]
+pub enum RipgrepUnavailable {
+    Failed,
+    Defect(String),
+}
+
+impl RipgrepUnavailable {
+    /// The message a caller reports, given its own for a failure.
+    pub fn message(&self, failed: &str) -> String {
+        match self {
+            RipgrepUnavailable::Failed => failed.to_owned(),
+            RipgrepUnavailable::Defect(message) => message.clone(),
+        }
+    }
+}
+
+/// The ripgrep release downloaded when none is installed, and the SHA-256 of each platform's asset (from the
+/// `<asset>.sha256` files published with it: an asset is only written and run when it matches).
+const RIPGREP_VERSION: &str = "15.1.0";
+const RIPGREP_PLATFORMS: [(&str, &str, &str); 4] = [
+    ("arm64-darwin", "aarch64-apple-darwin", "378e973289176ca0c6054054ee7f631a065874a352bf43f0fa60ef079b6ba715"),
+    ("arm64-linux", "aarch64-unknown-linux-gnu", "2b661c6ef508e902f388e9098d9c4c5aca72c87b55922d94abdba830b4dc885e"),
+    ("x64-darwin", "x86_64-apple-darwin", "64811cb24e77cac3057d6c40b63ac9becf9082eedd54ca411b475b755d334882"),
+    ("x64-linux", "x86_64-unknown-linux-musl", "1c9297be4a084eea7ecaedf93eb03d058d6faae29bbc57ecdaf5063921491599"),
+];
+
+/// `Global.Path.bin`.
+fn global_bin() -> String {
     let cache = std::env::var("XDG_CACHE_HOME")
         .ok()
         .filter(|v| !v.is_empty())
         .unwrap_or_else(|| format!("{}/.cache", std::env::var("HOME").unwrap_or_default()));
-    crate::process::which("rg", Some(&format!("{cache}/opencode/bin")))
+    format!("{cache}/opencode/bin")
+}
+
+/// `RipgrepBinary.filepath`: `rg` from `PATH`, else the copy in opencode's cache, else the pinned release downloaded
+/// into the cache. Resolved once per process, failure included (`Effect.cached`).
+pub async fn ripgrep() -> Result<String, RipgrepUnavailable> {
+    static RESOLVED: tokio::sync::OnceCell<Result<String, RipgrepUnavailable>> = tokio::sync::OnceCell::const_new();
+    RESOLVED.get_or_init(resolve_ripgrep).await.clone()
+}
+
+async fn resolve_ripgrep() -> Result<String, RipgrepUnavailable> {
+    let bin = global_bin();
+    if let Some(system) = crate::process::which("rg", Some(&bin)) {
+        return Ok(system);
+    }
+    let target = format!("{bin}/rg");
+    if Path::new(&target).is_file() {
+        return Ok(target);
+    }
+    let arch = if cfg!(target_arch = "aarch64") { "arm64" } else if cfg!(target_arch = "x86_64") { "x64" } else { std::env::consts::ARCH };
+    let os = if cfg!(target_os = "macos") { "darwin" } else { std::env::consts::OS };
+    let key = format!("{arch}-{os}");
+    let Some((_, platform, sha256)) = RIPGREP_PLATFORMS.iter().find(|(k, _, _)| *k == key) else {
+        return Err(RipgrepUnavailable::Defect(format!("unsupported platform for ripgrep: {key}")));
+    };
+    let filename = format!("ripgrep-{RIPGREP_VERSION}-{platform}.tar.gz");
+    let url = format!("https://github.com/BurntSushi/ripgrep/releases/download/{RIPGREP_VERSION}/{filename}");
+    let archive = format!("{bin}/{filename}");
+    std::fs::create_dir_all(&bin).map_err(|e| RipgrepUnavailable::Defect(e.to_string()))?;
+    let bytes = download(&url).await.ok_or(RipgrepUnavailable::Failed)?;
+    if bytes.is_empty() {
+        return Err(RipgrepUnavailable::Defect(format!("failed to download ripgrep from {url}")));
+    }
+    let actual: String = <sha2::Sha256 as sha2::Digest>::digest(&bytes).iter().map(|b| format!("{b:02x}")).collect();
+    if actual != *sha256 {
+        return Err(RipgrepUnavailable::Defect(format!(
+            "ripgrep download {filename} failed SHA-256 verification: expected {sha256}, got {actual}"
+        )));
+    }
+    std::fs::write(&archive, &bytes).map_err(|_| RipgrepUnavailable::Failed)?;
+    let extracted = extract_ripgrep(&bin, &archive, platform, &target).await;
+    let _ = std::fs::remove_file(&archive);
+    extracted.map(|()| target)
+}
+
+/// The release asset's bytes (redirects followed); `None` when the request fails or answers other than 2xx.
+async fn download(url: &str) -> Option<Vec<u8>> {
+    let mut url = url.to_owned();
+    for _ in 0..20 {
+        let response = crate::llm::http::send("GET", &url, &[], String::new()).await.ok()?;
+        if matches!(response.status, 301 | 302 | 303 | 307 | 308) {
+            url = response.headers.iter().find(|(k, _)| k == "location").map(|(_, v)| v.clone())?;
+            continue;
+        }
+        if !(200..300).contains(&response.status) {
+            return None;
+        }
+        let mut body = response.body;
+        let mut out = Vec::new();
+        while let Some(chunk) = body.next().await {
+            out.extend_from_slice(&chunk.ok()?);
+        }
+        return Some(out);
+    }
+    None
+}
+
+/// Unpacks the archive in a temporary directory of the cache and installs its `rg` as `target`.
+async fn extract_ripgrep(bin: &str, archive: &str, platform: &str, target: &str) -> Result<(), RipgrepUnavailable> {
+    let suffix: String = crate::id::ascending().chars().rev().take(6).collect();
+    let directory = format!("{bin}/ripgrep-{suffix}");
+    std::fs::create_dir_all(&directory).map_err(|_| RipgrepUnavailable::Failed)?;
+    let result = async {
+        let output = tokio::process::Command::new("tar")
+            .args(["-xzf", archive, "-C", &directory])
+            .current_dir(&directory)
+            .stdin(std::process::Stdio::null())
+            .output()
+            .await
+            .map_err(|_| RipgrepUnavailable::Failed)?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr).trim().to_owned();
+            let stdout = String::from_utf8_lossy(&output.stdout).trim().to_owned();
+            let code = output.status.code().unwrap_or(-1);
+            let message = if !stderr.is_empty() {
+                stderr
+            } else if !stdout.is_empty() {
+                stdout
+            } else {
+                format!("ripgrep extraction failed with code {code}")
+            };
+            return Err(RipgrepUnavailable::Defect(message));
+        }
+        let extracted = format!("{directory}/ripgrep-{RIPGREP_VERSION}-{platform}/rg");
+        if !Path::new(&extracted).is_file() {
+            return Err(RipgrepUnavailable::Defect(format!("ripgrep archive did not contain executable: {extracted}")));
+        }
+        std::fs::copy(&extracted, target).map_err(|_| RipgrepUnavailable::Failed)?;
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(target, std::fs::Permissions::from_mode(0o755)).map_err(|_| RipgrepUnavailable::Failed)
+    }
+    .await;
+    let _ = std::fs::remove_dir_all(&directory);
+    result
 }
 
 /// `Ripgrep.find` with pattern `*`: every file ripgrep lists (ignore rules apply, hidden files are skipped), up to
 /// `limit`, and the directories containing them.
 async fn scan(directory: &str, limit: usize) -> Result<Index, SearchError> {
     use tokio::io::AsyncBufReadExt;
-    let binary = ripgrep().ok_or_else(|| SearchError("ripgrep is not installed".into()))?;
+    let binary = ripgrep().await.map_err(|e| SearchError(e.message("ripgrep is not installed")))?;
     // `Protected.names()` is empty on Linux, so the home directory excludes nothing.
     let mut child = tokio::process::Command::new(binary)
         .args(["--no-config", "--files", "--glob=!**/.git/**", "."])
@@ -345,6 +476,8 @@ fn normalize_rg_path(value: &str) -> String {
 
 /// A watch lasts this long unless renewed.
 const WATCH_TTL_MS: i64 = 24 * 60 * 60 * 1000;
+/// How often expired watches are stopped.
+const WATCH_SWEEP_INTERVAL: std::time::Duration = std::time::Duration::from_secs(5 * 60);
 const MAX_PER_LOCATION: usize = 256;
 
 /// `FileWatch.DisabledError`.
@@ -355,43 +488,132 @@ impl WatchDisabled {
     pub const MESSAGE: &'static str = "File watching is disabled";
 }
 
-fn watches() -> &'static Mutex<HashMap<String, HashMap<String, i64>>> {
-    static WATCHES: std::sync::OnceLock<Mutex<HashMap<String, HashMap<String, i64>>>> = std::sync::OnceLock::new();
+/// One watched file: when it expires, and its watch (the subscription and the task announcing its changes; dropping
+/// it stops both).
+struct Watched {
+    expires: i64,
+    generation: u64,
+    _watch: Option<crate::watch::Watch>,
+    _task: crate::watch::Watch,
+}
+
+#[derive(Default)]
+struct FileWatches {
+    /// Location key → watched file → its watch. Global rather than location-scoped, so watches outlive idle eviction.
+    locations: HashMap<String, HashMap<String, Watched>>,
+    next: u64,
+    sweeping: bool,
+}
+
+fn watches() -> &'static Mutex<FileWatches> {
+    static WATCHES: std::sync::OnceLock<Mutex<FileWatches>> = std::sync::OnceLock::new();
     WATCHES.get_or_init(Default::default)
 }
 
 /// The server's file watcher is off (`OPENCODE_FILEWATCHER_DISABLE`, `OPENCODE_DISABLE_FILEWATCHER`).
 pub fn watcher_disabled() -> bool {
-    let value = std::env::var("OPENCODE_FILEWATCHER_DISABLE").or_else(|_| std::env::var("OPENCODE_DISABLE_FILEWATCHER")).ok();
-    value.is_some_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
+    !crate::watch::enabled()
 }
 
-fn watch_key(location: &Location) -> String {
+fn watch_key(location: &crate::bus::LocationRef) -> String {
     crate::json::text(&Json::Array(vec![
         Json::String(location.directory.clone()),
         location.workspace_id.clone().map(Json::String).unwrap_or(Json::Null),
     ]))
 }
 
+fn now_ms() -> i64 {
+    SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0)
+}
+
+/// Forgets a watched file; the caller drops what it returns (which stops the watch) after releasing the lock.
+fn forget(all: &mut FileWatches, key: &str, file: &str) -> Option<Watched> {
+    let files = all.locations.get_mut(key)?;
+    let removed = files.remove(file);
+    if files.is_empty() {
+        all.locations.remove(key);
+    }
+    removed
+}
+
+/// Starts the watch of one file: each change announces `filesystem.changed` on the watch's location, `change` while
+/// the file exists and `unlink` once it is gone. A watch that ends (its directory vanished) is forgotten, so the next
+/// `watch` starts a new one.
+fn start_watch(app: &crate::app::App, reference: &crate::bus::LocationRef, file: &str, generation: u64, expires: i64) -> Watched {
+    let (send, mut changes) = tokio::sync::mpsc::unbounded_channel::<String>();
+    let watch = crate::watch::file(file, &send);
+    drop(send);
+    let (app, reference, file) = (app.arc(), reference.clone(), file.to_owned());
+    let task = tokio::spawn(async move {
+        while changes.recv().await.is_some() {
+            let exists = Path::new(&file).exists();
+            let mut data = Obj::new();
+            data.str("file", &file).str("event", if exists { "change" } else { "unlink" });
+            let options = crate::bus::PublishOptions { id: None, location: Some(reference.clone()) };
+            app.bus.emit("filesystem.changed", data.done(), options);
+            crate::vcs::changed(&app, &reference, &file);
+        }
+        let key = watch_key(&reference);
+        let mut all = watches().lock().unwrap();
+        let current = all.locations.get(&key).and_then(|files| files.get(&file)).is_some_and(|w| w.generation == generation);
+        let ended = if current { forget(&mut all, &key, &file) } else { None };
+        drop(all);
+        // Dropping it aborts this task, which has nothing left to await.
+        drop(ended);
+    });
+    Watched { expires, generation, _watch: watch, _task: crate::watch::Watch::task(task) }
+}
+
+/// Every five minutes, expired watches stop.
+fn sweep_watches() {
+    tokio::spawn(async {
+        loop {
+            tokio::time::sleep(WATCH_SWEEP_INTERVAL).await;
+            let now = now_ms();
+            let expired: Vec<Watched> = {
+                let mut all = watches().lock().unwrap();
+                let mut expired = vec![];
+                for files in all.locations.values_mut() {
+                    let stale: Vec<String> = files.iter().filter(|(_, w)| w.expires <= now).map(|(f, _)| f.clone()).collect();
+                    expired.extend(stale.iter().filter_map(|file| files.remove(file)));
+                }
+                all.locations.retain(|_, files| !files.is_empty());
+                expired
+            };
+            drop(expired);
+        }
+    });
+}
+
 /// `FileWatch.watch`: starts watching a file, or renews its expiry; a location watches at most 256 files (the one
 /// expiring soonest makes room).
-pub fn watch(location: &Location, file: &str) -> Result<(), WatchDisabled> {
+pub fn watch(app: &crate::app::App, location: &Location, file: &str) -> Result<(), WatchDisabled> {
     if watcher_disabled() {
         return Err(WatchDisabled);
     }
-    let now = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as i64).unwrap_or(0);
+    let reference = location.reference();
+    let key = watch_key(&reference);
+    let expires = now_ms() + WATCH_TTL_MS;
     let mut all = watches().lock().unwrap();
-    all.retain(|_, files| {
-        files.retain(|_, expires| *expires > now);
-        !files.is_empty()
-    });
-    let files = all.entry(watch_key(location)).or_default();
-    if !files.contains_key(file) && files.len() >= MAX_PER_LOCATION {
-        if let Some(soonest) = files.iter().min_by_key(|(_, expires)| **expires).map(|(f, _)| f.clone()) {
-            files.remove(&soonest);
+    if !all.sweeping {
+        all.sweeping = true;
+        sweep_watches();
+    }
+    if let Some(existing) = all.locations.get_mut(&key).and_then(|files| files.get_mut(file)) {
+        existing.expires = expires;
+        return Ok(());
+    }
+    let mut evicted = None;
+    if let Some(files) = all.locations.get_mut(&key).filter(|files| files.len() >= MAX_PER_LOCATION) {
+        if let Some(soonest) = files.iter().min_by_key(|(_, w)| w.expires).map(|(f, _)| f.clone()) {
+            evicted = files.remove(&soonest);
         }
     }
-    files.insert(file.to_owned(), now + WATCH_TTL_MS);
+    all.next += 1;
+    let watched = start_watch(app, &reference, file, all.next, expires);
+    all.locations.entry(key).or_default().insert(file.to_owned(), watched);
+    drop(all);
+    drop(evicted);
     Ok(())
 }
 
@@ -400,14 +622,8 @@ pub fn unwatch(location: &Location, file: &str) {
     if watcher_disabled() {
         return;
     }
-    let mut all = watches().lock().unwrap();
-    let key = watch_key(location);
-    if let Some(files) = all.get_mut(&key) {
-        files.remove(file);
-        if files.is_empty() {
-            all.remove(&key);
-        }
-    }
+    let removed = forget(&mut watches().lock().unwrap(), &watch_key(&location.reference()), file);
+    drop(removed);
 }
 
 // --- Node-style errors and HTTP dates ---

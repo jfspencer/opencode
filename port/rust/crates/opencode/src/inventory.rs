@@ -267,7 +267,11 @@ impl Rescan {
                 match kind {
                     Kind::Skills => location.inventory.rescan_skills(&app.bus, &reference).await,
                     Kind::Instructions => location.inventory.rescan_instructions().await,
-                    Kind::Config => location.inventory.reload(&app.bus, &reference).await,
+                    Kind::Config => {
+                        location.inventory.reload(&app.bus, &reference).await;
+                        // The location watcher follows the reloaded `watcher.ignore` lists.
+                        location.watcher.reconcile(&app, &location).await;
+                    }
                 }
             }
         });
