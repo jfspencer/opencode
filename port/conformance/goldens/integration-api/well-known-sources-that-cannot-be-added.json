@@ -1,0 +1,231 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "well_known_discovery",
+        "message": "No authentication method found at https://manual.example.test"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://manual.example.test"
+      },
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "well_known_discovery",
+        "message": "Failed to load wellknown manifest from https://broken.example.test/.well-known/opencode"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://broken.example.test"
+      },
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "well_known_discovery",
+        "message": "Failed to load wellknown manifest from https://html.example.test/.well-known/opencode"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://html.example.test"
+      },
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "well_known_discovery",
+        "message": "Failed to load wellknown manifest from https://missing.example.test/.well-known/opencode"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://missing.example.test/"
+      },
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "well_known_discovery",
+        "message": "Failed to load wellknown manifest from not a url/.well-known/opencode"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "not a url"
+      },
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Missing key\n  at [\"url\"]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 400,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "kind": "note",
+      "label": "listed",
+      "value": 22
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://manual.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://broken.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://html.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://missing.example.test/.well-known/opencode"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

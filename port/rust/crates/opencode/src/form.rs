@@ -8,7 +8,7 @@
 //! Shutting the location down (`close`) cancels every pending form, and a form created after that is cancelled as
 //! soon as it is announced.
 
-mod formats;
+pub mod formats;
 mod validate;
 
 use std::sync::Mutex;

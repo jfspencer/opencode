@@ -33,7 +33,8 @@
 // chosen at random by the OS or the CLI, not behavior):
 // - ports reserved by the scenario (`ctx.port()`) are written `<port-N>`, the service port `<service-port>`, and
 //   any other `127.0.0.1:<port>` (servers the CLI binds to port 0: `serve --port 0`, private servers)
-//   `127.0.0.1:<port>`; other hosts' ports are kept;
+//   `127.0.0.1:<port>` (URL-encoded, `127.0.0.1%3A<port>`: a local OAuth callback's port); other hosts' ports are
+//   kept;
 // - HTTP Basic credentials sent by `ctx.fetch` are recorded decoded (`Basic base64(opencode:<password>)`) so the
 //   rules above apply to the password;
 // - `<sandbox>` for the sandbox directory, `<repo>` for the repository (paths in stack traces);
@@ -72,6 +73,12 @@ export interface CliOptions extends ScenarioOptions {
   readonly env?: Record<string, string | undefined>
   /** Write the reference config as the global config file (default true). */
   readonly globalConfig?: boolean
+  /**
+   * Stand-ins for programs the CLI runs (the browser it opens): each is written as the executable `<sandbox>/bin/<name>`
+   * (its text, or what the function makes of the sandbox path), and that directory goes first on the PATH of every
+   * CLI process and what they start. Not recorded: the scenario's source is its record.
+   */
+  readonly bin?: Record<string, string | ((sandbox: string) => string)>
 }
 
 export interface RunOptions {
@@ -173,8 +180,14 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       writeFileSync(path.join(sandbox, "config", "opencode", "opencode.json"), JSON.stringify(reference, null, 2) + "\n")
     }
 
+    const bin = path.join(sandbox, "bin")
+    for (const [name, program] of Object.entries(options.bin ?? {})) {
+      mkdirSync(bin, { recursive: true })
+      writeFileSync(path.join(bin, name), typeof program === "function" ? program(sandbox) : program, { mode: 0o755 })
+    }
+
     const env: Record<string, string> = {
-      PATH: process.env.PATH ?? "/usr/bin:/bin",
+      PATH: options.bin ? `${bin}:${process.env.PATH ?? "/usr/bin:/bin"}` : (process.env.PATH ?? "/usr/bin:/bin"),
       HOME: path.join(sandbox, "home"),
       XDG_CONFIG_HOME: path.join(sandbox, "config"),
       XDG_DATA_HOME: path.join(sandbox, "data"),
@@ -211,6 +224,8 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
         out = out.split(raw).join(placeholder)
       for (const [port, placeholder] of ports) out = out.replace(new RegExp(`(?<![0-9])${port}(?![0-9])`, "g"), placeholder)
       out = out.replace(/127\.0\.0\.1:\d{2,5}\b/g, "127.0.0.1:<port>")
+      // The same address URL-encoded, as in an OAuth `redirect_uri` parameter.
+      out = out.replace(/127\.0\.0\.1%3A\d{2,5}\b/g, "127.0.0.1%3A<port>")
       out = out.replace(/\b\d{1,2}\/\d{1,2}\/\d{4}, \d{1,2}:\d{2}:\d{2}(\s?[AP]M)?/g, "<locale-time>")
       // Whole tokens only: a 13-digit run inside a hex ID is not a timestamp.
       out = out.replace(/(?<![0-9A-Za-z])\d{13}(?![0-9A-Za-z])/g, (raw) => (Number(raw) > 1.58e12 && Number(raw) < 2.21e12 ? "<time>" : raw))

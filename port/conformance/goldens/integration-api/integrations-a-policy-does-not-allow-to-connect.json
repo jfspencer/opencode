@@ -1,0 +1,179 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "poe listed",
+      "value": false
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [],
+          "id": "poe",
+          "methods": [
+            {
+              "id": "browser",
+              "label": "Login with Poe (browser)",
+              "type": "oauth"
+            }
+          ],
+          "name": "poe"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "integration_policy",
+        "message": "Blocked by configuration policy: connecting poe is not allowed"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "browser"
+      },
+      "status": 400,
+      "url": "/api/integration/poe/connect/oauth"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "integration_policy",
+        "message": "Blocked by configuration policy: connecting poe is not allowed"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "key": "x"
+      },
+      "status": 400,
+      "url": "/api/integration/poe/connect/key"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "integration_policy",
+        "message": "Blocked by configuration policy: connecting poe is not allowed"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "x"
+      },
+      "status": 400,
+      "url": "/api/integration/poe/connect/command"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

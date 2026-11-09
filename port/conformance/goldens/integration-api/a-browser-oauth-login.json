@@ -1,0 +1,519 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "connect",
+      "value": {
+        "data": {
+          "attemptID": "<con_1>",
+          "instructions": "Complete authorization in your browser. This window will close automatically.",
+          "mode": "auto",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          },
+          "url": {
+            "origin": "https://poe.com",
+            "params": {
+              "client_id": "<client_1>",
+              "code_challenge": "<43 base64url characters>",
+              "code_challenge_method": "S256",
+              "redirect_uri": "http://127.0.0.1:<port>/callback",
+              "response_type": "code",
+              "scope": "apikey:create",
+              "state": "<43 base64url characters>"
+            },
+            "pathname": "/oauth/authorize"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "data": {
+          "status": "pending",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe/connect/oauth/<con_1>"
+    },
+    {
+      "kind": "note",
+      "label": "callback",
+      "value": {
+        "body": {
+          "<blob>": "6d2b7ed306686f94867e9e1bf77869b1f2391626df784ca80ef2cff87947d331"
+        },
+        "contentType": "text/html",
+        "query": {
+          "code": "conformance-code",
+          "state": "wrong-state"
+        },
+        "status": 400
+      }
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Invalid OAuth state",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe/connect/oauth/<con_1>"
+    },
+    {
+      "kind": "note",
+      "label": "connect",
+      "value": {
+        "data": {
+          "attemptID": "<con_2>",
+          "instructions": "Complete authorization in your browser. This window will close automatically.",
+          "mode": "auto",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          },
+          "url": {
+            "origin": "https://poe.com",
+            "params": {
+              "client_id": "<client_1>",
+              "code_challenge": "<43 base64url characters>",
+              "code_challenge_method": "S256",
+              "redirect_uri": "http://127.0.0.1:<port>/callback",
+              "response_type": "code",
+              "scope": "apikey:create",
+              "state": "<43 base64url characters>"
+            },
+            "pathname": "/oauth/authorize"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "callback",
+      "value": {
+        "body": {
+          "<blob>": "a52e5cbf094c85db848c5b3e9d892f5aed14a1d7216ce7446ea46df9ce1252a4"
+        },
+        "contentType": "text/html",
+        "query": {
+          "code": "conformance-code",
+          "state": "<state>"
+        },
+        "status": 400
+      }
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Poe token exchange failed: Authorization code expired",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe/connect/oauth/<con_2>"
+    },
+    {
+      "kind": "note",
+      "label": "connect",
+      "value": {
+        "data": {
+          "attemptID": "<con_3>",
+          "instructions": "Complete authorization in your browser. This window will close automatically.",
+          "mode": "auto",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          },
+          "url": {
+            "origin": "https://poe.com",
+            "params": {
+              "client_id": "<client_1>",
+              "code_challenge": "<43 base64url characters>",
+              "code_challenge_method": "S256",
+              "redirect_uri": "http://127.0.0.1:<port>/callback",
+              "response_type": "code",
+              "scope": "apikey:create",
+              "state": "<43 base64url characters>"
+            },
+            "pathname": "/oauth/authorize"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 500,
+      "url": "/api/integration/poe/connect/oauth/<con_3>/complete"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "code": "conformance-code"
+      },
+      "status": 500,
+      "url": "/api/integration/poe/connect/oauth/<con_3>/complete"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/integration/poe/connect/oauth/<con_3>"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationAttemptNotFoundError",
+        "attemptID": "<con_3>",
+        "integrationID": "poe",
+        "message": "OAuth attempt not found: <con_3>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/integration/poe/connect/oauth/<con_3>"
+    },
+    {
+      "kind": "note",
+      "label": "connect",
+      "value": {
+        "data": {
+          "attemptID": "<con_4>",
+          "instructions": "Complete authorization in your browser. This window will close automatically.",
+          "mode": "auto",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          },
+          "url": {
+            "origin": "https://poe.com",
+            "params": {
+              "client_id": "<client_1>",
+              "code_challenge": "<43 base64url characters>",
+              "code_challenge_method": "S256",
+              "redirect_uri": "http://127.0.0.1:<port>/callback",
+              "response_type": "code",
+              "scope": "apikey:create",
+              "state": "<43 base64url characters>"
+            },
+            "pathname": "/oauth/authorize"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "callback",
+      "value": {
+        "body": {
+          "<blob>": "143311ca30e8f021ce34b9a46a6dcb20a2251c58147c32db84a21ad3968428f2"
+        },
+        "contentType": "text/html",
+        "query": {
+          "code": "conformance-code",
+          "state": "<state>"
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "data": {
+          "status": "complete",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe/connect/oauth/<con_4>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/integration/poe/connect/oauth/<con_4>"
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [
+            {
+              "id": "<cred_1>",
+              "label": "Poe account",
+              "method": "oauth",
+              "type": "credential"
+            }
+          ],
+          "id": "poe",
+          "methods": [
+            {
+              "id": "browser",
+              "label": "Login with Poe (browser)",
+              "type": "oauth"
+            }
+          ],
+          "name": "poe"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "active": true,
+            "id": "<cred_1>",
+            "integrationID": "poe",
+            "label": "Poe account",
+            "value": {
+              "access": "poe-conformance-key",
+              "expires": "<time>",
+              "methodID": "browser",
+              "refresh": "",
+              "type": "oauth"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/credential"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {
+          "client_id": "<client_1>",
+          "code": "conformance-code",
+          "code_verifier": "<verifier of the attempt's challenge>",
+          "grant_type": "authorization_code",
+          "redirect_uri": "<the attempt's callback>"
+        },
+        "headers": {
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.poe.com/token"
+      },
+      {
+        "body": {
+          "client_id": "<client_1>",
+          "code": "conformance-code",
+          "code_verifier": "<verifier of the attempt's challenge>",
+          "grant_type": "authorization_code",
+          "redirect_uri": "<the attempt's callback>"
+        },
+        "headers": {
+          "content-type": "application/x-www-form-urlencoded"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://api.poe.com/token"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "type": "credential.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "credentialID": "<cred_1>",
+          "integrationID": "poe"
+        },
+        "id": "<evt_14>",
+        "type": "credential.switched"
+      }
+    ]
+  },
+  "files": {}
+}

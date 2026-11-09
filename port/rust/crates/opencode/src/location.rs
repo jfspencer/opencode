@@ -47,6 +47,8 @@ pub struct Location {
     pub pty: Arc<crate::pty::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
+    /// The location's login attempts (`Integration.Service`).
+    pub integration: crate::integration::Attempts,
 }
 
 #[derive(Debug, Clone)]
@@ -220,6 +222,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
         pty: crate::pty::Service::new(app, key.clone()),
         snapshot: Default::default(),
+        integration: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();
