@@ -1,0 +1,44 @@
+# Effects created inside effects and memos, cleanups on re-run, reads of a stale memo inside a batch, a list
+# whose rows go and come back, and disposal.
+signal a 1
+signal b 2
+signal c 0
+list l 1 2 3
+memo m a b {
+  effect inner a
+  cleanup mc
+end
+effect outer m {
+  render r1 b
+  computed k1 a {
+    effect deep c
+  end
+  mount om
+end
+render top a b {
+  write c 1
+end
+oneffect watch defer m c
+for rows l {
+  effect re b
+  cleanup rc
+end
+actions
+set a 2
+batch {
+  set a 5
+  read m
+  set b 7
+  read m
+  setlist l 3 1
+end
+setlist l
+setlist l
+setlist l 2 3 4
+set c 9
+batch {
+  set c 1
+  set c 9
+end
+dispose
+set a 1
