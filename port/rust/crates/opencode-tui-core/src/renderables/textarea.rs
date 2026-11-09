@@ -326,7 +326,9 @@ impl Textarea {
 
     /// The edit events since the last call, as the renderable's callbacks.
     fn emit(&self, el: Element) {
-        let events = self.buffer.take_events();
+        // Delivered through `dispatch_events`, which also runs an extmarks controller's highlight update.
+        let mut events = Vec::new();
+        self.buffer.dispatch_events(|event| events.push(event));
         if events.is_empty() {
             return;
         }
@@ -844,6 +846,51 @@ impl Element {
         let _ = t.buffer.take_events();
         self.mark_layout_dirty();
         self.request_render();
+    }
+
+    /// `cursorOffset = offset`: the selection cleared, the cursor at the offset.
+    pub fn set_textarea_cursor_offset(self, offset: u32) {
+        let Some(t) = state(self) else { return };
+        t.clear_selection(self);
+        t.view.set_cursor_by_offset(offset);
+        self.request_render();
+        t.emit(self);
+    }
+
+    /// `deleteRange(startLine, startCol, endLine, endCol)`.
+    pub fn textarea_delete_range(self, start_line: u32, start_col: u32, end_line: u32, end_col: u32) {
+        let Some(t) = state(self) else { return };
+        let _ = t.buffer.delete_range(start_line, start_col, end_line, end_col);
+        self.request_render();
+        t.emit(self);
+    }
+
+    /// `setSelection(start, end)`.
+    pub fn set_textarea_selection(self, start: u32, end: u32) {
+        let Some(t) = state(self) else { return };
+        t.view.reset_local_selection();
+        t.clear_renderer_selection();
+        let (bg, fg) = t.selection_colors();
+        t.view.set_selection(start, end, bg, fg);
+        self.request_render();
+    }
+
+    /// `setText(text)`: the text replaced and the history reset, with its edit events (unlike
+    /// [`Element::set_textarea_text`]).
+    pub fn textarea_set_text(self, value: &str) {
+        let Some(t) = state(self) else { return };
+        let _ = t.buffer.set_text(value);
+        self.request_render();
+        t.emit(self);
+    }
+
+    /// `clear()`: the text and its highlights cleared.
+    pub fn textarea_clear(self) {
+        let Some(t) = state(self) else { return };
+        t.buffer.clear();
+        t.buffer.clear_all_highlights();
+        self.request_render();
+        t.emit(self);
     }
 
     /// The editor view (`editorView`), for components that need its API.
