@@ -236,3 +236,13 @@ byte for byte, on the inputs upstream's own shell, permission and tool tests pro
 commands, generated and mutated commands, and the real TS `Shell` service's capture and paging: 0 differences on about
 396k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
 is regenerated (`bun harness/gen-unicode.ts`). See the crate's README.
+
+`rust/crates/opencode-codemode` is the default code-mode interpreter (the bytecode VM is not ported): what
+`CodeMode.execute` hands the tool layer and the text core's `execute` tool gives the model. It has a parser checked
+against acorn, a tree-walking interpreter with the stdlib, JS RegExp, number conversion and Date, the tool runtime,
+host extensions (the server's `fetch`), hooks, and `scanTools`. Deep programs grow the stack on demand; TS's stack
+limits are emulated by deterministic budgets, so a program gets the same catchable RangeError. `harness/check.sh`
+runs every corpus case (the conformance scenarios' `execute` programs, upstream's, and targeted ones: async, tools,
+extensions, hooks, chains, deep structures) through TS and Rust, then every program through `scanTools`: 0
+differences; component checks cover the parser (about 282k programs against acorn), number conversion, RegExp and
+Date. See the crate's README and `harness/README.md`.
