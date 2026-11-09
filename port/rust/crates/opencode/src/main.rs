@@ -4,6 +4,7 @@ mod api;
 mod app;
 mod auth;
 mod bus;
+mod codemode;
 mod collate;
 mod db;
 mod fs;

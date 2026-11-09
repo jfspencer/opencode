@@ -502,6 +502,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "indexmap",
+ "opencode-codemode",
  "opencode-protocol",
  "regex",
  "rusqlite",
@@ -512,6 +513,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "unicode-normalization",
+ "url",
 ]
 
 [[package]]

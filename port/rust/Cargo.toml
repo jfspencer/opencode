@@ -12,6 +12,7 @@ publish = false
 
 [workspace.dependencies]
 opencode-protocol = { path = "crates/opencode-protocol" }
+opencode-codemode = { path = "crates/opencode-codemode" }
 indexmap = "2"
 ryu = "1"
 regex = { version = "1", default-features = false, features = ["std", "perf", "unicode-perl", "unicode-case"] }

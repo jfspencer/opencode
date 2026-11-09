@@ -237,7 +237,20 @@ fn rank<'a>(entries: &[&'a SearchEntry], query: &str) -> Vec<&'a SearchEntry> {
 
 impl Prepared {
     pub fn new(tools: &[ToolDef]) -> Result<Prepared, String> {
+        Prepared::with_namespaces(&[], tools)
+    }
+
+    /// `new`, with namespaces (`(path, description)`, core's `Namespace.make` registrations) placed in the tree before
+    /// the tools, so a namespace without tools of its own is still listed (`Object.keys(tools)`), in that order.
+    pub fn with_namespaces(namespaces: &[(String, String)], tools: &[ToolDef]) -> Result<Prepared, String> {
         let mut root = Node::default();
+        for (namespace, description) in namespaces {
+            let mut node = &mut root;
+            for segment in namespace.split('.') {
+                node = node.child_mut(segment);
+            }
+            node.namespace = Some(description.clone());
+        }
         for tool in tools {
             let mut current = &mut root;
             for segment in tool.path.split('.') {

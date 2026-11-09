@@ -136,60 +136,18 @@ pub fn hash(value: &Json) -> String {
     digest.iter().map(|b| format!("{b:02x}")).collect()
 }
 
-// --- Code Mode (codemode/instructions.ts) -------------------------------------------------------------------------
-
-fn namespace_line(namespace: &Json) -> String {
-    let count = json::get_num(namespace, "count").unwrap_or(0.0) as i64;
-    let shown = match json::get(namespace, "entries") {
-        Some(Json::Array(entries)) => entries.len() as i64,
-        _ => 0,
-    };
-    let count_text = if count == 1 { "1 tool".to_owned() } else { format!("{count} tools") };
-    let label = if shown == count {
-        count_text
-    } else if shown == 0 {
-        format!("{count_text}, none shown")
-    } else {
-        format!("{count_text}, {shown} shown")
-    };
-    let description = json::get_str(namespace, "description").map(|d| format!(" // {d}")).unwrap_or_default();
-    format!("- {} ({label}){description}", json::get_str(namespace, "name").unwrap_or_default())
-}
+// --- Code Mode (codemode/instructions.ts, see crate::codemode::instructions) -----------------------------------
 
 fn code_mode_render(catalog: &Json) -> Option<String> {
-    let total = json::get_num(catalog, "total").unwrap_or(0.0);
-    let shown = json::get_num(catalog, "shown").unwrap_or(0.0);
-    if total == 0.0 {
-        return Some("No Code Mode tools are currently available. Later Code Mode catalog updates may add or remove tools. Do not call `execute` unless there is at least one available Code Mode tool.".into());
-    }
-    if shown < total {
-        // TODO(port): the partial catalog's `search(...)` guidance (needs the codemode search signature).
-        return None;
-    }
-    let mut lines = Vec::new();
-    if let Some(Json::Array(namespaces)) = json::get(catalog, "namespaces") {
-        for namespace in namespaces {
-            lines.push(namespace_line(namespace));
-            if let Some(Json::Array(entries)) = json::get(namespace, "entries") {
-                lines.extend(entries.iter().filter_map(|e| json::get_str(e, "line").map(str::to_owned)));
-            }
-        }
-    }
-    Some(format!(
-        "# Code Mode\n\nThe tools listed below cannot be called directly: they only work as JavaScript inside the `execute` tool. Every other tool you have is a normal tool call: call it directly, never inside `execute`.\n\nThe catalog is complete. Do not guess tool names.\n\n## Code Mode tools (call only inside `execute`)\n\n{}",
-        lines.join("\n")
-    ))
+    Some(crate::codemode::instructions::render(catalog))
 }
 
-fn code_mode_changed(_previous: &Json, current: &Json) -> Option<String> {
-    // TODO(port): the catalog diff (`CodeModeInstructions.update`); the replacement is always correct.
-    code_mode_render(current).map(|text| {
-        format!("The Code Mode tool catalog has changed. This catalog supersedes the previous Code Mode tool catalog.\n\n{text}")
-    })
+fn code_mode_changed(previous: &Json, current: &Json) -> Option<String> {
+    Some(crate::codemode::instructions::update(previous, current))
 }
 
 fn code_mode_removed(_previous: &Json) -> Option<String> {
-    Some("Code Mode tools are no longer available. Do not use any previously listed Code Mode tools.".into())
+    Some(crate::codemode::instructions::REMOVED.into())
 }
 
 // --- Skills (skill/instructions.ts) -------------------------------------------------------------------------------
