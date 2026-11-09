@@ -55,7 +55,7 @@ fn parse_status(text: &str) -> Status {
 }
 
 /// The request a respond step names: an index, "last", or the first unsettled one matching `METHOD path`.
-fn request_index(script: &Script, target: Option<&Json>) -> Option<usize> {
+pub fn request_index(script: &Script, target: Option<&Json>) -> Option<usize> {
     let requests = script.requests.borrow();
     match target? {
         Json::Number(n) => Some(*n as usize),

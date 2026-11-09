@@ -125,6 +125,7 @@ fn app_view() -> View {
     let dimensions = t.dimensions;
     let theme = t.theme;
     let route = t.route;
+    crate::commands::install(&t);
     let root = opencode_tui_core::elements::box_();
     bind(move || dimensions.get(), move |(w, h)| {
         root.set_width(Some(Value::Point(w as f32)));
