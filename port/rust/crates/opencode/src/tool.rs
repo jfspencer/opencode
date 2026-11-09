@@ -20,6 +20,7 @@
 
 pub mod output;
 pub mod shell;
+mod question;
 pub mod subagent;
 
 use std::future::Future;
@@ -197,6 +198,7 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
         .iter()
         .map(|(name, text)| match *name {
             "shell" => shell::tool(definition(name, text)),
+            "question" => Arc::new(question::Question { definition: definition(name, text) }) as Arc<dyn Tool>,
             subagent::NAME => Arc::new(subagent::Subagent::new(definition(name, text))) as Arc<dyn Tool>,
             _ => Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>,
         })

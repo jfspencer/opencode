@@ -7,6 +7,7 @@ mod bus;
 mod collate;
 mod db;
 mod file_access;
+mod form;
 mod fs;
 mod fuzzysort;
 mod generate;
