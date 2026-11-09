@@ -399,6 +399,7 @@ scenarios/shell-tool.test.ts › external directory rules from config
 scenarios/shell-tool.test.ts › interrupt a session while a command runs
 scenarios/shell-tool.test.ts › invalid shell inputs
 scenarios/shell-tool.test.ts › large output uses the default line limit
+scenarios/shell-tool.test.ts › move a running foreground command to the background
 scenarios/shell-tool.test.ts › output truncated by line count
 scenarios/shell-tool.test.ts › output truncated by size
 scenarios/shell-tool.test.ts › output, stderr and exit status
