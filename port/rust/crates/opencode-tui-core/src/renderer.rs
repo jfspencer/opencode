@@ -25,7 +25,7 @@ use crate::color::RGBA;
 use crate::input::{Event, KeyEvent, Parser, PasteEvent, RawMouse};
 use crate::output;
 use crate::terminal::{self, Pump, ReplyEffects, Session, ThemeMode};
-use crate::tree::{self, Element, MouseEvent, MouseEventType, ScrollDirection, ScrollInfo};
+use crate::tree::{self, Element, MouseEvent, MouseEventType};
 
 /// The options of `createCliRenderer` the TUI passes (app.tsx).
 #[derive(Clone, Debug)]
@@ -88,6 +88,8 @@ struct State {
     timers: BTreeMap<(Instant, u64), Box<dyn FnOnce()>>,
     next_timer: u64,
     escape_deadline: Option<Instant>,
+    /// The parser's clock starts with it (`performance.now()` of its SystemClock).
+    parser_start: Instant,
     session_deadline: Option<Instant>,
     out: Vec<u8>,
     resize_deadline: Option<Instant>,
@@ -604,6 +606,7 @@ pub async fn create_cli_renderer(config: RendererConfig) -> std::io::Result<()> 
         timers: BTreeMap::new(),
         next_timer: 0,
         escape_deadline: None,
+        parser_start: Instant::now(),
         session_deadline: None,
         out: Vec::new(),
         resize_deadline: None,
@@ -612,6 +615,8 @@ pub async fn create_cli_renderer(config: RendererConfig) -> std::io::Result<()> 
     tree::create_root(width, height);
     with(|s| {
         s.replies.before_setup(&output.borrow());
+        let context = s.replies.protocol_context();
+        s.parser.set_protocol_context(context);
         let options = terminal::TerminalOptions {
             mouse: config.use_mouse,
             kitty_keyboard_flags: config.kitty_keyboard_flags,
@@ -654,6 +659,8 @@ pub async fn create_cli_renderer(config: RendererConfig) -> std::io::Result<()> 
         let now = now_ms(s);
         let output = s.output.clone();
         s.replies.after_setup(&mut s.session, &mut output.borrow_mut(), now, &mut s.out);
+        let context = s.replies.protocol_context();
+        s.parser.set_protocol_context(context);
     });
     flush();
     tokio::task::spawn_local(run_loop(stdin, guard));
@@ -682,11 +689,12 @@ fn read_stdin(ready: &mut tokio::io::unix::AsyncFdReadyGuard<'_, Fd>) {
     }
 }
 
-const ESCAPE_TIMEOUT_MS: u64 = 10;
 
 fn handle_input(bytes: &[u8]) {
     let events = with(|s| s.parser.feed(bytes)).unwrap_or_default();
-    with(|s| s.escape_deadline = s.parser.has_pending().then(|| Instant::now() + Duration::from_millis(ESCAPE_TIMEOUT_MS)));
+    with(|s| {
+        s.escape_deadline = s.parser.timeout_deadline().map(|ms| s.parser_start + Duration::from_secs_f64(ms.max(0.0) / 1000.0))
+    });
     for event in events {
         dispatch_event(event);
     }
@@ -732,22 +740,9 @@ fn dispatch_event(event: Event) {
                 let more = s.replies.handle_sequence(&sequence, &mut s.session, &mut output.borrow_mut(), now, &mut out);
                 effects = merge(effects, more);
                 s.out = out;
+                let context = s.replies.protocol_context();
+                s.parser.set_protocol_context(context);
                 effects
-            });
-            if let Some(effects) = effects {
-                apply_effects(effects);
-            }
-            flush();
-        }
-        Event::Focus(focused) => {
-            let sequence = if focused { "\x1b[I" } else { "\x1b[O" };
-            let effects = with(|s| {
-                let now = now_ms(s);
-                let output = s.output.clone();
-                let mut out = std::mem::take(&mut s.out);
-                let e = s.replies.handle_sequence(sequence, &mut s.session, &mut output.borrow_mut(), now, &mut out);
-                s.out = out;
-                e
             });
             if let Some(effects) = effects {
                 apply_effects(effects);
@@ -812,29 +807,15 @@ fn merge(a: ReplyEffects, b: ReplyEffects) -> ReplyEffects {
 const LEFT: u32 = 0;
 
 fn mouse_event(kind: MouseEventType, raw: &RawMouse, target: Option<Element>) -> MouseEvent {
-    let button = raw.button & 3;
-    let scroll = if raw.button & 64 != 0 {
-        Some(ScrollInfo {
-            direction: match raw.button & 3 {
-                0 => ScrollDirection::Up,
-                1 => ScrollDirection::Down,
-                2 => ScrollDirection::Left,
-                _ => ScrollDirection::Right,
-            },
-            delta: 1.0,
-        })
-    } else {
-        None
-    };
     MouseEvent {
         kind,
-        button: if raw.button & 64 != 0 { 0 } else { button },
+        button: raw.button,
         x: raw.x,
         y: raw.y,
-        shift: raw.button & 4 != 0,
-        alt: raw.button & 8 != 0,
-        ctrl: raw.button & 16 != 0,
-        scroll,
+        shift: raw.shift,
+        alt: raw.alt,
+        ctrl: raw.ctrl,
+        scroll: raw.scroll,
         target,
         current_target: None,
         source: None,
@@ -861,17 +842,8 @@ fn send(target: Element, mut event: MouseEvent) -> MouseEvent {
 }
 
 fn process_mouse(raw: RawMouse) {
-    let kind = if raw.button & 64 != 0 {
-        MouseEventType::Scroll
-    } else if raw.button & 32 != 0 {
-        if raw.button & 3 == 3 { MouseEventType::Move } else { MouseEventType::Drag }
-    } else if raw.release {
-        MouseEventType::Up
-    } else {
-        MouseEventType::Down
-    };
-    let button = raw.button & 3;
-    let left = button == LEFT && raw.button & 64 == 0;
+    let kind = raw.kind;
+    let left = raw.button == LEFT;
     let pressed = with(|s| s.pressed).flatten();
     if left && matches!(kind, MouseEventType::Down | MouseEventType::Up) {
         with(|s| s.pressed = None);
@@ -964,7 +936,7 @@ fn recheck_hover() {
     if last_over.is_none() && hit.is_none() {
         return;
     }
-    let raw = RawMouse { button: 3 | 32, x, y, release: false };
+    let raw = RawMouse { kind: MouseEventType::Move, button: 0, x, y, shift: false, alt: false, ctrl: false, scroll: None };
     if let Some(last) = last_over.filter(|l| !l.is_destroyed()) {
         send(last, mouse_event(MouseEventType::Out, &raw, Some(last)));
     }
