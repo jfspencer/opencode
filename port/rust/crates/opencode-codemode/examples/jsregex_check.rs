@@ -87,6 +87,23 @@ fn units(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
 
+const BENCH: [(&str, &str); 14] = [
+    ("\\w+", "g"),
+    ("(\\w+)\\s(\\w+)", "g"),
+    ("[aeiou]{2}", "g"),
+    ("^.*$", "gm"),
+    ("(?:a|b|c|d|e)+", "g"),
+    ("\\bipsum\\b", "g"),
+    ("(?<=m)\\s", "g"),
+    ("xyz", "g"),
+    ("\\p{L}+", "gu"),
+    ("[a-z]+", "gi"),
+    ("(\\w)\\1", "g"),
+    ("(?:(\\w+),?\\s*)+\\.", "g"),
+    ("e[^e]*?t", "g"),
+    ("(?:dolor|tempor|elit)", "g"),
+];
+
 const REPLACEMENTS: [&str; 9] =
     ["[$&]", "$1|$2", "$<n>$<m>", "$$-$`-$'", "$0$00$01$10$11$99$", "x", "$<$<>$<n$<x>", "$9$1$$$&$01x", "\\$1$'$`"];
 const LIMITS: [Option<u32>; 5] = [None, Some(0), Some(1), Some(2), Some(3)];
@@ -177,6 +194,18 @@ fn main() {
         println!("{}", constructor(&pattern, &flags));
         if let Some(subject) = args.get(4) {
             println!("{}", operations(&pattern, &flags, &units(subject), true).replace(' ', "\n"));
+        }
+        return;
+    }
+    // `--bench`: global match counts over a 1 MB text, timed (compare with harness/jsregex/bench.ts).
+    if args.get(1).map(String::as_str) == Some("--bench") {
+        let line = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.\n";
+        let text: Vec<u16> = line.repeat(1 << 20 >> 7).encode_utf16().collect();
+        for (pattern, flags) in BENCH {
+            let re = JsRegExp::new(&units(pattern), &units(flags)).expect("bench pattern");
+            let started = std::time::Instant::now();
+            let count = jsregex::match_global(&re, &text).map_or(0, |m| m.len());
+            println!("{:>8.1} ms  {count:>8}  /{pattern}/{flags}", started.elapsed().as_secs_f64() * 1000.0);
         }
         return;
     }

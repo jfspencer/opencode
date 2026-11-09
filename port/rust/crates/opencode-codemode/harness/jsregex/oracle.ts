@@ -432,6 +432,38 @@ for (let k = 0; k < Math.round(20000 * scale); k++) {
     nested("", 3)
   }
 }
+// ---- more exhaustive syntax: non-v classes, every escape, groups, references --------------------------------
+{
+  const enumerate = (tokens: string[], depth: number, visit: (s: string) => void) => {
+    const walk = (s: string, d: number) => {
+      if (s.length) visit(s)
+      if (d > 0) for (const t of tokens) walk(s + t, d - 1)
+    }
+    walk("", depth)
+  }
+  const classTokens = ["a", "z", "-", "\\d", "\\w", "]", "^", "\\b", "\\c", "\\c1", "\\1", "\\-", "😀", "\\u{41}", "\\k"]
+  enumerate(classTokens, 3, (s) => {
+    for (const flags of ["", "u", "i"]) {
+      regex("[" + s + "]", flags, ["az-1"], false)
+      regex("[" + s, flags, [], false)
+    }
+  })
+  const extras = ["\u0080", "é", "😀", "‌", " ", "\ud800", "\udc00"]
+  for (let c = 0x20; c < 0x7f; c++) extras.push(String.fromCharCode(c))
+  for (const ch of extras) {
+    for (const pattern of [`\\${ch}`, `\\${ch}1`, `\\${ch}{1}`, `\\${ch}41`, `[\\${ch}]`, `[\\${ch}-z]`, `\\${ch}{41}`, `\\${ch}<a>(?<a>.)`])
+      for (const flags of ["", "u", "v", "i"]) regex(pattern, flags, ["a1" + ch], false)
+  }
+  const groupTokens = ["(", "?", "<", ">", "=", "!", ":", "a", ")", "i", "-", "*"]
+  enumerate(groupTokens, 4, (s) => {
+    for (const flags of ["", "u"]) regex(s, flags, ["a"], false)
+  })
+  const referenceTokens = ["(a)", "(?<a>x)", "(?<b>y)", "\\1", "\\2", "\\k<a>", "\\k<b>", "\\k", "(", ")", "[\\k]", "|", "\\10"]
+  enumerate(referenceTokens, 3, (s) => {
+    for (const flags of ["", "u", "i"]) regex(s, flags, ["axyaa"], false)
+  })
+}
+
 for (const digits of ["4294967295", "4294967296", "9007199254740993", "9223372036854775807", "9223372036854775808",
   "18446744073709551615", "18446744073709551616", "99999999999999999999999"]) {
   for (const pattern of [`a{${digits}}`, `{${digits}}`, `a{${digits},}`, `a{1,${digits}}`, `a{${digits}`, `\\${digits}`, `(a)\\${digits}`])

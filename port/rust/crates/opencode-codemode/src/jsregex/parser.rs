@@ -1106,7 +1106,7 @@ impl<'a> Parser<'a> {
         Ok(true)
     }
 
-    fn resolve_named_refs(&self, node: Node) -> Node {
+    fn resolve_named_refs(&self, mut node: Node) -> Node {
         if self.named_refs.is_empty() {
             return node;
         }
@@ -1114,7 +1114,8 @@ impl<'a> Parser<'a> {
             let name = &self.named_refs[reference];
             self.names.iter().filter(|(n, _, _)| n == name).map(|(_, i, _)| *i).collect()
         };
-        map_backrefs(node, &resolve)
+        resolve_backrefs(&mut node, &resolve);
+        node
     }
 
     /// A non-v class or class escape: the union of its atoms, closed under case folding, maybe negated.
@@ -1709,17 +1710,17 @@ fn check_size(node: &Node, pos: u64, unicode: bool) -> Option<u64> {
     };
     match node {
         Node::Char(_) | Node::Class(_) => add(pos, width(node).unwrap()),
-        Node::Seq(nodes) => nodes.iter().try_fold(pos, |pos, n| check_size(n, pos, unicode)),
+        Node::Seq(nodes) => nodes.iter().try_fold(pos, |pos, n| deep(|| check_size(n, pos, unicode))),
         Node::Alt(alternatives) => {
             let mut min = u64::MAX;
             for a in alternatives {
-                min = min.min(check_size(a, pos, unicode)? - pos);
+                min = min.min(deep(|| check_size(a, pos, unicode))? - pos);
             }
             add(pos, min)
         }
-        Node::Capture { body, .. } | Node::Group(body) => check_size(body, pos, unicode),
+        Node::Capture { body, .. } | Node::Group(body) => deep(|| check_size(body, pos, unicode)),
         Node::Look { behind, body, .. } => {
-            check_size(body, if *behind { 0 } else { pos }, unicode)?;
+            deep(|| check_size(body, if *behind { 0 } else { pos }, unicode))?;
             Some(pos)
         }
         Node::Repeat { body, min, max, .. } => {
@@ -1727,26 +1728,56 @@ fn check_size(node: &Node, pos: u64, unicode: bool) -> Option<u64> {
                 return add(pos, *min as u64 * w);
             }
             if *min == 1 && *max == 1 {
-                return check_size(body, pos, unicode);
+                return deep(|| check_size(body, pos, unicode));
             }
-            check_size(body, pos, unicode)?;
+            deep(|| check_size(body, pos, unicode))?;
             Some(pos)
         }
         _ => Some(pos),
     }
 }
 
-fn map_backrefs(node: Node, f: &dyn Fn(usize) -> Vec<u32>) -> Node {
+fn resolve_backrefs(node: &mut Node, f: &dyn Fn(usize) -> Vec<u32>) {
     match node {
-        Node::NamedBackRef { reference, icase } => Node::BackRef { groups: f(reference), icase },
-        Node::Seq(nodes) => Node::Seq(nodes.into_iter().map(|n| map_backrefs(n, f)).collect()),
-        Node::Alt(nodes) => Node::Alt(nodes.into_iter().map(|n| map_backrefs(n, f)).collect()),
-        Node::Capture { index, body } => Node::Capture { index, body: Box::new(map_backrefs(*body, f)) },
-        Node::Group(body) => Node::Group(Box::new(map_backrefs(*body, f))),
-        Node::Look { behind, negate, body } => Node::Look { behind, negate, body: Box::new(map_backrefs(*body, f)) },
-        Node::Repeat { body, min, max, greedy, captures } => {
-            Node::Repeat { body: Box::new(map_backrefs(*body, f)), min, max, greedy, captures }
+        Node::NamedBackRef { reference, icase } => *node = Node::BackRef { groups: f(*reference), icase: *icase },
+        Node::Seq(nodes) | Node::Alt(nodes) => {
+            for n in nodes {
+                deep(|| resolve_backrefs(n, f));
+            }
         }
-        other => other,
+        Node::Capture { body, .. } | Node::Group(body) | Node::Look { body, .. } | Node::Repeat { body, .. } => {
+            deep(|| resolve_backrefs(body, f))
+        }
+        _ => {}
+    }
+}
+
+/// Runs a step of a recursion over a pattern, on a fresh stack segment when this one runs low: patterns nest
+/// thousands deep.
+pub fn deep<R>(f: impl FnOnce() -> R) -> R {
+    stacker::maybe_grow(64 * 1024, 1024 * 1024, f)
+}
+
+impl Node {
+    /// Moves the children out, leaving the node shallow.
+    fn take_children(&mut self, out: &mut Vec<Node>) {
+        match self {
+            Node::Seq(nodes) | Node::Alt(nodes) => out.append(nodes),
+            Node::Capture { body, .. } | Node::Group(body) | Node::Look { body, .. } | Node::Repeat { body, .. } => {
+                out.push(std::mem::replace(&mut **body, Node::Empty))
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Drop for Node {
+    // Iterative, so that dropping a deeply nested pattern does not recurse.
+    fn drop(&mut self) {
+        let mut pending = Vec::new();
+        self.take_children(&mut pending);
+        while let Some(mut node) = pending.pop() {
+            node.take_children(&mut pending);
+        }
     }
 }
