@@ -22,6 +22,7 @@ import {
   large,
   memberTargeted,
   nested,
+  oddTargeted,
   pathText,
   pick,
   powerShellCommandLine,
@@ -171,7 +172,8 @@ function generated() {
   for (let i = 0; i < casesPerFamily / 4; i++) {
     addCommand(nested(rand, false), rand)
     add({ fn: "scanPowerShell", input: nested(rand, true) })
-    for (const command of [zshTargeted(rand), escapeTargeted(rand), sinkTargeted(rand)]) addCommand(command, rand)
+    for (const command of [zshTargeted(rand), escapeTargeted(rand), sinkTargeted(rand), oddTargeted(rand)])
+      addCommand(command, rand)
     for (const command of [labelTargeted(rand), memberTargeted(rand)]) {
       add({ fn: "scanPowerShell", input: command })
       add({ fn: "parse", command, shell: "/usr/bin/pwsh", cwd: "/workspace" })

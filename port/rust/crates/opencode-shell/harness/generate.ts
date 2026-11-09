@@ -284,7 +284,7 @@ const NESTERS = [
   ["if a; then ", "; fi"], ["arr=(", ")"], ["`", "`"], ["$[", "]"], ["[[ ( ", " ) ]]"], ["${x[", "]}"], ["case a in b) ", ";; esac"],
   ["f() { ", "; }"], ["${ ", "; }"], ["x=$(", ")"], ["echo ${#", "}"], ["@(", ")"],
 ] as const
-const PS_NESTERS = [["(", ")"], ["{ ", " }"], ["$(", ")"], ["@(", ")"], ["[", "]"], ["@{", "}"], ['"$(', ')"'], ["if (1) { ", " }"]] as const
+const PS_NESTERS = [["(", ")"], ["{ ", " }"], ["$(", ")"], ["@(", ")"], ["[", "]"], ["@{", "}"], ['"$(', ')"'], ["if (1) { ", " }"], ['@"\n$(', ')\n"@']] as const
 
 export function nested(rand: Random, powershell: boolean): string {
   const depth = 26 + Math.floor(rand() * 12)
@@ -350,11 +350,25 @@ export function sinkTargeted(rand: Random): string {
   return `${bound}${bound ? pick(rand, ["; ", "\n"]) : ""}${use}`
 }
 
+// Shapes a second mutation sweep showed missing: keywords after redirects, odd function bodies, ANSI quotes after
+// globs, wrapper option ends before cd.
+export function oddTargeted(rand: Random): string {
+  const shapes = [
+    "f() a[ b", "f() x[[ a ]]", "function f x[ y", "f() x[[\\\n a ]]", "if a; then b; >x fi", "while a; do b; >x done",
+    "{ a; >x }", "if a; >x then b; fi", "case a in b) c;; >x esac", "*$'\\n' x", "echo a?$'\\x41'b", "ls [x]$'\\t'",
+    "echo .*$'a'", "builtin -- -x cd /tmp", "command -- --x cd /tmp", "builtin -- cd /tmp", "command -p -- cd /tmp",
+  ]
+  const text = pick(rand, shapes)
+  return rand() < 0.5 ? text : `${text}${pick(rand, ["; ", "\n", " && "])}${pick(rand, shapes)}`
+}
+
 export function memberTargeted(rand: Random): string {
   return `${pick(rand, ["Write-Output ", "", "$r = ", "& "])}${pick(rand, [
     "[int][string]$x", "$a[0][1]", "[T][U]::x", "$x[0][1].y", "[a]x[b]", "$a[1] [2]", "$x.a:b", "$x.a:b()", "$x.a.b:c()",
     "$x.y-:z", "$x.a::b()", "$x::a.b()", "[T]::a.b()", "$x?.a()", "$x.a?.b()", "$x.a..b", "$x. a()", "${x}.a()",
-    "$x.a:b:c", "@{a=1}.a()", "(1).a()", "$x.'a'()", '$x."a"()', "$x.a`b()",
+    "$x.a:b:c", "@{a=1}.a()", "(1).a()", "$x.'a'()", '$x."a"()', "$x.a`b()", "0x1Fz", "0xdd", "0x1d", "0x1dkb",
+    "0x1dz", "0x1d.x", "0x12kbz", "[1#2]", "[a#b]", "[Int32#x]", "[System.IO#a]::b", '"`u{01F600}"', '"`u{10FFFF}"',
+    '"`u{000041}"', "-1: --% x", "a -x: --% y",
   ])}${pick(rand, ["", " | Out-Null", "; y", " # c"])}`
 }
 
