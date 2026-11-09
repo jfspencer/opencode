@@ -95,7 +95,7 @@ impl Inventory {
         let catalog = providers::build(&entries);
         let commands = commands::build(&entries);
         let skills = skills::build(&entries, &sources, directory);
-        let references = references::build(&entries, directory, &options.home);
+        let references = references::build(&entries, directory, &options.home, &options.repos);
         Inventory {
             directory: directory.to_owned(),
             sources,

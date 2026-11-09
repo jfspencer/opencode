@@ -97,7 +97,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             let models = if types.is_empty() {
                 chat
             } else {
-                // Each requested type once, in order; only chat models exist without a catalog.
+                // Each requested type once, in order.
                 let mut seen: Vec<&str> = vec![];
                 let mut out = vec![];
                 for ty in &types {
@@ -107,6 +107,9 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
                     seen.push(ty);
                     if ty == "chat" {
                         out.extend(chat.iter().cloned());
+                    } else {
+                        let of_type = inventory.catalog.other.iter().filter(|m| json::get_str(&json::of(*m), "type") == Some(ty));
+                        out.extend(of_type.map(json::of));
                     }
                 }
                 out

@@ -58,6 +58,8 @@ pub struct Options {
     pub home: String,
     /// `Global.Path.cache`.
     pub cache: String,
+    /// `Global.Path.repos` (repository checkouts).
+    pub repos: String,
 }
 
 fn truthy(value: Option<String>) -> bool {
@@ -90,6 +92,7 @@ impl Options {
                     .unwrap_or_else(|| normalize(&format!("{}/opencode", xdg("XDG_CONFIG_HOME", ".config")))),
                 home: env("OPENCODE_TEST_HOME").unwrap_or_else(|| home.clone()),
                 cache: normalize(&format!("{}/opencode", xdg("XDG_CACHE_HOME", ".cache"))),
+                repos: normalize(&format!("{}/opencode/repos", xdg("XDG_DATA_HOME", ".local/share"))),
             }
         })
     }
@@ -212,10 +215,15 @@ pub fn discover(directory: &str) -> Sources {
     }
 }
 
-/// `FSUtil.readFileStringSafe`: a missing or unreadable file is `None`.
+/// `FSUtil.readFileStringSafe`: a missing or unreadable file is `None`. The text is decoded as `TextDecoder` does:
+/// invalid UTF-8 becomes U+FFFD and a leading byte order mark is dropped.
 pub fn read(path: &str) -> Option<String> {
     let bytes = std::fs::read(path).ok()?;
-    Some(String::from_utf8(bytes).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned()))
+    let text = String::from_utf8(bytes).unwrap_or_else(|e| String::from_utf8_lossy(e.as_bytes()).into_owned());
+    Some(match text.strip_prefix('\u{feff}') {
+        Some(rest) => rest.to_owned(),
+        None => text,
+    })
 }
 
 /// JS whitespace and line terminators (`\s`).

@@ -9,8 +9,10 @@
 //! of comments are removed (`/^\s*#[^\n]+/gm`) is `{}` without being parsed; otherwise the language's engine parses
 //! it, and a `null` result is `{}`.
 //!
-//! Engines: `yaml` (also `yml`, any case) is [`yaml::load`] (js-yaml's `safeLoad`); `json` is `JSON.parse`. Any
-//! other language is an [`Error`] where gray-matter throws (`coffee`, `toml`, ...).
+//! Without frontmatter the data is `{}` and the content the whole input (less a BOM).
+//!
+//! Engines: `yaml` (also `yml`, any case) is [`yaml::load`] (js-yaml's `safeLoad`); `json` (lower case only) is
+//! `JSON.parse`. Any other language is an [`Error`] where gray-matter throws (`coffee`, `toml`, `JSON`, ...).
 //! TODO(port): gray-matter's `javascript`/`js` engine `eval`s the frontmatter, and names of `Object.prototype`
 //! members (`constructor`, `toString`, ...) resolve to those functions; both are an [`Error`] here.
 
@@ -215,4 +217,173 @@ fn starts_with_bracketed_tag(value: &str) -> bool {
     let inner = &value[1..];
     let last = inner.char_indices().next_back().map(|(i, _)| i);
     inner.char_indices().any(|(i, c)| matches!(c, ']' | '}') && Some(i) != last)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use opencode_protocol::wire::Out;
+
+    type File = Option<(&'static str, &'static str)>;
+
+    /// Every case: the input; gray-matter 4.0.3's `matter(input, {})` as `(JSON.stringify(file.data),
+    /// file.content)`, `None` where it throws; `ConfigMarkdown.sanitize(input)`; and `ConfigMarkdown.parse(input)`
+    /// like `matter`. Produced by running gray-matter and packages/core/src/config/markdown.ts under bun with
+    /// TZ=UTC; do not edit by hand.
+    #[rustfmt::skip]
+    const CASES: &[(&str, File, &str, File)] = &[
+        ("---\ndescription: Uses: an unquoted colon\n---\nBody text\n", None, "---\ndescription: |-\n  Uses: an unquoted colon\n---\nBody text\n", Some(("{\"description\":\"Uses: an unquoted colon\"}", "Body text\n"))),
+        ("---\ndescription: [unclosed\n---\nBody text\n", None, "---\ndescription: [unclosed\n---\nBody text\n", None),
+        ("---\ndisable-model-invocation: yes\n---\nBody text\n", Some(("{\"disable-model-invocation\":\"yes\"}", "Body text\n")), "---\ndisable-model-invocation: yes\n---\nBody text\n", Some(("{\"disable-model-invocation\":\"yes\"}", "Body text\n"))),
+        ("---\nsteps: -4\n---\nBody text\n", Some(("{\"steps\":-4}", "Body text\n")), "---\nsteps: -4\n---\nBody text\n", Some(("{\"steps\":-4}", "Body text\n"))),
+        ("---\ncolor: \"#00AA00\"\n---\nBody text\n", Some(("{\"color\":\"#00AA00\"}", "Body text\n")), "---\ncolor: \"#00AA00\"\n---\nBody text\n", Some(("{\"color\":\"#00AA00\"}", "Body text\n"))),
+        ("---\nmetadata:\n  opencode/autoinvoke: false\n---\nBody text\n", Some(("{\"metadata\":{\"opencode/autoinvoke\":false}}", "Body text\n")), "---\nmetadata:\n  opencode/autoinvoke: false\n---\nBody text\n", Some(("{\"metadata\":{\"opencode/autoinvoke\":false}}", "Body text\n"))),
+        ("---\npermissions:\n  - action: edit\n    resource: \"*\"\n    effect: deny\n---\nBody text\n", Some(("{\"permissions\":[{\"action\":\"edit\",\"resource\":\"*\",\"effect\":\"deny\"}]}", "Body text\n")), "---\npermissions:\n  - action: edit\n    resource: \"*\"\n    effect: deny\n---\nBody text\n", Some(("{\"permissions\":[{\"action\":\"edit\",\"resource\":\"*\",\"effect\":\"deny\"}]}", "Body text\n"))),
+        ("---\ndescription: 42\n---\nBody text\n", Some(("{\"description\":42}", "Body text\n")), "---\ndescription: 42\n---\nBody text\n", Some(("{\"description\":42}", "Body text\n"))),
+        ("---\nname: [unclosed\ndescription: 5\n---\nBody text\n", None, "---\nname: [unclosed\ndescription: 5\n---\nBody text\n", None),
+        ("---\nname: my-skill\ndescription: Does things\nlicense: MIT\nallowed-tools:\n  - Read\n  - Write\n---\nBody text\n", Some(("{\"name\":\"my-skill\",\"description\":\"Does things\",\"license\":\"MIT\",\"allowed-tools\":[\"Read\",\"Write\"]}", "Body text\n")), "---\nname: my-skill\ndescription: Does things\nlicense: MIT\nallowed-tools:\n  - Read\n  - Write\n---\nBody text\n", Some(("{\"name\":\"my-skill\",\"description\":\"Does things\",\"license\":\"MIT\",\"allowed-tools\":[\"Read\",\"Write\"]}", "Body text\n"))),
+        ("---\ndescription: >\n  A folded\n  description\nmode: subagent\ntemperature: 0.1\ntools:\n  write: false\n  bash: true\n---\nBody text\n", Some(("{\"description\":\"A folded description\\n\",\"mode\":\"subagent\",\"temperature\":0.1,\"tools\":{\"write\":false,\"bash\":true}}", "Body text\n")), "---\ndescription: >\n  A folded\n  description\nmode: subagent\ntemperature: 0.1\ntools:\n  write: false\n  bash: true\n---\nBody text\n", Some(("{\"description\":\"A folded description\\n\",\"mode\":\"subagent\",\"temperature\":0.1,\"tools\":{\"write\":false,\"bash\":true}}", "Body text\n"))),
+        ("", Some(("{}", "")), "", Some(("{}", ""))),
+        ("no frontmatter", Some(("{}", "no frontmatter")), "no frontmatter", Some(("{}", "no frontmatter"))),
+        ("\u{feff}no fm", Some(("{}", "no fm")), "\u{feff}no fm", Some(("{}", "no fm"))),
+        ("\u{feff}", Some(("{}", "")), "\u{feff}", Some(("{}", ""))),
+        ("---\n---\nbody", Some(("{}", "body")), "---\n---\nbody", Some(("{}", "body"))),
+        ("---\ntitle: x\n---\nbody", Some(("{\"title\":\"x\"}", "body")), "---\ntitle: x\n---\nbody", Some(("{\"title\":\"x\"}", "body"))),
+        ("---\r\ntitle: x\r\n---\r\nbody", Some(("{\"title\":\"x\"}", "body")), "---\r\ntitle: x\r\n---\r\nbody", Some(("{\"title\":\"x\"}", "body"))),
+        ("----\ntitle: x\n----\n", Some(("{}", "----\ntitle: x\n----\n")), "----\ntitle: x\n----\n", Some(("{}", "----\ntitle: x\n----\n"))),
+        ("---\ntitle: x\n", Some(("{\"title\":\"x\"}", "")), "---\ntitle: x\n", Some(("{\"title\":\"x\"}", ""))),
+        ("---\ntitle: x", Some(("{\"title\":\"x\"}", "")), "---\ntitle: x", Some(("{\"title\":\"x\"}", ""))),
+        ("---yaml\ntitle: x\n---\nb", Some(("{\"title\":\"x\"}", "b")), "---yaml\ntitle: x\n---\nb", Some(("{\"title\":\"x\"}", "b"))),
+        ("---YAML\na: 1\n---\n", Some(("{\"a\":1}", "")), "---YAML\na: 1\n---\n", Some(("{\"a\":1}", ""))),
+        ("---yml\na: 1\n---\n", Some(("{\"a\":1}", "")), "---yml\na: 1\n---\n", Some(("{\"a\":1}", ""))),
+        ("---json\n{\"a\": 1}\n---\nb", Some(("{\"a\":1}", "b")), "---json\n{\"a\": 1}\n---\nb", Some(("{\"a\":1}", "b"))),
+        ("---json\nnull\n---\nb", Some(("{}", "b")), "---json\nnull\n---\nb", Some(("{}", "b"))),
+        ("---json\n{bad}\n---\nb", None, "---json\n{bad}\n---\nb", None),
+        ("---JSON\n{}\n---\n", None, "---JSON\n{}\n---\n", None),
+        ("---coffee\na: 1\n---\n", None, "---coffee\na: 1\n---\n", None),
+        ("---toml\na = 1\n---\n", None, "---toml\na = 1\n---\n", None),
+        ("--- \na: 1\n---\n", Some(("{\"a\":1}", "")), "--- \na: 1\n---\n", Some(("{\"a\":1}", ""))),
+        ("---  yaml  \na: 1\n---\n", Some(("{\"a\":1}", "")), "---  yaml  \na: 1\n---\n", Some(("{\"a\":1}", ""))),
+        ("---\n# just a comment\n---\nbody", Some(("{}", "body")), "---\n# just a comment\n---\nbody", Some(("{}", "body"))),
+        ("---\n#\n---\nb", Some(("{}", "b")), "---\n#\n---\nb", Some(("{}", "b"))),
+        ("---\n  # indented comment\n   \n---\nb", Some(("{}", "b")), "---\n  # indented comment\n   \n---\nb", Some(("{}", "b"))),
+        ("---\n\n---\n", Some(("{}", "")), "---\n\n---\n", Some(("{}", ""))),
+        ("---\n# a\n#\n---\n", Some(("{}", "")), "---\n# a\n#\n---\n", Some(("{}", ""))),
+        ("---\nnull\n---\nbody", Some(("{}", "body")), "---\nnull\n---\nbody", Some(("{}", "body"))),
+        ("---\n~\n---\n", Some(("{}", "")), "---\n~\n---\n", Some(("{}", ""))),
+        ("---\nhello\n---\n", Some(("\"hello\"", "")), "---\nhello\n---\n", Some(("\"hello\"", ""))),
+        ("---\n42\n---\n", Some(("42", "")), "---\n42\n---\n", Some(("42", ""))),
+        ("---\nfalse\n---\n", Some(("false", "")), "---\nfalse\n---\n", Some(("false", ""))),
+        ("---\n[1, 2]\n---\n", Some(("[1,2]", "")), "---\n[1, 2]\n---\n", Some(("[1,2]", ""))),
+        ("---\n''\n---\n", Some(("\"\"", "")), "---\n''\n---\n", Some(("\"\"", ""))),
+        ("---\na: 1\n---", Some(("{\"a\":1}", "")), "---\na: 1\n---", Some(("{\"a\":1}", ""))),
+        ("---\na: 1\n---\r\nbody", Some(("{\"a\":1}", "body")), "---\na: 1\n---\r\nbody", Some(("{\"a\":1}", "body"))),
+        ("---\na: 1\n---\n\nbody", Some(("{\"a\":1}", "\nbody")), "---\na: 1\n---\n\nbody", Some(("{\"a\":1}", "\nbody"))),
+        ("---\na: 1\n----\nbody", Some(("{\"a\":1}", "-\nbody")), "---\na: 1\n----\nbody", Some(("{\"a\":1}", "-\nbody"))),
+        ("---\na: 1\n--- trailing\nbody", Some(("{\"a\":1}", " trailing\nbody")), "---\na: 1\n--- trailing\nbody", Some(("{\"a\":1}", " trailing\nbody"))),
+        ("---\na: 1\n---body", Some(("{\"a\":1}", "body")), "---\na: 1\n---body", Some(("{\"a\":1}", "body"))),
+        ("\u{feff}---\na: 1\n---\nb", Some(("{\"a\":1}", "b")), "\u{feff}---\na: 1\n---\nb", Some(("{\"a\":1}", "b"))),
+        ("---\n---\n---\n", Some(("{}", "---\n")), "---\n---\n---\n", Some(("{}", "---\n"))),
+        ("---a: 1", None, "---a: 1", None),
+        ("---x", Some(("\"x\"", "")), "---x", Some(("\"x\"", ""))),
+        ("---yamlx", Some(("\"x\"", "")), "---yamlx", Some(("\"x\"", ""))),
+        ("---yaml ", Some(("{}", "")), "---yaml ", Some(("{}", ""))),
+        ("---\n", Some(("{}", "")), "---\n", Some(("{}", ""))),
+        ("---", Some(("{}", "")), "---", Some(("{}", ""))),
+        ("---\na: 1\n...\n---\n", Some(("{\"a\":1}", "")), "---\na: 1\n...\n---\n", Some(("{\"a\":1}", ""))),
+        ("text\n---\na: 1\n---\n", Some(("{}", "text\n---\na: 1\n---\n")), "text\n---\na: 1\n---\n", Some(("{}", "text\n---\na: 1\n---\n"))),
+        ("  ---\na: 1\n---\n", Some(("{}", "  ---\na: 1\n---\n")), "  ---\na: 1\n---\n", Some(("{}", "  ---\na: 1\n---\n"))),
+        (" ---", Some(("{}", " ---")), " ---", Some(("{}", " ---"))),
+        ("---\na: 1\n---\n---\nb: 2\n---\n", Some(("{\"a\":1}", "---\nb: 2\n---\n")), "---\na: 1\n---\n---\nb: 2\n---\n", Some(("{\"a\":1}", "---\nb: 2\n---\n"))),
+        ("---\r\na: 1\r\n---\r\n\r\nbody", Some(("{\"a\":1}", "\r\nbody")), "---\r\na: 1\r\n---\r\n\r\nbody", Some(("{\"a\":1}", "\r\nbody"))),
+        ("---\na: 1\n---\r\rbody", Some(("{\"a\":1}", "\rbody")), "---\na: 1\n---\r\rbody", Some(("{\"a\":1}", "\rbody"))),
+        ("---\na: 1\n---\n\r\nbody", Some(("{\"a\":1}", "\r\nbody")), "---\na: 1\n---\n\r\nbody", Some(("{\"a\":1}", "\r\nbody"))),
+        ("---\ndescription: Uses: an unquoted colon\n---\nbody", None, "---\ndescription: |-\n  Uses: an unquoted colon\n---\nbody", Some(("{\"description\":\"Uses: an unquoted colon\"}", "body"))),
+        ("---\nname: x\ndescription: [Tag] text here\n---\n", None, "---\nname: x\ndescription: |-\n  [Tag] text here\n---\n", Some(("{\"name\":\"x\",\"description\":\"[Tag] text here\"}", ""))),
+        ("---\ndescription: {a} b\n---\n", None, "---\ndescription: |-\n  {a} b\n---\n", Some(("{\"description\":\"{a} b\"}", ""))),
+        ("---\ndescription: \"quoted: colon\"\n---\n", Some(("{\"description\":\"quoted: colon\"}", "")), "---\ndescription: \"quoted: colon\"\n---\n", Some(("{\"description\":\"quoted: colon\"}", ""))),
+        ("---\ndescription: 'x: y'\n---\n", Some(("{\"description\":\"x: y\"}", "")), "---\ndescription: 'x: y'\n---\n", Some(("{\"description\":\"x: y\"}", ""))),
+        ("---\ndescription: >\n  folded: x\n---\n", Some(("{\"description\":\"folded: x\\n\"}", "")), "---\ndescription: >\n  folded: x\n---\n", Some(("{\"description\":\"folded: x\\n\"}", ""))),
+        ("---\n  indented: a: b\n---\n", None, "---\n  indented: a: b\n---\n", None),
+        ("---\n# comment: x\n---\n", Some(("{}", "")), "---\n# comment: x\n---\n", Some(("{}", ""))),
+        ("---\ndesc-ription: a: b\n---\n", None, "---\ndesc-ription: a: b\n---\n", None),
+        ("---\ndescription: a: b\r\nname: c\r\n---\r\nbody", None, "---\ndescription: |-\n  a: b\nname: c\r\n---\r\nbody", Some(("{\"description\":\"a: b\",\"name\":\"c\"}", "body"))),
+        ("---\nkey  :  a: b  \n---\n", None, "---\nkey: |-\n  a: b\n---\n", Some(("{\"key\":\"a: b\"}", ""))),
+        ("---\n_k: a:b\n---\n", Some(("{\"_k\":\"a:b\"}", "")), "---\n_k: |-\n  a:b\n---\n", Some(("{\"_k\":\"a:b\"}", ""))),
+        ("---\na: x\na: y\n---\n", None, "---\na: x\na: y\n---\n", None),
+        ("---\ndescription: [a, b]\n---\n", Some(("{\"description\":[\"a\",\"b\"]}", "")), "---\ndescription: [a, b]\n---\n", Some(("{\"description\":[\"a\",\"b\"]}", ""))),
+        ("---\ndescription: [a] b: c\n---", Some(("{\"description\":[\"a\"],\"b\":\"c\"}", "")), "---\ndescription: |-\n  [a] b: c\n---", Some(("{\"description\":[\"a\"],\"b\":\"c\"}", ""))),
+        ("---\ndescription: [a]\n---\n", Some(("{\"description\":[\"a\"]}", "")), "---\ndescription: [a]\n---\n", Some(("{\"description\":[\"a\"]}", ""))),
+        ("---\ndescription: [a]]\n---\n", None, "---\ndescription: |-\n  [a]]\n---\n", Some(("{\"description\":\"[a]]\"}", ""))),
+        ("---\ndescription: [a] b\nname: [unclosed\n---\n", None, "---\ndescription: |-\n  [a] b\nname: [unclosed\n---\n", None),
+        ("---\nd: x: y\nother: |\n  keep: this\n---\nbody", None, "---\nd: |-\n  x: y\nother: |\n  keep: this\n---\nbody", Some(("{\"d\":\"x: y\",\"other\":\"keep: this\\n\"}", "body"))),
+        ("---\nd:   spaced: out   \n---\n", None, "---\nd: |-\n  spaced: out\n---\n", Some(("{\"d\":\"spaced: out\"}", ""))),
+        ("---\nd: a: b\n---\nrest\n---\nmore", None, "---\nd: |-\n  a: b\n---\nrest\n---\nmore", Some(("{\"d\":\"a: b\"}", "rest\n---\nmore"))),
+        ("---\nd: x\u{2028}y: z\n---\n", None, "---\nd: x\u{2028}y: z\n---\n", None),
+        ("---\nd:\u{2028}a: b\n---\n", Some(("{\"d:\u{2028}a\":\"b\"}", "")), "---\nd: |-\n  a: b\n---\n", Some(("{\"d:\u{2028}a\":\"b\"}", ""))),
+        ("---\n\u{feff}d: a: b\n---\n", None, "---\n\u{feff}d: a: b\n---\n", None),
+        ("---\nd: a: b", None, "---\nd: a: b", None),
+        ("---\n\n---\nd: a: b\n---\n", Some(("{}", "d: a: b\n---\n")), "---\n\n---\nd: a: b\n---\n", Some(("{}", "d: a: b\n---\n"))),
+        ("---\r\nd: a: b\r\n---", None, "---\r\nd: |-\n  a: b\r\n---", Some(("{\"d\":\"a: b\"}", ""))),
+        ("---\nd: |\n---\n", Some(("{\"d\":\"\"}", "")), "---\nd: |\n---\n", Some(("{\"d\":\"\"}", ""))),
+        ("---\nd: >\n---\n", Some(("{\"d\":\"\"}", "")), "---\nd: >\n---\n", Some(("{\"d\":\"\"}", ""))),
+        ("---\nd: 'a: b\n---\n", None, "---\nd: 'a: b\n---\n", None),
+        ("---\nd: \"a: b\n---\n", None, "---\nd: \"a: b\n---\n", None),
+        ("---\nd: [x] y\n---\n", None, "---\nd: |-\n  [x] y\n---\n", Some(("{\"d\":\"[x] y\"}", ""))),
+        ("---\nd: {x}y\n---\n", None, "---\nd: |-\n  {x}y\n---\n", Some(("{\"d\":\"{x}y\"}", ""))),
+        ("---\nd: [x]\t\n---\n", Some(("{\"d\":[\"x\"]}", "")), "---\nd: [x]\t\n---\n", Some(("{\"d\":[\"x\"]}", ""))),
+        ("---\nd: x # c: y\n---\n", Some(("{\"d\":\"x\"}", "")), "---\nd: |-\n  x # c: y\n---\n", Some(("{\"d\":\"x\"}", ""))),
+        ("---\n9d: a: b\n---\n", None, "---\n9d: a: b\n---\n", None),
+        ("---\nd: a:b\n  e: f\n---\n", None, "---\nd: |-\n  a:b\n  e: f\n---\n", Some(("{\"d\":\"a:b\\ne: f\"}", ""))),
+        ("---\nD_1: a: b\n---\n", None, "---\nD_1: |-\n  a: b\n---\n", Some(("{\"D_1\":\"a: b\"}", ""))),
+        ("---\nd : : :\n---\n", None, "---\nd: |-\n  : :\n---\n", Some(("{\"d\":\": :\"}", ""))),
+        ("---\nd: @x: y\n---\n", None, "---\nd: |-\n  @x: y\n---\n", Some(("{\"d\":\"@x: y\"}", ""))),
+        ("---\nd: *x: y\n---\n", None, "---\nd: |-\n  *x: y\n---\n", Some(("{\"d\":\"*x: y\"}", ""))),
+        ("---\nd: 2001-12-14\n---\n", Some(("{\"d\":\"2001-12-14T00:00:00.000Z\"}", "")), "---\nd: 2001-12-14\n---\n", Some(("{\"d\":\"2001-12-14T00:00:00.000Z\"}", ""))),
+        ("---\nd: !!binary aGk=\n---\n", Some(("{\"d\":{\"type\":\"Buffer\",\"data\":[104,105]}}", "")), "---\nd: !!binary aGk=\n---\n", Some(("{\"d\":{\"type\":\"Buffer\",\"data\":[104,105]}}", ""))),
+        ("---\nmodel: anthropic/claude: latest\n---\nPrompt", None, "---\nmodel: |-\n  anthropic/claude: latest\n---\nPrompt", Some(("{\"model\":\"anthropic/claude: latest\"}", "Prompt"))),
+    ];
+
+    fn file(result: Result<Markdown, Error>) -> Option<(String, String)> {
+        result.ok().map(|m| {
+            let mut out = Out::new();
+            out.json(&m.data);
+            (out.finish(), m.content)
+        })
+    }
+
+    fn owned(expected: File) -> Option<(String, String)> {
+        expected.map(|(data, content)| (data.to_owned(), content.to_owned()))
+    }
+
+    #[test]
+    fn matches_gray_matter_and_config_markdown() {
+        let mut failures = Vec::new();
+        for &(input, matter_expected, sanitize_expected, parse_expected) in CASES {
+            let got = file(matter(input));
+            if got != owned(matter_expected) {
+                failures.push(format!("matter {input:?}: gray-matter {matter_expected:?}, port {got:?}"));
+            }
+            let got = sanitize(input);
+            if got != sanitize_expected {
+                failures.push(format!("sanitize {input:?}: TS {sanitize_expected:?}, port {got:?}"));
+            }
+            let got = file(parse(input));
+            if got != owned(parse_expected) {
+                failures.push(format!("parse {input:?}: TS {parse_expected:?}, port {got:?}"));
+            }
+            if parse_option(input).is_some() != parse_expected.is_some() {
+                failures.push(format!("parse_option {input:?}"));
+            }
+        }
+        assert!(failures.is_empty(), "{} differences:\n{}", failures.len(), failures.join("\n"));
+    }
+
+    // gray-matter `eval`s a `js`/`javascript` frontmatter: from the same run, `matter("---js\n{}\n---\n", {})` has
+    // data `{}` and content `""`. The port does not run it (see the module docs).
+    #[test]
+    fn javascript_frontmatter_is_not_evaluated() {
+        assert!(parse_option("---js\n{}\n---\n").is_none());
+        assert!(parse_option("---javascript\n({a: 1})\n---\n").is_none());
+    }
 }

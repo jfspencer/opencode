@@ -34,6 +34,8 @@ pub struct Catalog {
     pub providers: Vec<t::ProviderInfo>,
     /// Chat models of the available providers, merged with their provider, newest release first (`Model.all`).
     pub models: Vec<t::ModelInfo>,
+    /// Enabled models of other types (image, decision...), newest release first (`Model.available(types)`).
+    pub other: Vec<t::ModelInfo>,
     /// The configured default model (`model`), as configured.
     pub default: Option<(String, String)>,
 }
@@ -419,8 +421,9 @@ pub fn build(entries: &[Entry]) -> Catalog {
 
     let default = config::latest(entries, |info| info.model.as_ref()).map(|m| (m.provider_id.clone(), m.model.clone()));
 
-    // Materialization (Model snapshot): each model merged with its provider; non-chat models are not listed.
+    // Materialization (Model snapshot): each model merged with its provider.
     let mut models: Vec<t::ModelInfo> = vec![];
+    let mut other: Vec<t::ModelInfo> = vec![];
     for (_, record) in &records {
         let provider = Json::Object(record.provider.clone());
         for (_, model) in &record.models {
@@ -444,23 +447,28 @@ pub fn build(entries: &[Entry]) -> Catalog {
             set_opt(&mut merged, "settings", settings);
             set_opt(&mut merged, "headers", merge_headers(json::get(&provider, "headers"), model.get("headers")));
             set_opt(&mut merged, "body", merge_overlay(json::get(&provider, "body"), model.get("body")));
-            if json::get_str(&Json::Object(merged.clone()), "type").is_some_and(|t| t != "chat") {
-                continue;
-            }
+            // Non-chat models (image, decision...) are only listed by type, enabled ones only.
+            let chat = json::get_str(&Json::Object(merged.clone()), "type").is_none_or(|t| t == "chat");
             match t::ModelInfo::decode(&Json::Object(merged)) {
-                Ok(info) => models.push(info),
+                Ok(info) if chat => models.push(info),
+                Ok(info) => {
+                    if info.enabled {
+                        other.push(info);
+                    }
+                }
                 Err(issue) => eprintln!("model {}/{} skipped: {issue}", record.provider.get("id").map(json::text).unwrap_or_default(), json::text(model.get("id").unwrap_or(&Json::Null))),
             }
         }
     }
     // Newest release first; a stable sort keeps registration order among equals.
     models.sort_by(|a, b| b.time.released.partial_cmp(&a.time.released).unwrap_or(std::cmp::Ordering::Equal));
+    other.sort_by(|a, b| b.time.released.partial_cmp(&a.time.released).unwrap_or(std::cmp::Ordering::Equal));
 
     let providers = records
         .iter()
         .filter_map(|(_, r)| t::ProviderInfo::decode(&Json::Object(r.provider.clone())).ok())
         .collect();
-    Catalog { providers, models, default }
+    Catalog { providers, models, other, default }
 }
 
 fn set_opt(target: &mut Object, key: &str, value: Option<Json>) {
