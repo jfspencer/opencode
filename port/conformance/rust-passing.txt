@@ -161,6 +161,7 @@ scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
 scenarios/cli-acp.test.ts › acp --login without a terminal
+scenarios/cli-acp.test.ts › acp handshake, session and prompts
 scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
@@ -200,6 +201,7 @@ scenarios/cli-run.test.ts › run selects the model, variant and agent
 scenarios/cli-run.test.ts › run sets the title and archives
 scenarios/cli-run.test.ts › run with a failing tool call
 scenarios/cli-run.test.ts › run with attached files
+scenarios/cli-run.test.ts › run with tool calls edits files
 scenarios/cli-serve.test.ts › serve argument errors
 scenarios/cli-serve.test.ts › serve generates a password when none is given
 scenarios/cli-serve.test.ts › serve over stdio ends when stdin closes
@@ -371,9 +373,11 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-schedule.test.ts › code conditions at creation
 scenarios/project-schedule.test.ts › create schedules of every kind
 scenarios/project-schedule.test.ts › denied shell conditions
 scenarios/project-schedule.test.ts › schedule lifecycle routes
+scenarios/project-schedule.test.ts › schedule validation errors
 scenarios/project-schedule.test.ts › schedules are disabled without the experimental flag
 scenarios/project-schedule.test.ts › shell conditions at creation
 scenarios/project-schedule.test.ts › shell conditions need permission
