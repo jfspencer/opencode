@@ -345,6 +345,11 @@ impl km::KeymapEvent for Event {
     }
 }
 
+/// The key an intercept or command sees (`event.sequence`, `event.option`, ...).
+pub fn parsed_key(event: &dyn km::KeymapEvent) -> Option<&ParsedKey> {
+    event.as_any().downcast_ref::<Event>().map(|e| &e.key)
+}
+
 /// `createMode(keymap)`: a stack of modes, the newest enabled one current, published as the `opencode.mode` data
 /// that layers with a `mode` require.
 struct Mode {

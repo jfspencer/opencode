@@ -12,4 +12,5 @@ pub mod filetype;
 pub mod patch_diff;
 pub mod path_format;
 pub mod presentation;
+pub mod scroll;
 pub mod todo;

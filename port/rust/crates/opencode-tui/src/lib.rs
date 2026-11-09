@@ -112,6 +112,7 @@ pub mod home;
 pub mod interactivity;
 pub mod keymap;
 pub mod local;
+pub mod permission;
 pub mod prompt;
 pub mod session;
 pub mod theme;
