@@ -249,10 +249,24 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-pair.test.ts › pair URL validation
+scenarios/cli-pair.test.ts › pair refuses conflicting flags and a disabled service
+scenarios/cli-pair.test.ts › pair through an external URL
+scenarios/cli-pair.test.ts › pair with the local service
+scenarios/cli-pair.test.ts › remote pairing consent on a terminal
+scenarios/cli-pair.test.ts › remote pairing needs consent off a terminal
 scenarios/cli-project-archive.test.ts › projects whose directories are gone are archived or moved
 scenarios/cli-project-archive.test.ts › recently active projects are not swept
 scenarios/cli-references.test.ts › a cache directory of another repository is replaced
 scenarios/cli-references.test.ts › git references are checked out and refreshed daily
+scenarios/cli-remote.test.ts › remote access creates the device's tunnel
+scenarios/cli-remote.test.ts › remote access fails when the certificate cannot be checked
+scenarios/cli-remote.test.ts › remote access keeps an unexpired certificate while the API is unavailable
+scenarios/cli-remote.test.ts › remote access resumes an interrupted certificate issuance
+scenarios/cli-remote.test.ts › remote access saves a renewed certificate
+scenarios/cli-remote.test.ts › remote access when the tunnel cannot be created
+scenarios/cli-remote.test.ts › remote access with an incomplete tunnel identity
+scenarios/cli-remote.test.ts › remote access with the device's tunnel
 scenarios/cli-ripgrep.test.ts › a ripgrep download that fails verification is not used
 scenarios/cli-ripgrep.test.ts › an unanswered ripgrep download fails the search
 scenarios/cli-run.test.ts › run --auto approves permission requests
@@ -298,6 +312,13 @@ scenarios/cli-session.test.ts › session import into another directory
 scenarios/cli-session.test.ts › session list formats and limits
 scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
+scenarios/cli-wizard.test.ts › wizard after flags already given
+scenarios/cli-wizard.test.ts › wizard boolean answers and cancelling mid-way
+scenarios/cli-wizard.test.ts › wizard command not run
+scenarios/cli-wizard.test.ts › wizard counts, repeated flags and quoting
+scenarios/cli-wizard.test.ts › wizard on the root command, cancelled
+scenarios/cli-wizard.test.ts › wizard picks a command from the root and runs it
+scenarios/cli-wizard.test.ts › wizard with a limit and a format
 scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is refused
 scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is reset
 scenarios/codemode-fetch-failures.test.ts › codemode fetch: certificates a client refuses

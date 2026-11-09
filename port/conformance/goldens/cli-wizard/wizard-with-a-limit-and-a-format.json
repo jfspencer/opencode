@@ -1,0 +1,56 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1;96mopencode\u001b[0m \u001b[37mvconformance\u001b[0m \u001b[1;37m· Command wizard\u001b[0m",
+          "OpenCode command line interface",
+          "\u001b[90mBuild a command interactively. Press Ctrl+C to cancel.\u001b[0m",
+          "",
+          "\u001b[1;37mCurrent command\u001b[0m",
+          "\u001b[35m  $ opencode session list\u001b[0m",
+          "",
+          "\u001b[1;96mLIST\u001b[0m \u001b[90m·\u001b[0m \u001b[1;37mFLAGS\u001b[0m",
+          "\u001b[32m✔\u001b[0m \u001b[1mSet Max count (--max-count)?\u001b[0m \u001b[90m…\u001b[0m yes",
+          "\u001b[96m?\u001b[0m \u001b[1mMax count (--max-count)\u001b[0m \u001b[90m›\u001b[0m",
+          "\u001b[32m✔\u001b[0m \u001b[1mMax count (--max-count)\u001b[0m \u001b[90m…\u001b[0m 3",
+          "",
+          "\u001b[32m✔\u001b[0m \u001b[1mSet Output format (--format)?\u001b[0m \u001b[90m…\u001b[0m yes",
+          "\u001b[32m✔\u001b[0m \u001b[1mOutput format (--format)\u001b[0m \u001b[90m…\u001b[0m  \u001b[37mjson\u001b[0m",
+          "",
+          "\u001b[1;32mCommand ready\u001b[0m",
+          "\u001b[96m  $ opencode session list --max-count 3 --format json\u001b[0m",
+          "",
+          "\u001b[32m✔\u001b[0m \u001b[1mRun this command?\u001b[0m \u001b[90m…\u001b[0m \u001b[4;37myes\u001b[0m \u001b[90m/\u001b[0m no",
+          "",
+          "[]"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "abc\r",
+            "3",
+            "\r",
+            "y",
+            "\u001b[B",
+            "\r",
+            "\r"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,147 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote"
+        ],
+        "exit": 0,
+        "screen": [
+          "│",
+          "▲  This will expose your OpenCode server to the internet.",
+          "│  Traffic is end-to-end encrypted, and access requires your server password.",
+          "│  To pair locally instead, run `opencode pair` without the --remote flag.",
+          "│",
+          "◇  Expose your server to the internet?",
+          "│  No",
+          "│",
+          "●  Remote access was not enabled. To pair locally, run `opencode pair`."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[C",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote"
+        ],
+        "exit": 130,
+        "screen": [
+          "│",
+          "▲  This will expose your OpenCode server to the internet.",
+          "│  Traffic is end-to-end encrypted, and access requires your server password.",
+          "│  To pair locally instead, run `opencode pair` without the --remote flag.",
+          "│",
+          "■  Expose your server to the internet?",
+          "│  Yes",
+          "│",
+          "└  Remote access was not enabled. To pair locally, run `opencode pair`."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote"
+        ],
+        "exit": 0,
+        "screen": [
+          "│",
+          "▲  This will expose your OpenCode server to the internet.",
+          "│  Traffic is end-to-end encrypted, and access requires your server password.",
+          "│  To pair locally instead, run `opencode pair` without the --remote flag.",
+          "│",
+          "◇  Expose your server to the internet?",
+          "│  No",
+          "│",
+          "●  Remote access was not enabled. To pair locally, run `opencode pair`."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "n"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

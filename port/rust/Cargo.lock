@@ -642,6 +642,7 @@ dependencies = [
  "opencode-shell",
  "opencode-tui",
  "regex",
+ "ring",
  "rusqlite",
  "rustls",
  "rustls-native-certs",

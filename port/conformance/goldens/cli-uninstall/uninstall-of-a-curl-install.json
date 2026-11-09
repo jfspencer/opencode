@@ -1,0 +1,112 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall",
+          "--dry-run"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: curl",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "●    Binary (manual removal): <executable>",
+          "│",
+          "▲  Dry run - no changes made",
+          "│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall",
+          "--force"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: curl",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "●    Binary (manual removal): <executable>",
+          "\u001b[?25l│",
+          "◇  Background services stopped",
+          "\u001b[?25h\u001b[?25l│",
+          "◇  Removed Cache",
+          "\u001b[?25h│",
+          "│  To finish removing the binary, run:",
+          "│",
+          "●    rm '<executable>'",
+          "│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": false
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

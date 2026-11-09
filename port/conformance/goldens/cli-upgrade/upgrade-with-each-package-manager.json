@@ -1,0 +1,252 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "v1.5.0-beta.1",
+          "--method",
+          "pnpm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: pnpm",
+          "│",
+          "●  From conformance → 1.5.0-beta.1",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.4.0",
+          "-m",
+          "bun"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: bun",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "update",
+          "1.4.0",
+          "--method",
+          "yarn"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: yarn",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.4.0",
+          "--method",
+          "vp"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: vp",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "brew"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: brew",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "npm install --global --allow-scripts=opencode-ai --force opencode-ai@1.4.0",
+          "pnpm add --global --allow-build=opencode-ai opencode-ai@1.5.0-beta.1",
+          "bun install --global --trust --cache-dir <sandbox>/cache/opencode/update-<random> opencode-ai@1.4.0",
+          "yarn global add opencode-ai@1.4.0",
+          "vp update -g opencode-ai@1.4.0",
+          "brew upgrade opencode-ai",
+          ""
+        ],
+        "path": "<sandbox>/calls.log"
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/homebrew?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/homebrew?current=conformance"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

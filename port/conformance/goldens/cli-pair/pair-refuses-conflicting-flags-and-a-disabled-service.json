@@ -1,0 +1,89 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote",
+          "--url",
+          "https://opencode.example.test"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: --remote cannot be combined with --url",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "disabled",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Pairing requires the background service; run `opencode service unset disabled` first",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote",
+          "--url",
+          "https://opencode.example.test"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Error: Pairing requires the background service; run `opencode service unset disabled` first",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

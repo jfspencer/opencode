@@ -1,0 +1,112 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "{",
+          "  \"id\": \"tun_conformance\",",
+          "  \"hostname\": \"k7x2q.tunnel.example\",",
+          "  \"certificateExpiry\": \"<iso-time>\"",
+          "}"
+        ],
+        "path": "<sandbox>/data/opentunnel/default/tunnel.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "tok_conformance",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/token"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "-----BEGIN PRIVATE KEY-----",
+          "stored-key",
+          "-----END PRIVATE KEY-----",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/private-key.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "-----BEGIN CERTIFICATE-----",
+          "MIIBrenewed",
+          "-----END CERTIFICATE-----",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/certificate.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "-----BEGIN CERTIFICATE-----",
+          "MIIBchain",
+          "-----END CERTIFICATE-----",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/chain.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remote": {
+              "route": "<route>"
+            }
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

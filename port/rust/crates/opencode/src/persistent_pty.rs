@@ -8,6 +8,7 @@
 //! which `read` shows. Events are ephemeral and carry no location: `persistent-pty.added`, `persistent-pty.updated`,
 //! `persistent-pty.removed`.
 
+pub mod binary;
 pub mod daemon;
 
 use std::collections::{HashMap, HashSet};
