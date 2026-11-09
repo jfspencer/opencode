@@ -108,6 +108,7 @@ pub mod config;
 pub mod config_context;
 pub mod ctx;
 pub mod data;
+pub mod diff_viewer;
 pub mod form;
 pub mod home;
 pub mod interactivity;
