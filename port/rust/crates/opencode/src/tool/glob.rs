@@ -3,7 +3,6 @@
 
 use opencode_protocol::Json;
 
-use super::file_access::{self, Kind};
 use super::file_input::Wording;
 use super::file_search::{self, DEFAULT_SEARCH_LIMIT, SearchError};
 use super::{Context, Definition, Execution, Failure, Output, Tool, ToolError};
@@ -36,16 +35,16 @@ impl Glob {
         let limit = json::get_num(&input, "limit");
         let display = search_path.clone().unwrap_or_else(|| ".".into());
         let failure = |message: String| Failure::Error(ToolError::new(message));
-        let target = file_access::resolve(&context.location, &display, Some(Kind::Directory));
-        file_access::authorize_external(&context, "glob", &[&target], None).await?;
-        let metadata = file_access::metadata(vec![
+        let target = crate::file_access::resolve(&context.location, &display, Some(crate::file_access::Kind::Directory)).await;
+        crate::file_access::authorize_external(&context, std::slice::from_ref(&target), None).await?;
+        let metadata = file_search::metadata(vec![
             ("root", Some(json::string(&display))),
             ("path", search_path.as_deref().map(json::string)),
             ("hidden", hidden.map(Json::Bool)),
             ("limit", limit.map(Json::Number)),
         ]);
         let ask = Ask { action: "glob".into(), resources: vec![pattern.clone()], save: Some(vec!["*".into()]), metadata: Some(metadata) };
-        file_access::assert(&context, "glob", ask).await?;
+        context.assert(ask).await?;
         let kind = file_search::path_type(&target.absolute, &display).map_err(failure)?;
         if kind != "directory" {
             return Err(failure(format!("Search path is not a directory: {display}")));

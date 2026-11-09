@@ -6,8 +6,8 @@
 
 use opencode_protocol::Json;
 
-use super::file_access::{self, dirname};
 use super::file_input::Wording;
+use crate::file_access::dirname;
 use super::file_search::{self, DEFAULT_SEARCH_LIMIT, GrepInput, Match, SearchError};
 use super::{Context, Definition, Execution, Failure, Output, Tool, ToolError};
 use crate::json::{self, Obj};
@@ -54,9 +54,9 @@ impl Grep {
         let limit = json::get_num(&input, "limit");
         let display = path.clone().unwrap_or_else(|| ".".into());
         let failure = |message: String| Failure::Error(ToolError::new(message));
-        let target = file_access::resolve(&context.location, &display, None);
-        file_access::authorize_external(&context, "grep", &[&target], None).await?;
-        let metadata = file_access::metadata(vec![
+        let target = crate::file_access::resolve(&context.location, &display, None).await;
+        crate::file_access::authorize_external(&context, std::slice::from_ref(&target), None).await?;
+        let metadata = file_search::metadata(vec![
             ("root", Some(json::string("."))),
             ("path", path.as_deref().map(json::string)),
             ("include", include.as_deref().map(json::string)),
@@ -65,7 +65,7 @@ impl Grep {
             ("limit", limit.map(Json::Number)),
         ]);
         let ask = Ask { action: "grep".into(), resources: vec![pattern.clone()], save: Some(vec!["*".into()]), metadata: Some(metadata) };
-        file_access::assert(&context, "grep", ask).await?;
+        context.assert(ask).await?;
         let root = target.absolute.clone();
         let kind = file_search::path_type(&root, &display).map_err(failure)?;
         let cwd = if kind == "directory" { root.clone() } else { dirname(&root) };

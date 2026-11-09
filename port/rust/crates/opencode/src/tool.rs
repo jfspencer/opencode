@@ -20,10 +20,8 @@
 
 pub mod arguments;
 pub mod edit;
-pub mod file_access;
 pub mod file_diff;
 pub mod file_input;
-pub mod file_instructions;
 pub mod file_media;
 pub mod file_read;
 pub mod file_search;

@@ -369,7 +369,7 @@ impl Edit {
         let old = json::get_str(&input, "oldString").unwrap_or_default().to_owned();
         let new = json::get_str(&input, "newString").unwrap_or_default().to_owned();
         let replace_all = json::get_bool(&input, "replaceAll") == Some(true);
-        let _lock = file_write::lock(&[super::file_access::resolve_path(&context.location.directory, &path)]).await;
+        let _lock = file_write::lock(&[crate::file_access::resolve_path(&context.location.directory, &path)]).await;
         let unable = || failure(format!("Unable to edit {path}"));
         if old == new {
             return Err(failure("No changes to apply: oldString and newString are identical."));

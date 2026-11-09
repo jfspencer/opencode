@@ -196,7 +196,30 @@ pub async fn grep(input: &GrepInput<'_>, limit: usize) -> Result<Vec<Match>, Sea
     run(input.cwd, args, limit, Some(input.pattern), parse_match).await
 }
 
+/// `Environment.typeFollowing`: the type of what a path names, a final symlink followed; `None` when missing.
+fn type_following(path: &str) -> Option<&'static str> {
+    let info = std::fs::metadata(path).ok()?;
+    Some(if info.is_file() {
+        "file"
+    } else if info.is_dir() {
+        "directory"
+    } else {
+        "other"
+    })
+}
+
 /// `ToolSearch.pathType`: the type of the search path, or the failure naming a missing one.
 pub fn path_type(absolute: &str, display: &str) -> Result<&'static str, String> {
-    super::file_access::type_following(absolute).ok_or_else(|| format!("Search path does not exist: {display}"))
+    type_following(absolute).ok_or_else(|| format!("Search path does not exist: {display}"))
+}
+
+/// A permission request's metadata: the present entries (as `JSON` drops `undefined`).
+pub fn metadata(entries: Vec<(&str, Option<opencode_protocol::Json>)>) -> opencode_protocol::Json {
+    let mut out = json::object();
+    for (key, value) in entries {
+        if let Some(value) = value {
+            json::set(&mut out, key, value);
+        }
+    }
+    out
 }

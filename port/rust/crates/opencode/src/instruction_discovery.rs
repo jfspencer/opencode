@@ -411,7 +411,6 @@ fn inject(app: &crate::app::App, location: &crate::location::Location, session: 
 /// The read tool's nested instructions: after a successful read of `target` (absolute; `listing` when it is a
 /// directory), the `AGENTS.md` files from it (a directory) or its directory up to the location, exclusive, that are
 /// not the target itself. External reads are the caller's to skip; failures never fail the read.
-#[allow(dead_code)] // Called by the read tool (the file tools).
 pub fn nested(app: &crate::app::App, location: &crate::location::Location, session: &str, target: &str, listing: bool) {
     let resolved = resolve(target);
     let root = resolve(&location.directory);

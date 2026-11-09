@@ -6,8 +6,8 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use super::file_access::{self, Kind, Target};
 use super::file_diff::{FileDiff, file_diff};
+use crate::file_access::{Kind, Target};
 use super::{Context, Failure};
 use crate::permission::Ask;
 
@@ -116,8 +116,8 @@ fn write_text_preserving_bom(target: &Target, content: &str) -> Result<Written, 
 
 /// `FileWrite.target`: resolved as a file, its external directory approved.
 pub async fn target(context: &Context, tool: &str, file: &str) -> Result<Target, Failure> {
-    let target = file_access::resolve(&context.location, file, Some(Kind::File));
-    file_access::authorize_external(context, tool, &[&target], None).await?;
+    let target = crate::file_access::resolve(&context.location, file, Some(Kind::File)).await;
+    crate::file_access::authorize_external_for(context, tool, std::slice::from_ref(&target), None).await?;
     Ok(target)
 }
 
@@ -129,7 +129,7 @@ pub async fn authorize(context: &Context, tool: &str, target: &Target, preview: 
         o.done()
     });
     let ask = Ask { action: "edit".into(), resources: vec![target.resource.clone()], save: Some(vec!["*".into()]), metadata };
-    file_access::assert(context, tool, ask).await
+    crate::session::plan::assert(context, tool, ask).await
 }
 
 /// `FileWrite.commit`: approved text written keeping an existing BOM, then formatted.
@@ -194,7 +194,11 @@ impl Drop for Lock {
 
 /// `FileMutation.withLock`: the process-wide locks of the resolved targets, taken in sorted order.
 pub async fn lock(targets: &[String]) -> Lock {
-    let mut keys: Vec<String> = targets.iter().map(|target| file_access::fs_resolve(target)).collect();
+    // `FSUtil.resolve`: the real path, or the lexical one when it cannot be resolved.
+    let resolve = |path: &String| {
+        std::fs::canonicalize(path).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|_| crate::project::normalize(path))
+    };
+    let mut keys: Vec<String> = targets.iter().map(resolve).collect();
     keys.sort();
     keys.dedup();
     let mut lock = Lock { keys: Vec::new(), guards: Vec::with_capacity(keys.len()) };

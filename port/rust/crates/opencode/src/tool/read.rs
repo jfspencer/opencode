@@ -2,12 +2,12 @@
 //! it), or a skill's virtual file (`skill://<id>/<file>`). A name that misses only by Unicode normalization, a
 //! non-breaking space or a curly apostrophe reads the one file it means; otherwise a miss suggests similar names, or
 //! names the first missing folder. A successful read of the location loads the `AGENTS.md` files next to it
-//! ([`super::file_instructions`]).
+//! ([`crate::instruction_discovery::nested`]).
 
 use opencode_protocol::Json;
 use unicode_normalization::UnicodeNormalization;
 
-use super::file_access::{self, Target, dirname, join};
+use crate::file_access::{self, Target, dirname, join};
 use super::file_read::{self, Content, Files, Page, ReadError};
 use super::{Context, Definition, Execution, Failure, Output, Tool, ToolError};
 use crate::json::{self, Obj};
@@ -250,7 +250,8 @@ impl Read {
                 Err(error) => return Err(read_failure(error, &path)),
             };
             if target.external.is_none() {
-                super::file_instructions::discover(&context, &target.absolute, matches!(content, Content::ListPage { .. }));
+                let listing = matches!(content, Content::ListPage { .. });
+                crate::instruction_discovery::nested(&context.app, &context.location, &context.session_id, &target.absolute, listing);
             }
             (content, shown)
         };
