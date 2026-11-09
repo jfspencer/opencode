@@ -247,8 +247,44 @@ fn lower_tool_file(item: &Json) -> Json {
     o.done()
 }
 
+/// `lowerMedia`'s refusal: Chat Completions takes PDFs (and no other documents), images and videos. Media a model
+/// declares it reads but the route cannot send (audio) fails the request before it is sent.
+pub fn check_media(request: &Request) -> Result<(), AIError> {
+    let sendable = |mime: &str| {
+        let lower = mime.to_lowercase();
+        lower == "application/pdf" || lower.starts_with("image/") || lower.starts_with("video/")
+    };
+    let refuse = |mime: &str| Err(AIError::new(Kind::InvalidRequest, format!("OpenAI Chat does not support media type {mime}")));
+    for message in &request.messages {
+        match message {
+            Message::User(parts) => {
+                for part in parts {
+                    if let UserPart::Media { mime, .. } = part {
+                        if !sendable(mime) {
+                            return refuse(mime);
+                        }
+                    }
+                }
+            }
+            Message::Tool(results) => {
+                for result in results {
+                    let ToolResultValue::Content(content) = &result.value else { continue };
+                    for item in content.iter().filter(|item| json::get_str(item, "type") == Some("file")) {
+                        let mime = json::get_str(item, "mime").unwrap_or_default();
+                        if !sendable(mime) {
+                            return refuse(mime);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
 /// A user content part (`lowerUserMessage` / `lowerMedia`): PDFs as inline `file` parts, images and videos as data URLs.
-/// Other media never get here: attachments only lower images and PDFs, and unsupported media became text.
+/// Other media are refused before lowering ([`check_media`]).
 fn lower_user_part(part: &UserPart) -> Json {
     let mut o = Obj::new();
     match part {

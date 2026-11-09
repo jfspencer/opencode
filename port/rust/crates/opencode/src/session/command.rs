@@ -6,8 +6,9 @@
 //!
 //! `goal` is the goal plugin's ([`session::goal`]).
 //!
-//! Out of scope: MCP prompts (MCP is dropped). TODO(port): the interleaved output of interpolated shell commands
-//! (stdout, then stderr).
+//! An interpolated shell command's output is its stdout and stderr combined in arrival order.
+//!
+//! Out of scope: MCP prompts (MCP is dropped).
 
 use opencode_protocol::Json;
 
@@ -44,17 +45,46 @@ async fn interpolate(text: &str, directory: &str, shell: &str) -> std::result::R
     }
     let mut outputs = Vec::new();
     for source in &sources {
-        let output = crate::process::Command::new(shell, directory)
-            .args(opencode_shell::select::args(shell, source))
-            .run()
+        let output = combined(shell, opencode_shell::select::args(shell, source), directory)
             .await
             .map_err(|error| format!("Shell interpolation failed for {}: {error}", json::text(&json::string(source))))?;
-        let mut bytes = output.stdout.clone();
-        bytes.extend_from_slice(&output.stderr);
-        outputs.push(String::from_utf8_lossy(&bytes).into_owned());
+        outputs.push(String::from_utf8_lossy(&output).into_owned());
     }
     let mut outputs = outputs.into_iter();
     Ok(pattern.replace_all(text, |_: &regex::Captures| outputs.next().unwrap_or_default()).into_owned())
+}
+
+/// `AppProcess.run(.., { combineOutput: true })`: the command's stdout and stderr as one output, in the order their
+/// chunks arrive from the two pipes.
+async fn combined(program: &str, args: Vec<String>, cwd: &str) -> std::io::Result<Vec<u8>> {
+    use tokio::io::AsyncReadExt;
+    let mut child = tokio::process::Command::new(program)
+        .args(args)
+        .current_dir(cwd)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .kill_on_drop(true)
+        .spawn()?;
+    let mut stdout = child.stdout.take().expect("piped stdout");
+    let mut stderr = child.stderr.take().expect("piped stderr");
+    let mut output = Vec::new();
+    let (mut out_buffer, mut err_buffer) = ([0u8; 8192], [0u8; 8192]);
+    let (mut out_open, mut err_open) = (true, true);
+    while out_open || err_open {
+        tokio::select! {
+            read = stdout.read(&mut out_buffer), if out_open => match read? {
+                0 => out_open = false,
+                n => output.extend_from_slice(&out_buffer[..n]),
+            },
+            read = stderr.read(&mut err_buffer), if err_open => match read? {
+                0 => err_open = false,
+                n => output.extend_from_slice(&err_buffer[..n]),
+            },
+        }
+    }
+    child.wait().await?;
+    Ok(output)
 }
 
 /// `Session.command`: `input` has the command payload's shape (`name`, `text`, `delivery?`, ...).

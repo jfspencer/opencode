@@ -8,7 +8,8 @@
 //! A failure is `ToolFailure("Unable to fetch <url>", error)`, which the session error unwraps to its cause: plain
 //! errors are `unknown` with their own message, permission errors `permission.rejected`.
 //!
-//! TODO(port): Effect's redaction of signed query parameters (`X-Amz-Signature` and friends) in the status error's URL.
+//! A status error names its request with Effect's redaction of signed query parameters (`X-Amz-Signature` and friends,
+//! [`redact_url`]).
 
 use opencode_html::webfetch::{self, BoundedBody, Format, MAX_RESPONSE_BYTES};
 use opencode_protocol::Json;

@@ -197,6 +197,7 @@ pub async fn stream(request: &Request, events: mpsc::Sender<Result<Event, AIErro
 async fn run(request: &Request, events: &mpsc::Sender<Result<Event, AIError>>) -> Result<(), AIError> {
     let model = &request.model;
     let url = format!("{}/chat/completions", model.base_url.trim_end_matches('/'));
+    openrouter::check_media(request)?;
     let body = openrouter::body(request);
     // `bodyWithOverlay`: the configured body overlay is deep-merged into the request body.
     let body = match &model.body {

@@ -4,8 +4,9 @@
 //!
 //! The model-family prompts of plugin/optimize.ts (GPT, Claude, Kimi, ...) replace the default one ([`model_prompt`]).
 //!
-//! TODO(port): the session plugin hooks of external plugins (`context`, `model.request`, `http.*`), image bounding,
-//! the model catalog's small model.
+//! Built-in plugins' hooks are applied where their plugins live (plan mode, the goal reminder, identity, the model
+//! prompts); the session hooks of external plugins (`context`, `model.request`, `http.*`) are out of scope with
+//! external plugins. Images are bounded ([`bound_images`]) after unsupported media become notes ([`unsupported_parts`]).
 
 use std::sync::Arc;
 
@@ -672,14 +673,16 @@ pub fn messages(history: &[Json], model: &Json) -> Vec<Message> {
             }
             Some("assistant") => out.extend(assistant(message, model)),
             Some("compaction") if json::get_str(message, "status") == Some("completed") => {
-                // History selection only keeps native windows the target model can replay. TODO(port): replaying a
-                // non-empty native window (no route in scope makes one; only imports carry them).
+                // History selection only keeps native windows the target model can replay. Only provider-native
+                // compaction (the Responses routes of other providers) makes one, so OpenRouter's chat route never
+                // replays one: out of scope.
                 if json::get(message, "native").and_then(|n| json::get(n, "messages")).is_some() {
                     continue;
                 }
                 out.push(Message::User(vec![UserPart::Text(checkpoint(message))]));
             }
-            // TODO(port): `model-switched` effort updates.
+            // `model-switched` becomes effort-update markers only for routes with per-message effort updates
+            // (`supportsEffortUpdates`); OpenRouter's chat route has none, so `applyEffortUpdates` strips them.
             _ => {}
         }
     }
