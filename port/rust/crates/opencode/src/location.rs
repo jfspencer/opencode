@@ -143,6 +143,9 @@ impl Locations {
         let location = Arc::new(boot(app, &key).await?);
         location.inventory.watch(app.arc(), Arc::downgrade(&location));
         self.booted.lock().unwrap().insert(key, location.clone());
+        // The location's Git references are checked out in the background, and again every hour.
+        crate::repository_cache::refresh(&app.arc(), &location.inventory().references);
+        crate::repository_cache::schedule(&app.arc(), &location);
         // The location watcher starts once the plugins have activated.
         let (app, booted) = (app.arc(), location.clone());
         tokio::spawn(async move { booted.watcher.reconcile(&app, &booted).await });

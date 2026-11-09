@@ -69,7 +69,9 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
                 o.str("_tag", "UnknownError").str("message", "Internal server error");
                 return Err(Failure::new(500, o.done()));
             }
-            location.inventory.reload(&app.bus, &location.reference()).await;
+            if location.inventory.reload(&app.bus, &location.reference()).await {
+                crate::repository_cache::refresh(&app.arc(), &location.inventory().references);
+            }
             Ok(Response::no_content())
         }
         "provider.list" => {

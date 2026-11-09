@@ -5,9 +5,11 @@
 //! `OPENCODE_DISABLE_FILEWATCHER` / `OPENCODE_FILEWATCHER_DISABLE` turn every watch off. Dropping a [`Watch`] stops it.
 //!
 //! On Linux the process has one inotify instance (the per-user instance limit is small and shared with every other
-//! program), read by one task; watches of the same directory share its watch descriptor.
-//!
-//! TODO(port): macOS (TS: FSEvents through Parcel, kqueue-free `fs.watch`); until then nothing is watched there.
+//! program), read by one task; watches of the same directory share its watch descriptor. On macOS each watch is an
+//! FSEvents stream ([`fsevents`]), as the TS server's are through Parcel, reporting the same paths.
+
+#[cfg(target_os = "macos")]
+mod fsevents;
 
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -20,6 +22,9 @@ pub struct Watch(Stop);
 enum Stop {
     #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
     Subscription(u64),
+    #[cfg(target_os = "macos")]
+    #[allow(dead_code)] // Held for its drop.
+    Stream(fsevents::Stream),
     Task(tokio::task::JoinHandle<()>),
 }
 
@@ -34,6 +39,8 @@ impl Drop for Watch {
     fn drop(&mut self) {
         match &self.0 {
             Stop::Task(handle) => handle.abort(),
+            #[cfg(target_os = "macos")]
+            Stop::Stream(_) => {}
             Stop::Subscription(_id) => {
                 #[cfg(target_os = "linux")]
                 inotify::unsubscribe(*_id);
@@ -290,7 +297,9 @@ pub fn file(path: &str, send: &Sender) -> Option<Watch> {
     let name = crate::inventory::config::basename(&path).to_owned();
     #[cfg(target_os = "linux")]
     return inotify::file(directory, name, send).map(|id| Watch(Stop::Subscription(id)));
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    return fsevents::file(directory, name, send).map(|stream| Watch(Stop::Stream(stream)));
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (directory, name, send);
         None
@@ -305,7 +314,9 @@ pub fn directory(path: &str, ignore: fn(&str) -> bool, send: &Sender) -> Option<
     let root = crate::project::normalize(path);
     #[cfg(target_os = "linux")]
     return inotify::directory(root, ignore, send).map(|id| Watch(Stop::Subscription(id)));
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    return fsevents::directory(root, ignore, send).map(|stream| Watch(Stop::Stream(stream)));
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (root, ignore, send);
         None

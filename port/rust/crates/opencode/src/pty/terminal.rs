@@ -42,10 +42,11 @@ fn set_flags(fd: RawFd, nonblocking: bool) -> io::Result<()> {
 
 /// Starts `file` with `args` in a new pseudo-terminal of `cols` × `rows`.
 pub fn spawn(file: &str, args: &[String], cwd: &str, env: &[(String, String)], cols: u16, rows: u16) -> io::Result<Spawned> {
-    let size = libc::winsize { ws_row: rows, ws_col: cols, ws_xpixel: 0, ws_ypixel: 0 };
+    let mut size = libc::winsize { ws_row: rows, ws_col: cols, ws_xpixel: 0, ws_ypixel: 0 };
     let (mut master, mut slave) = (-1, -1);
-    // SAFETY: openpty writes the two descriptors; the name and termios arguments may be null.
-    cvt(unsafe { libc::openpty(&mut master, &mut slave, std::ptr::null_mut(), std::ptr::null(), &size) })?;
+    // SAFETY: openpty writes the two descriptors; the name and termios arguments may be null. (macOS declares the
+    // termios and size arguments mutable, Linux constant: mutable pointers suit both.)
+    cvt(unsafe { libc::openpty(&mut master, &mut slave, std::ptr::null_mut(), std::ptr::null_mut(), &mut size) })?;
     // SAFETY: openpty succeeded, so both descriptors are open and ours.
     let (master, slave) = unsafe { (OwnedFd::from_raw_fd(master), OwnedFd::from_raw_fd(slave)) };
     set_flags(master.as_raw_fd(), true)?;

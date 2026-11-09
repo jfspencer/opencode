@@ -35,6 +35,7 @@ mod persistent_pty;
 mod process;
 mod project;
 mod project_icon;
+mod repository_cache;
 mod pty;
 mod schedule;
 mod session;

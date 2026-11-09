@@ -8,7 +8,10 @@
 //! Compaction (automatic before a step, overflow recovery, a manual `compaction` item at a boundary) is
 //! [`crate::session::compaction`]'s.
 //!
-//! TODO(port): location reloads mid-turn, the `experimental.idle` plugin hook, background jobs.
+//! Each step reads its location as it is then (a reloaded location is booted again) and waits out an inventory
+//! reload in progress (`plugins.awaitActivation`). TODO(port): the `experimental.idle` hook, which the runner fires
+//! with the session's outstanding background work (`SessionBackground.outstanding`) when the session would go idle,
+//! comes with its only built-in user, the goal plugin (`/goal`, unported: see [`crate::session::command`]).
 
 use std::sync::Arc;
 
@@ -82,7 +85,8 @@ pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Re
     let stored = crate::session::require(&app.db.lock().unwrap(), session_id).map_err(failed)?;
     let location = app.locations.get(app, &stored.location).await.map_err(failed)?;
     let info = stored.info.clone();
-    // One inventory snapshot per step: plugins may reload mid-turn.
+    // One inventory snapshot per step: plugins may reload mid-turn, and each step reads them settled.
+    location.inventory.settled().await;
     let inventory = location.inventory();
     let (agent_id, agent) = context::select_agent(&inventory, &info).map_err(Stop::Failed)?;
     // Session permissions narrow the tool snapshot the way they narrow discovery.
@@ -232,7 +236,7 @@ pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel)
                 if pending.is_some() || !stepped {
                     return Ok(Drained::Complete);
                 }
-                // The session would go idle (TODO(port): the `experimental.idle` hook).
+                // The session would go idle (the `experimental.idle` hook of the goal plugin goes here).
                 if !inbox::has(&app.db.lock().unwrap(), session, None).map_err(|e| failed(fatal(e)))? {
                     return Ok(Drained::Complete);
                 }
