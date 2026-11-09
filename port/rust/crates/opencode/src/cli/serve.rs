@@ -192,6 +192,7 @@ pub async fn run(input: &Input) -> Result {
         locations: crate::location::Locations::default(),
         sessions: crate::session::Sessions::default(),
     });
+    crate::credential::install(&app);
     let address = crate::http::local_address(&listener).expect("bound address");
     let url = format_address(address);
     // TODO(port): `connectionURLs` lists every interface's address when bound to 0.0.0.0 or ::.
@@ -229,8 +230,11 @@ pub async fn run(input: &Input) -> Result {
         detach_stderr();
     }
 
-    // Turns a previous process left mid-way continue (restart continuity).
-    crate::session::execution::resume_suspended(&app);
+    // The managed server owns restart continuity (`installRestartContinuity` runs with the service lifecycle only):
+    // turns and background jobs a previous process left mid-way continue.
+    if mode == Mode::Service {
+        crate::session::execution::resume_suspended(&app);
+    }
     crate::schedule::start(&app);
     let server = tokio::spawn(crate::http::serve(app, listener));
     let ended = match (mode, &registration) {

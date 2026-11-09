@@ -549,7 +549,7 @@ fn failure_message(failure: Failure) -> String {
 /// One call on the registered tool (`Tool.run`): its result's images normalized as for a direct call.
 async fn run_tool(tool: &Arc<dyn Tool>, context: tool::Context, input: Option<cm::Json>) -> Result<(Output, Option<Json>), Failure> {
     let (output, structured) = tool.execute_code_mode(context, input.as_ref().map(from_cm)).await?;
-    Ok((Output { content: crate::tool::file_media::normalize_content(output.content), ..output }, structured))
+    Ok((Output { content: crate::tool::file_media::normalize_content(output.content).await, ..output }, structured))
 }
 
 /// The tool handler: runs each call on the registered tool with the call's context, its progress silenced (it would

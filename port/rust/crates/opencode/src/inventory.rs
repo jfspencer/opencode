@@ -53,6 +53,7 @@
 pub mod agents;
 pub mod commands;
 pub mod config;
+pub mod config_watch;
 pub mod jsonc;
 pub mod markdown;
 pub mod providers;
@@ -209,6 +210,8 @@ pub struct Shared {
     reloading: tokio::sync::Mutex<()>,
     skills: Rescan,
     instructions: Rescan,
+    /// The config sources' watches ([`config_watch`]): a change reloads the config.
+    config: Rescan,
 }
 
 impl std::fmt::Debug for Shared {
@@ -222,6 +225,7 @@ impl std::fmt::Debug for Shared {
 enum Kind {
     Skills,
     Instructions,
+    Config,
 }
 
 /// One watched rescan: its watches (replaced on every rescan), where they send, and the task that rescans.
@@ -263,6 +267,7 @@ impl Rescan {
                 match kind {
                     Kind::Skills => location.inventory.rescan_skills(&app.bus, &reference).await,
                     Kind::Instructions => location.inventory.rescan_instructions().await,
+                    Kind::Config => location.inventory.reload(&app.bus, &reference).await,
                 }
             }
         });
@@ -282,19 +287,27 @@ impl Shared {
         let (pulled, watches) = skills::pull_all(&entries, &location.directory, Some(&skill_rescan.changes)).await;
         skill_rescan.replace(watches);
         instruction_rescan.watch_files(&crate::instruction_discovery::watched(&location.directory, project_directory, &entries));
+        let config_rescan = Rescan::new();
+        config_rescan.replace(config_watch::plan(&sources, &config_rescan.changes));
         let inventory = Inventory::build(&location.directory, project_directory, sources, entries, remote, pulled);
         Ok(Self {
             current: RwLock::new(Arc::new(inventory)),
             reloading: tokio::sync::Mutex::new(()),
             skills: skill_rescan,
             instructions: instruction_rescan,
+            config: config_rescan,
         })
     }
 
     /// Starts acting on the watched changes (once the location is booted).
     pub fn watch(&self, app: Arc<crate::app::App>, location: std::sync::Weak<crate::location::Location>) {
         self.skills.start(Kind::Skills, app.clone(), location.clone());
-        self.instructions.start(Kind::Instructions, app, location);
+        self.instructions.start(Kind::Instructions, app.clone(), location.clone());
+        self.config.start(Kind::Config, app, location);
+        // A live watch's readiness requests a reload, which recovers writes made before it attached.
+        if !self.config.watches.lock().unwrap().is_empty() {
+            let _ = self.config.changes.send(String::new());
+        }
     }
 
     /// `ConfigSkillPlugin.refresh` after a watched change: the sources are loaded (and watched) again, and a change of
@@ -342,6 +355,8 @@ impl Shared {
         let sources = config::discover(&previous.directory);
         let compatibility_changed = sources.claude != previous.sources.claude || sources.agents != previous.sources.agents;
         let entries = config::load(&previous.directory, &sources);
+        // `reconcileWatches`: the watches follow the sources just discovered.
+        self.config.replace(config_watch::plan(&sources, &self.config.changes));
         let config_changed = entries != previous.entries || compatibility_changed;
         // A config change fetches the instruction and skill URLs again and renews the watches (`reconfigure`,
         // `refresh`).

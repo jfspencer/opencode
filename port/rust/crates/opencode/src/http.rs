@@ -219,6 +219,12 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
         return with_cors(crate::auth::unauthorized(&headers));
     }
 
+    // HttpApiBuilder's `openapiPath`: the API's OpenAPI document, recorded from the reference (`gen/src/openapi.ts`).
+    if method == "GET" && raw_path == "/openapi.json" {
+        const OPENAPI: &str = include_str!("generated/openapi.json");
+        let headers = vec![("content-type", "application/json".to_owned())];
+        return with_cors(Response { status: 200, headers, body: Body::Bytes(Bytes::from_static(OPENAPI.as_bytes())) });
+    }
     let Some((route, params)) = find(&method, &raw_path) else {
         return with_cors(Response { status: 404, headers: vec![], body: Body::Empty });
     };

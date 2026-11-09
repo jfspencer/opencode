@@ -93,7 +93,8 @@ pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Re
     if let Some(Json::Array(session_rules)) = json::get(&info, "permissions") {
         rules.extend(session_rules.iter().cloned());
     }
-    let mut tools = crate::tool::registry().snapshot_with(&rules, &crate::tool::schedule::tools(&inventory));
+    let extra: Vec<_> = crate::tool::schedule::tools(&inventory).into_iter().chain(crate::tool::todo::tools(&inventory)).collect();
+    let mut tools = crate::tool::registry().snapshot_with(&rules, &extra);
     crate::tool::shell::bind(&mut tools, &inventory);
     crate::tool::subagent::describe(&mut tools, &inventory, &agent_id);
     let git = location.vcs.as_ref().is_some_and(|vcs| vcs.kind == "git");
@@ -122,8 +123,10 @@ pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Re
 /// `SessionContext.load`: resolves the selection's model. It runs after promotion, so input whose model is unavailable
 /// is still delivered before the turn fails.
 pub(crate) fn load(selected: Selected) -> Result<Loaded, Stop> {
-    let Selected { session, agent_id, agent, location, reference, tools, sources, inventory } = selected;
+    let Selected { session, agent_id, agent, location, reference, mut tools, sources, inventory } = selected;
     let model = context::resolve_model(&inventory, &session, Some(&agent)).map_err(Stop::Failed)?;
+    // The patch plugin's `context`, `compaction` and `generate` hook: which editing tools the model gets.
+    crate::tool::patch::filter(&mut tools, &model.id);
     Ok(Loaded { session, agent_id, agent, location, reference, tools, sources, model })
 }
 
@@ -263,7 +266,7 @@ pub(crate) fn system(loaded: &Loaded, initial: &[(String, String)]) -> Vec<Strin
     let names = loaded.tools.names();
     let mut system = vec![match json::get_str(&loaded.agent, "system") {
         Some(system) => system.to_owned(),
-        None => context::system_prompt(&names),
+        None => context::model_prompt(&loaded.model, &names),
     }];
     let joined = initial.iter().map(|(_, text)| text.as_str()).collect::<Vec<_>>().join("\n\n");
     if !joined.is_empty() {

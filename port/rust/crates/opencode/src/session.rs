@@ -16,8 +16,10 @@ pub mod inbox;
 pub mod instructions;
 pub mod message;
 pub mod moves;
+pub mod parts;
 pub mod plan;
 pub mod prompt;
+pub mod restart;
 pub mod retry;
 pub mod revert;
 pub mod runner;
@@ -420,7 +422,8 @@ pub fn publish_committed(
     let event = {
         let mut db = app.db.lock().unwrap();
         app.bus.publish_with(&mut db, ty, data, PublishOptions { id: None, location }, metadata, |tx, event| {
-            project(tx, event)?;
+            // The projection stores media and parts as the session's location configures (its Config in scope).
+            blob::with_storage(blob::storage_for(app, tx, event), || project(tx, event))?;
             commit(tx, event)
         })?
     };

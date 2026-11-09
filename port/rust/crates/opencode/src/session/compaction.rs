@@ -490,22 +490,30 @@ fn latest_compaction(db: &Connection, session: &str, model: Option<&Json>, befor
     }
 }
 
-fn rows(db: &Connection, session: &str, from: i64, until: i64) -> rusqlite::Result<Vec<(i64, Json)>> {
+/// The rows of a range with their part rows folded in (`withParts`), and their media restored when `hydrate`.
+fn rows(db: &Connection, session: &str, from: i64, until: i64, hydrate: bool) -> rusqlite::Result<Vec<(i64, Json)>> {
     let mut statement = db.prepare(
         "SELECT seq, id, type, data FROM session_message WHERE session_id = ?1 AND seq >= ?2 AND seq < ?3 ORDER BY seq ASC",
     )?;
-    statement
+    let (seqs, mut messages): (Vec<i64>, Vec<Json>) = statement
         .query_map(params![session, from, until], |row| {
-            Ok((row.get(0)?, message::from_row(row.get(1)?, row.get(2)?, &row.get::<_, String>(3)?)))
+            Ok((row.get::<_, i64>(0)?, message::from_row(row.get(1)?, row.get(2)?, &row.get::<_, String>(3)?)))
         })?
-        .collect()
+        .collect::<rusqlite::Result<Vec<_>>>()?
+        .into_iter()
+        .unzip();
+    crate::session::blob::with_parts(db, &mut messages)?;
+    if hydrate {
+        crate::session::blob::hydrate(db, &mut messages)?;
+    }
+    Ok(seqs.into_iter().zip(messages).collect())
 }
 
 /// `messageEntries`: the messages from the latest completed compaction on (every message without one), with the
 /// summary's kept text rebuilt.
 fn entries(db: &Connection, session: &str, model: Option<&Json>, before: Option<i64>) -> rusqlite::Result<Vec<(i64, Json)>> {
     let compaction = latest_compaction(db, session, model, before)?;
-    let decoded = rows(db, session, compaction.unwrap_or(i64::MIN), i64::MAX)?;
+    let decoded = rows(db, session, compaction.unwrap_or(i64::MIN), i64::MAX, true)?;
     // A window that cannot replay leaves nothing to start from, so read from the compaction before it.
     if let (Some(seq), Some((_, start))) = (compaction, decoded.first()) {
         if !replayable(start, model) {
@@ -537,7 +545,8 @@ fn with_recent_text(db: &Connection, session: &str, mut entries: Vec<(i64, Json)
         .query_row("SELECT seq FROM session_message WHERE session_id = ?1 AND id = ?2", params![session, keep], |row| row.get(0))
         .optional()?;
     let Some(start) = start else { return Ok(entries) };
-    let kept = rows(db, session, start, *first_seq)?;
+    // The recent text names attachments by mime and name only, so their bytes are never read.
+    let kept = rows(db, session, start, *first_seq, false)?;
     let recent = kept.iter().map(|(_, m)| message_text(m)).filter(|text| !text.is_empty()).collect::<Vec<_>>().join("\n\n");
     let first = &mut entries[0].1;
     let mut metadata = json::get(first, "metadata").cloned().filter(|m| matches!(m, Json::Object(_))).unwrap_or_else(json::object);
@@ -796,6 +805,14 @@ impl Context {
         let mut next = self.clone();
         for part in next.system.iter_mut().filter(|part| **part == before) {
             *part = after.clone();
+        }
+        // The model-family prompt follows the model too (when the agent has no prompt of its own).
+        if json::get_str(&self.agent, "system").is_none() {
+            let names = self.tools.names();
+            let (before, after) = (context::model_prompt(&self.model, &names), context::model_prompt(&model, &names));
+            if let Some(first) = next.system.first_mut().filter(|first| **first == before) {
+                *first = after;
+            }
         }
         next.model = model;
         next

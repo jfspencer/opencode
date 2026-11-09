@@ -12,7 +12,6 @@
 use std::collections::HashSet;
 
 use opencode_protocol::Json;
-use opencode_shell::Host;
 
 use crate::app::App;
 use crate::json::{self, Obj};
@@ -102,10 +101,9 @@ pub fn validate(condition: &Json) -> Result<(), String> {
     }
 }
 
-/// `new RegExp(pattern)`. TODO(port): JavaScript's regular expression syntax (lookaround, backreferences) where it
-/// differs from the `regex` crate's.
-fn regex(pattern: &str) -> Result<regex::Regex, regex::Error> {
-    regex::Regex::new(pattern)
+/// `new RegExp(pattern)`, on the Code Mode engine's JavaScript RegExp.
+fn regex(pattern: &str) -> Result<opencode_codemode::jsregex::JsRegExp, ()> {
+    opencode_codemode::jsregex::JsRegExp::new(&pattern.encode_utf16().collect::<Vec<u16>>(), &[]).map_err(drop)
 }
 
 /// `CodeMode.scanTools`.
@@ -213,7 +211,7 @@ pub async fn authorize(
     match kind(&condition) {
         "shell" => {
             let run = json::get_str(&condition, "run").unwrap_or_default();
-            let scanned = scan_shell(location, run).map_err(Refused::Invalid)?;
+            let scanned = scan_shell(location, run).await.map_err(Refused::Invalid)?;
             let mut metadata = Obj::new();
             metadata.opt_str("schedule", name).str("mode", mode).set("when", when.clone());
             metadata.set("unattended", Json::Bool(true)).str("run", run);
@@ -358,91 +356,27 @@ fn dedupe(items: impl IntoIterator<Item = String>) -> Vec<String> {
     items.into_iter().filter(|item| seen.insert(item.clone())).collect()
 }
 
-fn scan_shell(location: &Location, command: &str) -> Result<Scanned, String> {
-    let target = resolve_directory(location, &location.directory);
-    let shell = compatible_shell(location);
-    let host = shell_host();
-    let parsed = opencode_shell::analyze(command, &shell, &target.0, host)?;
-    let directories: Vec<(String, Option<String>)> = parsed
-        .directories
-        .iter()
-        .map(|directory| resolve_directory(location, &opencode_shell::resolve_path(&target.0, directory, &host.home())))
-        .collect();
-    let external = dedupe(std::iter::once(&target).chain(directories.iter()).filter_map(|(_, external)| external.clone()));
+/// `scanShell`: the command's shell (`ShellSelect.resolve({priority: "compat"})`), its directory and the directories
+/// it changes to (`FileAccess.resolve`), and the permission resources of the external ones and of the commands.
+async fn scan_shell(location: &Location, command: &str) -> Result<Scanned, String> {
+    use crate::file_access::{self, Kind};
+    let target = file_access::resolve(location, &location.directory, Some(Kind::Directory)).await;
+    let shell = crate::shell::select::resolve(crate::shell::select::Priority::Compat, &location.inventory());
+    let parsed = opencode_shell::analyze(command, &shell, &target.absolute, file_access::host())?;
+    let mut directories = Vec::with_capacity(parsed.directories.len());
+    for directory in &parsed.directories {
+        let path = file_access::resolve_path(&target.absolute, directory);
+        directories.push(file_access::resolve(location, &path, Some(Kind::Directory)).await);
+    }
+    let external =
+        dedupe(std::iter::once(&target).chain(directories.iter()).filter_map(|item| item.external.as_ref().map(|e| e.resource.clone())));
     Ok(Scanned {
         shell,
-        cwd: target.0.clone(),
+        cwd: target.absolute.clone(),
         workspace: location.workspace_id.is_some(),
         external,
         commands: dedupe(parsed.resources),
     })
-}
-
-fn shell_host() -> &'static opencode_shell::SystemHost {
-    static HOST: std::sync::OnceLock<opencode_shell::SystemHost> = std::sync::OnceLock::new();
-    HOST.get_or_init(opencode_shell::SystemHost::new)
-}
-
-/// `ShellSelect.resolve({priority: "compat"})`: the configured shell when the shell tool may use it, else `$SHELL`
-/// when it may, else bash from `PATH`, else /bin/sh. TODO(port): share the shell tool's selection once it lands.
-fn compatible_shell(location: &Location) -> String {
-    let inventory = location.inventory();
-    let executable = |file: &str| -> Option<String> {
-        if file.starts_with('/') {
-            return std::path::Path::new(file).is_file().then(|| file.to_owned());
-        }
-        crate::process::which(file, None)
-    };
-    let select = |file: Option<String>| -> String {
-        if let Some(file) = file.filter(|file| opencode_shell::select::compatible(file)) {
-            if let Some(shell) = executable(&file) {
-                return shell;
-            }
-        }
-        if cfg!(target_os = "macos") {
-            return "/bin/zsh".into();
-        }
-        crate::process::which("bash", None).unwrap_or_else(|| "/bin/sh".into())
-    };
-    match inventory.latest(|info| info.shell.as_deref()) {
-        Some(configured) if !configured.is_empty() => select(Some(configured.to_owned())),
-        _ => select(std::env::var("SHELL").ok().filter(|shell| !shell.is_empty())),
-    }
-}
-
-/// `realPath`: symlinks resolved through the part of the path that exists.
-fn real_path(target: &str) -> String {
-    match std::fs::canonicalize(target) {
-        Ok(real) => real.to_string_lossy().into_owned(),
-        Err(_) => {
-            let path = std::path::Path::new(target);
-            match (path.parent(), path.file_name()) {
-                (Some(parent), Some(name)) if parent != path => {
-                    let real = real_path(&parent.to_string_lossy());
-                    crate::project::normalize(&format!("{real}/{}", name.to_string_lossy()))
-                }
-                _ => target.to_owned(),
-            }
-        }
-    }
-}
-
-/// `FileAccess.resolve({path, kind: "directory"})`: the absolute path, and the `external_directory` resource when it
-/// is outside the location and its project's worktree. TODO(port): share the file tools' FileAccess once it lands.
-fn resolve_directory(location: &Location, input: &str) -> (String, Option<String>) {
-    let absolute = opencode_shell::resolve_path(&location.directory, input, &shell_host().home());
-    let workspace = location.workspace_id.is_some();
-    let real = |path: &str| if workspace { path.to_owned() } else { real_path(path) };
-    let canonical = real(&absolute);
-    let worktree = crate::project::normalize(&location.project.directory);
-    let inside = |target: &str, directory: &str, worktree: &str| {
-        crate::project::contains(directory, target) || (worktree != "/" && crate::project::contains(worktree, target))
-    };
-    if inside(&absolute, &location.directory, &worktree) && inside(&canonical, &real(&location.directory), &real(&worktree)) {
-        return (absolute, None);
-    }
-    let resource = if canonical == "/" { "/*".to_owned() } else { format!("{canonical}/*") };
-    (absolute, Some(resource))
 }
 
 /// `assertShellPermissions`: the external directories, then the commands.
@@ -486,7 +420,7 @@ fn utf8_decode(bytes: &[u8]) -> String {
 
 async fn run_shell(app: &App, location: &Location, session: &Stored, condition: &Json, previous: &Json) -> Outcome {
     let run = json::get_str(condition, "run").unwrap_or_default();
-    let scanned = match scan_shell(location, run) {
+    let scanned = match scan_shell(location, run).await {
         Ok(scanned) => scanned,
         Err(error) => return Outcome::failed(error),
     };
@@ -529,7 +463,7 @@ async fn run_shell(app: &App, location: &Location, session: &Stored, condition: 
         return Outcome::wake(trimmed == is.trim_matches(crate::text::is_js_whitespace), Json::Null, message);
     }
     if let Some(pattern) = matches {
-        let matched = regex(pattern).map(|re| re.is_match(&stdout)).unwrap_or(false);
+        let matched = regex(pattern).map(|re| re.test(&stdout.encode_utf16().collect::<Vec<u16>>())).unwrap_or(false);
         return Outcome::wake(matched, Json::Null, message);
     }
     let before = json::get_str(previous, "stdout");

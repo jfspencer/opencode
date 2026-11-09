@@ -10,7 +10,7 @@
 //! ([`Jobs::complete_background`]). Finished jobs are kept until consumed (waited for or blocked on), and at most 25
 //! consumed ones without a notification are remembered.
 //!
-//! TODO(port): restart recovery of backgrounded jobs (session/execution/restart.ts), wait timeouts.
+//! Restart recovery works from the durable rows ([`Jobs::pending_background`], [`crate::session::restart`]).
 
 use std::future::Future;
 use std::pin::Pin;
@@ -393,18 +393,34 @@ impl Jobs {
 
     /// `Job.wait` without a timeout: the job's outcome once it finishes (`None` for an unknown job).
     pub async fn wait(&self, id: &str) -> Option<Info> {
-        let (mut done, generation, recoverable) = {
+        self.wait_timeout(id, None).await.0
+    }
+
+    /// `Job.wait`: the job's outcome once it finishes, or after `timeout` its state then (`true`: timed out; a zero
+    /// timeout only looks). `None` for an unknown job.
+    pub async fn wait_timeout(&self, id: &str, timeout: Option<std::time::Duration>) -> (Option<Info>, bool) {
+        let found = {
             let mut state = self.state.lock().unwrap();
-            let job = state.find(id)?;
-            (job.done.subscribe(), job.generation, job.recovery.is_some())
+            state.find(id).map(|job| (job.done.subscribe(), job.generation, job.recovery.is_some(), job.info.clone()))
         };
-        // A finished job's outcome is already in its channel.
-        let info = done.wait_for(Option::is_some).await.ok()?.clone()?;
+        let Some((mut done, generation, recoverable, snapshot)) = found else { return (None, false) };
+        let (info, timed_out) = if snapshot.status != Status::Running {
+            (Some(snapshot), false)
+        } else {
+            match timeout {
+                None => (done.wait_for(Option::is_some).await.ok().and_then(|info| info.clone()), false),
+                Some(timeout) if timeout.is_zero() => (Some(snapshot), true),
+                Some(timeout) => match tokio::time::timeout(timeout, done.wait_for(Option::is_some)).await {
+                    Ok(Ok(info)) => (info.clone(), false),
+                    _ => (self.get(id).or(Some(snapshot)), true),
+                },
+            }
+        };
         // A recoverable job may still be backgrounded after it finished.
-        if info.status != Status::Running && !recoverable {
+        if info.as_ref().is_some_and(|info| info.status != Status::Running) && !recoverable {
             self.state.lock().unwrap().consume(id, generation);
         }
-        Some(info)
+        (info, timed_out)
     }
 
     /// `Job.block`: waits on a running job from a session until it finishes or is moved to the background; the
@@ -641,6 +657,47 @@ impl Jobs {
         if state.jobs[index].info.status != Status::Running {
             state.jobs.remove(index);
         }
+    }
+}
+
+/// A backgrounded job's durable row (`Job.Background`), what restart recovery works from.
+#[derive(Debug, Clone)]
+pub struct Background {
+    pub id: String,
+    pub notification_id: String,
+    pub recovery: Recovery,
+    pub status: Status,
+    pub output: Option<String>,
+    pub error: Option<String>,
+}
+
+impl Jobs {
+    /// `Job.pendingBackground`: the stored rows that decode, oldest first.
+    pub fn pending_background(&self, app: &App) -> Vec<Background> {
+        type Row = (String, String, String, String, Option<String>, Option<String>);
+        let db = app.db.lock().unwrap();
+        let statement = db.prepare(
+            "SELECT notification_id, id, recovery, status, output, error FROM job ORDER BY time_created ASC, notification_id ASC",
+        );
+        let rows: Vec<Row> = match statement {
+            Ok(mut statement) => statement
+                .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?, row.get(5)?)))
+                .map(|rows| rows.filter_map(Result::ok).collect())
+                .unwrap_or_default(),
+            Err(_) => vec![],
+        };
+        rows.into_iter()
+            .filter_map(|(notification_id, id, recovery, status, output, error)| {
+                Some(Background {
+                    id,
+                    notification_id,
+                    recovery: json::parse(&recovery).as_ref().and_then(Recovery::from_json)?,
+                    status: Status::parse(&status)?,
+                    output,
+                    error,
+                })
+            })
+            .collect()
     }
 }
 

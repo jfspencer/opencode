@@ -7,8 +7,9 @@
 //! settled history up to a boundary into a new session (messages `msg_<fork event>_<seq>`), with the parent's newest
 //! instruction values and its API-managed instruction entries.
 //!
-//! TODO(port): media blobs (`SessionBlob`: an import's inline media and a fork's copy stored as blobs where
-//! `experimental.media_blob` is on), legacy transcripts (messages exported before v2.1 are upgraded on import).
+//! Where `experimental.media_blob` is on, an import's inline media and a fork's copy are stored as blobs.
+//!
+//! TODO(port): legacy transcripts (messages exported before v2.1 are upgraded on import).
 
 use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};
@@ -776,6 +777,10 @@ fn sanitize_tool_state(id: &str, state: &mut Json) {
             } else {
                 redact_field(item, "uri", "tool-file-uri", id);
                 redact_field(item, "name", "tool-file-name", id);
+                // `name: undefined` is written out, which the response's JSON codec encodes as `null`.
+                if json::get(item, "name").is_none() {
+                    json::set(item, "name", Json::Null);
+                }
             }
         }
     }

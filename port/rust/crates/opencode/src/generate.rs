@@ -3,7 +3,7 @@
 //! provider clearly never ran (`ModelRetry.retryOneShot`: rate limits, overload, connections refused or unresolved),
 //! at most three times. Generation from a session (session/generate.ts) sends what its next step would, plus the prompt.
 //!
-//! TODO(port): image and decision generation.
+//! Image and decision generation resolve their model; TODO(port): their provider calls (see [`media`]).
 
 use std::sync::Arc;
 
@@ -150,6 +150,60 @@ pub async fn session(app: &App, session_id: &str, prompt: &str) -> Result<Json> 
             },
         }
     }
+}
+
+/// `Generate.image` / `Generate.decisions` up to model resolution (`resolver.resolveImage` / `resolveDecision`, then
+/// `missing`): the requested model among the enabled models of that type, else the 422 or 404 of `missing`.
+///
+/// TODO(port): the calls themselves (OpenRouter's image route, `OpenAIImages`, and decision route, `SystemOne`, in
+/// packages/ai); a resolved model answers 503 meanwhile.
+fn media(inventory: &crate::inventory::Inventory, reference: &Json, capability: &str) -> Failure {
+    let provider = json::get_str(reference, "providerID").unwrap_or_default();
+    let id = json::get_str(reference, "id").unwrap_or_default();
+    let typed = |model: &&opencode_protocol::types::ModelInfo| {
+        json::get_str(&json::of(*model), "type") == Some(capability)
+    };
+    if inventory.catalog.other.iter().filter(typed).any(|m| m.provider_id.0 == provider && m.id == id) {
+        let mut o = Obj::new();
+        o.str("_tag", "ServiceUnavailableError").str("message", &format!("{capability} generation is not available"));
+        return Failure::new(503, o.done());
+    }
+    // `models.available(["chat", "image", "decision"])`: the chat models first.
+    let other = inventory
+        .available_models()
+        .chain(inventory.catalog.other.iter().filter(|m| matches!(json::get_str(&json::of(*m), "type"), Some("image" | "decision"))))
+        .find(|m| m.provider_id.0 == provider && m.id == id)
+        .map(json::of);
+    if let Some(other) = other {
+        let kind = json::get_str(&other, "type").unwrap_or("chat");
+        let mut o = Obj::new();
+        o.str("_tag", "UnsupportedModelError").str("providerID", provider).str("modelID", id).str("capability", capability);
+        o.str("message", &format!("{provider}/{id} is a {kind} model, not a {capability} model"));
+        return Failure::new(422, o.done());
+    }
+    let mut o = Obj::new();
+    o.str("_tag", "ModelNotFoundError").str("providerID", provider).str("modelID", id);
+    o.str("message", &format!("Model not found: {provider}/{id}"));
+    Failure::new(404, o.done())
+}
+
+/// `POST /api/experimental/generate/image`.
+pub async fn image(app: &App, payload: &Json) -> Result<Json> {
+    let location = app.locations.get(app, &LocationRef::directory(global_config())).await?;
+    Err(media(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "image"))
+}
+
+/// `POST /api/experimental/generate/decisions`: question names must be unique.
+pub async fn decisions(app: &App, payload: &Json) -> Result<Json> {
+    let location = app.locations.get(app, &LocationRef::directory(global_config())).await?;
+    let questions = json::array(json::get(payload, "questions").unwrap_or(&Json::Null)).unwrap_or_default();
+    let mut names: Vec<&str> = questions.iter().filter_map(|q| json::get_str(q, "name")).collect();
+    names.sort_unstable();
+    names.dedup();
+    if names.len() != questions.len() {
+        return Err(Failure::invalid("Decision question names must be unique", Some("questions"), None));
+    }
+    Err(media(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "decision"))
 }
 
 /// `POST /api/experimental/generate/text`.

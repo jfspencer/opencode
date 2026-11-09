@@ -5,6 +5,7 @@ scenarios/agent-loop-agents.test.ts › binary attachment of an unsupported type
 scenarios/agent-loop-agents.test.ts › generate text fails
 scenarios/agent-loop-agents.test.ts › generate text from session context
 scenarios/agent-loop-agents.test.ts › generate text from session context fails
+scenarios/agent-loop-agents.test.ts › generate text with unknown models
 scenarios/agent-loop-agents.test.ts › generate text without a session
 scenarios/agent-loop-agents.test.ts › instruction entries change between prompts
 scenarios/agent-loop-agents.test.ts › instruction update after an image tool result
@@ -166,10 +167,14 @@ scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
+scenarios/cli-auth.test.ts › auth import from a file and its errors
 scenarios/cli-auth.test.ts › auth list with the API key from the environment
 scenarios/cli-auth.test.ts › auth list without credentials
+scenarios/cli-auth.test.ts › auth login with an API key typed in a terminal
 scenarios/cli-auth.test.ts › auth login without a terminal
 scenarios/cli-auth.test.ts › auth logout without stored credentials
+scenarios/cli-auth.test.ts › stored OpenRouter keys: import, list, export, use and log out
+scenarios/cli-auth.test.ts › stored key and environment key together
 scenarios/cli-inspect.test.ts › debug agents and config
 scenarios/cli-inspect.test.ts › debug paths
 scenarios/cli-inspect.test.ts › models lists only the configured model
@@ -395,6 +400,7 @@ scenarios/project-skills.test.ts › reference changes between turns
 scenarios/project-skills.test.ts › references on a location's first request
 scenarios/project-skills.test.ts › skill list changes between turns
 scenarios/project-skills.test.ts › skills from a URL index
+scenarios/project-skills.test.ts › skills from absolute and home paths
 scenarios/project-skills.test.ts › skills from an unreachable URL index
 scenarios/project-skills.test.ts › skills from config directories and compatibility roots
 scenarios/project-skills.test.ts › versioned URL skill whose download fails
@@ -474,8 +480,11 @@ scenarios/session-api-inputs.test.ts › background a blocking shell tool
 scenarios/session-api-inputs.test.ts › background jobs of a session and its subagents
 scenarios/session-api-inputs.test.ts › forms of a session whose location is not loaded
 scenarios/session-api-inputs.test.ts › import inline media into blob storage
+scenarios/session-api-inputs.test.ts › media blobs are stored once and read back as refs
+scenarios/session-api-inputs.test.ts › prompt attachments that cannot be read
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
+scenarios/session-api-inputs.test.ts › the model reads an image into media storage
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › compaction requests wait in the inbox of a busy session
 scenarios/session-api-prompt.test.ts › get one message
@@ -501,6 +510,7 @@ scenarios/session-api-revert.test.ts › stage a revert without touching files
 scenarios/session-api-revert.test.ts › stage move clear and commit a revert
 scenarios/session-api-storage.test.ts › a tool file that refers to missing media reads as unavailable
 scenarios/session-api-storage.test.ts › assistant parts stored as rows read back like inline content
+scenarios/session-api-storage.test.ts › part rows with media blobs
 scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
@@ -508,6 +518,7 @@ scenarios/session-api-subagents.test.ts › background jobs of a child session l
 scenarios/session-api-transfer.test.ts › export a live session and import it elsewhere
 scenarios/session-api-transfer.test.ts › export leaves out unsettled messages
 scenarios/session-api-transfer.test.ts › import a transcript exported by an earlier release
+scenarios/session-api-transfer.test.ts › import a transcript with every message type
 scenarios/session-api-transfer.test.ts › import without a location and as a child
 scenarios/session-api-transfer.test.ts › session statistics over imported history
 scenarios/session-api-transfer.test.ts › statistics after compacting imported history
