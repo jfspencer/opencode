@@ -749,7 +749,7 @@ pub const ROUTES: &[Route] = &[
         headers: None,
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionEnvironmentPayload") }],
         success: &[Body { status: 204, kind: BodyKind::None, content_type: None, ty: None }],
-        errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("SessionNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
         middleware: Middleware::None,
     },
     Route {
