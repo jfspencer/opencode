@@ -1156,6 +1156,9 @@ impl Data {
                 slot = slot.get_mut(key).expect("checked above");
             }
             // An object set over an object merges into it (Solid's `mergeStoreNode`): keys it lacks stay.
+            // TODO(port): a TS quirk, matched: `session.model.selected` to a model without `variant` keeps the
+            // previous model's variant, and `session.moved` keeps a `workspaceID` the new location lacks, until the
+            // session is read again.
             match (slot.get_mut(last), value) {
                 (Some(existing @ Json::Object(_)), Some(Json::Object(fields))) => {
                     store::merge(existing, fields);
