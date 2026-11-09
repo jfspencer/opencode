@@ -51,9 +51,8 @@ fn deep_nesting_is_an_error_not_a_crash() {
         .spawn(|| {
             for shape in SHAPES {
                 let source = units(&nested(shape, 100_000));
-                match parse(&source) {
-                    Err(error) => assert!(error.message == STACK_OVERFLOW_MESSAGE || error.message.contains("(1:"), "{shape}: {}", error.message),
-                    Ok(_) => {}
+                if let Err(error) = parse(&source) {
+                    assert!(error.message == STACK_OVERFLOW_MESSAGE || error.message.contains("(1:"), "{shape}: {}", error.message);
                 }
                 // moderate nesting parses, even in a debug build
                 parse(&units(&nested(shape, 40))).unwrap_or_else(|error| panic!("{shape}: {}", error.message));

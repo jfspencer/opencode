@@ -311,8 +311,8 @@ impl<'a> Parser<'a> {
             return Ok(expr);
         }
         let result = self.parse_subscripts(expr, start, false, for_init)?;
-        if let Some(de) = ref_de {
-            if let Expr::Member(member) = &result {
+        if let Some(de) = ref_de
+            && let Expr::Member(member) = &result {
                 let result_start = member.span.start as i64;
                 if de.parenthesized_assign >= result_start {
                     de.parenthesized_assign = -1;
@@ -324,7 +324,6 @@ impl<'a> Parser<'a> {
                     de.trailing_comma = -1;
                 }
             }
-        }
         Ok(result)
     }
 
@@ -874,13 +873,11 @@ impl<'a> Parser<'a> {
         if self.eat(Tok::Ellipsis)? {
             let argument = self.parse_maybe_assign(ForInit::No, ref_de.as_deref_mut())?;
             // To disallow trailing comma via `this.toAssignable()`.
-            if self.ty == Tok::Comma {
-                if let Some(de) = ref_de {
-                    if de.trailing_comma < 0 {
+            if self.ty == Tok::Comma
+                && let Some(de) = ref_de
+                    && de.trailing_comma < 0 {
                         de.trailing_comma = self.start as i64;
                     }
-                }
-            }
             return Ok(ObjectMember::Spread(Box::new(SpreadElement { span: self.finish(prop), argument })));
         }
         let start_pos = if ref_de.is_some() { Some(self.start_node()) } else { None };
@@ -930,11 +927,10 @@ impl<'a> Parser<'a> {
             if function.params.len() != param_count {
                 let start = function.span.start as usize;
                 return Err(self.raise(start, if kind == PropKind::Get { "getter should have no params" } else { "setter should have exactly one param" }));
-            } else if kind == PropKind::Set {
-                if let Pat::Rest(rest) = &function.params[0] {
+            } else if kind == PropKind::Set
+                && let Pat::Rest(rest) = &function.params[0] {
                     return Err(self.raise(rest.span.start as usize, "Setter cannot use rest params"));
                 }
-            }
             value = Expr::Function(Rc::new(function));
         } else if !computed && matches!(key, Expr::Identifier(_)) {
             if is_generator || is_async {
@@ -946,19 +942,20 @@ impl<'a> Parser<'a> {
             if &*id.name == "await" && self.await_ident_pos == 0 {
                 self.await_ident_pos = start_pos.map_or(0, |s| s.pos);
             }
-            if self.ty == Tok::Eq && ref_de.is_some() {
-                let de = ref_de.unwrap();
-                if de.shorthand_assign < 0 {
-                    de.shorthand_assign = self.start as i64;
+            match (ref_de, start_pos) {
+                (Some(de), Some(start)) if self.ty == Tok::Eq => {
+                    if de.shorthand_assign < 0 {
+                        de.shorthand_assign = self.start as i64;
+                    }
+                    // parseMaybeDefault(startPos, startLoc, copyNode(prop.key)): an AssignmentPattern, encoded as an
+                    // `=` assignment of a shorthand property (see estree.rs and toAssignable)
+                    self.next()?;
+                    let right = self.parse_maybe_assign(ForInit::No, None)?;
+                    let span = self.finish(start);
+                    let left = Pat::Identifier(Box::new(id));
+                    value = Expr::Assignment(Box::new(AssignmentExpression { span, operator: "=", left, right }));
                 }
-                // parseMaybeDefault(startPos, startLoc, copyNode(prop.key)): an AssignmentPattern
-                let start = start_pos.unwrap();
-                self.next()?;
-                let right = self.parse_maybe_assign(ForInit::No, None)?;
-                let span = self.finish(start);
-                value = Expr::Assignment(Box::new(AssignmentExpression { span, operator: "=", left: Pat::Identifier(Box::new(id)), right }));
-            } else {
-                value = Expr::Identifier(Box::new(id));
+                _ => value = Expr::Identifier(Box::new(id)),
             }
             kind = PropKind::Init;
             shorthand = true;
@@ -1065,11 +1062,10 @@ impl<'a> Parser<'a> {
             // function clashes with one of the params.
             self.check_params(params, !old_strict && !use_strict && !is_arrow_function && !is_method && simple)?;
             // Ensure the function name isn't a forbidden identifier in strict mode, e.g. 'eval'
-            if self.strict {
-                if let Some(id) = id {
+            if self.strict
+                && let Some(id) = id {
                     self.check_lval_simple_ident(id, Bind::Outside, None)?;
                 }
-            }
             let mut block = self.parse_block(false, None, use_strict && !old_strict)?;
             self.adapt_directive_prologue(&mut block.body);
             self.labels = old_labels;
@@ -1113,13 +1109,11 @@ impl<'a> Parser<'a> {
                 None
             } else if self.ty == Tok::Ellipsis {
                 let spread = self.parse_spread(ref_de.as_deref_mut())?;
-                if self.ty == Tok::Comma {
-                    if let Some(de) = ref_de.as_deref_mut() {
-                        if de.trailing_comma < 0 {
+                if self.ty == Tok::Comma
+                    && let Some(de) = ref_de.as_deref_mut()
+                        && de.trailing_comma < 0 {
                             de.trailing_comma = self.start as i64;
                         }
-                    }
-                }
                 Some(ExprOrSpread::Spread(Box::new(spread)))
             } else {
                 Some(ExprOrSpread::Expr(self.parse_maybe_assign(ForInit::No, ref_de.as_deref_mut())?))

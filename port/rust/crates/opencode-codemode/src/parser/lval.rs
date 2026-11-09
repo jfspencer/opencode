@@ -5,6 +5,8 @@ use super::ast::*;
 use super::expression::{ArrowParam, ForInit};
 use super::state::*;
 
+// `to_assignable` and `to_assignable_list` keep acorn's names (`toAssignable`), not Rust's `to_*` convention.
+#[allow(clippy::wrong_self_convention)]
 impl<'a> Parser<'a> {
     /// Convert an existing expression atom to an assignable pattern if possible.
     pub(super) fn to_assignable(&mut self, expr: Expr, is_binding: bool, ref_de: Option<&DestructuringErrors>) -> R<Pat> {

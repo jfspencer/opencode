@@ -5,7 +5,6 @@
 //! `{"$regexp": true}`, and a non-finite number is `{"$num": "Infinity"}`.
 
 use super::ast::*;
-use crate::jsstr::JsStr;
 
 enum J<'a> {
     Null,
@@ -528,9 +527,4 @@ fn pat(p: &Pat) -> J<'_> {
         Pat::Rest(r) => node("RestElement", r.span, vec![("argument", pat(&r.argument))]),
         Pat::Assignment(a) => node("AssignmentPattern", a.span, vec![("left", pat(&a.left)), ("right", expr(&a.right))]),
     }
-}
-
-#[allow(dead_code)]
-fn units(s: &JsStr) -> J<'_> {
-    J::Units(s.units())
 }

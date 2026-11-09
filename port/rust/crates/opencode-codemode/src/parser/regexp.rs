@@ -1112,7 +1112,7 @@ impl<'p> RegExpValidationState<'p> {
             if self.eat_octal_digit() {
                 let n2 = self.last_int_value;
                 if n1 <= 3.0 && self.eat_octal_digit() {
-                    self.last_int_value = n1 * 64.0 + n2 * 8.0 + self.last_int_value;
+                    self.last_int_value += n1 * 64.0 + n2 * 8.0;
                 } else {
                     self.last_int_value = n1 * 8.0 + n2;
                 }

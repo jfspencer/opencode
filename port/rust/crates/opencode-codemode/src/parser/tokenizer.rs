@@ -13,11 +13,10 @@ impl<'a> Parser<'a> {
     }
 
     pub(super) fn next_with(&mut self, ignore_escape_sequence_in_keyword: bool) -> R<()> {
-        if !ignore_escape_sequence_in_keyword && self.contains_esc {
-            if let Some(keyword) = self.ty.keyword() {
+        if !ignore_escape_sequence_in_keyword && self.contains_esc
+            && let Some(keyword) = self.ty.keyword() {
                 return Err(self.raise(self.start, format!("Escape sequence in keyword {keyword}")));
             }
-        }
         self.last_tok_end = self.end;
         self.last_tok_start = self.start;
         self.last_tok_end_loc = self.end_loc;
@@ -238,11 +237,10 @@ impl<'a> Parser<'a> {
                 self.expr_allowed = false;
             }
             Tok::Star => {
-                if prev == Tok::Function {
-                    if let Some(last) = self.context.last_mut() {
+                if prev == Tok::Function
+                    && let Some(last) = self.context.last_mut() {
                         *last = if *last == Ctx::FExpr { Ctx::FExprGen } else { Ctx::FGen };
                     }
-                }
                 self.expr_allowed = true;
             }
             Tok::Name => {
@@ -257,11 +255,10 @@ impl<'a> Parser<'a> {
     }
 
     pub(super) fn override_context(&mut self, ctx: Ctx) {
-        if self.cur_context() != Some(ctx) {
-            if let Some(last) = self.context.last_mut() {
+        if self.cur_context() != Some(ctx)
+            && let Some(last) = self.context.last_mut() {
                 *last = ctx;
             }
-        }
     }
 
     // ## Token reading
@@ -289,9 +286,13 @@ impl<'a> Parser<'a> {
             return self.read_regexp();
         }
         if next == 61 {
-            return Ok(self.finish_op(Tok::Assign, 2));
+            return {
+                self.finish_op(Tok::Assign, 2);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(Tok::Slash, 1))
+        self.finish_op(Tok::Slash, 1);
+        Ok(())
     }
 
     fn read_token_mult_modulo_exp(&mut self, code: i64) -> R<()> {
@@ -304,9 +305,13 @@ impl<'a> Parser<'a> {
             next = self.cu(self.pos + 2);
         }
         if next == 61 {
-            return Ok(self.finish_op(Tok::Assign, size + 1));
+            return {
+                self.finish_op(Tok::Assign, size + 1);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(ty, size))
+        self.finish_op(ty, size);
+        Ok(())
     }
 
     fn read_token_pipe_amp(&mut self, code: i64) -> R<()> {
@@ -314,22 +319,36 @@ impl<'a> Parser<'a> {
         if next == code {
             let next2 = self.cu(self.pos + 2);
             if next2 == 61 {
-                return Ok(self.finish_op(Tok::Assign, 3));
+                return {
+                    self.finish_op(Tok::Assign, 3);
+                    Ok(())
+                };
             }
-            return Ok(self.finish_op(if code == 124 { Tok::LogicalOr } else { Tok::LogicalAnd }, 2));
+            return {
+                self.finish_op(if code == 124 { Tok::LogicalOr } else { Tok::LogicalAnd }, 2);
+                Ok(())
+            };
         }
         if next == 61 {
-            return Ok(self.finish_op(Tok::Assign, 2));
+            return {
+                self.finish_op(Tok::Assign, 2);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(if code == 124 { Tok::BitwiseOr } else { Tok::BitwiseAnd }, 1))
+        self.finish_op(if code == 124 { Tok::BitwiseOr } else { Tok::BitwiseAnd }, 1);
+        Ok(())
     }
 
     fn read_token_caret(&mut self) -> R<()> {
         let next = self.cu(self.pos + 1);
         if next == 61 {
-            return Ok(self.finish_op(Tok::Assign, 2));
+            return {
+                self.finish_op(Tok::Assign, 2);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(Tok::BitwiseXor, 1))
+        self.finish_op(Tok::BitwiseXor, 1);
+        Ok(())
     }
 
     fn read_token_plus_min(&mut self, code: i64) -> R<()> {
@@ -341,12 +360,19 @@ impl<'a> Parser<'a> {
                 self.skip_space()?;
                 return self.next_token();
             }
-            return Ok(self.finish_op(Tok::IncDec, 2));
+            return {
+                self.finish_op(Tok::IncDec, 2);
+                Ok(())
+            };
         }
         if next == 61 {
-            return Ok(self.finish_op(Tok::Assign, 2));
+            return {
+                self.finish_op(Tok::Assign, 2);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(Tok::PlusMin, 1))
+        self.finish_op(Tok::PlusMin, 1);
+        Ok(())
     }
 
     fn read_token_lt_gt(&mut self, code: i64) -> R<()> {
@@ -355,9 +381,15 @@ impl<'a> Parser<'a> {
         if next == code {
             size = if code == 62 && self.cu(self.pos + 2) == 62 { 3 } else { 2 };
             if self.cu(self.pos + size) == 61 {
-                return Ok(self.finish_op(Tok::Assign, size + 1));
+                return {
+                    self.finish_op(Tok::Assign, size + 1);
+                    Ok(())
+                };
             }
-            return Ok(self.finish_op(Tok::BitShift, size));
+            return {
+                self.finish_op(Tok::BitShift, size);
+                Ok(())
+            };
         }
         if next == 33 && code == 60 && self.cu(self.pos + 2) == 45 && self.cu(self.pos + 3) == 45 {
             // `<!--`, an XML-style comment that should be interpreted as a line comment
@@ -368,21 +400,26 @@ impl<'a> Parser<'a> {
         if next == 61 {
             size = 2;
         }
-        Ok(self.finish_op(Tok::Relational, size))
+        self.finish_op(Tok::Relational, size);
+        Ok(())
     }
 
     fn read_token_eq_excl(&mut self, code: i64) -> R<()> {
         let next = self.cu(self.pos + 1);
         if next == 61 {
             let size = if self.cu(self.pos + 2) == 61 { 3 } else { 2 };
-            return Ok(self.finish_op(Tok::Equality, size));
+            return {
+                self.finish_op(Tok::Equality, size);
+                Ok(())
+            };
         }
         if code == 61 && next == 62 {
             self.pos += 2;
             self.finish_token(Tok::Arrow, Value::None);
             return Ok(());
         }
-        Ok(self.finish_op(if code == 61 { Tok::Eq } else { Tok::Prefix }, 1))
+        self.finish_op(if code == 61 { Tok::Eq } else { Tok::Prefix }, 1);
+        Ok(())
     }
 
     fn read_token_question(&mut self) -> R<()> {
@@ -390,18 +427,28 @@ impl<'a> Parser<'a> {
         if next == 46 {
             let next2 = self.cu(self.pos + 2);
             // `next2 < 48 || next2 > 57`, false for NaN
-            if next2 >= 0 && (next2 < 48 || next2 > 57) {
-                return Ok(self.finish_op(Tok::QuestionDot, 2));
+            if next2 >= 0 && !(48..=57).contains(&next2) {
+                return {
+                    self.finish_op(Tok::QuestionDot, 2);
+                    Ok(())
+                };
             }
         }
         if next == 63 {
             let next2 = self.cu(self.pos + 2);
             if next2 == 61 {
-                return Ok(self.finish_op(Tok::Assign, 3));
+                return {
+                    self.finish_op(Tok::Assign, 3);
+                    Ok(())
+                };
             }
-            return Ok(self.finish_op(Tok::Coalesce, 2));
+            return {
+                self.finish_op(Tok::Coalesce, 2);
+                Ok(())
+            };
         }
-        Ok(self.finish_op(Tok::Question, 1))
+        self.finish_op(Tok::Question, 1);
+        Ok(())
     }
 
     fn read_token_number_sign(&mut self) -> R<()> {
@@ -452,7 +499,10 @@ impl<'a> Parser<'a> {
             60 | 62 => return self.read_token_lt_gt(code),
             61 | 33 => return self.read_token_eq_excl(code),
             63 => return self.read_token_question(),
-            126 => return Ok(self.finish_op(Tok::Prefix, 1)),
+            126 => return {
+                self.finish_op(Tok::Prefix, 1);
+                Ok(())
+            },
             35 => return self.read_token_number_sign(),
             _ => return Err(self.raise(self.pos, format!("Unexpected character '{}'", code_point_to_string(code)))),
         };

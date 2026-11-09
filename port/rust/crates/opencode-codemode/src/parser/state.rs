@@ -666,7 +666,7 @@ impl<'a> Parser<'a> {
     pub(super) fn check_chain(&mut self, links: usize) -> R<()> {
         // Stack per link of a recursive walk such as the tree's drop glue, generously.
         const LINK_COST: usize = if cfg!(debug_assertions) { 192 } else { 64 };
-        if links % 64 != 0 {
+        if !links.is_multiple_of(64) {
             return Ok(());
         }
         let used = self.stack_base.saturating_sub(stack_address());
@@ -675,11 +675,6 @@ impl<'a> Parser<'a> {
             return Err(Fail::Syntax(Box::new(SyntaxError { message: STACK_OVERFLOW_MESSAGE.to_string(), pos: self.start as u32, loc })));
         }
         Ok(())
-    }
-
-    #[cfg(test)]
-    pub(super) fn stack_base_for_test(&self) -> usize {
-        self.stack_base - stack_address()
     }
 
     pub(super) fn cur_position(&self) -> Position {
