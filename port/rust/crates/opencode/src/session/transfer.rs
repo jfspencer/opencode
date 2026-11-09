@@ -776,6 +776,10 @@ fn sanitize_tool_state(id: &str, state: &mut Json) {
             } else {
                 redact_field(item, "uri", "tool-file-uri", id);
                 redact_field(item, "name", "tool-file-name", id);
+                // `name: undefined` is written out, which the response's JSON codec encodes as `null`.
+                if json::get(item, "name").is_none() {
+                    json::set(item, "name", Json::Null);
+                }
             }
         }
     }

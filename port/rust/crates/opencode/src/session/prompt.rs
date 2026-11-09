@@ -37,7 +37,7 @@ pub async fn submit(app: &App, session_id: &str, input: &Json) -> Result<Json> {
                 Some(Json::Array(files)) => Some(Json::Array(
                     files
                         .iter()
-                        .map(session::attachment::materialize)
+                        .map(|file| session::attachment::materialize(&app.db, file))
                         .collect::<std::result::Result<Vec<_>, _>>()
                         .map_err(|message| Failure::invalid(message, Some("files"), None))?,
                 )),

@@ -12,6 +12,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         "experimental.generate.text" | "experimental.generate.textLegacy" => {
             crate::generate::text(app, &decoded.payload).await.map(super::data)
         }
+        "experimental.generate.image" => crate::generate::image(app, &decoded.payload).await.map(super::data),
+        "experimental.generate.decisions" => crate::generate::decisions(app, &decoded.payload).await.map(super::data),
         _ => super::fallback(app, request),
     }
 }

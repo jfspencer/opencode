@@ -128,9 +128,10 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "session.inbox.list" => {
             let session_id = request.param("sessionID");
+            let refs = media_refs(app, request, session_id).await?;
             let db = app.db.lock().unwrap();
             session::require(&db, session_id)?;
-            let items = session::inbox::list(&db, session_id).map_err(fatal)?;
+            let items = session::inbox::list(&db, session_id, refs).map_err(fatal)?;
             Ok(data(Json::Array(items.iter().map(wire_inbox).collect())))
         }
         "session.inbox.cancel" => {

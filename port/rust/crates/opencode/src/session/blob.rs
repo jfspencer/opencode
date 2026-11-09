@@ -6,10 +6,13 @@
 //! keep the refs ([`keep_refs`]); a ref whose blob is gone (or no longer referenced) reads as an unavailable
 //! placeholder either way. `blob_ref` rows keep a blob alive for the messages that name it.
 //!
-//! TODO(port): the write paths that externalize media as it is admitted or projected (`externalize`,
-//! `externalizePart`, `externalizePayload`, the inbox's `hydrateInbox`), and the part-row write path of the
-//! projector (`experimental.part_rows`): the execution loop's.
+//! With `experimental.media_blob` on where a session lives, media moves into `blob` as it is admitted (inbox user
+//! files, [`externalize_payload`]) and as it is projected (user files and tool `data:` files, [`externalize`],
+//! [`externalize_part`]). TS reads that flag and `experimental.part_rows` from the Config in scope while a projection
+//! runs; here the publisher puts the session's [`Storage`] in scope ([`with_storage`]) and projections read it
+//! ([`storage`]).
 
+use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 
 use base64::Engine;
@@ -81,11 +84,14 @@ pub fn hashes(data: &Json) -> HashSet<String> {
             out.insert(ref_hash(json::get_str(file, "uri").unwrap_or_default()).to_owned());
         }
     }
-    if let Some(Json::Array(content)) = json::get(data, "content") {
-        for part in content {
-            for item in tool_items(part).into_iter().flatten().filter(|i| is_tool_file_ref(i)) {
-                out.insert(ref_hash(json::get_str(item, "uri").unwrap_or_default()).to_owned());
-            }
+    let parts: &[Json] = match json::get(data, "content") {
+        Some(Json::Array(content)) => content,
+        // One `session_part` row.
+        _ => std::slice::from_ref(data),
+    };
+    for part in parts {
+        for item in tool_items(part).into_iter().flatten().filter(|i| is_tool_file_ref(i)) {
+            out.insert(ref_hash(json::get_str(item, "uri").unwrap_or_default()).to_owned());
         }
     }
     out
@@ -187,13 +193,67 @@ pub struct Meta {
     height: Option<i64>,
 }
 
-/// `SessionBlob.keepRefs`: refs stay, except those whose blob is gone or no longer referenced; user files that keep
-/// their ref are described with the blob's size and dimensions (`describe`).
-pub fn keep_refs(db: &Connection, messages: &mut [Json]) -> rusqlite::Result<()> {
+/// `SessionBlob.hydrateInbox`: [`hydrate`] for pending inbox payloads.
+pub fn hydrate_payloads(db: &Connection, payloads: &mut [&mut Json]) -> rusqlite::Result<()> {
     let mut wanted = HashSet::new();
-    for message in messages.iter() {
-        wanted.extend(hashes(message));
+    for payload in payloads.iter() {
+        wanted.extend(hashes(payload));
     }
+    if wanted.is_empty() {
+        return Ok(());
+    }
+    let blobs = load(db, &wanted)?;
+    for payload in payloads.iter_mut() {
+        let file = |file: &mut Json| match blobs.get(ref_hash(json::get_str(file, "uri").unwrap_or_default())) {
+            None => unavailable_file(file),
+            Some(data) => {
+                json::remove(file, "uri");
+                json::set(file, "data", json::string(data));
+            }
+        };
+        rewrite(payload, &file, &|_| {});
+    }
+    Ok(())
+}
+
+/// `SessionBlob.keepInboxRefs` and `describe`: [`keep_refs`] for pending inbox user payloads.
+pub fn keep_payload_refs(db: &Connection, payloads: &mut [&mut Json]) -> rusqlite::Result<()> {
+    let mut wanted = HashSet::new();
+    for payload in payloads.iter() {
+        wanted.extend(hashes(payload));
+    }
+    let meta = load_meta(db, &wanted)?;
+    for payload in payloads.iter_mut() {
+        let file = |file: &mut Json| {
+            if !meta.contains_key(ref_hash(json::get_str(file, "uri").unwrap_or_default())) {
+                unavailable_file(file);
+            }
+        };
+        rewrite(payload, &file, &|_| {});
+        describe(payload, &meta);
+    }
+    Ok(())
+}
+
+/// `describe`: each kept ref's blob size and dimensions on the files of a user message or payload.
+fn describe(owner: &mut Json, meta: &HashMap<String, Meta>) {
+    let Some(Json::Array(files)) = json::get_mut(owner, "files") else { return };
+    for file in files.iter_mut() {
+        let Some(blob) = json::get_str(file, "uri").and_then(|uri| uri.strip_prefix("media:")).and_then(|h| meta.get(h)) else {
+            continue;
+        };
+        json::set(file, "bytes", Json::Number(blob.bytes as f64));
+        if let Some(width) = blob.width {
+            json::set(file, "width", Json::Number(width as f64));
+        }
+        if let Some(height) = blob.height {
+            json::set(file, "height", Json::Number(height as f64));
+        }
+    }
+}
+
+/// `loadMeta`: the size and dimensions of the named blobs that something still references.
+fn load_meta(db: &Connection, wanted: &HashSet<String>) -> rusqlite::Result<HashMap<String, Meta>> {
     let mut meta: HashMap<String, Meta> = HashMap::new();
     let list: Vec<&String> = wanted.iter().collect();
     for batch in list.chunks(500) {
@@ -210,6 +270,17 @@ pub fn keep_refs(db: &Connection, messages: &mut [Json]) -> rusqlite::Result<()>
             meta.insert(hash, info);
         }
     }
+    Ok(meta)
+}
+
+/// `SessionBlob.keepRefs`: refs stay, except those whose blob is gone or no longer referenced; user files that keep
+/// their ref are described with the blob's size and dimensions (`describe`).
+pub fn keep_refs(db: &Connection, messages: &mut [Json]) -> rusqlite::Result<()> {
+    let mut wanted = HashSet::new();
+    for message in messages.iter() {
+        wanted.extend(hashes(message));
+    }
+    let meta = load_meta(db, &wanted)?;
     for message in messages.iter_mut() {
         let known = |uri: &str| meta.contains_key(ref_hash(uri));
         let file = |file: &mut Json| {
@@ -224,23 +295,20 @@ pub fn keep_refs(db: &Connection, messages: &mut [Json]) -> rusqlite::Result<()>
         };
         rewrite(message, &file, &item);
         if json::get_str(message, "type") == Some("user") {
-            if let Some(Json::Array(files)) = json::get_mut(message, "files") {
-                for file in files.iter_mut() {
-                    let Some(blob) = json::get_str(file, "uri").and_then(|uri| uri.strip_prefix("media:")).and_then(|h| meta.get(h)) else {
-                        continue;
-                    };
-                    json::set(file, "bytes", Json::Number(blob.bytes as f64));
-                    if let Some(width) = blob.width {
-                        json::set(file, "width", Json::Number(width as f64));
-                    }
-                    if let Some(height) = blob.height {
-                        json::set(file, "height", Json::Number(height as f64));
-                    }
-                }
-            }
+            describe(message, &meta);
         }
     }
     Ok(())
+}
+
+/// `SessionBlob.read`: one blob's type and bytes, while some message or inbox item still references it.
+pub fn read(db: &Connection, hash: &str) -> rusqlite::Result<Option<(String, Vec<u8>)>> {
+    db.query_row(
+        "SELECT mime, data FROM blob WHERE hash = ?1 AND EXISTS (SELECT 1 FROM blob_ref WHERE blob_ref.hash = blob.hash)",
+        params![hash],
+        |row| Ok((row.get(0)?, row.get(1)?)),
+    )
+    .optional()
 }
 
 /// A blob taken out of a row: its hash, type and raw bytes.
@@ -277,6 +345,29 @@ fn decode(data: &str) -> Vec<u8> {
     engine.decode(clean.replace('-', "+").replace('_', "/")).unwrap_or_default()
 }
 
+/// `fileRef`: an inline user file's bytes taken into `pending`, a ref in their place (a ref passes through).
+fn file_ref(pending: &mut Vec<Pending>, file: &mut Json) {
+    if is_file_ref(file) {
+        return;
+    }
+    let raw = decode(json::get_str(file, "data").unwrap_or_default());
+    let mime = json::get_str(file, "mime").unwrap_or_default().to_owned();
+    let uri = take(pending, raw, &mime);
+    json::remove(file, "data");
+    json::set(file, "uri", json::string(&uri));
+}
+
+/// `toolPartRefs`: the `data:` files of a settled tool part taken into `pending`.
+fn tool_part_refs(pending: &mut Vec<Pending>, part: &mut Json) {
+    let Some(items) = tool_items_mut(part) else { return };
+    for item in items.iter_mut().filter(|i| json::get_str(i, "type") == Some("file")) {
+        let Some(payload) = json::get_str(item, "uri").and_then(data_uri).map(str::to_owned) else { continue };
+        let mime = json::get_str(item, "mime").unwrap_or_default().to_owned();
+        let uri = take(pending, decode(&payload), &mime);
+        json::set(item, "uri", json::string(&uri));
+    }
+}
+
 /// `SessionBlob.split`: moves a stored message's inline media into blobs, whatever the flag says. Returns whether
 /// anything moved (the message is rewritten in place) and the blobs to save.
 pub fn split(message: &mut Json) -> Vec<Pending> {
@@ -284,28 +375,124 @@ pub fn split(message: &mut Json) -> Vec<Pending> {
     let user_files = matches!(json::get(message, "files"), Some(Json::Array(files)) if files.iter().any(|f| !is_file_ref(f)));
     if user_files {
         if let Some(Json::Array(files)) = json::get_mut(message, "files") {
-            for file in files.iter_mut().filter(|f| !is_file_ref(f)) {
-                let raw = decode(json::get_str(file, "data").unwrap_or_default());
-                let mime = json::get_str(file, "mime").unwrap_or_default().to_owned();
-                let uri = take(&mut pending, raw, &mime);
-                json::remove(file, "data");
-                json::set(file, "uri", json::string(&uri));
-            }
+            files.iter_mut().for_each(|file| file_ref(&mut pending, file));
         }
         return pending;
     }
     if let Some(Json::Array(content)) = json::get_mut(message, "content") {
-        for part in content.iter_mut() {
-            let Some(items) = tool_items_mut(part) else { continue };
-            for item in items.iter_mut().filter(|i| json::get_str(i, "type") == Some("file")) {
-                let Some(payload) = json::get_str(item, "uri").and_then(data_uri).map(str::to_owned) else { continue };
-                let mime = json::get_str(item, "mime").unwrap_or_default().to_owned();
-                let uri = take(&mut pending, decode(&payload), &mime);
-                json::set(item, "uri", json::string(&uri));
-            }
-        }
+        content.iter_mut().for_each(|part| tool_part_refs(&mut pending, part));
     }
     pending
+}
+
+/// Where a session's projections store media and assistant parts: its location's `experimental.media_blob`
+/// (`SessionBlob.enabled`) and `experimental.part_rows` (`partRowsEnabled`). Both are off without a config in scope.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Storage {
+    pub media: bool,
+    pub part_rows: bool,
+}
+
+thread_local! {
+    static STORAGE: Cell<Storage> = const { Cell::new(Storage { media: false, part_rows: false }) };
+}
+
+/// Runs a projection with `storage` in scope (the single-threaded runtime projects on this thread).
+pub fn with_storage<R>(storage: Storage, run: impl FnOnce() -> R) -> R {
+    let previous = STORAGE.replace(storage);
+    let out = run();
+    STORAGE.set(previous);
+    out
+}
+
+/// The storage in scope (see [`with_storage`]).
+pub fn storage() -> Storage {
+    STORAGE.get()
+}
+
+/// The storage a location's configuration selects.
+pub fn storage_of(location: &crate::location::Location) -> Storage {
+    let inventory = location.inventory();
+    Storage {
+        media: crate::flag::enabled(&inventory.entries, "media_blob"),
+        part_rows: crate::flag::part_rows(&inventory.entries),
+    }
+}
+
+/// The storage in scope while a session event projects: its location's (the event's, else the session's), when that
+/// location is loaded. A location that is not loaded has no config in scope.
+pub fn storage_for(app: &crate::app::App, db: &Connection, event: &crate::bus::Event) -> Storage {
+    let location = event.location.clone().or_else(|| {
+        let session = json::get_str(&event.data, "sessionID")?;
+        db.query_row("SELECT directory, workspace_id FROM session_v2 WHERE id = ?1", params![session], |row| {
+            Ok(crate::bus::LocationRef { directory: row.get(0)?, workspace_id: row.get(1)? })
+        })
+        .optional()
+        .ok()
+        .flatten()
+    });
+    location.and_then(|location| app.locations.cached(&location)).map(|located| storage_of(&located)).unwrap_or_default()
+}
+
+/// `SessionBlob.externalizePayload`: with media stored as blobs, a user message's or inbox payload's inline files
+/// move into `blob` (saved here) and refs take their place. Returns whether anything moved.
+pub fn externalize_payload(db: &Connection, payload: &mut Json) -> rusqlite::Result<bool> {
+    if !storage().media {
+        return Ok(false);
+    }
+    let Some(Json::Array(files)) = json::get_mut(payload, "files") else { return Ok(false) };
+    let mut pending = Vec::new();
+    files.iter_mut().for_each(|file| file_ref(&mut pending, file));
+    save(db, &pending)?;
+    Ok(!pending.is_empty())
+}
+
+/// `SessionBlob.externalize`: [`externalize_payload`] for a user message, and an assistant's tool `data:` files.
+pub fn externalize(db: &Connection, message: &mut Json) -> rusqlite::Result<bool> {
+    match json::get_str(message, "type") {
+        Some("user") => externalize_payload(db, message),
+        Some("assistant") if storage().media => {
+            let mut pending = Vec::new();
+            if let Some(Json::Array(content)) = json::get_mut(message, "content") {
+                content.iter_mut().for_each(|part| tool_part_refs(&mut pending, part));
+            }
+            save(db, &pending)?;
+            Ok(!pending.is_empty())
+        }
+        _ => Ok(false),
+    }
+}
+
+/// `SessionBlob.externalizePart`: [`externalize`] for one assistant part.
+pub fn externalize_part(db: &Connection, part: &mut Json) -> rusqlite::Result<bool> {
+    if !storage().media {
+        return Ok(false);
+    }
+    let mut pending = Vec::new();
+    tool_part_refs(&mut pending, part);
+    save(db, &pending)?;
+    Ok(!pending.is_empty())
+}
+
+/// `release`: deletes the matching refs (`sql` returns their hashes), then every blob among theirs no ref names.
+fn release(db: &Connection, sql: &str, args: impl rusqlite::Params) -> rusqlite::Result<()> {
+    let released: Vec<String> = {
+        let mut statement = db.prepare(sql)?;
+        statement.query_map(args, |row| row.get(0))?.collect::<rusqlite::Result<_>>()?
+    };
+    let mut seen = HashSet::new();
+    for hash in released.into_iter().filter(|hash| seen.insert(hash.clone())) {
+        db.execute(
+            "DELETE FROM blob WHERE hash = ?1 AND NOT EXISTS (SELECT 1 FROM blob_ref WHERE blob_ref.hash = blob.hash)",
+            params![hash],
+        )?;
+    }
+    Ok(())
+}
+
+/// `SessionBlob.releaseMessage`: the blobs a removed message or cancelled inbox row referenced.
+pub fn release_message(db: &Connection, session: &str, message: &str) -> rusqlite::Result<()> {
+    release(db, "DELETE FROM blob_ref WHERE session_id = ?1 AND message_id = ?2 RETURNING hash", params![session, message])
 }
 
 /// `SessionBlob.save`: inserts blobs, keeping any that already exist.
@@ -343,18 +530,7 @@ pub fn record_refs(db: &Connection, session: &str, message: &str, seq: i64, data
 
 /// `SessionBlob.releaseSession`: forgets a deleted session's refs, then every blob no ref names anymore.
 pub fn release_session(db: &Connection, session: &str) -> rusqlite::Result<()> {
-    let released: Vec<String> = {
-        let mut statement = db.prepare("DELETE FROM blob_ref WHERE session_id = ?1 RETURNING hash")?;
-        statement.query_map(params![session], |row| row.get(0))?.collect::<rusqlite::Result<_>>()?
-    };
-    let unique: HashSet<String> = released.into_iter().collect();
-    for hash in unique {
-        db.execute(
-            "DELETE FROM blob WHERE hash = ?1 AND NOT EXISTS (SELECT 1 FROM blob_ref WHERE blob_ref.hash = blob.hash)",
-            params![hash],
-        )?;
-    }
-    Ok(())
+    release(db, "DELETE FROM blob_ref WHERE session_id = ?1 RETURNING hash", params![session])
 }
 
 /// `withParts`: each assistant message's `session_part` rows into its content, in ordinal order, ahead of any

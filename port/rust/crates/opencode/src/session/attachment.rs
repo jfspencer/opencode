@@ -214,12 +214,24 @@ fn decode_data_url(uri: &str, label: &str) -> Result<Vec<u8>, String> {
 }
 
 /// `materializeAttachment`: an input attachment (`PromptInput.FileAttachment`) as a `Prompt.FileAttachment`, or the
-/// `AttachmentError` message.
-pub fn materialize(input: &Json) -> Result<Json, String> {
+/// `AttachmentError` message. A `media:` ref (from an `experimental-media-uri` read) re-admits its stored blob, whose
+/// bytes were normalized when first admitted.
+pub fn materialize(db: &std::sync::Mutex<rusqlite::Connection>, input: &Json) -> Result<Json, String> {
     let uri = json::get_str(input, "uri").unwrap_or_default();
     let name = json::get_str(input, "name");
-    let label = name.map(str::to_owned).unwrap_or_else(|| if uri.starts_with("data:") { "inline attachment".into() } else { uri.into() });
     let given_source = json::get(input, "source").filter(|s| !matches!(s, Json::Null)).cloned();
+    if let Some(hash) = uri.strip_prefix("media:").filter(|hash| hash.len() == 64 && hash.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))) {
+        let blob = crate::session::blob::read(&db.lock().unwrap(), hash).ok().flatten();
+        let Some((mime, data)) = blob else { return Err(format!("Attachment is no longer stored: {uri}")) };
+        let mut o = Obj::new();
+        o.str("data", &base64().encode(&data)).str("mime", &mime);
+        o.set("source", given_source.unwrap_or_else(|| source("inline", None)));
+        o.opt_str("name", name);
+        o.opt("description", json::get(input, "description").filter(|v| !matches!(v, Json::Null)).cloned());
+        o.opt("mention", json::get(input, "mention").filter(|v| !matches!(v, Json::Null)).cloned());
+        return Ok(o.done());
+    }
+    let label = name.map(str::to_owned).unwrap_or_else(|| if uri.starts_with("data:") { "inline attachment".into() } else { uri.into() });
     let resolved = if uri.starts_with("data:") {
         Resolved {
             bytes: decode_data_url(uri, &label)?,
