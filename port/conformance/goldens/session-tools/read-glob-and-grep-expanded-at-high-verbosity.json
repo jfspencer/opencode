@@ -551,7 +551,7 @@
               ]
             },
             {
-              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)\n",
+              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -685,7 +685,7 @@
               ]
             },
             {
-              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)\n",
+              "content": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -704,7 +704,7 @@
               ]
             },
             {
-              "content": "Found 1 matches\n<project>/src/strings.ts:\n  Line 2: export const shout = (s: string) => s.toUpperCase()\n",
+              "content": "Found 1 matches\n<project>/src/strings.ts:\n  Line 2: export const shout = (s: string) => s.toUpperCase()",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -1837,7 +1837,7 @@
           "assistantMessageID": "<msg_6>",
           "content": [
             {
-              "text": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)\n",
+              "text": "Found 1 matches\n<project>/src/math.ts:\n  Line 5: export const twice = (n: number) => add(n, n)",
               "type": "text"
             }
           ],
@@ -2015,7 +2015,7 @@
           "assistantMessageID": "<msg_7>",
           "content": [
             {
-              "text": "Found 1 matches\n<project>/src/strings.ts:\n  Line 2: export const shout = (s: string) => s.toUpperCase()\n",
+              "text": "Found 1 matches\n<project>/src/strings.ts:\n  Line 2: export const shout = (s: string) => s.toUpperCase()",
               "type": "text"
             }
           ],

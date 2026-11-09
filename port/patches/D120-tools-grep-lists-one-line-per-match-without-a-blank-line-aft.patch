@@ -1,0 +1,57 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 03:08:07 -0700
+Subject: [PATCH] D120 tools: grep lists one line per match, without a blank
+ line after each
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: the grep tool's model content prints each match as `  Line N: <text>`, where the text is ripgrep's line
+including its terminator, and joins the lines with newlines: the model sees a blank line after every match
+(`Line 1: …\n\n  Line 2: …\n`). The V1 tool split ripgrep's output into lines and had none.
+Fixed: the listing drops the line's terminator (`\n` or `\r\n`). The structured output keeps ripgrep's text.
+Found by the Rust file-tools slice.
+Scenarios: tools.test.ts "grep for a pattern" (re-recorded), and every golden whose model reads grep output
+Upstream tests: packages/core/test/tool-search.test.ts adds a test
+
+diff --git a/packages/core/src/tool/plugin/grep.ts b/packages/core/src/tool/plugin/grep.ts
+index e14269876e..c3e73ebba3 100644
+--- a/packages/core/src/tool/plugin/grep.ts
++++ b/packages/core/src/tool/plugin/grep.ts
+@@ -51,7 +51,8 @@ export const toModelContent = (matches: EncodedOutput, truncated = false) => {
+       current = match.entry.path
+       lines.push(`${match.entry.path}:`)
+     }
+-    lines.push(`  Line ${match.line}: ${match.text}`)
++    // ripgrep's line text ends with the line's terminator; the listing puts one line per match.
++    lines.push(`  Line ${match.line}: ${match.text.replace(/\r?\n$/, "")}`)
+   }
+   if (truncated)
+     lines.push(
+diff --git a/packages/core/test/tool-search.test.ts b/packages/core/test/tool-search.test.ts
+index 49b7bbe633..66c43c1127 100644
+--- a/packages/core/test/tool-search.test.ts
++++ b/packages/core/test/tool-search.test.ts
+@@ -195,6 +195,21 @@ describe("search tools", () => {
+     ),
+   )
+ 
++  it.live("lists one line per grep match", () =>
++    Effect.sync(() => {
++      const match = (line: number, text: string) => ({
++        entry: { path: "/project/a.txt", type: "file" as const },
++        line,
++        offset: 0,
++        text,
++        submatches: [],
++      })
++      expect(GrepTool.toModelContent([match(1, "one\n"), match(2, "two\r\n"), match(3, "last")])).toBe(
++        "Found 3 matches\n/project/a.txt:\n  Line 1: one\n  Line 2: two\n  Line 3: last",
++      )
++    }),
++  )
++
+   it.live("reports no grep matches", () =>
+     withTempDir((tmp) =>
+       Effect.promise(() => fs.writeFile(path.join(tmp.path, "file.txt"), "haystack\n")).pipe(
