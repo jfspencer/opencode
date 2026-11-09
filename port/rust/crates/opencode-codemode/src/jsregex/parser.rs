@@ -209,6 +209,9 @@ enum Context {
     ClassSet,
 }
 
+/// A group name, its group index, and its alternative path (for the duplicate-name rule).
+type NamedGroup = (Vec<u16>, u32, Vec<(u32, u32)>);
+
 struct Parser<'a> {
     p: &'a [u16],
     i: usize,
@@ -221,8 +224,7 @@ struct Parser<'a> {
     forward_allowed: bool,
     num_subpatterns: u32,
     max_seen_backref: u32,
-    /// Group names with their group index and alternative path.
-    names: Vec<(Vec<u16>, u32, Vec<(u32, u32)>)>,
+    names: Vec<NamedGroup>,
     forward_refs: Vec<Vec<u16>>,
     k_identity_seen: bool,
     frames: Vec<Frame>,
@@ -982,15 +984,16 @@ impl<'a> Parser<'a> {
                 self.i += 1;
                 if !in_class {
                     let state = self.i;
-                    if !self.at_end() && self.consume() == '<' as u32 {
-                        if let Some(name) = self.try_consume_group_name()? {
-                            if self.names.iter().any(|(n, _, _)| *n == name) {
-                                return Ok(Escape::NamedBackRef(name));
-                            }
-                            if self.forward_allowed {
-                                self.forward_refs.push(name.clone());
-                                return Ok(Escape::NamedBackRef(name));
-                            }
+                    if !self.at_end()
+                        && self.consume() == '<' as u32
+                        && let Some(name) = self.try_consume_group_name()?
+                    {
+                        if self.names.iter().any(|(n, _, _)| *n == name) {
+                            return Ok(Escape::NamedBackRef(name));
+                        }
+                        if self.forward_allowed {
+                            self.forward_refs.push(name.clone());
+                            return Ok(Escape::NamedBackRef(name));
                         }
                     }
                     self.i = state;
@@ -1297,7 +1300,7 @@ impl<'a> Parser<'a> {
         if strings.is_empty() && !has_empty {
             return Node::Class(close(&value.set));
         }
-        strings.sort_by(|a, b| b.len().cmp(&a.len()));
+        strings.sort_by_key(|s| std::cmp::Reverse(s.len()));
         let mut alternatives: Vec<Node> = strings
             .into_iter()
             .map(|s| {

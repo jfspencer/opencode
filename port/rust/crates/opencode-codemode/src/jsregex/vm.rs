@@ -108,10 +108,27 @@ impl Compiler {
 
     /// One iteration of a loop: its captures are cleared first (RepeatMatcher step 4).
     fn emit_iteration(&mut self, body: &Node, captures: (u32, u32), back: bool) {
-        if captures.0 < captures.1 {
-            self.insts.push(Inst::ClearCaptures { from: captures.0, to: captures.1 });
-        }
+        self.emit_clear(body, captures);
         self.emit(body, back);
+    }
+
+    /// Clears a loop body's groups, except those every iteration sets and the body never refers back to: their
+    /// clearing could not be observed (the iteration overwrites them, and undoing it restores them).
+    fn emit_clear(&mut self, body: &Node, captures: (u32, u32)) {
+        let mut referenced = Vec::new();
+        backref_groups(body, &mut referenced);
+        let mut start = None;
+        for g in captures.0..=captures.1 {
+            let clear = g < captures.1 && (referenced.contains(&g) || !always_sets(body, g));
+            match (clear, start) {
+                (true, None) => start = Some(g),
+                (false, Some(from)) => {
+                    self.insts.push(Inst::ClearCaptures { from, to: g });
+                    start = None;
+                }
+                _ => {}
+            }
+        }
     }
 
     /// The characters any of `nodes` can start with, as a set index, when that is known for all of them.
@@ -241,9 +258,7 @@ impl Compiler {
                 let head = self.pc();
                 self.insts.push(Inst::RepLoop { reg, min: *min, max: *max, greedy: *greedy, body: head + 1, exit: 0 });
                 self.insts.push(Inst::RepIter { reg });
-                if captures.0 < captures.1 {
-                    self.insts.push(Inst::ClearCaptures { from: captures.0, to: captures.1 });
-                }
+                self.emit_clear(body, *captures);
                 self.emit(body, back);
                 self.insts.push(Inst::RepEnd { reg, min: *min, head });
                 let exit = self.pc();
@@ -316,6 +331,31 @@ fn min_length(node: &Node) -> u64 {
         Node::Capture { body, .. } | Node::Group(body) => deep(|| min_length(body)),
         Node::Repeat { body, min, .. } => *min as u64 * deep(|| min_length(body)),
         _ => 0,
+    }
+}
+
+/// Whether every match of `node` sets group `g`.
+fn always_sets(node: &Node, g: u32) -> bool {
+    match node {
+        Node::Capture { index, body } => *index == g || deep(|| always_sets(body, g)),
+        Node::Seq(nodes) => nodes.iter().any(|n| deep(|| always_sets(n, g))),
+        Node::Alt(alternatives) => alternatives.iter().all(|n| deep(|| always_sets(n, g))),
+        Node::Group(body) => deep(|| always_sets(body, g)),
+        Node::Repeat { body, min, .. } => *min >= 1 && deep(|| always_sets(body, g)),
+        Node::Look { negate: false, body, .. } => deep(|| always_sets(body, g)),
+        _ => false,
+    }
+}
+
+/// Every group a backreference in `node` refers to.
+fn backref_groups(node: &Node, out: &mut Vec<u32>) {
+    match node {
+        Node::BackRef { groups, .. } => out.extend_from_slice(groups),
+        Node::Seq(nodes) | Node::Alt(nodes) => nodes.iter().for_each(|n| deep(|| backref_groups(n, out))),
+        Node::Capture { body, .. } | Node::Group(body) | Node::Look { body, .. } | Node::Repeat { body, .. } => {
+            deep(|| backref_groups(body, out))
+        }
+        _ => {}
     }
 }
 

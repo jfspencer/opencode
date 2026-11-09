@@ -94,6 +94,12 @@ pub struct JsRegExp {
     last_index: Cell<f64>,
 }
 
+/// Named groups with the range each matched (None: did not participate).
+pub type NamedRanges = Vec<(Vec<u16>, Option<(usize, usize)>)>;
+
+/// Named groups with the text each matched (None: did not participate), as GetSubstitution takes them.
+pub type NamedValues = [(Vec<u16>, Option<Vec<u16>>)];
+
 /// One successful match.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Match {
@@ -101,7 +107,7 @@ pub struct Match {
     pub captures: Vec<Option<(usize, usize)>>,
     /// Named groups in pattern order with the range of the group that participated (duplicate names across
     /// alternatives: the participating one), or None when the pattern has no named groups.
-    pub groups: Option<Vec<(Vec<u16>, Option<(usize, usize)>)>>,
+    pub groups: Option<NamedRanges>,
 }
 
 impl Match {
@@ -445,6 +451,7 @@ fn capture_strings(m: &Match, text: &[u16]) -> Vec<Option<Vec<u16>>> {
     m.captures[1..].iter().map(|c| c.map(|(a, b)| text[a..b].to_vec())).collect()
 }
 
+#[allow(clippy::type_complexity)]
 fn group_strings(m: &Match, text: &[u16]) -> Option<Vec<(Vec<u16>, Option<Vec<u16>>)>> {
     m.groups
         .as_ref()
@@ -599,7 +606,7 @@ pub fn get_substitution(
     text: &[u16],
     position: usize,
     captures: &[Option<Vec<u16>>],
-    groups: Option<&[(Vec<u16>, Option<Vec<u16>>)]>,
+    groups: Option<&NamedValues>,
     replacement: &[u16],
 ) -> Vec<u16> {
     let dollar = b'$' as u16;
