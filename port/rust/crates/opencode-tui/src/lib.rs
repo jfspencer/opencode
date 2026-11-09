@@ -136,6 +136,7 @@ pub mod local;
 pub mod model_preference;
 pub mod prompt;
 pub mod reconnecting;
+pub mod retry_provider;
 pub mod session;
 pub mod spinner;
 pub mod syntax;
