@@ -14,6 +14,7 @@ pub mod border;
 pub mod buffer;
 pub mod layout;
 pub mod color;
+pub mod edit_buffer_bindings;
 pub mod elements;
 pub mod input;
 pub mod output;

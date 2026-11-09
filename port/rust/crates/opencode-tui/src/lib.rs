@@ -72,7 +72,12 @@
 //! run).title(..).group(..).bind(Bind::Off).palette(true).slash(..)`); its `run` returns false to let the key fall
 //! through. `bindings: vec!["id", ..]` applies the config keybinds of those ids. `keymap::dispatch(id, input)`,
 //! `keymap::use_commands()` (the palette's list), `keymap::use_shortcuts().get/all(id)` (hints, formatted as TS
-//! formats them). App's command registry is [`commands`].
+//! formats them). App's command registry is [`commands`]. A focused textarea's keys (cursor, selection, delete,
+//! undo, `input.submit`, `input.newline`, ...) are the keymap's `input.*` commands
+//! (`opencode_tui_core::edit_buffer_bindings`, `registerManagedTextareaLayer`), so a layer of a later-mounted
+//! component that binds the same key wins over them, as in TS. The textarea itself then only inserts printable
+//! keys; its edit methods are `el.textarea_action(TextareaAction::..)`, and its `traits` are
+//! `textarea_traits`/`set_textarea_traits`.
 //!
 //! **The theme** is `tui().theme` (a signal of [`ResolvedTheme`](theme::ResolvedTheme), which derefs to the token
 //! tree: `theme.text.muted`, `theme.background.raised.base`); `util::rgba(color)` converts a token to a renderable
