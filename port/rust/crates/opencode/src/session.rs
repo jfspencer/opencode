@@ -18,8 +18,10 @@ pub mod prompt;
 pub mod retry;
 pub mod runner;
 pub mod skill;
+pub mod stats;
 pub mod step;
 pub mod title;
+pub mod transfer;
 
 use std::collections::HashSet;
 use std::sync::Mutex;
@@ -258,6 +260,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         "session.unarchived" => {
             set_session(tx, id, "time_archived = NULL, time_updated = ?1", vec![Value::Integer(created)])?
         }
+        "session.forked" => transfer::project_fork(tx, event)?,
         "worktree.resolved" => adopt(tx, data)?,
         "session.inbox.enqueued" => inbox::project_admitted(tx, event)?,
         "session.inbox.delivered" => inbox::project_delivered(tx, event)?,
