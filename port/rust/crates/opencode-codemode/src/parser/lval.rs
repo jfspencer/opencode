@@ -9,11 +9,18 @@ use super::state::*;
 #[allow(clippy::wrong_self_convention)]
 impl<'a> Parser<'a> {
     /// Convert an existing expression atom to an assignable pattern if possible.
-    pub(super) fn to_assignable(&mut self, expr: Expr, is_binding: bool, ref_de: Option<&DestructuringErrors>) -> R<Pat> {
+    pub(super) fn to_assignable(
+        &mut self,
+        expr: Expr,
+        is_binding: bool,
+        ref_de: Option<&DestructuringErrors>,
+    ) -> R<Pat> {
         match expr {
             Expr::Identifier(id) => {
                 if self.in_async() && &*id.name == "await" {
-                    return Err(self.raise(id.span.start as usize, "Cannot use 'await' as identifier inside an async function"));
+                    return Err(
+                        self.raise(id.span.start as usize, "Cannot use 'await' as identifier inside an async function")
+                    );
                 }
                 Ok(Pat::Identifier(id))
             }
@@ -26,13 +33,20 @@ impl<'a> Parser<'a> {
                         ObjectMember::Property(prop) => {
                             let prop = *prop;
                             if prop.kind != PropKind::Init {
-                                return Err(self.raise(prop.key.span().start as usize, "Object pattern can't contain getter or setter"));
+                                return Err(self.raise(
+                                    prop.key.span().start as usize,
+                                    "Object pattern can't contain getter or setter",
+                                ));
                             }
                             let value = match prop.value {
                                 // A shorthand property's `=` default is already an AssignmentPattern.
                                 Expr::Assignment(assign) if prop.shorthand => {
                                     let assign = *assign;
-                                    Pat::Assignment(Box::new(AssignmentPattern { span: assign.span, left: assign.left, right: assign.right }))
+                                    Pat::Assignment(Box::new(AssignmentPattern {
+                                        span: assign.span,
+                                        left: assign.left,
+                                        right: assign.right,
+                                    }))
                                 }
                                 value => self.to_assignable(value, is_binding, None)?,
                             };
@@ -65,7 +79,9 @@ impl<'a> Parser<'a> {
                     elements.push(match elt {
                         None => None,
                         Some(ExprOrSpread::Expr(expr)) => Some(self.to_assignable(expr, is_binding, None)?),
-                        Some(ExprOrSpread::Spread(spread)) => Some(Pat::Rest(Box::new(self.spread_to_rest(*spread, is_binding)?))),
+                        Some(ExprOrSpread::Spread(spread)) => {
+                            Some(Pat::Rest(Box::new(self.spread_to_rest(*spread, is_binding)?)))
+                        }
                     });
                 }
                 Ok(Pat::Array(Box::new(ArrayPattern { span: array.span, elements })))
@@ -73,12 +89,21 @@ impl<'a> Parser<'a> {
             Expr::Assignment(assign) => {
                 let assign = *assign;
                 if assign.operator != "=" {
-                    return Err(self.raise(assign.left.span().end as usize, "Only '=' operator can be used for specifying default value."));
+                    return Err(self.raise(
+                        assign.left.span().end as usize,
+                        "Only '=' operator can be used for specifying default value.",
+                    ));
                 }
                 self.reassign_pattern(&assign.left, is_binding)?;
-                Ok(Pat::Assignment(Box::new(AssignmentPattern { span: assign.span, left: assign.left, right: assign.right })))
+                Ok(Pat::Assignment(Box::new(AssignmentPattern {
+                    span: assign.span,
+                    left: assign.left,
+                    right: assign.right,
+                })))
             }
-            Expr::Chain(chain) => Err(self.raise(chain.span.start as usize, "Optional chaining cannot appear in left-hand side")),
+            Expr::Chain(chain) => {
+                Err(self.raise(chain.span.start as usize, "Optional chaining cannot appear in left-hand side"))
+            }
             Expr::Member(member) if !is_binding => Ok(Pat::Member(member)),
             other => Err(self.raise(other.span().start as usize, "Assigning to rvalue")),
         }
@@ -89,7 +114,9 @@ impl<'a> Parser<'a> {
         match pat {
             Pat::Identifier(id) => {
                 if self.in_async() && &*id.name == "await" {
-                    return Err(self.raise(id.span.start as usize, "Cannot use 'await' as identifier inside an async function"));
+                    return Err(
+                        self.raise(id.span.start as usize, "Cannot use 'await' as identifier inside an async function")
+                    );
                 }
                 Ok(())
             }
@@ -149,7 +176,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub(super) fn parse_binding_list(&mut self, close: Tok, allow_empty: bool, allow_trailing_comma: bool) -> R<Vec<Option<Pat>>> {
+    pub(super) fn parse_binding_list(
+        &mut self,
+        close: Tok,
+        allow_empty: bool,
+        allow_trailing_comma: bool,
+    ) -> R<Vec<Option<Pat>>> {
         let mut elts = Vec::new();
         let mut first = true;
         while !self.eat(close)? {
@@ -240,23 +272,46 @@ impl<'a> Parser<'a> {
         } else {
             return Err(self.unexpected());
         }
-        Ok(ObjectPatternMember::Property(Box::new(AssignmentProperty { span: self.finish(prop), key, value, shorthand, computed })))
+        Ok(ObjectPatternMember::Property(Box::new(AssignmentProperty {
+            span: self.finish(prop),
+            key,
+            value,
+            shorthand,
+            computed,
+        })))
     }
 
     // ## Lvalue checks
 
     /// `checkLValSimple` for an identifier.
-    pub(super) fn check_lval_simple_ident(&mut self, id: &Ident, binding: Bind, clashes: Option<&mut NameSet>) -> R<()> {
+    pub(super) fn check_lval_simple_ident(
+        &mut self,
+        id: &Ident,
+        binding: Bind,
+        clashes: Option<&mut NameSet>,
+    ) -> R<()> {
         let is_bind = binding != Bind::None;
         let name = &*id.name;
         let start = id.span.start as usize;
         if self.strict
             && matches!(
                 name,
-                "enum" | "implements" | "interface" | "let" | "package" | "private" | "protected" | "public" | "static" | "yield" | "eval" | "arguments"
+                "enum"
+                    | "implements"
+                    | "interface"
+                    | "let"
+                    | "package"
+                    | "private"
+                    | "protected"
+                    | "public"
+                    | "static"
+                    | "yield"
+                    | "eval"
+                    | "arguments"
             )
         {
-            return Err(self.raise(start, format!("{}{name} in strict mode", if is_bind { "Binding " } else { "Assigning to " })));
+            return Err(self
+                .raise(start, format!("{}{name} in strict mode", if is_bind { "Binding " } else { "Assigning to " })));
         }
         if is_bind {
             if binding == Bind::Lexical && name == "let" {
@@ -280,14 +335,19 @@ impl<'a> Parser<'a> {
         let is_bind = binding != Bind::None;
         match expr {
             Expr::Identifier(id) => self.check_lval_simple_ident(id, binding, None),
-            Expr::Chain(chain) => Err(self.raise(chain.span.start as usize, "Optional chaining cannot appear in left-hand side")),
+            Expr::Chain(chain) => {
+                Err(self.raise(chain.span.start as usize, "Optional chaining cannot appear in left-hand side"))
+            }
             Expr::Member(member) => {
                 if is_bind {
                     return Err(self.raise(member.span.start as usize, "Binding member expression"));
                 }
                 Ok(())
             }
-            other => Err(self.raise(other.span().start as usize, if is_bind { "Binding rvalue" } else { "Assigning to rvalue" })),
+            other => {
+                Err(self
+                    .raise(other.span().start as usize, if is_bind { "Binding rvalue" } else { "Assigning to rvalue" }))
+            }
         }
     }
 
@@ -301,7 +361,10 @@ impl<'a> Parser<'a> {
                 }
                 Ok(())
             }
-            other => Err(self.raise(other.span().start as usize, if is_bind { "Binding rvalue" } else { "Assigning to rvalue" })),
+            other => {
+                Err(self
+                    .raise(other.span().start as usize, if is_bind { "Binding rvalue" } else { "Assigning to rvalue" }))
+            }
         }
     }
 
@@ -310,8 +373,12 @@ impl<'a> Parser<'a> {
             Pat::Object(object) => {
                 for prop in &object.properties {
                     match prop {
-                        ObjectPatternMember::Property(prop) => self.check_lval_inner_pattern(&prop.value, binding, clashes.as_deref_mut())?,
-                        ObjectPatternMember::Rest(rest) => self.check_lval_pattern(&rest.argument, binding, clashes.as_deref_mut())?,
+                        ObjectPatternMember::Property(prop) => {
+                            self.check_lval_inner_pattern(&prop.value, binding, clashes.as_deref_mut())?
+                        }
+                        ObjectPatternMember::Rest(rest) => {
+                            self.check_lval_pattern(&rest.argument, binding, clashes.as_deref_mut())?
+                        }
                     }
                 }
                 Ok(())
@@ -326,7 +393,12 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub(super) fn check_lval_inner_pattern(&mut self, pat: &Pat, binding: Bind, clashes: Option<&mut NameSet>) -> R<()> {
+    pub(super) fn check_lval_inner_pattern(
+        &mut self,
+        pat: &Pat,
+        binding: Bind,
+        clashes: Option<&mut NameSet>,
+    ) -> R<()> {
         match pat {
             Pat::Assignment(assign) => self.check_lval_pattern(&assign.left, binding, clashes),
             Pat::Rest(rest) => self.check_lval_pattern(&rest.argument, binding, clashes),

@@ -77,7 +77,12 @@ pub(super) fn is_new_line(code: i64) -> bool {
 
 /// acorn's `nonASCIIwhitespace`.
 pub(super) fn is_non_ascii_whitespace(code: i64) -> bool {
-    code == 0x1680 || (0x2000..=0x200a).contains(&code) || code == 0x202f || code == 0x205f || code == 0x3000 || code == 0xfeff
+    code == 0x1680
+        || (0x2000..=0x200a).contains(&code)
+        || code == 0x202f
+        || code == 0x205f
+        || code == 0x3000
+        || code == 0xfeff
 }
 
 /// JavaScript's `\s`.

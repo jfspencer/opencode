@@ -1,6 +1,9 @@
 //! acorn's tokenizer (`tokenize.js`) and token context tracking (`tokencontext.js`).
 
-use super::chars::{code_point_to_string, is_identifier_char, is_identifier_start, is_new_line, is_non_ascii_whitespace, push_code_point};
+use super::chars::{
+    code_point_to_string, is_identifier_char, is_identifier_start, is_new_line, is_non_ascii_whitespace,
+    push_code_point,
+};
 use super::regexp::RegExpValidationState;
 use super::state::{Ctx, Fail, Parser, R, Tok, Value, next_line_break};
 use crate::jsstr::JsStr;
@@ -13,10 +16,12 @@ impl<'a> Parser<'a> {
     }
 
     pub(super) fn next_with(&mut self, ignore_escape_sequence_in_keyword: bool) -> R<()> {
-        if !ignore_escape_sequence_in_keyword && self.contains_esc
-            && let Some(keyword) = self.ty.keyword() {
-                return Err(self.raise(self.start, format!("Escape sequence in keyword {keyword}")));
-            }
+        if !ignore_escape_sequence_in_keyword
+            && self.contains_esc
+            && let Some(keyword) = self.ty.keyword()
+        {
+            return Err(self.raise(self.start, format!("Escape sequence in keyword {keyword}")));
+        }
         self.last_tok_end = self.end;
         self.last_tok_start = self.start;
         self.last_tok_end_loc = self.end_loc;
@@ -238,14 +243,18 @@ impl<'a> Parser<'a> {
             }
             Tok::Star => {
                 if prev == Tok::Function
-                    && let Some(last) = self.context.last_mut() {
-                        *last = if *last == Ctx::FExpr { Ctx::FExprGen } else { Ctx::FGen };
-                    }
+                    && let Some(last) = self.context.last_mut()
+                {
+                    *last = if *last == Ctx::FExpr { Ctx::FExprGen } else { Ctx::FGen };
+                }
                 self.expr_allowed = true;
             }
             Tok::Name => {
                 let mut allowed = false;
-                if prev != Tok::Dot && (self.value_is("of") && !self.expr_allowed || self.value_is("yield") && self.in_generator_context()) {
+                if prev != Tok::Dot
+                    && (self.value_is("of") && !self.expr_allowed
+                        || self.value_is("yield") && self.in_generator_context())
+                {
                     allowed = true;
                 }
                 self.expr_allowed = allowed;
@@ -256,9 +265,10 @@ impl<'a> Parser<'a> {
 
     pub(super) fn override_context(&mut self, ctx: Ctx) {
         if self.cur_context() != Some(ctx)
-            && let Some(last) = self.context.last_mut() {
-                *last = ctx;
-            }
+            && let Some(last) = self.context.last_mut()
+        {
+            *last = ctx;
+        }
     }
 
     // ## Token reading
@@ -354,7 +364,10 @@ impl<'a> Parser<'a> {
     fn read_token_plus_min(&mut self, code: i64) -> R<()> {
         let next = self.cu(self.pos + 1);
         if next == code {
-            if next == 45 && self.cu(self.pos + 2) == 62 && (self.last_tok_end == 0 || self.has_line_break(self.last_tok_end, self.pos)) {
+            if next == 45
+                && self.cu(self.pos + 2) == 62
+                && (self.last_tok_end == 0 || self.has_line_break(self.last_tok_end, self.pos))
+            {
                 // A `-->` line comment
                 self.skip_line_comment(3);
                 self.skip_space()?;
@@ -499,10 +512,12 @@ impl<'a> Parser<'a> {
             60 | 62 => return self.read_token_lt_gt(code),
             61 | 33 => return self.read_token_eq_excl(code),
             63 => return self.read_token_question(),
-            126 => return {
-                self.finish_op(Tok::Prefix, 1);
-                Ok(())
-            },
+            126 => {
+                return {
+                    self.finish_op(Tok::Prefix, 1);
+                    Ok(())
+                };
+            }
             35 => return self.read_token_number_sign(),
             _ => return Err(self.raise(self.pos, format!("Unexpected character '{}'", code_point_to_string(code)))),
         };
@@ -574,7 +589,9 @@ impl<'a> Parser<'a> {
             let code = self.cu(self.pos);
             if allow_separators && code == 95 {
                 if is_legacy_octal {
-                    return Err(self.raise(self.pos, "Numeric separator is not allowed in legacy octal numeric literals"));
+                    return Err(
+                        self.raise(self.pos, "Numeric separator is not allowed in legacy octal numeric literals")
+                    );
                 }
                 if last_code == 95 {
                     return Err(self.raise(self.pos, "Numeric separator must be exactly one underscore"));
@@ -749,11 +766,7 @@ impl<'a> Parser<'a> {
     }
 
     fn invalid_string_token(&self, position: usize, message: &str) -> Fail {
-        if self.in_template_element {
-            Fail::TemplateEscape
-        } else {
-            self.raise(position, message)
-        }
+        if self.in_template_element { Fail::TemplateEscape } else { self.raise(position, message) }
     }
 
     fn read_tmpl_token(&mut self) -> R<()> {
@@ -863,7 +876,9 @@ impl<'a> Parser<'a> {
                         return Err(self.invalid_string_token(self.pos - 1, "Invalid escape sequence"));
                     }
                     if in_template {
-                        return Err(self.invalid_string_token(self.pos - 1, "Invalid escape sequence in template string"));
+                        return Err(
+                            self.invalid_string_token(self.pos - 1, "Invalid escape sequence in template string")
+                        );
                     }
                 }
                 if (48..=55).contains(&ch) {
@@ -884,7 +899,11 @@ impl<'a> Parser<'a> {
                     ch = self.cu(self.pos);
                     let is_zero = len == 1 && self.input[from] == 48;
                     if (!is_zero || ch == 56 || ch == 57) && (self.strict || in_template) {
-                        let message = if in_template { "Octal literal in template string" } else { "Octal literal in strict mode" };
+                        let message = if in_template {
+                            "Octal literal in template string"
+                        } else {
+                            "Octal literal in strict mode"
+                        };
                         return Err(self.invalid_string_token(self.pos - 1 - len, message));
                     }
                     out.push(octal as u16);

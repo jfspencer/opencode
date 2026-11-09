@@ -30,8 +30,22 @@ fn nested(shape: &str, depth: usize) -> String {
 }
 
 const SHAPES: [&str; 16] = [
-    "parens", "arrays", "objects", "blocks", "unary", "ifs", "calls", "arrows", "functions", "templates", "conditionals",
-    "assignments", "exponents", "news", "patterns", "classes",
+    "parens",
+    "arrays",
+    "objects",
+    "blocks",
+    "unary",
+    "ifs",
+    "calls",
+    "arrows",
+    "functions",
+    "templates",
+    "conditionals",
+    "assignments",
+    "exponents",
+    "news",
+    "patterns",
+    "classes",
 ];
 
 #[test]
@@ -52,13 +66,21 @@ fn deep_nesting_is_an_error_not_a_crash() {
             for shape in SHAPES {
                 let source = units(&nested(shape, 100_000));
                 if let Err(error) = parse(&source) {
-                    assert!(error.message == STACK_OVERFLOW_MESSAGE || error.message.contains("(1:"), "{shape}: {}", error.message);
+                    assert!(
+                        error.message == STACK_OVERFLOW_MESSAGE || error.message.contains("(1:"),
+                        "{shape}: {}",
+                        error.message
+                    );
                 }
                 // moderate nesting parses, even in a debug build
                 parse(&units(&nested(shape, 40))).unwrap_or_else(|error| panic!("{shape}: {}", error.message));
             }
             // long chains that the parser builds in a loop, and the drop of the tree they would make
-            for chain in [format!("1{}", "+1".repeat(200_000)), format!("a{}", ".b".repeat(200_000)), format!("a{}", "()".repeat(200_000))] {
+            for chain in [
+                format!("1{}", "+1".repeat(200_000)),
+                format!("a{}", ".b".repeat(200_000)),
+                format!("a{}", "()".repeat(200_000)),
+            ] {
                 assert_eq!(parse(&units(&chain)).unwrap_err().message, STACK_OVERFLOW_MESSAGE);
             }
             parse(&units(&format!("1{}", "+1".repeat(2_000)))).unwrap();
@@ -77,7 +99,10 @@ fn stack_per_level() {
         let mut parser = Parser::new(&source, usize::MAX);
         parser.parse_program().ok().expect("parses");
         let per_level = parser.max_stack_used / depth;
-        println!("{shape:>14}: {per_level:>6} bytes per level, {:>6} levels in the default limit", super::DEFAULT_STACK_LIMIT / per_level.max(1));
+        println!(
+            "{shape:>14}: {per_level:>6} bytes per level, {:>6} levels in the default limit",
+            super::DEFAULT_STACK_LIMIT / per_level.max(1)
+        );
     }
 }
 

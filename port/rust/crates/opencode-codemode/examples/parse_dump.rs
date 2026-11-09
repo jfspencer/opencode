@@ -12,8 +12,11 @@ fn main() {
     let bench = args.iter().any(|arg| arg == "--bench");
     let path = args.iter().find(|arg| !arg.starts_with("--")).expect("usage: parse_dump [--bench] corpus.jsonl");
     let text = std::fs::read_to_string(path).expect("read corpus");
-    let sources: Vec<Vec<u16>> =
-        text.lines().filter(|line| !line.is_empty()).map(|line| decode_json_string(line).expect("corpus line is a JSON string")).collect();
+    let sources: Vec<Vec<u16>> = text
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| decode_json_string(line).expect("corpus line is a JSON string"))
+        .collect();
     if bench {
         let units: usize = sources.iter().map(Vec::len).sum();
         let started = std::time::Instant::now();
