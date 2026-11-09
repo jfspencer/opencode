@@ -110,16 +110,20 @@ impl Scanner {
     fn scan(&mut self) -> Token {
         let Some(c) = self.ch() else { return Token::End };
         if c.is_ascii_digit() {
-            let (mut value, mut length) = (0i64, 0usize);
-            while let Some(d) = self.ch().filter(char::is_ascii_digit) {
-                // `kMaxSignificantDigits`: digits beyond the ninth are read but not counted.
-                if length < 9 {
-                    value = value * 10 + (d as i64 - '0' as i64);
-                }
-                length += 1;
+            let start = self.at;
+            // `ReadUnsignedNumeral`: leading zeros are skipped, then digits beyond the ninth are read but not counted.
+            while self.ch() == Some('0') {
                 self.at += 1;
             }
-            return Token::Number { value, length };
+            let (mut value, mut significant) = (0i64, 0usize);
+            while let Some(d) = self.ch().filter(char::is_ascii_digit) {
+                if significant < 9 {
+                    value = value * 10 + (d as i64 - '0' as i64);
+                }
+                significant += 1;
+                self.at += 1;
+            }
+            return Token::Number { value, length: self.at - start };
         }
         if matches!(c, ':' | '-' | '+' | '.' | ')') {
             self.at += 1;
@@ -309,14 +313,15 @@ impl Zone {
         self.sign.is_none()
     }
 
-    /// `TimeZoneComposer::Write`: an explicit offset must fit a small integer of seconds.
+    /// `TimeZoneComposer::Write`: an explicit offset, in seconds computed with wrapping unsigned 32-bit arithmetic,
+    /// must fit a signed 32-bit integer (as the engine does it).
     fn write(&self) -> bool {
         if self.sign.is_none() {
             return true;
         }
-        let hour = if self.hour == NONE { 0 } else { self.hour };
-        let minute = if self.minute == NONE { 0 } else { self.minute };
-        hour * 3600 + minute * 60 <= (1 << 30) - 1
+        let hour = if self.hour == NONE { 0 } else { self.hour as u32 };
+        let minute = if self.minute == NONE { 0 } else { self.minute as u32 };
+        hour.wrapping_mul(3600).wrapping_add(minute.wrapping_mul(60)) <= i32::MAX as u32
     }
 }
 
@@ -336,10 +341,11 @@ fn es5(scanner: &mut Scanner, day: &mut Day, time: &mut Time, tz: &mut Zone) -> 
     if scanner.peek().is_sign() {
         let sign = scanner.next();
         let Some(year) = scanner.peek().fixed(6) else { return sign };
+        // The year is consumed even when `-000000` is refused.
+        scanner.next();
         if sign == Token::Symbol('-') && year == 0 {
             return sign;
         }
-        scanner.next();
         day.add(if sign == Token::Symbol('-') { -year } else { year });
     } else if let Some(year) = scanner.peek().fixed(4) {
         scanner.next();
@@ -555,11 +561,13 @@ mod tests {
             "12/25/1995", "1995/12/25", "December 25, 1995", "25 December 1995", "10", "2026-1-5", "Jan 2026", "1/2",
             "Feb 30 2026", "2026-02-28T10:00:00z", "2026-02-28t10:00:00Z", "abc 2026",
             "Thu Jan 01 1970 00:00:00 GMT+0000 (Coordinated Universal Time)", "1 2 3", "2026 Feb 28", "28 Feb",
-            "Sept 5 2020", "5 Sept 2020", "2020-06-15T12:00:00.000-07:00",
+            "Sept 5 2020", "5 Sept 2020", "2020-06-15T12:00:00.000-07:00", "-000000-01-01", "-000000 feb00",
+            "-000000+0200 ", "-000000z-271821", "12:60+2757611:2:3", "1/1/2020 10:00 +596523:00", "1/1/2020 10:00 +1193046:30",
         ];
         let invalid = [
             "yesterday", "2026-02-28T24:00:01", "now", "", " ", "13/1/2020", "2020/13/1", "Mon", "10:00",
-            "2026-02-28T10:00:00.Z", "2026-02-28T1:00", "2026-02-28T10:00:00 GMT",
+            "2026-02-28T10:00:00.Z", "2026-02-28T1:00", "2026-02-28T10:00:00 GMT", "-000000", "-000000 Sep ",
+            "-000000  1:2:3 +02:00PM", "z Sep0000000502026-13-01", "1/1/2020 10:00 +596523:30", "1/1/2020 10:00 -1193046:00",
         ];
         for text in valid {
             assert!(parse(text), "{text} is a date");
@@ -569,3 +577,4 @@ mod tests {
         }
     }
 }
+
