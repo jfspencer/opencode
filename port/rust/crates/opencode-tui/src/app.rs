@@ -180,10 +180,15 @@ fn app_view() -> View {
             })),
         );
         let toast = t.toast.clone();
-        // TODO(port-tui): `clickedLink(renderer, event)` opening a clicked link's URL.
         root.set_on_mouse(
             Some(MouseEventType::Up),
             Some(Rc::new(move |event: &mut MouseEvent| {
+                if let Some(url) = crate::ui::link::clicked_link(event) {
+                    if let Err(error) = crate::util::open_url(&url) {
+                        toast.error(error);
+                    }
+                    return;
+                }
                 if copy_on_select() {
                     crate::selection::copy_on_select_release(event, &toast);
                 }

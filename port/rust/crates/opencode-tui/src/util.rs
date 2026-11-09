@@ -188,3 +188,49 @@ pub fn tint(base: RGBA, overlay: RGBA, alpha: f64) -> RGBA {
         base.a() + (overlay.a() - base.a()) * alpha,
     )
 }
+
+/// `openUrl(input)` (`@opencode/util/open`): only an http or https URL opens, with the platform's opener (`open`'s
+/// `xdg-open`, or `open` on macOS), detached.
+pub fn open_url(input: &str) -> Result<(), String> {
+    if !is_web_url(input) {
+        return Err(format!("Only http and https links can be opened in the browser: {input}"));
+    }
+    let opener = if cfg!(target_os = "macos") { "open" } else { "xdg-open" };
+    let mut child = std::process::Command::new(opener)
+        .arg(input)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .map_err(|error| format!("{opener}: {error}"))?;
+    // The opener exits once it handed the URL over; reap it.
+    std::thread::spawn(move || {
+        let _ = child.wait();
+    });
+    Ok(())
+}
+
+/// `URL.canParse(input)` with an `http:` or `https:` protocol: the scheme, then a host.
+fn is_web_url(input: &str) -> bool {
+    let Some((scheme, rest)) = input.split_once("://") else { return false };
+    if !scheme.eq_ignore_ascii_case("http") && !scheme.eq_ignore_ascii_case("https") {
+        return false;
+    }
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or("");
+    let host = authority.rsplit('@').next().unwrap_or("");
+    !host.is_empty() && !input.chars().any(|c| c.is_whitespace() || c.is_control())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn only_web_urls_open() {
+        for url in ["https://opencode.ai/docs", "http://localhost:3000/x?y#z", "HTTPS://user@example.com"] {
+            assert!(super::is_web_url(url), "{url}");
+        }
+        for url in ["file:///etc/passwd", "javascript:alert(1)", "https://", "https:///path", "ftp://x", "https://a b"] {
+            assert!(!super::is_web_url(url), "{url}");
+            assert!(super::open_url(url).is_err());
+        }
+    }
+}

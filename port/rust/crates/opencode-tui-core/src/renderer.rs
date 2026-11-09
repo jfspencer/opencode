@@ -618,6 +618,14 @@ pub fn copy_to_clipboard_osc52(text: &str) -> bool {
     .unwrap_or(false)
 }
 
+/// `getLinkAt(x, y)`: the URL of the link in a presented cell.
+pub fn link_at(x: i32, y: i32) -> Option<String> {
+    if x < 0 || y < 0 {
+        return None;
+    }
+    with(|s| s.output.borrow().link_at(x as u32, y as u32)).flatten()
+}
+
 /// `capabilities.remote` and `capabilities.osc52_support` as the clipboard reads them (remote without a
 /// renderer).
 pub fn clipboard_capabilities() -> (bool, terminal::Osc52Support) {
