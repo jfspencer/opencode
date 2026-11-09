@@ -69,6 +69,8 @@ scenarios/agent-loop-errors.test.ts › tool call without a name
 scenarios/agent-loop-errors.test.ts › unauthorized
 scenarios/agent-loop-errors.test.ts › unrecognized error frame, then success
 scenarios/agent-loop-interrupt.test.ts › cancel a queued prompt
+scenarios/agent-loop-interrupt.test.ts › decline a permission
+scenarios/agent-loop-interrupt.test.ts › decline a permission with feedback
 scenarios/agent-loop-interrupt.test.ts › interrupt an idle session
 scenarios/agent-loop-interrupt.test.ts › interrupt and resume with a steering prompt
 scenarios/agent-loop-interrupt.test.ts › interrupt before any output
@@ -76,6 +78,7 @@ scenarios/agent-loop-interrupt.test.ts › interrupt keeps queued prompts parked
 scenarios/agent-loop-interrupt.test.ts › interrupt while a tool call is streaming
 scenarios/agent-loop-interrupt.test.ts › interrupt while reasoning
 scenarios/agent-loop-interrupt.test.ts › interrupt while text is streaming
+scenarios/agent-loop-interrupt.test.ts › interrupt while waiting for a permission
 scenarios/agent-loop-interrupt.test.ts › prompt admitted without resuming
 scenarios/agent-loop-interrupt.test.ts › queued prompt runs after the turn
 scenarios/agent-loop-interrupt.test.ts › steering prompt joins at the next step
@@ -301,11 +304,15 @@ scenarios/tools-question.test.ts › question with several questions and a multi
 scenarios/tools-read.test.ts › read a special file
 scenarios/tools-read.test.ts › read absolute and home paths
 scenarios/tools-read.test.ts › read binary files
+scenarios/tools-read.test.ts › read denied by permission rules
 scenarios/tools-read.test.ts › read directories
 scenarios/tools-read.test.ts › read images and PDFs as attachments
 scenarios/tools-read.test.ts › read large files across chunks
 scenarios/tools-read.test.ts › read long lines and paging
 scenarios/tools-read.test.ts › read media over the ingestion limit
+scenarios/tools-read.test.ts › read outside the project
+scenarios/tools-read.test.ts › read protected environment files
+scenarios/tools-read.test.ts › read through a symlink that leaves the project
 scenarios/tools-read.test.ts › read with near-miss names and missing paths
 scenarios/tools-skill.test.ts › skill URI of a directory skill
 scenarios/tools-skill.test.ts › skill activated by the user
