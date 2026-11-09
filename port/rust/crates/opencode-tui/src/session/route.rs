@@ -1665,7 +1665,7 @@ pub fn session(props: SessionProps) -> View {
                         ],
                         None,
                     ),
-                    At::Only,
+                    At::End,
                 );
                 View::list([View::Node(holder), View::Node(jump_row), View::Node(composer)])
             },

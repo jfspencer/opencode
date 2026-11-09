@@ -228,13 +228,7 @@ fn chips(items: Memo<Vec<Json>>, skill: bool) -> View {
                         let label = span();
                         insert_node(chip, label, None);
                         bind_always(
-                            move || {
-                                theme.with(|th| {
-                                    let light = tui().theme.with(|_| false);
-                                    let _ = light;
-                                    (rgba(th.hue.accent[200]), rgba(th.background.raised.base))
-                                })
-                            },
+                            move || theme.with(|th| (rgba(th.hue.accent[200]), rgba(th.background.raised.base))),
                             move |(bg, fg)| label.set_span_style(Some(fg), Some(bg), text_attributes::BOLD, text_attributes::BOLD),
                         );
                         let name = span();
