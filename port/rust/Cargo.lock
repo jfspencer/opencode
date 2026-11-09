@@ -701,6 +701,7 @@ dependencies = [
  "regex",
  "sha1",
  "tokio",
+ "unicode-normalization",
 ]
 
 [[package]]

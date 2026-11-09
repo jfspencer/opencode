@@ -84,6 +84,7 @@ pub mod app;
 pub mod config;
 pub mod ctx;
 pub mod data;
+pub mod fuzzysort;
 pub mod home;
 pub mod keymap;
 pub mod local;
