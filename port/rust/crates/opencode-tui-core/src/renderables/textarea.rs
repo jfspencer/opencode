@@ -964,6 +964,7 @@ impl Element {
     /// `setSelection(start, end)`.
     pub fn set_textarea_selection(self, start: u32, end: u32) {
         let Some(t) = state(self) else { return };
+        t.last_local.set(None);
         t.view.reset_local_selection();
         t.clear_renderer_selection();
         let (bg, fg) = t.selection_colors();
