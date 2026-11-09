@@ -170,6 +170,14 @@ Status as of 2026-11-07, upstream 6a89e9f.
   provider request (655) would gain both headers.
 - `POST /api/experimental/fs/write` answers 500 with an empty body for any write that fails (a path through a
   file, a directory, no permission): the endpoint declares no errors, so the right answer is a design choice.
+- A bug, not yet patched: a plain "reject" inside Code Mode does not stop the turn. Permission.assert tunnels a
+  decline as a defect so that no tool can catch it (`permission.ts`; a direct call's decline ends the turn, D213),
+  but Code Mode's runtime turns every non-interrupt cause of a tool call into an error the program catches
+  (`codemode/src/tool-runtime.ts`: the program sees `Permission.DeclinedError`), and code-mode `fetch` does the same
+  (`Error` with an empty message): "codemode fetch rejected with feedback" records `"Error: "` and the turn goes on.
+  The fix: the bridge (`core/src/codemode/tool.ts`, and `fetch.ts` through the execution context) records the
+  decline and ends the program as an interrupt, which both interpreters propagate uncaught, then fails the call
+  with the decline; the goldens of both engines change.
 - A possible plan-mode race (a prompt before the creation reminder is queued); never observed.
 - CLI errors print JS stack frames (`Cause.pretty`). The CLI driver masks frames, so they are not part of the
   standard; the Rust CLI prints messages only.

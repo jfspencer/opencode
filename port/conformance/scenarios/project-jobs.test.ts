@@ -11,15 +11,19 @@ const scenario = (name: string, options: ScenarioOptions, body: (ctx: Ctx) => Pr
 
 const CHILD = "CHILD-TASK: summarize the repository"
 
+/** The child session's chat request: its first user message carries the task; the parent only mentions it inside its tool call. */
+function isChildRequest(request: ProviderRequest) {
+  if (request.kind !== "chat") return false
+  const messages = (request.body as { messages?: Array<{ role: string; content: unknown }> }).messages ?? []
+  const first = messages.find((message) => message.role === "user")
+  return JSON.stringify(first?.content ?? "").includes(CHILD)
+}
+
 /** Answers the child session's request (identified by its task text), so parent and child never race for turns. */
 function child(turn: Turn) {
   let used = false
   return (request: ProviderRequest) => {
-    if (used || request.kind !== "chat") return undefined
-    // The child's first user message carries the task; the parent only mentions it inside its tool call.
-    const messages = (request.body as { messages?: Array<{ role: string; content: unknown }> }).messages ?? []
-    const first = messages.find((message) => message.role === "user")
-    if (!JSON.stringify(first?.content ?? "").includes(CHILD)) return undefined
+    if (used || !isChildRequest(request)) return undefined
     used = true
     return turn
   }
@@ -120,6 +124,9 @@ scenario(
     const from = ctx.events.length
     await ctx.http("POST", `/api/session/${id}/prompt`, { text: "Start it" })
     await ctx.until((event) => event?.type === "session.execution.succeeded" && event?.data?.sessionID === id, from)
+    // The child is held at the fake model: once its request has arrived there, the job and the deletion find it in
+    // its step (deleted earlier, it would end before the step).
+    await ctx.until(() => ctx.provider.requests.some(isChildRequest))
     await ctx.http("GET", "/api/experimental/job")
     await ctx.http("DELETE", `/api/session/${id}`)
     await ctx.http("GET", "/api/experimental/job")
