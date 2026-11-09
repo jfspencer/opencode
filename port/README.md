@@ -170,7 +170,8 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 |---|---|
 | `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
 | `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
-| `handlers.rs` | `server/src/handlers/*.ts` |
+| `handlers/` | `server/src/handlers/*.ts`, one module per area of the API (`handlers/mod.rs` routes an operation by its name) |
+| `inventory.rs` | `core/src/config*.ts`, `agent.ts`, `provider.ts`, `model.ts`, ...: what a location's config and built-in plugins register (agents, providers, models), loaded at boot |
 | `db.rs` | `core/src/database`: the same pragmas, and a fresh database is bootstrapped with upstream's exact DDL and migration journal (`src/generated/database.rs`, from `schema.gen.ts` and `migration.gen.ts` by `gen/src/database.ts`), so either server opens a database the other created |
 | `bus.rs` | `core/src/bus.ts`: durable events get the next sequence of their aggregate and are projected in their commit's transaction; payloads are not retained (as with `opencode serve`); live subscribers get every event after it commits |
 | `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot and its announcements |
@@ -182,7 +183,7 @@ server at 311.7 MiB. Unported behavior is marked `TODO(port)` in the source; an 
 an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
-(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded. Every scenario that passes is listed in the ledger,
+(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the ledger,
 `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` records them.
 

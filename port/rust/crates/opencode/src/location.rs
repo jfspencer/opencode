@@ -2,7 +2,8 @@
 //!
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
 //! what they registered. TODO(port): the services themselves (config, agents, commands, skills, ...): the boot
-//! announces them in the order the TS server's built-in plugins do.
+//! announces them in the order the TS server's built-in plugins do. What they register is the location's
+//! [`crate::inventory::Inventory`].
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -19,6 +20,8 @@ pub struct Location {
     pub directory: String,
     pub workspace_id: Option<String>,
     pub project: ProjectRef,
+    #[allow(dead_code)]
+    pub inventory: crate::inventory::Inventory,
 }
 
 #[derive(Debug, Clone)]
@@ -115,6 +118,7 @@ fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),
         project: ProjectRef { id: resolved.id.clone(), directory: resolved.directory, canonical: resolved.canonical },
+        inventory: crate::inventory::Inventory::load(key)?,
     };
     // LocationLifecycle activates the project when the location boots.
     app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;

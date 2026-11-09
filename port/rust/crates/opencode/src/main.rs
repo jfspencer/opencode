@@ -6,6 +6,7 @@ mod auth;
 mod bus;
 mod db;
 mod handlers;
+mod inventory;
 mod http;
 mod id;
 mod json;

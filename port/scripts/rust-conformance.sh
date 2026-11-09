@@ -34,7 +34,9 @@ binary=$root/port/rust/target/$profile/opencode
 
 files=("$@")
 [ ${#files[@]} -eq 0 ] && files=($(cd "$here" && ls scenarios/*.test.ts))
-log=$(mktemp -d)
+# The reports of the last run (on disk: /tmp is a small tmpfs the scenarios' sandboxes already fill).
+log=$root/port/rust/target/conformance-logs
+rm -rf "$log" && mkdir -p "$log"
 pids=()
 for k in $(seq 0 $((shards - 1))); do
   shard=()

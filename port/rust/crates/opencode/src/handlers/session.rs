@@ -1,14 +1,13 @@
-//! Endpoint handlers (packages/server/src/handlers/*.ts).
+//! Sessions and their messages (handlers/session.ts, message.ts).
 
 use std::sync::Arc;
-use std::time::Duration;
 
 use bytes::Bytes;
 use opencode_protocol::Json;
 use opencode_protocol::Wire;
 use opencode_protocol::types as t;
-use tokio::sync::broadcast::error::RecvError;
 
+use super::data;
 use crate::api::{Decoded, event_stream, not_implemented};
 use crate::app::{App, fatal};
 use crate::bus::LocationRef;
@@ -17,17 +16,9 @@ use crate::json::{self, Obj};
 use crate::location::Location;
 use crate::session::{self, CreateInput, ListFilter};
 
-pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Option<Arc<Location>>) -> Result<Response> {
+pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Option<Arc<Location>>) -> Result<Response> {
     let operation = request.route.operation;
     match operation {
-        "event.subscribe" => Ok(subscribe(app, &decoded)),
-        "agent.list" | "skill.list" => {
-            // TODO(port): agents and skills. The location is booted (the middleware did it).
-            let location = located.expect("located endpoint");
-            let mut o = Obj::new();
-            o.set("location", location.info()).set("data", Json::Array(vec![]));
-            Ok(Response::value(200, &o.done()))
-        }
         "session.list" => session_list(app, &decoded),
         "session.create" => session_create(app, &decoded).await,
         "session.get" => {
@@ -65,67 +56,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             // TODO(port): staging a revert (snapshots).
             Err(not_implemented(operation))
         }
-        _ => {
-            if request.route.path.contains(":sessionID") {
-                session::require(&app.db.lock().unwrap(), request.param("sessionID"))?;
-            }
-            Err(not_implemented(operation))
-        }
+        _ => super::fallback(app, request),
     }
-}
-
-fn data(value: Json) -> Response {
-    let mut o = Obj::new();
-    o.set("data", value);
-    Response::value(200, &o.done())
-}
-
-/// `GET /api/event` (handlers/event.ts): a `server.connected` event, then every public event as it is published,
-/// with a comment heartbeat every 15 seconds.
-fn subscribe(app: &App, decoded: &Decoded) -> Response {
-    let types: Option<Vec<String>> = match json::get(&decoded.query, "types") {
-        Some(Json::Array(items)) => Some(items.iter().filter_map(|i| match i {
-            Json::String(s) => Some(s.clone()),
-            _ => None,
-        }).collect()),
-        Some(Json::String(s)) => Some(vec![s.clone()]),
-        _ => None,
-    }
-    .filter(|t| !t.is_empty());
-    let mut receiver = app.bus.subscribe();
-    let (sender, response) = event_stream();
-    let connected = format!("data: {{\"id\":\"{}\",\"type\":\"server.connected\",\"data\":{{}}}}\n\n", crate::id::event());
-    tokio::spawn(async move {
-        if sender.send(Bytes::from(connected)).await.is_err() {
-            return;
-        }
-        let mut heartbeat = tokio::time::interval(Duration::from_secs(15));
-        heartbeat.tick().await;
-        loop {
-            tokio::select! {
-                event = receiver.recv() => match event {
-                    Ok(event) => {
-                        if types.as_ref().is_some_and(|types| !types.iter().any(|t| t == event.ty)) {
-                            continue;
-                        }
-                        let frame = format!("data: {}\n\n", event.to_json_text());
-                        if sender.send(Bytes::from(frame)).await.is_err() {
-                            return;
-                        }
-                    }
-                    // A subscriber that falls too far behind is dropped (EventFeed.SubscriberOverflow).
-                    Err(RecvError::Lagged(_)) | Err(RecvError::Closed) => return,
-                },
-                _ = heartbeat.tick() => {
-                    if sender.send(Bytes::from_static(b": heartbeat\n\n")).await.is_err() {
-                        return;
-                    }
-                }
-                _ = sender.closed() => return,
-            }
-        }
-    });
-    response
 }
 
 /// `GET /api/experimental/session/:sessionID/log`: the durable log after `after` (empty: payloads are not retained),
