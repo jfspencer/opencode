@@ -87,6 +87,8 @@ pub struct MouseEvent {
     pub is_dragging: bool,
     pub propagation_stopped: bool,
     pub default_prevented: bool,
+    /// The scroll box that took this wheel step (`lib/scroll-chain.ts`'s takers).
+    pub scroll_taker: Option<Element>,
 }
 
 impl MouseEvent {
@@ -148,6 +150,21 @@ pub trait Kind: Any {
     /// node itself: (offset x, offset y, clip rect in local cells).
     fn child_frame(&self, _el: Element, _width: f32, _height: f32) -> Option<ChildFrame> {
         None
+    }
+    /// After a layout round set the node's geometry, before its children's (a scroll box reads its hidden Yoga
+    /// nodes, follows its sticky edge and toggles its bars).
+    fn layout_resolved(&mut self, _el: Element) {}
+    fn resolves_layout(&self) -> bool {
+        false
+    }
+    /// After a layout round's resize events: what the node reports (a scroll box's SCROLL request), run outside
+    /// the node.
+    fn layout_notifications(&mut self, _el: Element) -> Option<Box<dyn FnOnce()>> {
+        None
+    }
+    /// Hit rectangles painted after the children (a scroll box's bars), in screen cells.
+    fn hits_after_children(&self, _el: Element, _x: i32, _y: i32, _w: u32, _h: u32) -> Vec<(i32, i32, u32, u32)> {
+        Vec::new()
     }
     fn destroy(&mut self, _el: Element) {}
     fn as_any(&self) -> &dyn Any;
@@ -219,6 +236,9 @@ pub struct Base {
     pub(crate) handlers: Handlers,
     /// Attach order among siblings (equal z-index paints in attachment order).
     attach_order: u64,
+    /// The Yoga node the children attach to when it is not the node's own (a scroll box's hidden content node,
+    /// owned by its kind, which lives as long as the node).
+    pub(crate) children_yoga: Option<*const layout::Node>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -309,6 +329,7 @@ pub fn create(kind: Box<dyn Kind>, id_prefix: &str, text_node: bool) -> Element 
             resized: None,
             handlers: Handlers::default(),
             attach_order: 0,
+            children_yoga: None,
         };
         let el = if let Some(index) = tree.free.pop() {
             let slot = &mut tree.slots[index as usize];
@@ -461,12 +482,30 @@ impl Element {
         self.with_base(|b| b.geometry).unwrap_or_default()
     }
 
+    /// The screen position as TS reads `x`/`y` (`composedLayout(.observed)`): the last layout's local position
+    /// composed with the ancestors' current positions, translations and scroll offsets.
+    pub fn screen_position(self) -> (f64, f64) {
+        let Some((geometry, translate, parent)) = self.with_base(|b| (b.geometry, (b.translate_x, b.translate_y), b.parent))
+        else {
+            return (0.0, 0.0);
+        };
+        let Some(parent) = parent else { return (geometry.screen_x, geometry.screen_y) };
+        let (px, py) = parent.screen_position();
+        let pg = parent.geometry();
+        let (ox, oy) = parent
+            .with_dyn_kind(|k| k.child_frame(parent, pg.width, pg.height))
+            .flatten()
+            .map(|f| (f.offset_x, f.offset_y))
+            .unwrap_or((0.0, 0.0));
+        (px + ox + geometry.left as f64 + translate.0, py + oy + geometry.top as f64 + translate.1)
+    }
+
     /// `x`: the screen column (`screenX`).
     pub fn x(self) -> i32 {
-        self.geometry().screen_x as i32
+        self.screen_position().0 as i32
     }
     pub fn y(self) -> i32 {
-        self.geometry().screen_y as i32
+        self.screen_position().1 as i32
     }
     /// `width`: the computed width.
     pub fn width(self) -> f32 {
@@ -604,8 +643,20 @@ impl Element {
         self.set_value(layout::VALUE_MARGIN, edge as u32, value);
     }
 
+    /// A scroll box's padding goes to its content node (ScrollBox.ts forwards the padding options there).
     pub fn set_padding(self, edge: Edge, value: Option<Value>) {
+        let content = self.with_base(|b| b.children_yoga).flatten();
+        if let Some(content) = content {
+            unsafe { (*content).set_value(layout::VALUE_PADDING, edge as u32, value.unwrap_or(Value::Undefined)) };
+            self.yoga_changed();
+            return;
+        }
         self.set_value(layout::VALUE_PADDING, edge as u32, value);
+    }
+
+    /// Sets the node the children attach to (see `Base::children_yoga`); only before it has children.
+    pub(crate) fn set_children_yoga(self, node: Option<*const layout::Node>) {
+        self.with_base_mut(|b| b.children_yoga = node);
     }
 
     pub fn set_gap(self, gutter: u32, value: Option<Value>) {
@@ -787,7 +838,7 @@ impl Element {
                 });
                 let _ = removed;
                 let (parent_yoga, child_yoga) = (
-                    t.base(p).and_then(|b| b.yoga.as_ref()).map(|y| y as *const layout::Node),
+                    t.base(p).and_then(|b| b.children_yoga.or(b.yoga.as_ref().map(|y| y as *const layout::Node))),
                     t.base(child).and_then(|b| b.yoga.as_ref()).map(|y| y as *const layout::Node),
                 );
                 if let (Some(py), Some(cy)) = (parent_yoga, child_yoga) {
@@ -798,7 +849,7 @@ impl Element {
             let attach = t.next_attach;
             let base = t.base_mut(self)?;
             base.children.insert(index, child);
-            let parent_yoga = base.yoga.as_ref().map(|y| y as *const layout::Node);
+            let parent_yoga = base.children_yoga.or(base.yoga.as_ref().map(|y| y as *const layout::Node));
             let yoga_index = t
                 .base(self)?
                 .children
@@ -837,7 +888,7 @@ impl Element {
             let base = t.base_mut(self)?;
             let index = base.children.iter().position(|c| *c == child)?;
             base.children.remove(index);
-            let parent_yoga = base.yoga.as_ref().map(|y| y as *const layout::Node);
+            let parent_yoga = base.children_yoga.or(base.yoga.as_ref().map(|y| y as *const layout::Node));
             let child_base = t.base_mut(child)?;
             child_base.parent = None;
             let child_yoga = child_base.yoga.as_ref().map(|y| y as *const layout::Node);
@@ -1251,6 +1302,7 @@ pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
             unsafe { (*yoga).calculate_layout(width as f32, height as f32) };
         }
         let mut resized = Vec::new();
+        let mut resolvers = Vec::new();
         let order = visible_preorder(root);
         for &el in &order {
             let parent_screen = el.parent().map(|p| p.geometry()).map(|g| (g.screen_x, g.screen_y));
@@ -1276,6 +1328,10 @@ pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
                     resized.push((el, computed.width, computed.height));
                 }
             });
+            if el.with_dyn_kind(|k| k.resolves_layout()).unwrap_or(false) {
+                el.with_dyn_kind(|k| k.layout_resolved(el));
+                resolvers.push(el);
+            }
         }
         for (el, width, height) in resized {
             el.with_dyn_kind(|k| k.on_resize(el, width, height));
@@ -1284,6 +1340,11 @@ pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
                 handler();
             }
             el.emit("resize");
+        }
+        for el in resolvers {
+            if let Some(notify) = el.with_dyn_kind(|k| k.layout_notifications(el)).flatten() {
+                notify();
+            }
         }
         let dirty = with_tree(|t| t.base(root).and_then(|b| b.yoga.as_ref()).is_some_and(|y| y.is_dirty()));
         if !dirty {
@@ -1410,6 +1471,12 @@ fn paint_node(el: Element, buffer: &mut OptimizedBuffer, clip: Clip, opacity: f3
     if el.with_dyn_kind(|k| k.has_after_children()).unwrap_or(false) {
         enter(buffer, clip, opacity);
         el.with_dyn_kind(|k| k.render_after_children(el, buffer, x, y, w, h));
+        for (hx, hy, hw, hh) in el.with_dyn_kind(|k| k.hits_after_children(el, x, y, w, h)).unwrap_or_default() {
+            let hit = Clip { x: hx, y: hy, w: hw as i32, h: hh as i32 }.intersect(clip);
+            if hit.w > 0 && hit.h > 0 {
+                hits.push(Hit { x: hit.x, y: hit.y, width: hit.w as u32, height: hit.h as u32, num });
+            }
+        }
     }
 }
 
