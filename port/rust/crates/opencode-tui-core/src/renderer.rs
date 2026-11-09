@@ -77,6 +77,9 @@ struct State {
     destroy_listeners: Vec<Rc<dyn Fn()>>,
     theme_listeners: Vec<(u64, Rc<dyn Fn(ThemeMode)>)>,
     focus_listeners: Vec<(u64, Rc<dyn Fn(bool)>)>,
+    /// `onAnimationTick` subscribers and the timer that requests their next frame.
+    animation_tickers: Vec<AnimationTicker>,
+    animation_timer: Option<u64>,
     // Mouse (processSingleMouseEvent).
     captured: Option<Element>,
     pressed: Option<Element>,
@@ -345,6 +348,127 @@ pub fn on_terminal_focus(handler: impl Fn(bool) + 'static) -> u64 {
         s.next_listener
     })
     .unwrap_or(0)
+}
+
+/// `off("focus" | "blur", listener)` for a listener of [`on_terminal_focus`].
+pub fn off_terminal_focus(token: u64) {
+    with(|s| s.focus_listeners.retain(|(id, _)| *id != token));
+}
+
+/// `AnimationTickCallback`: (deltaTime, ticks, time), in ms.
+pub type AnimationTickCallback = Rc<dyn Fn(f64, u64, f64)>;
+
+struct AnimationTicker {
+    id: u64,
+    fps: f64,
+    window: f64,
+    next: f64,
+    last: f64,
+    callback: AnimationTickCallback,
+}
+
+/// `ANIMATION_TIMER_SLACK_MS`.
+const ANIMATION_TIMER_SLACK_MS: f64 = 1.0;
+
+/// The renderer clock (`clock.now()`), in ms since it started.
+fn clock_now(s: &State) -> f64 {
+    s.start.elapsed().as_secs_f64() * 1000.0
+}
+
+/// `onAnimationTick(fps, callback)`: calls `callback` `fps` times a second on a clock that all subscribers share.
+/// Due times are multiples of 1000 / fps, so equal rates tick together; one timer requests a frame at the earliest
+/// due time, and every frame, whatever its cause, runs each tick that is due within its tolerance (half the
+/// interval). Returns the token for [`off_animation_tick`].
+pub fn on_animation_tick(fps: f64, callback: AnimationTickCallback) -> u64 {
+    let interval = 1000.0 / fps;
+    assert!(interval > 0.0 && interval.is_finite(), "fps must be positive and finite, got {fps}");
+    let id = with(|s| {
+        if s.destroyed {
+            return 0;
+        }
+        let now = clock_now(s);
+        // The default tolerance is half the interval: 500 in window units.
+        let window = 500f64.max(ANIMATION_TIMER_SLACK_MS * fps);
+        s.next_listener += 1;
+        let id = s.next_listener;
+        // The first due time is the first one out of reach, so a new subscriber never ticks in the frame it joins.
+        let next = ((now * fps + window) / 1000.0).floor() + 1.0;
+        s.animation_tickers.push(AnimationTicker { id, fps, window, next, last: now, callback });
+        id
+    })
+    .unwrap_or(0);
+    if id != 0 {
+        schedule_animation_tick();
+    }
+    id
+}
+
+/// The unsubscribe function [`on_animation_tick`] returns.
+pub fn off_animation_tick(token: u64) {
+    let removed = with(|s| {
+        let before = s.animation_tickers.len();
+        s.animation_tickers.retain(|t| t.id != token);
+        before != s.animation_tickers.len()
+    })
+    .unwrap_or(false);
+    if removed {
+        schedule_animation_tick();
+    }
+}
+
+/// The fastest subscribers request frames at their due times; slower ones only at the end of their window, so they
+/// share those frames.
+fn schedule_animation_tick() {
+    let previous = with(|s| s.animation_timer.take()).flatten();
+    if let Some(timer) = previous {
+        clear_timeout(timer);
+    }
+    let due = with(|s| {
+        let fastest = s.animation_tickers.iter().fold(0f64, |f, t| f.max(t.fps));
+        let due = s
+            .animation_tickers
+            .iter()
+            .map(|t| (t.next * 1000.0 + if t.fps == fastest { 0.0 } else { t.window }) / t.fps)
+            .fold(f64::INFINITY, f64::min);
+        (due, clock_now(s))
+    });
+    let Some((due, now)) = due else { return };
+    if due == f64::INFINITY {
+        return;
+    }
+    let delay = (due - now).max(0.0).ceil() as u64;
+    let timer = set_timeout(delay, || {
+        with(|s| s.animation_timer = None);
+        request_render();
+    });
+    with(|s| s.animation_timer = Some(timer));
+}
+
+/// `runAnimationTicks(time)`.
+fn run_animation_ticks(time: f64) {
+    let ids: Vec<u64> = with(|s| s.animation_tickers.iter().map(|t| t.id).collect()).unwrap_or_default();
+    if ids.is_empty() {
+        return;
+    }
+    for id in ids {
+        let due = with(|s| {
+            let ticker = s.animation_tickers.iter_mut().find(|t| t.id == id)?;
+            let reach = ((time * ticker.fps + ticker.window) / 1000.0).floor();
+            if reach < ticker.next {
+                return None;
+            }
+            let ticks = (reach + 1.0 - ticker.next) as u64;
+            let delta = (time - ticker.last).max(0.0);
+            ticker.next = reach + 1.0;
+            ticker.last = time;
+            Some((ticker.callback.clone(), delta, ticks))
+        })
+        .flatten();
+        if let Some((callback, delta, ticks)) = due {
+            callback(delta, ticks, time);
+        }
+    }
+    schedule_animation_tick();
 }
 
 pub fn theme_mode() -> Option<ThemeMode> {
@@ -640,6 +764,8 @@ pub async fn create_cli_renderer(config: RendererConfig) -> std::io::Result<()> 
         destroy_listeners: Vec::new(),
         theme_listeners: Vec::new(),
         focus_listeners: Vec::new(),
+        animation_tickers: Vec::new(),
+        animation_timer: None,
         captured: None,
         pressed: None,
         last_over: None,
@@ -1126,6 +1252,11 @@ fn render_frame() {
     }) else {
         return;
     };
+    // The paint below draws what tick callbacks change, so their requests need no extra frame.
+    let requested_before_ticks = with(|s| s.immediate_rerender).unwrap_or(false);
+    let time = with(|s| clock_now(s)).unwrap_or(0.0);
+    run_animation_ticks(time);
+    with(|s| s.immediate_rerender = requested_before_ticks);
     tree::prepare_frame(width, height, delta);
     let hits = {
         let mut out = output.borrow_mut();

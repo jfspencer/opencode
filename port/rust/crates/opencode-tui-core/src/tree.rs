@@ -118,6 +118,9 @@ pub trait Kind: Any {
     }
     /// `onUpdate(deltaTime)`, once per frame before layout.
     fn on_update(&mut self, _el: Element, _delta: f64) {}
+    /// `onAnimationTick(deltaTime, ticks, time)`: the shared animation clock's tick while
+    /// [`Element::set_animation_fps`] is set and the node is drawn.
+    fn on_animation_tick(&mut self, _el: Element, _delta: f64, _ticks: u64, _time: f64) {}
     /// `onResize(width, height)` after the layout gave the node a new size.
     fn on_resize(&mut self, _el: Element, _width: f32, _height: f32) {}
     /// `onLifecyclePass`, before layout (a text composing its chunks from its text nodes).
@@ -252,6 +255,10 @@ pub struct Base {
     /// The Yoga node the children attach to when it is not the node's own (a scroll box's hidden content node,
     /// owned by its kind, which lives as long as the node).
     pub(crate) children_yoga: Option<*const layout::Node>,
+    /// `animationFps`, the frame that last updated the node, and its subscription to the animation clock.
+    animation_fps: Option<f64>,
+    animation_drawn_frame: i64,
+    animation_ticker: Option<u64>,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -343,6 +350,9 @@ pub fn create(kind: Box<dyn Kind>, id_prefix: &str, text_node: bool) -> Element 
             handlers: Handlers::default(),
             attach_order: 0,
             children_yoga: None,
+            animation_fps: None,
+            animation_drawn_frame: -1,
+            animation_ticker: None,
         };
         let el = if let Some(index) = tree.free.pop() {
             let slot = &mut tree.slots[index as usize];
@@ -552,6 +562,7 @@ impl Element {
         if live {
             self.propagate_live_count(if visible { 1 } else { -1 });
         }
+        self.update_animation_tick();
         if focused {
             self.blur();
         }
@@ -768,6 +779,56 @@ impl Element {
     // Live count (requestLive / dropLive)
     // -----------------------------------------------------------------------------------------------------------
 
+    /// `animationFps = value`: ticks [`Kind::on_animation_tick`] at this rate on the renderer's shared animation
+    /// clock while the node is visible.
+    pub fn set_animation_fps(self, fps: Option<f64>) {
+        if let Some(fps) = fps {
+            assert!(fps > 0.0 && fps.is_finite(), "animationFps must be positive and finite, got {fps}");
+        }
+        let changed = self.with_base_mut(|b| {
+            if b.animation_fps == fps {
+                return false;
+            }
+            b.animation_fps = fps;
+            true
+        });
+        if changed == Some(true) {
+            self.update_animation_tick();
+        }
+    }
+
+    pub fn animation_fps(self) -> Option<f64> {
+        self.with_base(|b| b.animation_fps).flatten()
+    }
+
+    /// Ticks only while the node is drawn. A hidden, culled or removed node gets no update, so the first tick after
+    /// a frame without one stops the clock, and the node's next update starts it again.
+    fn update_animation_tick(self) {
+        let previous = self.with_base_mut(|b| b.animation_ticker.take()).flatten();
+        if let Some(token) = previous {
+            crate::renderer::off_animation_tick(token);
+        }
+        let Some((Some(fps), true, false)) = self.with_base(|b| (b.animation_fps, b.visible, b.destroyed)) else {
+            return;
+        };
+        let el = self;
+        let token = crate::renderer::on_animation_tick(
+            fps,
+            Rc::new(move |delta, ticks, time| {
+                let drawn = el.with_base(|b| b.animation_drawn_frame).unwrap_or(-1);
+                if drawn < crate::renderer::frame_id() as i64 - 1 {
+                    let token = el.with_base_mut(|b| b.animation_ticker.take()).flatten();
+                    if let Some(token) = token {
+                        crate::renderer::off_animation_tick(token);
+                    }
+                    return;
+                }
+                el.with_dyn_kind(|k| k.on_animation_tick(el, delta, ticks, time));
+            }),
+        );
+        self.with_base_mut(|b| b.animation_ticker = Some(token));
+    }
+
     pub fn set_live(self, live: bool) {
         let delta = self.with_base_mut(|b| {
             if b.live == live {
@@ -940,6 +1001,7 @@ impl Element {
         }
         let had_focus = self.with_base(|b| b.focused).unwrap_or(false) || self.has_focus_within();
         self.with_base_mut(|b| b.destroyed = true);
+        self.update_animation_tick();
         self.emit("destroyed");
         if had_focus {
             request_render();
@@ -1304,7 +1366,18 @@ pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
             el.with_dyn_kind(|k| k.lifecycle_pass(el));
         }
     }
+    let frame = crate::renderer::frame_id() as i64;
     for el in visible_preorder(root) {
+        let animated = el.with_base_mut(|b| {
+            if b.animation_fps.is_none() {
+                return false;
+            }
+            b.animation_drawn_frame = frame;
+            b.animation_ticker.is_none()
+        });
+        if animated == Some(true) {
+            el.update_animation_tick();
+        }
         el.with_dyn_kind(|k| k.on_update(el, delta));
     }
     for _ in 0..MAX_LAYOUT_ROUNDS {
