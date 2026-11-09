@@ -1033,10 +1033,13 @@ impl<'a> Parser<'a> {
         Ok(Escape::Char(self.consume()))
     }
 
+    /// A legacy octal escape: at most three digits, and at most 0o377.
     fn consume_octal(&mut self) -> u32 {
         let mut n = self.consume() - 0x30;
-        while n < 32 && !self.at_end() && (0x30..=0x37).contains(&self.peek()) {
+        let mut digits = 1;
+        while digits < 3 && n < 32 && !self.at_end() && (0x30..=0x37).contains(&self.peek()) {
             n = n * 8 + (self.consume() - 0x30);
+            digits += 1;
         }
         n
     }
