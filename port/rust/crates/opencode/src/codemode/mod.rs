@@ -629,13 +629,11 @@ pub async fn execute(inventory: Arc<Inventory>, code: String, context: tool::Con
 
 /// `CodeMode.scanTools`: the canonical tool paths a program can call, in first-seen order, or the parse diagnostic's
 /// message.
-#[allow(dead_code)] // The schedule slice's.
 pub fn scan_tools(code: &str) -> Result<Vec<String>, String> {
     cm::scan::scan_tools(code).map_err(|diagnostic| diagnostic.message.to_rust_lossy())
 }
 
 /// `Tool.CheckInput`.
-#[allow(dead_code)] // The schedule slice's.
 pub struct CheckInput {
     pub code: String,
     /// The paths the program may call (normally [`scan_tools`]'s).
@@ -654,7 +652,7 @@ pub struct CheckInput {
 
 /// What a check's program ended with: `CodeMode.Result` as JSON (`{ok, value, warnings?} | {ok, error: {kind,
 /// message, location?, suggestions?}}`, then `logs?`, `truncated?`, `toolCalls`), as TS's `Tool.check` returns it.
-#[allow(dead_code)] // The schedule slice's.
+#[allow(dead_code)] // `ok` is the result's own `ok`, for callers that need no more.
 pub struct CheckResult {
     pub result: Json,
     pub ok: bool,
@@ -666,7 +664,6 @@ pub struct CheckResult {
 /// at `CodeMode.make`), which is the `Err`.
 ///
 /// The future is `Send` (a [`Pinned`] run): await it on the server's runtime thread.
-#[allow(dead_code)] // The schedule slice's.
 pub fn check(input: CheckInput) -> Pinned<Result<CheckResult, String>> {
     let disabled = tool::wholly_disabled("execute", &input.permissions);
     let inventory = tool::registry().code_mode_inventory(&input.permissions, &input.extra, Some(&input.tools));
