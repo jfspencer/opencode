@@ -235,6 +235,8 @@ scenarios/session-api-prompt.test.ts › queue a prompt behind the running turn
 scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
 scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
+scenarios/session-api-revert.test.ts › diff a session without changes or without git
+scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
 scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent

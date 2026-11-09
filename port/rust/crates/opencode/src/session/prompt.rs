@@ -2,7 +2,7 @@
 //! session/prompt.ts `prepare`): input is prepared (file attachments read inline, skill attachments given their
 //! content), admitted into the inbox (idempotently by ID), and the session is woken unless `resume` is `false`.
 //!
-//! TODO(port): the `session.prompt` plugin hook, committing a staged revert before admission.
+//! TODO(port): the `session.prompt` plugin hook.
 
 use opencode_protocol::Json;
 
@@ -60,6 +60,8 @@ pub async fn submit(app: &App, session_id: &str, input: &Json) -> Result<Json> {
             payload.opt("metadata", present("metadata"));
             let mut item = Obj::new();
             item.str("type", "user").set("payload", payload.done()).str("delivery", &delivery);
+            // Commit a staged revert only after preparation succeeds, before admitting new work.
+            session::revert::commit(app, &stored, Some(stored.location.clone()))?;
             match inbox::admit(app, &message_id, session_id, item.done(), Some(stored.location.clone()))? {
                 Ok(admitted) => admitted,
                 Err(_) => return Err(conflicted()),
