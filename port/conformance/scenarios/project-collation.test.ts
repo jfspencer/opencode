@@ -64,6 +64,29 @@ scenario("directory listings in ICU root order", { files }, async (ctx) => {
   await ctx.http("GET", "/api/fs/list?path=names")
 })
 
+// ICU's iteration over the first name never ends: it repeats U+0C46's element after the contraction U+0C46 starts
+// fails across the normalized marks. Against names whose elements end it still compares (greater than any run of
+// U+0C46 followed by something lower, less than U+0C47). Two such names would hang the reference.
+scenario(
+  "a name whose collation never ends sorts among names that end",
+  {
+    files: Object.fromEntries(
+      [
+        "ె\u{16b31}\u{10ae6}̈́.txt",
+        "ె.txt",
+        "ై.txt",
+        "ెెెb.txt",
+        "ెె.txt",
+        "a.txt",
+        "ే.txt",
+      ].map((name) => [`telugu/${name}`, `${name}\n`]),
+    ),
+  },
+  async (ctx) => {
+    await ctx.http("GET", "/api/fs/list?path=telugu")
+  },
+)
+
 scenario(
   "the read tool lists a directory in ICU root order",
   { files, turns: [call("read", { path: "names" }), say("Listed.")] },

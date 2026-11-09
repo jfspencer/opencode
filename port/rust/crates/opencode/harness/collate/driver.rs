@@ -1,6 +1,7 @@
 //! The Rust side of the collation harness (run.sh): `src/collate.rs` compiled on its own (it needs only std).
 //! Strings travel as lines of hex code points separated by spaces (an empty line is the empty string).
-//!   driver elements   each line's collation elements, `primary:secondary:tertiary` in hex
+//!   driver elements   each line's collation elements, `primary:secondary:tertiary` in hex (at most 31 per code
+//!                     unit, plus 64, then `+` when there are more)
 //!   driver compare    each line `a<TAB>b`: -1, 0 or 1 for `compare(a, b)`
 //!   driver sort       the lines, stably sorted with `compare`
 #[path = "../../src/collate.rs"]
@@ -24,10 +25,12 @@ fn main() {
     match mode.as_str() {
         "elements" => {
             for line in lines {
-                let items: Vec<String> = collate::debug_elements(&decode(&line))
-                    .iter()
-                    .map(|(p, lower)| format!("{p:x}:{:x}:{:x}", lower >> 16, lower & 0xffff))
-                    .collect();
+                let (elements, more) = collate::debug_elements(&decode(&line));
+                let mut items: Vec<String> =
+                    elements.iter().map(|(p, lower)| format!("{p:x}:{:x}:{:x}", lower >> 16, lower & 0xffff)).collect();
+                if more {
+                    items.push("+".into());
+                }
                 writeln!(out, "{}", items.join(" ")).unwrap();
             }
         }

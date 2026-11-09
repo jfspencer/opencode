@@ -96,6 +96,8 @@ const weighed = (text: string) =>
     .split(/\s+/)
     .filter(Boolean)
     .map((item) => {
+      // ICU's endless iterations are cut off (see collation-dump.c).
+      if (item === "+") return item
       const [p, s, t] = item.split(":").map((h) => parseInt(h, 16)) as [number, number, number]
       const weight = p === 0 || lead(p) >= 0xfe ? p : (rank.get(p) ?? `unknown primary ${p.toString(16)}`)
       return `${weight.toString(16)}:${s.toString(16)}:${(t & 0x3f3f).toString(16)}`
@@ -136,22 +138,33 @@ const elementsCheck = () => {
   })
   report("elements of every generated string (ICU)", strings.length, differences)
 }
+// ICU's iteration loops forever on some strings (see collate.rs `compare`); Bun never returns from comparing two of
+// them that loop alike, so pairs of two such strings are only run through Rust (which must return), not Bun.
+const endless = (strings: string[]) => {
+  const out = run("--ces", strings.map(hex), icuDump)
+  return new Set(strings.filter((_, i) => out[i]!.endsWith("+")))
+}
 const sign = (n: number) => (n < 0 ? -1 : n > 0 ? 1 : 0)
 const compareAll = (title: string, pairs: Array<[string, string]>) => {
   // (Single code points were checked with the dump.)
   for (const text of pairs.flat()) if (text.length < 64 && !/^.?$/su.test(text) && generated.size < 3_000_000) generated.add(text)
+  const loops = endless([...new Set(pairs.flat())])
   const got = run(
     "compare",
     pairs.map(([a, b]) => `${hex(a)}\t${hex(b)}`),
   )
   const differences: string[] = []
+  let skipped = 0
   pairs.forEach(([a, b], i) => {
+    if (loops.has(a) && loops.has(b)) return void skipped++
     const bun = sign(a.localeCompare(b))
     if (String(bun) !== got[i]) differences.push(`${show16(a)} vs ${show16(b)}: bun ${bun} rust ${got[i]}`)
   })
-  report(title, pairs.length, differences)
+  report(skipped ? `${title} (${skipped} pairs of endless strings only through Rust)` : title, pairs.length - skipped, differences)
 }
-const sortAll = (title: string, items: string[]) => {
+const sortAll = (title: string, all: string[]) => {
+  const loops = endless(all)
+  const items = all.filter((text) => !loops.has(text))
   const bun = items.toSorted((a, b) => a.localeCompare(b))
   const rust = run("sort", items.map(hex))
   const differences: string[] = []
@@ -354,6 +367,9 @@ for (let k = 0; k < 20; k++) sortAll(`random sample ${k + 1} sorted`, Array.from
     "x̣́", "x̣́", "ạ́", "ấ", "ậ", "ậ", "ậ",
     "آ", "آ", "ا", "क़", "क़", "क",
     "\u{16d63}\u{16d67}\u{16d67}", "\u{1611e}\u{1611e}\u{1611f}", "ೋ", "ෝ",
+    // ICU's endless iteration, and strings it meets that end.
+    "ె\u{16b31}\u{10ae6}̈́", "ె\u{16b30}\u{10ae6}̈́", "aె\u{16b31}\u{10ae6}̈́",
+    "ె\u{16b31}\u{10ae6}̈́a", "ె", "ై", "ై", "ెెెb", "ెెెె",
   ]
   const pairs: Array<[string, string]> = []
   for (const a of picked) for (const b of picked) pairs.push([a, b])

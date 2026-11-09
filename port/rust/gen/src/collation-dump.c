@@ -34,33 +34,50 @@ static void die(UErrorCode s, const char *what) {
   }
 }
 
+static int32_t held;
+static int holding;
+
+// The next 64-bit element, joined from its first half and, when the next half is a continuation (low byte 0xc0:
+// the primary's low 16 bits, the secondary's and the tertiary's low bytes), from that; 0 at the end.
+static int next_element(uint32_t *p, uint32_t *sec, uint32_t *ter) {
+  UErrorCode s = U_ZERO_ERROR;
+  int32_t ce = holding ? held : ucol_next(it, &s);
+  holding = 0;
+  die(s, "ucol_next");
+  if (ce == UCOL_NULLORDER) return 0;
+  uint32_t u = (uint32_t)ce;
+  *p = u & 0xffff0000;
+  *sec = ((u >> 8) & 0xff) << 8;
+  *ter = (u & 0xff) << 8;
+  int32_t next = ucol_next(it, &s);
+  die(s, "ucol_next");
+  if (next != UCOL_NULLORDER && ((uint32_t)next & 0xc0) == 0xc0) {
+    *p |= (uint32_t)next >> 16;
+    *sec |= ((uint32_t)next >> 8) & 0xff;
+    *ter |= (uint32_t)next & 0x3f;
+  } else {
+    held = next;
+    holding = 1;
+  }
+  return 1;
+}
+
+// ICU's iteration can loop forever on some strings (it keeps re-reading a code point after a failed discontiguous
+// contraction backs up across a normalized segment), so at most 31 elements per code unit, plus 64, are printed,
+// then `+` when there are more (collate.rs's `debug_elements` stops at the same count).
 static void ces(const UChar *text, int32_t len) {
   UErrorCode s = U_ZERO_ERROR;
   ucol_setText(it, text, len, &s);
   die(s, "ucol_setText");
-  int pending = 0;
-  uint32_t p = 0, sec = 0, ter = 0;
-  for (;;) {
-    int32_t ce = ucol_next(it, &s);
-    die(s, "ucol_next");
-    if (ce == UCOL_NULLORDER) break;
-    uint32_t u = (uint32_t)ce;
-    // A continuation half: the primary's low 16 bits, the secondary's and the tertiary's low bytes.
-    if (pending && (u & 0xc0) == 0xc0) {
-      p |= u >> 16;
-      sec |= (u >> 8) & 0xff;
-      ter |= u & 0x3f;
-      printf(" %x:%x:%x", p, sec, ter);
-      pending = 0;
-      continue;
+  holding = 0;
+  uint32_t p, sec, ter;
+  for (int32_t printed = 0; next_element(&p, &sec, &ter); printed++) {
+    if (printed == 31 * len + 64) {
+      printf(" +");
+      return;
     }
-    if (pending) printf(" %x:%x:%x", p, sec, ter);
-    p = u & 0xffff0000;
-    sec = ((u >> 8) & 0xff) << 8;
-    ter = (u & 0xff) << 8;
-    pending = 1;
+    printf(" %x:%x:%x", p, sec, ter);
   }
-  if (pending) printf(" %x:%x:%x", p, sec, ter);
 }
 
 static void dump_string(const char *tag, const UChar *text, int32_t len) {

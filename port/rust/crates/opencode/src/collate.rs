@@ -1015,16 +1015,6 @@ impl<'a> Iter<'a> {
     }
 }
 
-/// The collation elements of `text` from code unit `start` on.
-fn elements_from(text: &[u16], start: usize) -> Vec<Element> {
-    let mut iter = Iter::new(text, start);
-    let mut out = Vec::new();
-    while let Some(element) = iter.next_ce() {
-        out.push(element);
-    }
-    out
-}
-
 fn level(element: &Element, which: u8) -> u32 {
     match which {
         1 => element.0,
@@ -1033,7 +1023,23 @@ fn level(element: &Element, which: u8) -> u32 {
     }
 }
 
+/// A mapping has at most 31 elements (`Collation::MAX_EXPANSION_LENGTH`) and covers at least one code point, so an
+/// iteration that gives more than this per code unit is ICU's endless loop (see [`compare`]).
+const ELEMENTS_PER_UNIT: usize = 31;
+/// How far past the longest finite iteration [`compare`] follows two endless ones before it gives up.
+const ENDLESS_SLACK: usize = 10_000;
+
 /// `a.localeCompare(b)` (as an ordering; equal at tertiary strength is `Equal`).
+///
+/// ICU's iteration loops forever on some strings, giving one element again and again (a discontiguous contraction
+/// that fails after a normalized segment backs up across it, and FCDUTF16CollationIterator's backward check then
+/// resumes before the contraction's starter). The comparison pulls elements lazily, as
+/// `CollationCompare::compareUpToQuaternary` does, so such a string compares as in Bun wherever Bun answers: until
+/// the other string, which is finite, ends or differs. Where both loop alike, Bun never returns (it spins and grows
+/// its element buffer); here they compare equal once both have run [`ENDLESS_SLACK`] elements past any finite
+/// iteration. TODO(port): a deviation from the reference, which hangs there (Bun 1.4.2, ICU 78:
+/// `"ె\u{16B31}\u{10AE6}̈́".localeCompare("ె\u{16B30}\u{10AE6}̈́")` never returns, so a directory
+/// holding two such names hangs `/api/fs/list`).
 pub fn compare(a: &str, b: &str) -> Ordering {
     if a == b {
         return Ordering::Equal;
@@ -1049,10 +1055,31 @@ pub fn compare(a: &str, b: &str) -> Ordering {
             equal -= 1;
         }
     }
-    let (left, right) = (elements_from(&left, equal), elements_from(&right, equal));
-    for which in 1..=3u8 {
-        let mut l = left.iter().map(|e| level(e, which)).filter(|w| *w != 0);
-        let mut r = right.iter().map(|e| level(e, which)).filter(|w| *w != 0);
+    let mut budget = ELEMENTS_PER_UNIT * (left.len() + right.len() + 2) + ENDLESS_SLACK;
+    let (mut left, mut right) = (Iter::new(&left, equal), Iter::new(&right, equal));
+    // The primaries, fetched as they are compared; the elements stay in the iterators for the other levels.
+    let mut primary = |iter: &mut Iter| -> Result<Option<u32>, ()> {
+        loop {
+            budget = budget.checked_sub(1).ok_or(())?;
+            match iter.next_ce() {
+                Some((0, _)) => {}
+                found => return Ok(found.map(|element| element.0)),
+            }
+        }
+    };
+    loop {
+        let (Ok(l), Ok(r)) = (primary(&mut left), primary(&mut right)) else { return Ordering::Equal };
+        match (l, r) {
+            (None, None) => break,
+            (None, Some(_)) => return Ordering::Less,
+            (Some(_), None) => return Ordering::Greater,
+            (Some(x), Some(y)) if x != y => return x.cmp(&y),
+            _ => {}
+        }
+    }
+    for which in 2..=3u8 {
+        let mut l = left.ces.iter().map(|e| level(e, which)).filter(|w| *w != 0);
+        let mut r = right.ces.iter().map(|e| level(e, which)).filter(|w| *w != 0);
         loop {
             match (l.next(), r.next()) {
                 (None, None) => break,
@@ -1067,11 +1094,21 @@ pub fn compare(a: &str, b: &str) -> Ordering {
 }
 
 /// The collation elements of a string as ICU's CollationElementIterator gives them (for the harness,
-/// `port/rust/crates/opencode/harness/collate`).
+/// `port/rust/crates/opencode/harness/collate`): at most 31 per code unit, plus 64, and whether there are more.
 #[doc(hidden)]
 #[allow(dead_code)]
-pub fn debug_elements(text: &str) -> Vec<(u32, u32)> {
-    elements_from(&text.encode_utf16().collect::<Vec<_>>(), 0)
+pub fn debug_elements(text: &str) -> (Vec<(u32, u32)>, bool) {
+    let text: Vec<u16> = text.encode_utf16().collect();
+    let limit = ELEMENTS_PER_UNIT * text.len() + 64;
+    let mut iter = Iter::new(&text, 0);
+    let mut out = Vec::new();
+    while let Some(element) = iter.next_ce() {
+        if out.len() == limit {
+            return (out, true);
+        }
+        out.push(element);
+    }
+    (out, false)
 }
 
 #[cfg(test)]
@@ -1135,5 +1172,16 @@ mod tests {
         assert_eq!(compare("\u{64a}\u{1e01b}\u{108d}", "\u{64a}\u{108d}\u{1e01b}"), Ordering::Less);
         assert_eq!(compare("x\u{1e01b}\u{108d}", "x\u{108d}\u{1e01b}"), Ordering::Equal);
         assert_eq!(compare("\u{fdd1}\u{1e3a}", "\u{fdd1}L\u{331}"), Ordering::Greater);
+    }
+
+    /// ICU's endless iteration: against a finite string it compares as in Bun; two endless ones return equal where
+    /// Bun never returns.
+    #[test]
+    fn ends_where_icu_loops() {
+        let endless = "\u{c46}\u{16b31}\u{10ae6}\u{344}";
+        assert!(debug_elements(endless).1);
+        assert_eq!(compare(endless, "a"), Ordering::Greater);
+        assert_eq!(compare(endless, "\u{c46}\u{c46}\u{c46}b"), Ordering::Greater);
+        assert_eq!(compare(endless, "\u{c46}\u{16b30}\u{10ae6}\u{344}"), Ordering::Equal);
     }
 }
