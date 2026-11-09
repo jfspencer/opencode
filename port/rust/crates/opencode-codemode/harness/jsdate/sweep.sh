@@ -13,7 +13,7 @@ checker="$crate/../../target/release/examples/jsdate_check"
 zones=$(grep -o 'zone("[^"]*", "[^"]*"' "$crate/src/jsdate/zone_names.rs" | sed 's/.*, "\(.*\)"/\1/' | sort -u)
 for zone in $zones; do
   summary=$(TZ="$zone" bun "$here/oracle.ts" "$scale" 2>/dev/null | TZ="$zone" "$checker" 0 | sed -nE \
-    -e 's/^ *(.*): +[0-9]+ checked, +([1-9][0-9]*) different$/\1=\2/p' \
+    -e '/^jsdate_check/!s/^ *(.*): +[0-9]+ checked, +([1-9][0-9]*) different$/\1=\2/p' \
     -e 's/^jsdate_check [^:]*: ([0-9]+) checked, ([0-9]+) different$/total \1 checked, \2 different/p' | tac | paste -sd' ')
   echo "$zone: $summary"
 done

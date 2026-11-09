@@ -229,7 +229,7 @@ fn scan(r: &mut Reader) -> Token {
         let value = r.read_unsigned_numeral();
         return Token::Number { value, len: r.position() - start };
     }
-    for c in [b':', b'-', b'+', b'.', b')'] {
+    for &c in b":-+.)" {
         if r.skip(c) {
             return Token::Symbol(c);
         }

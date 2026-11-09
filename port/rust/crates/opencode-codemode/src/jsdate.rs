@@ -322,7 +322,7 @@ fn locale_date(f: &Fields) -> String {
 
 fn locale_time(t: f64) -> String {
     let hour = hour_from_time(t) as u32;
-    let h12 = if hour % 12 == 0 { 12 } else { hour % 12 };
+    let h12 = if hour.is_multiple_of(12) { 12 } else { hour % 12 };
     let meridiem = if hour < 12 { "AM" } else { "PM" };
     format!("{h12}:{:02}:{:02} {meridiem}", min_from_time(t), sec_from_time(t))
 }

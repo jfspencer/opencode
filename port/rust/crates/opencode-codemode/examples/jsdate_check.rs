@@ -58,7 +58,9 @@ impl Json<'_> {
             }
             Some(_) => {
                 let start = self.at;
-                while self.at < self.s.len() && matches!(self.s[self.at], b'-' | b'+' | b'.' | b'e' | b'E' | b'0'..=b'9') {
+                while self.at < self.s.len()
+                    && matches!(self.s[self.at], b'-' | b'+' | b'.' | b'e' | b'E' | b'0'..=b'9')
+                {
                     self.at += 1;
                 }
                 let text = std::str::from_utf8(&self.s[start..self.at]).map_err(|e| e.to_string())?;
@@ -68,7 +70,8 @@ impl Json<'_> {
         }
     }
     fn hex4(&mut self) -> Result<u16, String> {
-        let text = std::str::from_utf8(self.s.get(self.at..self.at + 4).ok_or("short escape")?).map_err(|e| e.to_string())?;
+        let text =
+            std::str::from_utf8(self.s.get(self.at..self.at + 4).ok_or("short escape")?).map_err(|e| e.to_string())?;
         self.at += 4;
         u16::from_str_radix(text, 16).map_err(|e| e.to_string())
     }
@@ -327,7 +330,8 @@ fn main() {
     let failed: u64 = report.failed.values().sum();
     let mut out = std::io::stdout().lock();
     for (kind, n) in &report.checked {
-        writeln!(out, "{kind:>22}: {n:>8} checked, {:>6} different", report.failed.get(kind).copied().unwrap_or(0)).ok();
+        writeln!(out, "{kind:>22}: {n:>8} checked, {:>6} different", report.failed.get(kind).copied().unwrap_or(0))
+            .ok();
     }
     writeln!(
         out,

@@ -6,14 +6,17 @@
 //! and knows legacy names (`EST5EDT`, `US/Eastern`, `CET`) that a system zoneinfo may lack, so the ID is resolved
 //! through the table of ICU's zones (`zone_names.rs`, generated from bun), which also holds the display names.
 //!
-//! The rules: the system's TZif file for the zone's canonical ID (ICU bundles its own copy of the same tz database).
+//! The rules: the system's TZif file for the zone's canonical ID. ICU bundles its own copy of the tz database, so
+//! zones whose rules changed between that release and the system's differ from bun, and so do zones the tz database
+//! merged into others (Africa/Accra into Africa/Abidjan, ...), whose pre-1970 history ICU keeps (backzone).
 //! Instants after the file's last transition follow its POSIX TZ footer. A local time maps to UTC the way JSC asks
 //! ICU to (`ucal_getTimeZoneOffsetFromLocal` with `UCAL_TZ_LOCAL_FORMER` for both skipped and repeated times): with
 //! the offset in effect before the transition.
 //!
 //! ICU's daylight flag (which picks the display name) comes from the tz "rearguard" format, where daylight saving
 //! is never negative. Where the TZif data uses negative DST (Europe/Dublin, Africa/Casablanca, ...), the flags are
-//! flipped back: a negative-DST period is standard time, and a standard period between two of them is daylight.
+//! flipped back: a daylight period between standard periods with larger offsets is standard time, and a standard
+//! period between two of them is daylight.
 
 use std::sync::OnceLock;
 
@@ -213,11 +216,11 @@ impl Posix {
     }
 
     /// The rule's transitions in the years around `year`, ascending: (UTC seconds, whether daylight time starts).
-    fn transitions(&self, dst: &PosixDst, year: i64) -> Vec<(i64, bool)> {
-        let mut out = Vec::with_capacity(6);
-        for y in year - 1..=year + 1 {
-            out.push((rule_day(dst.start, y) * 86_400 + dst.start_time - self.std as i64, true));
-            out.push((rule_day(dst.end, y) * 86_400 + dst.end_time - dst.offset as i64, false));
+    fn transitions(&self, dst: &PosixDst, year: i64) -> [(i64, bool); 6] {
+        let mut out = [(0, false); 6];
+        for (i, y) in (year - 1..=year + 1).enumerate() {
+            out[2 * i] = (rule_day(dst.start, y) * 86_400 + dst.start_time - self.std as i64, true);
+            out[2 * i + 1] = (rule_day(dst.end, y) * 86_400 + dst.end_time - dst.offset as i64, false);
         }
         out.sort();
         out
@@ -545,7 +548,15 @@ fn load() -> Zone {
     let icu_dst = icu_dst_flags(&tzif);
     let standard_name = entry.standard.to_string();
     let daylight_name = entry.daylight.to_string();
-    Zone { times: tzif.times, kinds: tzif.kinds, types: tzif.types, icu_dst, footer: tzif.footer, standard_name, daylight_name }
+    Zone {
+        times: tzif.times,
+        kinds: tzif.kinds,
+        types: tzif.types,
+        icu_dst,
+        footer: tzif.footer,
+        standard_name,
+        daylight_name,
+    }
 }
 
 #[cfg(test)]
