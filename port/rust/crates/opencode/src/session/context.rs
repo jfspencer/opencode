@@ -152,7 +152,7 @@ fn build(inventory: &Inventory, info: &t::ModelInfo, variant: Option<&str>) -> R
         id: info.id.clone(),
         name: info.name.clone(),
         base_url: json::get_str(&settings, "baseURL").unwrap_or("https://openrouter.ai/api/v1").to_owned(),
-        api_key: json::get_str(&settings, "apiKey").map(str::to_owned).or_else(|| inventory.api_key(&provider_id)),
+        api_key: crate::credential::api_key(inventory, &provider_id, json::get_str(&settings, "apiKey")),
         options,
         headers,
         body: json::get(&model, "body").filter(|b| matches!(b, Json::Object(o) if !o.is_empty())).cloned(),

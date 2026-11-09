@@ -192,6 +192,7 @@ pub async fn run(input: &Input) -> Result {
         locations: crate::location::Locations::default(),
         sessions: crate::session::Sessions::default(),
     });
+    crate::credential::install(&app);
     let address = crate::http::local_address(&listener).expect("bound address");
     let url = format_address(address);
     // TODO(port): `connectionURLs` lists every interface's address when bound to 0.0.0.0 or ::.

@@ -8,6 +8,7 @@ mod cli;
 mod codemode;
 mod collate;
 mod cors;
+mod credential;
 mod db;
 mod file_access;
 mod form;
