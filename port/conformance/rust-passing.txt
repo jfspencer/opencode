@@ -160,6 +160,7 @@ scenarios/project-projects.test.ts › markerless project adopted when a reposit
 scenarios/project-projects.test.ts › mercurial marker with a cached project ID
 scenarios/project-projects.test.ts › mercurial marker without the hg tool
 scenarios/project-projects.test.ts › pairing codes
+scenarios/project-projects.test.ts › pending forms, permission requests and usage limits when idle
 scenarios/project-projects.test.ts › project ID cached in the git directory
 scenarios/project-projects.test.ts › project icon from a favicon
 scenarios/project-projects.test.ts › project icon from an asset catalog
