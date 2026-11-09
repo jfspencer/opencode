@@ -1,0 +1,87 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "■  Could not check for OpenCode updates",
+          "│",
+          "│  The update service returned HTTP 503.",
+          "│  Retry    Try again in a few minutes.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.4.0",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Could not check for OpenCode updates",
+          "│",
+          "│  The update service returned HTTP 503.",
+          "│  Retry    Try again in a few minutes.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

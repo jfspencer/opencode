@@ -6,19 +6,24 @@
 //! Exit codes follow `NodeRuntime.runMain`: a failure is 1 (its `Cause.pretty` on stderr), help with errors 1,
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
-//! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
-//! default command), `--wizard`; see `dispatch`.
+//! Not ported (they answer an error): `mini`, `mcp`, `plugin` (dropped from the port), the TUI (the default command);
+//! see `dispatch`. `--wizard` builds the command in a terminal first (`wizard.rs`).
 
 mod auth;
 mod prompt;
+mod clack;
 mod acp;
 mod client;
 mod commands;
 mod connection;
 mod help;
+mod install;
 mod out;
+mod pair;
 mod parse;
 pub mod paths;
+mod pty_handoff;
+mod qr;
 mod run;
 mod serve;
 mod service;
@@ -26,6 +31,8 @@ mod spec;
 mod stats;
 mod tool;
 mod tui;
+mod tunnel;
+mod wizard;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -122,18 +129,25 @@ pub fn main() -> ! {
     let _ = STARTUP.set(crate::project::absolutize("."));
     merge_no_proxy();
     let root = spec::root();
-    let code = match parse::run(&root, &argv) {
+    let code = finish(&root, parse::run(&root, &argv), &argv);
+    exit(code)
+}
+
+/// `Command.runWith` after parsing: help, version, completions, the wizard, or the command's handler.
+fn finish(root: &spec::Command, outcome: Outcome, argv: &[String]) -> i32 {
+    match outcome {
         Outcome::Help { path, errors } => {
-            stdout(&format!("{}\n", help::render(&root, &path)));
+            let palette = help::Palette::detect();
+            stdout(&format!("{}\n", help::render(root, &path, palette)));
             if errors.is_empty() {
                 0
             } else {
-                stderr(&format!("{}\n", help::errors(&errors)));
+                stderr(&format!("{}\n", help::errors(&errors, palette)));
                 1
             }
         }
         Outcome::Version => {
-            stdout(&format!("{} v{}\n", root.name, crate::app::VERSION));
+            stdout(&format!("{}\n", help::version(root.name, crate::app::VERSION, help::Palette::detect())));
             0
         }
         Outcome::Completions(shell) => {
@@ -145,10 +159,20 @@ pub fn main() -> ! {
             });
             0
         }
-        Outcome::Wizard => {
-            stderr("Error: --wizard is not available in this build\n");
-            1
-        }
+        Outcome::Wizard { path } => match wizard::run(root, &path, argv) {
+            wizard::End::Exit(code) => code,
+            wizard::End::Run(args) => {
+                let outcome = parse::run(root, &args);
+                // The wizard runs the command with `renderErrors: false`: an invalid command shows its help alone,
+                // then the CLI shows the help again with the errors.
+                if let Outcome::Help { path, errors } = &outcome {
+                    if !errors.is_empty() {
+                        stdout(&format!("{}\n", help::render(root, path, help::Palette::detect())));
+                    }
+                }
+                finish(root, outcome, &args)
+            }
+        },
         Outcome::Run { path, input, globals } => {
             if globals.print_logs {
                 // SAFETY: single-threaded so far.
@@ -163,8 +187,7 @@ pub fn main() -> ! {
                 }
             }
         }
-    };
-    exit(code)
+    }
 }
 
 fn unavailable(path: &[&str]) -> out::Result {
@@ -193,8 +216,10 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["api"] => commands::api(globals, input).await,
         ["auth", name] => auth::command(name, globals, input).await,
         ["acp"] => acp::command(globals, input).await,
-        // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
-        // uninstall, pair).
+        ["upgrade" | "update"] => install::upgrade(input).await,
+        ["uninstall"] => install::uninstall(input).await,
+        ["pair"] => pair::command(input).await,
+        // Out of scope: `mini`, `mcp`, `plugin` and the v1 migration are dropped from the port (port/README.md).
         _ => unavailable(path),
     }
 }

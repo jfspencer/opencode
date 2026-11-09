@@ -9,7 +9,8 @@
 //!
 //! Where `experimental.media_blob` is on, an import's inline media and a fork's copy are stored as blobs.
 //!
-//! TODO(port): legacy transcripts (messages exported before v2.1 are upgraded on import).
+//! Transcripts exported before v2.1 are upgraded on import ([`legacy_messages`], applied by the API pipeline before
+//! the payload is decoded, so the upgrade decides what is valid, as `ImportedMessages` does in TS).
 
 use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};

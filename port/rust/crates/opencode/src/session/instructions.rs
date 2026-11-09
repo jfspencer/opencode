@@ -8,8 +8,8 @@
 //! instructions (`core/instructions`: AGENTS.md files and config `instructions`, see [`crate::instruction_discovery`],
 //! rendered by instruction-discovery.ts with jsdiff patches for edits), the built-ins (`core/date`,
 //! `core/environment`), then the session's API-managed entries. A source that is unavailable (a discovery that
-//! failed) keeps its stored value; with nothing stored it blocks the session's first admission. TODO(port): MCP
-//! instructions (out of scope, always empty in the reference configuration).
+//! failed) keeps its stored value; with nothing stored it blocks the session's first admission. MCP instructions
+//! are out of scope (MCP is not ported; the source is always empty in the reference configuration).
 
 use opencode_protocol::Json;
 use rusqlite::{Connection, OptionalExtension, Transaction, params};

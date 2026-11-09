@@ -4,12 +4,15 @@
 //! State here is plain Rust data. Every read through an accessor reports a [`Key`] to [`Reactivity::track`], and
 //! every change reports the keys whose values changed to [`Reactivity::trigger`]. A reactive layer implements
 //! [`Reactivity`] by mapping keys to signals: `track` subscribes the running computation (when there is one; reads
-//! under `untrack` are not subscriptions), `trigger` notifies. Keys form a tree ([`Key::parent`]): a change is
-//! reported at the most specific key that changed, and it also changes every ancestor of that key, so reading
-//! an ancestor is a deep read. `session.message.list(id)` tracks [`Key::Messages`], which every change to that
-//! transcript triggers; `session.message.get(id, messageID)` tracks one message; a part renderer can track a single
-//! part with [`Key::Part`]. Sibling keys are independent: appending a message triggers [`Key::MessageIds`] (the
-//! transcript's shape) but no other message's key.
+//! under [`Reactivity::untrack`] are not subscriptions), `trigger` notifies.
+//!
+//! Keys form a tree ([`Key::parent`]). A change at a key changes its ancestors (reading an ancestor is a deep read)
+//! and everything under it (a whole value replaced): `trigger(k)` notifies the readers of `k`, of every ancestor of
+//! `k` and of every descendant of `k`. Changes are reported as specifically as they are known.
+//! `session.message.list(id)` tracks [`Key::Messages`], which every change to that transcript triggers;
+//! `session.message.get(id, messageID)` tracks one message; a part renderer can track a single part with
+//! [`Key::Part`], which a text delta triggers alone. Sibling keys are independent: appending a message triggers
+//! [`Key::MessageIds`] (the transcript's shape) and the new message, but no other message.
 //!
 //! Changes that TS makes inside `batch(...)` are reported inside [`Reactivity::batch`], so effects run once the
 //! batch completes, as in Solid. A reactive layer may run effects synchronously from `trigger` outside a batch:
@@ -28,10 +31,17 @@ pub type Id = Rc<str>;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Key {
     // ---- the data store (`createData`) ----
-    /// Every session info (`session.list()`); parent of [`Key::Session`].
+    /// Every session info (`session.list()`); parent of [`Key::Session`], [`Key::SessionOrder`] and
+    /// [`Key::SessionParent`].
     Sessions,
     /// `session.get(id)`.
     Session(Id),
+    /// Which sessions there are and their `time.updated` (what `session.list()`'s TS memo tracks): a session added,
+    /// removed or replaced, or its update time changed.
+    SessionOrder,
+    /// A session's `parentID` (what `session.root(id)` reads): set, changed, or the session added, removed or
+    /// replaced.
+    SessionParent(Id),
     /// `session.missing(id)`.
     Missing(Id),
     /// Every family (parent of [`Key::Family`]).
@@ -147,7 +157,7 @@ impl Key {
     /// The key whose value contains this one's.
     pub fn parent(&self) -> Option<Key> {
         Some(match self {
-            Key::Session(_) => Key::Sessions,
+            Key::Session(_) | Key::SessionOrder | Key::SessionParent(_) => Key::Sessions,
             Key::Family(_) => Key::Families,
             Key::Status(_) => Key::Statuses,
             Key::MessageIds(session) | Key::Message(session, _) => Key::Messages(session.clone()),
@@ -167,16 +177,25 @@ impl Key {
     pub fn lineage(&self) -> impl Iterator<Item = Key> {
         std::iter::successors(Some(self.clone()), Key::parent)
     }
+
+    /// Whether a change at `changed` reaches a reader of `self`: one is the other or an ancestor of it.
+    pub fn affected_by(&self, changed: &Key) -> bool {
+        self.lineage().any(|k| k == *changed) || changed.lineage().any(|k| k == *self)
+    }
 }
 
 /// The reactive layer this crate reports to.
 pub trait Reactivity {
     /// A read of `key` (and everything under it).
     fn track(&self, key: &Key);
-    /// `key` changed (and with it every ancestor).
+    /// `key` changed: readers of it, of its ancestors and of its descendants are notified.
     fn trigger(&self, key: &Key);
     /// Solid's `batch`: changes inside report their effects once the outermost batch ends.
     fn batch(&self, f: &mut dyn FnMut());
+    /// Solid's `untrack`: reads inside subscribe nobody.
+    fn untrack(&self, f: &mut dyn FnMut()) {
+        f()
+    }
 }
 
 /// No reactive layer: reads are not tracked and changes notify nobody.
@@ -189,6 +208,14 @@ impl Reactivity for Inert {
     fn batch(&self, f: &mut dyn FnMut()) {
         f()
     }
+}
+
+/// Runs `f` without tracking its reads and returns its result.
+pub fn untrack<R>(reactivity: &dyn Reactivity, f: impl FnOnce() -> R) -> R {
+    let mut f = Some(f);
+    let mut result = None;
+    reactivity.untrack(&mut || result = Some((f.take().expect("untrack runs once"))()));
+    result.expect("untrack ran")
 }
 
 /// Runs `f` inside the reactive layer's batch and returns its result.
@@ -261,18 +288,17 @@ impl Observers {
         Subscription { state: Rc::downgrade(&self.state), key, id }
     }
 
-    fn deliver(&self, key: &Key) {
-        for key in key.lineage() {
-            let callbacks: Vec<Callback> = self
-                .state
-                .subscribers
-                .borrow()
-                .get(&key)
-                .map(|list| list.iter().map(|(_, c)| c.clone()).collect())
-                .unwrap_or_default();
-            for callback in callbacks {
-                callback(&key);
-            }
+    fn deliver(&self, changed: &Key) {
+        let callbacks: Vec<(Key, Callback)> = self
+            .state
+            .subscribers
+            .borrow()
+            .iter()
+            .filter(|(key, _)| key.affected_by(changed))
+            .flat_map(|(key, list)| list.iter().map(|(_, c)| (key.clone(), c.clone())).collect::<Vec<_>>())
+            .collect();
+        for (key, callback) in callbacks {
+            callback(&key);
         }
     }
 }

@@ -1,0 +1,46 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "■  Could not read the OpenCode update information",
+          "│",
+          "│  The update service returned incomplete release information.",
+          "│  Retry    Try again in a few minutes.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

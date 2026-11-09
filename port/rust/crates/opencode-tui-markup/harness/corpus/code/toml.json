@@ -1,0 +1,19 @@
+[
+ "# This is a TOML comment\n\n# This is a multiline\n# TOML comment",
+ "str1 = \"I'm a string.\"\nstr2 = \"You can \\\"quote\\\" me.\"\nstr3 = \"Name\\tJos\\u00E9\\nLoc\\tSF.\"",
+ "str1 = \"\"\"\nRoses are red\nViolets are blue\"\"\"\n\nstr2 = \"\"\"\\\n  The quick brown \\\n  fox jumps over \\\n  the lazy dog.\\\n  \"\"\"",
+ "path = 'C:\\Users\\nodejs\\templates'\npath2 = '\\\\User\\admin$\\system32'\nquoted = 'Tom \"Dubs\" Preston-Werner'\nregex = '<\\i\\c*\\s*>'",
+ "re = '''I [dw]on't need \\d{2} apples'''\nlines = '''\nThe first newline is\ntrimmed in raw strings.\nAll other whitespace\nis preserved.\n'''",
+ "int1 = +99\nint2 = 42\nint3 = 0\nint4 = -17",
+ "hex1 = 0xDEADBEEF\nhex2 = 0xdeadbeef\nhex3 = 0xdead_beef",
+ "oct1 = 0o01234567\noct2 = 0o755",
+ "bin1 = 0b11010110",
+ "float1 = +1.0\nfloat2 = 3.1415\nfloat3 = -0.01\n\nfloat8 = 224_617.445_991_228",
+ "float4 = 5e+22\nfloat5 = 1e06\nfloat6 = -2E-2\n\nfloat7 = 6.626e-34",
+ "infinite1 = inf\ninfinite2 = +inf\ninfinite3 = -inf",
+ "not1 = nan\nnot2 = +nan\nnot3 = -nan",
+ "odt1 = 1979-05-27T07:32:00Z\nodt2 = 1979-05-27T00:32:00-07:00\nodt3 = 1979-05-27T00:32:00.999999-07:00",
+ "ldt1 = 1979-05-27T07:32:00\nldt2 = 1979-05-27T00:32:00.999999",
+ "ld1 = 1979-05-27",
+ "lt1 = 07:32:00\nlt2 = 00:32:00.999999"
+]

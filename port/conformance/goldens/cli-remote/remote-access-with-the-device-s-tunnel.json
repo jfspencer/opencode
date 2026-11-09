@@ -1,0 +1,294 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "true",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "port": "<service-port>",
+            "remote": {}
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remote": {
+              "route": "<route>"
+            }
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remote": {
+              "route": "<route>"
+            }
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "false"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remoteAccepted": true
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remote": {
+              "route": "<route>"
+            },
+            "remoteAccepted": true
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "unset",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": {
+            "port": "<service-port>",
+            "remoteAccepted": true
+          }
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remoteAccepted": true
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "{",
+          "  \"id\": \"tun_conformance\",",
+          "  \"hostname\": \"k7x2q.tunnel.example\",",
+          "  \"certificateExpiry\": \"<iso-time>\"",
+          "}"
+        ],
+        "path": "<sandbox>/data/opentunnel/default/tunnel.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "-----BEGIN CERTIFICATE-----",
+          "MIIBconformance",
+          "-----END CERTIFICATE-----",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/certificate.pem"
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

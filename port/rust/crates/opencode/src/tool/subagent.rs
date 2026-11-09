@@ -16,6 +16,7 @@ use crate::job::{Blocked, Status};
 use crate::json::{self, Obj};
 use crate::session::subagent::{self as jobs, NO_TEXT, PREAMBLE, Spawned};
 use crate::session::{self, CreateInput};
+use crate::tool::file_input::Wording;
 use crate::tool::{Context, Definition, Execution, Failure, Output, Snapshot, Tool, ToolError};
 
 pub const NAME: &str = "subagent";
@@ -80,30 +81,23 @@ struct Input {
 }
 
 impl Input {
-    fn decode(input: &Json) -> Result<Input, Failure> {
-        let text = |key: &str| match json::get(input, key) {
-            Some(Json::String(value)) => Ok(value.clone()),
-            // TODO(port): the input schema's own error text.
-            Some(_) => Err(failure(format!("Expected string at [\"{key}\"]"))),
-            None => Err(failure(format!("Missing key at [\"{key}\"]"))),
-        };
-        let optional = |key: &str| match json::get(input, key) {
-            None => Ok(None),
-            Some(Json::String(value)) if value.is_empty() => Ok(None),
-            Some(Json::String(value)) => Ok(Some(value.clone())),
-            Some(_) => Err(failure(format!("Expected string at [\"{key}\"]"))),
-        };
+    /// The tool runtime's path: the input repaired (tool-input-repair.ts), empty `model` and `sessionID` dropped by
+    /// the tool's own `execute.before` hook, then decoded against `SubagentTool.Input` (a session ID that is not a
+    /// string is `Expected Session.ID`; one without its prefix fails `isStartingWith("ses")`).
+    fn decode(definition: &Definition, input: &Json) -> Result<Input, Failure> {
+        let mut input = super::file_input::repair(input, &definition.parameters);
+        if let Json::Object(fields) = &mut input {
+            fields.retain(|key, value| !(matches!(key.as_str(), "model" | "sessionID") && *value == Json::String(String::new())));
+        }
+        let input = super::file_input::decode(definition, &input, &[("sessionID", Wording::Expected("Session.ID"))])?;
+        let text = |key: &str| json::get_str(&input, key).map(str::to_owned);
         Ok(Input {
-            agent: text("agent")?,
-            description: text("description")?,
-            prompt: text("prompt")?,
-            model: optional("model")?,
-            session_id: optional("sessionID")?,
-            background: match json::get(input, "background") {
-                None => false,
-                Some(Json::Bool(value)) => *value,
-                Some(_) => return Err(failure("Expected boolean at [\"background\"]")),
-            },
+            agent: text("agent").unwrap_or_default(),
+            description: text("description").unwrap_or_default(),
+            prompt: text("prompt").unwrap_or_default(),
+            model: text("model"),
+            session_id: text("sessionID"),
+            background: matches!(json::get(&input, "background"), Some(Json::Bool(true))),
         })
     }
 }
@@ -214,8 +208,7 @@ fn output(child: &str, status: &str, text: String) -> Output {
     Output { content: vec![content.done()], metadata: Some(metadata.done()) }
 }
 
-async fn run(context: Context, input: Json) -> Result<Output, Failure> {
-    let input = Input::decode(&input)?;
+async fn run(context: Context, input: Input) -> Result<Output, Failure> {
     let app = context.app.clone();
     let lookup = |id: &str| session::get(&app.db.lock().unwrap(), id).ok().flatten();
     let parent = lookup(&context.session_id).ok_or_else(|| failure(format!("Parent session not found: {}", context.session_id)))?;
@@ -342,7 +335,7 @@ impl Tool for Subagent {
     }
 
     fn execute<'a>(&'a self, context: Context, input: Json) -> Execution<'a> {
-        Box::pin(run(context, input))
+        Box::pin(async move { run(context, Input::decode(&self.definition, &input)?).await })
     }
 }
 

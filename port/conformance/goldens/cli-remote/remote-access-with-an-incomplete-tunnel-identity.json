@@ -1,0 +1,42 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelStorageError: Incomplete tunnel identity for default",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

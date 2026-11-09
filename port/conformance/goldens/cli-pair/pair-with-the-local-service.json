@@ -1,0 +1,77 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair"
+        ],
+        "exit": 0,
+        "stderr": [
+          "  Over SSH? Forward the port, then open the link on your machine:",
+          "  ssh -L <service-port>:127.0.0.1:<service-port> <host>",
+          "  If port <service-port> is busy locally, forward another port and use it in the link.",
+          "",
+          "  To connect from other devices, run `opencode service set hostname 0.0.0.0`.",
+          "",
+          ""
+        ],
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  http://127.0.0.1:<service-port>/auth/connect/<pairing code>",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair"
+        ],
+        "exit": 0,
+        "stderr": [
+          "  Over SSH? Forward the port, then open the link on your machine:",
+          "  ssh -L <service-port>:127.0.0.1:<service-port> <host>",
+          "  If port <service-port> is busy locally, forward another port and use it in the link.",
+          "",
+          "  To connect from other devices, run `opencode service set hostname 0.0.0.0`.",
+          "",
+          ""
+        ],
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  http://127.0.0.1:<service-port>/auth/connect/<pairing code>",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

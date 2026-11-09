@@ -26,10 +26,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         "project.update" => project_update(app, request, &decoded),
         "location.get" => Ok(super::encoded(request, &located.expect("located endpoint").info())),
         "location.reload" => {
-            // TODO(port): the failure's text is Effect's `Cause.pretty` of the boot failure.
-            app.locations.reload(app).await.map_err(|failure| {
-                let message = crate::json::get_str(&failure.body, "message").unwrap_or("Location reload failed").to_owned();
-                service_unavailable(&message, "location")
+            app.locations.reload(app).await.map_err(|(reference, failure)| {
+                service_unavailable(&boot_failure(&reference, &failure), "location")
             })?;
             Ok(Response::no_content())
         }
@@ -55,6 +53,24 @@ pub fn service_unavailable(message: &str, service: &str) -> Failure {
     let mut o = Obj::new();
     o.str("_tag", "ServiceUnavailableError").str("message", message).str("service", service);
     Failure::new(503, o.done())
+}
+
+/// The message of a reload that could not boot a location again: Effect's `Cause.pretty` of the boot failure, the
+/// error's `<name>: <message>` line. TS follows it with the JavaScript stack trace, whose frames are the host's
+/// (source paths, engine internals), so they have no counterpart here.
+fn boot_failure(reference: &crate::bus::LocationRef, failure: &Failure) -> String {
+    let directory = &reference.directory;
+    if crate::json::get_str(&failure.body, "_tag") == Some("LocationNotFoundError") {
+        return format!("FileSystem.DirectoryNotFoundError: Directory not found: {directory}");
+    }
+    if failure.status == 500 && reference.workspace_id.is_none() && !crate::location::readable(directory) {
+        return format!("FileSystem.DirectoryAccessDeniedError: Access denied to directory: {directory}");
+    }
+    match (crate::json::get_str(&failure.body, "_tag"), crate::json::get_str(&failure.body, "message")) {
+        (Some(tag), Some(message)) => format!("{tag}: {message}"),
+        (None, Some(message)) => format!("Error: {message}"),
+        _ => "Error: An error has occurred".to_owned(),
+    }
 }
 
 fn project_update(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {

@@ -1,0 +1,539 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "empty",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected object"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "only white space",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected a valid JSON body"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "white space around",
+      "value": {
+        "body": {
+          "data": {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "spaced",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "a byte order mark",
+      "value": {
+        "body": {
+          "data": {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "bom",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "two byte order marks",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected a valid JSON body"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "invalid UTF-8 in a string",
+      "value": {
+        "body": {
+          "data": {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "a��b",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "kind": "note",
+      "label": "invalid UTF-8 outside a string",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected a valid JSON body"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "null",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected object"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "trailing text",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected a valid JSON body"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "a non-breaking space",
+      "value": {
+        "body": {
+          "_tag": "InvalidRequestError",
+          "kind": "Payload",
+          "message": "Expected a valid JSON body"
+        },
+        "status": 400
+      }
+    },
+    {
+      "kind": "note",
+      "label": "a surrogate pair escape",
+      "value": {
+        "body": {
+          "data": {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "😀",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "body": {
+        "cursor": {
+          "next": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "next",
+                "id": "<ses_1>",
+                "time": "<time>"
+              }
+            }
+          },
+          "previous": {
+            "<base64-json>": {
+              "anchor": {
+                "direction": "previous",
+                "id": "<ses_4>",
+                "time": "<time>"
+              }
+            }
+          }
+        },
+        "data": [
+          {
+            "cost": 0,
+            "id": "<ses_4>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "😀",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "a��b",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_2>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "bom",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          {
+            "cost": 0,
+            "id": "<ses_1>",
+            "location": {
+              "directory": "<root>/cwd"
+            },
+            "projectID": "<hash_1>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "spaced",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_4>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<root>/cwd"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_4>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "😀",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_4>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<root>/cwd"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<root>/cwd"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "a��b",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<root>/cwd"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_2>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<root>/cwd"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_2>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "bom",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_2>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<root>/cwd"
+        },
+        "type": "session.created"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<root>/cwd"
+          },
+          "projectID": "<hash_1>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "spaced",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<root>/cwd"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

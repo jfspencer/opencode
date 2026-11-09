@@ -71,7 +71,8 @@ pub enum InitializeError {
     Missing,
     Conflict,
     Unknown,
-    /// A provider without `init`; the built-in ones both have it (only an external plugin's, out of scope, could lack it).
+    /// A provider without `init`; the built-in ones both have it. Only an external plugin's VCS provider could lack
+    /// it, and external plugins are out of scope.
     #[allow(dead_code)]
     Unsupported,
     Failed,
