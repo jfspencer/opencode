@@ -6,8 +6,7 @@
 //! [`tool_part`]. The tool side is the tools slice's: [`tool_part`] (`<ToolPart part images>`), [`tool_images`]
 //! (`<ToolImages parts>`), [`shell_display`] (`<ShellDisplay>` of shell messages), [`permission_prompt`] and
 //! [`form_prompt`] (the prompts the Session's composer switch shows). Each forwards to the tools slice's module;
-//! until it lands, a minimal inline row stands in (`TODO(port-tui): tools`), so replace the body of each with the
-//! one-line call into `crate::tools`.
+//! each is a one-line call into the tools slice's module.
 //!
 //! The part is read reactively: `part()` returns the current JSON record (`SessionMessageAssistantTool` for tools),
 //! so a tool row updates in place as its state streams.
@@ -18,10 +17,8 @@ use opencode_tui_core::reactive::*;
 use opencode_tui_core::solid::*;
 use opencode_tui_sync::json::JsonExt;
 
-use super::message_parts::{InlineToolRowProps, PartProps, inline_tool_row, reasoning_part, text_part};
+use super::message_parts::{PartProps, reasoning_part, text_part};
 use super::rows::resolve_part;
-use crate::ctx::tui;
-use crate::util::rgba;
 
 /// Record identity, as a TS memo compares objects (the store makes a new record on every change).
 pub fn same_record(a: &Option<Rc<Json>>, b: &Option<Rc<Json>>) -> bool {
@@ -71,68 +68,52 @@ pub fn session_part_view(message: Rc<dyn Fn() -> Option<Rc<Json>>>, part_id: Str
     )
 }
 
-/// `<ToolPart part images>` (the tools slice's).
-///
-/// TODO(port-tui): tools: `crate::tools::tool_part(part, images)`. This stand-in shows the tool's name as an inline
-/// row (`✓`/`✗` once settled).
+/// `<ToolPart part images>` (the tools slice's `crate::tools::tool_part`).
 pub fn tool_part(part: Rc<dyn Fn() -> Rc<Json>>, images: Option<bool>) -> View {
-    let _ = images;
-    let theme = tui().theme;
-    let status = {
-        let part = part.clone();
-        create_memo(move || part().get("state").and_then(|s| s.str("status")).unwrap_or_default().to_string())
-    };
-    let name = {
-        let part = part.clone();
-        create_memo(move || part().str("name").unwrap_or_default().to_string())
-    };
-    inline_tool_row(InlineToolRowProps {
-        icon: Rc::new(move || if status.get() == "error" { "✗".into() } else { "✓".into() }),
-        color: Some(Rc::new(move || Some(rgba(theme.with(|th| th.text.muted))))),
-        complete: Rc::new(move || status.get() == "completed"),
-        pending: Rc::new(move || name.get()),
-        spinner: Rc::new(move || matches!(status.get().as_str(), "streaming" | "running")),
-        children: Rc::new(move || View::from(name.get())),
-        ..InlineToolRowProps::default()
-    })
+    crate::tools::tool_part(part, images)
 }
 
-/// `<ToolImages parts>` (the tools slice's). TODO(port-tui): tools: `crate::tools::tool_images(parts)`.
+/// `<ToolImages parts>` (the tools slice's `crate::tools::tool_images`).
 pub fn tool_images(parts: Rc<dyn Fn() -> Vec<Rc<Json>>>) -> View {
-    let _ = parts;
-    View::Empty
+    crate::tools::tool_images(parts)
 }
 
-/// `<ShellMessage message>` (index.tsx), whose `<ShellDisplay>` is the tools slice's.
-///
-/// TODO(port-tui): tools: `<ShellDisplay shellID command status output error>`; this stand-in shows the command.
+/// `<ShellMessage message>` (index.tsx): the message's command through the tools slice's `<ShellDisplay>`.
 pub fn shell_message(message: Rc<dyn Fn() -> Rc<Json>>) -> View {
-    let theme = tui().theme;
-    let running = {
+    let error = {
         let message = message.clone();
-        create_memo(move || message().str("status") == Some("running"))
+        create_memo(move || {
+            let message = message();
+            match message.str("status") {
+                Some("killed") => return Some("Command cancelled".to_string()),
+                Some("timeout") => return Some("Command timed out".to_string()),
+                _ => {}
+            }
+            match message.num("exit") {
+                Some(exit) if exit != 0.0 => Some(format!("Command exited with code {}", opencode_tui_sync::js::number(exit))),
+                _ => None,
+            }
+        })
     };
-    inline_tool_row(InlineToolRowProps {
-        icon: Rc::new(|| "$".into()),
-        color: Some(Rc::new(move || Some(rgba(theme.with(|th| th.text.muted))))),
-        complete: Rc::new(move || !running.get()),
-        pending: Rc::new(|| "Shell".into()),
-        spinner: Rc::new(move || running.get()),
-        children: Rc::new(move || View::from(message().str("command").unwrap_or_default().to_string())),
-        ..InlineToolRowProps::default()
+    let (m1, m2, m3, m4) = (message.clone(), message.clone(), message.clone(), message.clone());
+    crate::tools::parts::shell_display(crate::tools::parts::ShellDisplayProps {
+        part: None,
+        shell_id: Rc::new(move || m1().str("shellID").map(str::to_string)),
+        command: Rc::new(move || m2().str("command").map(str::to_string)),
+        workdir: Rc::new(|| None),
+        status: Rc::new(move || if m3().str("status") == Some("running") { "running".into() } else { "completed".into() }),
+        background: Rc::new(|| false),
+        output: Rc::new(move || m4().get("output").and_then(|o| o.str("output")).map(str::to_string)),
+        error: Some(Rc::new(move || error.get())),
     })
 }
 
 /// `<PermissionPrompt request directory>` (the tools slice's routes/session/permission.tsx).
-/// TODO(port-tui): tools: `crate::permission::permission_prompt(request, directory)`.
 pub fn permission_prompt(request: Rc<Json>, directory: Option<String>) -> View {
-    let _ = (request, directory);
-    View::Empty
+    crate::permission::permission_prompt(request, directory)
 }
 
-/// `<FormPrompt form>` (the tools slice's routes/session/form.tsx). TODO(port-tui): tools:
-/// `crate::form::form_prompt(form)`.
+/// `<FormPrompt form>` (the tools slice's routes/session/form.tsx).
 pub fn form_prompt(form: Rc<Json>) -> View {
-    let _ = form;
-    View::Empty
+    crate::form::form_prompt(form)
 }
