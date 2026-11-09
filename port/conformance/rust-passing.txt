@@ -293,6 +293,9 @@ scenarios/cli-serve.test.ts › serve generates a password when none is given
 scenarios/cli-serve.test.ts › serve over stdio ends when stdin closes
 scenarios/cli-serve.test.ts › serve with a password
 scenarios/cli-serve.test.ts › serve with an allowed CORS origin
+scenarios/cli-service-handoff.test.ts › a handoff published by another service is not adopted
+scenarios/cli-service-handoff.test.ts › a replacement service adopts the persistent terminals of a published handoff
+scenarios/cli-service-handoff.test.ts › an expired or empty handoff is not adopted
 scenarios/cli-service.test.ts › changing service settings stops the running service
 scenarios/cli-service.test.ts › commands start the service on demand and run reuses it
 scenarios/cli-service.test.ts › disabled service makes commands use a private server
@@ -312,6 +315,29 @@ scenarios/cli-session.test.ts › session import into another directory
 scenarios/cli-session.test.ts › session list formats and limits
 scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
+scenarios/cli-terminal.test.ts › help, version and errors in color on a terminal
+scenarios/cli-terminal.test.ts › session export picker cancelled
+scenarios/cli-terminal.test.ts › session export picker with no sessions
+scenarios/cli-terminal.test.ts › session export picks a session on a terminal
+scenarios/cli-terminal.test.ts › session list on a terminal goes through the pager
+scenarios/cli-terminal.test.ts › session list on a terminal with no sessions
+scenarios/cli-terminal.test.ts › session times in the local time zone
+scenarios/cli-uninstall.test.ts › uninstall answered with y on a terminal
+scenarios/cli-uninstall.test.ts › uninstall confirmed on a terminal
+scenarios/cli-uninstall.test.ts › uninstall dry run lists what would be removed
+scenarios/cli-uninstall.test.ts › uninstall needs a terminal or --force
+scenarios/cli-uninstall.test.ts › uninstall of a curl install
+scenarios/cli-uninstall.test.ts › uninstall with --force stops the service and removes the cache
+scenarios/cli-upgrade.test.ts › upgrade skipped when the version is already installed
+scenarios/cli-upgrade.test.ts › upgrade through WinGet
+scenarios/cli-upgrade.test.ts › upgrade through the curl installer
+scenarios/cli-upgrade.test.ts › upgrade when the package manager fails
+scenarios/cli-upgrade.test.ts › upgrade when the update service answers without a release
+scenarios/cli-upgrade.test.ts › upgrade when the update service fails
+scenarios/cli-upgrade.test.ts › upgrade when the update service is unreachable
+scenarios/cli-upgrade.test.ts › upgrade with an invalid version
+scenarios/cli-upgrade.test.ts › upgrade with each package manager
+scenarios/cli-upgrade.test.ts › upgrade without a detectable installation method
 scenarios/cli-wizard.test.ts › wizard after flags already given
 scenarios/cli-wizard.test.ts › wizard boolean answers and cancelling mid-way
 scenarios/cli-wizard.test.ts › wizard command not run

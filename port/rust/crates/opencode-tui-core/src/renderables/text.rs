@@ -85,10 +85,12 @@ impl Kind for TextKind {
         } else {
             el.request_render();
         }
+        el.emit("line-info-change");
     }
     fn on_resize(&mut self, el: Element, width: f32, height: f32) {
         self.scene.borrow_mut().apply_layout(width.max(0.0) as u32, height.max(0.0) as u32);
         el.request_render();
+        el.emit("line-info-change");
     }
     fn as_any(&self) -> &dyn Any {
         self
@@ -289,6 +291,7 @@ impl Element {
         } else {
             self.request_render();
         }
+        self.emit("line-info-change");
     }
 
     /// `fg`: a text's default foreground, or a span's.

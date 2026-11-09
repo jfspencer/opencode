@@ -2,7 +2,7 @@
 //! `createElement(tag)` does, with only an id; props are then set one by one (the typed setters on
 //! [`Element`]).
 use crate::color::text_attributes;
-use crate::renderables::{box_, text, textarea};
+use crate::renderables::{box_, diff, line_number, text, textarea};
 use crate::tree::Element;
 
 /// `<box>`.
@@ -52,4 +52,14 @@ pub fn a(href: &str) -> Element {
 /// `<textarea>`.
 pub fn textarea() -> Element {
     textarea::create_textarea()
+}
+
+/// `<line_number>`.
+pub fn line_number() -> Element {
+    line_number::create_line_number(line_number::LineNumberOptions::default())
+}
+
+/// `<diff>`.
+pub fn diff() -> Element {
+    diff::create_diff()
 }

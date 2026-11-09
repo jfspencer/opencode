@@ -2,9 +2,9 @@
 //!
 //! # Modules
 //!
-//! - [`app`]: `run` and `<App>` (app.tsx); [`ctx`]: what the providers give components; [`home`], [`prompt`],
-//!   [`local`], [`keymap`], [`session`], [`data`]: the home route and what it reads; [`toast`]: toasts; [`util`]:
-//!   locale, path and color helpers.
+//! - [`app`]: `run` and `<App>` (app.tsx); [`commands`]: App's command registry; [`ctx`]: what the providers give
+//!   components; [`home`], [`prompt`], [`local`], [`session`], [`data`]: the home route and what it reads;
+//!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -61,14 +61,14 @@
 //! `children`, `find_descendant_by_id`, the kind's setters (`set_content`, `set_wrap_mode`, `textarea_text`,
 //! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`.
 //!
-//! **Keybinds**: TODO(port-tui): context/keymap.tsx on `opencode_tui_input::keymap` (in dev since 8f0a2b840c:
-//! layers, commands, the timed leader, comma bindings, the base-layout fallback, pending sequences) with
-//! `registerManagedTextareaLayer` and the edit-buffer commands in opencode-tui-core. Until that lands here, [`keymap`]
-//! registers renderer key listeners (`renderer::on_key`: global listeners run before the focused renderable, in
-//! registration order, with `prevent_default`/`stop_propagation` as in KeyHandler.ts) for `prompt.clear`, `app.exit`
-//! and the leader, prints hints from the default bindings, and the textarea applies Textarea.ts's default table. A
-//! component's `useBindings` layer will become a `keymap::Layer` registered in its owner and disposed with
-//! `on_cleanup`.
+//! **Keybinds** ([`keymap`], `context/keymap.tsx` over `opencode-tui-input`'s `@opentui/keymap`): a layer is
+//! `keymap::create_layer(move || Layer { mode, enabled, target, priority, commands, bindings, .. })`, re-run in an
+//! effect like `Keymap.createLayer`; `mode: None` is the base mode, `Some("global")` any mode, `Some("modal")` only
+//! while a dialog is open (`keymap::mode_push`). A [`keymap::Command`] mirrors `KeymapCommand` (`Command::new(id,
+//! run).title(..).group(..).bind(Bind::Off).palette(true).slash(..)`); its `run` returns false to let the key fall
+//! through. `bindings: vec!["id", ..]` applies the config keybinds of those ids. `keymap::dispatch(id, input)`,
+//! `keymap::use_commands()` (the palette's list), `keymap::use_shortcuts().get/all(id)` (hints, formatted as TS
+//! formats them). App's command registry is [`commands`].
 //!
 //! **The theme** is `tui().theme` (a signal of [`ResolvedTheme`](theme::ResolvedTheme), which derefs to the token
 //! tree: `theme.text.muted`, `theme.background.raised.base`); `util::rgba(color)` converts a token to a renderable
@@ -92,10 +92,12 @@
 //!
 //! Divergences and stand-ins are listed at the top of each module and marked `TODO(port-tui)`.
 pub mod app;
+pub mod commands;
 pub mod config;
 pub mod ctx;
 pub mod data;
 pub mod home;
+pub mod interactivity;
 pub mod keymap;
 pub mod local;
 pub mod prompt;
