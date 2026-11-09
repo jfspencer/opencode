@@ -231,6 +231,8 @@ scenarios/session-api-prompt.test.ts › queue a prompt behind the running turn
 scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
 scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
+scenarios/session-api-revert.test.ts › diff a session without changes or without git
+scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
