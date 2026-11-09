@@ -12,6 +12,7 @@
 //! - [`renderer`], [`input`]: `CliRenderer` (frames, keys, pastes, mouse, resize, the event loop) and key events.
 pub mod border;
 pub mod buffer;
+pub mod clipboard;
 pub mod layout;
 pub mod color;
 pub mod edit_buffer_bindings;
@@ -22,6 +23,7 @@ pub mod pool;
 pub mod reactive;
 pub mod renderables;
 pub mod renderer;
+pub mod selection;
 pub mod solid;
 pub mod terminal;
 pub mod text_draw;

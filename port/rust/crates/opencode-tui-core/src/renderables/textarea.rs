@@ -10,9 +10,11 @@
 //! The textarea's state lives in a registry keyed by its element, so its getters and setters work while the tree
 //! has the kind out (from its own callbacks, which run during a key press).
 //!
-//! TODO(port-tui): the `keyBindings`/`keyAliasMap` props, mouse selection, extmarks and the syntax style prop. The
-//! keyboard selection (`select-*`) keeps its anchor here instead of in the renderer's selection
-//! (`startSelection`/`updateSelection`), so it does not reach other renderables' selections.
+//! Selections, by keyboard (`select-*`) or mouse, are the renderer's ([`crate::selection`]); the textarea's
+//! `onSelectionChanged` puts them in its editor view, moving the cursor to their focus.
+//!
+//! TODO(port-tui): the `keyBindings`/`keyAliasMap` props, mouse wheel scrolling (`handleScroll`), extmarks and
+//! the syntax style prop.
 use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
@@ -25,6 +27,7 @@ use crate::color::RGBA;
 use crate::input::{KeyEvent, PasteEvent};
 use crate::layout::MeasureMode;
 use crate::renderables::text::text_context;
+use crate::selection::{self, LocalSelection, SelectionEvent};
 use crate::tree::{self, Element, Kind};
 
 /// `EditorTraits`: what the focused editor tells the keymap and plugins.
@@ -274,6 +277,10 @@ fn key_binding_action(key: &KeyEvent) -> Option<TextareaAction> {
     })
 }
 
+/// `scrollMargin` and `scrollSpeed` defaults.
+const SCROLL_MARGIN: f64 = 0.2;
+const SCROLL_SPEED: f64 = 16.0;
+
 struct Props {
     placeholder: String,
     placeholder_color: RGBA,
@@ -295,9 +302,13 @@ pub struct Textarea {
     pub buffer: EditBuffer,
     pub view: Rc<EditorView>,
     props: RefCell<Props>,
-    /// The keyboard selection's anchor cell, local to the textarea (the renderer selection's anchor).
-    anchor: Cell<Option<(i32, i32)>>,
+    /// `lastLocalSelection`.
+    last_local: Cell<Option<LocalSelection>>,
+    /// `_keyboardSelectionActive`.
     keyboard_selection: Cell<bool>,
+    /// `_autoScrollVelocity` and `_autoScrollAccumulator`: a mouse selection dragged past an edge scrolls.
+    auto_scroll_velocity: Cell<f64>,
+    auto_scroll_accumulator: Cell<f64>,
     /// The focus state the text color was last set for.
     synced_focus: Cell<Option<bool>>,
 }
@@ -349,23 +360,101 @@ impl Textarea {
         }
     }
 
-    // `_ctx.clearSelection()`: the renderer's selection, here only the keyboard one, cleared.
+    // `_ctx.clearSelection()`: the renderer's selection, which tells this textarea too.
     fn clear_renderer_selection(&self) {
-        if self.anchor.take().is_some() {
-            self.keyboard_selection.set(false);
-            self.view.reset_local_selection();
-        }
+        selection::clear_selection();
     }
 
     /// `clearSelection()`.
     fn clear_selection(&self, el: Element) -> bool {
         let had = self.view.has_selection();
+        self.last_local.set(None);
         self.view.reset_local_selection();
         self.clear_renderer_selection();
         if had {
             el.request_render();
         }
         had
+    }
+
+    /// `shouldStartSelection(x, y)`.
+    fn should_start_selection(&self, el: Element, x: i32, y: i32) -> bool {
+        if !el.selectable() {
+            return false;
+        }
+        let (lx, ly) = (x - el.x(), y - el.y());
+        lx >= 0 && (lx as f32) < el.width() && ly >= 0 && (ly as f32) < el.height()
+    }
+
+    /// `onSelectionChanged(selection)`.
+    fn on_selection_changed(&self, el: Element, sel: Option<&SelectionEvent>) -> bool {
+        let local = selection::local_selection(sel, el.x(), el.y());
+        self.last_local.set(local);
+        let follow = self.keyboard_selection.get();
+        let (bg, fg) = self.selection_colors();
+        let changed = match (local, sel) {
+            (Some(l), Some(sel)) if sel.is_start => self
+                .view
+                .set_local_selection(l.anchor_x, l.anchor_y, l.focus_x, l.focus_y, bg, fg, true, follow, l.behavior)
+                .unwrap_or(false),
+            (Some(l), _) => self
+                .view
+                .update_local_selection(l.anchor_x, l.anchor_y, l.focus_x, l.focus_y, bg, fg, true, follow, l.behavior)
+                .unwrap_or(false),
+            (None, _) => {
+                self.keyboard_selection.set(false);
+                self.view.reset_local_selection();
+                true
+            }
+        };
+        match (local, sel) {
+            (Some(l), Some(sel)) if changed && sel.is_dragging => {
+                let viewport = self.view.get_viewport();
+                let margin = ((viewport.height as f64 * SCROLL_MARGIN).floor() as i32).max(1);
+                let velocity = if l.focus_y < margin {
+                    -SCROLL_SPEED
+                } else if l.focus_y >= viewport.height as i32 - margin {
+                    SCROLL_SPEED
+                } else {
+                    0.0
+                };
+                self.auto_scroll_velocity.set(velocity);
+            }
+            _ => {
+                self.keyboard_selection.set(false);
+                self.auto_scroll_velocity.set(0.0);
+                self.auto_scroll_accumulator.set(0.0);
+            }
+        }
+        if changed {
+            el.request_render();
+        }
+        self.view.has_selection()
+    }
+
+    /// `onUpdate`: the drag's auto-scroll.
+    fn auto_scroll(&self, el: Element, delta: f64) {
+        let velocity = self.auto_scroll_velocity.get();
+        if velocity == 0.0 || !self.view.has_selection() {
+            return;
+        }
+        let accumulator = self.auto_scroll_accumulator.get() + velocity * delta / 1000.0;
+        self.auto_scroll_accumulator.set(accumulator);
+        let lines = accumulator.abs().floor();
+        if lines > 0.0 {
+            let direction = if velocity > 0.0 { 1.0 } else { -1.0 };
+            let viewport = self.view.get_viewport();
+            let total = self.view.get_total_virtual_line_count();
+            let max_offset = total.saturating_sub(viewport.height) as f64;
+            let offset = (viewport.y as f64 + direction * lines).clamp(0.0, max_offset) as u32;
+            if offset != viewport.y {
+                let _ = self.view.set_viewport(viewport.x, offset, viewport.width, viewport.height, false);
+                selection::request_selection_update();
+            }
+            self.auto_scroll_accumulator.set(accumulator - direction * lines);
+        }
+        // The scroll goes on while the drag rests past the edge.
+        el.request_render();
     }
 
     fn delete_selected_text(&self, el: Element) {
@@ -382,7 +471,7 @@ impl Textarea {
         true
     }
 
-    /// `updateSelectionForMovement(shiftPressed, isBeforeMovement)`.
+    /// `updateSelectionForMovement(shiftPressed, isBeforeMovement)`: the keyboard selection is the renderer's.
     fn update_selection_for_movement(&self, el: Element, select: bool, before: bool) {
         if !select {
             self.keyboard_selection.set(false);
@@ -394,21 +483,18 @@ impl Textarea {
         }
         self.keyboard_selection.set(true);
         let cursor = self.view.get_visual_cursor();
-        let (x, y) = (cursor.visual_col as i32, cursor.visual_row as i32);
-        let (bg, fg) = self.selection_colors();
+        let (x, y) = (el.x() + cursor.visual_col as i32, el.y() + cursor.visual_row as i32);
         if before {
-            if self.anchor.get().is_none() || !self.view.has_selection() {
-                // `startSelection`: the previous selection goes, a new one starts at the cursor.
-                self.clear_renderer_selection();
-                self.anchor.set(Some((x, y)));
-                let follow = self.keyboard_selection.get();
-                let _ = self.view.set_local_selection(x, y, x, y, bg, fg, true, follow, SelectionBehavior::Cell);
+            if !selection::has_selection() || !self.view.has_selection() {
+                selection::start_selection(el, x, y, SelectionBehavior::Cell);
+            } else if selection::get_selection().is_some_and(|s| s.behavior() != SelectionBehavior::Cell)
+                && self.view.convert_selection_to_cell()
+            {
+                selection::set_behavior(SelectionBehavior::Cell);
             }
             return;
         }
-        let Some((ax, ay)) = self.anchor.get() else { return };
-        let follow = self.keyboard_selection.get();
-        let _ = self.view.update_local_selection(ax, ay, x, y, bg, fg, true, follow, SelectionBehavior::Cell);
+        selection::update_selection(Some(el), x, y, true);
     }
 
     /// `insertText(text)`: replaces the selection, if any.
@@ -640,6 +726,9 @@ impl Kind for TextareaKind {
         self.state.view.apply_layout(width.max(0.0) as u32, height.max(0.0) as u32);
         el.request_render();
     }
+    fn on_update(&mut self, el: Element, delta: f64) {
+        self.state.clone().auto_scroll(el, delta);
+    }
     fn handles_keys(&self) -> bool {
         true
     }
@@ -712,8 +801,10 @@ pub fn create_textarea() -> Element {
             on_submit: None,
             on_cursor_change: None,
         }),
-        anchor: Cell::new(None),
+        last_local: Cell::new(None),
         keyboard_selection: Cell::new(false),
+        auto_scroll_velocity: Cell::new(0.0),
+        auto_scroll_accumulator: Cell::new(0.0),
         synced_focus: Cell::new(None),
     });
     state.sync_colors(false);
@@ -746,6 +837,11 @@ impl Element {
     /// An edit-buffer renderable (`isEditBufferRenderable`).
     pub fn is_textarea(self) -> bool {
         state(self).is_some()
+    }
+
+    /// `hasSelection()` of a textarea.
+    pub fn textarea_has_selection(self) -> bool {
+        state(self).is_some_and(|t| t.view.has_selection())
     }
 
     pub fn set_placeholder(self, placeholder: &str) {
@@ -902,4 +998,21 @@ impl Element {
     pub fn edit_buffer(self) -> Option<EditBuffer> {
         state(self).map(|t| t.buffer.clone())
     }
+}
+
+// The selection hooks answer from the registry, so they work while the textarea's kind runs a key press.
+pub(crate) fn selection_should_start(el: Element, x: i32, y: i32) -> Option<bool> {
+    state(el).map(|t| t.should_start_selection(el, x, y))
+}
+
+pub(crate) fn selection_changed(el: Element, sel: Option<&SelectionEvent>) -> Option<bool> {
+    state(el).map(|t| t.on_selection_changed(el, sel))
+}
+
+pub(crate) fn selection_text(el: Element) -> Option<String> {
+    state(el).map(|t| t.view.get_selected_text())
+}
+
+pub(crate) fn selection_has(el: Element) -> Option<bool> {
+    state(el).map(|t| t.view.has_selection())
 }

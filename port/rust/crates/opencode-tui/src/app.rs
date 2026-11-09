@@ -12,7 +12,7 @@ use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderer::{self, RendererConfig};
 use opencode_tui_core::solid::*;
 use opencode_tui_core::terminal::ThemeMode;
-use opencode_tui_core::tree::{self, FlexDirection};
+use opencode_tui_core::tree::{self, FlexDirection, MouseEvent, MouseEventType};
 use opencode_tui_sync::client::{Client, ClientOptions};
 use opencode_tui_sync::transport::HttpTransport;
 
@@ -127,6 +127,9 @@ pub async fn run(input: TuiInput) -> i32 {
     0
 }
 
+/// `MouseButton.RIGHT`.
+const MOUSE_BUTTON_RIGHT: u32 = 2;
+
 /// `<App>`.
 fn app_view() -> View {
     let t = crate::ctx::tui();
@@ -134,8 +137,51 @@ fn app_view() -> View {
     let theme = t.theme;
     let route = t.route;
     crate::commands::install(&t);
+    let copy_on_select = {
+        let config = t.config_context.clone();
+        move || {
+            let copy = config.data_untracked().terminal.as_ref().and_then(|terminal| terminal.copy.clone());
+            crate::selection::copy_on_select_enabled(copy.as_deref())
+        }
+    };
+    // Selection copy/dismiss must precede both app bindings and the terminal pane's raw key forwarding.
+    {
+        let toast = t.toast.clone();
+        let copy_on_select = copy_on_select.clone();
+        let off = crate::keymap::intercept_key(101, move |event| {
+            crate::selection::handle_selection_key(&toast, event, copy_on_select())
+        });
+        on_cleanup(off);
+    }
     crate::startup::install(&t);
     let root = opencode_tui_core::elements::box_();
+    {
+        let toast = t.toast.clone();
+        let copy_on_down = copy_on_select.clone();
+        root.set_on_mouse(
+            Some(MouseEventType::Down),
+            Some(Rc::new(move |event: &mut MouseEvent| {
+                if copy_on_down() || event.button != MOUSE_BUTTON_RIGHT {
+                    return;
+                }
+                if !crate::selection::copy(&toast) {
+                    return;
+                }
+                event.prevent_default();
+                event.stop_propagation();
+            })),
+        );
+        let toast = t.toast.clone();
+        // TODO(port-tui): `clickedLink(renderer, event)` opening a clicked link's URL.
+        root.set_on_mouse(
+            Some(MouseEventType::Up),
+            Some(Rc::new(move |event: &mut MouseEvent| {
+                if copy_on_select() {
+                    crate::selection::copy_on_select_release(event, &toast);
+                }
+            })),
+        );
+    }
     bind(move || dimensions.get(), move |(w, h)| {
         root.set_width(Some(Value::Point(w as f32)));
         root.set_height(Some(Value::Point(h as f32)));

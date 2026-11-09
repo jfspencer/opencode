@@ -2,12 +2,11 @@
 //! [`DrawSource`] (the viewport's visual lines, chunk bytes and render clusters, style spans, selection,
 //! alignment, truncation and tab indicator). Cells go through the buffer's blended write, so scissors, opacity
 //! and alpha blending apply as in `setCellWithAlphaBlending`. `opencode-tui-text`'s
-//! `examples/text-driver/draw.rs` is the same walk into a plain grid, checked cell for cell against libopentui.
-//!
-//! Divergence: a zero-width combining mark that follows a glyph this draw wrote is dropped instead of being
-//! joined to it (`attachCombiningMark`); the text crate's views already cluster marks with their base, so only a
-//! mark split from its base across chunks reaches this.
-use opencode_tui_text::utf8;
+//! `examples/text-driver/draw.rs` is the same walk into a plain grid, checked against libopentui;
+//! `tests/text_draw.rs` checks this draw cell for cell against that reference on generated views. Glyphs are
+//! written as `drawTextBufferGrapheme` writes them (printable ASCII as a code point, anything else pooled), and a
+//! combining mark split from its glyph across chunks joins it (`attachCombiningMark`).
+use opencode_tui_text::utf8::{self, ControlDisplay};
 use opencode_tui_text::{DrawSource, Rgba};
 
 use crate::buffer::{OptimizedBuffer, is_printable_glyph, make_cell};
@@ -34,33 +33,63 @@ fn alpha(c: Rgba) -> u16 {
     c[3] & 0xff
 }
 
+/// `MarkBase`: the glyph this draw wrote just before the current cluster.
+#[derive(Clone, Copy)]
+struct MarkBase {
+    x: u32,
+    char: u32,
+}
+
 impl OptimizedBuffer {
-    /// One glyph of `width` cells, blended.
-    fn blend_glyph(&mut self, x: i32, y: i32, glyph: &[u8], width: u32, fg: Rgba, bg: Rgba, attributes: u32) {
-        if x < 0 || y < 0 {
-            return;
-        }
+    /// `drawTextBufferGrapheme`: one glyph of `width` cells, blended; the cell char it drew, or `None` when it drew
+    /// nothing (fully transparent, or a full pool).
+    #[allow(clippy::too_many_arguments)]
+    fn draw_text_buffer_grapheme(&mut self, bytes: &[u8], width: u32, x: u32, y: u32, fg: Rgba, bg: Rgba, attributes: u32) -> Option<u32> {
         let (fg, bg) = (RGBA(fg), RGBA(bg));
-        let (x, y) = (x as u32, y as u32);
-        if glyph.len() == 1 && width == 1 {
-            self.set_cell_blended(x, y, make_cell(glyph[0] as u32, fg, bg, attributes));
-            return;
+        let opacity = self.current_opacity();
+        if opacity == 0.0 || (fg.alpha() == 0 && bg.alpha() == 0) {
+            return None;
         }
-        if width == 1 {
-            if let Ok(text) = std::str::from_utf8(glyph) {
-                let mut chars = text.chars();
-                if let (Some(c), None) = (chars.next(), chars.next()) {
-                    self.set_cell_blended(x, y, make_cell(c as u32, fg, bg, attributes));
-                    return;
-                }
-            }
+        if bytes.len() == 1 && width == 1 && bytes[0] >= 32 {
+            let char = bytes[0] as u32;
+            self.set_cell_blended(x, y, make_cell(char, fg, bg, attributes));
+            return Some(char);
         }
-        if width > self.width().saturating_sub(x) {
-            return;
-        }
-        let Some(id) = pool::acquire_grapheme(glyph) else { return };
-        self.set_cell_blended(x, y, make_cell(pool::pack_grapheme_start(id, width), fg, bg, attributes));
+        // The temporary reference reclaims a glyph that blending discards.
+        let id = pool::acquire_grapheme(bytes)?;
+        let char = pool::pack_grapheme_start(id, width);
+        self.set_cell_blended(x, y, make_cell(char, fg, bg, attributes));
         pool::release_grapheme(id);
+        Some(char)
+    }
+
+    /// `attachCombiningMark`: joins a zero-width mark to the glyph this draw wrote just before it, as if both were
+    /// one cluster; the cell keeps its colors. `None` when the cell no longer holds that glyph or the combination
+    /// would not fit its cells.
+    fn attach_combining_mark(&mut self, mark: &[u8], base: MarkBase, y: u32, method: utf8::WidthMethod) -> Option<MarkBase> {
+        let cell = self.get(base.x, y)?;
+        // A blended space keeps the glyph under it, which this draw did not write.
+        if cell.char != base.char {
+            return None;
+        }
+        let mut combined = if pool::is_grapheme_char(base.char) {
+            pool::grapheme_bytes(pool::grapheme_id_from_char(base.char))?
+        } else {
+            vec![base.char as u8]
+        };
+        if combined.len() + mark.len() > pool::GRAPHEME_BYTES_MAX {
+            return None;
+        }
+        combined.extend_from_slice(mark);
+        let width = pool::encoded_char_width(base.char);
+        if utf8::get_grapheme_width_at(&combined, 0, 1, ControlDisplay::Hidden, method) != width {
+            return None;
+        }
+        let id = pool::acquire_grapheme(&combined)?;
+        let char = pool::pack_grapheme_start(id, width);
+        self.set(base.x, y, make_cell(char, cell.fg, cell.bg, cell.attributes));
+        pool::release_grapheme(id);
+        Some(MarkBase { x: base.x, char })
     }
 
     /// `drawTextBuffer(view, x, y)` (and `drawEditorView`, whose source prefills the viewport background).
@@ -114,6 +143,7 @@ impl OptimizedBuffer {
             let mut cur_x = x + pad;
             let mut rendered = 0u32;
             let mut doc = vline.document_cell_offset;
+            let mut mark_base: Option<MarkBase> = None;
             let info = src.virtual_line_spans(vline_idx);
             let spans = info.spans;
             let col_offset = info.source_col_start;
@@ -144,7 +174,8 @@ impl OptimizedBuffer {
                 let bytes = src.chunk_bytes(vchunk);
                 let clusters = src.with_render_clusters(chunk, |c| c.to_vec());
                 let line_col_offset = vline.document_cell_offset;
-                if cur_x >= grid_width {
+                // A glyph in the last column can still take marks that start this chunk.
+                if cur_x >= grid_width && mark_base.is_none() {
                     doc += vchunk.width_cols;
                     cur_x += vchunk.width_cols as i32;
                     continue;
@@ -206,9 +237,17 @@ impl OptimizedBuffer {
                         width = if ascii { 1 } else { utf8::get_width_at(glyph, 0, tab_width, control, method) };
                         byte_offset = next;
                     }
+                    // A combining mark joins the glyph before it; other zero-width clusters keep that glyph.
                     if width == 0 {
+                        if let Some(base) = mark_base
+                            && utf8::is_combining_mark(glyph)
+                            && cur_y >= 0
+                        {
+                            mark_base = self.attach_combining_mark(glyph, base, cur_y as u32, method);
+                        }
                         continue;
                     }
+                    mark_base = None;
                     if rendered + width <= hoff {
                         doc += width;
                         rendered += width;
@@ -340,8 +379,8 @@ impl OptimizedBuffer {
                             if tx >= grid_width {
                                 break;
                             }
-                            let mut text: Vec<u8> =
-                                if notation { vec![utf8::control_notation_glyph(first_cp, tab_col)] } else { b" ".to_vec() };
+                            let mut char: u32 =
+                                if notation { utf8::control_notation_glyph(first_cp, tab_col) as u32 } else { b' ' as u32 };
                             let mut cell_fg = fg;
                             if is_tab
                                 && tab_col == 0
@@ -350,25 +389,35 @@ impl OptimizedBuffer {
                                 && rendered as u64 + indicator_width as u64 <= hoff as u64 + vpw as u64
                             {
                                 if indicator_width == 1 {
-                                    text = indicator_bytes.clone();
+                                    char = indicator.unwrap_or(b' ' as u32);
                                     cell_fg = src.tab_indicator_color().unwrap_or(fg);
                                 } else if indicator_width <= grid_width as u32 - tx as u32 {
-                                    let color = src.tab_indicator_color().unwrap_or(fg);
-                                    self.blend_glyph(tx, cur_y, &indicator_bytes, indicator_width, color, bg, attr);
-                                    tab_col += indicator_width;
-                                    continue;
+                                    let visible =
+                                        (1..indicator_width).all(|offset| self.is_point_in_scissor(tx + offset as i32, cur_y));
+                                    if visible {
+                                        let color = src.tab_indicator_color().unwrap_or(fg);
+                                        self.draw_text_buffer_grapheme(&indicator_bytes, indicator_width, tx as u32, cur_y as u32, color, bg, attr);
+                                        tab_col += indicator_width;
+                                        continue;
+                                    }
                                 }
                             }
-                            self.blend_glyph(tx, cur_y, &text, 1, cell_fg, bg, attr);
+                            self.set_cell_blended(tx as u32, cur_y as u32, make_cell(char, RGBA(cell_fg), RGBA(bg), attr));
                             tab_col += 1;
                         }
-                    } else {
-                        self.blend_glyph(cur_x, cur_y, glyph, width, fg, bg, attr);
+                    } else if cur_y >= 0 && cur_x >= 0 {
+                        mark_base = self
+                            .draw_text_buffer_grapheme(glyph, width, cur_x as u32, cur_y as u32, fg, bg, attr)
+                            .map(|char| MarkBase { x: cur_x as u32, char });
                     }
                     doc += width;
                     cur_x += width as i32;
                     rendered += width;
                     col += width;
+                }
+                // The ellipsis stands for dropped text, so the marks after it have no base glyph.
+                if chunk.is_ellipsis() {
+                    mark_base = None;
                 }
             }
             cur_y += 1;

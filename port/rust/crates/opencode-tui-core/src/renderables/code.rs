@@ -20,7 +20,7 @@ use opencode_tui_markup::js::JsString;
 use opencode_tui_markup::style::{StyledText, SyntaxStyle, TextChunk};
 use opencode_tui_markup::styled_text::{TextChunkOptions, tree_sitter_to_text_chunks};
 use opencode_tui_markup::tree_sitter::TreeSitterClient;
-use opencode_tui_text::{SceneText, StyledChunk, WidthMethod};
+use opencode_tui_text::{SceneText, StyledChunk};
 
 use crate::buffer::OptimizedBuffer;
 use crate::layout::MeasureMode;
@@ -462,8 +462,8 @@ impl Default for CodeOptions {
 /// `new CodeRenderable(ctx, options)`: the content applies at construction (the JSX element is created with its
 /// static props; a Solid `<code>` gets the rest through setters).
 pub fn create_code_with(options: CodeOptions) -> Element {
-    let scene = Rc::new(RefCell::new(SceneText::new(WidthMethod::Unicode, &text_context())));
-    let text = TextKind { scene: scene.clone(), options: default_options(), dirty: false, manual: true };
+    let scene = Rc::new(RefCell::new(SceneText::new(crate::renderer::width_method(), &text_context())));
+    let text = TextKind::new(scene.clone(), default_options(), true);
     let kind = CodeKind {
         text,
         content: options.content,
