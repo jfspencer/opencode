@@ -128,14 +128,24 @@ pub fn create_box() -> Element {
 }
 
 impl Element {
+    /// The box of a `<box>`, or the box a `<scrollbox>` extends.
     fn with_box<R>(self, f: impl FnOnce(&mut BoxKind) -> R) -> Option<R> {
-        let r = self.with_kind::<BoxKind, _>(f);
+        let r = if self.is::<crate::renderables::scrollbox::ScrollBoxKind>() {
+            self.with_kind::<crate::renderables::scrollbox::ScrollBoxKind, _>(|k| f(&mut k.boxed))
+        } else {
+            self.with_kind::<BoxKind, _>(f)
+        };
         self.request_render();
         r
     }
 
     fn sync_border(self) {
-        if let Some(m) = self.with_kind::<BoxKind, _>(|k| mask(k.sides)) {
+        let sides = if self.is::<crate::renderables::scrollbox::ScrollBoxKind>() {
+            self.with_kind::<crate::renderables::scrollbox::ScrollBoxKind, _>(|k| mask(k.boxed.sides))
+        } else {
+            self.with_kind::<BoxKind, _>(|k| mask(k.sides))
+        };
+        if let Some(m) = sides {
             if self.with_base(|b| b.border_mask) != Some(m) {
                 self.set_border_mask(m);
             }
