@@ -165,7 +165,7 @@ fn signature(path: &str, tool: &ToolDef) -> String {
 }
 
 /// The exact callable signature of the built-in `search` function, for host-owned instructions.
-pub const SEARCH_SIGNATURE: &str = "search({\n  query?: string,\n  namespace?: string,\n  /** @integer @exclusiveMinimum 0 */\n  limit?: number,\n  /** @integer @minimum 0 */\n  offset?: number,\n}): {\n  items: Array<{\n      path: string,\n      description: string,\n      signature: string,\n    }>,\n  /** @integer @minimum 0 */\n  remaining: number,\n  next: {\n    /** @integer @minimum 0 */\n    offset: number,\n  } | null,\n}";
+pub const SEARCH_SIGNATURE: &str = "search({\n  query?: string,\n  namespace?: string,\n  /** @integer @exclusiveMinimum 0 */\n  limit?: number,\n  /** @integer @minimum 0 */\n  offset?: number,\n}): {\n  items: Array<{\n      path: string,\n      description: string,\n      signature: string,\n    }>,\n  /** @integer @minimum 0 */\n  remaining: number,\n  next: {\n      /** @integer @minimum 0 */\n      offset: number,\n    } | null,\n}";
 
 fn tokenize(query: &str) -> Vec<String> {
     let chars: Vec<char> = query.chars().collect();
@@ -473,15 +473,11 @@ impl ToolSession {
             ToolOutput::Schema(_) => raw,
             ToolOutput::NullOrString => match &raw {
                 Some(Json::Str(_)) | Some(Json::Null) => raw,
-                other => {
+                _ => {
                     end(CallStatus::Failure);
-                    let got = match other {
-                        None => "undefined".to_string(),
-                        Some(value) => value.to_json_string(),
-                    };
                     return Err(runtime_error(
                         DiagnosticKind::InvalidToolOutput,
-                        format!("Invalid output from tool '{name}': Expected string | null, got {got}"),
+                        format!("Invalid output from tool '{name}': SchemaError(Expected string | null)"),
                         vec![],
                     ));
                 }
@@ -621,41 +617,37 @@ struct SearchRequest {
 /// Decoding the search input as its Effect Schema does (`Struct({ query?, namespace?, limit?: Int > 0, offset?: Int
 /// >= 0 })`), with Effect's default formatter for the first issue.
 fn decode_search_input(input: Option<&Json>) -> Result<SearchRequest, String> {
-    let Some(Json::Obj(obj)) = input else {
-        let got = match input {
-            None => "undefined".to_string(),
-            Some(value) => value.to_json_string(),
-        };
-        let _ = got;
-        return Err("Expected { readonly \"query\"?: string; readonly \"namespace\"?: string; readonly \"limit\"?: an integer & greater than 0; readonly \"offset\"?: an integer & greater than or equal to 0 }".into());
-    };
+    let issue = |message: String| format!("SchemaError({message})");
+    let Some(Json::Obj(obj)) = input else { return Err(issue("Expected object".into())) };
     let string = |key: &str| -> Result<Option<String>, String> {
         match obj.get(key) {
             None => Ok(None),
             Some(Json::Str(text)) => Ok(Some(text.to_rust_lossy())),
-            Some(_) => Err(format!("Expected string\n  at [\"{key}\"]")),
+            Some(_) => Err(issue(format!("Expected string\n  at [\"{key}\"]"))),
         }
     };
-    let integer = |key: &str, minimum: f64, exclusive: bool| -> Result<Option<f64>, String> {
+    let integer = |key: &str, exclusive: bool| -> Result<Option<f64>, String> {
         match obj.get(key) {
             None => Ok(None),
-            Some(Json::Num(n)) => {
-                if n.fract() != 0.0 || !n.is_finite() || n.abs() > 9007199254740991.0 {
-                    return Err(format!("Expected an integer, got {}\n  at [\"{key}\"]", crate::numconv::to_string(*n)));
+            Some(Json::Num(n)) if n.is_finite() => {
+                if n.fract() != 0.0 || n.abs() > 9007199254740991.0 {
+                    return Err(issue(format!("Expected an integer\n  at [\"{key}\"]")));
                 }
-                if (exclusive && *n <= minimum) || (!exclusive && *n < minimum) {
-                    let bound = if exclusive { "greater than" } else { "greater than or equal to" };
-                    return Err(format!("Expected a value {bound} {}, got {}\n  at [\"{key}\"]", minimum, crate::numconv::to_string(*n)));
+                if exclusive && *n <= 0.0 {
+                    return Err(issue(format!("Expected a value greater than 0\n  at [\"{key}\"]")));
+                }
+                if !exclusive && *n < 0.0 {
+                    return Err(issue(format!("Expected a value greater than or equal to 0\n  at [\"{key}\"]")));
                 }
                 Ok(Some(*n))
             }
-            Some(_) => Err(format!("Expected number\n  at [\"{key}\"]")),
+            Some(_) => Err(issue(format!("Expected number\n  at [\"{key}\"]"))),
         }
     };
     Ok(SearchRequest {
         query: string("query")?,
         namespace: string("namespace")?,
-        limit: integer("limit", 0.0, true)?,
-        offset: integer("offset", 0.0, false)?,
+        limit: integer("limit", true)?,
+        offset: integer("offset", false)?,
     })
 }
