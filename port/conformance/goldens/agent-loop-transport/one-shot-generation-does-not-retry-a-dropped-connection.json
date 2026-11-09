@@ -3,7 +3,7 @@
     {
       "body": {
         "_tag": "ProviderRequestError",
-        "message": "Connection lost while reading the response: ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+        "message": "Connection lost while reading the response: ECONNRESET: <runtime message>",
         "providerID": "openrouter",
         "reason": "provider",
         "status": 200

@@ -494,7 +494,7 @@
           "at": "<time>",
           "attempt": 2,
           "error": {
-            "message": "ECONNRESET: The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+            "message": "ECONNRESET: <runtime message>",
             "type": "provider.transport"
           },
           "sessionID": "<ses_1>"

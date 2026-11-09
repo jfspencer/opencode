@@ -140,9 +140,12 @@ Status as of 2026-11-07, upstream 6a89e9f.
 ## Text that is not part of the standard
 
 JavaScript-engine diagnostics (JSON, URI and regular-expression parser errors) are masked, and built-ins whose
-message is entirely the engine's are recorded by error type only (`README.md`, equality rules). Runtime messages
-that are cheap to reproduce stay specified: Node-style errno text (`ENOENT: no such file or directory, open 'x'`)
-and Bun's connection error (`Unable to connect. Is the computer able to access the url?`).
+message is entirely the engine's are recorded by error type only (`README.md`, equality rules). So is the HTTP
+client's wording of a failed connection (Bun's fetch: `The socket connection was closed unexpectedly…`, `Unable to
+connect…`): opencode's words around it and the error code it names (`ECONNRESET`, `ConnectionRefused`) stay
+specified, since opencode composes the message from the code and its retry decisions read it. Runtime messages
+that are cheap to reproduce stay specified: Node-style errno text (`ENOENT: no such file or directory, open 'x'`,
+and `getaddrinfo ENOTFOUND openrouter.ai`, whose text carries the code; its scenario runs in-process only).
 
 ## Nondeterminism inside TS itself
 
