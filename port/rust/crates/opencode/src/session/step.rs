@@ -620,6 +620,8 @@ pub struct Input {
     pub request: llm::Request,
     pub tools: tool::Snapshot,
     pub location: LocationRef,
+    /// The booted location the step runs in (what its tools act on).
+    pub located: Arc<crate::location::Location>,
     pub directory: String,
     pub recover_continuation: bool,
     pub cancel: Cancel,
@@ -706,6 +708,8 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         let context_publisher = publisher.clone();
         let call_id = id.clone();
         let context = tool::Context {
+            app: app.clone(),
+            location: input.located.clone(),
             session_id: input.session.clone(),
             agent: input.agent.clone(),
             message_id: input.assistant.clone(),
@@ -726,7 +730,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
                     ToolExit::Done
                 }
                 Err(tool::Failure::Error(failure)) => {
-                    p.fail_tool(&id, error("tool.execution", &failure.message), failure.metadata);
+                    p.fail_tool(&id, error(failure.kind, &failure.message), failure.metadata);
                     ToolExit::Done
                 }
                 Err(declined @ tool::Failure::Declined { .. }) => ToolExit::Declined(id, declined),

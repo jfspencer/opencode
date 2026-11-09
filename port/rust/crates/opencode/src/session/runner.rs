@@ -387,6 +387,7 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
             request,
             tools: loaded.tools.clone(),
             location: location.clone(),
+            located: loaded.location.clone(),
             directory: loaded.location.directory.clone(),
             recover_continuation,
             cancel: cancel.clone(),

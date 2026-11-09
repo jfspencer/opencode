@@ -16,6 +16,7 @@ mod id;
 mod json;
 mod llm;
 mod location;
+mod permission;
 mod process;
 mod project;
 mod project_icon;

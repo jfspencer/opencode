@@ -37,10 +37,13 @@ pub struct Definition {
     pub parameters: Json,
 }
 
-/// What a tool call receives besides its input (`Tool.Context`).
+/// What a tool call receives besides its input (`Tool.Context`), and the services it works with.
 #[derive(Clone)]
 #[allow(dead_code)] // Read by the tools themselves (the tools slice).
 pub struct Context {
+    pub app: Arc<crate::app::App>,
+    /// The location the session runs in: its inventory (config), file system, version control and permissions.
+    pub location: Arc<crate::location::Location>,
     pub session_id: String,
     pub agent: String,
     pub message_id: String,
@@ -59,16 +62,69 @@ pub struct Output {
     pub metadata: Option<Json>,
 }
 
-/// A failed execution (`Tool.Error`), shown to the model as the tool's error.
+/// A failed execution (`Tool.Error`), shown to the model as the tool's error: the tool part's error is
+/// `{type: kind, message}` (`toSessionError`).
 #[derive(Debug, Clone)]
 pub struct ToolError {
+    /// `tool.execution`, or `permission.rejected` for a denied or corrected permission request.
+    pub kind: &'static str,
     pub message: String,
     pub metadata: Option<Json>,
 }
 
 impl ToolError {
     pub fn new(message: impl Into<String>) -> Self {
-        Self { message: message.into(), metadata: None }
+        Self { kind: "tool.execution", message: message.into(), metadata: None }
+    }
+
+    #[allow(dead_code)] // The tools'.
+    pub fn with_metadata(mut self, metadata: Json) -> Self {
+        self.metadata = Some(metadata);
+        self
+    }
+}
+
+#[allow(dead_code)] // The tools' (the tools slice).
+impl Context {
+    fn requester(&self) -> crate::permission::Requester {
+        crate::permission::Requester {
+            id: None,
+            session_id: self.session_id.clone(),
+            agent: Some(self.agent.clone()),
+            source: Some(crate::permission::Source { message_id: self.message_id.clone(), id: self.call_id.clone() }),
+        }
+    }
+
+    /// `permission.assert({...ask, ...Permission.invocation(context)})`: allowed by the rules or approved by the
+    /// user, else the failure the tool returns (see [`crate::permission`]).
+    pub async fn assert(&self, ask: crate::permission::Ask) -> Result<(), Failure> {
+        let requester = self.requester();
+        self.location.permission.assert(&self.app, &self.location, &requester, &ask).await.map_err(Failure::from)
+    }
+
+    /// `permission.assertNotDenied`: fails only when the rules deny the request; never asks.
+    pub fn assert_not_denied(&self, ask: crate::permission::Ask) -> Result<(), Failure> {
+        let requester = self.requester();
+        self.location.permission.assert_not_denied(&self.app, &self.location, &requester, &ask).map_err(Failure::from)
+    }
+
+    /// `permission.allows`: whether the rules already allow the request; never asks.
+    pub fn allows(&self, ask: crate::permission::Ask) -> Result<bool, Failure> {
+        let requester = self.requester();
+        self.location.permission.allows(&self.app, &self.location, &requester, &ask).map_err(Failure::from)
+    }
+}
+
+impl From<crate::permission::Error> for Failure {
+    fn from(error: crate::permission::Error) -> Self {
+        use crate::permission::Error;
+        match error {
+            Error::Declined => Failure::Declined { question: false, message: "The user declined this tool call".into() },
+            Error::Blocked { .. } | Error::Corrected(_) => {
+                Failure::Error(ToolError { kind: "permission.rejected", message: error.message(), metadata: None })
+            }
+            Error::SessionNotFound(_) => Failure::Error(ToolError::new(error.message())),
+        }
     }
 }
 
@@ -153,15 +209,7 @@ pub fn registry() -> &'static Registry {
 
 /// `Permission.evaluate`'s effect: the last rule matching the action and resource, `ask` without one.
 pub fn evaluate<'a>(action: &str, resource: &str, rules: &'a [Json]) -> &'a str {
-    rules
-        .iter()
-        .rev()
-        .find(|rule| {
-            json::get_str(rule, "action").is_some_and(|pattern| wildcard_match(action, pattern))
-                && json::get_str(rule, "resource").is_some_and(|pattern| wildcard_match(resource, pattern))
-        })
-        .and_then(|rule| json::get_str(rule, "effect"))
-        .unwrap_or("ask")
+    crate::permission::evaluate(action, resource, rules)
 }
 
 /// `whollyDisabled`: the last rule for the action denies it on every resource.
