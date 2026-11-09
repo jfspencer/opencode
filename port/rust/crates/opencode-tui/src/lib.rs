@@ -84,7 +84,7 @@
 //! (`opencode_tui_core::edit_buffer_bindings`, `registerManagedTextareaLayer`), so a layer of a later-mounted
 //! component that binds the same key wins over them, as in TS. The textarea itself then only inserts printable
 //! keys; its edit methods are `el.textarea_action(TextareaAction::..)`, and its `traits` are
-//! `textarea_traits`/`set_textarea_traits`.
+//! `textarea_traits`/`set_textarea_traits`. An `<input>` is not managed: it keeps its own bindings.
 //!
 //! **Dialogs** ([`ui::dialog`], `ui/dialog.tsx`): `ui::dialog::use_dialog()` gives `show(|| component(my_dialog))`,
 //! `replace(view, on_close, key, size)` and `clear()`; a dialog is built from `dialog_layout`/`dialog_header`/
