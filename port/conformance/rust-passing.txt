@@ -274,6 +274,7 @@ scenarios/codemode-tools.test.ts › codemode session move outside the project
 scenarios/codemode-tools.test.ts › codemode session move outside the project asks when external directories ask
 scenarios/codemode-tools.test.ts › codemode session tools
 scenarios/codemode-tools.test.ts › codemode tool references and failures
+scenarios/codemode-tools.test.ts › codemode tool scan scopes
 scenarios/codemode-tools.test.ts › codemode worktree tools
 scenarios/codemode-tools.test.ts › codemode worktree tools outside a repository
 scenarios/permissions.test.ts › always approve a shell command prefix
@@ -585,6 +586,7 @@ scenarios/tools-question.test.ts › question with an unanswered question
 scenarios/tools-question.test.ts › question with no questions or without options
 scenarios/tools-question.test.ts › question with one choice answered by option
 scenarios/tools-question.test.ts › question with several questions and a multiselect
+scenarios/tools-read.test.ts › grep on a special file
 scenarios/tools-read.test.ts › read a special file
 scenarios/tools-read.test.ts › read absolute and home paths
 scenarios/tools-read.test.ts › read binary files
