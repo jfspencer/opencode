@@ -428,20 +428,6 @@ impl TextBufferViewCore {
         self.logical_line_info_window(tb, 0, usize::MAX)
     }
 
-    /// The viewport's line window and width max without copying (for drawing).
-    pub fn cached_line_starts(&mut self, tb: &TextBufferCore) -> &[u32] {
-        self.update_virtual_lines(tb);
-        let l = &self.layout;
-        match self.viewport {
-            Some(vp) => {
-                let start = (vp.y as usize).min(l.starts.len());
-                let end = (start + vp.height as usize).min(l.starts.len());
-                &l.starts[start..end]
-            }
-            None => &l.starts,
-        }
-    }
-
     /// `getLogicalLineInfo`: every visual line.
     pub fn logical_line_info(&mut self, tb: &TextBufferCore) -> LineInfo {
         self.update_virtual_lines(tb);
@@ -1047,10 +1033,6 @@ impl TextBufferViewCore {
             + (l.first_vline.capacity() + l.vline_counts.capacity()) * 4
     }
 
-    pub(crate) fn wrap_info(&mut self, tb: &TextBufferCore) -> (&[u32], &[u32]) {
-        self.update_virtual_lines(tb);
-        (&self.layout.first_vline, &self.layout.vline_counts)
-    }
 }
 
 fn union_ranges(a: Option<SelectionRange>, b: Option<SelectionRange>) -> Option<SelectionRange> {

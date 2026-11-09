@@ -11,8 +11,9 @@ use std::fmt::Write as _;
 use std::io::{BufRead, Write};
 
 mod draw;
+mod edit;
 
-mod json {
+pub mod json {
     #[derive(Clone, Debug)]
     pub enum Value {
         Null,
@@ -235,7 +236,7 @@ fn nums(out: &mut String, values: &[u32]) {
     out.push(']');
 }
 
-fn line_info(out: &mut String, info: &LineInfo) {
+pub fn line_info(out: &mut String, info: &LineInfo) {
     out.push('[');
     nums(out, &info.line_start_cols);
     out.push(',');
@@ -247,7 +248,7 @@ fn line_info(out: &mut String, info: &LineInfo) {
     write!(out, ",{}]", info.line_width_cols_max).unwrap();
 }
 
-fn spans(out: &mut String, grid: &draw::Grid) {
+pub fn spans(out: &mut String, grid: &draw::Grid) {
     out.push('[');
     for (i, line) in grid.span_lines().iter().enumerate() {
         if i > 0 {
@@ -267,18 +268,18 @@ fn spans(out: &mut String, grid: &draw::Grid) {
     out.push(']');
 }
 
-fn error(out: &mut String, e: TextError) {
+pub fn error(out: &mut String, e: TextError) {
     write!(out, "{{\"err\":\"{}\"}}", e.status()).unwrap();
 }
 
-fn unit(out: &mut String, r: Result<(), TextError>) {
+pub fn unit(out: &mut String, r: Result<(), TextError>) {
     match r {
         Ok(()) => out.push_str("null"),
         Err(e) => error(out, e),
     }
 }
 
-fn color(v: Option<&Value>) -> Option<[u16; 4]> {
+pub fn color(v: Option<&Value>) -> Option<[u16; 4]> {
     let v = v?;
     if v.is_null() {
         return None;
@@ -287,7 +288,7 @@ fn color(v: Option<&Value>) -> Option<[u16; 4]> {
     Some([a[0].u32() as u16, a[1].u32() as u16, a[2].u32() as u16, a[3].u32() as u16])
 }
 
-fn wrap_mode(s: &str) -> WrapMode {
+pub fn wrap_mode(s: &str) -> WrapMode {
     match s {
         "none" => WrapMode::None,
         "char" => WrapMode::Char,
@@ -295,7 +296,7 @@ fn wrap_mode(s: &str) -> WrapMode {
     }
 }
 
-fn behavior(s: &str) -> SelectionBehavior {
+pub fn behavior(s: &str) -> SelectionBehavior {
     match s {
         "word" => SelectionBehavior::Word,
         "line" => SelectionBehavior::Line,
@@ -303,12 +304,12 @@ fn behavior(s: &str) -> SelectionBehavior {
     }
 }
 
-fn highlight(v: &Value) -> HighlightRange {
+pub fn highlight(v: &Value) -> HighlightRange {
     let a = v.arr();
     HighlightRange { start: a[0].u32(), end: a[1].u32(), style_id: a[2].u32(), priority: a[3].u32(), hl_ref: a[4].u32() }
 }
 
-fn spec(v: &Value) -> StyleSpec {
+pub fn spec(v: &Value) -> StyleSpec {
     let flag = |k: &str| v.get(k).map(|b| b.bool());
     StyleSpec { fg: color(v.get("fg")), bg: color(v.get("bg")), bold: flag("bold"), italic: flag("italic"), underline: flag("underline"), dim: flag("dim") }
 }
@@ -475,7 +476,10 @@ fn text_op(state: &mut TextState, op: &[Value], out: &mut String) {
         "draw" => {
             let (bw, bh, x, y) = (op[1].u32(), op[2].u32(), op[3].i32(), op[4].i32());
             let mut grid = draw::Grid::new(bw, bh, [0, 0, 0, 255]);
-            v.draw(y, |src| draw::draw(src, &mut grid, x, y));
+            // `drawTextViewOn` returns before touching the view when the origin is outside the target.
+            if x < bw as i32 && y < bh as i32 {
+                v.draw(y, |src| draw::draw(src, &mut grid, x, y));
+            }
             spans(out, &grid);
         }
         "newView" => {
@@ -487,6 +491,9 @@ fn text_op(state: &mut TextState, op: &[Value], out: &mut String) {
 }
 
 fn run_case(case: &Value, out: &mut String) {
+    if case.get("k").is_some() {
+        return edit::run_edit_case(case, out);
+    }
     let method = WidthMethod::parse(case.get("m").unwrap().str()).unwrap();
     let ctx = TextContext::new();
     let tb = TextBuffer::create(method, &ctx);
