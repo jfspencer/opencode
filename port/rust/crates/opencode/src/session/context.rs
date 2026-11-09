@@ -4,8 +4,9 @@
 //!
 //! The model-family prompts of plugin/optimize.ts (GPT, Claude, Kimi, ...) replace the default one ([`model_prompt`]).
 //!
-//! TODO(port): the session plugin hooks of external plugins (`context`, `model.request`, `http.*`), image bounding,
-//! the model catalog's small model.
+//! Built-in plugins' hooks are applied where their plugins live (plan mode, the goal reminder, identity, the model
+//! prompts); the session hooks of external plugins (`context`, `model.request`, `http.*`) are out of scope with
+//! external plugins. Images are bounded ([`bound_images`]) after unsupported media become notes ([`unsupported_parts`]).
 
 use std::sync::Arc;
 
@@ -122,8 +123,10 @@ fn timeout(value: Option<&Json>) -> Option<Option<u64>> {
     }
 }
 
-/// Settings the route reads itself (`toConfig`: the connection), not provider options.
-const CONNECTION_KEYS: &[&str] = &["baseURL", "apiKey", "headers", "body", "encoding"];
+/// Settings the route reads itself (`toConfig`: the connection) and opencode's own (`Provider.nativeSettings` omits
+/// `Provider.Settings`' fields: timeouts, compaction, cache, transport, encoding), not provider options.
+const CONNECTION_KEYS: &[&str] =
+    &["baseURL", "apiKey", "headers", "body", "encoding", "timeout", "headerTimeout", "chunkTimeout", "compaction", "cache", "transport"];
 
 /// A model reference's variant, `None` for none.
 fn variant_of(reference: &Json) -> Option<&str> {
@@ -198,6 +201,11 @@ fn build(inventory: &Inventory, info: &t::ModelInfo, variant: Option<&str>) -> R
             headers: timeout(json::get(&provider_settings, "headerTimeout")).unwrap_or(Some(300_000)),
             chunk: timeout(json::get(&provider_settings, "chunkTimeout")).unwrap_or(Some(900_000)),
         },
+        // `runtimeInfo.settings.cache`: the model's over the provider's (a variant cannot change it).
+        cache_ttl: [&settings, &provider_settings]
+            .iter()
+            .find_map(|s| json::get(s, "cache").and_then(|cache| json::get_str(cache, "ttl")))
+            .map(str::to_owned),
     })
 }
 
@@ -665,14 +673,16 @@ pub fn messages(history: &[Json], model: &Json) -> Vec<Message> {
             }
             Some("assistant") => out.extend(assistant(message, model)),
             Some("compaction") if json::get_str(message, "status") == Some("completed") => {
-                // History selection only keeps native windows the target model can replay. TODO(port): replaying a
-                // non-empty native window (no route in scope makes one; only imports carry them).
+                // History selection only keeps native windows the target model can replay. Only provider-native
+                // compaction (the Responses routes of other providers) makes one, so OpenRouter's chat route never
+                // replays one: out of scope.
                 if json::get(message, "native").and_then(|n| json::get(n, "messages")).is_some() {
                     continue;
                 }
                 out.push(Message::User(vec![UserPart::Text(checkpoint(message))]));
             }
-            // TODO(port): `model-switched` effort updates.
+            // `model-switched` becomes effort-update markers only for routes with per-message effort updates
+            // (`supportsEffortUpdates`); OpenRouter's chat route has none, so `applyEffortUpdates` strips them.
             _ => {}
         }
     }

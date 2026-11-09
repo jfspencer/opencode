@@ -1,0 +1,380 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "answers": [
+            {
+              "name": "spam",
+              "probability": 0.125,
+              "type": "predicate"
+            },
+            {
+              "choice": true,
+              "confidence": 0.75,
+              "name": "tone",
+              "probabilities": [
+                {
+                  "probability": 0.625,
+                  "value": true
+                },
+                {
+                  "probability": 0.25,
+                  "value": "neutral"
+                },
+                {
+                  "probability": 0.125,
+                  "value": false
+                }
+              ],
+              "type": "choice"
+            },
+            {
+              "confidence": 0.5,
+              "name": "quality",
+              "probabilities": [
+                {
+                  "label": "poor",
+                  "probability": 0,
+                  "value": 0
+                },
+                {
+                  "label": "fair",
+                  "probability": 0.5,
+                  "value": 1
+                },
+                {
+                  "label": "good",
+                  "probability": 0.5,
+                  "value": 2
+                }
+              ],
+              "score": 1.5,
+              "type": "score"
+            }
+          ],
+          "cost": 0.0125,
+          "native": {
+            "openrouter": {
+              "model": "typesafe/system-one",
+              "provider": "TypeSafe",
+              "region": "eu",
+              "responseId": "dec_conformance",
+              "usage": {
+                "cost": 0.0125,
+                "extra": "kept",
+                "input_tokens": 42,
+                "output_tokens": 3
+              }
+            }
+          },
+          "tokens": {
+            "input": 42,
+            "output": 3
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "input": [
+          {
+            "text": "Buy cheap watches now!!!",
+            "type": "text"
+          }
+        ],
+        "model": {
+          "id": "typesafe/system-one",
+          "providerID": "openrouter"
+        },
+        "questions": [
+          {
+            "instructions": "Is it spam?",
+            "name": "spam",
+            "type": "predicate"
+          },
+          {
+            "choices": [
+              {
+                "description": "Friendly",
+                "value": true
+              },
+              {
+                "value": "neutral"
+              },
+              {
+                "value": false
+              }
+            ],
+            "instructions": "What is the tone?",
+            "name": "tone",
+            "type": "choice"
+          },
+          {
+            "instructions": "How well is it written?",
+            "levels": [
+              {
+                "label": "poor"
+              },
+              {
+                "description": "Readable",
+                "label": "fair"
+              },
+              {
+                "label": "good"
+              }
+            ],
+            "name": "quality",
+            "type": "score"
+          }
+        ]
+      },
+      "status": 200,
+      "url": "/api/experimental/generate/decisions"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {
+          "model": "typesafe/system-one",
+          "questions": {
+            "quality": {
+              "criteria": [
+                "poor",
+                "fair: Readable",
+                "good"
+              ],
+              "instructions": "How well is it written?",
+              "type": "score"
+            },
+            "spam": {
+              "instructions": "Is it spam?",
+              "type": "noul"
+            },
+            "tone": {
+              "criteria": {
+                "false": null,
+                "neutral": null,
+                "true": "Friendly"
+              },
+              "instructions": "What is the tone?",
+              "type": "choice"
+            }
+          },
+          "state": "Buy cheap watches now!!!"
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/systemone"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<root>/config/opencode",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<root>/config/opencode"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

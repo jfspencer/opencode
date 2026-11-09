@@ -175,6 +175,38 @@ fn variants(info: &Json) -> Vec<String> {
     }
 }
 
+/// `minimalVariant`: the first of [`MINIMAL`] the model has.
+fn minimal(info: &Json) -> Option<String> {
+    let variants = variants(info);
+    MINIMAL.iter().find(|m| variants.iter().any(|v| v == *m)).map(|m| (*m).to_owned())
+}
+
+/// `lowerVariant`: `none` and `minimal` always reduce reasoning; `low` can enable reasoning on a model whose default
+/// does not reason, so it is only used when it ranks below the selected variant.
+fn lower(info: &Json, selected: Option<&str>) -> Option<String> {
+    let variants = variants(info);
+    let rank = |id: Option<&str>| variants.iter().position(|v| Some(v.as_str()) == id).map_or(-1, |i| i as i64);
+    MINIMAL.iter().find(|id| rank(Some(id)) != -1 && (**id != "low" || rank(Some(id)) < rank(selected))).map(|id| (*id).to_owned())
+}
+
+/// Families of small models, in preference order (`Model.small`).
+const SMALL_FAMILIES: &[&str] = &["gpt-luna", "gemini-flash-lite", "gemini-flash", "claude-haiku"];
+
+/// `Model.small`: the provider's available, active text model of the most preferred small family.
+fn small(inventory: &crate::inventory::Inventory, provider: &str) -> Option<Json> {
+    let text = |info: &Json, key: &str| match json::get(info, "capabilities").and_then(|c| json::get(c, key)) {
+        Some(Json::Array(items)) => items.iter().filter_map(json::as_str).any(|item| item.starts_with("text")),
+        _ => false,
+    };
+    let models: Vec<Json> = inventory
+        .available_models()
+        .filter(|m| m.provider_id.0 == provider)
+        .map(json::of)
+        .filter(|m| json::get_str(m, "status") == Some("active") && text(m, "input") && text(m, "output"))
+        .collect();
+    SMALL_FAMILIES.iter().find_map(|family| models.iter().find(|m| json::get_str(m, "family") == Some(*family)).cloned())
+}
+
 /// `SessionTitle.generate`.
 pub async fn generate(app: &Arc<App>, session_id: &str) {
     let Some(stored) = crate::session::get(&app.db.lock().unwrap(), session_id).ok().flatten() else { return };
@@ -232,14 +264,21 @@ pub async fn generate(app: &Arc<App>, session_id: &str) {
             let provider = json::get_str(reference, "providerID").unwrap_or_default();
             let id = json::get_str(reference, "id").unwrap_or_default();
             inventory.model(provider, id).map(json::of).map(|info| {
-                let variant = json::get_str(reference, "variant")
-                    .map(str::to_owned)
-                    .or_else(|| MINIMAL.iter().find(|m| variants(&info).iter().any(|v| v == *m)).map(|m| (*m).to_owned()));
+                let variant = json::get_str(reference, "variant").map(str::to_owned).or_else(|| minimal(&info));
                 (info, variant)
             })
         }
-        // TODO(port): the provider's small model and the primary's lower variant.
-        None => None,
+        None => primary.as_ref().and_then(|primary| {
+            let provider = json::get_str(&primary.reference, "providerID").unwrap_or_default();
+            if let Some(small) = small(inventory, provider) {
+                let variant = minimal(&small);
+                return Some((small, variant));
+            }
+            // Without a lower variant, the primary model at its selected variant is already the fallback.
+            let info = inventory.model(provider, json::get_str(&primary.reference, "id").unwrap_or_default()).map(json::of)?;
+            let variant = lower(&info, json::get_str(&primary.reference, "variant"))?;
+            Some((info, Some(variant)))
+        }),
     };
     let preferred = candidate.and_then(|(info, variant)| {
         let mut reference = Obj::new();

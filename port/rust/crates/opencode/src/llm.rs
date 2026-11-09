@@ -54,6 +54,9 @@ pub struct Model {
     /// `capabilities.input`.
     pub input: Vec<String>,
     pub timeouts: Timeouts,
+    /// The prompt-cache lifetime of the model's `cache.ttl` setting (the request's `cache`); session requests carry it,
+    /// one-shot generations clear it.
+    pub cache_ttl: Option<String>,
 }
 
 // Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
@@ -61,7 +64,7 @@ pub struct Model {
 #[derive(Debug, Clone)]
 pub enum UserPart {
     Text(String),
-    /// TODO(port): media parts (attachments, images).
+    /// Inline media (base64 `data`): attachments are read inline before a request is built.
     Media { mime: String, data: String, filename: Option<String> },
 }
 
@@ -194,6 +197,7 @@ pub async fn stream(request: &Request, events: mpsc::Sender<Result<Event, AIErro
 async fn run(request: &Request, events: &mpsc::Sender<Result<Event, AIError>>) -> Result<(), AIError> {
     let model = &request.model;
     let url = format!("{}/chat/completions", model.base_url.trim_end_matches('/'));
+    openrouter::check_media(request)?;
     let body = openrouter::body(request);
     // `bodyWithOverlay`: the configured body overlay is deep-merged into the request body.
     let body = match &model.body {

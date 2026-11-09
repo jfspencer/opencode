@@ -3,7 +3,7 @@
 //! provider failure asked for (at most 15 minutes); failures that say the provider's host is unreachable retry on
 //! their own budget (2 s to 30 s gaps, for an hour); at most 3 timed-out attempts retry.
 //!
-//! TODO(port): the `session.retry` plugin hook.
+//! The `session.retry` plugin hook is out of scope: no built-in plugin registers it, only external plugins do.
 
 use crate::llm::AIError;
 use crate::llm::error::Kind;
