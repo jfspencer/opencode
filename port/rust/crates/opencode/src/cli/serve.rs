@@ -116,6 +116,9 @@ pub async fn run(input: &Input) -> Result {
         return Err(Fail::error("--service and --stdio cannot be combined"));
     }
     let mode = if service { Mode::Service } else if stdio { Mode::Stdio } else { Mode::Default };
+    // A restart's persistent-terminal handoff is the server's alone: no child inherits it.
+    let handoff = std::env::var("OPENCODE_PTY_HANDOFF").ok();
+    remove_env("OPENCODE_PTY_HANDOFF");
     paths::create();
     if mode == Mode::Service {
         let _ = std::env::set_current_dir(paths::home());
@@ -193,6 +196,7 @@ pub async fn run(input: &Input) -> Result {
         sessions: crate::session::Sessions::default(),
     });
     crate::credential::install(&app);
+    crate::persistent_pty::start(&app, handoff, format!("{}/pty", paths::state())).await;
     let address = crate::http::local_address(&listener).expect("bound address");
     let url = format_address(address);
     // TODO(port): `connectionURLs` lists every interface's address when bound to 0.0.0.0 or ::.

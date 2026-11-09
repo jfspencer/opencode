@@ -43,6 +43,8 @@ pub struct Location {
     pub forms: crate::form::Service,
     /// The location's shell commands (`Shell.Service`).
     pub shell: Arc<crate::shell::Service>,
+    /// The location's terminals (`Pty.Service`).
+    pub pty: Arc<crate::pty::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
 }
@@ -153,6 +155,7 @@ impl Locations {
             location.permission.close(&app.bus, &location.reference());
             location.forms.close(&app.bus, &location.reference());
             location.shell.close();
+            location.pty.close();
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -212,6 +215,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         permission: Default::default(),
         forms: Default::default(),
         shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
+        pty: crate::pty::Service::new(app, key.clone()),
         snapshot: Default::default(),
     };
     {

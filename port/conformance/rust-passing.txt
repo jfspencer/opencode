@@ -434,6 +434,17 @@ scenarios/project-worktree.test.ts › removing a dirty worktree requires force
 scenarios/project-worktree.test.ts › worktree directory from config
 scenarios/project-worktree.test.ts › worktree routes for unknown projects and non-git projects
 scenarios/project-worktree.test.ts › worktree start command and name collisions
+scenarios/pty-persistent.test.ts › persistent terminal daemon shutdown and handoff
+scenarios/pty-persistent.test.ts › persistent terminal errors
+scenarios/pty-persistent.test.ts › persistent terminal websocket tickets
+scenarios/pty-persistent.test.ts › persistent terminal websocket: control, observers, input and exit
+scenarios/pty-persistent.test.ts › persistent terminals of two sessions
+scenarios/pty-persistent.test.ts › persistent terminals over the API
+scenarios/pty-persistent.test.ts › persistent terminals survive a restart only through a handoff
+scenarios/pty.test.ts › pty connect tickets
+scenarios/pty.test.ts › pty sessions over the API
+scenarios/pty.test.ts › pty websocket authentication and tickets
+scenarios/pty.test.ts › pty websocket input, output, replay and exit
 scenarios/session-api-control.test.ts › a session on an unknown agent fails its turn
 scenarios/session-api-control.test.ts › a session on an unknown model fails its turn
 scenarios/session-api-control.test.ts › a slash command that fails to run

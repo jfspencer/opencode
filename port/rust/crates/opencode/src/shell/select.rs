@@ -69,6 +69,11 @@ fn select(file: Option<&str>, priority: Priority, bin: &str) -> String {
     fallback(bin)
 }
 
+/// `ShellSelect.environment`: `$SHELL` when it exists, else the fallback, resolved afresh (persistent terminals).
+pub fn environment() -> String {
+    select(std::env::var("SHELL").ok().as_deref(), Priority::Config, &bin())
+}
+
 /// `ShellSelect.resolve`: the configured shell when there is one, else the environment's, which is looked up once per
 /// process and priority (as TS caches it).
 pub fn resolve(priority: Priority, inventory: &Inventory) -> String {

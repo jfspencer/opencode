@@ -2,7 +2,8 @@
 //! same credentials base64-encoded in an `auth_token` query parameter. The user name is `opencode`; the password is
 //! the server's, or a session token a pairing link issued (also accepted as the `opencode_session[_<port>]` cookie
 //! of same-origin requests). Pairing links themselves need no credentials.
-//! TODO(port): the ticketed PTY and MCP client connects, which skip credentials too.
+//! Ticketed terminal connects skip credentials too: their handlers consume the ticket. TODO(port): the ticketed MCP
+//! client connect.
 
 use base64::Engine;
 use hyper::header::HeaderMap;
@@ -19,6 +20,9 @@ pub fn authorized(app: &App, path: &str, headers: &HeaderMap, query: &[(String, 
     let Some(password) = app.password.as_deref().filter(|p| !p.is_empty()) else { return true };
     // PAIRING_CONNECT_PATH (`/auth/connect/:code`): its handler consumes and validates the code.
     if path.strip_prefix("/auth/connect/").is_some_and(|code| !code.is_empty() && !code.contains('/')) {
+        return true;
+    }
+    if crate::pty::ticket::ticketed(path, query) {
         return true;
     }
     let token = query.iter().find(|(k, _)| k == "auth_token").map(|(_, v)| v.as_str()).filter(|v| !v.is_empty());

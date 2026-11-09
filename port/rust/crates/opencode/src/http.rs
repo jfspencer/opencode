@@ -1,5 +1,7 @@
 //! The HTTP server (packages/server/src/process.ts): authentication, routing over the generated route table, and
-//! response bodies (JSON, empty, server-sent events).
+//! response bodies (JSON, empty, server-sent events). A handler may upgrade its request to a WebSocket ([`websocket`]).
+
+pub mod websocket;
 
 use std::collections::HashMap;
 use std::convert::Infallible;
@@ -30,6 +32,8 @@ pub struct Request {
     pub body: Bytes,
     pub route: &'static Route,
     pub params: HashMap<&'static str, String>,
+    /// The connection's pending upgrade, for a request that asks for one (a WebSocket handler takes it).
+    pub upgrade: std::sync::Mutex<Option<hyper::upgrade::OnUpgrade>>,
 }
 
 impl Request {
@@ -184,7 +188,7 @@ pub async fn serve(app: Arc<App>, listener: TcpListener) {
                 let app = app.clone();
                 async move { Ok::<_, Infallible>(handle(app, request).await) }
             });
-            let _ = http1::Builder::new().keep_alive(true).serve_connection(TokioIo::new(stream), service).await;
+            let _ = http1::Builder::new().keep_alive(true).serve_connection(TokioIo::new(stream), service).with_upgrades().await;
         });
     }
 }
@@ -194,7 +198,8 @@ pub fn local_address(listener: &TcpListener) -> Option<SocketAddr> {
 }
 
 async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
-    let (parts, body) = request.into_parts();
+    let (mut parts, body) = request.into_parts();
+    let upgrade = parts.extensions.remove::<hyper::upgrade::OnUpgrade>();
     let method = parts.method.as_str().to_owned();
     let raw_path = parts.uri.path().to_owned();
     let query = parts.uri.query().map(parse_query).unwrap_or_default();
@@ -232,7 +237,7 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
         Ok(collected) => collected.to_bytes(),
         Err(_) => Bytes::new(),
     };
-    let request = Request { path: raw_path, query, headers, body, route, params };
+    let request = Request { path: raw_path, query, headers, body, route, params, upgrade: std::sync::Mutex::new(upgrade) };
     let response = crate::api::dispatch(&app, request).await;
     with_cors(response)
 }

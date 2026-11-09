@@ -11,6 +11,7 @@ mod misc;
 mod permission;
 mod form;
 mod project;
+mod pty;
 mod schedule;
 mod session;
 mod shell;
@@ -44,7 +45,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         ("vcs", _) => vcs::handle(app, request, decoded, located).await,
         ("worktree", _) => worktree::handle(app, request, decoded, located).await,
         ("schedule" | "job", _) => schedule::handle(app, request, decoded, located).await,
-        ("shell" | "pty" | "persistentPty", _) => shell::handle(app, request, decoded, located).await,
+        ("shell", _) => shell::handle(app, request, decoded, located).await,
+        ("pty" | "persistentPty", _) => pty::handle(app, request, decoded, located).await,
         _ => misc::handle(app, request, decoded, located).await,
     }
 }
