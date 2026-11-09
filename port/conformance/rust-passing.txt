@@ -99,6 +99,7 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/permissions.test.ts › web fetch redirects are checked against deny rules
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
@@ -137,6 +138,16 @@ scenarios/project-fs.test.ts › read files
 scenarios/project-fs.test.ts › read with byte ranges
 scenarios/project-fs.test.ts › watch and unwatch files
 scenarios/project-fs.test.ts › write files
+scenarios/project-instructions.test.ts › AGENTS.md files from a nested location up to the git root
+scenarios/project-instructions.test.ts › AGENTS.md in the project root
+scenarios/project-instructions.test.ts › all instructions removed between turns
+scenarios/project-instructions.test.ts › configured instruction paths and globs
+scenarios/project-instructions.test.ts › configured instructions resolve upward from a nested location
+scenarios/project-instructions.test.ts › global AGENTS.md from the config directory
+scenarios/project-instructions.test.ts › instruction changes between turns
+scenarios/project-instructions.test.ts › moving a session changes its environment and instructions
+scenarios/project-instructions.test.ts › remote instruction URLs
+scenarios/project-instructions.test.ts › unreadable AGENTS.md blocks instruction initialization
 scenarios/project-jobs.test.ts › background subagent job
 scenarios/project-jobs.test.ts › deleting a session cancels its background jobs
 scenarios/project-jobs.test.ts › foreground subagent moved to the background
@@ -161,12 +172,22 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-skills.test.ts › URL skill index with an invalid shape
+scenarios/project-skills.test.ts › URL skill whose file is missing
 scenarios/project-skills.test.ts › activate a skill through the session endpoint
 scenarios/project-skills.test.ts › built-in skills
 scenarios/project-skills.test.ts › denied skills are hidden from the model
+scenarios/project-skills.test.ts › local references
+scenarios/project-skills.test.ts › model loads a built-in skill with the skill tool
+scenarios/project-skills.test.ts › model loads a project skill with the skill tool
+scenarios/project-skills.test.ts › reference changes between turns
 scenarios/project-skills.test.ts › references on a location's first request
 scenarios/project-skills.test.ts › skill list changes between turns
+scenarios/project-skills.test.ts › skills from a URL index
+scenarios/project-skills.test.ts › skills from an unreachable URL index
 scenarios/project-skills.test.ts › skills from config directories and compatibility roots
+scenarios/project-skills.test.ts › versioned URL skill whose download fails
+scenarios/project-skills.test.ts › versioned skill from a URL index
 scenarios/project-vcs.test.ts › binary, empty and special file names in the diff
 scenarios/project-vcs.test.ts › branch listing with search and limit
 scenarios/project-vcs.test.ts › detached head and branch switches
@@ -245,7 +266,11 @@ scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools-skill.test.ts › skill activated by the user
+scenarios/tools-skill.test.ts › skill from a remote index
+scenarios/tools-skill.test.ts › skill from a remote index updated to a new version
+scenarios/tools-skill.test.ts › skill from configured paths
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
+scenarios/tools-skill.test.ts › skill remote index that fails
 scenarios/tools-subagent.test.ts › subagent child interrupted while the parent waits
 scenarios/tools-subagent.test.ts › subagent continuation of a session that is not a child
 scenarios/tools-subagent.test.ts › subagent continued by sessionID
@@ -259,5 +284,16 @@ scenarios/tools-subagent.test.ts › subagent parent interrupted while the child
 scenarios/tools-subagent.test.ts › subagent with empty optional arguments
 scenarios/tools-subagent.test.ts › subagent with model overrides
 scenarios/tools-subagent.test.ts › subagent with unknown and primary agents
+scenarios/tools-webfetch.test.ts › webfetch Cloudflare challenge retried with another user agent
+scenarios/tools-webfetch.test.ts › webfetch HTML as text and as raw HTML
+scenarios/tools-webfetch.test.ts › webfetch HTML conversion edge cases
+scenarios/tools-webfetch.test.ts › webfetch HTTP errors and invalid URLs
+scenarios/tools-webfetch.test.ts › webfetch deeply nested HTML
+scenarios/tools-webfetch.test.ts › webfetch denied by permission rules
+scenarios/tools-webfetch.test.ts › webfetch non-HTML content types
+scenarios/tools-webfetch.test.ts › webfetch redirects
+scenarios/tools-webfetch.test.ts › webfetch response size limits
+scenarios/tools-webfetch.test.ts › webfetch rich HTML as markdown
+scenarios/tools-webfetch.test.ts › webfetch timeout
 scenarios/tools.test.ts › malformed tool arguments
 scenarios/tools.test.ts › unknown tool
