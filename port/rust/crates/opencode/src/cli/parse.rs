@@ -632,6 +632,11 @@ fn parse_one(param: &Param, raw: &str) -> Result<Val, CliError> {
         flag: param.flag,
     };
     let value = primitive(param, raw).map_err(|expected| invalid(raw.to_owned(), expected))?;
+    if let (Val::Str(text), Check::PairingUrl) = (&value, param.check) {
+        return super::pair::url(text).map(Val::Str).ok_or_else(|| {
+            invalid(text.clone(), "Expected an HTTP(S) server URL without credentials, query parameters, or a fragment".into())
+        });
+    }
     let failed = match (&value, param.check) {
         (Val::Int(n), Check::AtLeast(min)) if *n < min => {
             Some((n.to_string(), format!("Expected a value greater than or equal to {min}")))

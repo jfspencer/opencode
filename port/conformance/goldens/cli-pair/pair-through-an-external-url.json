@@ -1,0 +1,95 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "https://opencode.example.test/base///"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  https://opencode.example.test/auth/connect/<pairing code>",
+          "",
+          "  <QR code of {\"code\":\"<pairing code>\",\"urls\":[\"https://opencode.example.test/base\"]}>",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "http://192.168.1.20:4096"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  http://192.168.1.20:4096/auth/connect/<pairing code>",
+          "",
+          "  <QR code of {\"code\":\"<pairing code>\",\"urls\":[\"http://192.168.1.20:4096\"]}>",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "http://localhost:4096/"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  http://localhost:4096/auth/connect/<pairing code>",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "http://127.0.0.2:4096"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "",
+          "  Open a link to connect. Links work once and expire in 5 minutes.",
+          "",
+          "  http://127.0.0.2:4096/auth/connect/<pairing code>",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,133 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote"
+        ],
+        "exit": 1,
+        "stderr": [
+          "This will expose your OpenCode server to the internet.",
+          "Traffic is end-to-end encrypted, and access requires your server password.",
+          "To pair locally instead, run `opencode pair` without the --remote flag.",
+          "Run interactively or pass --yes to continue.",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote",
+          "--yes"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Setting up remote access; this can take a minute...",
+          "OpenTunnelClientError: Failed to create tunnel: InvalidRequestError: Tunnel creation is closed {",
+          "  [cause]: InvalidRequestError: Tunnel creation is closed",
+          "}",
+          ""
+        ],
+        "stdout": [
+          "│",
+          "▲  This will expose your OpenCode server to the internet.",
+          "│  Traffic is end-to-end encrypted, and access requires your server password.",
+          "│  To pair locally instead, run `opencode pair` without the --remote flag.",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>",
+            "remoteAccepted": true
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--remote"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Setting up remote access; this can take a minute...",
+          "OpenTunnelClientError: Failed to create tunnel: InvalidRequestError: Tunnel creation is closed {",
+          "  [cause]: InvalidRequestError: Tunnel creation is closed",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {},
+        "headers": {
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://opentunnel.xyz/api/tunnel"
+      },
+      {
+        "body": {},
+        "headers": {
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://opentunnel.xyz/api/tunnel"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

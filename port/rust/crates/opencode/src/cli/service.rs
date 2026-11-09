@@ -299,9 +299,11 @@ pub async fn set(key: &str, value: &str, nested: Option<&str>) -> Result<()> {
             if value != "true" && value != "false" {
                 return Err(Fail::error("Remote must be true or false"));
             }
+            // A tunnel that cannot be created leaves remote access off instead of a service that keeps retrying.
             if value == "true" {
-                // TODO(port): remote access through OpenTunnel (RemoteTunnel.ensure) is not ported.
-                return Err(Fail::error("Remote access is not available in this build"));
+                super::tunnel::ensure().await.map_err(super::tunnel::Failure::into_fail)?;
+                stop(false).await?;
+                return enable_remote().map(|_| ());
             }
             stop(false).await?;
             disable_remote()
@@ -350,6 +352,28 @@ pub async fn set(key: &str, value: &str, nested: Option<&str>) -> Result<()> {
             write_config(&config)
         }
     }
+}
+
+/// `ServiceConfig.remote()`: turns remote access on and returns its route, created once and kept so the remote URL
+/// survives restarts.
+pub fn enable_remote() -> Result<String> {
+    let mut config = read_config();
+    if let Some(route) = json::get(&config, "remote").and_then(|r| json::get_str(r, "route")) {
+        return Ok(route.to_owned());
+    }
+    let route = random_route();
+    let mut remote = Obj::new();
+    remote.str("route", &route);
+    json::set(&mut config, "remote", remote.done());
+    write_config(&config)?;
+    Ok(route)
+}
+
+/// `ServiceConfig.acceptRemote()`.
+pub fn accept_remote() -> Result<()> {
+    let mut config = read_config();
+    json::set(&mut config, "remoteAccepted", Json::Bool(true));
+    write_config(&config)
 }
 
 fn disable_remote() -> Result<()> {
