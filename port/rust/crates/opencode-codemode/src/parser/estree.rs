@@ -5,7 +5,6 @@
 //! `{"$regexp": true}`, and a non-finite number is `{"$num": "Infinity"}`.
 
 use super::ast::*;
-use crate::jsstr::JsStr;
 
 enum J<'a> {
     Null,
@@ -24,11 +23,7 @@ pub fn result_to_json(result: &Result<Program, SyntaxError>) -> String {
         Ok(program) => program_json(program),
         Err(error) => J::Obj(vec![(
             "error",
-            J::Obj(vec![
-                ("message", J::Str(&error.message)),
-                ("pos", J::Int(error.pos)),
-                ("loc", position(error.loc)),
-            ]),
+            J::Obj(vec![("message", J::Str(&error.message)), ("pos", J::Int(error.pos)), ("loc", position(error.loc))]),
         )]),
     };
     let mut out = String::new();
@@ -148,7 +143,16 @@ fn literal(lit: &Literal) -> J<'_> {
     let value = match &lit.value {
         LitValue::String(s) => J::Units(s.units()),
         LitValue::Number(n) if n.is_finite() => J::Num(*n),
-        LitValue::Number(n) => J::Obj(vec![("$num", J::Str(if *n > 0.0 { "Infinity" } else if *n < 0.0 { "-Infinity" } else { "NaN" }))]),
+        LitValue::Number(n) => J::Obj(vec![(
+            "$num",
+            J::Str(if *n > 0.0 {
+                "Infinity"
+            } else if *n < 0.0 {
+                "-Infinity"
+            } else {
+                "NaN"
+            }),
+        )]),
         LitValue::Boolean(b) => J::Bool(*b),
         LitValue::Null => J::Null,
         LitValue::RegExp { pattern, flags } => {
@@ -174,7 +178,11 @@ fn var_decl(decl: &VariableDeclaration) -> J<'_> {
         .iter()
         .map(|d| node("VariableDeclarator", d.span, vec![("id", pat(&d.id)), ("init", opt(&d.init, expr))]))
         .collect();
-    node("VariableDeclaration", decl.span, vec![("declarations", J::Arr(declarations)), ("kind", J::Str(decl.kind.as_str()))])
+    node(
+        "VariableDeclaration",
+        decl.span,
+        vec![("declarations", J::Arr(declarations)), ("kind", J::Str(decl.kind.as_str()))],
+    )
 }
 
 fn for_head(head: &ForHead) -> J<'_> {
@@ -192,7 +200,11 @@ fn module_name(name: &ModuleName) -> J<'_> {
 }
 
 fn attributes(list: &[ImportAttribute]) -> J<'_> {
-    J::Arr(list.iter().map(|a| node("ImportAttribute", a.span, vec![("key", module_name(&a.key)), ("value", literal(&a.value))])).collect())
+    J::Arr(
+        list.iter()
+            .map(|a| node("ImportAttribute", a.span, vec![("key", module_name(&a.key)), ("value", literal(&a.value))]))
+            .collect(),
+    )
 }
 
 fn stmt(s: &Stmt) -> J<'_> {
@@ -221,14 +233,22 @@ fn stmt(s: &Stmt) -> J<'_> {
             let cases = sw
                 .cases
                 .iter()
-                .map(|c| node("SwitchCase", c.span, vec![("consequent", stmts(&c.consequent)), ("test", opt(&c.test, expr))]))
+                .map(|c| {
+                    node("SwitchCase", c.span, vec![("consequent", stmts(&c.consequent)), ("test", opt(&c.test, expr))])
+                })
                 .collect();
             node("SwitchStatement", sw.span, vec![("discriminant", expr(&sw.discriminant)), ("cases", J::Arr(cases))])
         }
         Stmt::Throw(t) => node("ThrowStatement", t.span, vec![("argument", expr(&t.argument))]),
         Stmt::Try(t) => {
-            let handler = opt(&t.handler, |h| node("CatchClause", h.span, vec![("param", opt(&h.param, pat)), ("body", block(&h.body))]));
-            node("TryStatement", t.span, vec![("block", block(&t.block)), ("handler", handler), ("finalizer", opt(&t.finalizer, block))])
+            let handler = opt(&t.handler, |h| {
+                node("CatchClause", h.span, vec![("param", opt(&h.param, pat)), ("body", block(&h.body))])
+            });
+            node(
+                "TryStatement",
+                t.span,
+                vec![("block", block(&t.block)), ("handler", handler), ("finalizer", opt(&t.finalizer, block))],
+            )
         }
         Stmt::While(w) => node("WhileStatement", w.span, vec![("test", expr(&w.test)), ("body", stmt(&w.body))]),
         Stmt::DoWhile(d) => node("DoWhileStatement", d.span, vec![("body", stmt(&d.body)), ("test", expr(&d.test))]),
@@ -240,14 +260,28 @@ fn stmt(s: &Stmt) -> J<'_> {
             node(
                 "ForStatement",
                 f.span,
-                vec![("init", init), ("test", opt(&f.test, expr)), ("update", opt(&f.update, expr)), ("body", stmt(&f.body))],
+                vec![
+                    ("init", init),
+                    ("test", opt(&f.test, expr)),
+                    ("update", opt(&f.update, expr)),
+                    ("body", stmt(&f.body)),
+                ],
             )
         }
-        Stmt::ForIn(f) => node("ForInStatement", f.span, vec![("left", for_head(&f.left)), ("right", expr(&f.right)), ("body", stmt(&f.body))]),
+        Stmt::ForIn(f) => node(
+            "ForInStatement",
+            f.span,
+            vec![("left", for_head(&f.left)), ("right", expr(&f.right)), ("body", stmt(&f.body))],
+        ),
         Stmt::ForOf(f) => node(
             "ForOfStatement",
             f.span,
-            vec![("await", J::Bool(f.is_await)), ("left", for_head(&f.left)), ("right", expr(&f.right)), ("body", stmt(&f.body))],
+            vec![
+                ("await", J::Bool(f.is_await)),
+                ("left", for_head(&f.left)),
+                ("right", expr(&f.right)),
+                ("body", stmt(&f.body)),
+            ],
         ),
         Stmt::Function(f) => function(f),
         Stmt::Variable(v) => var_decl(v),
@@ -257,24 +291,40 @@ fn stmt(s: &Stmt) -> J<'_> {
                 .specifiers
                 .iter()
                 .map(|s| match s {
-                    ImportSpecifierKind::Named { span, imported, local } => {
-                        node("ImportSpecifier", *span, vec![("imported", module_name(imported)), ("local", ident(local))])
+                    ImportSpecifierKind::Named { span, imported, local } => node(
+                        "ImportSpecifier",
+                        *span,
+                        vec![("imported", module_name(imported)), ("local", ident(local))],
+                    ),
+                    ImportSpecifierKind::Default { span, local } => {
+                        node("ImportDefaultSpecifier", *span, vec![("local", ident(local))])
                     }
-                    ImportSpecifierKind::Default { span, local } => node("ImportDefaultSpecifier", *span, vec![("local", ident(local))]),
-                    ImportSpecifierKind::Namespace { span, local } => node("ImportNamespaceSpecifier", *span, vec![("local", ident(local))]),
+                    ImportSpecifierKind::Namespace { span, local } => {
+                        node("ImportNamespaceSpecifier", *span, vec![("local", ident(local))])
+                    }
                 })
                 .collect();
             node(
                 "ImportDeclaration",
                 i.span,
-                vec![("specifiers", J::Arr(specifiers)), ("source", literal(&i.source)), ("attributes", attributes(&i.attributes))],
+                vec![
+                    ("specifiers", J::Arr(specifiers)),
+                    ("source", literal(&i.source)),
+                    ("attributes", attributes(&i.attributes)),
+                ],
             )
         }
         Stmt::ExportNamed(e) => {
             let specifiers = e
                 .specifiers
                 .iter()
-                .map(|s| node("ExportSpecifier", s.span, vec![("local", module_name(&s.local)), ("exported", module_name(&s.exported))]))
+                .map(|s| {
+                    node(
+                        "ExportSpecifier",
+                        s.span,
+                        vec![("local", module_name(&s.local)), ("exported", module_name(&s.exported))],
+                    )
+                })
                 .collect();
             node(
                 "ExportNamedDeclaration",
@@ -297,7 +347,11 @@ fn stmt(s: &Stmt) -> J<'_> {
         Stmt::ExportAll(e) => node(
             "ExportAllDeclaration",
             e.span,
-            vec![("exported", opt(&e.exported, module_name)), ("source", literal(&e.source)), ("attributes", attributes(&e.attributes))],
+            vec![
+                ("exported", opt(&e.exported, module_name)),
+                ("source", literal(&e.source)),
+                ("attributes", attributes(&e.attributes)),
+            ],
         ),
     }
 }
@@ -354,7 +408,12 @@ fn class(c: &Class) -> J<'_> {
             ClassElement::Property(p) => node(
                 "PropertyDefinition",
                 p.span,
-                vec![("static", J::Bool(p.is_static)), ("computed", J::Bool(p.computed)), ("key", expr(&p.key)), ("value", opt(&p.value, expr))],
+                vec![
+                    ("static", J::Bool(p.is_static)),
+                    ("computed", J::Bool(p.computed)),
+                    ("key", expr(&p.key)),
+                    ("value", opt(&p.value, expr)),
+                ],
             ),
             ClassElement::StaticBlock(s) => node("StaticBlock", s.span, vec![("body", stmts(&s.body))]),
         })
@@ -386,17 +445,33 @@ fn template(t: &TemplateLiteral) -> J<'_> {
                 Some(cooked) => J::Units(cooked.units()),
                 None => J::Null,
             };
-            node("TemplateElement", q.span, vec![("value", J::Obj(vec![("raw", J::Units(q.raw.units())), ("cooked", cooked)])), ("tail", J::Bool(q.tail))])
+            node(
+                "TemplateElement",
+                q.span,
+                vec![
+                    ("value", J::Obj(vec![("raw", J::Units(q.raw.units())), ("cooked", cooked)])),
+                    ("tail", J::Bool(q.tail)),
+                ],
+            )
         })
         .collect();
-    node("TemplateLiteral", t.span, vec![("expressions", J::Arr(t.expressions.iter().map(expr).collect())), ("quasis", J::Arr(quasis))])
+    node(
+        "TemplateLiteral",
+        t.span,
+        vec![("expressions", J::Arr(t.expressions.iter().map(expr).collect())), ("quasis", J::Arr(quasis))],
+    )
 }
 
 fn member(m: &MemberExpression) -> J<'_> {
     node(
         "MemberExpression",
         m.span,
-        vec![("object", expr(&m.object)), ("property", expr(&m.property)), ("computed", J::Bool(m.computed)), ("optional", J::Bool(m.optional))],
+        vec![
+            ("object", expr(&m.object)),
+            ("property", expr(&m.property)),
+            ("computed", J::Bool(m.computed)),
+            ("optional", J::Bool(m.optional)),
+        ],
     )
 }
 
@@ -420,9 +495,11 @@ fn expr(e: &Expr) -> J<'_> {
                     ObjectMember::Property(p) => {
                         let value = match &p.value {
                             // A shorthand `{a = 1}` holds an AssignmentPattern (only valid once it becomes a pattern).
-                            Expr::Assignment(a) if p.shorthand => {
-                                node("AssignmentPattern", a.span, vec![("left", pat(&a.left)), ("right", expr(&a.right))])
-                            }
+                            Expr::Assignment(a) if p.shorthand => node(
+                                "AssignmentPattern",
+                                a.span,
+                                vec![("left", pat(&a.left)), ("right", expr(&a.right))],
+                            ),
                             value => expr(value),
                         };
                         node(
@@ -462,11 +539,21 @@ fn expr(e: &Expr) -> J<'_> {
             u.span,
             vec![("operator", J::Str(u.operator)), ("prefix", J::Bool(u.prefix)), ("argument", expr(&u.argument))],
         ),
-        Expr::Binary(b) => node("BinaryExpression", b.span, vec![("left", expr(&b.left)), ("operator", J::Str(b.operator)), ("right", expr(&b.right))]),
-        Expr::Logical(l) => node("LogicalExpression", l.span, vec![("left", expr(&l.left)), ("operator", J::Str(l.operator)), ("right", expr(&l.right))]),
-        Expr::Assignment(a) => {
-            node("AssignmentExpression", a.span, vec![("operator", J::Str(a.operator)), ("left", pat(&a.left)), ("right", expr(&a.right))])
-        }
+        Expr::Binary(b) => node(
+            "BinaryExpression",
+            b.span,
+            vec![("left", expr(&b.left)), ("operator", J::Str(b.operator)), ("right", expr(&b.right))],
+        ),
+        Expr::Logical(l) => node(
+            "LogicalExpression",
+            l.span,
+            vec![("left", expr(&l.left)), ("operator", J::Str(l.operator)), ("right", expr(&l.right))],
+        ),
+        Expr::Assignment(a) => node(
+            "AssignmentExpression",
+            a.span,
+            vec![("operator", J::Str(a.operator)), ("left", pat(&a.left)), ("right", expr(&a.right))],
+        ),
         Expr::Member(m) => member(m),
         Expr::Conditional(c) => node(
             "ConditionalExpression",
@@ -487,14 +574,26 @@ fn expr(e: &Expr) -> J<'_> {
             n.span,
             vec![("callee", expr(&n.callee)), ("arguments", J::Arr(n.arguments.iter().map(expr_or_spread).collect()))],
         ),
-        Expr::Sequence(s) => node("SequenceExpression", s.span, vec![("expressions", J::Arr(s.expressions.iter().map(expr).collect()))]),
-        Expr::Yield(y) => node("YieldExpression", y.span, vec![("delegate", J::Bool(y.delegate)), ("argument", opt(&y.argument, expr))]),
+        Expr::Sequence(s) => {
+            node("SequenceExpression", s.span, vec![("expressions", J::Arr(s.expressions.iter().map(expr).collect()))])
+        }
+        Expr::Yield(y) => node(
+            "YieldExpression",
+            y.span,
+            vec![("delegate", J::Bool(y.delegate)), ("argument", opt(&y.argument, expr))],
+        ),
         Expr::Await(a) => node("AwaitExpression", a.span, vec![("argument", expr(&a.argument))]),
         Expr::Template(t) => template(t),
-        Expr::TaggedTemplate(t) => node("TaggedTemplateExpression", t.span, vec![("tag", expr(&t.tag)), ("quasi", template(&t.quasi))]),
+        Expr::TaggedTemplate(t) => {
+            node("TaggedTemplateExpression", t.span, vec![("tag", expr(&t.tag)), ("quasi", template(&t.quasi))])
+        }
         Expr::Chain(c) => node("ChainExpression", c.span, vec![("expression", expr(&c.expression))]),
-        Expr::MetaProperty(m) => node("MetaProperty", m.span, vec![("meta", ident(&m.meta)), ("property", ident(&m.property))]),
-        Expr::Import(i) => node("ImportExpression", i.span, vec![("source", expr(&i.source)), ("options", opt(&i.options, expr))]),
+        Expr::MetaProperty(m) => {
+            node("MetaProperty", m.span, vec![("meta", ident(&m.meta)), ("property", ident(&m.property))])
+        }
+        Expr::Import(i) => {
+            node("ImportExpression", i.span, vec![("source", expr(&i.source)), ("options", opt(&i.options, expr))])
+        }
     }
 }
 
@@ -524,13 +623,12 @@ fn pat(p: &Pat) -> J<'_> {
                 .collect();
             node("ObjectPattern", o.span, vec![("properties", J::Arr(properties))])
         }
-        Pat::Array(a) => node("ArrayPattern", a.span, vec![("elements", J::Arr(a.elements.iter().map(|e| opt(e, pat)).collect()))]),
+        Pat::Array(a) => {
+            node("ArrayPattern", a.span, vec![("elements", J::Arr(a.elements.iter().map(|e| opt(e, pat)).collect()))])
+        }
         Pat::Rest(r) => node("RestElement", r.span, vec![("argument", pat(&r.argument))]),
-        Pat::Assignment(a) => node("AssignmentPattern", a.span, vec![("left", pat(&a.left)), ("right", expr(&a.right))]),
+        Pat::Assignment(a) => {
+            node("AssignmentPattern", a.span, vec![("left", pat(&a.left)), ("right", expr(&a.right))])
+        }
     }
-}
-
-#[allow(dead_code)]
-fn units(s: &JsStr) -> J<'_> {
-    J::Units(s.units())
 }

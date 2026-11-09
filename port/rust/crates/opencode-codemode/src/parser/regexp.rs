@@ -433,7 +433,15 @@ impl<'p> RegExpValidationState<'p> {
     // https://www.ecma-international.org/ecma-262/8.0/#prod-annexB-ExtendedPatternCharacter
     fn eat_extended_pattern_character(&mut self) -> bool {
         let ch = self.current();
-        if ch != -1 && ch != 0x24 && !(0x28..=0x2B).contains(&ch) && ch != 0x2E && ch != 0x3F && ch != 0x5B && ch != 0x5E && ch != 0x7C {
+        if ch != -1
+            && ch != 0x24
+            && !(0x28..=0x2B).contains(&ch)
+            && ch != 0x2E
+            && ch != 0x3F
+            && ch != 0x5B
+            && ch != 0x5E
+            && ch != 0x7C
+        {
             self.advance();
             return true;
         }
@@ -642,7 +650,12 @@ impl<'p> RegExpValidationState<'p> {
                 }
                 return Ok(true);
             }
-            if switch_u && self.eat(0x7B) && self.eat_hex_digits() && self.eat(0x7D) && (0.0..=1114111.0).contains(&self.last_int_value) {
+            if switch_u
+                && self.eat(0x7B)
+                && self.eat_hex_digits()
+                && self.eat(0x7D)
+                && (0.0..=1114111.0).contains(&self.last_int_value)
+            {
                 return Ok(true);
             }
             if switch_u {
@@ -1112,7 +1125,7 @@ impl<'p> RegExpValidationState<'p> {
             if self.eat_octal_digit() {
                 let n2 = self.last_int_value;
                 if n1 <= 3.0 && self.eat_octal_digit() {
-                    self.last_int_value = n1 * 64.0 + n2 * 8.0 + self.last_int_value;
+                    self.last_int_value += n1 * 64.0 + n2 * 8.0;
                 } else {
                     self.last_int_value = n1 * 8.0 + n2;
                 }
@@ -1198,7 +1211,12 @@ fn push_code_point_string(out: &mut String, code: i64) {
 }
 
 fn is_syntax_character(ch: i64) -> bool {
-    ch == 0x24 || (0x28..=0x2B).contains(&ch) || ch == 0x2E || ch == 0x3F || (0x5B..=0x5E).contains(&ch) || (0x7B..=0x7D).contains(&ch)
+    ch == 0x24
+        || (0x28..=0x2B).contains(&ch)
+        || ch == 0x2E
+        || ch == 0x3F
+        || (0x5B..=0x5E).contains(&ch)
+        || (0x7B..=0x7D).contains(&ch)
 }
 
 fn is_control_letter(ch: i64) -> bool {
@@ -1268,8 +1286,7 @@ fn validate_unicode_property_name_and_value(name: &str, value: &str) -> RR<()> {
 
 const BINARY_PROPERTIES: &str = "ASCII ASCII_Hex_Digit AHex Alphabetic Alpha Any Assigned Bidi_Control Bidi_C Bidi_Mirrored Bidi_M Case_Ignorable CI Cased Changes_When_Casefolded CWCF Changes_When_Casemapped CWCM Changes_When_Lowercased CWL Changes_When_NFKC_Casefolded CWKCF Changes_When_Titlecased CWT Changes_When_Uppercased CWU Dash Default_Ignorable_Code_Point DI Deprecated Dep Diacritic Dia Emoji Emoji_Component Emoji_Modifier Emoji_Modifier_Base Emoji_Presentation Extender Ext Grapheme_Base Gr_Base Grapheme_Extend Gr_Ext Hex_Digit Hex IDS_Binary_Operator IDSB IDS_Trinary_Operator IDST ID_Continue IDC ID_Start IDS Ideographic Ideo Join_Control Join_C Logical_Order_Exception LOE Lowercase Lower Math Noncharacter_Code_Point NChar Pattern_Syntax Pat_Syn Pattern_White_Space Pat_WS Quotation_Mark QMark Radical Regional_Indicator RI Sentence_Terminal STerm Soft_Dotted SD Terminal_Punctuation Term Unified_Ideograph UIdeo Uppercase Upper Variation_Selector VS White_Space space XID_Continue XIDC XID_Start XIDS Extended_Pictographic EBase EComp EMod EPres ExtPict";
 
-const BINARY_PROPERTIES_OF_STRINGS: &str =
-    "Basic_Emoji Emoji_Keycap_Sequence RGI_Emoji_Modifier_Sequence RGI_Emoji_Flag_Sequence RGI_Emoji_Tag_Sequence RGI_Emoji_ZWJ_Sequence RGI_Emoji";
+const BINARY_PROPERTIES_OF_STRINGS: &str = "Basic_Emoji Emoji_Keycap_Sequence RGI_Emoji_Modifier_Sequence RGI_Emoji_Flag_Sequence RGI_Emoji_Tag_Sequence RGI_Emoji_ZWJ_Sequence RGI_Emoji";
 
 const GENERAL_CATEGORY_VALUES: &str = "Cased_Letter LC Close_Punctuation Pe Connector_Punctuation Pc Control Cc cntrl Currency_Symbol Sc Dash_Punctuation Pd Decimal_Number Nd digit Enclosing_Mark Me Final_Punctuation Pf Format Cf Initial_Punctuation Pi Letter L Letter_Number Nl Line_Separator Zl Lowercase_Letter Ll Mark M Combining_Mark Math_Symbol Sm Modifier_Letter Lm Modifier_Symbol Sk Nonspacing_Mark Mn Number N Open_Punctuation Ps Other C Other_Letter Lo Other_Number No Other_Punctuation Po Other_Symbol So Paragraph_Separator Zp Private_Use Co Punctuation P punct Separator Z Space_Separator Zs Spacing_Mark Mc Surrogate Cs Symbol S Titlecase_Letter Lt Unassigned Cn Uppercase_Letter Lu";
 

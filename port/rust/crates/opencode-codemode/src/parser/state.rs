@@ -336,7 +336,10 @@ pub(super) enum Value {
     BigInt(Rc<str>),
     /// a string literal's or template chunk's cooked text, or an invalid template chunk's raw text
     Str(JsStr),
-    Regex { pattern: Rc<str>, flags: Rc<str> },
+    Regex {
+        pattern: Rc<str>,
+        flags: Rc<str>,
+    },
 }
 
 /// A parse failure. `TemplateEscape` is acorn's `INVALID_TEMPLATE_ESCAPE_ERROR`, caught by the template reader.
@@ -365,7 +368,13 @@ pub(super) struct DestructuringErrors {
 
 impl DestructuringErrors {
     pub(super) fn new() -> DestructuringErrors {
-        DestructuringErrors { shorthand_assign: -1, trailing_comma: -1, parenthesized_assign: -1, parenthesized_bind: -1, double_proto: -1 }
+        DestructuringErrors {
+            shorthand_assign: -1,
+            trailing_comma: -1,
+            parenthesized_assign: -1,
+            parenthesized_bind: -1,
+            double_proto: -1,
+        }
     }
 }
 
@@ -656,7 +665,11 @@ impl<'a> Parser<'a> {
         }
         if used > self.stack_limit {
             let loc = self.line_info(self.start);
-            return Err(Fail::Syntax(Box::new(SyntaxError { message: STACK_OVERFLOW_MESSAGE.to_string(), pos: self.start as u32, loc })));
+            return Err(Fail::Syntax(Box::new(SyntaxError {
+                message: STACK_OVERFLOW_MESSAGE.to_string(),
+                pos: self.start as u32,
+                loc,
+            })));
         }
         Ok(())
     }
@@ -666,20 +679,19 @@ impl<'a> Parser<'a> {
     pub(super) fn check_chain(&mut self, links: usize) -> R<()> {
         // Stack per link of a recursive walk such as the tree's drop glue, generously.
         const LINK_COST: usize = if cfg!(debug_assertions) { 192 } else { 64 };
-        if links % 64 != 0 {
+        if !links.is_multiple_of(64) {
             return Ok(());
         }
         let used = self.stack_base.saturating_sub(stack_address());
         if used + links * LINK_COST > self.stack_limit {
             let loc = self.line_info(self.start);
-            return Err(Fail::Syntax(Box::new(SyntaxError { message: STACK_OVERFLOW_MESSAGE.to_string(), pos: self.start as u32, loc })));
+            return Err(Fail::Syntax(Box::new(SyntaxError {
+                message: STACK_OVERFLOW_MESSAGE.to_string(),
+                pos: self.start as u32,
+                loc,
+            })));
         }
         Ok(())
-    }
-
-    #[cfg(test)]
-    pub(super) fn stack_base_for_test(&self) -> usize {
-        self.stack_base - stack_address()
     }
 
     pub(super) fn cur_position(&self) -> Position {
@@ -691,7 +703,12 @@ impl<'a> Parser<'a> {
     }
 
     pub(super) fn finish(&self, start: Start) -> Span {
-        Span { start: start.pos as u32, end: self.last_tok_end as u32, loc_start: start.loc, loc_end: self.last_tok_end_loc }
+        Span {
+            start: start.pos as u32,
+            end: self.last_tok_end as u32,
+            loc_start: start.loc,
+            loc_end: self.last_tok_end_loc,
+        }
     }
 
     pub(super) fn finish_at(&self, start: Start, pos: usize, loc: Position) -> Span {
@@ -735,7 +752,8 @@ impl<'a> Parser<'a> {
                 if !self.has_line_break(after, end) {
                     return false;
                 }
-                let is_continuation = matches!(next, 40 | 96 | 46 | 91 | 43 | 45 | 47 | 42 | 37 | 60 | 62 | 61 | 44 | 63 | 94 | 38);
+                let is_continuation =
+                    matches!(next, 40 | 96 | 46 | 91 | 43 | 45 | 47 | 42 | 37 | 60 | 62 | 61 | 44 | 63 | 94 | 38);
                 return !(is_continuation || next == 33 && self.cu(end + 1) == 61);
             }
             start += matched_len;
@@ -813,7 +831,9 @@ impl<'a> Parser<'a> {
         }
         let parens = if is_assign { errors.parenthesized_assign } else { errors.parenthesized_bind };
         if parens > -1 {
-            return Err(self.raise(parens as usize, if is_assign { "Assigning to rvalue" } else { "Parenthesized pattern" }));
+            return Err(
+                self.raise(parens as usize, if is_assign { "Assigning to rvalue" } else { "Parenthesized pattern" })
+            );
         }
         Ok(())
     }
@@ -890,13 +910,18 @@ impl<'a> Parser<'a> {
             Bind::Function => {
                 let as_var = self.treat_functions_as_var();
                 let scope = self.scope_stack.last_mut().unwrap();
-                redeclared = if as_var { scope.lexical.contains(name) } else { scope.lexical.contains(name) || scope.var.contains(name) };
+                redeclared = if as_var {
+                    scope.lexical.contains(name)
+                } else {
+                    scope.lexical.contains(name) || scope.var.contains(name)
+                };
                 scope.functions.push(name);
             }
             _ => {
                 for index in (0..self.scope_stack.len()).rev() {
                     let scope = &mut self.scope_stack[index];
-                    let catch_param = scope.flags & SCOPE_SIMPLE_CATCH != 0 && scope.first_lexical.as_deref() == Some(&**name);
+                    let catch_param =
+                        scope.flags & SCOPE_SIMPLE_CATCH != 0 && scope.first_lexical.as_deref() == Some(&**name);
                     if scope.lexical.contains(name) && !catch_param
                         || !Self::treat_functions_as_var_in_scope(scope) && scope.functions.contains(name)
                     {
@@ -927,7 +952,9 @@ impl<'a> Parser<'a> {
 
     pub(super) fn current_this_scope_flags(&self) -> u32 {
         for scope in self.scope_stack.iter().rev() {
-            if scope.flags & (SCOPE_VAR | SCOPE_CLASS_FIELD_INIT | SCOPE_CLASS_STATIC_BLOCK) != 0 && scope.flags & SCOPE_ARROW == 0 {
+            if scope.flags & (SCOPE_VAR | SCOPE_CLASS_FIELD_INIT | SCOPE_CLASS_STATIC_BLOCK) != 0
+                && scope.flags & SCOPE_ARROW == 0
+            {
                 return scope.flags;
             }
         }

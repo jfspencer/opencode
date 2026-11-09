@@ -111,15 +111,9 @@ impl<'a> Parser<'a> {
         !(is_identifier_char(after) || after > 0xd7ff && after < 0xdc00)
     }
 
+    /// `this.input.slice(start, start + text.length) === text`.
     pub(super) fn slice_is(&self, start: usize, text: &str) -> bool {
-        let mut i = start;
-        for unit in text.encode_utf16() {
-            if self.input.get(i) != Some(&unit) {
-                return false;
-            }
-            i += 1;
-        }
-        true
+        (start..).zip(text.encode_utf16()).all(|(i, unit)| self.input.get(i) == Some(&unit))
     }
 
     pub(super) fn is_using_keyword(&self, is_await_using: bool, is_for: bool) -> bool {
@@ -130,7 +124,6 @@ impl<'a> Parser<'a> {
         if self.has_line_break(self.pos, next) {
             return false;
         }
-        let mut next = next;
         if is_await_using {
             let await_end_pos = next + 5;
             if !self.slice_is(next, "using") || await_end_pos == self.input.len() {
@@ -144,8 +137,7 @@ impl<'a> Parser<'a> {
             if self.has_line_break(await_end_pos, skip_after_using) {
                 return false;
             }
-            // acorn keeps looking at the token after `await`, not after `using`
-            let _ = &mut next;
+            // acorn goes on to look at `next`, still the `using` after `await`, not the token after `using`
         }
         if is_for {
             let of_end_pos = next + 2;
@@ -164,7 +156,12 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a single statement.
-    pub(super) fn parse_statement(&mut self, context: StmtCtx, top_level: bool, exports: Option<&mut HashSet<Vec<u16>>>) -> R<Stmt> {
+    pub(super) fn parse_statement(
+        &mut self,
+        context: StmtCtx,
+        top_level: bool,
+        exports: Option<&mut HashSet<Vec<u16>>>,
+    ) -> R<Stmt> {
         self.check_stack()?;
         let mut starttype = self.ty;
         let node = self.start_node();
@@ -248,7 +245,10 @@ impl<'a> Parser<'a> {
                 };
                 if let Some(using_kind) = using_kind {
                     if top_level {
-                        return Err(self.raise(self.start, "Using declaration cannot appear in the top level when source type is `script`"));
+                        return Err(self.raise(
+                            self.start,
+                            "Using declaration cannot appear in the top level when source type is `script`",
+                        ));
                     }
                     if using_kind == VarKind::AwaitUsing {
                         if !self.can_await() {
@@ -268,13 +268,12 @@ impl<'a> Parser<'a> {
                     _ => None,
                 };
                 let expr = self.parse_expression(ForInit::No, None)?;
-                if starttype == Tok::Name {
-                    if let Expr::Identifier(_) = &expr {
-                        if self.eat(Tok::Colon)? {
-                            let Expr::Identifier(label) = expr else { unreachable!() };
-                            return self.parse_labeled_statement(node, maybe_name.unwrap(), *label, context);
-                        }
-                    }
+                if starttype == Tok::Name
+                    && let Expr::Identifier(_) = &expr
+                    && self.eat(Tok::Colon)?
+                {
+                    let Expr::Identifier(label) = expr else { unreachable!() };
+                    return self.parse_labeled_statement(node, maybe_name.unwrap(), *label, context);
                 }
                 self.parse_expression_statement(node, expr)
             }
@@ -311,7 +310,11 @@ impl<'a> Parser<'a> {
             return Err(self.raise(node.pos, if is_break { "Unsyntactic break" } else { "Unsyntactic continue" }));
         }
         let span = self.finish(node);
-        Ok(if is_break { Stmt::Break(Box::new(BreakStatement { span, label })) } else { Stmt::Continue(Box::new(ContinueStatement { span, label })) })
+        Ok(if is_break {
+            Stmt::Break(Box::new(BreakStatement { span, label }))
+        } else {
+            Stmt::Continue(Box::new(ContinueStatement { span, label }))
+        })
     }
 
     fn loop_label() -> Label {
@@ -332,7 +335,8 @@ impl<'a> Parser<'a> {
 
     fn parse_for_statement(&mut self, node: Start) -> R<Stmt> {
         self.next()?;
-        let await_at: i64 = if self.can_await() && self.eat_contextual("await")? { self.last_tok_start as i64 } else { -1 };
+        let await_at: i64 =
+            if self.can_await() && self.eat_contextual("await")? { self.last_tok_start as i64 } else { -1 };
         self.labels.push(Self::loop_label());
         self.enter_scope(0);
         self.expect(Tok::ParenL)?;
@@ -395,15 +399,19 @@ impl<'a> Parser<'a> {
                     return Err(self.unexpected_at(await_at as usize));
                 }
                 is_await = true;
-            } else if is_for_of {
-                if let Expr::Identifier(id) = &init {
-                    if init.span().start as usize == init_pos && !contains_esc && &*id.name == "async" {
-                        return Err(self.unexpected());
-                    }
-                }
+            } else if is_for_of
+                && let Expr::Identifier(id) = &init
+                && init.span().start as usize == init_pos
+                && !contains_esc
+                && &*id.name == "async"
+            {
+                return Err(self.unexpected());
             }
             if starts_with_let && is_for_of {
-                return Err(self.raise(init.span().start as usize, "The left-hand side of a for-of loop may not start with 'let'."));
+                return Err(self.raise(
+                    init.span().start as usize,
+                    "The left-hand side of a for-of loop may not start with 'let'.",
+                ));
             }
             let pat = self.to_assignable(init, false, Some(&ref_de))?;
             self.check_lval_pattern(&pat, Bind::None, None)?;
@@ -489,12 +497,13 @@ impl<'a> Parser<'a> {
                 cur = Some((start, test, Vec::new()));
                 self.expect(Tok::Colon)?;
             } else {
-                let Some((_, _, consequent)) = cur.as_mut() else {
+                if cur.is_none() {
                     return Err(self.unexpected());
-                };
-                let _ = consequent;
+                }
                 let stmt = self.parse_statement(None, false, None)?;
-                cur.as_mut().unwrap().2.push(stmt);
+                if let Some((_, _, consequent)) = cur.as_mut() {
+                    consequent.push(stmt);
+                }
             }
         }
         self.exit_scope();
@@ -618,7 +627,12 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a brace-enclosed block of statements.
-    pub(super) fn parse_block(&mut self, create_new_lexical_scope: bool, node: Option<Start>, exit_strict: bool) -> R<BlockStatement> {
+    pub(super) fn parse_block(
+        &mut self,
+        create_new_lexical_scope: bool,
+        node: Option<Start>,
+        exit_strict: bool,
+    ) -> R<BlockStatement> {
         let node = node.unwrap_or_else(|| self.start_node());
         let mut body = Vec::new();
         self.expect(Tok::BraceL)?;
@@ -669,7 +683,11 @@ impl<'a> Parser<'a> {
                 ));
             }
         }
-        let right = if is_for_in { self.parse_expression(ForInit::No, None)? } else { self.parse_maybe_assign(ForInit::No, None)? };
+        let right = if is_for_in {
+            self.parse_expression(ForInit::No, None)?
+        } else {
+            self.parse_maybe_assign(ForInit::No, None)?
+        };
         self.expect(Tok::ParenR)?;
         let body = self.parse_statement(Some("for"), false, None)?;
         self.exit_scope();
@@ -692,9 +710,15 @@ impl<'a> Parser<'a> {
                 Some(self.parse_maybe_assign(if is_for { ForInit::Yes } else { ForInit::No }, None)?)
             } else if kind == VarKind::Const && !(self.ty == Tok::In || self.is_contextual("of")) {
                 return Err(self.unexpected());
-            } else if (kind == VarKind::Using || kind == VarKind::AwaitUsing) && self.ty != Tok::In && !self.is_contextual("of") {
-                return Err(self.raise(self.last_tok_end, format!("Missing initializer in {} declaration", kind.as_str())));
-            } else if !matches!(id, Pat::Identifier(_)) && !(is_for && (self.ty == Tok::In || self.is_contextual("of"))) {
+            } else if (kind == VarKind::Using || kind == VarKind::AwaitUsing)
+                && self.ty != Tok::In
+                && !self.is_contextual("of")
+            {
+                return Err(
+                    self.raise(self.last_tok_end, format!("Missing initializer in {} declaration", kind.as_str()))
+                );
+            } else if !matches!(id, Pat::Identifier(_)) && !(is_for && (self.ty == Tok::In || self.is_contextual("of")))
+            {
                 return Err(self.raise(self.last_tok_end, "Complex binding patterns require an initialization value"));
             } else {
                 None
@@ -718,7 +742,13 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a function declaration or literal (depending on `statement & FUNC_STATEMENT`).
-    pub(super) fn parse_function(&mut self, node: Start, statement: u32, is_async: bool, for_init: ForInit) -> R<Function> {
+    pub(super) fn parse_function(
+        &mut self,
+        node: Start,
+        statement: u32,
+        is_async: bool,
+        for_init: ForInit,
+    ) -> R<Function> {
         if self.ty == Tok::Star && statement & FUNC_HANGING_STATEMENT != 0 {
             return Err(self.unexpected());
         }
@@ -726,17 +756,21 @@ impl<'a> Parser<'a> {
 
         let mut id = None;
         if statement & FUNC_STATEMENT != 0 {
-            id = if statement & FUNC_NULLABLE_ID != 0 && self.ty != Tok::Name { None } else { Some(self.parse_ident(false)?) };
-            if let Some(id) = &id {
-                if statement & FUNC_HANGING_STATEMENT == 0 {
-                    // A sloppy-mode function declaration is subject to Annex B semantics (BIND_FUNCTION).
-                    let binding = if self.strict || generator || is_async {
-                        if self.treat_functions_as_var() { Bind::Var } else { Bind::Lexical }
-                    } else {
-                        Bind::Function
-                    };
-                    self.check_lval_simple_ident(id, binding, None)?;
-                }
+            id = if statement & FUNC_NULLABLE_ID != 0 && self.ty != Tok::Name {
+                None
+            } else {
+                Some(self.parse_ident(false)?)
+            };
+            if let Some(id) = &id
+                && statement & FUNC_HANGING_STATEMENT == 0
+            {
+                // A sloppy-mode function declaration is subject to Annex B semantics (BIND_FUNCTION).
+                let binding = if self.strict || generator || is_async {
+                    if self.treat_functions_as_var() { Bind::Var } else { Bind::Lexical }
+                } else {
+                    Bind::Function
+                };
+                self.check_lval_simple_ident(id, binding, None)?;
             }
         }
 
@@ -786,7 +820,8 @@ impl<'a> Parser<'a> {
             }
             None
         };
-        let super_class = if self.eat(Tok::Extends)? { Some(self.parse_expr_subscripts(None, ForInit::No)?) } else { None };
+        let super_class =
+            if self.eat(Tok::Extends)? { Some(self.parse_expr_subscripts(None, ForInit::No)?) } else { None };
         self.private_name_stack.push(PrivateNames { declared: Default::default(), used: Vec::new() });
         let class_body = self.start_node();
         let mut had_constructor = false;
@@ -804,20 +839,38 @@ impl<'a> Parser<'a> {
                 ClassElement::Method(method) => {
                     if let Expr::PrivateIdentifier(key) = &method.key {
                         let next = match method.kind {
-                            MethodKind::Get => if method.is_static { "sget" } else { "iget" },
-                            MethodKind::Set => if method.is_static { "sset" } else { "iset" },
+                            MethodKind::Get => {
+                                if method.is_static {
+                                    "sget"
+                                } else {
+                                    "iget"
+                                }
+                            }
+                            MethodKind::Set => {
+                                if method.is_static {
+                                    "sset"
+                                } else {
+                                    "iset"
+                                }
+                            }
                             _ => "true",
                         };
                         if self.is_private_name_conflicted(&key.name, next) {
-                            return Err(self.raise(key.span.start as usize, format!("Identifier '#{}' has already been declared", key.name)));
+                            return Err(self.raise(
+                                key.span.start as usize,
+                                format!("Identifier '#{}' has already been declared", key.name),
+                            ));
                         }
                     }
                 }
                 ClassElement::Property(property) => {
-                    if let Expr::PrivateIdentifier(key) = &property.key {
-                        if self.is_private_name_conflicted(&key.name, "true") {
-                            return Err(self.raise(key.span.start as usize, format!("Identifier '#{}' has already been declared", key.name)));
-                        }
+                    if let Expr::PrivateIdentifier(key) = &property.key
+                        && self.is_private_name_conflicted(&key.name, "true")
+                    {
+                        return Err(self.raise(
+                            key.span.start as usize,
+                            format!("Identifier '#{}' has already been declared", key.name),
+                        ));
                     }
                 }
                 ClassElement::StaticBlock(_) => {}
@@ -857,7 +910,9 @@ impl<'a> Parser<'a> {
                 if has_parent {
                     self.private_name_stack.last_mut().unwrap().used.push((name, start));
                 } else {
-                    return Err(self.raise(start, format!("Private field '#{name}' must be declared in an enclosing class")));
+                    return Err(
+                        self.raise(start, format!("Private field '#{name}' must be declared in an enclosing class"))
+                    );
                 }
             }
         }
@@ -865,7 +920,8 @@ impl<'a> Parser<'a> {
     }
 
     fn is_class_element_name_start(&self) -> bool {
-        matches!(self.ty, Tok::Name | Tok::PrivateId | Tok::Num | Tok::String | Tok::BracketL) || self.ty.keyword().is_some()
+        matches!(self.ty, Tok::Name | Tok::PrivateId | Tok::Num | Tok::String | Tok::BracketL)
+            || self.ty.keyword().is_some()
     }
 
     fn parse_class_element(&mut self, constructor_allows_super: bool) -> R<Option<ClassElement>> {
@@ -956,10 +1012,10 @@ impl<'a> Parser<'a> {
             if kind == MethodKind::Set && value.params.len() != 1 {
                 return Err(self.raise(value.span.start as usize, "setter should have exactly one param"));
             }
-            if kind == MethodKind::Set {
-                if let Pat::Rest(rest) = &value.params[0] {
-                    return Err(self.raise(rest.span.start as usize, "Setter cannot use rest params"));
-                }
+            if kind == MethodKind::Set
+                && let Pat::Rest(rest) = &value.params[0]
+            {
+                return Err(self.raise(rest.span.start as usize, "Setter cannot use rest params"));
             }
             let span = self.finish(node);
             return Ok(Some(ClassElement::Method(Box::new(MethodDefinition {
@@ -1146,7 +1202,10 @@ impl<'a> Parser<'a> {
                     ModuleName::Identifier(id) => self.check_unreserved(id.span.start as usize, Some(&id.name))?,
                     ModuleName::Literal(lit) => {
                         self.check_unreserved(lit.span.start as usize, None)?;
-                        return Err(self.raise(lit.span.start as usize, "A string literal cannot be used as an exported binding without `from`."));
+                        return Err(self.raise(
+                            lit.span.start as usize,
+                            "A string literal cannot be used as an exported binding without `from`.",
+                        ));
                     }
                 }
             }
@@ -1154,7 +1213,13 @@ impl<'a> Parser<'a> {
         };
         self.semicolon()?;
         let span = self.finish(node);
-        Ok(Stmt::ExportNamed(Box::new(ExportNamedDeclaration { span, declaration: None, specifiers, source, attributes })))
+        Ok(Stmt::ExportNamed(Box::new(ExportNamedDeclaration {
+            span,
+            declaration: None,
+            specifiers,
+            source,
+            attributes,
+        })))
     }
 
     fn parse_export_default_declaration(&mut self) -> R<ExportDefaultKind> {
@@ -1179,7 +1244,9 @@ impl<'a> Parser<'a> {
     }
 
     fn should_parse_export_statement(&self) -> bool {
-        matches!(self.ty, Tok::Var | Tok::Const | Tok::Class | Tok::Function) || self.is_let(None) || self.is_async_function()
+        matches!(self.ty, Tok::Var | Tok::Const | Tok::Class | Tok::Function)
+            || self.is_let(None)
+            || self.is_async_function()
     }
 
     fn parse_export_specifiers(&mut self, exports: &mut Option<&mut HashSet<Vec<u16>>>) -> R<Vec<ExportSpecifier>> {
@@ -1198,7 +1265,8 @@ impl<'a> Parser<'a> {
             }
             let node = self.start_node();
             let local = self.parse_module_export_name()?;
-            let exported = if self.eat_contextual("as")? { self.parse_module_export_name()? } else { clone_module_name(&local) };
+            let exported =
+                if self.eat_contextual("as")? { self.parse_module_export_name()? } else { clone_module_name(&local) };
             self.check_export(exports, Self::module_name_units(&exported), Self::module_name_start(&exported))?;
             nodes.push(ExportSpecifier { span: self.finish(node), local, exported });
         }
@@ -1327,10 +1395,10 @@ impl<'a> Parser<'a> {
     fn parse_module_export_name(&mut self) -> R<ModuleName> {
         if self.ty == Tok::String {
             let literal = self.parse_string_literal()?;
-            if let LitValue::String(s) = &literal.value {
-                if !JsStr::is_well_formed(s) {
-                    return Err(self.raise(literal.span.start as usize, "An export name cannot include a lone surrogate."));
-                }
+            if let LitValue::String(s) = &literal.value
+                && !JsStr::is_well_formed(s)
+            {
+                return Err(self.raise(literal.span.start as usize, "An export name cannot include a lone surrogate."));
             }
             return Ok(ModuleName::Literal(literal));
         }
@@ -1358,6 +1426,8 @@ impl<'a> Parser<'a> {
 fn clone_module_name(name: &ModuleName) -> ModuleName {
     match name {
         ModuleName::Identifier(id) => ModuleName::Identifier(id.clone()),
-        ModuleName::Literal(lit) => ModuleName::Literal(Literal { span: lit.span, value: lit.value.clone(), raw: lit.raw.clone() }),
+        ModuleName::Literal(lit) => {
+            ModuleName::Literal(Literal { span: lit.span, value: lit.value.clone(), raw: lit.raw.clone() })
+        }
     }
 }

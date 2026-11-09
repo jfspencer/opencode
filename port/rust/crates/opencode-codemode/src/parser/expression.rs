@@ -50,7 +50,11 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a full expression.
-    pub(super) fn parse_expression(&mut self, for_init: ForInit, mut ref_de: Option<&mut DestructuringErrors>) -> R<Expr> {
+    pub(super) fn parse_expression(
+        &mut self,
+        for_init: ForInit,
+        mut ref_de: Option<&mut DestructuringErrors>,
+    ) -> R<Expr> {
         let start = self.start_node();
         let expr = self.parse_maybe_assign(for_init, ref_de.as_deref_mut())?;
         if self.ty == Tok::Comma {
@@ -65,7 +69,11 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse an assignment expression, including applications of operators like `+=`.
-    pub(super) fn parse_maybe_assign(&mut self, for_init: ForInit, ref_de: Option<&mut DestructuringErrors>) -> R<Expr> {
+    pub(super) fn parse_maybe_assign(
+        &mut self,
+        for_init: ForInit,
+        ref_de: Option<&mut DestructuringErrors>,
+    ) -> R<Expr> {
         self.check_stack()?;
         if self.is_contextual("yield") {
             if self.in_generator() {
@@ -171,7 +179,9 @@ impl<'a> Parser<'a> {
         if self.has_expression_errors(ref_de.as_deref()) {
             return Ok(expr);
         }
-        if expr.span().start as usize == start.pos && matches!(&expr, Expr::Function(f) if f.kind == FunctionKind::Arrow) {
+        if expr.span().start as usize == start.pos
+            && matches!(&expr, Expr::Function(f) if f.kind == FunctionKind::Arrow)
+        {
             return Ok(expr);
         }
         self.parse_expr_op(expr, start, -1, for_init)
@@ -203,16 +213,30 @@ impl<'a> Parser<'a> {
             let operand = self.parse_maybe_unary(None, false, false, for_init)?;
             let right = self.parse_expr_op(operand, start, prec, for_init)?;
             let node = self.build_binary(left_start, left, right, op, logical || coalesce)?;
-            if logical && self.ty == Tok::Coalesce || coalesce && (self.ty == Tok::LogicalOr || self.ty == Tok::LogicalAnd) {
-                return Err(self.raise(self.start, "Logical expressions and coalesce expressions cannot be mixed. Wrap either by parentheses"));
+            if logical && self.ty == Tok::Coalesce
+                || coalesce && (self.ty == Tok::LogicalOr || self.ty == Tok::LogicalAnd)
+            {
+                return Err(self.raise(
+                    self.start,
+                    "Logical expressions and coalesce expressions cannot be mixed. Wrap either by parentheses",
+                ));
             }
             left = node;
         }
     }
 
-    fn build_binary(&mut self, start: Start, left: Expr, right: Expr, operator: &'static str, logical: bool) -> R<Expr> {
+    fn build_binary(
+        &mut self,
+        start: Start,
+        left: Expr,
+        right: Expr,
+        operator: &'static str,
+        logical: bool,
+    ) -> R<Expr> {
         if let Expr::PrivateIdentifier(right) = &right {
-            return Err(self.raise(right.span.start as usize, "Private identifier can only be left side of binary expression"));
+            return Err(
+                self.raise(right.span.start as usize, "Private identifier can only be left side of binary expression")
+            );
         }
         let span = self.finish(start);
         Ok(if logical {
@@ -301,7 +325,11 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse call, dot, and `[]`-subscript expressions.
-    pub(super) fn parse_expr_subscripts(&mut self, ref_de: Option<&mut DestructuringErrors>, for_init: ForInit) -> R<Expr> {
+    pub(super) fn parse_expr_subscripts(
+        &mut self,
+        ref_de: Option<&mut DestructuringErrors>,
+        for_init: ForInit,
+    ) -> R<Expr> {
         let start = self.start_node();
         let mut ref_de = ref_de;
         let expr = self.parse_expr_atom(ref_de.as_deref_mut(), for_init, false)?;
@@ -311,24 +339,30 @@ impl<'a> Parser<'a> {
             return Ok(expr);
         }
         let result = self.parse_subscripts(expr, start, false, for_init)?;
-        if let Some(de) = ref_de {
-            if let Expr::Member(member) = &result {
-                let result_start = member.span.start as i64;
-                if de.parenthesized_assign >= result_start {
-                    de.parenthesized_assign = -1;
-                }
-                if de.parenthesized_bind >= result_start {
-                    de.parenthesized_bind = -1;
-                }
-                if de.trailing_comma >= result_start {
-                    de.trailing_comma = -1;
-                }
+        if let Some(de) = ref_de
+            && let Expr::Member(member) = &result
+        {
+            let result_start = member.span.start as i64;
+            if de.parenthesized_assign >= result_start {
+                de.parenthesized_assign = -1;
+            }
+            if de.parenthesized_bind >= result_start {
+                de.parenthesized_bind = -1;
+            }
+            if de.trailing_comma >= result_start {
+                de.trailing_comma = -1;
             }
         }
         Ok(result)
     }
 
-    pub(super) fn parse_subscripts(&mut self, mut base: Expr, start: Start, no_calls: bool, for_init: ForInit) -> R<Expr> {
+    pub(super) fn parse_subscripts(
+        &mut self,
+        mut base: Expr,
+        start: Start,
+        no_calls: bool,
+        for_init: ForInit,
+    ) -> R<Expr> {
         let maybe_async_arrow = match &base {
             Expr::Identifier(id) => {
                 &*id.name == "async"
@@ -379,7 +413,9 @@ impl<'a> Parser<'a> {
     ) -> R<Subscript> {
         let optional = self.eat(Tok::QuestionDot)?;
         if no_calls && optional {
-            return Err(self.raise(self.last_tok_start, "Optional chaining cannot appear in the callee of new expressions"));
+            return Err(
+                self.raise(self.last_tok_start, "Optional chaining cannot appear in the callee of new expressions")
+            );
         }
 
         let computed = self.eat(Tok::BracketL)?;
@@ -394,7 +430,13 @@ impl<'a> Parser<'a> {
                 Expr::Identifier(Box::new(self.parse_ident(true)?))
             };
             let span = self.finish(start);
-            return Ok(Subscript::New(Expr::Member(Box::new(MemberExpression { span, object: base, property, computed, optional }))));
+            return Ok(Subscript::New(Expr::Member(Box::new(MemberExpression {
+                span,
+                object: base,
+                property,
+                computed,
+                optional,
+            }))));
         } else if !no_calls && self.eat(Tok::ParenL)? {
             let mut ref_de = DestructuringErrors::new();
             let old_yield_pos = self.yield_pos;
@@ -408,7 +450,9 @@ impl<'a> Parser<'a> {
                 self.check_pattern_errors(Some(&ref_de), false)?;
                 self.check_yield_await_in_default_params()?;
                 if self.await_ident_pos > 0 {
-                    return Err(self.raise(self.await_ident_pos, "Cannot use 'await' as identifier inside an async function"));
+                    return Err(
+                        self.raise(self.await_ident_pos, "Cannot use 'await' as identifier inside an async function")
+                    );
                 }
                 self.yield_pos = old_yield_pos;
                 self.await_pos = old_await_pos;
@@ -435,20 +479,36 @@ impl<'a> Parser<'a> {
             }
             let arguments = expr_list.into_iter().map(Option::unwrap).collect();
             let span = self.finish(start);
-            return Ok(Subscript::New(Expr::Call(Box::new(CallExpression { span, callee: base, arguments, optional }))));
+            return Ok(Subscript::New(Expr::Call(Box::new(CallExpression {
+                span,
+                callee: base,
+                arguments,
+                optional,
+            }))));
         } else if self.ty == Tok::BackQuote {
             if optional || optional_chained {
-                return Err(self.raise(self.start, "Optional chaining cannot appear in the tag of tagged template expressions"));
+                return Err(
+                    self.raise(self.start, "Optional chaining cannot appear in the tag of tagged template expressions")
+                );
             }
             let quasi = self.parse_template(true)?;
             let span = self.finish(start);
-            return Ok(Subscript::New(Expr::TaggedTemplate(Box::new(TaggedTemplateExpression { span, tag: base, quasi }))));
+            return Ok(Subscript::New(Expr::TaggedTemplate(Box::new(TaggedTemplateExpression {
+                span,
+                tag: base,
+                quasi,
+            }))));
         }
         Ok(Subscript::Same(base))
     }
 
     /// Parse an atomic expression.
-    pub(super) fn parse_expr_atom(&mut self, ref_de: Option<&mut DestructuringErrors>, for_init: ForInit, for_new: bool) -> R<Expr> {
+    pub(super) fn parse_expr_atom(
+        &mut self,
+        ref_de: Option<&mut DestructuringErrors>,
+        for_init: ForInit,
+        for_new: bool,
+    ) -> R<Expr> {
         self.check_stack()?;
         // If a division operator appears in an expression position, the tokenizer got confused, and we force it to
         // read a regexp instead.
@@ -543,7 +603,12 @@ impl<'a> Parser<'a> {
         Ok(Expr::Literal(Box::new(Literal { span: self.finish(node), value, raw })))
     }
 
-    fn parse_paren_atom(&mut self, ref_de: Option<&mut DestructuringErrors>, can_be_arrow: bool, for_init: ForInit) -> R<Expr> {
+    fn parse_paren_atom(
+        &mut self,
+        ref_de: Option<&mut DestructuringErrors>,
+        can_be_arrow: bool,
+        for_init: ForInit,
+    ) -> R<Expr> {
         let start = self.start;
         let expr = self.parse_paren_and_distinguish_expression(can_be_arrow, for_init)?;
         if let Some(de) = ref_de {
@@ -595,7 +660,8 @@ impl<'a> Parser<'a> {
             let contains_esc = self.contains_esc;
             let property = self.parse_ident(true)?;
             if &*property.name != "meta" {
-                return Err(self.raise(property.span.start as usize, "The only valid meta property for import is 'import.meta'"));
+                return Err(self
+                    .raise(property.span.start as usize, "The only valid meta property for import is 'import.meta'"));
             }
             if contains_esc {
                 return Err(self.raise(node.pos, "'import.meta' must not contain escaped characters"));
@@ -742,7 +808,9 @@ impl<'a> Parser<'a> {
             let contains_esc = self.contains_esc;
             let property = self.parse_ident(true)?;
             if &*property.name != "target" {
-                return Err(self.raise(property.span.start as usize, "The only valid meta property for new is 'new.target'"));
+                return Err(
+                    self.raise(property.span.start as usize, "The only valid meta property for new is 'new.target'")
+                );
             }
             if contains_esc {
                 return Err(self.raise(node.pos, "'new.target' must not contain escaped characters"));
@@ -815,7 +883,8 @@ impl<'a> Parser<'a> {
     fn is_async_prop(&self, key: &Expr, computed: bool) -> bool {
         !computed
             && matches!(key, Expr::Identifier(id) if &*id.name == "async")
-            && (matches!(self.ty, Tok::Name | Tok::Num | Tok::String | Tok::BracketL | Tok::Star) || self.ty.keyword().is_some())
+            && (matches!(self.ty, Tok::Name | Tok::Num | Tok::String | Tok::BracketL | Tok::Star)
+                || self.ty.keyword().is_some())
             && !self.has_line_break(self.last_tok_end, self.start)
     }
 
@@ -842,7 +911,12 @@ impl<'a> Parser<'a> {
         Ok(Expr::Object(Box::new(ObjectExpression { span: self.finish(node), properties })))
     }
 
-    fn check_prop_clash(&self, prop: &ObjectMember, has_proto: &mut bool, ref_de: Option<&mut DestructuringErrors>) -> R<()> {
+    fn check_prop_clash(
+        &self,
+        prop: &ObjectMember,
+        has_proto: &mut bool,
+        ref_de: Option<&mut DestructuringErrors>,
+    ) -> R<()> {
         let ObjectMember::Property(prop) = prop else { return Ok(()) };
         if prop.computed || prop.method || prop.shorthand {
             return Ok(());
@@ -874,12 +948,11 @@ impl<'a> Parser<'a> {
         if self.eat(Tok::Ellipsis)? {
             let argument = self.parse_maybe_assign(ForInit::No, ref_de.as_deref_mut())?;
             // To disallow trailing comma via `this.toAssignable()`.
-            if self.ty == Tok::Comma {
-                if let Some(de) = ref_de {
-                    if de.trailing_comma < 0 {
-                        de.trailing_comma = self.start as i64;
-                    }
-                }
+            if self.ty == Tok::Comma
+                && let Some(de) = ref_de
+                && de.trailing_comma < 0
+            {
+                de.trailing_comma = self.start as i64;
             }
             return Ok(ObjectMember::Spread(Box::new(SpreadElement { span: self.finish(prop), argument })));
         }
@@ -929,11 +1002,18 @@ impl<'a> Parser<'a> {
             let param_count = if kind == PropKind::Get { 0 } else { 1 };
             if function.params.len() != param_count {
                 let start = function.span.start as usize;
-                return Err(self.raise(start, if kind == PropKind::Get { "getter should have no params" } else { "setter should have exactly one param" }));
-            } else if kind == PropKind::Set {
-                if let Pat::Rest(rest) = &function.params[0] {
-                    return Err(self.raise(rest.span.start as usize, "Setter cannot use rest params"));
-                }
+                return Err(self.raise(
+                    start,
+                    if kind == PropKind::Get {
+                        "getter should have no params"
+                    } else {
+                        "setter should have exactly one param"
+                    },
+                ));
+            } else if kind == PropKind::Set
+                && let Pat::Rest(rest) = &function.params[0]
+            {
+                return Err(self.raise(rest.span.start as usize, "Setter cannot use rest params"));
             }
             value = Expr::Function(Rc::new(function));
         } else if !computed && matches!(key, Expr::Identifier(_)) {
@@ -946,26 +1026,35 @@ impl<'a> Parser<'a> {
             if &*id.name == "await" && self.await_ident_pos == 0 {
                 self.await_ident_pos = start_pos.map_or(0, |s| s.pos);
             }
-            if self.ty == Tok::Eq && ref_de.is_some() {
-                let de = ref_de.unwrap();
-                if de.shorthand_assign < 0 {
-                    de.shorthand_assign = self.start as i64;
+            match (ref_de, start_pos) {
+                (Some(de), Some(start)) if self.ty == Tok::Eq => {
+                    if de.shorthand_assign < 0 {
+                        de.shorthand_assign = self.start as i64;
+                    }
+                    // parseMaybeDefault(startPos, startLoc, copyNode(prop.key)): an AssignmentPattern, encoded as an
+                    // `=` assignment of a shorthand property (see estree.rs and toAssignable)
+                    self.next()?;
+                    let right = self.parse_maybe_assign(ForInit::No, None)?;
+                    let span = self.finish(start);
+                    let left = Pat::Identifier(Box::new(id));
+                    value = Expr::Assignment(Box::new(AssignmentExpression { span, operator: "=", left, right }));
                 }
-                // parseMaybeDefault(startPos, startLoc, copyNode(prop.key)): an AssignmentPattern
-                let start = start_pos.unwrap();
-                self.next()?;
-                let right = self.parse_maybe_assign(ForInit::No, None)?;
-                let span = self.finish(start);
-                value = Expr::Assignment(Box::new(AssignmentExpression { span, operator: "=", left: Pat::Identifier(Box::new(id)), right }));
-            } else {
-                value = Expr::Identifier(Box::new(id));
+                _ => value = Expr::Identifier(Box::new(id)),
             }
             kind = PropKind::Init;
             shorthand = true;
         } else {
             return Err(self.unexpected());
         }
-        Ok(ObjectMember::Property(Box::new(Property { span: self.finish(prop), key, value, kind, method, shorthand, computed })))
+        Ok(ObjectMember::Property(Box::new(Property {
+            span: self.finish(prop),
+            key,
+            value,
+            kind,
+            method,
+            shorthand,
+            computed,
+        })))
     }
 
     pub(super) fn parse_property_name(&mut self) -> R<(Expr, bool)> {
@@ -992,7 +1081,11 @@ impl<'a> Parser<'a> {
         self.yield_pos = 0;
         self.await_pos = 0;
         self.await_ident_pos = 0;
-        self.enter_scope(function_flags(is_async, is_generator) | SCOPE_SUPER | if allow_direct_super { SCOPE_DIRECT_SUPER } else { 0 });
+        self.enter_scope(
+            function_flags(is_async, is_generator)
+                | SCOPE_SUPER
+                | if allow_direct_super { SCOPE_DIRECT_SUPER } else { 0 },
+        );
 
         self.expect(Tok::ParenL)?;
         let params: Vec<Pat> = self.parse_binding_list(Tok::ParenR, false, true)?.into_iter().flatten().collect();
@@ -1002,11 +1095,25 @@ impl<'a> Parser<'a> {
         self.yield_pos = old_yield_pos;
         self.await_pos = old_await_pos;
         self.await_ident_pos = old_await_ident_pos;
-        Ok(Function { span: self.finish(node), kind: FunctionKind::Expression, id: None, params, body, generator: is_generator, is_async })
+        Ok(Function {
+            span: self.finish(node),
+            kind: FunctionKind::Expression,
+            id: None,
+            params,
+            body,
+            generator: is_generator,
+            is_async,
+        })
     }
 
     /// Parse arrow function expression with given parameters.
-    pub(super) fn parse_arrow_expression(&mut self, node: Start, params: Vec<ArrowParam>, is_async: bool, for_init: ForInit) -> R<Function> {
+    pub(super) fn parse_arrow_expression(
+        &mut self,
+        node: Start,
+        params: Vec<ArrowParam>,
+        is_async: bool,
+        for_init: ForInit,
+    ) -> R<Function> {
         let old_yield_pos = self.yield_pos;
         let old_await_pos = self.await_pos;
         let old_await_ident_pos = self.await_ident_pos;
@@ -1023,7 +1130,15 @@ impl<'a> Parser<'a> {
         self.yield_pos = old_yield_pos;
         self.await_pos = old_await_pos;
         self.await_ident_pos = old_await_ident_pos;
-        Ok(Function { span: self.finish(node), kind: FunctionKind::Arrow, id: None, params, body, generator: false, is_async })
+        Ok(Function {
+            span: self.finish(node),
+            kind: FunctionKind::Arrow,
+            id: None,
+            params,
+            body,
+            generator: false,
+            is_async,
+        })
     }
 
     /// Parse function body and check parameters.
@@ -1052,7 +1167,8 @@ impl<'a> Parser<'a> {
                 // If this is a strict mode function, verify that argument names are not repeated, and it does not
                 // try to bind the words `eval` or `arguments`.
                 if use_strict && non_simple {
-                    return Err(self.raise(node.pos, "Illegal 'use strict' directive in function with non-simple parameter list"));
+                    return Err(self
+                        .raise(node.pos, "Illegal 'use strict' directive in function with non-simple parameter list"));
                 }
             }
             // Start a new scope with regard to labels and the `inFunction` flag.
@@ -1065,10 +1181,10 @@ impl<'a> Parser<'a> {
             // function clashes with one of the params.
             self.check_params(params, !old_strict && !use_strict && !is_arrow_function && !is_method && simple)?;
             // Ensure the function name isn't a forbidden identifier in strict mode, e.g. 'eval'
-            if self.strict {
-                if let Some(id) = id {
-                    self.check_lval_simple_ident(id, Bind::Outside, None)?;
-                }
+            if self.strict
+                && let Some(id) = id
+            {
+                self.check_lval_simple_ident(id, Bind::Outside, None)?;
             }
             let mut block = self.parse_block(false, None, use_strict && !old_strict)?;
             self.adapt_directive_prologue(&mut block.body);
@@ -1084,7 +1200,11 @@ impl<'a> Parser<'a> {
     fn check_params(&mut self, params: &[Pat], allow_duplicates: bool) -> R<()> {
         let mut name_hash = NameSet::default();
         for param in params {
-            self.check_lval_inner_pattern(param, Bind::Var, if allow_duplicates { None } else { Some(&mut name_hash) })?;
+            self.check_lval_inner_pattern(
+                param,
+                Bind::Var,
+                if allow_duplicates { None } else { Some(&mut name_hash) },
+            )?;
         }
         Ok(())
     }
@@ -1113,12 +1233,11 @@ impl<'a> Parser<'a> {
                 None
             } else if self.ty == Tok::Ellipsis {
                 let spread = self.parse_spread(ref_de.as_deref_mut())?;
-                if self.ty == Tok::Comma {
-                    if let Some(de) = ref_de.as_deref_mut() {
-                        if de.trailing_comma < 0 {
-                            de.trailing_comma = self.start as i64;
-                        }
-                    }
+                if self.ty == Tok::Comma
+                    && let Some(de) = ref_de.as_deref_mut()
+                    && de.trailing_comma < 0
+                {
+                    de.trailing_comma = self.start as i64;
                 }
                 Some(ExprOrSpread::Spread(Box::new(spread)))
             } else {
@@ -1148,7 +1267,19 @@ impl<'a> Parser<'a> {
             return Err(self.raise(start, format!("Unexpected keyword '{name}'")));
         }
         let reserved = if self.strict {
-            matches!(name, "enum" | "implements" | "interface" | "let" | "package" | "private" | "protected" | "public" | "static" | "yield")
+            matches!(
+                name,
+                "enum"
+                    | "implements"
+                    | "interface"
+                    | "let"
+                    | "package"
+                    | "private"
+                    | "protected"
+                    | "public"
+                    | "static"
+                    | "yield"
+            )
         } else {
             name == "enum"
         };
@@ -1206,7 +1337,10 @@ impl<'a> Parser<'a> {
         // For validating existence
         match self.private_name_stack.last_mut() {
             None => {
-                return Err(self.raise(node.span.start as usize, format!("Private field '#{}' must be declared in an enclosing class", node.name)));
+                return Err(self.raise(
+                    node.span.start as usize,
+                    format!("Private field '#{}' must be declared in an enclosing class", node.name),
+                ));
             }
             Some(names) => names.used.push((node.name.clone(), node.span.start as usize)),
         }
@@ -1220,13 +1354,15 @@ impl<'a> Parser<'a> {
         }
         let node = self.start_node();
         self.next()?;
-        let (delegate, argument) =
-            if self.ty == Tok::Semi || self.can_insert_semicolon() || (self.ty != Tok::Star && !self.ty.starts_expr()) {
-                (false, None)
-            } else {
-                let delegate = self.eat(Tok::Star)?;
-                (delegate, Some(self.parse_maybe_assign(for_init, None)?))
-            };
+        let (delegate, argument) = if self.ty == Tok::Semi
+            || self.can_insert_semicolon()
+            || (self.ty != Tok::Star && !self.ty.starts_expr())
+        {
+            (false, None)
+        } else {
+            let delegate = self.eat(Tok::Star)?;
+            (delegate, Some(self.parse_maybe_assign(for_init, None)?))
+        };
         let span = self.finish(node);
         Ok(Expr::Yield(Box::new(YieldExpression { span, argument, delegate })))
     }
