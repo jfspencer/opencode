@@ -47,7 +47,8 @@ pub async fn run(input: TuiInput) -> i32 {
     let config_dir = xdg("XDG_CONFIG_HOME", ".config");
     let state_dir = xdg("XDG_STATE_HOME", ".local/state");
     let cli_config = crate::config::CliConfig::new(&config_dir, &state_dir);
-    let info = tokio::task::spawn_blocking(move || cli_config.get()).await.unwrap_or_default();
+    // A small file read at startup (TS awaits `input.config.get()` here too).
+    let info = cli_config.get();
     let resolved = match crate::config::resolve(&info, &crate::config::ResolveOptions::default()) {
         Ok(resolved) => resolved,
         Err(message) => {
@@ -56,8 +57,8 @@ pub async fn run(input: TuiInput) -> i32 {
         }
     };
     let client = Client::make(ClientOptions { base_url: input.url.clone(), headers: input.headers.clone(), transport: Rc::new(HttpTransport) });
-    let data = Data::new(client);
     let cwd = std::env::current_dir().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    let data = Data::new(client, &cwd);
     data.load_location(&cwd).await;
 
     if let Err(error) = renderer::create_cli_renderer(RendererConfig { use_mouse: resolved.mouse, ..RendererConfig::default() }).await {
@@ -104,9 +105,11 @@ pub async fn run(input: TuiInput) -> i32 {
             theme: theme_signal(theme),
             dimensions,
             data,
-            config: resolved,
+            config: resolved.clone(),
+            config_context: crate::config_context::ConfigContext::new(cli_config, resolved),
             prompt: Rc::new(RefCell::new(None)),
             exit: Rc::new(|| renderer::destroy()),
+            toast: crate::toast::Toasts::new(),
         };
         provide_context(context(), t.clone());
         crate::keymap::install(&t);
@@ -160,5 +163,6 @@ fn app_view() -> View {
         ),
         At::Only,
     );
+    insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
 }

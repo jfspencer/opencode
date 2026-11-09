@@ -174,10 +174,17 @@ impl Kind for TextNodeKind {
 
 /// Creates a `<text>` (TextRenderable with the default options).
 pub fn create_text() -> Element {
+    create_text_with(|text| Box::new(text))
+}
+
+/// Creates a TextRenderable subclass: `wrap` turns the text's kind into the subclass's, which delegates to it what it
+/// does not override and whose `as_any`/`as_any_mut` return the inner [`TextKind`], so every text setter (and
+/// `is::<TextKind>()`) works on the subclass as on a `<text>`.
+pub fn create_text_with(wrap: impl FnOnce(TextKind) -> Box<dyn Kind>) -> Element {
     let scene = Rc::new(RefCell::new(SceneText::new(WidthMethod::Unicode, &text_context())));
     let options = default_options();
     let measured = scene.clone();
-    let el = tree::create(Box::new(TextKind { scene, options, dirty: false, manual: false }), "text", false);
+    let el = tree::create(wrap(TextKind { scene, options, dirty: false, manual: false }), "text", false);
     el.set_selectable(true);
     el.with_kind::<TextKind, _>(|k| {
         let _ = k.scene.borrow_mut().set_options(k.options, || [None, None]);

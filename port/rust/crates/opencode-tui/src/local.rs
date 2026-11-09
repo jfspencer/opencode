@@ -25,6 +25,8 @@ pub struct Display {
 #[derive(Clone)]
 pub struct Local {
     data: Rc<Data>,
+    toast: crate::toast::Toasts,
+    theme: opencode_tui_core::reactive::Signal<crate::theme::ResolvedTheme>,
     agent: Memo<Option<AgentInfo>>,
     selection: Memo<Option<(String, String, Option<String>)>>,
 }
@@ -85,7 +87,7 @@ pub fn local() -> Local {
             Some((provider, model, variant))
         })
     };
-    Local { data, agent, selection }
+    Local { data, toast: t.toast.clone(), theme: t.theme, agent, selection }
 }
 
 impl Local {
@@ -96,7 +98,7 @@ impl Local {
 
     /// `local.agent.color(id)`: the agent's color, else the theme's categorical color of its index.
     pub fn agent_color(&self) -> RGBA {
-        let theme = tui().theme.get();
+        let theme = self.theme.get();
         let agents: Vec<AgentInfo> = self
             .data
             .agents
@@ -144,6 +146,13 @@ impl Local {
             .map(|m| m.name)
             .unwrap_or(format!("{model_id} (unavailable)"));
         Display { agent: self.agent_label(), model, provider, variant }
+    }
+
+    /// `local.model.cycleFavorite(direction)`. TODO(port-tui): favorites from model.json; with none, the hint toast.
+    pub fn cycle_favorite(&self, _direction: i32) {
+        self.toast.show(
+            crate::toast::ToastInput::new(crate::toast::Variant::Info, "Add a favorite model to use this shortcut").duration(3000),
+        );
     }
 
     /// Whether the lists the display needs have loaded (`loading` in promptDisplay).

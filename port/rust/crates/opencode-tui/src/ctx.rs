@@ -61,10 +61,14 @@ pub struct Tui {
     pub dimensions: Signal<(u32, u32)>,
     pub data: Rc<Data>,
     pub config: Rc<crate::config::Resolved>,
+    /// `useConfig()`: the config as reactive state, with `update` (writes cli.json).
+    pub config_context: crate::config_context::ConfigContext,
     /// `usePromptRef()`: the prompt's textarea.
     pub prompt: Rc<RefCell<Option<Element>>>,
     /// `useExit()`.
     pub exit: Rc<dyn Fn()>,
+    /// `useToast()`.
+    pub toast: crate::toast::Toasts,
 }
 
 thread_local! {

@@ -968,3 +968,5 @@ tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
 tui/nav-keybinds.test.ts › keybinds: the leader times out
+tui/nav-toasts.test.ts › toasts: info toast comes and goes
+tui/nav-toasts.test.ts › toasts: no model to send the prompt to
