@@ -32,8 +32,8 @@ upstream range to run through the conformance loop.
 | `patches/` | Deviation patches: fixes for upstream bugs, applied to the TS reference so the standard requires the fixed behavior. See `patches/README.md`. |
 | `.reference/` | (gitignored) The TS reference: a sparse worktree of upstream plus the deviation patches, built by `scripts/reference.sh`. |
 | `coverage/` | Tooling that measures how much of the in-scope TS source each test set reaches. `report.py` holds the scope definition. |
-| `rust/` | The Rust implementation: a Cargo workspace (`crates/*`) and the wire-type generator (`gen/`). See [Rust wire types](#rust-wire-types). |
-| `scripts/` | Upstream sync, ownership check, building the reference, dependency linking, generating the wire types. |
+| `rust/` | The Rust implementation: a Cargo workspace (`crates/*`) and the generator of its wire types and database bootstrap (`gen/`). See [Rust wire types](#rust-wire-types) and [Rust server](#rust-server). |
+| `scripts/` | Upstream sync, ownership check, building the reference, dependency linking, generating the wire types, running the standard against the Rust build. |
 
 ## Working with upstream's TS packages from port/
 
@@ -135,3 +135,36 @@ sets. Known gaps, also listed at the top of `generated/types.rs`:
 - error messages (`InvalidRequestError.message`) are not Effect's wording;
 - durations beyond 2^127 nanoseconds are rejected (TS uses BigInt); hex/octal/binary `Number()` strings beyond
   2^128 may differ in the last place.
+
+## Rust server
+
+`rust/crates/opencode` is the `opencode` executable. So far it runs `opencode serve` (`--hostname`, `--port`), configured
+like the TS server through the environment (`OPENCODE_PASSWORD`/`OPENCODE_SERVER_PASSWORD`, `OPENCODE_DB`, XDG
+directories). It is one process on a single-threaded tokio runtime: hyper for HTTP/1.1, SQLite through rusqlite.
+
+| Module | TS counterpart |
+|---|---|
+| `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
+| `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
+| `handlers.rs` | `server/src/handlers/*.ts` |
+| `db.rs` | `core/src/database`: the same pragmas, and a fresh database is bootstrapped with upstream's exact DDL and migration journal (`src/generated/database.rs`, from `schema.gen.ts` and `migration.gen.ts` by `gen/src/database.ts`), so either server opens a database the other created |
+| `bus.rs` | `core/src/bus.ts`: durable events get the next sequence of their aggregate and are projected in their commit's transaction; payloads are not retained (as with `opencode serve`); live subscribers get every event after it commits |
+| `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot and its announcements |
+| `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
+
+Status (2026-11-08): 9 of the 18 session CRUD scenarios pass; the rest of the standard needs agents, config, the
+model loop and tools. On those 18 scenarios the release build peaks at a median 8.3 MiB per server process, the TS
+server at 311.7 MiB. Unported behavior is marked `TODO(port)` in the source; an endpoint without a handler answers 501 (after the 404 of
+an unknown session, which most session routes check first).
+
+`scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
+(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded. Every scenario that passes is listed in the ledger,
+`conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
+`--update` records them.
+
+```sh
+port/scripts/rust-conformance.sh                       # every server scenario (debug build)
+port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
+port/scripts/rust-conformance.sh --update              # record new passes in the ledger
+CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
+```

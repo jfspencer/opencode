@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Generates the Rust wire types (port/rust/crates/opencode-protocol/src/generated/) from the TS reference's Effect
-# schemas, and proves them against TS.
+# schemas, and proves them against TS; also the database bootstrap (port/rust/crates/opencode/src/generated/).
 #
 # usage: port/scripts/gen-types.sh               regenerate (after an upstream merge or a patch change)
 #        port/scripts/gen-types.sh check [opts]  fail unless the checked-in code is what the reference generates;
@@ -30,12 +30,12 @@ done
 
 case "${1:-generate}" in
 generate)
-  (cd "$gen" && bun src/generate.ts)
+  (cd "$gen" && bun src/generate.ts && bun src/database.ts)
   ;;
 check)
   shift
   start=$(date +%s.%N)
-  (cd "$gen" && bun src/generate.ts --check)
+  (cd "$gen" && bun src/generate.ts --check && bun src/database.ts --check)
   (cd "$root/port/rust" && cargo build --locked --quiet && cargo test --locked --quiet -p opencode-protocol 2>&1 | grep -E "^test result" | head -1)
   (cd "$gen" && bun src/roundtrip.ts "$@")
   echo "gen-types check: ok ($(printf '%.1f' "$(echo "$(date +%s.%N) - $start" | bc)")s)"

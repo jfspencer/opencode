@@ -1,0 +1,25 @@
+[package]
+name = "opencode"
+description = "The opencode server, CLI and TUI, ported from the TS reference (see port/README.md)"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "opencode"
+path = "src/main.rs"
+
+[dependencies]
+opencode-protocol.workspace = true
+indexmap.workspace = true
+tokio.workspace = true
+hyper.workspace = true
+hyper-util.workspace = true
+http-body-util.workspace = true
+bytes.workspace = true
+rusqlite.workspace = true
+sha1.workspace = true
+base64.workspace = true
+getrandom.workspace = true

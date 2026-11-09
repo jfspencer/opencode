@@ -1,0 +1,9 @@
+scenarios/session-api-crud.test.ts › active sessions while idle
+scenarios/session-api-crud.test.ts › an empty title on a session without messages generates nothing
+scenarios/session-api-crud.test.ts › create a child session inherits from its parent
+scenarios/session-api-crud.test.ts › create a session without a location uses the server directory
+scenarios/session-api-crud.test.ts › create get update and remove a session
+scenarios/session-api-crud.test.ts › list sessions page by page with cursors
+scenarios/session-api-crud.test.ts › list sessions with filters
+scenarios/session-api-crud.test.ts › remove a session with its descendants
+scenarios/session-api-crud.test.ts › sessions follow their directory into a new git project
