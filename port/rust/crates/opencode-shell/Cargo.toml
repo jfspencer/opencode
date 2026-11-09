@@ -1,6 +1,6 @@
 [package]
 name = "opencode-shell"
-description = "Shell command analysis for the shell tool and permissions, ported from the TS reference (see harness/README.md)"
+description = "Shell command analysis for the shell tool and permissions, ported from the TS reference (see README.md)"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true

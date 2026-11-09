@@ -360,6 +360,9 @@ export function oddTargeted(rand: Random): string {
     "f() a[ b", "f() x[[ a ]]", "function f x[ y", "f() x[[\\\n a ]]", "if a; then b; >x fi", "while a; do b; >x done",
     "{ a; >x }", "if a; >x then b; fi", "case a in b) c;; >x esac", "*$'\\n' x", "echo a?$'\\x41'b", "ls [x]$'\\t'",
     "echo .*$'a'", "builtin -- -x cd /tmp", "command -- --x cd /tmp", "builtin -- cd /tmp", "command -p -- cd /tmp",
+    "functionsx=1", "options+x=1", "aliases+", "commandsX=y", "export -v functionsX=1", "galiases+=(a)",
+    "exec -a x set -k", "exec -cla x alias a=b", "exec -a x eval y", "exec -la x y", "exec -ax set -k",
+    "cat <<E\n$[1+2]\nE\n", "cat <<E\n$[x]$(y)\nE\n", "cat <<'E'\n$[1]\nE\n",
   ]
   const text = pick(rand, shapes)
   return rand() < 0.5 ? text : `${text}${pick(rand, ["; ", "\n", " && "])}${pick(rand, shapes)}`
@@ -371,7 +374,7 @@ export function memberTargeted(rand: Random): string {
     "$x.y-:z", "$x.a::b()", "$x::a.b()", "[T]::a.b()", "$x?.a()", "$x.a?.b()", "$x.a..b", "$x. a()", "${x}.a()",
     "$x.a:b:c", "@{a=1}.a()", "(1).a()", "$x.'a'()", '$x."a"()', "$x.a`b()", "0x1Fz", "0xdd", "0x1d", "0x1dkb",
     "0x1dz", "0x1d.x", "0x12kbz", "[1#2]", "[a#b]", "[Int32#x]", "[System.IO#a]::b", '"`u{01F600}"', '"`u{10FFFF}"',
-    '"`u{000041}"', "-1: --% x", "a -x: --% y",
+    '"`u{000041}"', "-1: --% x", "a -x: --% y", '"a`\r\nb"', '"a`\rb"', '"`\n"', "@\"\na`\r\nb\n\"@",
   ])}${pick(rand, ["", " | Out-Null", "; y", " # c"])}`
 }
 
