@@ -1,0 +1,81 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "winget"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: winget",
+          "│",
+          "●  From conformance → 1.6.1",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "winget"
+        ],
+        "env": {
+          "PATH": "<sandbox>/nomatch:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: winget",
+          "│",
+          "■  Could not check for OpenCode updates",
+          "│",
+          "│  No package found matching input criteria.",
+          "│",
+          "│  Command  winget search --id Anomaly.OpenCode --exact --source winget",
+          "│           --accept-source-agreements --disable-interactivity",
+          "│  Retry    Fix the issue above, then run opencode upgrade again.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "winget search --id Anomaly.OpenCode --exact --source winget --accept-source-agreements --disable-interactivity",
+          "winget upgrade --id Anomaly.OpenCode --exact --source winget --accept-source-agreements --disable-interactivity --version 1.6.1 --silent --accept-package-agreements",
+          ""
+        ],
+        "path": "<sandbox>/calls.log"
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -18,6 +18,7 @@ use opencode_protocol::wire::Object;
 use opencode_protocol::{Json, Wire};
 
 use super::config::{self, Entry};
+use super::jsvalue::{self, Shape, Value};
 use super::{markdown, scan};
 use crate::json::Obj;
 
@@ -39,6 +40,8 @@ pub struct Agents {
     pub agents: Vec<Json>,
     /// `default_agent` as configured (it may name no selectable agent).
     pub configured_default: Option<String>,
+    /// Why the config agent plugin failed to load, if it did.
+    pub failure: Option<Failure>,
 }
 
 fn rule(action: &str, resource: &str, effect: &str) -> Json {
@@ -207,14 +210,19 @@ pub fn build(entries: &[Entry], home: &str, plan_directory: &str) -> Agents {
         );
     });
 
-    // config/plugin/agent.ts
-    let documents = documents(entries);
+    // config/plugin/agent.ts; none of it applies when its load failed.
+    let documents = documents(entries).unwrap_or_else(|failure| {
+        agents.failure = Some(failure);
+        Vec::new()
+    });
     let permissions: Vec<Json> = documents
         .iter()
         .flat_map(|d| d.info.permissions.iter().flat_map(|p| p.0.iter()))
         .map(|r| expand(crate::json::of(r), home))
         .collect();
-    agents.configured_default = config::documents(entries).rev().find_map(|d| d.default_agent.clone());
+    if agents.failure.is_none() {
+        agents.configured_default = config::documents(entries).rev().find_map(|d| d.default_agent.clone());
+    }
     // Markdown documents never set `default_agent`, so the latest of the config documents is the same value.
     for agent in agents.agents.iter_mut() {
         let Json::Object(agent) = agent else { continue };
@@ -289,8 +297,14 @@ struct Document {
     info: t::ConfigInfoPlain,
 }
 
+/// The agent plugin failed to load (TS: a defect in its document load, such as `JSON.stringify` throwing while a
+/// legacy agent file migrates): none of its documents, `default_agent` or permissions apply, and the plugin list
+/// shows it failed with this text.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Failure(pub String);
+
 /// Config documents in order, each config directory replaced by the documents of its markdown agent files.
-fn documents(entries: &[Entry]) -> Vec<Document> {
+fn documents(entries: &[Entry]) -> Result<Vec<Document>, Failure> {
     let mut out = vec![];
     for entry in entries {
         match entry {
@@ -302,15 +316,15 @@ fn documents(entries: &[Entry]) -> Vec<Document> {
                     .chain(scan::markdown(directory, &["mode", "modes"], false).into_iter().map(|f| (f, true)));
                 for (file, primary) in files {
                     // An empty file is skipped.
-                    let content = config::read(&file).filter(|c| !c.is_empty());
-                    if let Some(info) = content.and_then(|content| markdown_agent(directory, &file, primary, &content)) {
+                    let Some(content) = config::read(&file).filter(|c| !c.is_empty()) else { continue };
+                    if let Some(info) = markdown_agent(directory, &file, primary, &content)? {
                         out.push(Document { info });
                     }
                 }
             }
         }
     }
-    out
+    Ok(out)
 }
 
 /// Fields of a v2 agent (and `variant`); any other key makes a file without v2-only fields a legacy file.
@@ -318,10 +332,24 @@ const AGENT_KEYS: [&str; 11] =
     ["variant", "model", "request", "system", "description", "mode", "hidden", "color", "steps", "disabled", "permissions"];
 const NATIVE_KEYS: [&str; 4] = ["permissions", "request", "system", "disabled"];
 
+/// `ConfigAgent.Info` as Effect decodes it from a frontmatter's values (see [`jsvalue::lower`]).
+const AGENT: Shape = Shape::Struct(&[
+    ("model", Shape::Selection),
+    ("request", Shape::Struct(&[("headers", Shape::Record(&Shape::Leaf)), ("body", Shape::Record(&Shape::Json))])),
+    ("system", Shape::Leaf),
+    ("description", Shape::Leaf),
+    ("mode", Shape::Leaf),
+    ("hidden", Shape::Leaf),
+    ("color", Shape::Caught),
+    ("steps", Shape::Leaf),
+    ("disabled", Shape::Leaf),
+    ("permissions", Shape::Array(&Shape::Struct(&[("action", Shape::Leaf), ("resource", Shape::Leaf), ("effect", Shape::Leaf)]))),
+]);
+
 /// The document of one markdown agent file (`decode` in config/plugin/agent.ts): its name is its path below the
 /// agents directory, its body the system prompt; a file whose frontmatter does not decode is skipped.
-fn markdown_agent(directory: &str, file: &str, primary: bool, content: &str) -> Option<t::ConfigInfoPlain> {
-    let parsed = markdown::parse_option(content)?;
+pub(super) fn markdown_agent(directory: &str, file: &str, primary: bool, content: &str) -> Result<Option<t::ConfigInfoPlain>, Failure> {
+    let Some(parsed) = markdown::parse_option(content) else { return Ok(None) };
     let relative = file.strip_prefix(directory).unwrap_or(file).trim_start_matches('/');
     let name = ["agent/", "agents/", "mode/", "modes/"]
         .iter()
@@ -329,21 +357,23 @@ fn markdown_agent(directory: &str, file: &str, primary: bool, content: &str) -> 
         .unwrap_or(relative);
     let name = name.strip_suffix(".md").unwrap_or(name);
     let body = config::js_trim(&parsed.content);
-    let data = match &parsed.data {
-        Json::Object(o) => o.clone(),
-        _ => Object::new(),
-    };
-    let unsupported = data.keys().any(|k| !AGENT_KEYS.contains(&k.as_str()));
-    let legacy = unsupported && !data.keys().any(|k| NATIVE_KEYS.contains(&k.as_str()));
-    let mut agent = if legacy {
-        let mut input = Object::new();
-        input.insert("name".into(), Json::String(name.to_owned()));
-        input.extend(data);
-        input.insert("prompt".into(), Json::String(body.to_owned()));
+    let data = &parsed.data.root;
+    // `Object.keys(markdown.data)`: a string's are its indexes, a `Date`'s none.
+    let keys = jsvalue::keys(data);
+    let unsupported = keys.iter().any(|k| !AGENT_KEYS.contains(&k.as_str()));
+    let legacy = unsupported && !keys.iter().any(|k| NATIVE_KEYS.contains(&k.as_str()));
+    let agent = if legacy {
+        let input = jsvalue::Obj::plain();
+        input.define("name", Value::string(name));
+        for (key, value) in jsvalue::entries(data) {
+            input.define(&key, value);
+        }
+        input.define("prompt", Value::string(body));
         legacy_agent(&input)?
     } else {
-        native_agent(data, body)?
+        native_agent(data, body)
     };
+    let Some(mut agent) = agent else { return Ok(None) };
     if primary {
         agent.mode = Some(t::ConfigAgentMode::Primary);
     }
@@ -351,20 +381,21 @@ fn markdown_agent(directory: &str, file: &str, primary: bool, content: &str) -> 
     agents.insert(name.to_owned(), crate::json::of(&agent));
     let mut info = Object::new();
     info.insert("agents".into(), Json::Object(agents));
-    t::ConfigInfoPlain::decode(&Json::Object(info)).ok()
+    Ok(t::ConfigInfoPlain::decode(&Json::Object(info)).ok())
 }
 
-/// A v2 agent file: `model` and `variant` join into one selection; the body is the system prompt.
-fn native_agent(data: Object, body: &str) -> Option<t::ConfigAgent> {
-    let mut data = data;
-    if let (Some(Json::String(model)), Some(Json::String(variant))) = (data.get("model"), data.get("variant")) {
+/// A v2 agent file: `model` and `variant` join into one selection (`{ ...data, model }`); the body is the system
+/// prompt (`{ ...data, system: body }`).
+fn native_agent(data: &Value, body: &str) -> Option<t::ConfigAgent> {
+    let input = jsvalue::spread(data);
+    if let (Some(Value::String(model)), Some(Value::String(variant))) = (jsvalue::get(data, "model"), jsvalue::get(data, "variant")) {
         if !model.contains('#') && !variant.is_empty() && !variant.contains('#') {
-            let joined = format!("{model}#{variant}");
-            data.insert("model".into(), Json::String(joined));
+            input.define("model", Value::string(&format!("{model}#{variant}")));
         }
     }
-    data.insert("system".into(), Json::String(body.to_owned()));
-    t::ConfigAgent::decode(&Json::Object(data)).ok()
+    input.define("system", Value::string(body));
+    let lowered = jsvalue::lower(&Value::Object(input), &AGENT).ok()??;
+    t::ConfigAgent::decode(&lowered).ok()
 }
 
 /// `expandPermissions` for one rule: `~`, `~/x`, `$HOME` and `$HOME/x` resources of path actions (`external_directory`,
@@ -399,121 +430,37 @@ fn expand(rule: Json, home: &str) -> Json {
     Json::Object(o)
 }
 
-/// `ConfigAgentV1.Info` decoded, normalized and migrated to a v2 agent; `None` when it does not decode.
-fn legacy_agent(input: &Object) -> Option<t::ConfigAgent> {
+/// `ConfigAgentV1.Info` decoded, normalized and migrated to a v2 agent (`ConfigMigrateV1.migrateAgent`); `None` when
+/// it does not decode. Its fields take `undefined` (`Schema.optional`); `options` and unknown fields are any values,
+/// which the migration's `JSON.stringify` serializes, and a value it cannot serialize fails the agent plugin.
+fn legacy_agent(input: &jsvalue::Obj) -> Result<Option<t::ConfigAgent>, Failure> {
     const KNOWN: [&str; 17] = [
         "name", "model", "variant", "temperature", "top_p", "prompt", "tools", "disable", "description", "mode", "hidden",
         "options", "color", "steps", "maxSteps", "permission", "name",
     ];
-    let string = |key: &str| match input.get(key) {
-        None => Some(None),
-        Some(Json::String(s)) => Some(Some(s.clone())),
-        Some(_) => None,
-    };
-    let finite = |key: &str| match input.get(key) {
-        None => Some(None),
-        Some(Json::Number(n)) if n.is_finite() => Some(Some(*n)),
-        Some(_) => None,
-    };
-    let boolean = |key: &str| match input.get(key) {
-        None => Some(None),
-        Some(Json::Bool(b)) => Some(Some(*b)),
-        Some(_) => None,
-    };
-    let positive = |key: &str| match input.get(key) {
-        None => Some(None),
-        Some(Json::Number(n)) if n.fract() == 0.0 && *n > 0.0 && n.abs() <= 9_007_199_254_740_991.0 => Some(Some(*n)),
-        Some(_) => None,
-    };
-    let model = string("model")?;
-    let variant = string("variant")?;
-    let temperature = finite("temperature")?;
-    let top_p = finite("top_p")?;
-    let prompt = string("prompt")?;
-    let disable = boolean("disable")?;
-    let description = string("description")?;
-    let mode = string("mode")?;
-    if mode.as_deref().is_some_and(|m| !["subagent", "primary", "all"].contains(&m)) {
-        return None;
+    let Some(decoded) = decode_legacy(input) else { return Ok(None) };
+    // `normalize`: `{ ...agent.options }`, then every unknown field assigned (`options[key] = value`).
+    let options = jsvalue::Obj::plain();
+    for (key, value) in decoded.options {
+        options.define(&key, value);
     }
-    let hidden = boolean("hidden")?;
-    let color = string("color")?;
-    if let Some(color) = &color {
-        let hex = color.len() == 7 && color.starts_with('#') && color[1..].chars().all(|c| c.is_ascii_hexdigit());
-        let theme = ["primary", "secondary", "accent", "success", "warning", "error", "info"].contains(&color.as_str());
-        if !hex && !theme {
-            return None;
-        }
-    }
-    let steps = positive("steps")?;
-    let max_steps = positive("maxSteps")?;
-    let options = match input.get("options") {
-        None => Object::new(),
-        Some(Json::Object(o)) => o.clone(),
-        Some(_) => return None,
-    };
-    // `tools`: an object of booleans; `permission`: an action, or an object of actions / objects of actions.
-    let tools: Vec<(String, bool)> = match input.get("tools") {
-        None => vec![],
-        Some(Json::Object(o)) => {
-            let mut out = vec![];
-            for (k, v) in o {
-                let Json::Bool(b) = v else { return None };
-                out.push((k.clone(), *b));
-            }
-            out
-        }
-        Some(_) => return None,
-    };
-    let action = |v: &Json| match v {
-        Json::String(s) if ["ask", "allow", "deny"].contains(&s.as_str()) => Some(s.clone()),
-        _ => None,
-    };
-    let mut permission: Vec<(String, Json)> = vec![];
-    for (tool, enabled) in &tools {
-        let key = if tool == "write" || tool == "patch" { "edit".to_owned() } else { tool.clone() };
-        let value = Json::String(if *enabled { "allow" } else { "deny" }.into());
-        set_entry(&mut permission, key, value);
-    }
-    match input.get("permission") {
-        None => {}
-        Some(Json::String(s)) => {
-            action(&Json::String(s.clone()))?;
-            set_entry(&mut permission, "*".into(), Json::String(s.clone()));
-        }
-        Some(Json::Object(o)) => {
-            for (key, rule) in o {
-                match rule {
-                    Json::String(_) => {
-                        action(rule)?;
-                    }
-                    Json::Object(entries) if !["question", "websearch", "doom_loop"].contains(&key.as_str()) => {
-                        if !entries.values().all(|e| action(e).is_some()) {
-                            return None;
-                        }
-                    }
-                    _ => return None,
-                }
-                set_entry(&mut permission, key.clone(), rule.clone());
-            }
-        }
-        Some(_) => return None,
-    }
-
-    // migrateAgent
-    let mut body = options;
-    for (key, value) in input {
+    for (key, value) in input.entries() {
         if !KNOWN.contains(&key.as_str()) {
-            body.insert(key.clone(), value.clone());
+            options.assign(&key, value);
         }
     }
-    if let Some(t) = temperature {
-        body.insert("temperature".into(), Json::Number(t));
+    // migrateAgent: `{ ...info.options, temperature, top_p }`, written with `JSON.stringify`.
+    let body = jsvalue::spread(&Value::Object(options));
+    if let Some(t) = decoded.temperature {
+        body.define("temperature", Value::Number(t));
     }
-    if let Some(p) = top_p {
-        body.insert("top_p".into(), Json::Number(p));
+    if let Some(p) = decoded.top_p {
+        body.define("top_p", Value::Number(p));
     }
-    let rules: Vec<Json> = permission
+    let has_body = !body.entries().is_empty();
+    let body = jsvalue::stringify_at(&Value::Object(body), 2).map_err(|thrown| Failure(thrown.to_string()))?;
+    let rules: Vec<Json> = decoded
+        .permission
         .iter()
         .flat_map(|(key, value)| {
             let action = match key.as_str() {
@@ -523,45 +470,156 @@ fn legacy_agent(input: &Object) -> Option<t::ConfigAgent> {
                 other => other,
             };
             match value {
-                Json::String(effect) => vec![rule(action, "*", effect)],
-                Json::Object(entries) => entries
-                    .iter()
-                    .filter_map(|(resource, effect)| match effect {
-                        Json::String(effect) => Some(rule(action, resource, effect)),
-                        _ => None,
-                    })
-                    .collect(),
-                _ => vec![],
+                Rule::Action(effect) => vec![rule(action, "*", effect)],
+                Rule::Resources(entries) => entries.iter().map(|(resource, effect)| rule(action, resource, effect)).collect(),
             }
         })
         .collect();
     let mut o = Obj::new();
-    if let Some(selection) = model.as_deref().and_then(|m| model_selection(m, variant.as_deref())) {
+    if let Some(selection) = decoded.model.as_deref().and_then(|m| model_selection(m, decoded.variant.as_deref())) {
         o.set("model", selection);
     }
-    if !body.is_empty() {
+    if has_body {
         let mut request = Obj::new();
-        request.set("body", Json::Object(body));
+        request.set("body", body.unwrap_or_default());
         o.set("request", request.done());
     }
-    o.opt_str("system", prompt.as_deref()).opt_str("description", description.as_deref()).opt_str("mode", mode.as_deref());
-    o.opt("hidden", hidden.map(Json::Bool));
-    o.opt_str("color", color.as_deref().map(|c| if c.starts_with('#') { c } else { "#aaaaaa" }));
-    o.opt("steps", steps.or(max_steps).map(Json::Number));
-    o.opt("disabled", disable.map(Json::Bool));
+    let color = decoded.color.as_deref().map(|c| if c.starts_with('#') { c } else { "#aaaaaa" });
+    o.opt_str("system", decoded.prompt.as_deref())
+        .opt_str("description", decoded.description.as_deref())
+        .opt_str("mode", decoded.mode.as_deref());
+    o.opt("hidden", decoded.hidden.map(Json::Bool));
+    o.opt_str("color", color);
+    o.opt("steps", decoded.steps.or(decoded.max_steps).map(Json::Number));
+    o.opt("disabled", decoded.disable.map(Json::Bool));
     if !rules.is_empty() {
         o.set("permissions", Json::Array(rules));
     }
-    t::ConfigAgent::decode(&o.done()).ok()
+    // `Schema.decodeUnknownSync`: an agent the migration cannot decode throws.
+    t::ConfigAgent::decode(&o.done()).map(Some).map_err(|_| Failure("the migrated agent does not decode".to_owned()))
 }
 
-/// A `Map.set`: a later key keeps the first one's position.
-fn set_entry(entries: &mut Vec<(String, Json)>, key: String, value: Json) {
-    match entries.iter_mut().find(|(k, _)| *k == key) {
-        Some(entry) => entry.1 = value,
-        None => entries.push((key, value)),
-    }
+/// A V1 permission rule: an action, or actions by resource pattern.
+enum Rule {
+    Action(String),
+    Resources(Vec<(String, String)>),
 }
+
+/// The fields of `ConfigAgentV1.Info` the migration reads.
+#[derive(Default)]
+struct Legacy {
+    model: Option<String>,
+    variant: Option<String>,
+    temperature: Option<f64>,
+    top_p: Option<f64>,
+    prompt: Option<String>,
+    disable: Option<bool>,
+    description: Option<String>,
+    mode: Option<String>,
+    hidden: Option<bool>,
+    color: Option<String>,
+    steps: Option<f64>,
+    max_steps: Option<f64>,
+    options: Vec<(String, Value)>,
+    /// `tools` (as rules) then `permission`, as a `Map` keeps them: a later key takes the first one's place.
+    permission: Vec<(String, Rule)>,
+}
+
+/// `ConfigAgentV1.Info`'s decode of the input object; `None` where it fails.
+fn decode_legacy(input: &jsvalue::Obj) -> Option<Legacy> {
+    // A missing field and an `undefined` one are alike (`Schema.optional`).
+    let field = |key: &str| input.own(key).filter(|v| !matches!(v, Value::Undefined));
+    let string = |key: &str| match field(key) {
+        None => Some(None),
+        Some(Value::String(s)) => Some(Some(s.to_string())),
+        Some(_) => None,
+    };
+    let finite = |key: &str| match field(key) {
+        None => Some(None),
+        Some(Value::Number(n)) if n.is_finite() => Some(Some(n)),
+        Some(_) => None,
+    };
+    let boolean = |key: &str| match field(key) {
+        None => Some(None),
+        Some(Value::Bool(b)) => Some(Some(b)),
+        Some(_) => None,
+    };
+    let positive = |key: &str| match field(key) {
+        None => Some(None),
+        Some(Value::Number(n)) if n.fract() == 0.0 && n > 0.0 && n <= 9_007_199_254_740_991.0 => Some(Some(n)),
+        Some(_) => None,
+    };
+    let action = |v: &Value| match v {
+        Value::String(s) if ["ask", "allow", "deny"].contains(&&**s) => Some(s.to_string()),
+        _ => None,
+    };
+    // `Schema.ObjectKeyword` without arrays (`Entries`): an object or a function, read with `Object.entries`.
+    let entries = |v: &Value| match v {
+        Value::Object(o) if !o.is_array() => Some(o.entries()),
+        _ => None,
+    };
+    let mut out = Legacy {
+        model: string("model")?,
+        variant: string("variant")?,
+        temperature: finite("temperature")?,
+        top_p: finite("top_p")?,
+        prompt: string("prompt")?,
+        disable: boolean("disable")?,
+        description: string("description")?,
+        mode: string("mode")?,
+        hidden: boolean("hidden")?,
+        color: string("color")?,
+        steps: positive("steps")?,
+        max_steps: positive("maxSteps")?,
+        ..Legacy::default()
+    };
+    if out.mode.as_deref().is_some_and(|m| !["subagent", "primary", "all"].contains(&m)) {
+        return None;
+    }
+    if let Some(color) = &out.color {
+        let hex = color.len() == 7 && color.starts_with('#') && color[1..].chars().all(|c| c.is_ascii_hexdigit());
+        let theme = ["primary", "secondary", "accent", "success", "warning", "error", "info"].contains(&color.as_str());
+        if !hex && !theme {
+            return None;
+        }
+    }
+    out.options = match field("options") {
+        None => Vec::new(),
+        Some(options) if jsvalue::is_record(&options) => jsvalue::entries(&options),
+        Some(_) => return None,
+    };
+    let mut permission: Vec<(String, Rule)> = Vec::new();
+    let mut set = |key: String, rule: Rule| match permission.iter_mut().find(|(k, _)| *k == key) {
+        Some(entry) => entry.1 = rule,
+        None => permission.push((key, rule)),
+    };
+    if let Some(tools) = field("tools") {
+        for (tool, enabled) in entries(&tools)? {
+            let Value::Bool(enabled) = enabled else { return None };
+            let key = if tool == "write" || tool == "patch" { "edit".to_owned() } else { tool };
+            set(key, Rule::Action(if enabled { "allow" } else { "deny" }.to_owned()));
+        }
+    }
+    match field("permission") {
+        None => {}
+        Some(Value::String(s)) => set("*".to_owned(), Rule::Action(action(&Value::String(s))?)),
+        Some(value) => {
+            for (key, rule) in entries(&value)? {
+                let rule = match action(&rule) {
+                    Some(effect) => Rule::Action(effect),
+                    None if ["question", "websearch", "doom_loop"].contains(&key.as_str()) => return None,
+                    None => Rule::Resources(
+                        entries(&rule)?.into_iter().map(|(resource, effect)| action(&effect).map(|e| (resource, e))).collect::<Option<_>>()?,
+                    ),
+                };
+                set(key, rule);
+            }
+        }
+    }
+    out.permission = permission;
+    Some(out)
+}
+
 
 /// `ConfigMigrateV1.modelSelection`: a `provider/model#variant` reference (or one with a separate variant).
 fn model_selection(input: &str, variant: Option<&str>) -> Option<Json> {

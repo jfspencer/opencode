@@ -219,6 +219,10 @@ pub async fn run(input: &Input) -> Result {
         }
         None => None,
     };
+    // TODO(port): with remote access on (`config.remote`), the service attaches its route to the device's OpenTunnel
+    // tunnel (`RemoteTunnel.run`: `tunnel.connect` over the bridge WebSocket, TLS for `<route>.<hostname>` with the
+    // stored key, retried) and reports `https://<route>.<hostname>` among server info's URLs. Without it,
+    // `pair --remote` waits its three minutes and fails; `cli/tunnel.rs` has the storage and API it builds on.
 
     if mode == Mode::Stdio {
         let mut o = crate::json::Obj::new();

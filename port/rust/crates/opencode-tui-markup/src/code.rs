@@ -41,7 +41,8 @@ pub enum HighlightOutcome {
     Plain,
 }
 
-/// `startHighlight`'s computation for `content` in `filetype`.
+/// `startHighlight`'s computation for `content` in `filetype`. The renderable runs it only for non-empty content
+/// with a filetype (`scheduleHighlights` otherwise shows the plain text, or nothing for empty content).
 pub fn highlight(
     client: &TreeSitterClient,
     content: &JsString,

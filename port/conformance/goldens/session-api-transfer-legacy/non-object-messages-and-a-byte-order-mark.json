@@ -1,0 +1,318 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected Session.Message.Info\n  at [\"messages\"][1]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "legacy",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_1>",
+            "text": "Old prompt",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          5
+        ]
+      },
+      "status": 400,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "Payload",
+        "message": "Expected Session.Message.Info\n  at [\"messages\"][1]"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "info": {
+          "cost": 0,
+          "id": "<ses_2>",
+          "location": {
+            "directory": "/somewhere/else"
+          },
+          "projectID": "<hash_1>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "title": "legacy",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        },
+        "messages": [
+          {
+            "id": "<msg_2>",
+            "text": "Old prompt",
+            "time": {
+              "created": "<time>"
+            },
+            "type": "user"
+          },
+          null
+        ]
+      },
+      "status": 400,
+      "url": "/api/experimental/session/import"
+    },
+    {
+      "kind": "note",
+      "label": "import with a byte order mark",
+      "value": 200
+    },
+    {
+      "body": {
+        "data": {
+          "info": {
+            "cost": 0,
+            "id": "<ses_3>",
+            "location": {
+              "directory": "<project>"
+            },
+            "projectID": "<hash_2>",
+            "time": {
+              "created": "<time>",
+              "updated": "<time>"
+            },
+            "title": "legacy",
+            "tokens": {
+              "cache": {
+                "read": 0,
+                "write": 0
+              },
+              "input": 0,
+              "output": 0,
+              "reasoning": 0
+            }
+          },
+          "messages": [
+            {
+              "id": "<msg_3>",
+              "text": "Old prompt",
+              "time": {
+                "created": "<time>"
+              },
+              "type": "user"
+            },
+            {
+              "agent": "build",
+              "content": [
+                {
+                  "native": {
+                    "id": "t1"
+                  },
+                  "text": "t",
+                  "type": "text"
+                }
+              ],
+              "cost": 0.25,
+              "finish": "stop",
+              "id": "<msg_4>",
+              "model": {
+                "id": "deepseek/deepseek-v4.1-flash-1017",
+                "providerID": "openrouter",
+                "variant": "max"
+              },
+              "native": {
+                "b": 1
+              },
+              "time": {
+                "completed": "<time>",
+                "created": "<time>",
+                "streamed": "<time>"
+              },
+              "tokens": {
+                "cache": {
+                  "read": 10,
+                  "write": 2
+                },
+                "input": 100,
+                "output": 20,
+                "reasoning": 5
+              },
+              "type": "assistant"
+            }
+          ]
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/experimental/session/<ses_3>/export"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_3>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>"
+          },
+          "projectID": "<hash_2>",
+          "sessionID": "<ses_3>",
+          "slug": "<slug>",
+          "subpath": "",
+          "title": "legacy",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_3>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.created"
+      }
+    ]
+  },
+  "files": {}
+}

@@ -3,7 +3,8 @@
 //! checkout and checkouts found by `refresh` have no strategy; worktrees a strategy created (git's linked worktrees)
 //! are owned by it. Creating one runs the project's start command in it.
 //!
-//! TODO(port): worktree strategies registered by external plugins (only git's built-in strategy exists).
+//! Only git's built-in strategy exists: strategies registered by external plugins are out of scope (the port runs no
+//! external plugins).
 
 use std::path::Path;
 

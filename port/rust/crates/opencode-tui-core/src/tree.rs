@@ -1447,6 +1447,12 @@ pub fn create_root_for_tests(width: u32, height: u32) -> Element {
     create_root(width, height)
 }
 
+/// Test support: paints the tree into `buffer` (a frame's paint without a renderer).
+#[doc(hidden)]
+pub fn paint_for_tests(buffer: &mut OptimizedBuffer) {
+    paint(buffer, 0.0);
+}
+
 /// Test support: one frame's layout without a renderer.
 #[doc(hidden)]
 pub fn prepare_frame_for_tests(width: u32, height: u32) {

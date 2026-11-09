@@ -1,0 +1,47 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "--method",
+          "yarn"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: yarn",
+          "│",
+          "■  Could not check for OpenCode updates",
+          "│",
+          "│  The socket connection was closed unexpectedly. For more information, pass",
+          "│  `verbose: true` in the second argument to fetch()",
+          "│  Retry    Check your network, then run opencode upgrade again.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

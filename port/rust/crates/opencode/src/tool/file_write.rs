@@ -38,21 +38,35 @@ pub enum ReadError {
     NotFound,
     /// A directory or another non-file.
     WrongKind(&'static str),
-    Failed,
+    /// The system error's own text, as Node words it (`EACCES: permission denied, open '<path>'`).
+    Failed(String),
 }
 
-/// `FileMutation.readText`.
+/// `FileMutation.readText`: the local environment's `read` (`fs.stat`, then `fs.readFile`).
 pub fn read_text(path: &str) -> Result<(bool, String), ReadError> {
-    let info = std::fs::metadata(path).map_err(error)?;
+    Ok(decode_bytes(&read_bytes(path)?))
+}
+
+/// The local environment's `read` of a whole file.
+fn read_bytes(path: &str) -> Result<Vec<u8>, ReadError> {
+    use std::io::Read;
+    let info = std::fs::metadata(path).map_err(|e| error(e, "stat", path))?;
     if !info.is_file() {
         return Err(ReadError::WrongKind(if info.is_dir() { "directory" } else { "other" }));
     }
-    let bytes = std::fs::read(path).map_err(error)?;
-    Ok(decode_bytes(&bytes))
+    let mut file = std::fs::File::open(path).map_err(|e| error(e, "open", path))?;
+    let mut bytes = Vec::new();
+    file.read_to_end(&mut bytes).map_err(|e| ReadError::Failed(crate::fs::node_call_error(&e, "read")))?;
+    Ok(bytes)
 }
 
-fn error(error: std::io::Error) -> ReadError {
-    if error.kind() == std::io::ErrorKind::NotFound || error.raw_os_error() == Some(20) { ReadError::NotFound } else { ReadError::Failed }
+/// `attempt(path, ..., missing)`: ENOENT and ENOTDIR are a missing file, anything else the call's failure.
+fn error(error: std::io::Error, syscall: &str, path: &str) -> ReadError {
+    if error.kind() == std::io::ErrorKind::NotFound || error.raw_os_error() == Some(20) {
+        ReadError::NotFound
+    } else {
+        ReadError::Failed(crate::fs::node_error(&error, syscall, path))
+    }
 }
 
 /// `FileMutation.readOptionalText`: `None` for a missing file.
@@ -64,22 +78,23 @@ pub fn read_optional_text(path: &str) -> Result<Option<(bool, String)>, ReadErro
     }
 }
 
-/// `files.write`: the parent directories created.
-fn write_bytes(path: &str, bytes: &[u8]) -> std::io::Result<()> {
-    if let Some(parent) = std::path::Path::new(path).parent() {
-        std::fs::create_dir_all(parent)?;
+/// The local environment's `write`: `fs.mkdir(dirname, { recursive: true })`, then `fs.writeFile`, failing with
+/// Node's message.
+pub fn write_bytes(path: &str, bytes: &[u8]) -> Result<(), String> {
+    if let Some(parent) = std::path::Path::new(path).parent().and_then(std::path::Path::to_str).filter(|p| !p.is_empty()) {
+        crate::fs::mkdir_recursive(parent)?;
     }
-    std::fs::write(path, bytes)
+    crate::fs::write_file(path, bytes)
 }
 
 /// `FileMutation.syncTextBom`: the file's BOM set as wanted (rewritten only when it changes); its text.
 pub fn sync_text_bom(path: &str, bom: bool) -> Result<String, ReadError> {
-    let bytes = std::fs::read(path).map_err(error)?;
+    let bytes = read_bytes(path)?;
     let decoded = String::from_utf8_lossy(&bytes).into_owned();
     let (_, text) = split(&decoded);
     let canonical = if bom { format!("{BOM}{text}") } else { text.to_owned() };
     if decoded != canonical {
-        write_bytes(path, canonical.as_bytes()).map_err(|_| ReadError::Failed)?;
+        write_bytes(path, canonical.as_bytes()).map_err(ReadError::Failed)?;
     }
     Ok(text.to_owned())
 }
@@ -95,22 +110,23 @@ pub struct Written {
 /// `FileMutation.writeTextPreservingBom`.
 fn write_text_preserving_bom(target: &Target, content: &str) -> Result<Written, ReadError> {
     let (next_bom, text) = split(content);
-    let current = match std::fs::metadata(&target.absolute) {
+    let path = target.absolute.as_str();
+    let current = match std::fs::metadata(path) {
         Ok(info) if !info.is_file() => return Err(ReadError::WrongKind(if info.is_dir() { "directory" } else { "other" })),
         Ok(_) => {
             let mut head = [0u8; 3];
-            let file = std::fs::File::open(&target.absolute).map_err(error)?;
+            let file = std::fs::File::open(path).map_err(|e| error(e, "open", path))?;
             use std::io::Read;
-            let count = file.take(3).read(&mut head).map_err(error)?;
+            let count = file.take(3).read(&mut head).map_err(|e| ReadError::Failed(crate::fs::node_call_error(&e, "read")))?;
             Some(head[..count].to_vec())
         }
-        Err(e) => match error(e) {
+        Err(e) => match error(e, "stat", path) {
             ReadError::NotFound => None,
             other => return Err(other),
         },
     };
     let bom = current.as_ref().is_some_and(|bytes| bytes.starts_with(&[0xef, 0xbb, 0xbf])) || next_bom;
-    write_bytes(&target.absolute, join(text, bom).as_bytes()).map_err(|_| ReadError::Failed)?;
+    write_bytes(path, join(text, bom).as_bytes()).map_err(ReadError::Failed)?;
     Ok(Written { existed: current.is_some(), bom, formatted: None })
 }
 
@@ -136,7 +152,9 @@ pub async fn authorize(context: &Context, tool: &str, target: &Target, preview: 
 pub async fn commit(context: &Context, target: &Target, content: &str) -> Result<Written, ReadError> {
     let written = {
         let (target, content) = (target.clone(), content.to_owned());
-        tokio::task::spawn_blocking(move || write_text_preserving_bom(&target, &content)).await.unwrap_or(Err(ReadError::Failed))?
+        tokio::task::spawn_blocking(move || write_text_preserving_bom(&target, &content))
+            .await
+            .unwrap_or_else(|panic| Err(ReadError::Failed(panic.to_string())))?
     };
     if !crate::formatter::file(&context.location, &target.absolute).await {
         return Ok(written);

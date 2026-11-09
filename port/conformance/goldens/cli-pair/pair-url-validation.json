@@ -1,0 +1,295 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "ftp://files.example.test"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Invalid value for flag --url: \"ftp://files.example.test\". Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "https://user:secret@opencode.example.test"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Invalid value for flag --url: \"https://user:secret@opencode.example.test\". Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "https://opencode.example.test/?token=1"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Invalid value for flag --url: \"https://opencode.example.test/?token=1\". Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "https://opencode.example.test/#fragment"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Invalid value for flag --url: \"https://opencode.example.test/#fragment\". Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          "not a url"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Invalid value for flag --url: \"not a url\". Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url",
+          ""
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Missing value for flag --url. Expected an HTTP(S) server URL without credentials, query parameters, or a fragment",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "pair",
+          "--url"
+        ],
+        "exit": 1,
+        "stderr": [
+          "",
+          "ERROR",
+          "  Missing value for flag --url. Expected: string",
+          ""
+        ],
+        "stdout": [
+          "DESCRIPTION",
+          "  Print one-time links to connect a browser or app",
+          "",
+          "USAGE",
+          "  opencode pair [flags]",
+          "",
+          "FLAGS",
+          "  --url string    Use an external HTTP(S) server URL in pairing links",
+          "  --remote        Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",
+          "  --yes, -y       Accept exposing the server to the internet when --remote enables remote access for the first time (required without an interactive terminal)",
+          "",
+          "GLOBAL FLAGS",
+          "  --help, -h                                                          Show help information",
+          "  --version, -v                                                       Show version information",
+          "  --wizard                                                            Start wizard mode for a command",
+          "  --completions <bash|zsh|fish|powershell|sh|pwsh>                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  --log-level <all|trace|debug|info|warn|warning|error|fatal|none>    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  --print-logs                                                        Print logs to stderr (server logs require --standalone)",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

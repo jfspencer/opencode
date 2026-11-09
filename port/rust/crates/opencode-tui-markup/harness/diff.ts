@@ -7,8 +7,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { spawnSync } from "node:child_process"
-import { goldenTexts, markedDocuments, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
-import { dispose, run } from "./ts-driver"
+import { codeSamples, goldenDiffs, goldenTexts, markedDocuments, randomDiff, randomMarkdown, Rng, specExamples, streamSteps } from "./corpus"
+import { dispose, jsdiff, run, table } from "./ts-driver"
 
 const argv = process.argv.slice(2)
 const arg = (name: string, fallback?: string) => {
@@ -56,6 +56,77 @@ for (const doc of documents) {
     steps.push({ streaming: false })
     add(`markdown-stream/${doc.corpus}`, doc.name, { op: "markdown", ...tui, conceal: caseRng.chance(0.8), steps })
   }
+}
+
+// Code in every bundled language (and aliases, and one with no parser), with and without conceal.
+// tree-sitter-agda's layout scanner reads an empty indent stack (`VEC_BACK` of length 0 after `deserialize` with an
+// empty buffer), so in TS its result depends on the heap of the parser's earlier parses: compare those cases with a
+// fresh TS client (what the first parse in the TUI gives) rather than the shared one.
+const FRESH_FILETYPES = new Set(["agda"])
+for (const sample of codeSamples()) {
+  const { filetype, name, code } = sample
+  const fresh = FRESH_FILETYPES.has(filetype)
+  add(`highlight/${filetype}`, name, { op: "highlight", content: code, filetype, fresh })
+  add(`code/${filetype}`, name, { op: "code", content: code, filetype, conceal: true, fresh })
+  add(`code-noconceal/${filetype}`, name, { op: "code", content: code, filetype, conceal: false, fresh })
+  if (caseRng.chance(0.15))
+    add(`code-base/${filetype}`, name, { op: "code", content: code, filetype, conceal: true, baseHighlight: "markup.quote", fresh })
+  if (code.length > 4 && caseRng.chance(0.3)) {
+    const cut = 1 + caseRng.int(code.length - 1)
+    const prefix = /[\ud800-\udbff]/.test(code[cut - 1]!) ? code.slice(0, cut + 1) : code.slice(0, cut)
+    add(`highlight-prefix/${filetype}`, name, { op: "highlight", content: prefix, filetype, fresh })
+  }
+}
+// Rendered markdown as the TUI shows it: every code child of the block model highlighted with the markdown link
+// hooks, conceal on (rendered) and off (source), with and without hyperlink support.
+for (const doc of documents) {
+  const text = doc.markdown.trim()
+  if (!text || text.length > 6000) continue
+  add(`render/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: true, content: text })
+  if (caseRng.chance(0.3)) add(`render-source/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: false, content: text })
+  if (caseRng.chance(0.2) && text.includes("]("))
+    add(`render-hyperlinks/${doc.corpus}`, doc.name, { op: "markdownRender", ...tui, conceal: true, hyperlinks: true, content: text })
+}
+// Diffs: parsePatch and the unified and split line models.
+for (const d of goldenDiffs()) {
+  add("diff/goldens", d.name, { op: "diff", diff: d.diff, view: "unified" })
+  add("diff-split/goldens", d.name, { op: "diff", diff: d.diff, view: "split" })
+}
+for (let i = 0; i < count; i++) {
+  const text = randomDiff(caseRng, jsdiff)
+  add("diff/random", `random#${i}`, { op: "diff", diff: text, view: caseRng.chance(0.5) ? "split" : "unified" })
+}
+
+// Tables: computeLayout over random cells and options, replaying the cell measures TS takes (the text slice's).
+const CELL_WORDS = ["a", "bb", "ccc", "alpha beta", "gamma-delta epsilon", "日本語", "😀😀", "long-unbreakable-word-here", "x y z w v u", ""]
+for (let i = 0; i < count; i++) {
+  const rows = caseRng.int(5)
+  const cols = 1 + caseRng.int(5)
+  const cells = Array.from({ length: rows }, () =>
+    Array.from({ length: cols - (caseRng.chance(0.1) ? 1 : 0) }, () =>
+      caseRng.chance(0.05) ? null : Array.from({ length: 1 + caseRng.int(4) }, () => caseRng.pick(CELL_WORDS)).join(caseRng.pick([" ", "\n"])),
+    ),
+  )
+  const options: any = {
+    wrapMode: caseRng.pick(["none", "char", "word", "word"]),
+    columnWidthMode: caseRng.pick(["content", "full"]),
+    columnFitter: caseRng.pick(["proportional", "balanced"]),
+    cellPaddingX: caseRng.int(3),
+    cellPaddingY: caseRng.int(2),
+    columnGap: caseRng.int(3),
+    border: caseRng.chance(0.7),
+  }
+  if (caseRng.chance(0.3)) options.outerBorder = caseRng.chance(0.5)
+  const input: any = { op: "table", cells, options, maxWidth: caseRng.chance(0.15) ? null : 4 + caseRng.int(80) }
+  input.tsMeasures = (table(input) as any).measures
+  add("table/random", `random#${i}`, input)
+}
+
+// Markdown highlighting of whole documents (the conceal path frames depend on).
+for (const doc of documents) {
+  if (doc.markdown.length > 6000) continue
+  add(`highlight-md/${doc.corpus}`, doc.name, { op: "highlight", content: doc.markdown, filetype: "markdown" })
+  add(`code-md/${doc.corpus}`, doc.name, { op: "code", content: doc.markdown, filetype: "markdown", conceal: caseRng.chance(0.7) })
 }
 
 for (const doc of documents) {

@@ -9,6 +9,7 @@ publish.workspace = true
 
 [dependencies]
 opencode-tui-core = { path = "../opencode-tui-core" }
+opencode-tui-input = { path = "../opencode-tui-input" }
 opencode-tui-text = { path = "../opencode-tui-text" }
 opencode-tui-sync = { path = "../opencode-tui-sync" }
 tokio.workspace = true

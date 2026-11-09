@@ -13,9 +13,10 @@
 //! The OpenRouter plugin's `HTTP-Referer` / `X-Title` headers apply only to providers that exist before config is
 //! applied (catalog providers); with no catalog they never apply, as in TS.
 //!
-//! TODO(port): catalog providers and models (models.dev) and `canonical` providers copying a catalog source; the
-//! provider plugins other than OpenRouter (all out of scope); variant spellings of packages other than
-//! `@opencode/ai/providers/openrouter`; the `api_keys` header translation of legacy OpenRouter settings.
+//! Out of scope, and so not ported: catalog providers and models (models.dev) and `canonical` providers copying a
+//! catalog source (the port has no model catalog); the provider plugins other than OpenRouter, and the variant
+//! spellings and settings rewrites of packages other than `@opencode/ai/providers/openrouter` (the port serves
+//! OpenRouter only).
 
 use opencode_protocol::types as t;
 use opencode_protocol::wire::Object;
@@ -162,10 +163,10 @@ fn model_settings(settings: Option<&Json>) -> Option<Json> {
 }
 
 /// `AISDKNative.rewrite` of a native OpenRouter target: AI SDK spellings in `settings` move to the request (`headers`,
-/// `extraBody`, `appName`, `appUrl`), unread ones are dropped.
+/// `extraBody`, `appName`, `appUrl`, `api_keys`), unread ones are dropped.
 fn rewrite(target: &mut Object, specifier: Option<&str>) {
     if specifier != Some(OPENROUTER) {
-        // TODO(port): the other native packages and `aisdk:` specifiers.
+        // The other native packages and `aisdk:` specifiers are out of scope (OpenRouter only; no aisdk bridge).
         return;
     }
     let settings = target.get("settings").cloned();
@@ -185,6 +186,12 @@ fn rewrite(target: &mut Object, specifier: Option<&str>) {
     }
     if let Some(Json::String(url)) = settings.get("appUrl") {
         extra.insert("HTTP-Referer".into(), Json::String(url.clone()));
+    }
+    // `api_keys` is a lenient record of strings: anything else reads as absent.
+    if let Some(Json::Object(keys)) = settings.get("api_keys") {
+        if !keys.is_empty() && keys.values().all(|value| matches!(value, Json::String(_))) {
+            extra.insert("X-Provider-API-Keys".into(), Json::String(json::text(&Json::Object(keys.clone()))));
+        }
     }
     if !extra.is_empty() {
         headers = merge_headers(Some(&Json::Object(extra)), headers.as_ref());

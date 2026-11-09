@@ -61,7 +61,7 @@ pub fn namespaces() -> Vec<(String, String)> {
             (json::get_str(n, "name").unwrap_or_default().to_owned(), json::get_str(n, "description").unwrap_or_default().to_owned())
         })
         .collect();
-    // TODO(port): the browser tools themselves (desktop only, out of scope).
+    // The browser tools themselves are desktop only, and so out of scope: only their catalog entry is listed.
     out.push(("browser".into(), BROWSER.into()));
     out
 }

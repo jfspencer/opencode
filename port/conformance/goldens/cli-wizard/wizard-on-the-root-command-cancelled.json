@@ -1,0 +1,143 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1;96mopencode\u001b[0m \u001b[37mvconformance\u001b[0m \u001b[1;37m· Command wizard\u001b[0m",
+          "OpenCode command line interface",
+          "\u001b[90mBuild a command interactively. Press Ctrl+C to cancel.\u001b[0m",
+          "",
+          "\u001b[1;37mCurrent command\u001b[0m",
+          "\u001b[35m  $ opencode\u001b[0m",
+          "",
+          "\u001b[96m?\u001b[0m \u001b[1mCommand\u001b[0m \u001b[90m›\u001b[0m",
+          "\u001b[96m❯\u001b[0m \u001b[4;96mupgrade\u001b[0m \u001b[90m- Upgrade OpenCode to the latest or a specific version\u001b[0m",
+          "  uninstall",
+          "  acp",
+          "  api",
+          "  debug",
+          "  auth",
+          "  mcp",
+          "  plugin",
+          "  models",
+          "↓ stats",
+          "\u001b[31mWizard cancelled.\u001b[0m"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode",
+          "",
+          "? Command ›",
+          "  upgrade",
+          "  uninstall",
+          "❯ acp - Start an Agent Client Protocol server",
+          "  api",
+          "  debug",
+          "  auth",
+          "  mcp",
+          "  plugin",
+          "  models",
+          "↓ stats",
+          "Wizard cancelled."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[B\u001b[B",
+            "\u0004"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--wizard"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode",
+          "",
+          "\u001b[?25l? Command › ",
+          "❯ upgrade - Upgrade OpenCode to the latest or a specific version",
+          "  uninstall ",
+          "  acp ",
+          "  api ",
+          "  debug ",
+          "  auth ",
+          "  mcp ",
+          "  plugin ",
+          "  models ",
+          "↓ stats \u001b[?25h",
+          "Wizard cancelled.",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--wizard"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode session list",
+          "",
+          "LIST · FLAGS",
+          "\u001b[?25l? Set Max count (--max-count)? › (y/N)\u001b[?25h",
+          "Wizard cancelled.",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

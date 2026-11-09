@@ -1,0 +1,22 @@
+[
+ "<span>Hello</span>",
+ "<input value=yes class=\"a\" data-💩></input>",
+ "<div>\n  <span>a</span>\n  b\n  <b>c</b>\n  Multi-line\n  text\n</div>",
+ "<form><img src=\"something.png\"><br><input type=submit value=Ok /></form>",
+ "<img src=\"something.png\">",
+ "<something:different>\n  <atom-text-editor mini>\n    Hello\n  </atom-text-editor>\n</something:different>",
+ "<!-- hello -->\n<!-- world ->-> -- > ->->->-- -> still comment -->\n<div>\n  <!-- <span>something</span> -->\n</div>",
+ "<script>\n  </s\n  </sc\n  </scr\n  </scri\n  </scrip\n</script>\n\n<style>\n  </ </s </st </sty </styl\n</style>\n\n<script>\n</SCRIPT>",
+ "<!DOCTYPE html PUBLIC\n  \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n  \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">",
+ "<!doctype html>",
+ "<ul>\n  <li>One\n  <li>Two\n</ul>",
+ "<dl>\n  <dt>Coffee\n  <dt>Café\n  <dd>Black hot drink\n  <dt>Milk\n  <dd>White cold drink\n</dl>",
+ "<p>One\n<div>Two</div>\n<p>Three\n<p>Four\n<h1>Five</h1>",
+ "<ruby>東<rb>京<rt>とう<rt>きょう</ruby>",
+ "<table>\n  <colgroup>\n    <col style=\"background-color: #0f0\">\n    <col span=\"2\">\n  <tr>\n    <th>Lime</th>\n    <th>Lemon</th>\n    <th>Orange</th>\n  </tr>\n</table>",
+ "<table>\n  <tr>\n    <th>One\n    <th>Two\n  <tr>\n    <td>Three\n    <td>Four\n</table>",
+ "<p>Lorem ipsum &nbsp; dolor sit &copy; amet.</p>",
+ "<p>Lorem ipsum &#160; dolor sit &#8212; amet.</p>",
+ "<p>Lorem ipsum &#xA0; dolor &#xa0; sit &nbsp; amet.</p>",
+ "<!doctype html><html><head>"
+]
