@@ -13,6 +13,9 @@ path = "src/main.rs"
 
 [dependencies]
 opencode-protocol.workspace = true
+# The JS engine's RegExp and Date.parse, as the reference runs them (form answers).
+opencode-codemode = { path = "../opencode-codemode" }
+url = "2.5"
 indexmap.workspace = true
 regex.workspace = true
 tokio.workspace = true
