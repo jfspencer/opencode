@@ -26,13 +26,10 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(data(stored.wire()))
         }
         "session.update" => session_update(app, request, &decoded).await,
-        "session.remove" => {
-            let session_id = request.param("sessionID");
-            session::require(&app.db.lock().unwrap(), session_id)?;
-            // Stop the session's work before it goes. TODO(port): the same for its descendants.
-            app.sessions.executions.interrupt(session_id, "user");
-            app.sessions.executions.await_idle(session_id).await;
-            session::remove(app, session_id).map(|_| Response::no_content())
+        "session.remove" => session::remove(app, request.param("sessionID")).await.map(|_| Response::no_content()),
+        "session.background" => {
+            session::subagent::background_session(app, request.param("sessionID")).await?;
+            Ok(Response::no_content())
         }
         "session.active" => {
             let mut active = Obj::new();
