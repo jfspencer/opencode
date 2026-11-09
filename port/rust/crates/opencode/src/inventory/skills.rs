@@ -221,7 +221,7 @@ fn decode_component(value: &str) -> Option<String> {
     String::from_utf8(crate::url::percent_decode(value)).ok()
 }
 
-/// `path.win32.isAbsolute`.
+/// `path.win32.isAbsolute`: TS rejects Windows-absolute file names in an index on every platform (not a platform branch).
 fn win32_absolute(value: &str) -> bool {
     let b = value.as_bytes();
     matches!(b.first(), Some(b'/') | Some(b'\\'))
