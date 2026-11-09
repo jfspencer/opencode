@@ -99,6 +99,13 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/permissions.test.ts › always saves approvals and settles other pending requests they now allow
+scenarios/permissions.test.ts › edit and remove saved approvals
+scenarios/permissions.test.ts › evaluate permission requests against agent, config and session rules
+scenarios/permissions.test.ts › evaluate permission requests for an explicit agent
+scenarios/permissions.test.ts › pending permission request lifecycle
+scenarios/permissions.test.ts › rejecting a request rejects the other pending requests of its session
+scenarios/permissions.test.ts › rule patterns match actions and resources
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
@@ -126,6 +133,9 @@ scenarios/project-config.test.ts › invalid native config sections
 scenarios/project-config.test.ts › malformed and non-object config documents are rejected
 scenarios/project-config.test.ts › patch the global config shell
 scenarios/project-config.test.ts › project config files layer in priority order
+scenarios/project-forms.test.ts › answer with an invalid pattern
+scenarios/project-forms.test.ts › create, list, answer and cancel forms
+scenarios/project-forms.test.ts › invalid form definitions
 scenarios/project-fs.test.ts › conditional reads
 scenarios/project-fs.test.ts › find files and directories
 scenarios/project-fs.test.ts › find from the home directory
@@ -218,7 +228,9 @@ scenarios/session-api-failures.test.ts › interrupt a session while it waits to
 scenarios/session-api-failures.test.ts › provider failures become session errors
 scenarios/session-api-inputs.test.ts › an inline attachment over the size limit
 scenarios/session-api-inputs.test.ts › attachments the model cannot read
+scenarios/session-api-inputs.test.ts › forms of a session whose location is not loaded
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
+scenarios/session-api-inputs.test.ts › session forms
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › get one message
 scenarios/session-api-prompt.test.ts › interrupt a running turn
@@ -234,7 +246,17 @@ scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
+scenarios/tools-question.test.ts › question answered with a custom answer
 scenarios/tools-question.test.ts › question denied by permission rules
+scenarios/tools-question.test.ts › question dismissed by the user
+scenarios/tools-question.test.ts › question dismissed with a message
+scenarios/tools-question.test.ts › question form endpoints with unknown ids
+scenarios/tools-question.test.ts › question interrupted while pending
+scenarios/tools-question.test.ts › question reply with invalid answers, then a valid one
+scenarios/tools-question.test.ts › question with an unanswered question
+scenarios/tools-question.test.ts › question with no questions or without options
+scenarios/tools-question.test.ts › question with one choice answered by option
+scenarios/tools-question.test.ts › question with several questions and a multiselect
 scenarios/tools-skill.test.ts › skill activated by the user
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
 scenarios/tools.test.ts › malformed tool arguments
