@@ -333,7 +333,7 @@ impl Renderer {
                     }
                     current_link = link;
                     if link != 0 {
-                        match pool::with_links(|links| links.get(link).map(str::to_owned)) {
+                        match pool::link_url(link) {
                             Some(url) => push_fmt(out, format_args!("\x1b]8;id={link};{url}\x1b\\")),
                             None => current_link = 0,
                         }
@@ -533,7 +533,7 @@ impl Renderer {
         if link == 0 {
             return None;
         }
-        pool::with_links(|links| links.get(link).map(str::to_owned))
+        pool::link_url(link)
     }
 }
 

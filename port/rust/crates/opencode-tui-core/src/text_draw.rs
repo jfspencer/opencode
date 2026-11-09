@@ -58,9 +58,9 @@ impl OptimizedBuffer {
         if width > self.width().saturating_sub(x) {
             return;
         }
-        let id = pool::with_graphemes(|pool| pool.acquire(glyph));
+        let Some(id) = pool::acquire_grapheme(glyph) else { return };
         self.set_cell_blended(x, y, make_cell(pool::pack_grapheme_start(id, width), fg, bg, attributes));
-        pool::with_graphemes(|pool| pool.decref(id));
+        pool::release_grapheme(id);
     }
 
     /// `drawTextBuffer(view, x, y)` (and `drawEditorView`, whose source prefills the viewport background).

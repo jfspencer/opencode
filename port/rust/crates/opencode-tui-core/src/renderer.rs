@@ -258,6 +258,18 @@ pub fn frame_id() -> u64 {
     with(|s| s.frame_id).unwrap_or(0)
 }
 
+/// `widthMethod`: the terminal's grapheme width method (`capabilities.unicode`), which text and edit buffers are
+/// created with (`this._ctx.widthMethod`); without a renderer, `unicode`.
+pub fn width_method() -> crate::unicode::WidthMethod {
+    STATE
+        .with(|s| {
+            let state = s.try_borrow().ok()?;
+            let output = state.as_ref()?.output.try_borrow().ok()?;
+            Some(output.terminal.capabilities().unicode)
+        })
+        .unwrap_or_default()
+}
+
 /// Whether a frame is being prepared or painted (the scene's active attempt).
 pub fn rendering() -> bool {
     with(|s| s.rendering).unwrap_or(false)

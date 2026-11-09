@@ -951,6 +951,9 @@ scenarios/tools.test.ts › shell command
 scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
+tui/nav-dialogs.test.ts › dialogs: escape closes a dialog opened from another
+tui/nav-dialogs.test.ts › dialogs: status
+tui/nav-exit.test.ts › exit: ctrl+c in a dialog closes the dialog
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
 tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
@@ -967,6 +970,12 @@ tui/nav-home.test.ts › narrow home screen at 30x16
 tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
+tui/nav-keybinds.test.ts › keybinds: shortcuts shown in the palette follow the configuration
 tui/nav-keybinds.test.ts › keybinds: the leader times out
+tui/nav-palette.test.ts › command palette: ctrl+p again while open
+tui/nav-palette.test.ts › command palette: open a setting
+tui/nav-palette.test.ts › command palette: run help
+tui/nav-palette.test.ts › command palette: run switch theme
+tui/nav-palette.test.ts › command palette: the selected command runs on enter
 tui/nav-toasts.test.ts › toasts: info toast comes and goes
 tui/nav-toasts.test.ts › toasts: no model to send the prompt to
