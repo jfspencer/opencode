@@ -1,0 +1,21 @@
+[package]
+name = "opencode-codemode"
+description = "Code mode: the confined JavaScript-like interpreter behind opencode's `execute` tool, ported from packages/codemode"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+indexmap.workspace = true
+regress = { version = "0.11", features = ["utf16"] }
+ryu-js = "1"
+stacker = "0.1"
+unicode-normalization = "0.1"
+url = "2.5"
+tokio.workspace = true
+getrandom.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true
