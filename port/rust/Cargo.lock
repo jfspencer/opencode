@@ -679,6 +679,10 @@ name = "opencode-shell"
 version = "0.1.0"
 
 [[package]]
+name = "opencode-tui-input"
+version = "0.1.0"
+
+[[package]]
 name = "opencode-yoga"
 version = "0.1.0"
 dependencies = [
