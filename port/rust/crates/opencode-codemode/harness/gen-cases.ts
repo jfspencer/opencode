@@ -1,7 +1,8 @@
-// Generates the targeted corpora (JSON lines): async ordering, tools, limits and output bounding, and value matrices
-// that cross every operator, coercion, and common built-in with a spread of values. Deterministic.
+// Generates the targeted corpora (JSON lines): async ordering, tools, limits and output bounding, host extensions,
+// hooks, scanTools, and value matrices that cross every operator, coercion, and common built-in with a spread of
+// values. Deterministic.
 //
-// usage: bun harness/gen-cases.ts <async|tools|matrix> > corpus/<name>.jsonl
+// usage: bun harness/gen-cases.ts <async|tools|extensions|hooks|scan|chains|matrix> > corpus/<name>.jsonl
 const kind = process.argv[2]
 const out: Array<Record<string, unknown>> = []
 const add = (name: string, code: string, extra: Record<string, unknown> = {}) => out.push({ name: `${kind}/${name}`, code, ...extra })
@@ -350,6 +351,33 @@ if (kind === "scan") {
     deepParens: `${"(".repeat(5000)}1${")".repeat(5000)}`,
   }
   for (const [name, code] of Object.entries(programs)) add(name, code, { scanOnly: true })
+}
+
+if (kind === "chains") {
+  // Chains the parser builds in a loop (acorn takes any length) and the walks over them: short ones run, long ones
+  // overflow TS's JS stack and fail with a RangeError the program catches. The lengths stay clear of the thresholds,
+  // which move with JIT warm-up (about 17,000 to 30,000 for `+` and `.b`, 15,000 for TS's tree walks).
+  for (const n of [3000, 45000]) {
+    const plus = "1" + "+1".repeat(n)
+    const member = "x" + ".b".repeat(n)
+    const shapes: Record<string, string> = {
+      top: `try { return ${plus} } catch (e) { return [e.name, e.message] }`,
+      uncaught: `const x = {}; ${member}`,
+      argumentsWalk: `${T}function g() { console.log("body"); return ${plus} + arguments.length } return t(g)`,
+      arrowNoWalk: `${T}const g = () => { console.log("body"); return ${plus} }; return t(g)`,
+      loopWalk: `${T}return t(() => { for (let i = 0; i < 1; i++) { console.log("body"); ${plus} } })`,
+      forOfWalk: `${T}const x = {}; return t(() => { for (const v of [1]) { console.log("body"); ${member} } })`,
+      notAFunction: `${T}const x = { b: {} }; return t(() => x${".b".repeat(Math.min(n, 4000))}.c())`,
+      callChain: `${T}const f = () => f; return t(() => typeof f${"()".repeat(Math.min(n, 3000) * (n > 3000 ? 3 : 1))})`,
+      optional: `${T}const x = {}; return t(() => x${"?.b".repeat(n / 3)})`,
+      assignTarget: `${T}const x = {}; return t(() => { ${member} = 1 })`,
+      logical: `${T}return t(() => 1${"&&1".repeat(n / 3)})`,
+      tagged: `${T}const tag = () => tag; return t(() => typeof tag${"`x`".repeat(n / 5)})`,
+      inCallback: `${T}return t(() => [1].map(() => ${plus}))`,
+      comma: `return (${Array(n).fill("1").join(",")})`,
+    }
+    for (const [name, code] of Object.entries(shapes)) add(`${name} ${n}`, code)
+  }
 }
 
 if (kind === "matrix") {

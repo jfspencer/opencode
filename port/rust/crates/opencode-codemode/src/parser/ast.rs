@@ -697,6 +697,72 @@ pub struct ExportAllDeclaration {
     pub attributes: Vec<ImportAttribute>,
 }
 
+/// Frees a chain the parser builds in a loop (`a + b + c`, `a.b.c()`, `` a`x``y` ``) one link at a time. acorn
+/// takes chains of any length, and freeing one recursively would take a stack frame per link.
+fn unchain(slot: &mut Expr) {
+    if !is_link(slot) {
+        return;
+    }
+    let mut next = std::mem::replace(slot, Expr::This(Span::default()));
+    loop {
+        let spine = match &mut next {
+            Expr::Binary(node) => &mut node.left,
+            Expr::Logical(node) => &mut node.left,
+            Expr::Member(node) => &mut node.object,
+            Expr::Call(node) => &mut node.callee,
+            Expr::TaggedTemplate(node) => &mut node.tag,
+            Expr::Chain(node) => &mut node.expression,
+            _ => break,
+        };
+        let inner = std::mem::replace(spine, Expr::This(Span::default()));
+        // The link drops here with a leaf where its chain was.
+        next = inner;
+    }
+}
+
+fn is_link(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::Binary(_) | Expr::Logical(_) | Expr::Member(_) | Expr::Call(_) | Expr::TaggedTemplate(_) | Expr::Chain(_)
+    )
+}
+
+impl Drop for BinaryExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.left);
+    }
+}
+
+impl Drop for LogicalExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.left);
+    }
+}
+
+impl Drop for MemberExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.object);
+    }
+}
+
+impl Drop for CallExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.callee);
+    }
+}
+
+impl Drop for TaggedTemplateExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.tag);
+    }
+}
+
+impl Drop for ChainExpression {
+    fn drop(&mut self) {
+        unchain(&mut self.expression);
+    }
+}
+
 impl Expr {
     pub fn span(&self) -> Span {
         match self {

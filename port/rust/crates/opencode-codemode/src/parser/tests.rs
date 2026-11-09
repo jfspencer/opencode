@@ -75,13 +75,17 @@ fn deep_nesting_is_an_error_not_a_crash() {
                 // moderate nesting parses, even in a debug build
                 parse(&units(&nested(shape, 40))).unwrap_or_else(|error| panic!("{shape}: {}", error.message));
             }
-            // long chains that the parser builds in a loop, and the drop of the tree they would make
+            // chains the parser builds in a loop parse at any length, as acorn's do, and their trees drop one link
+            // at a time
             for chain in [
                 format!("1{}", "+1".repeat(200_000)),
+                format!("a{}", "&&a".repeat(200_000)),
                 format!("a{}", ".b".repeat(200_000)),
                 format!("a{}", "()".repeat(200_000)),
+                format!("a{}", ".b`x`".repeat(100_000)),
+                format!("a{}", "?.b".repeat(100_000)),
             ] {
-                assert_eq!(parse(&units(&chain)).unwrap_err().message, STACK_OVERFLOW_MESSAGE);
+                drop(parse(&units(&chain)).unwrap());
             }
             parse(&units(&format!("1{}", "+1".repeat(2_000)))).unwrap();
         })

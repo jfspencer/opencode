@@ -189,11 +189,9 @@ impl<'a> Parser<'a> {
 
     /// Parse binary operators with the operator precedence parsing algorithm.
     fn parse_expr_op(&mut self, mut left: Expr, left_start: Start, min_prec: i32, for_init: ForInit) -> R<Expr> {
-        // acorn recurses for each operator here; the loop builds the same left-nested tree.
-        let mut links = 0;
+        // acorn recurses for each operator here, as a tail call (JavaScriptCore's are proper), so a chain of any
+        // length parses; the loop builds the same left-nested tree.
         loop {
-            links += 1;
-            self.check_chain(links)?;
             let Some(mut prec) = self.ty.binop() else { return Ok(left) };
             if for_init.truthy() && self.ty == Tok::In {
                 return Ok(left);
@@ -374,8 +372,6 @@ impl<'a> Parser<'a> {
             _ => false,
         };
         let mut optional_chained = false;
-
-        let mut links = 0;
         loop {
             match self.parse_subscript(base, start, no_calls, maybe_async_arrow, optional_chained, for_init)? {
                 Subscript::New(element) => {
@@ -388,8 +384,6 @@ impl<'a> Parser<'a> {
                         optional_chained = true;
                     }
                     base = element;
-                    links += 1;
-                    self.check_chain(links)?;
                 }
                 Subscript::Same(element) | Subscript::Arrow(element) => {
                     if optional_chained {

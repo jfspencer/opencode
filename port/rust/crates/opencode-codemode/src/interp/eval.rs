@@ -582,10 +582,10 @@ impl Frame {
         }
         // Each iteration gets fresh copies of the loop's `let` bindings, but only closures can tell them apart.
         let per_iteration: Vec<Rc<str>> = if lexical_init.is_some()
-            && (node.init.as_ref().is_some_and(for_init_creates_closure)
-                || node.test.as_ref().is_some_and(expr_creates_closure)
-                || node.update.as_ref().is_some_and(expr_creates_closure)
-                || stmt_creates_closure(&node.body))
+            && (node.init.as_ref().map(for_init_creates_closure).transpose()?.unwrap_or(false)
+                || node.test.as_ref().map(expr_creates_closure).transpose()?.unwrap_or(false)
+                || node.update.as_ref().map(expr_creates_closure).transpose()?.unwrap_or(false)
+                || stmt_creates_closure(&node.body)?)
         {
             self.scopes.current().0.borrow().keys().cloned().collect()
         } else {
@@ -694,8 +694,12 @@ impl Frame {
             ForHead::Variable(_) => None,
         };
         // Each iteration gets a fresh binding, but only a closure in the body can tell.
+        let reusable = match &declared {
+            Some(d) if d.lexical && matches!(d.pattern, Pat::Identifier(_)) => !stmt_creates_closure(&node.body)?,
+            _ => false,
+        };
         let reused = match &declared {
-            Some(d) if d.lexical && matches!(d.pattern, Pat::Identifier(_)) && !stmt_creates_closure(&node.body) => {
+            Some(d) if reusable => {
                 let Pat::Identifier(id) = d.pattern else { unreachable!() };
                 let scope = Scope::with(id.name.clone(), Binding { mutable: d.mutable, value: Value::Undefined, initialized: false });
                 self.scopes.push(scope.clone());
@@ -1235,20 +1239,27 @@ pub enum Reference {
 }
 
 // Whether evaluating a node can create a function, which could capture a loop's per-iteration bindings.
-pub fn expr_creates_closure(node: &Expr) -> bool {
-    crate::interp::walk::expr_has(node, &|expr| matches!(expr, Expr::Function(_)), &|stmt| matches!(stmt, Stmt::Function(_)), false)
+pub fn expr_creates_closure(node: &Expr) -> R<bool> {
+    crate::interp::walk::expr_has_closure(node)
 }
 
-pub fn stmt_creates_closure(node: &Stmt) -> bool {
-    crate::interp::walk::stmt_has(node, &|expr| matches!(expr, Expr::Function(_)), &|stmt| matches!(stmt, Stmt::Function(_)), false)
+pub fn stmt_creates_closure(node: &Stmt) -> R<bool> {
+    crate::interp::walk::stmt_has_closure(node)
 }
 
-fn for_init_creates_closure(init: &ForInit) -> bool {
+fn for_init_creates_closure(init: &ForInit) -> R<bool> {
     match init {
         ForInit::Expr(expr) => expr_creates_closure(expr),
-        ForInit::Variable(decl) => decl.declarations.iter().any(|d| {
-            d.init.as_ref().is_some_and(expr_creates_closure) || crate::interp::walk::pat_has_closure(&d.id)
-        }),
+        ForInit::Variable(decl) => {
+            for d in &decl.declarations {
+                if d.init.as_ref().map(expr_creates_closure).transpose()?.unwrap_or(false)
+                    || crate::interp::walk::pat_has_closure(&d.id)?
+                {
+                    return Ok(true);
+                }
+            }
+            Ok(false)
+        }
     }
 }
 
@@ -1267,7 +1278,8 @@ pub fn invoke_function(ctx: &Ctx, callee: &Obj, this: Value, args: Vec<Value>, s
     // `this` and `arguments` are scope bindings so arrows resolve them lexically.
     if !program.arrow {
         param_scope.set_binding(Rc::from("this"), Binding { mutable: false, value: this, initialized: true });
-        if crate::interp::walk::uses_arguments(&node) {
+        // An overflow here reaches the program as the host's RangeError (TS throws it unlocated).
+        if ctx.uses_arguments(&node)? {
             let arguments = ctx.new_arguments(&args);
             param_scope.set_binding(Rc::from("arguments"), Binding { mutable: true, value: Value::Obj(arguments), initialized: true });
         }

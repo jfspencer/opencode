@@ -28,7 +28,7 @@ type ToolSpec = {
   timing?: "sync" | "yield"
 }
 
-// Host globals described as data (harness/README.md): each builds a host function or object.
+// Host globals described as data (harness/README.md, "Corpus format"): each builds a host function or object.
 type GlobalSpec =
   | { kind: "echo"; async?: boolean }
   | { kind: "args"; async?: boolean }

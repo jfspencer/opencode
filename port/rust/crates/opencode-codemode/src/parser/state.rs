@@ -674,26 +674,6 @@ impl<'a> Parser<'a> {
         Ok(())
     }
 
-    /// The guard for a chain the parser builds in a loop (`a + b + c`, `a.b.c()`): its `links` nested nodes cost
-    /// no parser stack, but dropping (or walking) the tree recurses once per link.
-    pub(super) fn check_chain(&mut self, links: usize) -> R<()> {
-        // Stack per link of a recursive walk such as the tree's drop glue, generously.
-        const LINK_COST: usize = if cfg!(debug_assertions) { 192 } else { 64 };
-        if !links.is_multiple_of(64) {
-            return Ok(());
-        }
-        let used = self.stack_base.saturating_sub(stack_address());
-        if used + links * LINK_COST > self.stack_limit {
-            let loc = self.line_info(self.start);
-            return Err(Fail::Syntax(Box::new(SyntaxError {
-                message: STACK_OVERFLOW_MESSAGE.to_string(),
-                pos: self.start as u32,
-                loc,
-            })));
-        }
-        Ok(())
-    }
-
     pub(super) fn cur_position(&self) -> Position {
         Position { line: self.cur_line, column: (self.pos - self.line_start) as u32 }
     }

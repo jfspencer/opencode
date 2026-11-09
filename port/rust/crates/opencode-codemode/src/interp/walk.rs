@@ -1,7 +1,9 @@
 //! Generic searches over the syntax tree, visiting every child node as the TS interpreter's `Object.values` walks
 //! do (property keys, member names, and labels included).
 
+use crate::interp::R;
 use crate::parser::ast::*;
+use std::cell::Cell;
 
 /// What a search does at one node.
 pub enum Visit<'a> {
@@ -15,11 +17,45 @@ pub enum Step {
     Descend,
 }
 
+/// How deep TS's recursive walks reach before JavaScriptCore runs out of stack, in nodes (about 15,000; it moves
+/// with JIT warm-up). A deeper walk fails as TS's does, with a RangeError the program can catch.
+pub const MAX_WALK_DEPTH: usize = 15_000;
+
 pub struct Search<'f> {
     pub at: &'f dyn Fn(Visit<'_>) -> Step,
+    depth: Cell<usize>,
+    overflowed: Cell<bool>,
 }
 
-impl Search<'_> {
+impl<'f> Search<'f> {
+    pub fn new(at: &'f dyn Fn(Visit<'_>) -> Step) -> Search<'f> {
+        Search { at, depth: Cell::new(0), overflowed: Cell::new(false) }
+    }
+
+    /// The search's answer, or the overflow TS's walk would hit.
+    pub fn finish(&self, found: bool) -> R<bool> {
+        if self.overflowed.get() {
+            return Err(crate::interp::runner::host_stack_overflow());
+        }
+        Ok(found)
+    }
+
+    /// One level deeper; an overflow ends the search at once (reported by `finish`).
+    fn nested(&self, visit: impl FnOnce() -> bool) -> bool {
+        if self.overflowed.get() {
+            return true;
+        }
+        let depth = self.depth.get() + 1;
+        if depth > MAX_WALK_DEPTH {
+            self.overflowed.set(true);
+            return true;
+        }
+        self.depth.set(depth);
+        let found = stacker::maybe_grow(64 * 1024, 1024 * 1024, visit);
+        self.depth.set(depth - 1);
+        found
+    }
+
     fn ident(&self, id: &Ident) -> bool {
         matches!((self.at)(Visit::Ident(&id.name)), Step::Found)
     }
@@ -63,6 +99,10 @@ impl Search<'_> {
     }
 
     pub fn expr(&self, node: &Expr) -> bool {
+        self.nested(|| self.expr_inner(node))
+    }
+
+    fn expr_inner(&self, node: &Expr) -> bool {
         match node {
             Expr::Identifier(id) => self.ident(id),
             Expr::PrivateIdentifier(_) | Expr::Literal(_) | Expr::This(_) | Expr::Super(_) => false,
@@ -94,6 +134,10 @@ impl Search<'_> {
     }
 
     pub fn pat(&self, node: &Pat) -> bool {
+        self.nested(|| self.pat_inner(node))
+    }
+
+    fn pat_inner(&self, node: &Pat) -> bool {
         match node {
             Pat::Identifier(id) => self.ident(id),
             Pat::Member(member) => self.expr(&member.object) || self.expr(&member.property),
@@ -119,6 +163,10 @@ impl Search<'_> {
     }
 
     pub fn stmt(&self, node: &Stmt) -> bool {
+        self.nested(|| self.stmt_inner(node))
+    }
+
+    fn stmt_inner(&self, node: &Stmt) -> bool {
         match node {
             Stmt::Expression(node) => self.expr(&node.expression),
             Stmt::Block(node) => node.body.iter().any(|s| self.stmt(s)),
@@ -191,20 +239,26 @@ fn closure_step(visit: Visit<'_>) -> Step {
     }
 }
 
-pub fn expr_has(node: &Expr, _: &dyn Fn(&Expr) -> bool, _: &dyn Fn(&Stmt) -> bool, _: bool) -> bool {
-    Search { at: &closure_step }.expr(node)
+/// Whether evaluating an expression can create a function.
+pub fn expr_has_closure(node: &Expr) -> R<bool> {
+    let search = Search::new(&closure_step);
+    search.finish(search.expr(node))
 }
 
-pub fn stmt_has(node: &Stmt, _: &dyn Fn(&Expr) -> bool, _: &dyn Fn(&Stmt) -> bool, _: bool) -> bool {
-    Search { at: &closure_step }.stmt(node)
+/// Whether evaluating a statement can create a function.
+pub fn stmt_has_closure(node: &Stmt) -> R<bool> {
+    let search = Search::new(&closure_step);
+    search.finish(search.stmt(node))
 }
 
-pub fn pat_has_closure(node: &Pat) -> bool {
-    Search { at: &closure_step }.pat(node)
+/// Whether binding a pattern can create a function.
+pub fn pat_has_closure(node: &Pat) -> R<bool> {
+    let search = Search::new(&closure_step);
+    search.finish(search.pat(node))
 }
 
 /// Whether a function's parameters or body read `arguments`, looking through arrows but not nested functions.
-pub fn uses_arguments(function: &Function) -> bool {
+pub fn uses_arguments(function: &Function) -> R<bool> {
     let step = |visit: Visit<'_>| match visit {
         Visit::Ident(name) => {
             if name == "arguments" {
@@ -221,10 +275,11 @@ pub fn uses_arguments(function: &Function) -> bool {
             }
         }
     };
-    let search = Search { at: &step };
-    function.params.iter().any(|p| search.pat(p))
+    let search = Search::new(&step);
+    let found = function.params.iter().any(|p| search.pat(p))
         || match &function.body {
             FunctionBody::Block(block) => block.body.iter().any(|s| search.stmt(s)),
             FunctionBody::Expr(expr) => search.expr(expr),
-        }
+        };
+    search.finish(found)
 }

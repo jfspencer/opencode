@@ -86,8 +86,8 @@ impl Runtime {
             .collect()
     }
 
-    /// Runs one program. The future is single-threaded (`!Send`): drive it on a current-thread runtime (inside a
-    /// `LocalSet`, or `block_on`), or use `execute_on_thread`.
+    /// Runs one program. The future is single-threaded (`!Send`): await it inside a `tokio::task::LocalSet`
+    /// (`spawn_local`) or a `block_on` (README.md, "Gluing it to the execute tool"). Dropping it cancels the run.
     pub async fn execute(&self, code: &str, options: ExecuteOptions) -> Execution {
         execute(self.prepared.clone(), code, options).await
     }
@@ -247,6 +247,17 @@ pub(crate) fn drop_program<T>(program: T) {
     stacker::grow(4 * PARSER_STACK, move || drop(program));
 }
 
+/// Frees its value as `drop_program` does, also when the execution holding it is dropped early.
+struct OnGrownStack<T>(Option<T>);
+
+impl<T> Drop for OnGrownStack<T> {
+    fn drop(&mut self) {
+        if let Some(value) = self.0.take() {
+            drop_program(value);
+        }
+    }
+}
+
 /// acorn's parse plus the export check (parseProgram).
 pub fn parse_program(code: &str) -> Result<crate::parser::ast::Program, Diagnostic> {
     let units: Vec<u16> = code.encode_utf16().collect();
@@ -375,9 +386,9 @@ pub async fn execute(prepared: Rc<Prepared>, code: &str, options: ExecuteOptions
     let result = match parse_program(code) {
         Err(diagnostic) => CodeResult::failure(diagnostic),
         Ok(program) => {
-            let program = Rc::new(program);
-            let outcome = run_program(prepared, program.clone(), &options).await;
-            drop_program(program);
+            let program = OnGrownStack(Some(Rc::new(program)));
+            let outcome = run_program(prepared, program.0.clone().unwrap(), &options).await;
+            drop(program);
             match outcome {
                 None => return Execution::Interrupted,
                 Some(result) => result,
@@ -412,6 +423,17 @@ async fn run_program(prepared: Rc<Prepared>, program: Rc<crate::parser::ast::Pro
         globals.extend(crate::extensions::extension_globals(ctx, &extensions, hooks.extension_start, hooks.extension_end, ids));
         globals
     });
+    // Breaks the run's object cycles however it ends, including when the caller drops the execution early: its host
+    // work is dropped too, so hooks see the calls in flight end as interrupted. What it frees can hold deep syntax
+    // trees (function bodies), so it runs on the parser's stack size.
+    struct Disposal(crate::interp::Ctx);
+    impl Drop for Disposal {
+        fn drop(&mut self) {
+            let ctx = &self.0;
+            stacker::grow(4 * PARSER_STACK, || ctx.dispose());
+        }
+    }
+    let _disposal = Disposal(ctx.clone());
     let main = {
         let (ctx, program) = (ctx.clone(), program.clone());
         async move {
@@ -492,6 +514,5 @@ async fn run_program(prepared: Rc<Prepared>, program: Rc<crate::parser::ast::Pro
             }
         }
     };
-    ctx.dispose();
     result
 }

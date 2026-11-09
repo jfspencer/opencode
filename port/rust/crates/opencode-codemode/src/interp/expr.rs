@@ -62,22 +62,35 @@ fn primitive_operator(operator: &str) -> bool {
 }
 
 // Native engines name the callee (`search(...).catch is not a function`), including call chains.
+// The chain is read from the outside in, without recursing.
 pub fn callee_description(node: Option<&Expr>) -> Option<String> {
-    match node? {
-        Expr::Identifier(id) => Some(id.name.to_string()),
-        Expr::Call(call) => callee_description(Some(&call.callee)).map(|target| format!("{target}(...)")),
-        Expr::Member(member) => {
-            let key = match (&member.property, member.computed) {
-                (Expr::Identifier(id), false) => id.name.to_string(),
-                (Expr::Literal(lit), _) => match &lit.value {
-                    LitValue::String(text) => text.to_rust_lossy(),
+    let mut suffixes: Vec<String> = Vec::new();
+    let mut node = node?;
+    loop {
+        match node {
+            Expr::Identifier(id) => {
+                let mut out = id.name.to_string();
+                suffixes.iter().rev().for_each(|suffix| out.push_str(suffix));
+                return Some(out);
+            }
+            Expr::Call(call) => {
+                suffixes.push("(...)".into());
+                node = &call.callee;
+            }
+            Expr::Member(member) => {
+                let key = match (&member.property, member.computed) {
+                    (Expr::Identifier(id), false) => id.name.to_string(),
+                    (Expr::Literal(lit), _) => match &lit.value {
+                        LitValue::String(text) => text.to_rust_lossy(),
+                        _ => return None,
+                    },
                     _ => return None,
-                },
-                _ => return None,
-            };
-            callee_description(Some(&member.object)).map(|object| format!("{object}.{key}"))
+                };
+                suffixes.push(format!(".{key}"));
+                node = &member.object;
+            }
+            _ => return None,
         }
-        _ => None,
     }
 }
 
@@ -177,10 +190,12 @@ impl Frame {
     pub fn eval_opt<'a>(&'a self, node: &'a Expr) -> LFut<'a, R<Option<Value>>> {
         let cost = match node {
             Expr::Identifier(_) | Expr::Literal(_) | Expr::This(_) | Expr::Function(_) => 0,
-            Expr::Binary(_) => 2,
-            Expr::Logical(_) => 4,
-            Expr::Call(_) | Expr::New(_) | Expr::TaggedTemplate(_) => 7,
-            _ => 4,
+            Expr::Binary(_) | Expr::Member(_) => 6,
+            Expr::Logical(_) => 12,
+            Expr::Conditional(_) => 17,
+            Expr::Call(_) | Expr::New(_) => 20,
+            Expr::TaggedTemplate(_) => 25,
+            _ => 12,
         };
         let work: LFut<'a, R<Option<Value>>> = Box::pin(async move {
             match node {

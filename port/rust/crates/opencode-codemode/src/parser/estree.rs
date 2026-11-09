@@ -17,24 +17,31 @@ enum J<'a> {
     Obj(Vec<(&'static str, J<'a>)>),
 }
 
+/// The stack the recursive conversion gets: a chain the parser builds in a loop can be any length.
+const WRITER_STACK: usize = 1 << 30;
+
 /// The JSON line for a parse result: the Program, or `{"error": {message, pos, loc}}`.
 pub fn result_to_json(result: &Result<Program, SyntaxError>) -> String {
-    let value = match result {
-        Ok(program) => program_json(program),
-        Err(error) => J::Obj(vec![(
-            "error",
-            J::Obj(vec![("message", J::Str(&error.message)), ("pos", J::Int(error.pos)), ("loc", position(error.loc))]),
-        )]),
-    };
-    let mut out = String::new();
-    write(&value, &mut out);
-    out
+    stacker::grow(WRITER_STACK, || {
+        let value = match result {
+            Ok(program) => program_json(program),
+            Err(error) => J::Obj(vec![(
+                "error",
+                J::Obj(vec![("message", J::Str(&error.message)), ("pos", J::Int(error.pos)), ("loc", position(error.loc))]),
+            )]),
+        };
+        let mut out = String::new();
+        write(&value, &mut out);
+        out
+    })
 }
 
 pub fn program_to_json(program: &Program) -> String {
-    let mut out = String::new();
-    write(&program_json(program), &mut out);
-    out
+    stacker::grow(WRITER_STACK, || {
+        let mut out = String::new();
+        write(&program_json(program), &mut out);
+        out
+    })
 }
 
 fn write(value: &J, out: &mut String) {

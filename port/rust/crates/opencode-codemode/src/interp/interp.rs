@@ -74,6 +74,8 @@ pub struct Interp {
     pub promise_like: RefCell<Option<Obj>>,
     /// The program's result once it has crossed the boundary.
     pub main_result: RefCell<Option<crate::json::Json>>,
+    /// Whether each function (by its node) reads `arguments`, found once as TS memoizes it.
+    arguments_use: RefCell<HashMap<usize, bool>>,
 }
 
 fn raw_object(registry: &Registry, proto: Option<Obj>, kind: Kind) -> Obj {
@@ -164,6 +166,7 @@ impl Interp {
             coercions: Default::default(),
             promise_like: Default::default(),
             main_result: Default::default(),
+            arguments_use: Default::default(),
         });
         // Program code has no receiver: top-level `this` is undefined, as in a module.
         ctx.global_scope.set_binding(Rc::from("this"), Binding { mutable: false, value: Value::Undefined, initialized: true });
@@ -174,6 +177,17 @@ impl Interp {
             ctx.global_scope.set_binding(name, Binding { mutable: false, value, initialized: true });
         }
         ctx
+    }
+
+    /// Whether a function's parameters or body read `arguments` (memoized; a walk that overflows is retried, as in TS).
+    pub fn uses_arguments(&self, node: &Rc<crate::parser::ast::Function>) -> crate::interp::R<bool> {
+        let key = Rc::as_ptr(node) as usize;
+        if let Some(found) = self.arguments_use.borrow().get(&key) {
+            return Ok(*found);
+        }
+        let found = crate::interp::walk::uses_arguments(node)?;
+        self.arguments_use.borrow_mut().insert(key, found);
+        Ok(found)
     }
 
     /// Breaks the run's object cycles so its memory is freed.

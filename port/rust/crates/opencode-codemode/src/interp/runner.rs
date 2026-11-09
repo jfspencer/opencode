@@ -723,9 +723,10 @@ pub fn host_stack_overflow() -> Fail {
 }
 
 /// How much host stack nested expressions may use within one activation, in the units of `eval_cost`. TS evaluates
-/// nested expressions recursively on the JS stack, which JavaScriptCore exhausts at about 23,000 nested `+`, 11,000
-/// `&&`, or 6,500 chained calls; the costs are those proportions.
-pub const MAX_EVAL_COST: usize = 46_000;
+/// nested expressions recursively on the JS stack, which JavaScriptCore exhausts at about 24,000 nested `+` or `.b`
+/// (17,000 to 30,000 as the JIT warms up), 12,000 `&&`, 8,500 nested `?:`, 7,250 chained calls, or 5,800 chained
+/// tagged templates; the costs (`expr.rs`) are those proportions.
+pub const MAX_EVAL_COST: usize = 145_000;
 
 /// One nested expression's evaluation, charged `cost` units of host stack while it is polled.
 pub struct Nested<F> {
