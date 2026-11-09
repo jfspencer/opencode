@@ -19,6 +19,7 @@
 //! successful result with [`output::truncate`].
 
 pub mod output;
+mod question;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -193,7 +194,10 @@ const DEFINITIONS: &[(&str, &str)] =
 fn builtin() -> Vec<Arc<dyn Tool>> {
     DEFINITIONS
         .iter()
-        .map(|(name, text)| Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>)
+        .map(|(name, text)| match *name {
+            "question" => Arc::new(question::Question { definition: definition(name, text) }) as Arc<dyn Tool>,
+            _ => Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>,
+        })
         .collect()
 }
 

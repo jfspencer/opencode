@@ -4,8 +4,9 @@
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
 //! what they registered, in the order the TS server's built-in plugins do. What they register (config, agents,
 //! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
-//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) announces `location.shutdown`;
-//! TODO(port): it also closes the location's permission requests, forms and RPC clients.
+//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) rejects its pending permission
+//! requests and cancels its pending forms, then announces `location.shutdown`. TODO(port): it also closes the
+//! location's RPC clients (between the forms and the announcement).
 //! TODO(port): the idle sweep (location-activity.ts: a location unused for an hour, or its configured
 //! `experimental.location_idle_timeout`, is evicted); the location watcher (filesystem/location-watcher.ts: the
 //! repository's HEAD is watched, its changes announced as `filesystem.changed` and the VCS branch re-read). A
@@ -38,6 +39,8 @@ pub struct Location {
     pub search: crate::fs::Search,
     /// The location's pending permission requests (`Permission.Service`).
     pub permission: crate::permission::Service,
+    /// The location's forms (`Form.Service`).
+    pub forms: crate::form::Service,
 }
 
 #[derive(Debug, Clone)]
@@ -141,8 +144,9 @@ impl Locations {
     pub fn invalidate(&self, app: &App, reference: &LocationRef) {
         let removed = self.booted.lock().unwrap().shift_remove(&canonical(reference));
         if let Some(location) = removed {
-            // TODO(port): the order of the services' finalizers against `location.shutdown`.
+            // `LocationLifecycle.shutdown`: permissions, then forms, then the announcement.
             location.permission.close(&app.bus, &location.reference());
+            location.forms.close(&app.bus, &location.reference());
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -197,6 +201,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         root,
         version_control,
         permission: Default::default(),
+        forms: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();
