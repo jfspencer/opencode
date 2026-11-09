@@ -275,7 +275,7 @@ pub async fn session_export(globals: &Globals, input: &Input) -> Result {
             let mut query = Obj::new();
             query.set("sanitize", Json::Bool(sanitize));
             let exported = client.call("experimental.session.export", &[("sessionID", &id)], Some(query.done()), None).await?;
-            stdout(&format!("{}\n", pretty(&exported)));
+            stdout(&format!("{}\n", pretty(json::get(&exported, "data").unwrap_or(&Json::Null))));
             Ok(0)
         })
         .await,

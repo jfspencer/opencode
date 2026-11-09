@@ -54,7 +54,6 @@ impl Private {
 pub struct Resolved {
     pub endpoint: Endpoint,
     /// The background service (it can be reconnected to or restarted).
-    #[allow(dead_code)] // `run`, next
     pub service: bool,
     pub private: Option<Private>,
 }

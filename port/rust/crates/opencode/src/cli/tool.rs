@@ -251,7 +251,7 @@ pub fn inline(name: &str, state: &Json, directory: &str) -> Inline {
                     let marker = match get_str(todo, "status") {
                         Some("completed") => "[✓]",
                         Some("in_progress") => "[•]",
-                        Some("cancelled") => "[✗]",
+                        Some("cancelled") => "[-]",
                         _ => "[ ]",
                     };
                     Some(format!("{marker} {content}"))

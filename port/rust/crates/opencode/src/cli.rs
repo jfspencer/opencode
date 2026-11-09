@@ -16,9 +16,12 @@ mod help;
 mod out;
 mod parse;
 mod paths;
+mod run;
 mod serve;
 mod service;
 mod spec;
+mod stats;
+mod tool;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -35,7 +38,6 @@ pub fn stdin_tty() -> bool {
 }
 
 /// `process.stdout.isTTY`.
-#[allow(dead_code)] // `run`, next
 pub fn stdout_tty() -> bool {
     // SAFETY: as above.
     unsafe { libc::isatty(1) == 1 }
@@ -171,6 +173,8 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
     match names.as_slice() {
         [] => default(input).await,
         ["serve"] => serve::run(input).await,
+        ["run"] => run::command(globals, input).await,
+        ["stats"] => stats::command(globals, input).await,
         ["service", name] => service::command(name, input).await,
         ["models"] => commands::models(globals).await,
         ["reload"] => commands::reload(globals).await,

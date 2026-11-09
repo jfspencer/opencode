@@ -65,7 +65,6 @@ impl ClientError {
         }
     }
 
-    #[allow(dead_code)] // `run`, next
     pub fn tag(&self) -> Option<&str> {
         match self {
             ClientError::Declared { body, .. } => crate::json::get_str(body, "_tag"),
@@ -265,7 +264,6 @@ impl Client {
     }
 
     /// `event.subscribe`: the server-sent event stream.
-    #[allow(dead_code)] // `run`, next
     pub async fn events(&self) -> Result<Events, ClientError> {
         let url = format!("{}/api/event", self.endpoint.url.trim_end_matches('/'));
         let mut headers = self.endpoint.headers();
@@ -291,14 +289,12 @@ fn json(answer: &Answer) -> Result<Json, ClientError> {
 }
 
 /// An open event stream (`sse()`): one JSON value per `data` block.
-#[allow(dead_code)] // `run`, next
 pub struct Events {
     response: http::Response,
     buffer: String,
     done: bool,
 }
 
-#[allow(dead_code)] // `run`, next
 impl Events {
     /// The next event; `None` when the stream ends.
     pub async fn next(&mut self) -> Option<Result<Json, ClientError>> {
