@@ -144,6 +144,17 @@
     },
     {
       "body": {
+        "_tag": "FileNotFoundError",
+        "message": "Directory not found: README.md/x",
+        "path": "README.md/x"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/fs/list?path=README.md/x"
+    },
+    {
+      "body": {
         "data": [
           {
             "path": "../.hidden/",

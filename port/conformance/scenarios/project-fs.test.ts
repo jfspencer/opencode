@@ -45,6 +45,7 @@ scenario("read errors and confinement", { files }, async (ctx) => {
   symlinkSync(path.join(path.dirname(ctx.project), path.basename(ctx.project) + "-outside", "secret.txt"), path.join(ctx.project, "escape.txt"))
   symlinkSync(path.join(ctx.project, "README.md"), path.join(ctx.project, "inside-link.md"))
   await ctx.http("GET", "/api/fs/read/missing.txt")
+  await ctx.http("GET", "/api/fs/read/README.md/x")
   await ctx.http("GET", "/api/fs/read/src")
   await ctx.http("GET", "/api/fs/read/src/../../outside.txt")
   await ctx.http("GET", "/api/fs/read/..%2F..%2Fetc%2Fhostname")
@@ -91,6 +92,7 @@ scenario("list directories", { files: { ...files, "sub/inner/file.txt": "x\n" } 
   await ctx.http("GET", `/api/fs/list?path=${encodeURIComponent(path.join(ctx.project, "docs"))}`)
   await ctx.http("GET", "/api/fs/list?path=missing")
   await ctx.http("GET", "/api/fs/list?path=README.md")
+  await ctx.http("GET", "/api/fs/list?path=README.md/x")
   // From a nested location, a parent directory can be listed; entries stay relative to the location.
   await ctx.http("GET", "/api/fs/list?path=..", undefined, at(path.join(ctx.project, "sub")))
   await ctx.http("GET", "/api/fs/list?path=inner", undefined, at(path.join(ctx.project, "sub")))
@@ -123,6 +125,8 @@ scenario("find from the home directory", {}, async (ctx) => {
     // The query is unique to this scenario's files: HOME is shared by every scenario in the process.
     await ctx.http("GET", "/api/fs/find?query=zqxjhomeprobe", undefined, at(home))
     await ctx.http("GET", "/api/location", undefined, at(home))
+    // The home location boots too; wait for the last of its boot events, which can outlast the recording.
+    await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === home)
   } finally {
     rmSync(path.join(home, "zqxj-home-probe"), { recursive: true, force: true })
   }
@@ -148,6 +152,7 @@ scenario("write files", { files }, async (ctx) => {
 scenario("watch and unwatch files", { files }, async (ctx) => {
   await ctx.http("POST", "/api/experimental/fs/watch", { path: "README.md" })
   await ctx.http("POST", "/api/experimental/fs/watch", { path: "missing.txt" })
+  await ctx.http("POST", "/api/experimental/fs/watch", { path: "README.md/x" })
   await ctx.http("POST", "/api/experimental/fs/watch", { path: "../outside.txt" })
   await ctx.http("DELETE", "/api/experimental/fs/watch", { path: "README.md" })
   await ctx.http("DELETE", "/api/experimental/fs/watch", { path: "never-watched.txt" })

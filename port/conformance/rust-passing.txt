@@ -107,6 +107,7 @@ scenarios/permissions.test.ts › pending permission request lifecycle
 scenarios/permissions.test.ts › rejecting a request rejects the other pending requests of its session
 scenarios/permissions.test.ts › rule patterns match actions and resources
 scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
+scenarios/project-agents.test.ts › agent and provider lookups on a location's first request
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
 scenarios/project-agents.test.ts › custom agents from config

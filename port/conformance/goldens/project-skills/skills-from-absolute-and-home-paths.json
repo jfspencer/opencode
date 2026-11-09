@@ -53,6 +53,53 @@
       "method": "GET",
       "status": 200,
       "url": "/api/skill"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "content": {
+              "<blob>": "13b35761a8429e2a188b950899f255eb182e6b153fb19591e88ea5979347e4c3"
+            },
+            "description": "Use this skill for any question about OpenCode itself, including how OpenCode works, using or configuring it, migrating from V1 to V2, troubleshooting it, developing plugins or integrations, using the OpenCode SDK, clients, server, or API, and contributing to the OpenCode codebase. Also use it for OpenCode agents, commands, skills, tools, permissions, MCP servers, providers, models, themes, keybinds, formatters, the CLI, TUI, desktop app, and web app.",
+            "id": "opencode",
+            "name": "OpenCode",
+            "path": "skill://opencode/SKILL.md"
+          },
+          {
+            "content": {
+              "<blob>": "f3d1880ecdbf49502e639125167c46a854d5693779b0177d0d3b90b7045f73a4"
+            },
+            "description": "Use when the user wants to report an opencode issue or bug. Collect standard diagnostics, add user-specific reproduction context, and publish the issue with GitHub CLI.",
+            "id": "report",
+            "name": "Report",
+            "path": "skill://report/SKILL.md"
+          },
+          {
+            "content": {
+              "<blob>": "98093a75ae23181a0c0d8fc61d1c99dc7b8843136d071cccd7df0d14810e6b0e"
+            },
+            "description": "Use the in-app browser: open and read pages, click and fill forms, take screenshots, check console and network logs, and profile performance and memory. Load it before your first browser tool call.",
+            "id": "browser",
+            "name": "Browser",
+            "path": "skill://browser/SKILL.md"
+          },
+          {
+            "content": "\nOne.\n",
+            "description": "Absolute skill.",
+            "id": "one",
+            "name": "one",
+            "path": "<project>/abs/one/SKILL.md"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/skill"
     }
   ],
   "provider": {},

@@ -1,0 +1,115 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 00:23:00 -0700
+Subject: [PATCH] D219 server: a path through a file is not found
+
+Upstream: GET /api/fs/read/README.md/x, GET /api/fs/list?path=README.md/x and POST /api/experimental/fs/watch
+{"path":"README.md/x"} (a path that runs through a file) answer 500 with an empty body. The lookup fails with
+ENOTDIR, which the platform reports as BadResource, and FileSystem.read/list map only NotFound to their
+NotFoundError; every other reason dies.
+Fixed: a path through a file names nothing, like a missing path (upstream treats ENOENT and ENOTDIR alike
+elsewhere: flock, fs-util, environment/local): 404 FileNotFoundError, "File not found: README.md/x" for read
+and watch, "Directory not found: README.md/x" for list.
+Scenarios: project-fs.test.ts "read errors and confinement", "list directories", "watch and unwatch files"
+(new requests)
+Upstream tests: packages/core/test/location-filesystem.test.ts adds a test
+
+diff --git a/packages/core/src/filesystem.ts b/packages/core/src/filesystem.ts
+index 98aec9400f..9c6813d74b 100644
+--- a/packages/core/src/filesystem.ts
++++ b/packages/core/src/filesystem.ts
+@@ -134,14 +134,7 @@ const baseLayer = Layer.effect(
+       if (input.includes("\u0000")) return yield* Effect.fail(new NotFoundError({ path: input }))
+       const absolute = path.resolve(location.directory, input)
+       if (!FSUtil.contains(location.directory, absolute)) return yield* Effect.fail(new NotFoundError({ path: input }))
+-      const real = yield* fs.realPath(absolute).pipe(
+-        Effect.catchReason(
+-          "PlatformError",
+-          "NotFound",
+-          () => Effect.fail(new NotFoundError({ path: input })),
+-          (_, error) => Effect.die(error),
+-        ),
+-      )
++      const real = yield* fs.realPath(absolute).pipe(missing(() => new NotFoundError({ path: input })))
+       if (!FSUtil.contains(root, real)) return yield* Effect.fail(new NotFoundError({ path: input }))
+       return { absolute, real, directory: location.directory }
+     })
+@@ -149,14 +142,7 @@ const baseLayer = Layer.effect(
+       find: search.find,
+       read: Effect.fn("FileSystem.read")(function* (input) {
+         const target = yield* resolve(input.path)
+-        const info = yield* fs.stat(target.real).pipe(
+-          Effect.catchReason(
+-            "PlatformError",
+-            "NotFound",
+-            () => Effect.fail(new NotFoundError({ path: input.path })),
+-            (_, error) => Effect.die(error),
+-          ),
+-        )
++        const info = yield* fs.stat(target.real).pipe(missing(() => new NotFoundError({ path: input.path })))
+         if (info.type !== "File") return yield* Effect.fail(new NotFoundError({ path: input.path }))
+         return {
+           mime: FSUtil.mimeType(target.real),
+@@ -168,16 +154,9 @@ const baseLayer = Layer.effect(
+       list: Effect.fn("FileSystem.list")(function* (input = {}) {
+         // Navigation can leave the cwd without activating another Location.
+         const directory = path.resolve(location.directory, input.path ?? ".")
+-        const missing = new NotFoundError({ path: RelativePath.make(input.path ?? ".") })
+-        const info = yield* fs.stat(directory).pipe(
+-          Effect.catchReason(
+-            "PlatformError",
+-            "NotFound",
+-            () => Effect.fail(missing),
+-            (_, error) => Effect.die(error),
+-          ),
+-        )
+-        if (info.type !== "Directory") return yield* missing
++        const notFound = new NotFoundError({ path: RelativePath.make(input.path ?? ".") })
++        const info = yield* fs.stat(directory).pipe(missing(() => notFound))
++        if (info.type !== "Directory") return yield* notFound
+         return yield* fs.readDirectoryEntries(directory).pipe(
+           Effect.orDie,
+           Effect.map((items) =>
+@@ -209,6 +188,18 @@ const baseLayer = Layer.effect(
+   }),
+ )
+ 
++// A path that does not exist, or that runs through a file (ENOTDIR, reported as BadResource), names nothing.
++const missing =
++  <E>(error: () => E) =>
++  <A, R>(self: Effect.Effect<A, PlatformError.PlatformError, R>) =>
++    self.pipe(
++      Effect.catchReasons(
++        "PlatformError",
++        { NotFound: () => Effect.fail(error()), BadResource: () => Effect.fail(error()) },
++        (_, cause) => Effect.die(cause),
++      ),
++    )
++
+ export const node = makeLocationNode({
+   service: Service,
+   layer: baseLayer,
+diff --git a/packages/core/test/location-filesystem.test.ts b/packages/core/test/location-filesystem.test.ts
+index f899cc2cf3..0b0ec20bc5 100644
+--- a/packages/core/test/location-filesystem.test.ts
++++ b/packages/core/test/location-filesystem.test.ts
+@@ -184,6 +184,19 @@ describe("FileSystem", () => {
+     ),
+   )
+ 
++  it.live("treats a path through a file as missing", () =>
++    withTmp((directory) =>
++      Effect.gen(function* () {
++        yield* Effect.promise(() => fs.writeFile(path.join(directory, "README.md"), "# Test"))
++        const filesystem = yield* FileSystem.Service
++        const read = yield* Effect.flip(filesystem.read({ path: RelativePath.make("README.md/x") }))
++        expect(read).toBeInstanceOf(FileSystem.NotFoundError)
++        const list = yield* Effect.flip(filesystem.list({ path: RelativePath.make("README.md/x") }))
++        expect(list).toBeInstanceOf(FileSystem.NotFoundError)
++      }).pipe(provide(directory)),
++    ),
++  )
++
+   it.live("canonicalizes local symlinked directories", () =>
+     withTmp((directory) =>
+       Effect.gen(function* () {

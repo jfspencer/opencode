@@ -1,0 +1,506 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "color": "#123456",
+          "description": "Configured build.",
+          "hidden": false,
+          "id": "build",
+          "mode": "primary",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "name": "Build",
+          "permissions": [
+            {
+              "action": "*",
+              "effect": "allow",
+              "resource": "*"
+            },
+            {
+              "action": "read",
+              "effect": "ask",
+              "resource": "*.env"
+            },
+            {
+              "action": "read",
+              "effect": "ask",
+              "resource": "*.env.*"
+            },
+            {
+              "action": "read",
+              "effect": "allow",
+              "resource": "*.env.example"
+            },
+            {
+              "action": "question",
+              "effect": "allow",
+              "resource": "*"
+            },
+            {
+              "action": "experimental_image_generate",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "websearch",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "opencode_list_mcp_resources",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "opencode_read_mcp_resource",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "browser",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "skill",
+              "effect": "deny",
+              "resource": "browser"
+            }
+          ],
+          "request": {
+            "body": {},
+            "headers": {},
+            "settings": {}
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/agent/build"
+    },
+    {
+      "body": {
+        "data": {
+          "description": "General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.",
+          "hidden": false,
+          "id": "general",
+          "mode": "subagent",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "name": "General",
+          "permissions": [
+            {
+              "action": "*",
+              "effect": "allow",
+              "resource": "*"
+            },
+            {
+              "action": "read",
+              "effect": "ask",
+              "resource": "*.env"
+            },
+            {
+              "action": "read",
+              "effect": "ask",
+              "resource": "*.env.*"
+            },
+            {
+              "action": "read",
+              "effect": "allow",
+              "resource": "*.env.example"
+            },
+            {
+              "action": "question",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "subagent",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "experimental_image_generate",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "websearch",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "opencode_list_mcp_resources",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "opencode_read_mcp_resource",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "browser",
+              "effect": "deny",
+              "resource": "*"
+            },
+            {
+              "action": "skill",
+              "effect": "deny",
+              "resource": "browser"
+            }
+          ],
+          "request": {
+            "body": {},
+            "headers": {},
+            "settings": {}
+          }
+        },
+        "location": {
+          "directory": "<project>/sub"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/agent/general"
+    },
+    {
+      "body": {
+        "data": {
+          "activation": "enabled",
+          "id": "openrouter",
+          "name": "OpenRouter",
+          "package": "@opencode/ai/providers/openrouter",
+          "settings": {
+            "baseURL": "https://openrouter.ai/api/v1"
+          }
+        },
+        "location": {
+          "directory": "<project>/other"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/provider/openrouter"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/sub",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>/sub"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/other",
+          "id": "<hash_3>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>/other"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    "other/b.txt": "b\n",
+    "sub/a.txt": "a\n"
+  }
+}
