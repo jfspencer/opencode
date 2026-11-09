@@ -113,6 +113,7 @@ pub mod home;
 pub mod interactivity;
 pub mod keymap;
 pub mod local;
+pub mod model_preference;
 pub mod prompt;
 pub mod session;
 pub mod theme;

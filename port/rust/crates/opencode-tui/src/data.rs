@@ -44,6 +44,7 @@ pub fn object(entries: Vec<(&str, Json)>) -> Json {
 #[derive(Clone, Debug, PartialEq)]
 pub struct AgentInfo {
     pub id: String,
+    pub description: Option<String>,
     pub mode: String,
     pub hidden: bool,
     pub color: Option<String>,
@@ -113,6 +114,8 @@ pub struct Data {
     pub store: Store,
     /// The event stream and its reconnects (`createClientConnection`).
     pub connection: ClientConnection,
+    /// `useEvent()`: the client's event bus.
+    pub event: Emitter,
     pub directory: Signal<Option<String>>,
     pub agents: Memo<Option<Vec<AgentInfo>>>,
     pub models: Memo<Option<Vec<ModelInfo>>>,
@@ -147,6 +150,7 @@ fn agents_of(list: &Json) -> Vec<AgentInfo> {
         .iter()
         .map(|a| AgentInfo {
             id: get_str(a, "id").unwrap_or_default().to_string(),
+            description: get_str(a, "description").map(str::to_string),
             mode: get_str(a, "mode").unwrap_or("primary").to_string(),
             hidden: matches!(get(a, "hidden"), Some(Json::Bool(true))),
             color: get_str(a, "color").map(str::to_string),
@@ -230,7 +234,7 @@ impl Data {
             api: Rc::new(move || api.clone()),
             directory: directory.to_string(),
             initial_message_limit: None,
-            event: emitter,
+            event: emitter.clone(),
             connection: Some(Rc::new(connection.clone())),
             on_error: None,
             omit_tool_file_data: false,
@@ -261,7 +265,7 @@ impl Data {
             )
         };
         let _ = connection.start();
-        Rc::new(Data { client, store, connection, directory, agents, models, providers, configured_model })
+        Rc::new(Data { client, store, connection, event: emitter, directory, agents, models, providers, configured_model })
     }
 
     async fn call(&self, name: &str, input: Json) -> Option<Json> {
