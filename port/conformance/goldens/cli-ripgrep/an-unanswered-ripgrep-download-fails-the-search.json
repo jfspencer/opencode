@@ -1,0 +1,353 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "env",
+      "value": {
+        "PATH": "/usr/bin:/bin"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "List the text files"
+        ],
+        "exit": 0,
+        "stderr": [
+          "\u001b[0m",
+          "> build · deepseek/deepseek-v4.1-flash-1017",
+          "\u001b[0m✗ \u001b[0mGlob \"*.txt\" failed",
+          "\u001b[91m\u001b[1mError: \u001b[0mripgrep execution failed",
+          "> build · deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ],
+        "stdout": [
+          "No ripgrep.",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "List the markdown files"
+        ],
+        "exit": 0,
+        "stderr": [
+          "\u001b[0m",
+          "> build · deepseek/deepseek-v4.1-flash-1017",
+          "\u001b[0m✗ \u001b[0mGlob \"*.md\" failed",
+          "\u001b[91m\u001b[1mError: \u001b[0mripgrep execution failed",
+          "> build · deepseek/deepseek-v4.1-flash-1017",
+          ""
+        ],
+        "stdout": [
+          "Still none.",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/cache/opencode/bin/rg"
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "af46c9e3fce778d6f66db5047516799e28c0572b7326c0e5ea17008827fb8205"
+              },
+              "role": "system"
+            },
+            {
+              "content": "List the markdown files",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "af46c9e3fce778d6f66db5047516799e28c0572b7326c0e5ea17008827fb8205"
+              },
+              "role": "system"
+            },
+            {
+              "content": "List the markdown files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"*.md\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"unknown\",\"message\":\"ripgrep execution failed\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "chat:<ses_2>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "af46c9e3fce778d6f66db5047516799e28c0572b7326c0e5ea17008827fb8205"
+              },
+              "role": "system"
+            },
+            {
+              "content": "List the text files",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_2>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "af46c9e3fce778d6f66db5047516799e28c0572b7326c0e5ea17008827fb8205"
+              },
+              "role": "system"
+            },
+            {
+              "content": "List the text files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"*.txt\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"unknown\",\"message\":\"ripgrep execution failed\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_2>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://github.com/BurntSushi/ripgrep/releases/download/15.1.0/ripgrep-15.1.0-x86_64-unknown-linux-musl.tar.gz"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nList the markdown files\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_2>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nList the text files\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_2>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "a.txt": "a\n"
+  }
+}

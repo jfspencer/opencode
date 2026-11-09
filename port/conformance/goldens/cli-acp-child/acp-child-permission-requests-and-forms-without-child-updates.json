@@ -1,0 +1,944 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{\"elicitation\":{\"form\":{}}},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/new\",\"params\":{\"cwd\":\"<project>\",\"mcpServers\":[]}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Check the notes with a subagent\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"outcome\":{\"outcome\":\"selected\",\"optionId\":\"once\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"action\":\"accept\",\"content\":{\"q0\":\"Keep\"}}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {
+                "configOptions": [
+                  {
+                    "category": "model",
+                    "currentValue": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+                    "id": "model",
+                    "name": "Model",
+                    "options": [
+                      {
+                        "name": "openrouter/DeepSeek V4.1 Flash 1017",
+                        "value": "openrouter/deepseek/deepseek-v4.1-flash-1017"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "thought_level",
+                    "currentValue": "default",
+                    "description": "Available effort levels for this model",
+                    "id": "effort",
+                    "name": "Effort",
+                    "options": [
+                      {
+                        "name": "None",
+                        "value": "none"
+                      },
+                      {
+                        "name": "Low",
+                        "value": "low"
+                      },
+                      {
+                        "name": "High",
+                        "value": "high"
+                      },
+                      {
+                        "name": "Max",
+                        "value": "max"
+                      },
+                      {
+                        "name": "Default",
+                        "value": "default"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "mode",
+                    "currentValue": "build",
+                    "id": "mode",
+                    "name": "Session Mode",
+                    "options": [
+                      {
+                        "description": "The default agent. Executes tools based on configured permissions.",
+                        "name": "Build",
+                        "value": "build"
+                      },
+                      {
+                        "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+                        "name": "Plan",
+                        "value": "plan"
+                      }
+                    ],
+                    "type": "select"
+                  }
+                ],
+                "sessionId": "<ses_1>"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "think",
+                  "locations": [],
+                  "name": "subagent",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "subagent",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "think",
+                  "locations": [],
+                  "rawInput": {
+                    "agent": "general",
+                    "description": "Check notes",
+                    "prompt": "Show notes.txt and ask about it."
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "subagent",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "think",
+                  "locations": [],
+                  "rawInput": {
+                    "agent": "general",
+                    "description": "Check notes",
+                    "prompt": "Show notes.txt and ask about it."
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "subagent",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "execute",
+                  "locations": [
+                    {
+                      "path": "<project>"
+                    }
+                  ],
+                  "name": "shell",
+                  "rawInput": {
+                    "cwd": "<project>"
+                  },
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "Check notes: shell",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "execute",
+                  "locations": [
+                    {
+                      "path": "<project>"
+                    }
+                  ],
+                  "rawInput": {
+                    "command": "cat notes.txt",
+                    "cwd": "<project>"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "Check notes: cat notes.txt",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 0,
+              "jsonrpc": "2.0",
+              "method": "session/request_permission",
+              "params": {
+                "options": [
+                  {
+                    "kind": "allow_once",
+                    "name": "Allow once",
+                    "optionId": "once"
+                  },
+                  {
+                    "kind": "allow_always",
+                    "name": "Always allow",
+                    "optionId": "always"
+                  },
+                  {
+                    "kind": "reject_once",
+                    "name": "Reject",
+                    "optionId": "reject"
+                  }
+                ],
+                "sessionId": "<ses_1>",
+                "toolCall": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "execute",
+                  "locations": [
+                    {
+                      "path": "<project>"
+                    }
+                  ],
+                  "name": "shell",
+                  "rawInput": {
+                    "command": "cat notes.txt",
+                    "cwd": "<project>"
+                  },
+                  "status": "pending",
+                  "title": "cat notes.txt",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "execute",
+                  "locations": [
+                    {
+                      "path": "<project>"
+                    }
+                  ],
+                  "rawInput": {
+                    "command": "cat notes.txt",
+                    "cwd": "<project>"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "Check notes: cat notes.txt",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "content": [
+                    {
+                      "content": {
+                        "text": "keep me\n",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "exit": 0,
+                      "status": "completed",
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "Check notes: question",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Notes",
+                        "options": [
+                          {
+                            "description": "Leave them",
+                            "label": "Keep"
+                          },
+                          {
+                            "description": "Remove them",
+                            "label": "Drop"
+                          }
+                        ],
+                        "question": "Keep the notes?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "Check notes: question",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Check notes: Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Keep the notes?",
+                      "oneOf": [
+                        {
+                          "const": "Keep",
+                          "description": "Leave them",
+                          "title": "Keep"
+                        },
+                        {
+                          "const": "Drop",
+                          "description": "Remove them",
+                          "title": "Drop"
+                        }
+                      ],
+                      "title": "Notes",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Notes (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "<ses_2>:call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "content": [
+                    {
+                      "content": {
+                        "text": "User has answered your questions: \"Keep the notes?\"=\"Keep\". You can now continue with the user's answers in mind.",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [],
+                  "rawOutput": {
+                    "metadata": {
+                      "answers": [
+                        [
+                          "Keep"
+                        ]
+                      ],
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "<ses_2>:call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "_meta": {
+                    "opencode/child-session": {
+                      "depth": 1,
+                      "id": "<ses_2>",
+                      "parentID": "<ses_1>",
+                      "title": "Check notes"
+                    }
+                  },
+                  "content": {
+                    "text": "Kept the notes.",
+                    "type": "text"
+                  },
+                  "messageId": "<msg_1>",
+                  "sessionUpdate": "agent_message_chunk"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "<subagent sessionID=\"<ses_2>\" state=\"completed\">\nKept the notes.\n</subagent>",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [],
+                  "rawOutput": {
+                    "metadata": {
+                      "sessionID": "<ses_2>",
+                      "status": "completed",
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": {
+                    "text": "The subagent is done.",
+                    "type": "text"
+                  },
+                  "messageId": "<msg_2>",
+                  "sessionUpdate": "agent_message_chunk"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 3,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "end_turn",
+                "usage": {
+                  "inputTokens": 200,
+                  "outputTokens": 20,
+                  "totalTokens": 220
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.\n- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Check the notes with a subagent",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "e2cfed2001e0fb80b7bc2fd36e2e0c1471d1b7fba1f40798e2317017e92156cc"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.\n- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "You are a subagent spawned by another session.\nShow notes.txt and ask about it.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "e2cfed2001e0fb80b7bc2fd36e2e0c1471d1b7fba1f40798e2317017e92156cc"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.\n- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "You are a subagent spawned by another session.\nShow notes.txt and ask about it.",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"command\":\"cat notes.txt\"}",
+                    "name": "shell"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "keep me\n",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "e2cfed2001e0fb80b7bc2fd36e2e0c1471d1b7fba1f40798e2317017e92156cc"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.\n- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "You are a subagent spawned by another session.\nShow notes.txt and ask about it.",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"command\":\"cat notes.txt\"}",
+                    "name": "shell"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "keep me\n",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Keep the notes?\",\"header\":\"Notes\",\"options\":[{\"label\":\"Keep\",\"description\":\"Leave them\"},{\"label\":\"Drop\",\"description\":\"Remove them\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "User has answered your questions: \"Keep the notes?\"=\"Keep\". You can now continue with the user's answers in mind.",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "e2cfed2001e0fb80b7bc2fd36e2e0c1471d1b7fba1f40798e2317017e92156cc"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Prefer dedicated tools over shell commands; fall back to the shell when a tool cannot do what you need.\n- Do not chain shell commands with separators like `echo \"====\";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Check the notes with a subagent",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"agent\":\"general\",\"description\":\"Check notes\",\"prompt\":\"Show notes.txt and ask about it.\"}",
+                    "name": "subagent"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<subagent sessionID=\"<ses_2>\" state=\"completed\">\nKept the notes.\n</subagent>",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "e2cfed2001e0fb80b7bc2fd36e2e0c1471d1b7fba1f40798e2317017e92156cc"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nCheck the notes with a subagent\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "notes.txt": "keep me\n"
+  }
+}

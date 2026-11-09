@@ -3,10 +3,12 @@
 use crate::json::{self, Value};
 use crate::{behavior, color, draw, error, highlight, line_info, spans, spec, unit, wrap_mode};
 use opencode_tui_text::{
-    measure_edit_text, EditBuffer, EditEvent, EditorView, LogicalCursor, SelectionOccupancy, SyntaxStyle, TextContext,
+    measure_edit_text, Extmark, ExtmarkOptions, EditBuffer, EditEvent, EditorView, LogicalCursor, SelectionOccupancy, SyntaxStyle, TextContext,
     TextError, VisualCursor, WidthMethod,
 };
+use std::any::Any;
 use std::fmt::Write as _;
+use std::rc::Rc;
 
 pub struct EditState {
     pub ctx: TextContext,
@@ -25,8 +27,32 @@ fn logical(out: &mut String, c: LogicalCursor) {
     write!(out, "[{},{},{}]", c.row, c.col, c.offset).unwrap();
 }
 
+fn mark(out: &mut String, e: &Extmark) {
+    let opt = |v: Option<u32>| v.map_or("null".to_owned(), |n| n.to_string());
+    write!(out, "[{},{},{},{},{},{},{}]", e.id, e.start, e.end, e.virtual_, opt(e.style_id), opt(e.priority), e.type_id).unwrap();
+}
+
+fn marks(out: &mut String, list: Vec<Extmark>) {
+    out.push('[');
+    for (i, e) in list.iter().enumerate() {
+        if i > 0 {
+            out.push(',');
+        }
+        mark(out, e);
+    }
+    out.push(']');
+}
+
 fn null(out: &mut String) {
     out.push_str("null");
+}
+
+fn any_num(out: &mut String, v: Option<Rc<dyn Any>>) {
+    match v.as_ref().and_then(|v| v.downcast_ref::<f64>()) {
+        // The harness only stores integers.
+        Some(n) => write!(out, "{}", *n as i64).unwrap(),
+        None => null(out),
+    }
 }
 
 fn opt_str(out: &mut String, s: Option<String>) {
@@ -45,7 +71,6 @@ fn result<T>(out: &mut String, r: Result<T, TextError>, f: impl FnOnce(&mut Stri
 
 pub fn edit_op(s: &mut EditState, op: &[Value], out: &mut String) {
     let name = op[0].str();
-    s.events.extend(s.eb.take_events());
     let eb = &s.eb;
     let v = &s.view;
     match name {
@@ -145,6 +170,7 @@ pub fn edit_op(s: &mut EditState, op: &[Value], out: &mut String) {
             write!(out, "{id}").unwrap();
         }
         "eEvents" => {
+            // Already delivered: after every op, see `run_edit_case`.
             out.push('[');
             for (i, e) in s.events.drain(..).enumerate() {
                 if i > 0 {
@@ -267,13 +293,56 @@ pub fn edit_op(s: &mut EditState, op: &[Value], out: &mut String) {
             }
             spans(out, &grid);
         }
+        "xCreate" => {
+            let o = &op[1];
+            let num = |k: &str| o.get(k).filter(|v| !v.is_null()).map(|v| v.num());
+            let options = ExtmarkOptions {
+                start: num("start").unwrap() as i64,
+                end: num("end").unwrap() as i64,
+                virtual_: o.get("virtual").is_some_and(|v| v.bool()),
+                style_id: num("styleId").map(|n| n as u32),
+                priority: num("priority").map(|n| n as u32),
+                type_id: num("typeId").map(|n| n as u32),
+                data: num("data").map(|n| Rc::new(n) as Rc<dyn Any>),
+                metadata: num("meta").map(|n| Rc::new(n) as Rc<dyn Any>),
+            };
+            result(out, v.extmarks().create(options), |out, id| write!(out, "{id}").unwrap());
+        }
+        "xMeta" => any_num(out, v.extmarks().get_metadata_for(op[1].u32())),
+        "xData" => any_num(out, v.extmarks().get(op[1].u32()).and_then(|e| e.data)),
+        "xAdjustDel" => {
+            v.extmarks().adjust_extmarks_after_deletion(op[1].num() as i64, op[2].num() as i64, op[3].bool());
+            null(out)
+        }
+        "xDelete" => result(out, v.extmarks().delete(op[1].u32()), |out, b| write!(out, "{b}").unwrap()),
+        "xGet" => match v.extmarks().get(op[1].u32()) {
+            Some(e) => mark(out, &e),
+            None => null(out),
+        },
+        "xAll" => marks(out, v.extmarks().get_all()),
+        "xVirtual" => marks(out, v.extmarks().get_virtual()),
+        "xAtOffset" => marks(out, v.extmarks().get_at_offset(op[1].num() as i64)),
+        "xForType" => marks(out, v.extmarks().get_all_for_type_id(op[1].u32())),
+        "xClear" => {
+            v.extmarks().clear();
+            null(out)
+        }
+        "xRegisterType" => result(out, v.extmarks().register_type(op[1].str()), |out, id| write!(out, "{id}").unwrap()),
+        "xTypeId" => match v.extmarks().get_type_id(op[1].str()) {
+            Some(id) => write!(out, "{id}").unwrap(),
+            None => null(out),
+        },
+        "xTypeName" => opt_str(out, v.extmarks().get_type_name(op[1].u32())),
+        "xDestroy" => {
+            v.extmarks().destroy();
+            null(out)
+        }
         "vNewView" => {
             s.view = EditorView::create(&s.eb, op[1].u32(), op[2].u32()).unwrap();
             null(out)
         }
         _ => panic!("unknown op {name}"),
     }
-    s.events.extend(s.eb.take_events());
     let _ = &s.ctx;
 }
 
@@ -289,6 +358,10 @@ pub fn run_edit_case(case: &Value, out: &mut String) {
             out.push(',');
         }
         edit_op(&mut state, op.arr(), out);
+        // TS delivers events (and the extmarks content-changed listener) in microtasks, which run at the
+        // harness's `await` after every op.
+        let events = &mut state.events;
+        state.eb.dispatch_events(|e| events.push(e));
     }
     out.push(']');
 }

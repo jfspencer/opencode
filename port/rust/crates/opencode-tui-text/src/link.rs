@@ -158,7 +158,7 @@ impl LinkTracker {
     }
 
     pub fn clear(&mut self, pool: &mut LinkPool) {
-        for (&id, _) in self.used.iter() {
+        for &id in self.used.keys() {
             let _ = pool.decref(id);
         }
         self.used.clear();

@@ -10,8 +10,7 @@
 //! source repository's ignore rules decide what callers see. Snapshots are on unless the config says `snapshots:
 //! false`, and only in git projects.
 //!
-//! TODO(port): callers queued behind a running capture of the same store share the next one (`pendingCaptures`);
-//! here each runs its own, under the same per-store lock, with the same result.
+//! Callers queued behind a running capture of the same store share the next one (`pendingCaptures`).
 
 use std::collections::{HashMap, HashSet};
 use std::os::unix::fs::MetadataExt;
@@ -741,15 +740,78 @@ async fn install_temporary_index(repository: &Repository, index: &str) -> Option
     if renamed { fingerprint } else { None }
 }
 
-/// `Git.tree.capture`.
+/// A capture's result as its followers receive it (`None` until it settles).
+type PendingCapture = tokio::sync::watch::Receiver<Option<Result<String, OperationError>>>;
+
+/// The captures that have not started yet, by what they capture (`pendingCaptures`), with the ID of their leader.
+fn pending_captures() -> std::sync::MutexGuard<'static, HashMap<String, (u64, PendingCapture)>> {
+    static PENDING: OnceLock<Mutex<HashMap<String, (u64, PendingCapture)>>> = OnceLock::new();
+    PENDING.get_or_init(Default::default).lock().unwrap()
+}
+
+/// Forgets a pending capture once it starts (or its leader is dropped), so later callers queue for the next one.
+struct Release {
+    key: String,
+    id: u64,
+}
+
+impl Release {
+    fn release(&self) {
+        let mut pending = pending_captures();
+        if pending.get(&self.key).is_some_and(|(id, _)| *id == self.id) {
+            pending.remove(&self.key);
+        }
+    }
+}
+
+impl Drop for Release {
+    fn drop(&mut self) {
+        self.release();
+    }
+}
+
+/// `Git.tree.capture`: callers queued behind a running capture share the next one, which starts after they all
+/// asked, so it still sees every change made before each call. A caller whose leader was dropped captures itself.
 async fn capture_tree(
     repository: &Repository,
     scopes: &[String],
     ignores: Option<&Repository>,
     maximum: Option<u64>,
 ) -> Result<String, OperationError> {
+    let key = crate::json::text(&opencode_protocol::Json::Array(vec![
+        opencode_protocol::Json::String(repository.git_directory.clone()),
+        opencode_protocol::Json::String(repository.worktree.clone()),
+        opencode_protocol::Json::Array(scopes.iter().cloned().map(opencode_protocol::Json::String).collect()),
+        ignores.map_or(opencode_protocol::Json::Null, |r| opencode_protocol::Json::String(r.git_directory.clone())),
+        maximum.map_or(opencode_protocol::Json::Null, |m| opencode_protocol::Json::Number(m as f64)),
+    ]));
+    let pending = pending_captures().get(&key).map(|(_, receiver)| receiver.clone());
+    if let Some(mut receiver) = pending {
+        if let Ok(result) = receiver.wait_for(Option::is_some).await {
+            return result.clone().expect("settled");
+        }
+    }
+    static NEXT: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let id = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let (settled, receiver) = tokio::sync::watch::channel(None);
+    pending_captures().insert(key.clone(), (id, receiver));
+    let release = Release { key, id };
+    let result = capture_locked(repository, scopes, ignores, maximum, &release).await;
+    release.release();
+    let _ = settled.send(Some(result.clone()));
+    result
+}
+
+async fn capture_locked(
+    repository: &Repository,
+    scopes: &[String],
+    ignores: Option<&Repository>,
+    maximum: Option<u64>,
+    release: &Release,
+) -> Result<String, OperationError> {
     let lock = store_lock(repository);
     let _guard = lock.lock().await;
+    release.release();
     let prepared = !stores().prepared.insert(repository.git_directory.clone());
     if !prepared {
         sweep_temporary_indexes(repository).await;

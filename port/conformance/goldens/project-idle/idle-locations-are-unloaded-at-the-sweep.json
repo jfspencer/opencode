@@ -1,0 +1,1897 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "directory": "<project>/keep",
+        "project": {
+          "canonical": "<project>/keep",
+          "directory": "<project>/keep",
+          "id": "<hash_1>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "directory": "<project>/busy",
+        "project": {
+          "canonical": "<project>/busy",
+          "directory": "<project>/busy",
+          "id": "<hash_2>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/location"
+    },
+    {
+      "body": {
+        "data": {
+          "cost": 0,
+          "id": "<ses_1>",
+          "location": {
+            "directory": "<project>/busy"
+          },
+          "projectID": "<hash_2>",
+          "time": {
+            "created": "<time>",
+            "updated": "<time>"
+          },
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 0,
+            "output": 0,
+            "reasoning": 0
+          }
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "location": {
+          "directory": "<project>/busy"
+        }
+      },
+      "status": 200,
+      "url": "/api/session"
+    },
+    {
+      "body": {
+        "data": {
+          "delivery": "steer",
+          "id": "<msg_1>",
+          "payload": {
+            "text": "Style the button"
+          },
+          "sessionID": "<ses_1>",
+          "time": {
+            "created": "<time>"
+          },
+          "type": "user"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "text": "Style the button"
+      },
+      "status": 200,
+      "url": "/api/session/<ses_1>/prompt"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>"
+        },
+        {
+          "directory": "<project>/keep"
+        },
+        {
+          "directory": "<project>/busy"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/debug/location"
+    },
+    {
+      "kind": "note",
+      "label": "unloaded",
+      "value": {
+        "directory": "<project>"
+      }
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>/keep"
+        },
+        {
+          "directory": "<project>/busy"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/debug/location"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "fields": [
+              {
+                "custom": true,
+                "description": "Which color should the button be?",
+                "key": "q0",
+                "options": [
+                  {
+                    "description": "Matches the brand palette",
+                    "label": "Blue",
+                    "value": "Blue"
+                  },
+                  {
+                    "description": "Signals success",
+                    "label": "Green",
+                    "value": "Green"
+                  }
+                ],
+                "title": "Button color",
+                "type": "string"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "kind": "question",
+              "tool": {
+                "id": "call_conformance_0",
+                "messageID": "<msg_2>"
+              }
+            },
+            "sessionID": "<ses_1>",
+            "title": "Questions"
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/session/<ses_1>/form"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "q0": "Blue"
+        }
+      },
+      "status": 204,
+      "url": "/api/session/<ses_1>/form/<frm_1>/reply"
+    },
+    {
+      "kind": "settled",
+      "sessionID": "<ses_1>",
+      "state": "idle"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "description": "The default agent. Executes tools based on configured permissions.",
+            "hidden": false,
+            "id": "build",
+            "mode": "primary",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Build",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "question",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            }
+          },
+          {
+            "description": "General-purpose agent for researching complex questions and executing multi-step tasks. Use this agent to execute multiple units of work in parallel.",
+            "hidden": false,
+            "id": "general",
+            "mode": "subagent",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "General",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "question",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "subagent",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            }
+          },
+          {
+            "description": "Fast agent specialized for exploring codebases. Use this when you need to quickly find files by patterns (eg. \"src/components/**/*.tsx\"), search code for keywords (eg. \"API endpoints\"), or answer questions about the codebase (eg. \"how do API endpoints work?\"). When calling this agent, specify the desired thoroughness level: \"quick\" for basic searches, \"medium\" for moderate exploration, or \"very thorough\" for comprehensive analysis across multiple locations and naming conventions.",
+            "hidden": false,
+            "id": "explore",
+            "mode": "subagent",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Explore",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "*",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "shell",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "grep",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "glob",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "webfetch",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "subagent",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "external_directory",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            },
+            "system": "You are a file search specialist. You excel at thoroughly navigating and exploring codebases.\n\nGuidelines:\n- Your role is EXCLUSIVELY to search and analyze\n- Parallelize independent tool calls for searches and reads whenever possible\n- Adapt your search approach based on the thoroughness level specified by the caller\n- Return file paths as absolute paths in your final response\n- You MUST NOT create, modify, delete, move, or copy files, including temporary files and reports\n- Shell commands MUST be read-only. NEVER run commands that write files or change system state\n\nComplete the user's search request efficiently and report your findings clearly."
+          },
+          {
+            "hidden": true,
+            "id": "compaction",
+            "mode": "primary",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Compaction",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            }
+          },
+          {
+            "hidden": true,
+            "id": "title",
+            "mode": "primary",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Title",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "*",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            },
+            "system": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting"
+          },
+          {
+            "hidden": true,
+            "id": "summary",
+            "mode": "primary",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Summary",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "*",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            },
+            "system": "Summarize what was done in this conversation. Write like a pull request description.\n\nRules:\n- 2-3 sentences max\n- Describe the changes made, not the process\n- Do not mention running tests, builds, or other validation steps\n- Do not explain what the user asked for\n- Write in first person (I added..., I fixed...)\n- Never ask questions or add new questions\n- If the conversation ends with an unanswered question to the user, preserve that exact question\n- If the conversation ends with an imperative statement or request to the user (e.g. \"Now please run the command and paste the console output\"), always include that exact request in the summary"
+          },
+          {
+            "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+            "hidden": false,
+            "id": "plan",
+            "mode": "primary",
+            "model": {
+              "id": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter",
+              "variant": "max"
+            },
+            "name": "Plan",
+            "permissions": [
+              {
+                "action": "*",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env"
+              },
+              {
+                "action": "read",
+                "effect": "ask",
+                "resource": "*.env.*"
+              },
+              {
+                "action": "read",
+                "effect": "allow",
+                "resource": "*.env.example"
+              },
+              {
+                "action": "question",
+                "effect": "allow",
+                "resource": "*"
+              },
+              {
+                "action": "edit",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "edit",
+                "effect": "allow",
+                "resource": "<home>/.opencode/plan/*"
+              },
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "browser",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "skill",
+                "effect": "deny",
+                "resource": "browser"
+              }
+            ],
+            "request": {
+              "body": {},
+              "headers": {},
+              "settings": {}
+            }
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/agent"
+    },
+    {
+      "body": [
+        {
+          "directory": "<project>/keep"
+        },
+        {
+          "directory": "<project>/busy"
+        },
+        {
+          "directory": "<project>"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/debug/location"
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "415625b6905f4a18f2b727edffe8de2cd5303ca17144f1caf09a59c358af3f09"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Style the button",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": {
+                "<blob>": "415625b6905f4a18f2b727edffe8de2cd5303ca17144f1caf09a59c358af3f09"
+              },
+              "role": "system"
+            },
+            {
+              "content": "Style the button",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Button color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Matches the brand palette\"},{\"label\":\"Green\",\"description\":\"Signals success\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "User has answered your questions: \"Which color should the button be?\"=\"Blue\". You can now continue with the user's answers in mind.",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "3d8bafbebb3ef1295857f8e1414d34338ea71bba4127cf3eceeebccdc84b5e00"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nStyle the button\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_3>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/keep",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_18>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_19>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_20>",
+        "location": {
+          "directory": "<project>/keep"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>/busy",
+          "id": "<hash_2>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_21>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_22>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_23>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_24>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_25>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_26>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_27>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_28>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_29>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_30>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_31>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "location.shutdown"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_3>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_32>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_33>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_34>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_35>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_36>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_37>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_39>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_40>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_41>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ],
+    "<ses_1>": [
+      {
+        "created": "<time>",
+        "data": {
+          "location": {
+            "directory": "<project>/busy"
+          },
+          "projectID": "<hash_2>",
+          "sessionID": "<ses_1>",
+          "slug": "<slug>",
+          "subpath": "",
+          "version": "conformance"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 0,
+          "version": 1
+        },
+        "id": "<evt_42>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "item": {
+            "delivery": "steer",
+            "payload": {
+              "text": "Style the button"
+            },
+            "type": "user"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 1,
+          "version": 1
+        },
+        "id": "<evt_43>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.inbox.enqueued"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 2,
+          "version": 1
+        },
+        "id": "<evt_44>",
+        "type": "session.execution.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "delta": {
+            "core/codemode": "<hash_4>",
+            "core/date": "<hash_5>",
+            "core/environment": "<hash_6>",
+            "core/skill-guidance": "<hash_7>"
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 3,
+          "version": 2
+        },
+        "id": "<evt_45>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "metadata": {
+          "instructions": {
+            "initial": true
+          }
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "inboxID": "<msg_1>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 4,
+          "version": 1
+        },
+        "id": "<evt_46>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.inbox.delivered"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_47>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_48>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_2>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 7,
+          "version": 1
+        },
+        "id": "<evt_49>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "name": "question",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 8,
+          "version": 1
+        },
+        "id": "<evt_50>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.tool.input.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "id": "call_conformance_0",
+          "sessionID": "<ses_1>",
+          "text": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Button color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Matches the brand palette\"},{\"label\":\"Green\",\"description\":\"Signals success\"}]}]}"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 9,
+          "version": 1
+        },
+        "id": "<evt_51>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.tool.input.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "executed": false,
+          "id": "call_conformance_0",
+          "input": {
+            "questions": [
+              {
+                "header": "Button color",
+                "options": [
+                  {
+                    "description": "Matches the brand palette",
+                    "label": "Blue"
+                  },
+                  {
+                    "description": "Signals success",
+                    "label": "Green"
+                  }
+                ],
+                "question": "Which color should the button be?"
+              }
+            ]
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 10,
+          "version": 1
+        },
+        "id": "<evt_52>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.tool.called"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 11,
+          "version": 1
+        },
+        "id": "<evt_53>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "form": {
+            "fields": [
+              {
+                "custom": true,
+                "description": "Which color should the button be?",
+                "key": "q0",
+                "options": [
+                  {
+                    "description": "Matches the brand palette",
+                    "label": "Blue",
+                    "value": "Blue"
+                  },
+                  {
+                    "description": "Signals success",
+                    "label": "Green",
+                    "value": "Green"
+                  }
+                ],
+                "title": "Button color",
+                "type": "string"
+              }
+            ],
+            "id": "<frm_1>",
+            "metadata": {
+              "kind": "question",
+              "tool": {
+                "id": "call_conformance_0",
+                "messageID": "<msg_2>"
+              }
+            },
+            "sessionID": "<ses_1>",
+            "title": "Questions"
+          }
+        },
+        "id": "<evt_54>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "form.created"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "answer": {
+            "q0": "Blue"
+          },
+          "id": "<frm_1>",
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_55>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "form.replied"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "content": [
+            {
+              "text": "User has answered your questions: \"Which color should the button be?\"=\"Blue\". You can now continue with the user's answers in mind.",
+              "type": "text"
+            }
+          ],
+          "executed": false,
+          "id": "call_conformance_0",
+          "metadata": {
+            "answers": [
+              [
+                "Blue"
+              ]
+            ],
+            "truncated": false
+          },
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 12,
+          "version": 2
+        },
+        "id": "<evt_56>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.tool.success"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_2>",
+          "cost": 0,
+          "finish": "tool-calls",
+          "rawFinish": "tool_calls",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 13,
+          "version": 1
+        },
+        "id": "<evt_57>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 200,
+            "output": 20,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_58>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "agent": "build",
+          "assistantMessageID": "<msg_3>",
+          "model": {
+            "id": "deepseek/deepseek-v4.1-flash-1017",
+            "providerID": "openrouter",
+            "variant": "max"
+          },
+          "sessionID": "<ses_1>",
+          "started": "<time>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 14,
+          "version": 1
+        },
+        "id": "<evt_59>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 1
+        },
+        "id": "<evt_60>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.text.started"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "delta": "Blue it is.",
+          "ordinal": 0,
+          "sessionID": "<ses_1>"
+        },
+        "id": "<evt_61>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.text.delta"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "ordinal": 0,
+          "sessionID": "<ses_1>",
+          "text": "Blue it is."
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 16,
+          "version": 1
+        },
+        "id": "<evt_62>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.text.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 17,
+          "version": 1
+        },
+        "id": "<evt_63>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.streamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "assistantMessageID": "<msg_3>",
+          "cost": 0,
+          "finish": "stop",
+          "rawFinish": "stop",
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 18,
+          "version": 1
+        },
+        "id": "<evt_64>",
+        "location": {
+          "directory": "<project>/busy"
+        },
+        "type": "session.step.ended"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 300,
+            "output": 30,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_65>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 19,
+          "version": 1
+        },
+        "id": "<evt_66>",
+        "type": "session.execution.succeeded"
+      }
+    ]
+  },
+  "files": {
+    "busy/task.txt": "task\n",
+    "keep/opencode.json": "{\"experimental\":{\"location_idle_timeout\":false}}",
+    "opencode.json": "{\"experimental\":{\"location_idle_timeout\":\"0 seconds\"}}"
+  }
+}

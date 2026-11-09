@@ -8,7 +8,7 @@
 //   --case    run only case I (an index into the generated list) and print its ops
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { Rng, editCase, editEdgeCases, edgeCases, tableCases, textCase } from "./cases.ts"
+import { Rng, editCase, editEdgeCases, edgeCases, extmarkCase, extmarkEdgeCases, tableCases, textCase } from "./cases.ts"
 import { runCase, runEditCase, type Case } from "./ts-exec.ts"
 
 const args = process.argv.slice(2)
@@ -27,10 +27,12 @@ const tables = !args.includes("--no-tables")
 mkdirSync(work, { recursive: true })
 
 const rng = new Rng(seed)
-let cases: Case[] = [...edgeCases(), ...editEdgeCases(), ...(tables ? tableCases() : [])]
+let cases: Case[] = [...edgeCases(), ...editEdgeCases(), ...extmarkEdgeCases(), ...(tables ? tableCases() : [])]
 for (let i = 0; i < count; i++) cases.push(textCase(rng))
 const editRng = new Rng(seed * 7919 + 1)
 for (let i = 0; i < editCount; i++) cases.push(editCase(editRng))
+const extmarkCount = Number(opt("extmark-count", String(Math.ceil(editCount / 2))))
+for (let i = 0; i < extmarkCount; i++) cases.push(extmarkCase(editRng))
 if (only !== undefined) {
   cases = [cases[Number(only)]]
   writeFileSync(join(work, "case.json"), JSON.stringify(cases[0], null, 1))

@@ -54,8 +54,7 @@ fn bootstrap(db: &Connection) -> Result<(), String> {
     for statement in generated::SCHEMA {
         tx.execute_batch(statement).map_err(|e| format!("bootstrap: {e}"))?;
     }
-    // TODO(port): the legacy credential import (migration/20260805200742_import_legacy_credentials.ts) reads
-    // <data>/auth.json into the credential table.
+    import_legacy_credentials(&tx, &format!("{}/auth.json", crate::cli::paths::data())).map_err(|e| e.to_string())?;
     tx.execute_batch("CREATE TABLE `migration` (id TEXT PRIMARY KEY, time_completed INTEGER NOT NULL)")
         .map_err(|e| e.to_string())?;
     let now = crate::id::now();
@@ -64,6 +63,145 @@ fn bootstrap(db: &Connection) -> Result<(), String> {
             .map_err(|e| e.to_string())?;
     }
     tx.commit().map_err(|e| e.to_string())
+}
+
+/// The legacy credential import (migration/20260805200742_import_legacy_credentials.ts), part of bootstrapping: the
+/// entries of `<data>/auth.json` (API keys, OAuth tokens, wellknown tokens) become credentials of their integration
+/// (the key without trailing slashes) unless it has one already; wellknown origins are added to the
+/// `wellknown:sources` list. Entries that do not decode are skipped; a file that is not a JSON object is ignored.
+fn import_legacy_credentials(tx: &rusqlite::Transaction, path: &str) -> rusqlite::Result<()> {
+    use opencode_protocol::Json;
+    let Ok(content) = std::fs::read_to_string(path) else { return Ok(()) };
+    // A file that is not a JSON object is skipped (TS logs a warning).
+    let Some(Json::Object(input)) = crate::json::parse(&content) else { return Ok(()) };
+    let mut origins: Vec<String> = vec![];
+    for id in opencode_protocol::wire::out::js_key_order(input.keys().map(String::as_str)) {
+        let Some(value) = legacy_value(&input[id]) else { continue };
+        let integration_id = id.trim_end_matches('/');
+        if integration_id.is_empty() {
+            continue;
+        }
+        if let Legacy::WellKnown { .. } = value {
+            origins.push(integration_id.to_owned());
+        }
+        let exists = tx
+            .query_row("SELECT id FROM credential WHERE integration_id = ?1", params![integration_id], |_| Ok(()))
+            .optional()?
+            .is_some();
+        if exists {
+            continue;
+        }
+        let mut credential = crate::json::Obj::new();
+        let label = match value {
+            Legacy::Key { key, metadata } => {
+                credential.str("type", "key").str("key", key);
+                if let Some(metadata) = metadata {
+                    credential.set("metadata", metadata.clone());
+                }
+                "API key"
+            }
+            Legacy::WellKnown { token } => {
+                credential.str("type", "key").str("key", token);
+                "API key"
+            }
+            Legacy::OAuth { refresh, access, expires, account_id, enterprise_url } => {
+                let method = match integration_id {
+                    "openai" => "chatgpt-browser",
+                    "github-copilot" | "opencode" | "xai" => "device",
+                    _ => "oauth",
+                };
+                credential.str("type", "oauth").str("methodID", method).str("refresh", refresh).str("access", access);
+                credential.set("expires", Json::Number(expires));
+                let account = account_id.filter(|s| !s.is_empty());
+                let enterprise = enterprise_url.filter(|s| !s.is_empty());
+                if account.is_some() || enterprise.is_some() {
+                    let mut metadata = crate::json::Obj::new();
+                    metadata.opt_str("accountID", account).opt_str("enterpriseUrl", enterprise);
+                    credential.set("metadata", metadata.done());
+                }
+                "OAuth"
+            }
+        };
+        let now = crate::id::now();
+        tx.execute(
+            "INSERT INTO credential (id, integration_id, label, value, time_created, time_updated) VALUES (?1, ?2, ?3, ?4, ?5, ?5)",
+            params![format!("cred_{}", crate::id::ascending()), integration_id, label, crate::json::text(&credential.done()), now],
+        )?;
+    }
+    if origins.is_empty() {
+        return Ok(());
+    }
+    let stored: Option<String> =
+        tx.query_row("SELECT value FROM kv WHERE key = 'wellknown:sources'", [], |row| row.get(0)).optional()?;
+    let current: Vec<String> = match stored.as_deref().and_then(crate::json::parse) {
+        Some(Json::Array(items)) => items.iter().filter_map(|item| crate::json::as_str(item).map(str::to_owned)).collect(),
+        _ => vec![],
+    };
+    // `new Set([...current, ...origins])`.
+    let mut sources: Vec<String> = vec![];
+    for source in current.into_iter().chain(origins) {
+        if !sources.contains(&source) {
+            sources.push(source);
+        }
+    }
+    let value = crate::json::text(&Json::Array(sources.into_iter().map(Json::String).collect()));
+    tx.execute(
+        "INSERT INTO kv (key, value, time_created, time_updated) VALUES ('wellknown:sources', ?1, ?2, ?2) \
+         ON CONFLICT (key) DO UPDATE SET value = excluded.value, time_updated = excluded.time_updated",
+        params![value, crate::id::now()],
+    )?;
+    Ok(())
+}
+
+/// A decoded `auth.json` entry (`LegacyValue`).
+enum Legacy<'a> {
+    OAuth { refresh: &'a str, access: &'a str, expires: f64, account_id: Option<&'a str>, enterprise_url: Option<&'a str> },
+    Key { key: &'a str, metadata: Option<&'a opencode_protocol::Json> },
+    WellKnown { token: &'a str },
+}
+
+/// `Schema.decodeUnknownOption(LegacyValue)`: `None` when the entry is none of the legacy shapes.
+fn legacy_value(raw: &opencode_protocol::Json) -> Option<Legacy<'_>> {
+    use opencode_protocol::Json;
+    let Json::Object(o) = raw else { return None };
+    let string = |key: &str| match o.get(key) {
+        Some(Json::String(s)) => Some(s.as_str()),
+        _ => None,
+    };
+    // An optional field may be missing; anything present must decode.
+    let optional = |key: &str| match o.get(key) {
+        None => Some(None),
+        Some(Json::String(s)) => Some(Some(s.as_str())),
+        Some(_) => None,
+    };
+    match string("type")? {
+        "oauth" => {
+            let expires = match o.get("expires") {
+                Some(Json::Number(n)) if n.fract() == 0.0 && n.abs() <= 9_007_199_254_740_991.0 && *n >= 0.0 => *n + 0.0,
+                _ => return None,
+            };
+            Some(Legacy::OAuth {
+                refresh: string("refresh")?,
+                access: string("access")?,
+                expires,
+                account_id: optional("accountId")?,
+                enterprise_url: optional("enterpriseUrl")?,
+            })
+        }
+        "api" => {
+            let metadata = match o.get("metadata") {
+                None => None,
+                Some(value @ Json::Object(record)) if record.values().all(|v| matches!(v, Json::String(_))) => Some(value),
+                Some(_) => return None,
+            };
+            Some(Legacy::Key { key: string("key")?, metadata })
+        }
+        "wellknown" => {
+            string("key")?;
+            Some(Legacy::WellKnown { token: string("token")? })
+        }
+        _ => None,
+    }
 }
 
 /// An existing database must be at the schema this build knows: the TS migrations themselves are not ported, so an

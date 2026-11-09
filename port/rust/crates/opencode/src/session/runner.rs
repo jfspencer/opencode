@@ -8,10 +8,10 @@
 //! Compaction (automatic before a step, overflow recovery, a manual `compaction` item at a boundary) is
 //! [`crate::session::compaction`]'s.
 //!
-//! At the idle boundary the goal plugin's `experimental.idle` hook may admit input that continues the execution
+//! Each step reads its location as it is then (a reloaded location is booted again) and waits out an inventory
+//! reload in progress (`plugins.awaitActivation`). At the idle boundary the goal plugin's `experimental.idle` hook,
+//! given the session's running background work, may admit input that continues the execution
 //! ([`crate::session::goal`]); external plugins' hooks are out of scope.
-//!
-//! TODO(port): location reloads mid-turn, background jobs.
 
 use std::sync::Arc;
 
@@ -85,7 +85,8 @@ pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Re
     let stored = crate::session::require(&app.db.lock().unwrap(), session_id).map_err(failed)?;
     let location = app.locations.get(app, &stored.location).await.map_err(failed)?;
     let info = stored.info.clone();
-    // One inventory snapshot per step: plugins may reload mid-turn.
+    // One inventory snapshot per step: plugins may reload mid-turn, and each step reads them settled.
+    location.inventory.settled().await;
     let inventory = location.inventory();
     let (agent_id, agent) = context::select_agent(&inventory, &info).map_err(Stop::Failed)?;
     // Session permissions narrow the tool snapshot the way they narrow discovery.

@@ -1,8 +1,9 @@
 //! OpenTUI's text core in Rust: widths and grapheme breaks, text buffers and their views (wrapping, selection,
-//! measuring), edit buffers and editor views, and syntax styles. Ported from the Zig core of `@opentui/core`
-//! 0.8.1 (`port/.vendor/opentui/packages/native/src`), with an API that mirrors the TS classes over it
-//! (`text-buffer.ts`, `text-buffer-view.ts`, `edit-buffer.ts`, `editor-view.ts`, `syntax-style.ts`) and the
-//! checks the native Context ABI applies (`context.zig`, `context-text-abi.zig`, `context-editor-abi.zig`).
+//! measuring), edit buffers and editor views, extmarks, and syntax styles. Ported from the Zig core of
+//! `@opentui/core` 0.8.1 (`port/.vendor/opentui/packages/native/src`), with an API that mirrors the TS classes over
+//! it (`text-buffer.ts`, `text-buffer-view.ts`, `edit-buffer.ts`, `editor-view.ts`, `syntax-style.ts`,
+//! `lib/extmarks.ts`) and the checks the native Context ABI applies (`context.zig`, `context-text-abi.zig`,
+//! `context-editor-abi.zig`).
 //!
 //! # Modules and their Zig sources
 //!
@@ -17,6 +18,7 @@
 //! | `edit_buffer`, `editor_view` | `edit-buffer.zig`, `editor-view.zig` |
 //! | [`text`] | `text-buffer.ts`, `text-buffer-view.ts` over the Context ABI |
 //! | [`edit`] | `edit-buffer.ts`, `editor-view.ts` over the Context ABI |
+//! | [`extmarks`] | `lib/extmarks.ts`, `lib/extmarks-history.ts` (TS only) |
 //! | [`scene_text`] | the native scene Text node (`Context.Text`, `scene*Text*`) |
 //! | [`syntax_style`] | `syntax-style.zig`, `syntax-style.ts` |
 //!
@@ -53,13 +55,36 @@
 //! assert_eq!(buffer.take_events().first(), Some(&EditEvent::CursorChanged));
 //! ```
 //!
+//! Edit events reach TS listeners in microtasks; the host delivers them with [`EditBuffer::dispatch_events`]
+//! where TS would run microtasks (after each input handler or timer callback), which also runs an installed
+//! extmarks controller's content-changed listener (it re-applies the extmark highlights).
+//!
+//! Extmarks (prompt parts and pastes in `Textarea`): virtual ones are skipped by the cursor and deleted whole.
+//!
+//! ```
+//! use opencode_tui_text::{EditBuffer, EditorView, ExtmarkOptions, TextContext, WidthMethod};
+//!
+//! let ctx = TextContext::new();
+//! let buffer = EditBuffer::create(WidthMethod::Unicode, &ctx);
+//! let view = EditorView::create(&buffer, 20, 3).unwrap();
+//! buffer.set_text("see [file.rs] now").unwrap();
+//! let extmarks = view.extmarks();
+//! let id = extmarks.create(ExtmarkOptions { start: 4, end: 13, virtual_: true, ..Default::default() }).unwrap();
+//! buffer.set_cursor_by_offset(13);
+//! buffer.delete_char_backward().unwrap();
+//! assert_eq!(buffer.get_text(), "see  now");
+//! assert!(extmarks.get(id).is_none());
+//! buffer.dispatch_events(|_event| {});
+//! ```
+//!
 //! The width method is the renderer's (`renderer.widthMethod`: the terminal capability `caps.unicode`, `unicode`
 //! unless the terminal or a multiplexer asks for `wcwidth`, `unicode-wide` for Ghostty's wide graphemes, and
 //! `OPENTUI_FORCE_WCWIDTH`, `OPENTUI_FORCE_UNICODE` and `OPENTUI_FORCE_NOZWJ` overrides in `terminal.zig`); text buffers take it at creation.
 //!
 //! # Drawing
 //!
-//! A cell buffer draws a view through [`TextBufferView::draw`] (or [`SceneText::draw`]), which prepares the layout
+//! A cell buffer draws a view through [`TextBufferView::draw`] (or [`EditorView::draw`], [`SceneText::draw`]),
+//! which prepares the layout
 //! and passes a [`DrawSource`]: the viewport's visual lines with their whole-grapheme chunk slices, each chunk's
 //! bytes and render clusters, the style spans of each line and their styles, the selection, alignment padding,
 //! the tab indicator and the buffer's defaults: everything `buffer.zig`'s `drawTextBufferInternal` reads.
@@ -68,18 +93,23 @@
 //! # Differential check
 //!
 //! `harness/run.sh` runs operation programs on `@opentui/core` 0.8.1's own classes (`TextBuffer`,
-//! `TextBufferView`, `SyntaxStyle`, `OptimizedBuffer.drawTextBuffer` over the reference's `libopentui.so`) and on
-//! this crate, and compares every result: random Unicode-heavy programs, hand-picked edge cases, and exhaustive
-//! tables (every code point's width under each method, and grapheme probes for every code point below U+30000).
+//! `TextBufferView`, `EditBuffer`, `EditorView` and its `extmarks`, `SyntaxStyle`, `OptimizedBuffer.drawTextBuffer`
+//! and `drawEditorView` over the reference's `libopentui.so`) and on this crate, and compares every result: random
+//! Unicode-heavy programs, hand-picked edge cases, and exhaustive tables (every code point's width under each
+//! method, and grapheme probes for every code point below U+30000).
 //!
 //! # Divergences
 //!
 //! - TS reads text with `TextDecoder`, which drops a leading U+FEFF; reads here do the same (`TODO(port)`).
 //! - Line spans break priority ties in Zig's hash map iteration order, which is emulated (`ZigUsizeSet`).
+//! - A second view's extmarks controller in TS wraps the methods the first one already wrapped; here a buffer
+//!   has one controller, and a second view's [`EditorView::extmarks`] reports [`TextError::Destroyed`] while the
+//!   first is installed (`TODO(port)`; opencode makes one view per buffer).
 
 pub mod edit;
 mod edit_buffer;
 mod editor_view;
+pub mod extmarks;
 pub mod grapheme;
 mod iterators;
 pub mod link;
@@ -97,6 +127,7 @@ pub mod utf8;
 
 pub use edit::{measure_edit_text_with as measure_edit_text, EditBuffer, EditorView, LogicalCursor};
 pub use edit_buffer::EditEvent;
+pub use extmarks::{Extmark, ExtmarkOptions, Extmarks};
 pub use editor_view::VisualCursor;
 pub use segment::{Highlight, StyleSpan, TextChunk};
 pub use syntax_style::{MergedStyle, StyleDefinition, StyleSpec, SyntaxStyle};
@@ -120,6 +151,8 @@ pub enum TextError {
     InvalidUnicode,
     TextLimit,
     OutOfMemory,
+    /// A call on a destroyed extmarks controller (TS throws `ExtmarksController is destroyed`).
+    Destroyed,
 }
 
 impl TextError {
@@ -127,6 +160,7 @@ impl TextError {
     pub fn status(self) -> &'static str {
         match self {
             TextError::OutOfMemory => "OutOfMemory",
+            TextError::Destroyed => "Destroyed",
             _ => "InvalidArgument",
         }
     }

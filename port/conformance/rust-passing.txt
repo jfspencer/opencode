@@ -182,6 +182,35 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/cli-acp-child.test.ts › acp background child followed after the turn
+scenarios/cli-acp-child.test.ts › acp child permission requests and forms with child updates
+scenarios/cli-acp-child.test.ts › acp child permission requests and forms without child updates
+scenarios/cli-acp-child.test.ts › acp child session updates as notifications
+scenarios/cli-acp-child.test.ts › acp child session updates folded into the session
+scenarios/cli-acp-elicitation.test.ts › acp answers questions through form elicitation
+scenarios/cli-acp-elicitation.test.ts › acp cancelling a prompt withdraws its elicitation
+scenarios/cli-acp-elicitation.test.ts › acp form declined, cancelled, failed or malformed
+scenarios/cli-acp-elicitation.test.ts › acp questions a client cannot show are cancelled with a message
+scenarios/cli-acp-load.test.ts › acp session/load failures
+scenarios/cli-acp-load.test.ts › acp session/load replays the history
+scenarios/cli-acp-load.test.ts › acp session/resume attaches without a replay
+scenarios/cli-acp-permission.test.ts › acp cancelling a prompt withdraws its permission request
+scenarios/cli-acp-permission.test.ts › acp permission allowed once, then always
+scenarios/cli-acp-permission.test.ts › acp permission previews and completed diffs of file edits
+scenarios/cli-acp-permission.test.ts › acp permission rejected, cancelled, failed or malformed
+scenarios/cli-acp-permission.test.ts › acp permission requests for shell commands and outside paths
+scenarios/cli-acp-turn.test.ts › acp cancels a running tool
+scenarios/cli-acp-turn.test.ts › acp commands added while a session is attached
+scenarios/cli-acp-turn.test.ts › acp compaction updates
+scenarios/cli-acp-turn.test.ts › acp config options select model, effort and mode
+scenarios/cli-acp-turn.test.ts › acp prompt content
+scenarios/cli-acp-turn.test.ts › acp retries are reported as session info
+scenarios/cli-acp-turn.test.ts › acp session lifecycle
+scenarios/cli-acp-turn.test.ts › acp slash commands
+scenarios/cli-acp-turn.test.ts › acp stop reasons, usage and failures
+scenarios/cli-acp-turn.test.ts › acp tool call updates
+scenarios/cli-acp-wire.test.ts › acp JSON-RPC batches close the connection
+scenarios/cli-acp-wire.test.ts › acp framing of incoming messages
 scenarios/cli-acp.test.ts › acp --login without a terminal
 scenarios/cli-acp.test.ts › acp handshake, session and prompts
 scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
@@ -210,6 +239,9 @@ scenarios/cli-inspect.test.ts › models lists only the configured model
 scenarios/cli-inspect.test.ts › models with a second configured model
 scenarios/cli-inspect.test.ts › stats after some runs
 scenarios/cli-inspect.test.ts › stats with no activity
+scenarios/cli-legacy-credentials.test.ts › a legacy file that is not JSON is skipped
+scenarios/cli-legacy-credentials.test.ts › a legacy file that is not a JSON object is skipped
+scenarios/cli-legacy-credentials.test.ts › legacy credentials are imported when the database is created
 scenarios/cli-meta.test.ts › command groups without a subcommand
 scenarios/cli-meta.test.ts › help of each in-scope command
 scenarios/cli-meta.test.ts › missing required arguments
@@ -217,6 +249,12 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-project-archive.test.ts › projects whose directories are gone are archived or moved
+scenarios/cli-project-archive.test.ts › recently active projects are not swept
+scenarios/cli-references.test.ts › a cache directory of another repository is replaced
+scenarios/cli-references.test.ts › git references are checked out and refreshed daily
+scenarios/cli-ripgrep.test.ts › a ripgrep download that fails verification is not used
+scenarios/cli-ripgrep.test.ts › an unanswered ripgrep download fails the search
 scenarios/cli-run.test.ts › run --auto approves permission requests
 scenarios/cli-run.test.ts › run --auto does not approve denied actions
 scenarios/cli-run.test.ts › run --format json streams events
@@ -394,6 +432,7 @@ scenarios/project-fs.test.ts › read files
 scenarios/project-fs.test.ts › read with byte ranges
 scenarios/project-fs.test.ts › watch and unwatch files
 scenarios/project-fs.test.ts › write files
+scenarios/project-idle.test.ts › idle locations are unloaded at the sweep
 scenarios/project-instructions.test.ts › AGENTS.md files from a nested location up to the git root
 scenarios/project-instructions.test.ts › AGENTS.md in the project root
 scenarios/project-instructions.test.ts › absolute and home instruction paths
@@ -430,6 +469,7 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-schedule-tick.test.ts › schedules due together fire in one tick
 scenarios/project-schedule.test.ts › code conditions at creation
 scenarios/project-schedule.test.ts › create schedules of every kind
 scenarios/project-schedule.test.ts › denied shell conditions
@@ -476,6 +516,13 @@ scenarios/project-vcs.test.ts › vcs routes on a clean repository
 scenarios/project-vcs.test.ts › vcs routes on a location's first request
 scenarios/project-vcs.test.ts › vcs routes outside a repository
 scenarios/project-vcs.test.ts › working copy status and diff
+scenarios/project-watch.test.ts › a markerless location watches no HEAD
+scenarios/project-watch.test.ts › a nested location watches the repository's HEAD
+scenarios/project-watch.test.ts › a watched file announces its changes and its removal
+scenarios/project-watch.test.ts › branch switches announce the new branch
+scenarios/project-watch.test.ts › watcher.ignore turns the HEAD watch off
+scenarios/project-watch.test.ts › watches of a nested location announce on that location
+scenarios/project-watch.test.ts › watching needs the file watcher
 scenarios/project-worktree.test.ts › create a worktree at a ref and from a linked worktree
 scenarios/project-worktree.test.ts › create, list and remove worktrees
 scenarios/project-worktree.test.ts › refresh discovers and forgets worktrees

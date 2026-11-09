@@ -1,0 +1,1080 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/new\",\"params\":{\"cwd\":\"<project>\",\"mcpServers\":[]}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Edit the files\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"outcome\":{\"outcome\":\"selected\",\"optionId\":\"once\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"outcome\":{\"outcome\":\"selected\",\"optionId\":\"once\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"result\":{\"outcome\":{\"outcome\":\"selected\",\"optionId\":\"once\"}}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {
+                "configOptions": [
+                  {
+                    "category": "model",
+                    "currentValue": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+                    "id": "model",
+                    "name": "Model",
+                    "options": [
+                      {
+                        "name": "openrouter/DeepSeek V4.1 Flash 1017",
+                        "value": "openrouter/deepseek/deepseek-v4.1-flash-1017"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "thought_level",
+                    "currentValue": "default",
+                    "description": "Available effort levels for this model",
+                    "id": "effort",
+                    "name": "Effort",
+                    "options": [
+                      {
+                        "name": "None",
+                        "value": "none"
+                      },
+                      {
+                        "name": "Low",
+                        "value": "low"
+                      },
+                      {
+                        "name": "High",
+                        "value": "high"
+                      },
+                      {
+                        "name": "Max",
+                        "value": "max"
+                      },
+                      {
+                        "name": "Default",
+                        "value": "default"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "mode",
+                    "currentValue": "build",
+                    "id": "mode",
+                    "name": "Session Mode",
+                    "options": [
+                      {
+                        "description": "The default agent. Executes tools based on configured permissions.",
+                        "name": "Build",
+                        "value": "build"
+                      },
+                      {
+                        "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+                        "name": "Plan",
+                        "value": "plan"
+                      }
+                    ],
+                    "type": "select"
+                  }
+                ],
+                "sessionId": "<ses_1>"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [],
+                  "name": "edit",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "edit",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/notes.txt"
+                    }
+                  ],
+                  "rawInput": {
+                    "newString": "BETA",
+                    "oldString": "beta",
+                    "path": "notes.txt"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "edit",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 0,
+              "jsonrpc": "2.0",
+              "method": "session/request_permission",
+              "params": {
+                "options": [
+                  {
+                    "kind": "allow_once",
+                    "name": "Allow once",
+                    "optionId": "once"
+                  },
+                  {
+                    "kind": "allow_always",
+                    "name": "Always allow",
+                    "optionId": "always"
+                  },
+                  {
+                    "kind": "reject_once",
+                    "name": "Reject",
+                    "optionId": "reject"
+                  }
+                ],
+                "sessionId": "<ses_1>",
+                "toolCall": {
+                  "content": [
+                    {
+                      "newText": "alpha\nBETA\ngamma\n",
+                      "oldText": "alpha\nbeta\ngamma\n",
+                      "path": "<project>/notes.txt",
+                      "type": "diff"
+                    }
+                  ],
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/notes.txt"
+                    }
+                  ],
+                  "name": "edit",
+                  "rawInput": {
+                    "newString": "BETA",
+                    "oldString": "beta",
+                    "path": "notes.txt"
+                  },
+                  "status": "pending",
+                  "title": "notes.txt",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Edited notes.txt (1 replacement)",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    },
+                    {
+                      "newText": "alpha\nBETA\ngamma\n",
+                      "oldText": "alpha\nbeta\ngamma\n",
+                      "path": "<project>/notes.txt",
+                      "type": "diff"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/notes.txt"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "files": [
+                        {
+                          "additions": 1,
+                          "deletions": 1,
+                          "file": "notes.txt",
+                          "patch": "Index: notes.txt\n===================================================================\n--- notes.txt\n+++ notes.txt\n@@ -1,3 +1,3 @@\n alpha\n-beta\n+BETA\n gamma\n",
+                          "status": "modified"
+                        }
+                      ],
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [],
+                  "name": "write",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "write",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/fresh.txt"
+                    }
+                  ],
+                  "rawInput": {
+                    "content": "brand new\n",
+                    "path": "fresh.txt"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "write",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "method": "session/request_permission",
+              "params": {
+                "options": [
+                  {
+                    "kind": "allow_once",
+                    "name": "Allow once",
+                    "optionId": "once"
+                  },
+                  {
+                    "kind": "allow_always",
+                    "name": "Always allow",
+                    "optionId": "always"
+                  },
+                  {
+                    "kind": "reject_once",
+                    "name": "Reject",
+                    "optionId": "reject"
+                  }
+                ],
+                "sessionId": "<ses_1>",
+                "toolCall": {
+                  "content": [
+                    {
+                      "newText": "brand new\n",
+                      "oldText": null,
+                      "path": "<project>/fresh.txt",
+                      "type": "diff"
+                    }
+                  ],
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/fresh.txt"
+                    }
+                  ],
+                  "name": "write",
+                  "rawInput": {
+                    "content": "brand new\n",
+                    "path": "fresh.txt"
+                  },
+                  "status": "pending",
+                  "title": "fresh.txt",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Created file successfully: fresh.txt",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/fresh.txt"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [],
+                  "name": "write",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "write",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/list.txt"
+                    }
+                  ],
+                  "rawInput": {
+                    "content": "one\ntwo\nthree\n",
+                    "path": "list.txt"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "write",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "method": "session/request_permission",
+              "params": {
+                "options": [
+                  {
+                    "kind": "allow_once",
+                    "name": "Allow once",
+                    "optionId": "once"
+                  },
+                  {
+                    "kind": "allow_always",
+                    "name": "Always allow",
+                    "optionId": "always"
+                  },
+                  {
+                    "kind": "reject_once",
+                    "name": "Reject",
+                    "optionId": "reject"
+                  }
+                ],
+                "sessionId": "<ses_1>",
+                "toolCall": {
+                  "content": [
+                    {
+                      "newText": "one\ntwo\nthree\n",
+                      "oldText": "one\ntwo\n",
+                      "path": "<project>/list.txt",
+                      "type": "diff"
+                    }
+                  ],
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/list.txt"
+                    }
+                  ],
+                  "name": "write",
+                  "rawInput": {
+                    "content": "one\ntwo\nthree\n",
+                    "path": "list.txt"
+                  },
+                  "status": "pending",
+                  "title": "list.txt",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Wrote file successfully: list.txt",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/list.txt"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [],
+                  "name": "patch",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "patch",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/notes.txt"
+                    },
+                    {
+                      "path": "<project>/added.txt"
+                    }
+                  ],
+                  "rawInput": {
+                    "patchText": "*** Begin Patch\n*** Update File: notes.txt\n@@\n alpha\n-BETA\n+beta again\n*** Add File: added.txt\n+added by patch\n*** End Patch"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "patch",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Tool is not available for this request: patch",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "edit",
+                  "locations": [
+                    {
+                      "path": "<project>/notes.txt"
+                    },
+                    {
+                      "path": "<project>/added.txt"
+                    }
+                  ],
+                  "rawInput": {
+                    "patchText": "*** Begin Patch\n*** Update File: notes.txt\n@@\n alpha\n-BETA\n+beta again\n*** Add File: added.txt\n+added by patch\n*** End Patch"
+                  },
+                  "rawOutput": {
+                    "error": "Tool is not available for this request: patch",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "patch",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": {
+                    "text": "Edited everything.",
+                    "type": "text"
+                  },
+                  "messageId": "<msg_1>",
+                  "sessionUpdate": "agent_message_chunk"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 3,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "end_turn",
+                "usage": {
+                  "inputTokens": 500,
+                  "outputTokens": 50,
+                  "totalTokens": 550
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Use the write tool to create files or completely replace their content. Prefer using the edit tool for targeted changes.\n- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Edit the files",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "a44ea1f4e4ce63234fe1dd73234f699eb5275b80c9df29072a70ef36ee64c0e9"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Use the write tool to create files or completely replace their content. Prefer using the edit tool for targeted changes.\n- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Edit the files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes.txt\",\"oldString\":\"beta\",\"newString\":\"BETA\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited notes.txt (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "a44ea1f4e4ce63234fe1dd73234f699eb5275b80c9df29072a70ef36ee64c0e9"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Use the write tool to create files or completely replace their content. Prefer using the edit tool for targeted changes.\n- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Edit the files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes.txt\",\"oldString\":\"beta\",\"newString\":\"BETA\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited notes.txt (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"fresh.txt\",\"content\":\"brand new\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: fresh.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "a44ea1f4e4ce63234fe1dd73234f699eb5275b80c9df29072a70ef36ee64c0e9"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Use the write tool to create files or completely replace their content. Prefer using the edit tool for targeted changes.\n- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Edit the files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes.txt\",\"oldString\":\"beta\",\"newString\":\"BETA\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited notes.txt (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"fresh.txt\",\"content\":\"brand new\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: fresh.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"list.txt\",\"content\":\"one\\ntwo\\nthree\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Wrote file successfully: list.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "a44ea1f4e4ce63234fe1dd73234f699eb5275b80c9df29072a70ef36ee64c0e9"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n- Use the write tool to create files or completely replace their content. Prefer using the edit tool for targeted changes.\n- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Edit the files",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"notes.txt\",\"oldString\":\"beta\",\"newString\":\"BETA\"}",
+                    "name": "edit"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Edited notes.txt (1 replacement)",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"fresh.txt\",\"content\":\"brand new\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Created file successfully: fresh.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"list.txt\",\"content\":\"one\\ntwo\\nthree\\n\"}",
+                    "name": "write"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Wrote file successfully: list.txt",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"patchText\":\"*** Begin Patch\\n*** Update File: notes.txt\\n@@\\n alpha\\n-BETA\\n+beta again\\n*** Add File: added.txt\\n+added by patch\\n*** End Patch\"}",
+                    "name": "patch"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"Tool is not available for this request: patch\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": {
+            "<blob>": "a44ea1f4e4ce63234fe1dd73234f699eb5275b80c9df29072a70ef36ee64c0e9"
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nEdit the files\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "fresh.txt": "brand new\n",
+    "list.txt": "one\ntwo\nthree\n",
+    "notes.txt": "alpha\nBETA\ngamma\n"
+  }
+}

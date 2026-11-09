@@ -451,8 +451,7 @@ impl Tree {
         let Some(ops) = ops else { return Ok(join(l, r)) };
         let mut open = span.is_some();
         let mut held = false;
-        loop {
-            let (Some(last), Some(first)) = (l.last_leaf(), r.first_leaf()) else { break };
+        while let (Some(last), Some(first)) = (l.last_leaf(), r.first_leaf()) {
             let Some(joined) = ops.join(last, first)? else { break };
             l = self.drop_last(l);
             r = self.drop_first(r);

@@ -1,0 +1,67 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": {
+          "data": [
+            {
+              "name": "notes",
+              "path": "<sandbox>/data/opencode/repos/github.com/conformance/notes",
+              "source": {
+                "repository": "github:conformance/notes",
+                "type": "git"
+              }
+            }
+          ],
+          "location": {
+            "directory": "<project>"
+          }
+        },
+        "headers": {
+          "authorization": "Basic base64(opencode:conformance-secret)"
+        },
+        "method": "GET",
+        "status": 200,
+        "url": "http://127.0.0.1:<port>/api/reference?directory=%2Ftmp%2F<root-name>%2F<project-name>"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "one",
+          ""
+        ],
+        "path": "<sandbox>/data/opencode/repos/github.com/conformance/notes/README.md"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "serve",
+          "--port",
+          "0"
+        ],
+        "env": {
+          "OPENCODE_PASSWORD": "conformance-secret",
+          "OPENCODE_REPO_CLONE_GITHUB_BASE_URL": "file://<sandbox>/remotes/"
+        },
+        "exit": 143,
+        "sent": "SIGTERM",
+        "stderr": "",
+        "stdout": [
+          "server listening on http://127.0.0.1:<port>",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

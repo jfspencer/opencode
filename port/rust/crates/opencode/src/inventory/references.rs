@@ -6,7 +6,7 @@
 //! remote (`Repository.parse`; `file:` repositories and invalid branches are not listed). Names with `/`, whitespace,
 //! `` ` `` or `,` are skipped.
 //!
-//! TODO(port): cloning Git references into the cache (background, daily refresh).
+//! Git references are cloned into the cache in the background and refreshed daily ([`crate::repository_cache`]).
 
 use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};
@@ -100,7 +100,7 @@ pub fn build(entries: &[Entry], location: &str, home: &str, repos: &str) -> Vec<
 }
 
 /// `Repository.validateBranch`.
-fn valid_branch(branch: &str) -> bool {
+pub fn valid_branch(branch: &str) -> bool {
     !branch.is_empty()
         && branch.chars().all(|c| c.is_ascii_alphanumeric() || "/_.-".contains(c))
         && !branch.starts_with('-')
@@ -121,9 +121,41 @@ fn encode_uri_component(text: &str) -> String {
 }
 
 /// A remote repository reference (`Repository.parse` when it is not a `file:` repository).
-struct Remote {
-    host: String,
-    segments: Vec<String>,
+pub struct Remote {
+    pub host: String,
+    pub segments: Vec<String>,
+    /// What to clone (`remote`).
+    pub remote: String,
+}
+
+impl Remote {
+    /// `Repository.cacheIdentity`.
+    pub fn identity(&self) -> String {
+        format!("{}/{}", self.host, self.segments.join("/"))
+    }
+}
+
+/// `githubRemote`: GitHub repositories clone from `OPENCODE_REPO_CLONE_GITHUB_BASE_URL` when it is set.
+fn github_remote(path: &str) -> String {
+    match std::env::var("OPENCODE_REPO_CLONE_GITHUB_BASE_URL").ok().filter(|base| !base.is_empty()) {
+        Some(base) => {
+            let base = if base.ends_with('/') { base } else { format!("{base}/") };
+            url::Url::parse(&base).and_then(|base| base.join(&format!("{path}.git"))).map(|u| u.to_string()).unwrap_or(base)
+        }
+        None => format!("https://github.com/{path}.git"),
+    }
+}
+
+/// `Repository.cacheIdentity(Repository.parse(input))`, `file:` repositories included (as `file/<path>`).
+pub fn identity(input: &str) -> Option<String> {
+    if let Some(remote) = parse(input) {
+        return Some(remote.identity());
+    }
+    let cleaned = config::js_trim(input).strip_prefix("git+").unwrap_or(config::js_trim(input)).to_owned();
+    let cleaned = cleaned.split('#').next().unwrap_or("").trim_end_matches('/').to_owned();
+    let url = url::Url::parse(&cleaned).ok().filter(|u| u.scheme() == "file")?;
+    let path = url.to_file_path().ok()?.to_string_lossy().into_owned();
+    Some(format!("file/{}", crate::project::normalize(&path)))
 }
 
 fn trim_git(text: &str) -> &str {
@@ -138,17 +170,20 @@ fn safe_segment(s: &str) -> bool {
     s != "." && s != ".." && !s.contains(':') && !s.chars().any(|c| c == '/' || c == '\\' || config::js_space(c))
 }
 
-fn build_remote(host: &str, segments: Vec<String>) -> Option<Remote> {
+fn build_remote(host: &str, segments: Vec<String>, remote: Option<String>) -> Option<Remote> {
     let segments: Vec<String> = segments.iter().map(|s| trim_git(s).to_owned()).filter(|s| !s.is_empty()).collect();
     let safe_host = !host.is_empty() && !host.starts_with('-') && host.split(':').all(safe_segment);
     if !safe_host || segments.is_empty() || !segments.iter().all(|s| safe_segment(s)) {
         return None;
     }
-    Some(Remote { host: host.to_lowercase(), segments })
+    let host = host.to_lowercase();
+    let path = segments.join("/");
+    let remote = remote.unwrap_or_else(|| if host == "github.com" { github_remote(&path) } else { format!("https://{host}/{path}.git") });
+    Some(Remote { host, segments, remote })
 }
 
-/// `Repository.parse` for what the reference listing needs (host and path segments of a remote).
-fn parse(input: &str) -> Option<Remote> {
+/// `Repository.parse` of a remote repository (host, path segments, what to clone).
+pub fn parse(input: &str) -> Option<Remote> {
     let mut cleaned = config::js_trim(input).strip_prefix("git+").unwrap_or(config::js_trim(input)).to_owned();
     if let Some(hash) = cleaned.find('#') {
         cleaned.truncate(hash);
@@ -162,7 +197,7 @@ fn parse(input: &str) -> Option<Remote> {
         let (owner, repo) = (split.next()?, split.next()?);
         let plain = |s: &str| !s.is_empty() && !s.chars().any(|c| c == '/' || config::js_space(c));
         if plain(owner) && plain(repo) {
-            return build_remote("github.com", vec![owner.to_owned(), repo.to_owned()]);
+            return build_remote("github.com", vec![owner.to_owned(), repo.to_owned()], None);
         }
     }
     if !cleaned.contains("://") {
@@ -174,16 +209,16 @@ fn parse(input: &str) -> Option<Remote> {
         if let Some(colon) = rest.find(':') {
             let host = &rest[..colon];
             if !host.is_empty() && !host.contains('/') && !host.chars().any(config::js_space) && colon + 1 < rest.len() {
-                return build_remote(host, parts(&rest[colon + 1..]));
+                return build_remote(host, parts(&rest[colon + 1..]), Some(cleaned.to_owned()));
             }
         }
         let direct = parts(cleaned);
         let host_like = |s: &str| s.contains('.') || s.contains(':') || s == "localhost";
         if direct.len() >= 2 && host_like(&direct[0]) {
-            return build_remote(&direct[0], direct[1..].to_vec());
+            return build_remote(&direct[0], direct[1..].to_vec(), None);
         }
         if direct.len() == 2 {
-            return build_remote("github.com", direct);
+            return build_remote("github.com", direct, None);
         }
     }
     // A URL: `scheme://[user@]host[:port]/path`.
@@ -197,5 +232,7 @@ fn parse(input: &str) -> Option<Remote> {
     let authority = &rest[..end];
     let host = authority.rsplit_once('@').map(|(_, h)| h).unwrap_or(authority);
     let path = rest[end..].split('?').next().unwrap_or("");
-    build_remote(host, parts(path))
+    let segments = parts(path);
+    let remote = if host.eq_ignore_ascii_case("github.com") { github_remote(&segments.join("/")) } else { cleaned.to_owned() };
+    build_remote(host, segments, Some(remote))
 }

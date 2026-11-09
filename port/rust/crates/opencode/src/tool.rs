@@ -305,6 +305,8 @@ pub struct Snapshot {
     pub tools: Vec<Arc<dyn Tool>>,
     /// The Code Mode catalog summary (`CodeModeCatalog.Summary` as JSON), when Code Mode is available.
     pub code_mode_catalog: Option<Json>,
+    /// Tools the ruleset allows that this request does not advertise (the patch plugin's choice for the model).
+    pub withheld: Vec<String>,
 }
 
 impl Snapshot {
@@ -323,6 +325,9 @@ impl Snapshot {
             Some(tool) => {
                 let output = tool.execute(context, input).await?;
                 Ok(Output { content: file_media::normalize_content(output.content).await, ..output })
+            }
+            None if self.withheld.iter().any(|withheld| withheld == name) => {
+                Err(Failure::Error(ToolError::new(format!("Tool is not available for this request: {name}"))))
             }
             None => Err(Failure::Error(ToolError::new(format!(
                 "No tool named \"{name}\" is currently available. Please use a tool from the available tool list."
@@ -360,7 +365,7 @@ impl Registry {
             let execute = self.tools.iter().find(|tool| tool.definition().name == "execute");
             direct.extend(execute.map(|tool| execute::Execute::new(tool.definition().clone(), Arc::new(inventory))));
         }
-        Snapshot { tools: direct, code_mode_catalog }
+        Snapshot { tools: direct, code_mode_catalog, withheld: vec![] }
     }
 
     /// The Code Mode tools the ruleset leaves visible (the registry's, then `extra`), in registration order (only those

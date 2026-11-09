@@ -1,0 +1,29 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "env",
+      "value": {
+        "OPENROUTER_API_KEY": null
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "export"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": []
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

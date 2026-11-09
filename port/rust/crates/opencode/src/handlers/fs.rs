@@ -48,7 +48,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             // Same confinement as read: the file must exist inside the location.
             crate::fs::read(&location, &payload.path).map_err(|e| failure(e, "File not found"))?;
             let file = crate::fs::resolve(&location.directory, &payload.path);
-            crate::fs::watch(&location, &file)
+            crate::fs::watch(app, &location, &file)
                 .map_err(|_| service_unavailable(crate::fs::WatchDisabled::MESSAGE, "filewatcher"))?;
             Ok(Response::no_content())
         }

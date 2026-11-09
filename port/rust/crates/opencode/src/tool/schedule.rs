@@ -3,7 +3,8 @@
 //! while `experimental.schedules` is on in the location. Their definitions are recorded from the reference
 //! (`definitions/schedule.json`); the snapshot adds them to the Code Mode inventory, and so to its catalog.
 //!
-//! TODO(port): the tools' execution (a call fails as not yet supported).
+//! Their execution is out of scope (a call fails as not yet supported): the tools exist only while the experimental
+//! `schedules` flag is on (experimental flags are out of scope; the standard turns it on only for the schedule API).
 
 use std::sync::{Arc, OnceLock};
 
