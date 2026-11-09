@@ -171,20 +171,24 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
 | `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
 | `handlers/` | `server/src/handlers/*.ts`, one module per area of the API (`handlers/mod.rs` routes an operation by its name) |
-| `inventory.rs` | `core/src/config*.ts`, `agent.ts`, `provider.ts`, `model.ts`, ...: what a location's config and built-in plugins register (agents, providers, models), loaded at boot |
+| `inventory.rs`, `inventory/` | `core/src/config.ts`, `config/*`, `agent.ts`, `provider.ts`, `model.ts`, `command.ts`, `skill.ts`, `reference.ts` and the plugins that fill them: config discovery, substitution, JSONC, v2 normalization; agents, providers and models (no catalog), commands, skills, references; the dropped features' endpoints answer as TS does with nothing configured. `inventory/yaml.rs` is js-yaml 3.15.2 `safeLoad`, `inventory/markdown.rs` gray-matter 4.0.3 (both checked against the real libraries); built-in texts and the plugin and integration tables are recorded from the reference (`inventory/builtin/`). `Location::inventory()` is a snapshot; a config change rebuilds it and announces what changed |
+| `vcs.rs`, `worktree.rs` | `core/src/vcs.ts`, `vcs/patch.ts`, `plugin/vcs/git.ts`, `hg.ts`, `worktree.ts`, `worktree/*`: through the git CLI |
+| `fs.rs`, `fuzzysort.rs`, `collate.rs` | `core/src/filesystem.ts`, `search.ts`, `file-watch.ts`, `ripgrep.ts` (ripgrep from `PATH` or `$XDG_CACHE_HOME/opencode/bin`, never downloaded); fuzzysort 3.1's `go` with its exact scores and tie order; `localeCompare` (UCA over the DUCET 13.0 table in `generated/collation.bin`, made by `gen/src/collation.ts` from Perl's `allkeys.txt`) |
+| `process.rs`, `text.rs`, `project_icon.rs` | `AppProcess.run` (its "Command failed" text), JS string helpers, `project/icon.ts` |
 | `db.rs` | `core/src/database`: the same pragmas, and a fresh database is bootstrapped with upstream's exact DDL and migration journal (`src/generated/database.rs`, from `schema.gen.ts` and `migration.gen.ts` by `gen/src/database.ts`), so either server opens a database the other created |
 | `bus.rs` | `core/src/bus.ts`: durable events get the next sequence of their aggregate and are projected in their commit's transaction; payloads are not retained (as with `opencode serve`); live subscribers get every event after it commits |
-| `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot and its announcements |
+| `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot, reload and eviction, and its announcements |
 | `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
 
-Status (2026-11-08): 13 of the 18 session CRUD scenarios pass; the rest of the standard needs agents, config, the
-model loop and tools. On those 18 scenarios the release build peaks at a median 8.3 MiB per server process, the TS
-server at 311.7 MiB. Unported behavior is marked `TODO(port)` in the source; an endpoint without a handler answers 501 (after the 404 of
-an unknown session, which most session routes check first).
+Status (2026-11-08): 90 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
+system, version control, worktrees, config, agents, providers and models. The execution loop, tools, permissions,
+compaction and snapshots are in progress. Release builds peak at a median of about 9 MiB per server process on the
+passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
-(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the ledger,
-`conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
+(`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
+ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` records them.
 
 ```sh
