@@ -24,7 +24,8 @@
 use crate::border::{BorderSides, BorderStyle, TitleAlignment, border_char_index as bci};
 use crate::color::{ATTRIBUTE_BASE_MASK, RGBA, base_attributes, get_link_id, attributes_with_link};
 use crate::pool::{self, Tracker};
-use crate::unicode::{self, WidthMethod};
+use crate::unicode::WidthMethod;
+use opencode_tui_text::utf8::{self, ControlDisplay};
 
 /// The space every cleared cell holds (`DEFAULT_SPACE_CHAR`).
 pub const DEFAULT_SPACE_CHAR: u32 = 32;
@@ -207,31 +208,62 @@ struct TextGlyph {
 struct TextRow<'a> {
     target: &'a OptimizedBuffer,
     text: &'a str,
-    clusters: Vec<unicode::Cluster>,
+    /// Sparse metadata from `utf8::find_render_cluster_info` for the text.
+    clusters: &'a [utf8::RenderClusterInfo],
     x: i64,
     y: i32,
     end: i64,
-    index: usize,
+    byte_offset: usize,
+    cluster_index: usize,
     advance: u64,
 }
 
+/// `findRenderClusterInfo(text, TextRow.tab_width, .hidden, isAsciiOnly(text), method)`.
+fn render_clusters(text: &str, method: WidthMethod) -> Vec<utf8::RenderClusterInfo> {
+    let mut clusters = Vec::new();
+    let ascii = utf8::is_ascii_only(text.as_bytes());
+    utf8::find_render_cluster_info(text.as_bytes(), TAB_WIDTH as u8, ControlDisplay::Hidden, ascii, method, &mut clusters);
+    clusters
+}
+
 impl<'a> TextRow<'a> {
-    fn new(target: &'a OptimizedBuffer, text: &'a str, x: i32, y: i32, end: i64) -> Self {
-        let clusters = unicode::clusters(text, TAB_WIDTH, target.width_method);
-        TextRow { target, text, clusters, x: x as i64, y, end, index: 0, advance: 0 }
+    fn new(target: &'a OptimizedBuffer, text: &'a str, clusters: &'a [utf8::RenderClusterInfo], x: i32, y: i32, end: i64) -> Self {
+        TextRow { target, text, clusters, x: x as i64, y, end, byte_offset: 0, cluster_index: 0, advance: 0 }
     }
 
     /// The next glyph with at least one cell: `(start, end, x, width)`.
     fn next_glyph(&mut self) -> Option<(usize, usize, i64, u32)> {
-        while self.index < self.clusters.len() {
-            let cluster = self.clusters[self.index];
-            self.index += 1;
-            if cluster.width == 0 {
+        let bytes = self.text.as_bytes();
+        while self.byte_offset < bytes.len() {
+            let start = self.byte_offset;
+            while self.cluster_index < self.clusters.len() && (self.clusters[self.cluster_index].byte_start as usize) < start {
+                self.cluster_index += 1;
+            }
+            let cluster = self.clusters.get(self.cluster_index).filter(|c| c.byte_start as usize == start).copied();
+            if let Some(entry) = cluster {
+                self.byte_offset += entry.byte_len as usize;
+                self.cluster_index += 1;
+            } else {
+                // Sparse metadata omits zero-width clusters, not their UTF-8 bytes.
+                let length = match bytes[start] {
+                    0x00..=0x7f => 1,
+                    0xc0..=0xdf => 2,
+                    0xe0..=0xef => 3,
+                    0xf0..=0xf7 => 4,
+                    _ => 1,
+                };
+                self.byte_offset = (start + length).min(bytes.len());
+            }
+            let width = match cluster {
+                Some(entry) => entry.width_cols,
+                None => utf8::get_width_at(&bytes[start..self.byte_offset], 0, TAB_WIDTH as u8, ControlDisplay::Hidden, self.target.width_method),
+            };
+            if width == 0 {
                 continue;
             }
             let x = self.x + self.advance as i64;
-            self.advance += cluster.width as u64;
-            return Some((cluster.byte_start, cluster.byte_start + cluster.byte_len, x, cluster.width));
+            self.advance += width as u64;
+            return Some((start, self.byte_offset, x, width));
         }
         None
     }
@@ -265,7 +297,8 @@ impl<'a> TextRow<'a> {
     fn fit_bytes(&mut self, room: u64, max_width: u64) -> Option<usize> {
         let mut kept = None;
         while self.advance <= max_width {
-            let (start, ..) = self.next_glyph()?;
+            let start = self.byte_offset;
+            self.next_glyph()?;
             if kept.is_none() && self.advance > room {
                 kept = Some(start);
             }
@@ -934,7 +967,7 @@ impl OptimizedBuffer {
             return;
         }
         let end: i64 = if max_width == 0 { self.width as i64 } else { (self.width as i64).min(x as i64 + max_width as i64) };
-        let ascii = unicode::is_ascii_only(text.as_bytes());
+        let ascii = utf8::is_ascii_only(text.as_bytes());
         if ascii && !(ellipsis && text.len() > max_width as usize) {
             let clipped = if x < 0 { text.len().min(x.unsigned_abs() as usize) } else { 0 };
             for (column, &byte) in (x.max(0) as u32..).zip(&text.as_bytes()[clipped..]) {
@@ -949,10 +982,15 @@ impl OptimizedBuffer {
 
         let mut owned = String::new();
         let mut input = text;
+        let mut clusters = render_clusters(input, self.width_method);
         if ellipsis {
-            let room = (max_width as u64).saturating_sub(unicode::width_at(ELLIPSIS, 0, TAB_WIDTH, self.width_method) as u64);
-            let mut measure = TextRow::new(self, input, x, y, i64::MAX);
+            let room = (max_width as u64).saturating_sub(
+                utf8::get_width_at(ELLIPSIS.as_bytes(), 0, TAB_WIDTH as u8, ControlDisplay::Hidden, self.width_method) as u64,
+            );
+            let mut measure = TextRow::new(self, input, &clusters, x, y, i64::MAX);
             if let Some(kept) = measure.fit_bytes(room, max_width as u64) {
+                // TextRow measures the ellipsis itself: metadata for the cut bytes no longer applies.
+                clusters.retain(|c| (c.byte_start as usize) < kept);
                 owned.push_str(&text[..kept]);
                 owned.push_str(ELLIPSIS);
                 input = &owned;
@@ -965,8 +1003,16 @@ impl OptimizedBuffer {
             count: u32,
         }
         let mut runs: Vec<Run> = Vec::new();
+        // The runs' own references end once the cells hold theirs (or the draw fails).
+        let release = |runs: Vec<Run>| {
+            for run in runs {
+                if pool::is_grapheme_char(run.char) {
+                    pool::release_grapheme(pool::grapheme_id_from_char(run.char));
+                }
+            }
+        };
         {
-            let mut layout = TextRow::new(self, input, x, y, end);
+            let mut layout = TextRow::new(self, input, &clusters, x, y, end);
             while let Some(glyph) = layout.next() {
                 let bytes = &input.as_bytes()[glyph.start..glyph.end];
                 let char = if glyph.blank {
@@ -974,10 +1020,13 @@ impl OptimizedBuffer {
                 } else if bytes.len() == 1 {
                     bytes[0] as u32
                 } else {
-                    let id = pool::with_graphemes(|pool| pool.acquire(bytes));
+                    // `try self.acquireGlyph(bytes)`: a full pool fails the whole draw.
+                    let Some(id) = pool::acquire_grapheme(bytes) else {
+                        release(runs);
+                        return;
+                    };
                     pool::pack_grapheme_start(id, glyph.width)
                 };
-                let _ = glyph.width;
                 runs.push(Run { x: glyph.x, char, count: glyph.count });
             }
         }
@@ -988,12 +1037,7 @@ impl OptimizedBuffer {
                 self.set_text_cell(run.x + offset, row, cell);
             }
         }
-        // The runs' own references end once the cells hold theirs.
-        for run in runs {
-            if pool::is_grapheme_char(run.char) {
-                pool::with_graphemes(|pool| pool.decref(pool::grapheme_id_from_char(run.char)));
-            }
-        }
+        release(runs);
     }
 
     /// `setTextCell`.
@@ -1028,9 +1072,9 @@ impl OptimizedBuffer {
             self.set(x, y, make_cell(bytes.as_bytes()[0] as u32, fg, bg, attributes));
             return;
         }
-        let id = pool::with_graphemes(|pool| pool.acquire(bytes.as_bytes()));
+        let Some(id) = pool::acquire_grapheme(bytes.as_bytes()) else { return };
         self.set(x, y, make_cell(pool::pack_grapheme_start(id, cell_width), fg, bg, attributes));
-        pool::with_graphemes(|pool| pool.decref(id));
+        pool::release_grapheme(id);
     }
 
     /// `fillRect` (TS: nothing for a non-positive extent; native `fillRectClipped` for the part inside).
@@ -1268,7 +1312,8 @@ impl OptimizedBuffer {
         if text.is_empty() || !side || !at_side {
             return TitleLayout::default();
         }
-        let length = unicode::text_width(text, TAB_WIDTH, self.width_method) as i32;
+        let bytes = text.as_bytes();
+        let length = utf8::calculate_text_width(bytes, 2, ControlDisplay::Hidden, utf8::is_ascii_only(bytes), self.width_method) as i32;
         if (width as i32) < length + 4 {
             return TitleLayout::default();
         }
@@ -1485,8 +1530,7 @@ fn is_single_width_border_char(char: u32) -> bool {
     if char > 0x10FFFF {
         return false;
     }
-    // TODO(port-tui): opencode-tui-text: utf8.eastAsianWidth.
-    char::from_u32(char).is_some_and(|c| unicode::text_width(&c.to_string(), TAB_WIDTH, WidthMethod::Unicode) == 1)
+    utf8::east_asian_width(char) == 1
 }
 
 #[cfg(test)]
