@@ -12,6 +12,8 @@ pub use opencode_tui_text::{TextAlign, WrapMode};
 use crate::buffer::OptimizedBuffer;
 use crate::color::RGBA;
 use crate::layout::{MeasureMode, Value};
+use crate::selection::{self, LocalSelection, SelectionBehavior, SelectionEvent};
+use opencode_tui_text::scene_text::SelectionOperation;
 use crate::tree::{self, Element, Kind};
 
 /// `TextChunk`.
@@ -54,6 +56,69 @@ pub struct TextKind {
     pub dirty: bool,
     /// `content` was set directly (`_hasManualStyledText`).
     pub manual: bool,
+    /// `lastLocalSelection`.
+    pub last_local: Option<LocalSelection>,
+    pub selection_bg: Option<RGBA>,
+    pub selection_fg: Option<RGBA>,
+}
+
+impl TextKind {
+    /// `updateLocalSelection(localSelection, isStart)` on the scene text.
+    fn update_local_selection(&mut self, local: Option<LocalSelection>, is_start: bool) -> bool {
+        let (bg, fg) = (self.selection_bg.map(|c| c.0), self.selection_fg.map(|c| c.0));
+        let mut scene = self.scene.borrow_mut();
+        let result = match local {
+            None => scene.set_selection(SelectionOperation::Reset, SelectionBehavior::Cell, 0, 0, 0, 0, bg, fg),
+            Some(l) => scene.set_selection(
+                if is_start { SelectionOperation::Set } else { SelectionOperation::Update },
+                l.behavior,
+                l.anchor_x,
+                l.anchor_y,
+                l.focus_x,
+                l.focus_y,
+                bg,
+                fg,
+            ),
+        };
+        result.unwrap_or(false)
+    }
+
+    /// `refreshLocalSelection` after the text changed.
+    fn refresh_local_selection(&mut self) {
+        if let Some(local) = self.last_local {
+            self.update_local_selection(Some(local), true);
+        }
+    }
+
+    /// `shouldStartSelection(x, y)`.
+    pub fn selection_should_start(&self, el: Element, x: i32, y: i32) -> bool {
+        if !el.selectable() {
+            return false;
+        }
+        let (lx, ly) = (x - el.x(), y - el.y());
+        lx >= 0 && (lx as f32) < el.width() && ly >= 0 && (ly as f32) < el.height()
+    }
+
+    /// `onSelectionChanged(selection)`.
+    pub fn selection_changed(&mut self, el: Element, sel: Option<&SelectionEvent>) -> bool {
+        let local = selection::local_selection(sel, el.x(), el.y());
+        let changed = self.update_local_selection(local, sel.is_some_and(|s| s.is_start));
+        self.last_local = local;
+        if changed {
+            el.request_render();
+        }
+        self.selection_has()
+    }
+
+    /// `getSelectedText()`.
+    pub fn selection_text(&self) -> String {
+        self.scene.borrow().selected_text()
+    }
+
+    /// `hasSelection()`.
+    pub fn selection_has(&self) -> bool {
+        self.scene.borrow().selection().is_some()
+    }
 }
 
 impl Kind for TextKind {
@@ -82,12 +147,25 @@ impl Kind for TextKind {
         } else {
             el.request_render();
         }
+        self.refresh_local_selection();
         el.emit("line-info-change");
     }
     fn on_resize(&mut self, el: Element, width: f32, height: f32) {
         self.scene.borrow_mut().apply_layout(width.max(0.0) as u32, height.max(0.0) as u32);
         el.request_render();
         el.emit("line-info-change");
+    }
+    fn should_start_selection(&mut self, el: Element, x: i32, y: i32) -> bool {
+        self.selection_should_start(el, x, y)
+    }
+    fn on_selection_changed(&mut self, el: Element, selection: Option<&SelectionEvent>) -> bool {
+        self.selection_changed(el, selection)
+    }
+    fn selected_text(&mut self, _el: Element) -> String {
+        self.selection_text()
+    }
+    fn has_selection(&mut self, _el: Element) -> bool {
+        self.selection_has()
     }
     fn as_any(&self) -> &dyn Any {
         self
@@ -181,7 +259,16 @@ pub fn create_text_with(wrap: impl FnOnce(TextKind) -> Box<dyn Kind>) -> Element
     let scene = Rc::new(RefCell::new(SceneText::new(crate::renderer::width_method(), &text_context())));
     let options = default_options();
     let measured = scene.clone();
-    let el = tree::create(wrap(TextKind { scene, options, dirty: false, manual: false }), "text", false);
+    let kind = TextKind {
+        scene,
+        options,
+        dirty: false,
+        manual: false,
+        last_local: None,
+        selection_bg: None,
+        selection_fg: None,
+    };
+    let el = tree::create(wrap(kind), "text", false);
     el.set_selectable(true);
     el.with_kind::<TextKind, _>(|k| {
         let _ = k.scene.borrow_mut().set_options(k.options, || [None, None]);
@@ -295,6 +382,7 @@ impl Element {
         } else {
             self.request_render();
         }
+        self.with_kind::<TextKind, _>(|k| k.refresh_local_selection());
         self.emit("line-info-change");
     }
 
@@ -367,5 +455,18 @@ impl Element {
     /// `virtualLineCount`.
     pub fn virtual_line_count(self) -> u32 {
         self.with_kind::<TextKind, _>(|k| k.scene.borrow_mut().metrics().virtual_line_count).unwrap_or(0)
+    }
+}
+
+impl Element {
+    /// `selectionBg` / `selectionFg` of a `<text>`.
+    pub fn set_text_selection_colors(self, bg: Option<RGBA>, fg: Option<RGBA>) {
+        self.with_kind::<TextKind, _>(|k| {
+            k.selection_bg = bg;
+            k.selection_fg = fg;
+            let local = k.last_local;
+            k.update_local_selection(local, true);
+        });
+        self.request_render();
     }
 }

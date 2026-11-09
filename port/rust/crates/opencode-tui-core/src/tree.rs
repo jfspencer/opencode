@@ -169,6 +169,22 @@ pub trait Kind: Any {
     fn hits_after_children(&self, _el: Element, _x: i32, _y: i32, _w: u32, _h: u32) -> Vec<(i32, i32, u32, u32)> {
         Vec::new()
     }
+    /// `shouldStartSelection(x, y)`, in screen cells (see [`crate::selection`]).
+    fn should_start_selection(&mut self, _el: Element, _x: i32, _y: i32) -> bool {
+        false
+    }
+    /// `onSelectionChanged(selection)`: whether the node now holds a selection.
+    fn on_selection_changed(&mut self, _el: Element, _selection: Option<&crate::selection::SelectionEvent>) -> bool {
+        false
+    }
+    /// `getSelectedText()`.
+    fn selected_text(&mut self, _el: Element) -> String {
+        String::new()
+    }
+    /// `hasSelection()`.
+    fn has_selection(&mut self, _el: Element) -> bool {
+        false
+    }
     fn destroy(&mut self, _el: Element) {}
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
@@ -708,6 +724,11 @@ impl Element {
             )
         });
         self.yoga_changed();
+    }
+
+    /// `zIndex`.
+    pub fn z_index(self) -> i32 {
+        self.with_base(|b| b.z_index).unwrap_or(0)
     }
 
     pub fn set_z_index(self, z: i32) {

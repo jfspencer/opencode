@@ -23,6 +23,7 @@ use tokio::time::Instant;
 
 use crate::color::RGBA;
 use crate::input::{Event, KeyEvent, Parser, PasteEvent, RawMouse};
+use crate::selection;
 use crate::output;
 use crate::terminal::{self, Pump, ReplyEffects, Session, ThemeMode};
 use crate::tree::{self, Element, MouseEvent, MouseEventType};
@@ -593,7 +594,18 @@ pub fn copy_to_clipboard_osc52(text: &str) -> bool {
         let out = &mut s.out;
         s.session.write_clipboard(&output.borrow(), terminal::ClipboardTarget::Clipboard, text.as_bytes(), out)
     })
+    .inspect(|_| wake())
     .unwrap_or(false)
+}
+
+/// `capabilities.remote` and `capabilities.osc52_support` as the clipboard reads them (remote without a
+/// renderer).
+pub fn clipboard_capabilities() -> (bool, terminal::Osc52Support) {
+    with(|s| {
+        let output = s.output.borrow();
+        (output.terminal.capabilities().remote, output.terminal.osc52_support())
+    })
+    .unwrap_or((true, terminal::Osc52Support::Unknown))
 }
 
 /// `destroy()`: the terminal is restored by the loop, which then ends.
@@ -1041,6 +1053,16 @@ fn mouse_event(kind: MouseEventType, raw: &RawMouse, target: Option<Element>) ->
     }
 }
 
+/// The pointer's last cell (`_latestPointer`), once the mouse moved.
+pub(crate) fn pointer() -> Option<(i32, i32)> {
+    with(|s| s.pointer).flatten()
+}
+
+/// The renderable under a screen cell in the presented frame's hits.
+pub(crate) fn hit_test_at(x: i32, y: i32) -> Option<Element> {
+    hit_test(x, y)
+}
+
 fn hit_test(x: i32, y: i32) -> Option<Element> {
     if x < 0 || y < 0 {
         return None;
@@ -1080,6 +1102,40 @@ fn process_mouse(raw: RawMouse) {
         same
     })
     .unwrap_or(false);
+    // Selection: a left press on a selectable renderable starts one, a drag extends it, the release ends it.
+    if kind == MouseEventType::Down && left && !selection::is_dragging() && !raw.ctrl {
+        if let Some(target) =
+            found.filter(|el| el.selectable() && !el.is_destroyed() && el.should_start_selection(raw.x, raw.y))
+        {
+            let behavior = selection::next_click_behavior(target, raw.x, raw.y);
+            selection::start_selection(target, raw.x, raw.y, behavior);
+            dispatch(target, mouse_event(kind, &raw, Some(target)));
+            return;
+        }
+    }
+    if kind == MouseEventType::Drag && selection::is_dragging() {
+        selection::update_selection(found, raw.x, raw.y, false);
+        if let Some(target) = found {
+            let mut event = mouse_event(kind, &raw, Some(target));
+            event.is_dragging = true;
+            send(target, event);
+        }
+        return;
+    }
+    if kind == MouseEventType::Up && left && selection::is_dragging() {
+        if let Some(target) = found {
+            let mut event = mouse_event(kind, &raw, Some(target));
+            event.is_dragging = true;
+            send(target, event);
+        }
+        selection::finish_selection();
+        return;
+    }
+    if kind == MouseEventType::Down && left && raw.ctrl && selection::has_selection() {
+        selection::set_dragging();
+        selection::update_selection(found, raw.x, raw.y, false);
+        return;
+    }
     let captured = with(|s| s.captured).flatten();
     if !same && matches!(kind, MouseEventType::Drag | MouseEventType::Move) {
         let last = with(|s| s.last_over).flatten();
@@ -1121,19 +1177,29 @@ fn process_mouse(raw: RawMouse) {
     }
     let is_left_drag = left && kind == MouseEventType::Drag;
     let target = if is_left_drag { pressed.filter(|p| !p.is_destroyed()).or(found) } else { found };
-    match target {
+    let event = match target {
         Some(target) => {
             if is_left_drag {
                 with(|s| s.captured = Some(target));
             } else if left && kind == MouseEventType::Down {
                 with(|s| s.pressed = Some(target));
             }
-            send(target, mouse_event(kind, &raw, Some(target)));
+            Some(dispatch(target, mouse_event(kind, &raw, Some(target))))
         }
         None => {
             with(|s| s.last_over = None);
+            None
         }
+    };
+    let prevented = event.is_some_and(|e| e.default_prevented);
+    if !prevented && kind == MouseEventType::Down && left && selection::has_selection() {
+        selection::clear_selection();
     }
+}
+
+/// `dispatchMouseEvent` (autoFocus is off).
+fn dispatch(target: Element, event: MouseEvent) -> MouseEvent {
+    send(target, event)
 }
 
 /// `recheckHoverState` after a presented frame.
