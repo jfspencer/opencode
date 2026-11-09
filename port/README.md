@@ -197,7 +197,8 @@ endpoint without a handler answers 501 (after the 404 of an unknown session, whi
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
-`--update` records them.
+`--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
+as not run.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)
