@@ -84,6 +84,13 @@
           {
             "content": "\nCustom body.\n",
             "description": "From a configured skill path.",
+            "id": "linked",
+            "name": "linked",
+            "path": "<project>/.opencode/skills/linked/SKILL.md"
+          },
+          {
+            "content": "\nCustom body.\n",
+            "description": "From a configured skill path.",
             "id": "custom",
             "name": "custom",
             "path": "<project>/extra-skills/custom/SKILL.md"
@@ -210,6 +217,7 @@
     ".opencode/skills/.hidden/SKILL.md": "---\ndescription: Hidden directories are skipped.\n---\n\nHidden.\n",
     ".opencode/skills/auto/SKILL.md": "---\ndescription: Explicitly auto-invokable.\nmetadata:\n  opencode/autoinvoke: false\n---\nAuto body.",
     ".opencode/skills/badfront/SKILL.md": "---\nname: [unclosed\ndescription: 5\n---\nBad.",
+    ".opencode/skills/dangling": "<symlink -> <project>/nowhere>",
     ".opencode/skills/deploy/SKILL.md": "---\nname: Deploy\ndescription: Deploy the application safely.\n---\n\n# Deploy\n\nRun the deploy script.\n",
     ".opencode/skills/deploy/reference/notes.md": "Notes.\n",
     ".opencode/skills/deploy/scripts/run.sh": "echo deploy\n",

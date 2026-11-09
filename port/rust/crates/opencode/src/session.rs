@@ -5,7 +5,9 @@
 //! [`retry`], [`title`].
 
 pub mod attachment;
+pub mod blob;
 pub mod command;
+pub mod compaction;
 pub mod context;
 pub mod diff;
 pub mod entries;
@@ -19,10 +21,13 @@ pub mod prompt;
 pub mod retry;
 pub mod revert;
 pub mod runner;
+pub mod shell;
 pub mod skill;
+pub mod stats;
 pub mod step;
 pub mod subagent;
 pub mod title;
+pub mod transfer;
 
 use std::collections::HashSet;
 use std::sync::Mutex;
@@ -221,7 +226,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.deleted" => {
-            // TODO(port): SessionBlob.releaseSession.
+            blob::release_session(tx, id)?;
             tx.execute("DELETE FROM session_v2 WHERE id = ?1", params![id])?;
         }
         "session.renamed" => set_session(
@@ -258,6 +263,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         "session.unarchived" => {
             set_session(tx, id, "time_archived = NULL, time_updated = ?1", vec![Value::Integer(created)])?
         }
+        "session.forked" => transfer::project_fork(tx, event)?,
         "worktree.resolved" => adopt(tx, data)?,
         "session.inbox.enqueued" => inbox::project_admitted(tx, event)?,
         "session.inbox.delivered" => inbox::project_delivered(tx, event)?,
@@ -312,6 +318,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.usage.recorded" => apply_usage(tx, id, data, None)?,
+        "session.compaction.started" | "session.compaction.ended" | "session.compaction.failed" => compaction::project(tx, event)?,
         "session.revert.staged" | "session.revert.cleared" | "session.revert.committed" => revert::project(tx, event)?,
         "session.agent.selected" => {
             message::project(tx, event)?;
@@ -643,7 +650,7 @@ pub fn remove<'a>(app: &'a App, session_id: &'a str) -> std::pin::Pin<Box<dyn st
             for child in children {
                 remove(app, &child).await?;
             }
-            // TODO(port): clear the session's environment variables.
+            shell::clear_environment(session_id);
             let mut data = Obj::new();
             data.str("sessionID", session.id());
             publish(app, "session.deleted", data.done(), None)?;

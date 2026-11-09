@@ -114,7 +114,9 @@ scenario("update project metadata", { files: { "a.txt": "a\n" } }, async (ctx) =
   await ctx.http("PATCH", `/api/project/${id}`, { name: "Renamed" })
   await ctx.http("PATCH", `/api/project/${id}`, { name: "", icon: { override: "", color: "" }, commands: { start: "" } })
   await ctx.http("PATCH", `/api/project/${id}`, { canonical: path.join(ctx.project, "moved") })
+  await ctx.http("PATCH", `/api/project/${id}`, { canonical: "relative" })
   await ctx.http("PATCH", "/api/project/does-not-exist", { name: "x" })
+  await ctx.http("PATCH", "/api/project/does-not-exist", { canonical: "relative" })
   await ctx.http("PATCH", `/api/project/${id}`, { name: 5 })
   await projects(ctx)
 })
@@ -188,7 +190,9 @@ scenario("location of the default and a nested directory", { files: { "sub/a.txt
   await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === path.join(ctx.project, "sub"))
 })
 
-scenario("reload every loaded location", { files: { "opencode.json": JSON.stringify({ username: "before" }) } }, async (ctx) => {
+// Without the file watcher: its reload of the written config would race the read before the explicit reload, and the
+// reload itself.
+scenario("reload every loaded location", { files: { "opencode.json": JSON.stringify({ username: "before" }) }, server: { filewatcher: false } }, async (ctx) => {
   await boot(ctx)
   await ctx.http("GET", "/api/config")
   ctx.write("opencode.json", JSON.stringify({ username: "after" }))

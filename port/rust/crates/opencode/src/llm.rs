@@ -47,6 +47,8 @@ pub struct Model {
     /// A body overlay of the provider, model and variant, deep-merged into the request body (`http.body`).
     pub body: Option<Json>,
     pub limit_context: f64,
+    /// `limit.input` (0 when the catalog has none).
+    pub limit_input: f64,
     pub limit_output: f64,
     pub cost: Vec<Json>,
     /// `capabilities.input`.

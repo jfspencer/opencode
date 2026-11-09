@@ -181,7 +181,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "642dc5441a9a8631896ed30efcb3be40db2fa214cb1e104a445ba1679fea3d2e"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -220,7 +220,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "642dc5441a9a8631896ed30efcb3be40db2fa214cb1e104a445ba1679fea3d2e"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -231,6 +231,10 @@
             {
               "content": "Ok.",
               "role": "assistant"
+            },
+            {
+              "content": "<system-update>\nInstructions from: <project>/AGENTS.md\nSecret rules.\n\n</system-update>",
+              "role": "user"
             },
             {
               "content": "Rules now?",
@@ -558,8 +562,7 @@
             "core/codemode": "<hash_2>",
             "core/date": "<hash_3>",
             "core/environment": "<hash_4>",
-            "core/instructions": "<hash_5>",
-            "core/skill-guidance": "<hash_6>"
+            "core/skill-guidance": "<hash_5>"
           },
           "sessionID": "<ses_1>"
         },
@@ -823,15 +826,35 @@
       {
         "created": "<time>",
         "data": {
+          "delta": {
+            "core/instructions": "<hash_6>"
+          },
+          "sessionID": "<ses_1>",
+          "text": "Instructions from: <project>/AGENTS.md\nSecret rules.\n"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 15,
+          "version": 2
+        },
+        "id": "<evt_38>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.instructions.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "inboxID": "<msg_4>",
           "sessionID": "<ses_1>"
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 15,
+          "seq": 16,
           "version": 1
         },
-        "id": "<evt_38>",
+        "id": "<evt_39>",
         "location": {
           "directory": "<project>"
         },
@@ -852,10 +875,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 16,
+          "seq": 17,
           "version": 1
         },
-        "id": "<evt_39>",
+        "id": "<evt_40>",
         "location": {
           "directory": "<project>"
         },
@@ -870,10 +893,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 17,
+          "seq": 18,
           "version": 1
         },
-        "id": "<evt_40>",
+        "id": "<evt_41>",
         "location": {
           "directory": "<project>"
         },
@@ -887,7 +910,7 @@
           "ordinal": 0,
           "sessionID": "<ses_1>"
         },
-        "id": "<evt_41>",
+        "id": "<evt_42>",
         "location": {
           "directory": "<project>"
         },
@@ -903,10 +926,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 18,
+          "seq": 19,
           "version": 1
         },
-        "id": "<evt_42>",
+        "id": "<evt_43>",
         "location": {
           "directory": "<project>"
         },
@@ -920,10 +943,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 19,
+          "seq": 20,
           "version": 1
         },
-        "id": "<evt_43>",
+        "id": "<evt_44>",
         "location": {
           "directory": "<project>"
         },
@@ -949,10 +972,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 20,
+          "seq": 21,
           "version": 1
         },
-        "id": "<evt_44>",
+        "id": "<evt_45>",
         "location": {
           "directory": "<project>"
         },
@@ -973,7 +996,7 @@
             "reasoning": 0
           }
         },
-        "id": "<evt_45>",
+        "id": "<evt_46>",
         "type": "session.usage.updated"
       },
       {
@@ -983,10 +1006,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 21,
+          "seq": 22,
           "version": 1
         },
-        "id": "<evt_46>",
+        "id": "<evt_47>",
         "type": "session.execution.succeeded"
       }
     ]

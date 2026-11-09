@@ -3,7 +3,8 @@
 //! instruction source keyed `api/<key>`, after the core ones; a removed entry stays as a tombstone so its removal is
 //! announced to the model once.
 //!
-//! TODO(port): copying entries into a forked or imported session (`InstructionEntry.initialize`).
+//! A fork copies the parent's entries, removed ones included (`InstructionEntry.initialize`, in
+//! [`crate::session::transfer::project_fork`]); an import carries none.
 
 use opencode_protocol::Json;
 use rusqlite::{Connection, params};

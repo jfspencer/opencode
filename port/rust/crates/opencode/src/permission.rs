@@ -15,9 +15,10 @@
 //! policies' `tool.use` statements (config/plugin/policy.ts's `permission.evaluate` hook). A request with any
 //! resource that evaluates to `ask` is published (`permission.asked`) and waits for [`Service::reply`].
 //!
-//! TODO(port): the `Unattended` ruleset (schedule checks).
+//! A requester's `unattended` rules (`Permission.Unattended`) settle what would ask: allowed when they allow every
+//! resource, else denied as needing approval nobody is present to give.
 
-// The interface is the tools' and the permission endpoints' (built concurrently): allow it to be unused until then.
+// The interface is the tools' (built concurrently): allow it to be unused until then.
 #![allow(dead_code)]
 
 use std::sync::Mutex;
@@ -53,6 +54,9 @@ pub struct Requester {
     pub agent: Option<String>,
     /// The tool call that asks (`{type: "tool", messageID, id}`).
     pub source: Option<Source>,
+    /// `Permission.Unattended`: rules that settle a request which would otherwise ask, for work nobody is present to
+    /// answer (a schedule's check); a request they do not allow is denied. Configured denies still win.
+    pub unattended: Option<Vec<Json>>,
 }
 
 #[derive(Debug, Clone)]
@@ -127,6 +131,15 @@ pub struct NotFound {
     pub request_id: String,
 }
 
+/// Why [`Service::ask`] failed.
+#[derive(Debug, Clone)]
+pub enum AskError {
+    /// `Session.NotFoundError`.
+    SessionNotFound(String),
+    /// A pending request already has the given ID (a defect in TS: `Duplicate pending permission ID: <id>`).
+    Duplicate(String),
+}
+
 type Settle = Result<(), Error>;
 
 struct Pending {
@@ -194,15 +207,29 @@ fn rule(action: &str, resource: &str, effect: &str) -> Json {
 }
 
 /// The request's ruleset (`configured`): the agent's (deny-all when unknown), then the session's.
-fn configured(app: &App, location: &Location, requester: &Requester) -> Result<Vec<Json>, Error> {
+/// `Session.NotFoundError` of an evaluation: the requester's session does not exist.
+struct MissingSession(String);
+
+impl From<MissingSession> for Error {
+    fn from(MissingSession(id): MissingSession) -> Self {
+        Error::SessionNotFound(id)
+    }
+}
+
+fn configured(app: &App, location: &Location, requester: &Requester) -> Result<Vec<Json>, MissingSession> {
     let stored = crate::session::get(&app.db.lock().unwrap(), &requester.session_id)
         .map_err(fatal)
         .ok()
         .flatten()
-        .ok_or_else(|| Error::SessionNotFound(requester.session_id.clone()))?;
+        .ok_or_else(|| MissingSession(requester.session_id.clone()))?;
     let agent = requester.agent.clone().or_else(|| json::get_str(&stored.info, "agent").map(str::to_owned));
     let inventory = location.inventory();
-    let mut rules = match agent.as_deref().and_then(|id| inventory.agent(id)) {
+    // `Agent.resolve`: the named agent, else the selected default.
+    let resolved = match agent.as_deref() {
+        Some(id) => inventory.agent(id),
+        None => inventory.default_agent(),
+    };
+    let mut rules = match resolved {
         Some(agent) => match json::of(&agent.permissions) {
             Json::Array(rules) => rules,
             _ => vec![],
@@ -253,7 +280,7 @@ fn policy_denial(location: &Location, action: &str, resources: &[String]) -> Opt
 }
 
 impl Service {
-    fn evaluate_input(&self, app: &App, location: &Location, requester: &Requester, ask: &Ask) -> Result<Evaluation, Error> {
+    fn evaluate_input(&self, app: &App, location: &Location, requester: &Requester, ask: &Ask) -> Result<Evaluation, MissingSession> {
         let rules = configured(app, location, requester)?;
         if ask.resources.iter().any(|resource| evaluate(&ask.action, resource, &rules) == "deny") {
             return Ok(Evaluation { effect: "deny", message: None, rules });
@@ -266,6 +293,14 @@ impl Service {
         if let Some(reason) = policy_denial(location, &ask.action, &ask.resources) {
             effect = "deny";
             message = reason;
+        }
+        if let (true, Some(unattended)) = (effect == "ask", &requester.unattended) {
+            let settled: Vec<Json> = all.iter().chain(unattended).cloned().collect();
+            if ask.resources.iter().all(|resource| evaluate(&ask.action, resource, &settled) == "allow") {
+                return Ok(Evaluation { effect: "allow", message: None, rules: all });
+            }
+            let message = format!("Permission {} needs approval, and nobody is present to give it", ask.action);
+            return Ok(Evaluation { effect: "deny", message: Some(message), rules: all });
         }
         Ok(Evaluation { effect, message, rules: all })
     }
@@ -289,7 +324,8 @@ impl Service {
         o.done()
     }
 
-    /// Records a pending request and publishes it; the receiver settles with its reply.
+    /// Records a pending request and publishes it; the receiver settles with its reply. A request whose ID is
+    /// pending already is refused (with that ID).
     fn create(
         &self,
         bus: &Bus,
@@ -297,15 +333,17 @@ impl Service {
         request: Json,
         requester: &Requester,
         ask: &Ask,
-    ) -> oneshot::Receiver<Settle> {
+    ) -> Result<oneshot::Receiver<Settle>, String> {
         let (sender, receiver) = oneshot::channel();
         if self.closed.load(Ordering::SeqCst) {
             let _ = sender.send(Err(Error::Declined));
-            return receiver;
+            return Ok(receiver);
         }
         let id = json::get_str(&request, "id").unwrap_or_default().to_owned();
         let mut pending = self.pending.lock().unwrap();
-        assert!(pending.iter().all(|p| p.id() != id), "Duplicate pending permission ID: {id}");
+        if pending.iter().any(|p| p.id() == id) {
+            return Err(id);
+        }
         pending.push(Pending {
             request: request.clone(),
             session_id: requester.session_id.clone(),
@@ -315,22 +353,24 @@ impl Service {
             agent: requester.agent.clone(),
             settle: Some(sender),
         });
+        drop(pending);
         bus.emit("permission.asked", request, PublishOptions { id: None, location: Some(location.clone()) });
-        receiver
+        Ok(receiver)
     }
 
     /// `Permission.ask`: evaluates the request and, when it needs an answer, publishes it without waiting.
-    pub fn ask(&self, app: &App, location: &Location, requester: &Requester, ask: &Ask) -> Result<AskResult, Error> {
+    pub fn ask(&self, app: &App, location: &Location, requester: &Requester, ask: &Ask) -> Result<AskResult, AskError> {
         if self.closed.load(Ordering::SeqCst) {
             let id = requester.id.clone().unwrap_or_else(|| format!("per_{}", crate::id::ascending()));
             return Ok(AskResult { id, effect: "deny" });
         }
-        let result = self.evaluate_input(app, location, requester, ask)?;
+        let result =
+            self.evaluate_input(app, location, requester, ask).map_err(|MissingSession(id)| AskError::SessionNotFound(id))?;
         let request = Self::request(requester, ask, result.message);
         let id = json::get_str(&request, "id").unwrap_or_default().to_owned();
         if result.effect == "ask" {
             // Nobody awaits the answer: dropping the receiver leaves the request pending until it is replied to.
-            drop(self.create(&app.bus, &location.reference(), request, requester, ask));
+            drop(self.create(&app.bus, &location.reference(), request, requester, ask).map_err(AskError::Duplicate)?);
         }
         Ok(AskResult { id, effect: result.effect })
     }
@@ -353,7 +393,11 @@ impl Service {
             _ => {
                 let request = Self::request(requester, ask, result.message);
                 let id = json::get_str(&request, "id").unwrap_or_default().to_owned();
-                let receiver = self.create(&app.bus, &location.reference(), request, requester, ask);
+                // A tool's requests get fresh IDs, which are never pending already.
+                let receiver = self.create(&app.bus, &location.reference(), request, requester, ask).map_err(|id| {
+                    eprintln!("Duplicate pending permission ID: {id}");
+                    Error::Declined
+                })?;
                 let _forget = Forget { service: self, id };
                 receiver.await.unwrap_or(Err(Error::Declined))
             }
@@ -448,6 +492,7 @@ impl Service {
                         session_id: item.session_id.clone(),
                         agent: item.agent.clone(),
                         source: None,
+                        unattended: None,
                     },
                     Ask { action: item.action.clone(), resources: item.resources.clone(), save: None, metadata: None },
                 )
@@ -483,6 +528,11 @@ impl Service {
         self.pending.lock().unwrap().iter().filter(|p| p.session_id == session_id).map(|p| p.request.clone()).collect()
     }
 
+    /// Whether the location shut down (`LocationLifecycle.isClosed`: the permissions close first).
+    pub fn is_closed(&self) -> bool {
+        self.closed.load(Ordering::SeqCst)
+    }
+
     /// The location shuts down: every pending request is rejected (`close`).
     pub fn close(&self, bus: &Bus, location: &LocationRef) {
         self.closed.store(true, Ordering::SeqCst);
@@ -512,10 +562,10 @@ impl Drop for Forget<'_> {
     }
 }
 
-/// `Permission.NotFoundError` as the HTTP API answers it.
-#[allow(dead_code)] // The permission endpoints (the permissions slice).
-pub fn not_found(error: &NotFound) -> HttpFailure {
+/// `PermissionNotFoundError` (`missingRequest` in handlers/permission.ts).
+pub fn not_found(request_id: &str) -> HttpFailure {
     let mut o = Obj::new();
-    o.str("_tag", "Permission.NotFoundError").str("requestID", &error.request_id);
+    o.str("_tag", "PermissionNotFoundError").str("requestID", request_id);
+    o.str("message", &format!("Permission request not found: {request_id}"));
     HttpFailure::new(404, o.done())
 }

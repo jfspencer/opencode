@@ -36,11 +36,14 @@
 //!   settings, not the model's. Non-chat models are in `catalog.other` (listed by type only).
 //! - Reloads: [`Shared::reload`] rediscovers the config and announces what changed (`PATCH /api/experimental/config`
 //!   calls it). `location.reload` shuts the location down and boots it again, which rebuilds the inventory with it.
+//!   The skill sources and instruction files are watched: a change rescans the skills (announcing `skill.updated`)
+//!   or rediscovers the instructions, replacing the snapshot.
 //! - Commands: [`Inventory::command`] / [`Inventory::commands`] (`Command.get` / `Command.list`); a
 //!   [`commands::Command`] is a built-in (`init`, `review`, `goal`) or a config/markdown command with its template,
 //!   agent, model and subagent flag. Running one is the execution loop's.
 //! - Skills: [`Inventory::skills`] (`Skill.list`, content included) and [`Inventory::skill`]; references:
-//!   [`Inventory::references`] (`Reference.list`).
+//!   [`Inventory::references`] (`Reference.list`); instructions: [`Inventory::instructions`] (AGENTS.md files and
+//!   config `instructions`, see [`crate::instruction_discovery`]).
 //! - Config: [`Inventory::entries`] (the documents, lowest priority first) and [`Inventory::latest`] for one setting
 //!   (`Config.latest`), e.g. `shell`, `snapshots`, `tool_output`, `instructions`, `compaction`.
 
@@ -59,7 +62,7 @@ pub mod skills;
 pub mod wildcard;
 pub mod yaml;
 
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 
 use opencode_protocol::Json;
 use opencode_protocol::types as t;
@@ -70,7 +73,7 @@ use crate::json::Obj;
 
 pub use config::Entry;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Inventory {
     pub directory: String,
     pub sources: config::Sources,
@@ -84,23 +87,34 @@ pub struct Inventory {
     pub commands: Vec<commands::Command>,
     pub skills: Vec<t::SkillInfo>,
     pub references: Vec<t::ReferenceInfo>,
+    /// The project's directory (instruction discovery walks up to it).
+    pub project_directory: String,
+    /// What instruction discovery found (`core/instructions`).
+    pub instructions: crate::instruction_discovery::Discovered,
+    /// The configured instruction URLs' last fetched copies.
+    pub remote_instructions: crate::instruction_discovery::Remote,
+    /// The skill directories the configured skill URLs pulled.
+    pub pulled_skills: skills::Pulled,
 }
 
 impl Inventory {
-    /// Loads the inventory of a location directory.
-    pub fn load(location: &LocationRef) -> Result<Inventory, Failure> {
-        Ok(Self::build(&location.directory, config::discover(&location.directory)))
-    }
-
-    fn build(directory: &str, sources: config::Sources) -> Inventory {
+    fn build(
+        directory: &str,
+        project_directory: &str,
+        sources: config::Sources,
+        entries: Vec<Entry>,
+        remote_instructions: crate::instruction_discovery::Remote,
+        pulled_skills: skills::Pulled,
+    ) -> Inventory {
         let options = config::Options::get();
-        let entries = config::load(directory, &sources);
         let registry = agents::build(&entries, &options.home, &config::join(&options.home, ".opencode/plan"));
         let selected = registry.selected().is_some();
         let catalog = providers::build(&entries);
         let commands = commands::build(&entries);
-        let skills = skills::build(&entries, &sources, directory);
+        let skills = skills::build(&entries, &sources, directory, &pulled_skills);
         let references = references::build(&entries, directory, &options.home, &options.repos);
+        let instructions =
+            crate::instruction_discovery::discover(directory, project_directory, &entries, &remote_instructions);
         Inventory {
             directory: directory.to_owned(),
             sources,
@@ -111,6 +125,10 @@ impl Inventory {
             skills,
             references,
             entries,
+            project_directory: project_directory.to_owned(),
+            instructions,
+            remote_instructions,
+            pulled_skills,
         }
     }
 
@@ -182,16 +200,131 @@ impl Inventory {
 }
 
 /// A location's current inventory, replaced as a whole when its config changes.
-#[derive(Debug)]
+///
+/// Its skill sources and instruction files are watched ([`crate::watch`]): a burst of changes rescans the skills
+/// (announcing `skill.updated` when they changed) or rediscovers the instructions, 100 ms after its last change.
 pub struct Shared {
     current: RwLock<Arc<Inventory>>,
-    /// Serializes config reloads (`Config.reload` holds a lock).
+    /// Serializes config reloads and rescans (`Config.reload` and the plugins' refreshes hold locks).
     reloading: tokio::sync::Mutex<()>,
+    skills: Rescan,
+    instructions: Rescan,
+}
+
+impl std::fmt::Debug for Shared {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Shared").field("current", &self.current).finish_non_exhaustive()
+    }
+}
+
+/// What a watched change rescans.
+#[derive(Clone, Copy)]
+enum Kind {
+    Skills,
+    Instructions,
+}
+
+/// One watched rescan: its watches (replaced on every rescan), where they send, and the task that rescans.
+struct Rescan {
+    watches: Mutex<Vec<crate::watch::Watch>>,
+    changes: crate::watch::Sender,
+    pending: Mutex<Option<tokio::sync::mpsc::UnboundedReceiver<String>>>,
+    task: Mutex<Option<crate::watch::Watch>>,
+}
+
+impl Rescan {
+    fn new() -> Self {
+        let (changes, pending) = tokio::sync::mpsc::unbounded_channel();
+        Self { watches: Mutex::new(vec![]), changes, pending: Mutex::new(Some(pending)), task: Mutex::new(None) }
+    }
+
+    fn replace(&self, watches: Vec<crate::watch::Watch>) {
+        *self.watches.lock().unwrap() = watches;
+    }
+
+    /// The instruction files' watches (`ConfigInstructionPlugin`'s file subscriptions).
+    fn watch_files(&self, files: &[String]) {
+        self.replace(files.iter().filter_map(|file| crate::watch::file(file, &self.changes)).collect());
+    }
+
+    fn start(&self, kind: Kind, app: Arc<crate::app::App>, location: std::sync::Weak<crate::location::Location>) {
+        let Some(mut pending) = self.pending.lock().unwrap().take() else { return };
+        let task = tokio::spawn(async move {
+            while pending.recv().await.is_some() {
+                // Editor saves arrive as bursts: settle first.
+                loop {
+                    tokio::select! {
+                        more = pending.recv() => if more.is_none() { return },
+                        _ = tokio::time::sleep(std::time::Duration::from_millis(100)) => break,
+                    }
+                }
+                let Some(location) = location.upgrade() else { return };
+                let reference = location.reference();
+                match kind {
+                    Kind::Skills => location.inventory.rescan_skills(&app.bus, &reference).await,
+                    Kind::Instructions => location.inventory.rescan_instructions().await,
+                }
+            }
+        });
+        *self.task.lock().unwrap() = Some(crate::watch::Watch::task(task));
+    }
 }
 
 impl Shared {
-    pub fn new(inventory: Inventory) -> Self {
-        Self { current: RwLock::new(Arc::new(inventory)), reloading: tokio::sync::Mutex::new(()) }
+    /// Loads the inventory of a location directory (in a project rooted at `project_directory`): fetches what the
+    /// config names remotely (instruction URLs, skill indexes) and watches the skill sources as they load.
+    pub async fn load(location: &LocationRef, project_directory: &str) -> Result<Shared, Failure> {
+        let skill_rescan = Rescan::new();
+        let instruction_rescan = Rescan::new();
+        let sources = config::discover(&location.directory);
+        let entries = config::load(&location.directory, &sources);
+        let remote = crate::instruction_discovery::fetch(&entries, &[]).await;
+        let (pulled, watches) = skills::pull_all(&entries, &location.directory, Some(&skill_rescan.changes)).await;
+        skill_rescan.replace(watches);
+        instruction_rescan.watch_files(&crate::instruction_discovery::watched(&location.directory, project_directory, &entries));
+        let inventory = Inventory::build(&location.directory, project_directory, sources, entries, remote, pulled);
+        Ok(Self {
+            current: RwLock::new(Arc::new(inventory)),
+            reloading: tokio::sync::Mutex::new(()),
+            skills: skill_rescan,
+            instructions: instruction_rescan,
+        })
+    }
+
+    /// Starts acting on the watched changes (once the location is booted).
+    pub fn watch(&self, app: Arc<crate::app::App>, location: std::sync::Weak<crate::location::Location>) {
+        self.skills.start(Kind::Skills, app.clone(), location.clone());
+        self.instructions.start(Kind::Instructions, app, location);
+    }
+
+    /// `ConfigSkillPlugin.refresh` after a watched change: the sources are loaded (and watched) again, and a change of
+    /// the skills is announced.
+    async fn rescan_skills(&self, bus: &Bus, location: &LocationRef) {
+        let _reloading = self.reloading.lock().await;
+        let previous = self.get();
+        self.skills.replace(vec![]);
+        let (pulled, watches) = skills::pull_all(&previous.entries, &previous.directory, Some(&self.skills.changes)).await;
+        self.skills.replace(watches);
+        let skills = skills::build(&previous.entries, &previous.sources, &previous.directory, &pulled);
+        let changed = opencode_protocol::to_string(&skills) != opencode_protocol::to_string(&previous.skills);
+        let next = Inventory { skills, pulled_skills: pulled, ..(*previous).clone() };
+        *self.current.write().unwrap() = Arc::new(next);
+        if changed {
+            bus.emit("skill.updated", Obj::new().done(), PublishOptions { id: None, location: Some(location.clone()) });
+        }
+    }
+
+    /// `ConfigInstructionPlugin.refresh` after a watched change (the URLs keep their copies).
+    async fn rescan_instructions(&self) {
+        let _reloading = self.reloading.lock().await;
+        let previous = self.get();
+        let (directory, project) = (&previous.directory, &previous.project_directory);
+        self.instructions.watch_files(&crate::instruction_discovery::watched(directory, project, &previous.entries));
+        let instructions =
+            crate::instruction_discovery::discover(directory, project, &previous.entries, &previous.remote_instructions);
+        if instructions != previous.instructions {
+            *self.current.write().unwrap() = Arc::new(Inventory { instructions, ..(*previous).clone() });
+        }
     }
 
     pub fn get(&self) -> Arc<Inventory> {
@@ -208,9 +341,24 @@ impl Shared {
         let previous = self.get();
         let sources = config::discover(&previous.directory);
         let compatibility_changed = sources.claude != previous.sources.claude || sources.agents != previous.sources.agents;
-        let next = Inventory::build(&previous.directory, sources);
+        let entries = config::load(&previous.directory, &sources);
+        let config_changed = entries != previous.entries || compatibility_changed;
+        // A config change fetches the instruction and skill URLs again and renews the watches (`reconfigure`,
+        // `refresh`).
+        let (remote, pulled) = if config_changed {
+            self.skills.replace(vec![]);
+            let remote = crate::instruction_discovery::fetch(&entries, &previous.remote_instructions).await;
+            let (pulled, watches) = skills::pull_all(&entries, &previous.directory, Some(&self.skills.changes)).await;
+            self.skills.replace(watches);
+            let (directory, project) = (&previous.directory, &previous.project_directory);
+            self.instructions.watch_files(&crate::instruction_discovery::watched(directory, project, &entries));
+            (remote, pulled)
+        } else {
+            (previous.remote_instructions.clone(), previous.pulled_skills.clone())
+        };
+        let next = Inventory::build(&previous.directory, &previous.project_directory, sources, entries, remote, pulled);
         let options = || PublishOptions { id: None, location: Some(location.clone()) };
-        if next.entries != previous.entries || compatibility_changed {
+        if config_changed {
             bus.emit("config.updated", Obj::new().done(), options());
             for _ in 0..2 {
                 bus.emit("provider.updated", Obj::new().done(), options());

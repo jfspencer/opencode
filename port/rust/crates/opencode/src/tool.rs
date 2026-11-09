@@ -17,13 +17,19 @@
 //! feeds the `core/codemode` instructions.
 //!
 //! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error.
-//! Descriptions that depend on the inventory (skills; subagents are live) are the reference configuration's. Plugin
+//! The subagent description is live; the skill tool's is static in TS. Plugin
 //! `tool.execute.before/after` hooks, input repair. The loop bounds every successful result with [`output::truncate`].
 
+pub mod arguments;
 pub mod execute;
 pub mod opencode;
 pub mod output;
+pub mod shell;
+mod question;
+pub mod schedule;
+pub mod skill;
 pub mod subagent;
+pub mod webfetch;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -57,6 +63,8 @@ pub struct Context {
     pub directory: String,
     /// Publishes `session.tool.progress` with the given metadata.
     pub progress: Arc<dyn Fn(Json) + Send + Sync>,
+    /// `Permission.Unattended` while a schedule check runs the call (see [`crate::permission::Requester`]).
+    pub unattended: Option<Vec<Json>>,
 }
 
 /// A successful execution (`Tool.NormalizedResult`): `content` is a non-empty array of `Tool.Content`
@@ -91,12 +99,14 @@ impl ToolError {
 
 #[allow(dead_code)] // The tools' (the tools slice).
 impl Context {
-    fn requester(&self) -> crate::permission::Requester {
+    /// The requester of this call's permission requests (`Permission.invocation(context)`).
+    pub fn requester(&self) -> crate::permission::Requester {
         crate::permission::Requester {
             id: None,
             session_id: self.session_id.clone(),
             agent: Some(self.agent.clone()),
             source: Some(crate::permission::Source { message_id: self.message_id.clone(), id: self.call_id.clone() }),
+            unattended: self.unattended.clone(),
         }
     }
 
@@ -219,9 +229,16 @@ const DEFINITIONS: &[(&str, &str)] =
 fn builtin() -> Vec<Arc<dyn Tool>> {
     let mut tools: Vec<Arc<dyn Tool>> = DEFINITIONS
         .iter()
-        .map(|(name, text)| match *name {
-            subagent::NAME => Arc::new(subagent::Subagent::new(definition(name, text))) as Arc<dyn Tool>,
-            _ => Arc::new(Unported { definition: definition(name, text) }) as Arc<dyn Tool>,
+        .map(|(name, text)| {
+            let definition = definition(name, text);
+            match *name {
+                "shell" => shell::tool(definition),
+                "question" => Arc::new(question::Question { definition }) as Arc<dyn Tool>,
+                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
+                "skill" => Arc::new(skill::Skill { definition }),
+                "webfetch" => Arc::new(webfetch::WebFetch { definition }),
+                _ => Arc::new(Unported { definition }),
+            }
         })
         .collect();
     // The `opencode.tools` plugin's (tool/plugin/opencode.ts), registered after the built-in tools.
@@ -292,11 +309,19 @@ impl Snapshot {
 
 impl Registry {
     /// `Tool.snapshot(permissions)`.
+    #[allow(dead_code)] // For callers without location plugins; the loop uses `snapshot_with`.
     pub fn snapshot(&self, rules: &[Json]) -> Snapshot {
+        self.snapshot_with(rules, &[])
+    }
+
+    /// `Tool.snapshot(permissions)` of a location whose plugins also registered `extra` tools (after the built-in
+    /// ones, such as the schedule tools while schedules are on).
+    pub fn snapshot_with(&self, rules: &[Json], extra: &[Arc<dyn Tool>]) -> Snapshot {
         let code_mode = !wholly_disabled("execute", rules);
         let active: Vec<&Arc<dyn Tool>> = self
             .tools
             .iter()
+            .chain(extra)
             .filter(|tool| tool.definition().name != "execute")
             .filter(|tool| !wholly_disabled(tool.permission(), rules))
             .collect();
@@ -306,7 +331,7 @@ impl Registry {
         direct.sort_by(|a, b| a.definition().name.cmp(&b.definition().name));
         let mut code_mode_catalog = None;
         if code_mode {
-            let inventory = self.code_mode_inventory(rules, None);
+            let inventory = self.code_mode_inventory(rules, extra, None);
             code_mode_catalog = Some(self.catalog(&inventory));
             let execute = self.tools.iter().find(|tool| tool.definition().name == "execute");
             direct.extend(execute.map(|tool| execute::Execute::new(tool.definition().clone(), Arc::new(inventory))));
@@ -314,13 +339,14 @@ impl Registry {
         Snapshot { tools: direct, code_mode_catalog }
     }
 
-    /// The Code Mode tools the ruleset leaves visible, in registration order (only those at `paths` when given, as
-    /// `Tool.check` takes them), with the registered namespaces.
-    pub fn code_mode_inventory(&self, rules: &[Json], paths: Option<&[String]>) -> crate::codemode::Inventory {
+    /// The Code Mode tools the ruleset leaves visible (the registry's, then `extra`), in registration order (only those
+    /// at `paths` when given, as `Tool.check` takes them), with the registered namespaces.
+    pub fn code_mode_inventory(&self, rules: &[Json], extra: &[Arc<dyn Tool>], paths: Option<&[String]>) -> crate::codemode::Inventory {
         crate::codemode::Inventory {
             tools: self
                 .tools
                 .iter()
+                .chain(extra)
                 .filter(|tool| tool.code_mode() && !wholly_disabled(tool.permission(), rules))
                 .filter(|tool| paths.is_none_or(|paths| paths.contains(&tool.code_mode_path())))
                 .cloned()

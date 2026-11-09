@@ -13,7 +13,11 @@ path = "src/main.rs"
 
 [dependencies]
 opencode-protocol.workspace = true
-opencode-codemode.workspace = true
+opencode-shell = { path = "../opencode-shell" }
+opencode-html.workspace = true
+# The JS engine's RegExp and Date.parse, as the reference runs them (form answers).
+opencode-codemode = { path = "../opencode-codemode" }
+url = "2.5"
 indexmap.workspace = true
 regex.workspace = true
 tokio.workspace = true
@@ -30,5 +34,4 @@ tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
 unicode-normalization.workspace = true
 sha2.workspace = true
-# Code Mode `fetch` (URL parsing and redirect resolution); already built for opencode-codemode.
-url = "2.5"
+libc.workspace = true

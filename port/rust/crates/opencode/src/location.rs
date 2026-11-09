@@ -4,8 +4,9 @@
 //! Booting resolves and activates the directory's project, then activates the location's plugins, which announce
 //! what they registered, in the order the TS server's built-in plugins do. What they register (config, agents,
 //! providers, models, commands, skills, references) is the location's [`crate::inventory::Inventory`], loaded before
-//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) announces `location.shutdown`;
-//! TODO(port): it also closes the location's permission requests, forms and RPC clients.
+//! the announcements. Shutting a location down (`LocationLifecycle.shutdown`) rejects its pending permission
+//! requests and cancels its pending forms, then announces `location.shutdown`. TODO(port): it also closes the
+//! location's RPC clients (between the forms and the announcement).
 //! TODO(port): the idle sweep (location-activity.ts: a location unused for an hour, or its configured
 //! `experimental.location_idle_timeout`, is evicted); the location watcher (filesystem/location-watcher.ts: the
 //! repository's HEAD is watched, its changes announced as `filesystem.changed` and the VCS branch re-read). A
@@ -38,6 +39,10 @@ pub struct Location {
     pub search: crate::fs::Search,
     /// The location's pending permission requests (`Permission.Service`).
     pub permission: crate::permission::Service,
+    /// The location's forms (`Form.Service`).
+    pub forms: crate::form::Service,
+    /// The location's shell commands (`Shell.Service`).
+    pub shell: Arc<crate::shell::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
 }
@@ -130,6 +135,7 @@ impl Locations {
             return Ok(location);
         }
         let location = Arc::new(boot(app, &key).await?);
+        location.inventory.watch(app.arc(), Arc::downgrade(&location));
         self.booted.lock().unwrap().insert(key, location.clone());
         Ok(location)
     }
@@ -143,8 +149,10 @@ impl Locations {
     pub fn invalidate(&self, app: &App, reference: &LocationRef) {
         let removed = self.booted.lock().unwrap().shift_remove(&canonical(reference));
         if let Some(location) = removed {
-            // TODO(port): the order of the services' finalizers against `location.shutdown`.
+            // `LocationLifecycle.shutdown`: permissions, then forms, then the announcement.
             location.permission.close(&app.bus, &location.reference());
+            location.forms.close(&app.bus, &location.reference());
+            location.shell.close();
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -174,15 +182,18 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     let is_dir = std::path::Path::new(&directory).is_dir();
     // Discovery spawns git; it runs off the runtime's thread.
     let resolved = tokio::task::spawn_blocking(move || crate::project::discover(&directory)).await.expect("project discovery");
-    // A missing directory is not persisted as a project: FileSystem rejects the location right after.
+    // A missing directory is not persisted as a project: FileSystem rejects the location right after. Its
+    // lifecycle still activates the project first, which announces one already recorded (an imported session's).
     if !is_dir {
+        let db = app.db.lock().unwrap();
+        app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;
         return Err(not_found(&key.directory));
     }
     let Ok(root) = std::fs::canonicalize(&key.directory).map(|p| p.to_string_lossy().into_owned()) else {
         return Err(not_found(&key.directory));
     };
     // Read the config and plugin sources before taking the database.
-    let inventory = crate::inventory::Shared::new(crate::inventory::Inventory::load(key)?);
+    let inventory = crate::inventory::Shared::load(key, &resolved.directory).await?;
     {
         let mut db = app.db.lock().unwrap();
         app.projects.persist(&mut db, &app.bus, &resolved).map_err(crate::app::fatal)?;
@@ -199,6 +210,8 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         root,
         version_control,
         permission: Default::default(),
+        forms: Default::default(),
+        shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
         snapshot: Default::default(),
     };
     {

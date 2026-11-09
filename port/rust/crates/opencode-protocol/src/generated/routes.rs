@@ -151,7 +151,7 @@ pub const ROUTES: &[Route] = &[
         headers: None,
         payload: &[],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentGetResponse") }],
-        errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentNotFoundError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("AgentNotFoundError") }, Body { status: 503, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ServiceUnavailableError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("LocationNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
         middleware: Middleware::Location,
     },
     Route {
@@ -1256,7 +1256,7 @@ pub const ROUTES: &[Route] = &[
         headers: None,
         payload: &[Body { status: 0, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectUpdatePayload") }],
         success: &[Body { status: 200, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("Project") }],
-        errors: &[Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }, Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }],
+        errors: &[Body { status: 400, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("InvalidRequestError") }, Body { status: 404, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("ProjectNotFoundError") }, Body { status: 401, kind: BodyKind::Json, content_type: Some("application/json"), ty: Some("UnauthorizedError") }],
         middleware: Middleware::None,
     },
     Route {

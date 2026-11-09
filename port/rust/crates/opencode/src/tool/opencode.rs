@@ -30,7 +30,8 @@ enum Kind {
 }
 
 pub struct OpenCode {
-    kind: Kind,
+    /// `None` for a recorded tool whose execution is not ported (the schedule tools).
+    kind: Option<Kind>,
     definition: Definition,
     path: String,
     output: Json,
@@ -40,7 +41,13 @@ pub struct OpenCode {
 
 /// The plugin's tools, in registration order.
 pub fn tools() -> Vec<Arc<dyn Tool>> {
-    let recorded = json::parse(include_str!("definitions/opencode.json")).expect("opencode.json is JSON");
+    recorded(include_str!("definitions/opencode.json"))
+}
+
+/// Code Mode tools recorded from the reference (`{tools: [{name, tool, options, description, parameters, output}]}`),
+/// in registration order; those this module does not implement fail as not yet supported.
+pub fn recorded(text: &str) -> Vec<Arc<dyn Tool>> {
+    let recorded = json::parse(text).expect("recorded tools are JSON");
     json::get(&recorded, "tools")
         .and_then(json::array)
         .unwrap_or_default()
@@ -50,13 +57,13 @@ pub fn tools() -> Vec<Arc<dyn Tool>> {
             let short = json::get_str(tool, "tool").unwrap_or_default();
             let options = json::get(tool, "options").cloned().unwrap_or_else(json::object);
             let kind = match short {
-                "session_rename" => Kind::SessionRename,
-                "session_move" => Kind::SessionMove,
-                "worktree_create" => Kind::WorktreeCreate,
-                "worktree_list" => Kind::WorktreeList,
-                "worktree_remove" => Kind::WorktreeRemove,
-                "models" => Kind::Models,
-                other => panic!("unknown opencode tool {other}"),
+                "session_rename" => Some(Kind::SessionRename),
+                "session_move" => Some(Kind::SessionMove),
+                "worktree_create" => Some(Kind::WorktreeCreate),
+                "worktree_list" => Some(Kind::WorktreeList),
+                "worktree_remove" => Some(Kind::WorktreeRemove),
+                "models" => Some(Kind::Models),
+                _ => None,
             };
             Arc::new(OpenCode {
                 kind,
@@ -110,8 +117,11 @@ impl Tool for OpenCode {
 
 impl OpenCode {
     async fn run(&self, context: Context, input: Option<Json>) -> Result<(Output, Option<Json>), Failure> {
-        let decoded = decode(&self.definition.name, schema(self.kind), input.as_ref()).map_err(Failure::Error)?;
-        let (output, content) = match self.kind {
+        let Some(kind) = self.kind else {
+            return Err(curated(format!("Tool not yet supported by the Rust port: {}", self.definition.name)));
+        };
+        let decoded = decode(&self.definition.name, schema(kind), input.as_ref()).map_err(Failure::Error)?;
+        let (output, content) = match kind {
             Kind::SessionRename => session_rename(&context, &decoded)?,
             Kind::SessionMove => session_move(&context, &decoded).await?,
             Kind::WorktreeCreate => worktree_create(&context, &decoded).await?,

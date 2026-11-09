@@ -627,46 +627,64 @@ pub async fn execute(inventory: Arc<Inventory>, code: String, context: tool::Con
 
 // --- Schedule checks (`Tool.check`) --------------------------------------------------------------------------------
 
-/// What a schedule check's program ended with: `CodeMode.Result` as JSON (`{ok, value | error, warnings?, logs?,
-/// truncated?, toolCalls}`), and its text as the execute tool would show it.
+/// `CodeMode.scanTools`: the canonical tool paths a program can call, in first-seen order, or the parse diagnostic's
+/// message.
+#[allow(dead_code)] // The schedule slice's.
+pub fn scan_tools(code: &str) -> Result<Vec<String>, String> {
+    cm::scan::scan_tools(code).map_err(|diagnostic| diagnostic.message.to_rust_lossy())
+}
+
+/// `Tool.CheckInput`.
+#[allow(dead_code)] // The schedule slice's.
+pub struct CheckInput {
+    pub code: String,
+    /// The paths the program may call (normally [`scan_tools`]'s).
+    pub tools: Vec<String>,
+    /// Read-only globals (`state`, `now`, `runs`, `input` for a schedule check).
+    pub bindings: Vec<(String, Json)>,
+    /// The agent's rules, then the session's (`Permission.merge`).
+    pub permissions: Vec<Json>,
+    /// Tools the location's plugins registered beyond the built-in ones (`tool::schedule::tools`).
+    pub extra: Vec<Arc<dyn Tool>>,
+    pub limits: cm::Limits,
+    /// The calls' context: `call_id` is replaced by `call_<message_id>_<index>` for each call. Its `unattended`
+    /// rules settle what would ask.
+    pub context: tool::Context,
+}
+
+/// What a check's program ended with: `CodeMode.Result` as JSON (`{ok, value, warnings?} | {ok, error: {kind,
+/// message, location?, suggestions?}}`, then `logs?`, `truncated?`, `toolCalls`), as TS's `Tool.check` returns it.
 #[allow(dead_code)] // The schedule slice's.
 pub struct CheckResult {
     pub result: Json,
     pub ok: bool,
-    pub text: String,
 }
 
 /// `Tool.check`: runs `code` with `bindings` as read-only globals under `limits`, over the Code Mode tools the
-/// ruleset leaves visible whose paths `tools` names (normally `opencode_codemode::scan::scan_tools(code)`), with no
-/// `fetch` and no progress. Each call gets the context's IDs with its own call ID `call_<messageID>_<index>`.
-/// `Code Mode is disabled for this agent` when the ruleset wholly denies `execute`.
+/// permissions leave visible whose paths `tools` names, with no model step, no `fetch` and no progress. A ruleset
+/// that wholly denies `execute` gives `Code Mode is disabled for this agent`. Limits are validated first (TS throws
+/// at `CodeMode.make`), which is the `Err`.
 ///
 /// The future is `Send` (a [`Pinned`] run): await it on the server's runtime thread.
 #[allow(dead_code)] // The schedule slice's.
-pub fn check(
-    tools: &[String],
-    rules: &[Json],
-    code: String,
-    bindings: Vec<(String, Json)>,
-    limits: cm::Limits,
-    context: tool::Context,
-) -> Pinned<Result<CheckResult, String>> {
-    let disabled = tool::wholly_disabled("execute", rules);
-    let inventory = tool::registry().code_mode_inventory(rules, Some(tools));
+pub fn check(input: CheckInput) -> Pinned<Result<CheckResult, String>> {
+    let disabled = tool::wholly_disabled("execute", &input.permissions);
+    let inventory = tool::registry().code_mode_inventory(&input.permissions, &input.extra, Some(&input.tools));
     pinned(async move {
         if disabled {
             let mut error = Obj::new();
             error.str("kind", "ExecutionFailure").str("message", "Code Mode is disabled for this agent");
             let mut result = Obj::new();
             result.set("ok", Json::Bool(false)).set("error", error.done()).set("toolCalls", Json::Array(Vec::new()));
-            return Ok(CheckResult { result: result.done(), ok: false, text: "Code Mode is disabled for this agent".into() });
+            return Ok(CheckResult { result: result.done(), ok: false });
         }
-        limits.validate()?;
+        input.limits.validate()?;
         let runtime = runtime(&inventory)?;
         let sequence = Rc::new(Cell::new(0u64));
         let by_path: HashMap<String, Arc<dyn Tool>> =
             inventory.tools.iter().map(|tool| (tool.code_mode_path(), tool.clone())).collect();
-        let handler: cm::ToolHandler = Rc::new(move |path: String, input: Option<cm::Json>| {
+        let context = input.context;
+        let handler: cm::ToolHandler = Rc::new(move |path: String, value: Option<cm::Json>| {
             let index = sequence.get();
             sequence.set(index + 1);
             let mut context = context.clone();
@@ -674,20 +692,17 @@ pub fn check(
             let tool = by_path.get(&path).cloned();
             Box::pin(async move {
                 let Some(tool) = tool else { return cm::ToolOutcome::Err(format!("Unknown tool: {path}")) };
-                match tool.execute_code_mode(context, input.as_ref().map(from_cm)).await {
+                match tool.execute_code_mode(context, value.as_ref().map(from_cm)).await {
                     Ok((output, structured)) => cm::ToolOutcome::Ok(Some(to_cm(&result_value(&output, structured)))),
                     Err(failure) => cm::ToolOutcome::Err(failure_message(failure)),
                 }
             })
         });
-        let bindings = bindings.iter().map(|(name, value)| (name.clone(), to_cm(value))).collect();
-        let options = cm::ExecuteOptions { limits, bindings, handler, hooks: cm::Hooks::default(), extensions: Vec::new() };
-        match runtime.execute(&code, options).await {
-            cm::Execution::Done(result) => Ok(CheckResult {
-                result: from_cm(&result.to_json()),
-                ok: result.ok(),
-                text: result.format_output().to_rust_lossy(),
-            }),
+        let bindings = input.bindings.iter().map(|(name, value)| (name.clone(), to_cm(value))).collect();
+        let options =
+            cm::ExecuteOptions { limits: input.limits, bindings, handler, hooks: cm::Hooks::default(), extensions: Vec::new() };
+        match runtime.execute(&input.code, options).await {
+            cm::Execution::Done(result) => Ok(CheckResult { result: from_cm(&result.to_json()), ok: result.ok() }),
             cm::Execution::Interrupted => Err("Tool execution interrupted".into()),
         }
     })
@@ -706,6 +721,15 @@ mod tests {
         .unwrap();
         let snapshot = tool::registry().snapshot(json::array(&rules).unwrap());
         let recorded = json::parse(include_str!("catalog.test.json")).unwrap();
+        assert_eq!(json::text(snapshot.code_mode_catalog.as_ref().unwrap()), json::text(&recorded));
+    }
+
+    /// With schedules on, the catalog has the schedule tools and becomes partial, as recorded from TS.
+    #[test]
+    fn reference_catalog_with_schedules() {
+        let extra = crate::tool::opencode::recorded(include_str!("../tool/definitions/schedule.json"));
+        let snapshot = tool::registry().snapshot_with(&[], &extra);
+        let recorded = json::parse(include_str!("catalog-schedules.test.json")).unwrap();
         assert_eq!(json::text(snapshot.code_mode_catalog.as_ref().unwrap()), json::text(&recorded));
     }
 

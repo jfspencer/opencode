@@ -59,7 +59,8 @@ Out of scope:
 - the model catalog and pricing;
 - MCP, websearch and image generation (their tools are hidden from the model in the reference config);
 - fff file search (file search is ripgrep + fuzzysort, as with `OPENCODE_DISABLE_FFF=1`);
-- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM).
+- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM);
+- Windows (the port targets Linux and macOS; TS's `win32` branches are not ported).
 
 Known upstream bugs are not ported: each is fixed by a deviation patch (`patches/`), so the standard
 requires the fixed behavior. Text written by the JavaScript engine itself (JSON and regular-expression
@@ -183,19 +184,28 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
 | `job.rs`, `session/subagent.rs`, `tool/subagent.rs` | `core/src/job.ts`, `job/*`, `session/subagent-job.ts`, `subagent-completion.ts`, `background.ts`, `tool/plugin/subagent.ts`, subagent commands: a process-local job registry (one generation per job; block, background, cancel; backgrounded work kept in the durable `job` table until its completion notice is admitted); a subagent is a job running a child session, whose last answer is the tool's result or a synthetic notice that wakes the parent |
 | `snapshot.rs`, `session/revert.rs`, `session/diff.rs` | `core/src/snapshot.ts` over `git.ts`'s store operations, through the git CLI: each project worktree gets a git store under `$XDG_DATA_HOME/opencode/snapshot` that borrows the source's objects and starts from its index; captures go through a temporary index and the source's ignore rules filter what callers see. Steps record their start and end snapshots and changed files; `session/revert.ts` stages, clears and commits reverts (the next prompt or compaction commits a staged one); `session/diff.ts` diffs a turn |
-| `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
+| `session/compaction.rs` | `core/src/session/compaction.ts` and the compaction parts of `runner/llm.ts`, `runner/step.ts`, `history.ts`, `recent-text.ts`, `config/plugin/compaction.ts`: automatic compaction before a step past the threshold, overflow recovery when the provider rejects a step as too long before any output, manual compaction at a step boundary, background summaries; the summary request is the step's own request plus the summary prompt (reusing the prompt cache), resent without its kept tail or as a shortened transcript when too long; the history later requests see starts at the latest completed compaction |
+| `tool/webfetch.rs`, `tool/skill.rs`, `tool/arguments.rs`, `url.rs` | `tool/plugin/webfetch.ts`, `tool/http-body.ts` (on `opencode-html`), `tool/plugin/skill.ts`, `tool/runtime.ts`'s input issues, the WHATWG `URL` subset the tools need: URL and credential checks, a permission check per redirect, the Cloudflare retry and the timeout, through the proxy-aware client |
+| `instruction_discovery.rs`, `jsdiff.rs`, `session/instructions.rs` | `instruction-discovery.ts`, `config/plugin/instruction.ts`, `session/instructions.ts`, `reference/instructions.ts`, jsdiff 8.0.4: the AGENTS.md walk (global, project up to the root or home), configured paths, globs and URLs (with diffs for edits), reference guidance, unavailable sources blocking the first admission, nested AGENTS.md after reads |
+| `inventory/skills.rs`, `watch.rs` | `config/plugin/skill.ts`, `skill/discovery.ts`, `filesystem/watcher.ts`: URL skill indexes pulled into the cache; one inotify instance per process (Linux; macOS watches are a TODO) watching skill sources and instruction files, rescanned 100 ms after a burst of changes |
+| `schedule.rs`, `schedule/`, `zone.rs`, `flag.rs`, `tool/schedule.rs` | `core/src/schedule.ts`, `schedule/check.ts`, `flag.ts`, `tool/plugin/schedule.ts`, Effect's `Cron` and `DateTime` zones: schedules (`in`, `at`, `every`, `cron`; `if`/`until` shell checks under `Permission.Unattended`) and the leader-leased firing loop, zones from the system tzdata, feature flags; code checks and the schedule tools' execution are TODO |
+| `session/transfer.rs`, `session/stats.rs`, `session/blob.rs` | `session/transfer.ts`, `Session.fork`, `session-legacy.ts`, `session/stats.ts`, `session/blob.ts`: export (sanitized), import, fork, statistics, media blobs on read, import and fork |
+| `shell.rs`, `shell/`, `file_access.rs`, `tool/shell.rs`, `session/shell.rs` | `core/src/shell.ts`, `shell/select.ts`, `file-access.ts`, `tool/plugin/shell.ts`, `session/shell.ts`, `session/environment.ts`, `server/src/handlers/shell.ts`: a location's shell commands (each leads its own process group; stdout and stderr stream from two pipes into `<data>/shell/<project>/<id>.out` with byte and newline counts; timeouts send SIGTERM, then SIGKILL; 25 exited commands kept; an hourly 7-day sweep), shell selection, the shell tool (workdir resolution, `opencode-shell` analysis, `external_directory` and `shell` permissions, a job that blocks, is backgrounded or notifies the session), users' `!commands`, and the session environment. TODO(port): PTY and persistent PTY |
+| `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
+| `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
-Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
-system, version control, worktrees, config, agents, providers and models, and the execution loop (prompts, streaming
-over OpenRouter, titles, retries, errors, interrupts, commands, attachments, instruction entries, session moves).
-Tools, permissions, compaction, snapshots, subagents, schedules and session transfer are in progress. Release builds
-peak at about 9 to 12 MiB per server process on the passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+Status (2026-11-09): 456 of the 673 server scenarios pass (the ledger): session CRUD, projects, locations, the file
+system, version control, worktrees, config, agents, providers and models, the execution loop, compaction, permissions,
+questions and forms, subagents and jobs, snapshots and reverts, schedules, session transfer, webfetch, skills and
+instructions, and shell. The file tools, Code Mode's `execute`, the CLI and the PTY APIs are in progress. Release builds peak at about 9
+to 12 MiB per server process on the passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
 endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
-`--update` records them.
+`--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
+as not run.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)

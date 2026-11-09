@@ -261,12 +261,7 @@ async fn fetch(context: &tool::Context, args: Vec<HostValue>) -> Result<HostValu
     if parsed.as_ref().is_some_and(|u| !u.username().is_empty() || u.password().is_some()) {
         return Err(error("TypeError", "fetch cannot be used with credentials in the URL."));
     }
-    let requester = permission::Requester {
-        id: None,
-        session_id: context.session_id.clone(),
-        agent: Some(context.agent.clone()),
-        source: Some(permission::Source { message_id: context.message_id.clone(), id: context.call_id.clone() }),
-    };
+    let requester = context.requester();
     // The webfetch tool's rules, so a URL denied there is denied here.
     let ask = Ask {
         action: "webfetch".into(),

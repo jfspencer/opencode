@@ -92,6 +92,7 @@ scenario(
 scenario(
   "absolute and home instruction paths",
   {
+    boot: false,
     files: { "abs/ABS.md": "Absolute rules.\n" },
     turns: [say("Ok.")],
   },
@@ -207,7 +208,9 @@ scenario(
   },
 )
 
-scenario("global AGENTS.md from the config directory", { files: { "AGENTS.md": "Project rules.\n" }, turns: [say("Ok.")] }, async (ctx) => {
+// The global file is written before the location's first request: written after, it would reach the session only when
+// the file watcher rescans, which races the prompt.
+scenario("global AGENTS.md from the config directory", { boot: false, files: { "AGENTS.md": "Project rules.\n" }, turns: [say("Ok.")] }, async (ctx) => {
   // The global config directory is shared by every scenario in the process: remove the file again afterwards.
   const global = path.join(process.env.XDG_CONFIG_HOME!, "opencode", "AGENTS.md")
   mkdirSync(path.dirname(global), { recursive: true })
@@ -222,8 +225,9 @@ scenario("global AGENTS.md from the config directory", { files: { "AGENTS.md": "
 
 scenario(
   "unreadable AGENTS.md blocks instruction initialization",
-  // The file watcher is off: the scenario reloads after the change, and the watcher's reload would race it.
-  { server: { filewatcher: false }, files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
+  // The file is made unreadable before the location's first request, which reads it. The file watcher is off: the
+  // scenario reloads after the change, and the watcher's reload would race it.
+  { boot: false, server: { filewatcher: false }, files: { "AGENTS.md": "Secret rules.\n" }, turns: [say("Ok."), say("Now readable.")] },
   async (ctx) => {
     chmodSync(path.join(ctx.project, "AGENTS.md"), 0o000)
     try {

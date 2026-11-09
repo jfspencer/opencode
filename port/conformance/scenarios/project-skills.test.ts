@@ -54,14 +54,18 @@ scenario("built-in skills", {}, async (ctx) => {
   await ctx.http("GET", "/api/skill")
 })
 
-scenario("skills from config directories and compatibility roots", { files: skillFiles, config: { skills: ["extra-skills", "missing-skills/sub"] } }, async (ctx) => {
-  // A symlinked skill directory and a dangling link inside a skill root.
-  symlinkSync(path.join(ctx.project, "extra-skills/custom"), path.join(ctx.project, ".opencode/skills/linked"))
-  symlinkSync(path.join(ctx.project, "nowhere"), path.join(ctx.project, ".opencode/skills/dangling"))
-  await ctx.http("GET", "/api/skill")
-  // The recorder stats every project file at the end; a dangling link would break it.
-  rmSync(path.join(ctx.project, ".opencode/skills/dangling"))
-})
+// The links are made before the location boots: made after, they would reach the listing only when the file
+// watcher rescans, which races the scenario.
+scenario(
+  "skills from config directories and compatibility roots",
+  { boot: false, files: skillFiles, config: { skills: ["extra-skills", "missing-skills/sub"] } },
+  async (ctx) => {
+    // A symlinked skill directory and a dangling link inside a skill root.
+    symlinkSync(path.join(ctx.project, "extra-skills/custom"), path.join(ctx.project, ".opencode/skills/linked"))
+    symlinkSync(path.join(ctx.project, "nowhere"), path.join(ctx.project, ".opencode/skills/dangling"))
+    await ctx.http("GET", "/api/skill")
+  },
+)
 
 scenario(
   "skills from absolute and home paths",
@@ -70,11 +74,18 @@ scenario(
     const home = path.join(process.env.HOME!, "conformance-skills")
     mkdirSync(path.join(home, "homeskill"), { recursive: true })
     writeFileSync(path.join(home, "homeskill", "SKILL.md"), skill({ description: "Home skill." }, "Home."))
+    const updated = (from: number) =>
+      ctx.until((event) => event?.type === "skill.updated" && event?.location?.directory === ctx.project, from)
     try {
       const from = ctx.events.length
       ctx.write("opencode.json", JSON.stringify({ skills: [path.join(ctx.project, "abs"), "~/conformance-skills"] }))
       // The file watcher reloads the location: wait for it, or the reload races the end of the scenario.
-      await ctx.until((event) => event?.type === "skill.updated" && event?.location?.directory === ctx.project, from)
+      await updated(from)
+      await ctx.http("GET", "/api/skill")
+      // Removing the home skill directory drops its skill when the watcher rescans: wait for that too.
+      const removed = ctx.events.length
+      rmSync(home, { recursive: true, force: true })
+      await updated(removed)
       await ctx.http("GET", "/api/skill")
     } finally {
       rmSync(home, { recursive: true, force: true })
