@@ -206,15 +206,69 @@ fn check(value: &Json, property: &Json, wording: Option<Wording>) -> Vec<String>
             }
         }
         Json::String(text) => {
+            let length = text.encode_utf16().count() as f64;
             if let Some(minimum) = json::get_num(property, "minLength") {
-                if (text.encode_utf16().count() as f64) < minimum {
+                if length < minimum {
                     issues.push(message(format!("Expected a value with a length of at least {}", number_text(minimum))));
+                }
+            }
+            if let Some(maximum) = json::get_num(property, "maxLength") {
+                if length > maximum {
+                    issues.push(message(format!("Expected a value with a length of at most {}", number_text(maximum))));
+                }
+            }
+            if let Some(pattern) = json::get_str(property, "pattern") {
+                // `isStartingWith(prefix)` writes `^<prefix escaped>`; any other pattern is `isPattern`'s RegExp.
+                match starting_with(pattern) {
+                    Some(prefix) if !text.starts_with(&prefix) => {
+                        issues.push(message(format!("Expected a string starting with {}", json::text(&Json::String(prefix)))))
+                    }
+                    Some(_) => {}
+                    None => {
+                        let source: Vec<u16> = pattern.encode_utf16().collect();
+                        let matches = opencode_codemode::jsregex::JsRegExp::new(&source, &[])
+                            .map(|regex| regex.test(&text.encode_utf16().collect::<Vec<u16>>()))
+                            .unwrap_or(true);
+                        if !matches {
+                            issues.push(message(format!("Expected a string matching the RegExp {pattern}")));
+                        }
+                    }
+                }
+            }
+        }
+        Json::Array(items) => {
+            let length = items.len() as f64;
+            if let Some(minimum) = json::get_num(property, "minItems") {
+                if length < minimum {
+                    issues.push(message(format!("Expected a value with a length of at least {}", number_text(minimum))));
+                }
+            }
+            if let Some(maximum) = json::get_num(property, "maxItems") {
+                if length > maximum {
+                    issues.push(message(format!("Expected a value with a length of at most {}", number_text(maximum))));
                 }
             }
         }
         _ => {}
     }
     issues
+}
+
+/// The prefix of a `^literal` pattern (RegExp escapes undone), as `isStartingWith` writes it.
+fn starting_with(pattern: &str) -> Option<String> {
+    let mut rest = pattern.strip_prefix('^')?.chars();
+    let mut prefix = String::new();
+    while let Some(c) = rest.next() {
+        match c {
+            '\\' => match rest.next()? {
+                escaped if "^$\\.*+?()[]{}|/-".contains(escaped) => prefix.push(escaped),
+                _ => return None,
+            },
+            c if "^$.*+?()[]{}|".contains(c) => return None,
+            c => prefix.push(c),
+        }
+    }
+    Some(prefix)
 }
 
 /// The issues inside an array's items or an object's declared properties (`errors: "all"`, in order), each with its

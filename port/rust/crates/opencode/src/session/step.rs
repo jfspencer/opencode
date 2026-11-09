@@ -499,15 +499,16 @@ impl Publisher {
                 }
                 tool.called = true;
                 tool.provider_executed = false;
-                let input = if matches!(input, Json::Object(_)) {
-                    input
+                // `asRecord` for the stored call only: the tool runs with the input as the model sent it.
+                let stored = if matches!(input, Json::Object(_)) {
+                    input.clone()
                 } else {
                     let mut o = Obj::new();
-                    o.set("value", input);
+                    o.set("value", input.clone());
                     o.done()
                 };
                 let mut o = self.base();
-                o.str("id", &id).set("input", input.clone()).set("executed", Json::Bool(false));
+                o.str("id", &id).set("input", stored).set("executed", Json::Bool(false));
                 o.opt("native", native);
                 self.publish("session.tool.called", o.done());
                 return Some((id, name, input));
