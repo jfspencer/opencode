@@ -182,6 +182,35 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/cli-acp-child.test.ts › acp background child followed after the turn
+scenarios/cli-acp-child.test.ts › acp child permission requests and forms with child updates
+scenarios/cli-acp-child.test.ts › acp child permission requests and forms without child updates
+scenarios/cli-acp-child.test.ts › acp child session updates as notifications
+scenarios/cli-acp-child.test.ts › acp child session updates folded into the session
+scenarios/cli-acp-elicitation.test.ts › acp answers questions through form elicitation
+scenarios/cli-acp-elicitation.test.ts › acp cancelling a prompt withdraws its elicitation
+scenarios/cli-acp-elicitation.test.ts › acp form declined, cancelled, failed or malformed
+scenarios/cli-acp-elicitation.test.ts › acp questions a client cannot show are cancelled with a message
+scenarios/cli-acp-load.test.ts › acp session/load failures
+scenarios/cli-acp-load.test.ts › acp session/load replays the history
+scenarios/cli-acp-load.test.ts › acp session/resume attaches without a replay
+scenarios/cli-acp-permission.test.ts › acp cancelling a prompt withdraws its permission request
+scenarios/cli-acp-permission.test.ts › acp permission allowed once, then always
+scenarios/cli-acp-permission.test.ts › acp permission previews and completed diffs of file edits
+scenarios/cli-acp-permission.test.ts › acp permission rejected, cancelled, failed or malformed
+scenarios/cli-acp-permission.test.ts › acp permission requests for shell commands and outside paths
+scenarios/cli-acp-turn.test.ts › acp cancels a running tool
+scenarios/cli-acp-turn.test.ts › acp commands added while a session is attached
+scenarios/cli-acp-turn.test.ts › acp compaction updates
+scenarios/cli-acp-turn.test.ts › acp config options select model, effort and mode
+scenarios/cli-acp-turn.test.ts › acp prompt content
+scenarios/cli-acp-turn.test.ts › acp retries are reported as session info
+scenarios/cli-acp-turn.test.ts › acp session lifecycle
+scenarios/cli-acp-turn.test.ts › acp slash commands
+scenarios/cli-acp-turn.test.ts › acp stop reasons, usage and failures
+scenarios/cli-acp-turn.test.ts › acp tool call updates
+scenarios/cli-acp-wire.test.ts › acp JSON-RPC batches close the connection
+scenarios/cli-acp-wire.test.ts › acp framing of incoming messages
 scenarios/cli-acp.test.ts › acp --login without a terminal
 scenarios/cli-acp.test.ts › acp handshake, session and prompts
 scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions

@@ -1,0 +1,130 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": [
+          "Got response to unknown request 99",
+          "Got response to unknown request nobody",
+          ""
+        ],
+        "stdin": "\n   \n\t\n{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n  {\"jsonrpc\":\"2.0\",\"id\":\"padded\",\"method\":\"authenticate\",\"params\":{\"methodId\":\"opencode-login\"}}  \n{\"jsonrpc\":\"2.0\",\"id\":\"crlf\",\"method\":\"authenticate\",\"params\":{\"methodId\":\"opencode-login\"}}\r\n{not json\n42\n\"text\"\nnull\n{\"id\":7,\"method\":\"initialize\",\"params\":{}}\n{\"jsonrpc\":\"2.0\",\"id\":99,\"result\":{}}\n{\"jsonrpc\":\"2.0\",\"id\":\"nobody\",\"error\":{\"code\":-32603,\"message\":\"Internal error\"}}\n{\"jsonrpc\":\"2.0\",\"method\":\"custom/notification\",\"params\":{}}\n{\"jsonrpc\":\"2.0\",\"method\":\"$/cancel_request\",\"params\":{\"requestId\":1}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"authenticate\",\"params\":{\"methodId\":\"opencode-login\"}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": "padded",
+              "jsonrpc": "2.0",
+              "result": {}
+            },
+            {
+              "id": "crlf",
+              "jsonrpc": "2.0",
+              "result": {}
+            },
+            {
+              "error": {
+                "code": -32700,
+                "message": "Parse error"
+              },
+              "id": null,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32600,
+                "data": 42,
+                "message": "Invalid request"
+              },
+              "id": null,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32600,
+                "data": "text",
+                "message": "Invalid request"
+              },
+              "id": null,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32600,
+                "data": null,
+                "message": "Invalid request"
+              },
+              "id": null,
+              "jsonrpc": "2.0"
+            },
+            {
+              "error": {
+                "code": -32600,
+                "data": {
+                  "id": 7,
+                  "method": "initialize",
+                  "params": {}
+                },
+                "message": "Invalid request"
+              },
+              "id": null,
+              "jsonrpc": "2.0"
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {}
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

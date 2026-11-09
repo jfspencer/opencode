@@ -25,9 +25,14 @@ pub struct Patch {
 /// patch tool, every other model through `edit` and `write`.
 pub fn filter(tools: &mut Snapshot, model_id: &str) {
     let use_patch = model_id.contains("gpt-") && !model_id.contains("oss") && !model_id.contains("gpt-4");
+    let withheld = &mut tools.withheld;
     tools.tools.retain(|tool| {
         let name = tool.definition().name.as_str();
-        if use_patch { name != "edit" && name != "write" } else { name != "patch" }
+        let keep = if use_patch { name != "edit" && name != "write" } else { name != "patch" };
+        if !keep {
+            withheld.push(name.to_owned());
+        }
+        keep
     });
 }
 
