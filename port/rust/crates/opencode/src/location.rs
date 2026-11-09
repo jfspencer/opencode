@@ -172,8 +172,11 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     let is_dir = std::path::Path::new(&directory).is_dir();
     // Discovery spawns git; it runs off the runtime's thread.
     let resolved = tokio::task::spawn_blocking(move || crate::project::discover(&directory)).await.expect("project discovery");
-    // A missing directory is not persisted as a project: FileSystem rejects the location right after.
+    // A missing directory is not persisted as a project: FileSystem rejects the location right after. Its
+    // lifecycle still activates the project first, which announces one already recorded (an imported session's).
     if !is_dir {
+        let db = app.db.lock().unwrap();
+        app.projects.activate(&db, &app.bus, &resolved.id, Some(key.clone())).map_err(crate::app::fatal)?;
         return Err(not_found(&key.directory));
     }
     let Ok(root) = std::fs::canonicalize(&key.directory).map(|p| p.to_string_lossy().into_owned()) else {
