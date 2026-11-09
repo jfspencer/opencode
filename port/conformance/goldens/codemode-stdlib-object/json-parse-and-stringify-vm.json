@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -135,7 +135,7 @@
               ]
             },
             {
-              "content": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected EOF\",\n  \"parse non-string\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"object\\\"\",\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"undefined\\\"\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"{}\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object Object]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
+              "content": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse non-string\": [\n    5,\n    true,\n    [\n      7\n    ]\n  ],\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"<undefined>\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object JSON]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_0"
             }
@@ -312,7 +312,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -411,6 +411,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -423,10 +458,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -442,41 +477,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -484,7 +484,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -552,7 +552,7 @@
           "assistantMessageID": "<msg_2>",
           "content": [
             {
-              "text": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected EOF\",\n  \"parse non-string\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"object\\\"\",\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Unexpected identifier \\\"undefined\\\"\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"{}\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object Object]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
+              "text": "{\n  \"parse\": [\n    1,\n    \"s\",\n    null,\n    [\n      1,\n      {\n        \"a\": true\n      }\n    ],\n    {\n      \"x\": []\n    }\n  ],\n  \"parse invalid\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse empty\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse non-string\": [\n    5,\n    true,\n    [\n      7\n    ]\n  ],\n  \"parse undefined\": \"!SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n  \"parse reviver\": {\n    \"a\": 10,\n    \"b\": {\n      \"c\": 20,\n      \"d\": [\n        30,\n        40\n      ]\n    }\n  },\n  \"parse reviver delete\": {\n    \"b\": 2\n  },\n  \"parse reviver this\": [\n    \"y:y\",\n    \"x:x\",\n    \":\"\n  ],\n  \"parse reviver root\": \"root\",\n  \"parse non-function reviver\": [\n    1\n  ],\n  \"parse proto key\": [\n    [\n      \"__proto__\",\n      \"a\"\n    ],\n    null\n  ],\n  \"stringify\": [\n    \"1\",\n    \"\\\"s\\\"\",\n    \"null\",\n    null,\n    \"[null,null,null,null]\",\n    \"{\\\"c\\\":null,\\\"d\\\":0}\"\n  ],\n  \"stringify nested\": \"{\\\"a\\\":[1,{\\\"b\\\":\\\"x\\\"}],\\\"c\\\":{\\\"d\\\":null}}\",\n  \"stringify indent number\": \"{\\n  \\\"a\\\": [\\n    1,\\n    2\\n  ],\\n  \\\"b\\\": {}\\n}\",\n  \"stringify indent string\": \"{\\n--\\\"a\\\": 1\\n}\",\n  \"stringify indent big\": \"[\\n          1\\n]\",\n  \"stringify indent other\": \"[1]\",\n  \"stringify replacer array\": \"{\\\"a\\\":1,\\\"c\\\":{\\\"a\\\":3},\\\"1\\\":\\\"one\\\"}\",\n  \"stringify replacer function\": \"{\\\"a\\\":101,\\\"b\\\":\\\"x\\\",\\\"c\\\":[101,102]}\",\n  \"stringify replacer drops\": \"{\\\"a\\\":1}\",\n  \"stringify replacer this\": [\n    \"@\",\n    \"o@o\",\n    \"p@p\"\n  ],\n  \"stringify replacer root\": \"[5]\",\n  \"stringify toJSON\": \"{\\\"a\\\":\\\"J:a\\\",\\\"d\\\":\\\"<iso-time>\\\",\\\"u\\\":\\\"http://x.y/z\\\"}\",\n  \"stringify toJSON array\": \"[\\\"0\\\"]\",\n  \"stringify cyclic\": \"[{\\\"a\\\":{\\\"n\\\":1}},{\\\"a\\\":{\\\"n\\\":1}}]\",\n  \"stringify promise\": \"!TypeError: JSON.stringify received an un-awaited Promise; await it first - e.g. `const result = await tools.ns.tool(...)`.\",\n  \"stringify map set\": \"{\\\"m\\\":{},\\\"s\\\":{},\\\"re\\\":{},\\\"h\\\":{\\\"x-a\\\":\\\"1\\\"},\\\"q\\\":{},\\\"b\\\":{\\\"0\\\":1,\\\"1\\\":2}}\",\n  \"stringify error\": \"{\\\"e\\\":{\\\"name\\\":\\\"TypeError\\\",\\\"message\\\":\\\"bad\\\"},\\\"f\\\":{\\\"name\\\":\\\"Error\\\",\\\"message\\\":\\\"x\\\",\\\"code\\\":5}}\",\n  \"stringify function\": \"<undefined>\",\n  \"stringify symbol\": \"<undefined>\",\n  \"stringify generator\": \"{}\",\n  \"stringify deep\": \"!RangeError: Value exceeds the maximum depth of 32.\",\n  \"stringify too long\": \"!RangeError: Invalid string length\",\n  \"stringify unicode\": \"\\\"é \\\\n\\\\u0001\\\"\",\n  \"JSON tag\": [\n    \"[object JSON]\",\n    \"function\",\n    2,\n    3\n  ],\n  \"stringify callable\": [\n    \"1\",\n    \"2\"\n  ]\n}",
               "type": "text"
             }
           ],

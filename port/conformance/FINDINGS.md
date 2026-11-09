@@ -129,6 +129,20 @@ Status as of 2026-11-07, upstream 6a89e9f.
   declarations, hid `tools` from the scan (so `function (a = tools.x()) { var tools }` failed as an unknown tool);
   paths came out in syntax-tree key order instead of first-seen order. Both engines reject classes, so D514 shows
   only where the scan is used alone (schedule-check validation); D516 is not observable through code mode.
+  Side effect, TS behavior and not a deviation: D516's source-order child sort makes each scanTools frame bigger,
+  so Bun's stack overflows on shallower chains. A call chain now overflows at about 7,250 levels (about 9,120
+  before), varying with JIT warm-up from roughly 6,800 to 11,500: after scanning `scan.jsonl` in the same
+  process, `CodeMode.scanTools("tools.a(); x" + "()".repeat(7300))` throws a RangeError on the patched
+  reference. The Rust crate's `MAX_DEPTH` is calibrated to 7,253, and its harness keeps chain cases at 15,000
+  levels, clear of that noise band.
+- D517: a plain "reject" of a call inside a program did not stop the turn. Permission.assert tunnels a decline as
+  a defect so no tool can catch it, but Code Mode's runtime turned every non-interrupt cause of a host call into
+  an error the program catches (`Permission.DeclinedError` for a tool call, an `Error` with an empty message for
+  `fetch`), so the program went on making calls the user never saw and the turn continued. Now the decline ends
+  the host call as an interrupt, which neither engine lets the program catch (no `catch`, `finally` or rejection
+  handler runs; `Promise.allSettled` does not observe it), and the execute call fails with the decline however
+  the program ended: "The user declined this tool call", outcome `interrupted`, as for a direct call (D213). A
+  rejection with feedback stays a catchable error carrying the feedback.
 
 ## Recorded behavior that is not a bug (evidence)
 
@@ -172,14 +186,6 @@ Status as of 2026-11-07, upstream 6a89e9f.
   provider request (655) would gain both headers.
 - `POST /api/experimental/fs/write` answers 500 with an empty body for any write that fails (a path through a
   file, a directory, no permission): the endpoint declares no errors, so the right answer is a design choice.
-- A bug, not yet patched: a plain "reject" inside Code Mode does not stop the turn. Permission.assert tunnels a
-  decline as a defect so that no tool can catch it (`permission.ts`; a direct call's decline ends the turn, D213),
-  but Code Mode's runtime turns every non-interrupt cause of a tool call into an error the program catches
-  (`codemode/src/tool-runtime.ts`: the program sees `Permission.DeclinedError`), and code-mode `fetch` does the same
-  (`Error` with an empty message): "codemode fetch rejected with feedback" records `"Error: "` and the turn goes on.
-  The fix: the bridge (`core/src/codemode/tool.ts`, and `fetch.ts` through the execution context) records the
-  decline and ends the program as an interrupt, which both interpreters propagate uncaught, then fails the call
-  with the decline; the goldens of both engines change.
 - A possible plan-mode race (a prompt before the creation reminder is queued); never observed.
 - CLI errors print JS stack frames (`Cause.pretty`). The CLI driver masks frames, so they are not part of the
   standard; the Rust CLI prints messages only.

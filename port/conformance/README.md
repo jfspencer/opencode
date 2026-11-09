@@ -198,7 +198,9 @@ pipes, read concurrently). Scenarios pin single-file matches and write to one st
 `lib/model.ts` is the product the Rust side reproduces: OpenRouter only, one model defined in config (v2
 config format), every agent on the `max` reasoning variant, no model catalog, no pricing, and out-of-scope
 tools hidden (image generation, websearch, MCP resources). Experimental flags keep their release defaults
-(off); scenarios for flagged features run only with `CONFORMANCE_EXPERIMENTAL=1`.
+(off); scenarios for flagged features run only with `CONFORMANCE_EXPERIMENTAL=1`. Record them the same way
+(`CONFORMANCE_EXPERIMENTAL=1 UPDATE_GOLDENS=1`): a plain `UPDATE_GOLDENS=1` run of a code-mode file re-records
+only the default engine and leaves the " (vm)" goldens stale.
 
 Dropped features still have endpoints the TUI calls (`/api/mcp`, `/api/mcp/resource`, `/api/plugin`,
 `/api/experimental/migration/v1`, `/api/integration`): the Rust server must answer them exactly as the TS

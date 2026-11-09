@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -170,7 +170,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -214,7 +214,7 @@
               ]
             },
             {
-              "content": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
+              "content": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!InvalidCharacterError: The string contains invalid characters.\",\n  \"atob invalid\": \"!InvalidCharacterError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
               "role": "tool",
               "tool_call_id": "call_1"
             }
@@ -391,7 +391,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -490,6 +490,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -502,10 +537,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -521,41 +556,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -563,7 +563,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -808,7 +808,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob invalid\": \"!TypeError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
+              "text": "{\n  \"TextEncoder\": [\n    \"utf-8\",\n    \"104,195,169\",\n    \"\",\n    \"49,50\",\n    \"[object Uint8Array]\"\n  ],\n  \"TextEncoder without new\": \"!TypeError: Constructor TextEncoder requires 'new'.\",\n  \"TextDecoder\": [\n    \"utf-8\",\n    false,\n    false,\n    \"hé\",\n    \"\",\n    \"�\"\n  ],\n  \"TextDecoder labels\": [\n    \"utf-8\",\n    \"utf-8\",\n    \"utf-8\"\n  ],\n  \"TextDecoder unsupported\": \"!RangeError: The \\\"latin1\\\" encoding is not supported; only UTF-8 is.\",\n  \"TextDecoder fatal\": \"!TypeError: TextDecoder.decode: the input is not valid utf-8.\",\n  \"TextDecoder options\": [\n    true,\n    true,\n    \"﻿A\"\n  ],\n  \"TextDecoder BOM\": \"A\",\n  \"TextDecoder bad input\": \"!TypeError: TextDecoder.decode expects a Uint8Array, received a string.\",\n  \"TextDecoder without new\": \"!TypeError: Constructor TextDecoder requires 'new'.\",\n  \"TextDecoder receiver\": \"!TypeError: TextDecoder.prototype.decode called on incompatible receiver a data object.\",\n  \"TextDecoder getter receiver\": \"!TypeError: TextDecoder.prototype.encoding called on incompatible receiver a data object.\",\n  \"roundtrip\": \"ünïcödé ✓\",\n  \"btoa/atob\": [\n    \"aGVsbG8=\",\n    \"hello\",\n    \"\",\n    \"hi\",\n    \"MTIz\"\n  ],\n  \"btoa invalid\": \"!InvalidCharacterError: The string contains invalid characters.\",\n  \"atob invalid\": \"!InvalidCharacterError: The string contains invalid characters.\",\n  \"atob missing\": \"!TypeError: atob requires 1 argument (a string)\",\n  \"btoa missing\": \"!TypeError: btoa requires 1 argument (a string)\",\n  \"structuredClone\": [\n    true,\n    2,\n    1,\n    true,\n    1,\n    5,\n    \"/x/gi\",\n    \"1,2\",\n    true,\n    \"RangeError\",\n    \"r\",\n    1,\n    true,\n    true,\n    true,\n    false,\n    3\n  ],\n  \"structuredClone primitives\": [\n    1,\n    \"s\",\n    null,\n    true\n  ],\n  \"structuredClone cyclic object\": true,\n  \"structuredClone error kinds\": [\n    \"Error\",\n    \"plain\",\n    \"[object Error]\"\n  ],\n  \"structuredClone function\": \"!TypeError: DataCloneError: a function could not be cloned.\",\n  \"structuredClone promise\": \"!TypeError: DataCloneError: an un-awaited Promise could not be cloned.\",\n  \"structuredClone weakmap\": \"!TypeError: DataCloneError: a WeakMap could not be cloned.\",\n  \"structuredClone symbol\": \"!TypeError: DataCloneError: a symbol could not be cloned.\",\n  \"structuredClone tool\": \"!TypeError: DataCloneError: a tool reference could not be cloned.\",\n  \"structuredClone missing\": \"!TypeError: structuredClone requires 1 argument\",\n  \"crypto\": [\n    \"string\",\n    36,\n    true,\n    4,\n    \"[object Uint8Array]\"\n  ],\n  \"crypto bad\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an array.\",\n  \"crypto iterator\": \"!TypeError: crypto.getRandomValues expects a Uint8Array, received an iterator.\",\n  \"console bytes\": true\n}\n\nLogs:\nUint8Array(2) [1,2]",
               "type": "text"
             }
           ],

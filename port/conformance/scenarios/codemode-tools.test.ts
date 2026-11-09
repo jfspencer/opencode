@@ -246,6 +246,33 @@ return results`,
     },
   )
 
+  // A plain "reject" of a call inside a program stops the turn, as a direct call's does: the program cannot catch
+  // it, so the rename after the catch never runs, the execute call fails with the decline and no later turn starts.
+  scenario(
+    `codemode tool call rejected${engine.suffix}`,
+    {
+      config: {
+        ...engine.config,
+        permissions: [...baseConfig.permissions, { action: "external_directory", resource: "*", effect: "ask" }],
+      },
+      files: { "README.md": "# r\n" },
+    },
+    async (ctx) => {
+      const id = await ctx.session()
+      ctx.provider.push(
+        ...programs(
+          `let caught = "nothing"
+try { await tools.opencode.session_move({ directory: "../moved-out" }) } catch (error) { caught = error.message }
+return await tools.opencode.session_rename({ title: "Caught " + caught })`,
+        ),
+      )
+      mkdirSync(path.join(path.dirname(ctx.project), "moved-out"), { recursive: true })
+      await drive(ctx, id, "Move this session out", ["reject"])
+      await ctx.http("GET", `/api/session/${id}`)
+      await settled(ctx, id)
+    },
+  )
+
   scenario(
     `codemode worktree tools${engine.suffix}`,
     // Worktrees live under the global data directory, keyed by the project (its root commit): a distinct README per

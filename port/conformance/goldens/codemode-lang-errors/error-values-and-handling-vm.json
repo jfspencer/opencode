@@ -71,7 +71,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -110,7 +110,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -168,7 +168,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -201,7 +201,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -210,7 +210,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             }
@@ -245,7 +245,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -278,7 +278,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -287,7 +287,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -341,7 +341,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -374,7 +374,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -383,7 +383,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -456,7 +456,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -489,7 +489,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -498,7 +498,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -590,7 +590,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -623,7 +623,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -632,7 +632,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -743,7 +743,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -776,7 +776,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -785,7 +785,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -915,7 +915,7 @@
           "messages": [
             {
               "content": {
-                "<blob>": "3f3607cb1d5f8222804b6a9722234300fc942fd4cf2737394528d47d059efd44"
+                "<blob>": "8912b6e2ab1ce16d1a2e5eaa8cc92c79b94c697379162486ce306fd51d56f8f9"
               },
               "role": "system"
             },
@@ -948,7 +948,7 @@
               "tool_calls": [
                 {
                   "function": {
-                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
+                    "arguments": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}",
                     "name": "execute"
                   },
                   "id": "call_conformance_0",
@@ -957,7 +957,7 @@
               ]
             },
             {
-              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "content": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "role": "tool",
               "tool_call_id": "call_conformance_0"
             },
@@ -1248,7 +1248,7 @@
           },
           "projectID": "<hash_1>",
           "sessionID": "<ses_1>",
-          "slug": "<slug_1>",
+          "slug": "<slug>",
           "subpath": "",
           "version": "conformance"
         },
@@ -1347,6 +1347,41 @@
       {
         "created": "<time>",
         "data": {
+          "cost": 0,
+          "sessionID": "<ses_1>",
+          "tokens": {
+            "cache": {
+              "read": 0,
+              "write": 0
+            },
+            "input": 100,
+            "output": 10,
+            "reasoning": 0
+          }
+        },
+        "id": "<evt_16>",
+        "type": "session.usage.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "sessionID": "<ses_1>",
+          "title": "Conformance session"
+        },
+        "durable": {
+          "aggregateID": "<ses_1>",
+          "seq": 6,
+          "version": 1
+        },
+        "id": "<evt_17>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "session.renamed"
+      },
+      {
+        "created": "<time>",
+        "data": {
           "agent": "build",
           "assistantMessageID": "<msg_2>",
           "model": {
@@ -1359,10 +1394,10 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 5,
+          "seq": 7,
           "version": 1
         },
-        "id": "<evt_16>",
+        "id": "<evt_18>",
         "location": {
           "directory": "<project>"
         },
@@ -1378,41 +1413,6 @@
         },
         "durable": {
           "aggregateID": "<ses_1>",
-          "seq": 6,
-          "version": 1
-        },
-        "id": "<evt_17>",
-        "location": {
-          "directory": "<project>"
-        },
-        "type": "session.tool.input.started"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "cost": 0,
-          "sessionID": "<ses_1>",
-          "tokens": {
-            "cache": {
-              "read": 0,
-              "write": 0
-            },
-            "input": 100,
-            "output": 10,
-            "reasoning": 0
-          }
-        },
-        "id": "<evt_18>",
-        "type": "session.usage.updated"
-      },
-      {
-        "created": "<time>",
-        "data": {
-          "sessionID": "<ses_1>",
-          "title": "Conformance session"
-        },
-        "durable": {
-          "aggregateID": "<ses_1>",
           "seq": 8,
           "version": 1
         },
@@ -1420,7 +1420,7 @@
         "location": {
           "directory": "<project>"
         },
-        "type": "session.renamed"
+        "type": "session.tool.input.started"
       },
       {
         "created": "<time>",
@@ -1605,7 +1605,7 @@
           "assistantMessageID": "<msg_3>",
           "id": "call_conformance_0",
           "sessionID": "<ses_1>",
-          "text": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\ncapture(() => (1).toFixed(200))\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}"
+          "text": "{\"code\":\"const caught = []\\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \\\"null\\\" : String(e)] } }\\ncaught.push(tryThrow(\\\"a string\\\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\\nconst rethrow = () => { try { throw new RangeError(\\\"original\\\") } catch (e) { e.message += \\\" (annotated)\\\"; throw e } }\\ntry { rethrow() } catch (e) { caught.push(e.name + \\\": \\\" + e.message) }\\nconst builtinErrors = []\\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \\\": \\\" + e.message) } }\\ncapture(() => null.prop)\\ncapture(() => undefined.call())\\ncapture(() => JSON.parse(\\\"{bad\\\"))\\ncapture(() => new Array(-1))\\ncapture(() => \\\"x\\\".repeat(-1))\\n// toFixed's range message is the JS engine's own wording: record the error type only.\\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\\ncapture(() => decodeURIComponent(\\\"%\\\"))\\ncapture(() => new RegExp(\\\"(\\\"))\\ncapture(() => Symbol())\\ncapture(() => new Symbol())\\ncapture(() => structuredClone(() => 1))\\ncapture(() => Object.defineProperty({}, \\\"a\\\", {}))\\ncapture(() => [].reduce((a, b) => a))\\ncapture(() => [1].map(5))\\ncapture(() => [1].forEach())\\ncapture(() => Array.prototype.join.call(null))\\ncapture(() => String.prototype.trim.call(undefined))\\ncapture(() => [1].sort(5))\\ncapture(() => \\\"abc\\\".replace(\\\"a\\\", 5))\\ncapture(() => JSON.parse(\\\"[1]\\\", 5))\\nreturn { caught, builtinErrors }\"}"
         },
         "durable": {
           "aggregateID": "<ses_1>",
@@ -1625,7 +1625,7 @@
           "executed": false,
           "id": "call_conformance_0",
           "input": {
-            "code": "const caught = []\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \"null\" : String(e)] } }\ncaught.push(tryThrow(\"a string\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\nconst rethrow = () => { try { throw new RangeError(\"original\") } catch (e) { e.message += \" (annotated)\"; throw e } }\ntry { rethrow() } catch (e) { caught.push(e.name + \": \" + e.message) }\nconst builtinErrors = []\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \": \" + e.message) } }\ncapture(() => null.prop)\ncapture(() => undefined.call())\ncapture(() => JSON.parse(\"{bad\"))\ncapture(() => new Array(-1))\ncapture(() => \"x\".repeat(-1))\ncapture(() => (1).toFixed(200))\ncapture(() => decodeURIComponent(\"%\"))\ncapture(() => new RegExp(\"(\"))\ncapture(() => Symbol())\ncapture(() => new Symbol())\ncapture(() => structuredClone(() => 1))\ncapture(() => Object.defineProperty({}, \"a\", {}))\ncapture(() => [].reduce((a, b) => a))\ncapture(() => [1].map(5))\ncapture(() => [1].forEach())\ncapture(() => Array.prototype.join.call(null))\ncapture(() => String.prototype.trim.call(undefined))\ncapture(() => [1].sort(5))\ncapture(() => \"abc\".replace(\"a\", 5))\ncapture(() => JSON.parse(\"[1]\", 5))\nreturn { caught, builtinErrors }"
+            "code": "const caught = []\nconst tryThrow = (v) => { try { throw v } catch (e) { return [typeof e, e === null ? \"null\" : String(e)] } }\ncaught.push(tryThrow(\"a string\"), tryThrow(42), tryThrow(null), tryThrow(undefined), tryThrow({ code: 1 }), tryThrow([1, 2]), tryThrow(() => 1))\nconst rethrow = () => { try { throw new RangeError(\"original\") } catch (e) { e.message += \" (annotated)\"; throw e } }\ntry { rethrow() } catch (e) { caught.push(e.name + \": \" + e.message) }\nconst builtinErrors = []\nconst capture = (f) => { try { f() } catch (e) { builtinErrors.push(e.constructor === undefined ? String(e) : e.name + \": \" + e.message) } }\ncapture(() => null.prop)\ncapture(() => undefined.call())\ncapture(() => JSON.parse(\"{bad\"))\ncapture(() => new Array(-1))\ncapture(() => \"x\".repeat(-1))\n// toFixed's range message is the JS engine's own wording: record the error type only.\ntry { (1).toFixed(200) } catch (e) { builtinErrors.push(e.name) }\ncapture(() => decodeURIComponent(\"%\"))\ncapture(() => new RegExp(\"(\"))\ncapture(() => Symbol())\ncapture(() => new Symbol())\ncapture(() => structuredClone(() => 1))\ncapture(() => Object.defineProperty({}, \"a\", {}))\ncapture(() => [].reduce((a, b) => a))\ncapture(() => [1].map(5))\ncapture(() => [1].forEach())\ncapture(() => Array.prototype.join.call(null))\ncapture(() => String.prototype.trim.call(undefined))\ncapture(() => [1].sort(5))\ncapture(() => \"abc\".replace(\"a\", 5))\ncapture(() => JSON.parse(\"[1]\", 5))\nreturn { caught, builtinErrors }"
           },
           "sessionID": "<ses_1>"
         },
@@ -1663,7 +1663,7 @@
           "assistantMessageID": "<msg_3>",
           "content": [
             {
-              "text": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: JSON Parse error: Expected '}'\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError: toFixed() argument must be between 0 and 100\",\n    \"URIError: decodeURIComponent received malformed URI data: URI error\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (missing )). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
+              "text": "{\n  \"caught\": [\n    [\n      \"string\",\n      \"a string\"\n    ],\n    [\n      \"number\",\n      \"42\"\n    ],\n    [\n      \"object\",\n      \"null\"\n    ],\n    [\n      \"undefined\",\n      \"undefined\"\n    ],\n    [\n      \"object\",\n      \"[object Object]\"\n    ],\n    [\n      \"object\",\n      \"1,2\"\n    ],\n    [\n      \"function\",\n      \"[object Function]\"\n    ],\n    \"RangeError: original (annotated)\"\n  ],\n  \"builtinErrors\": [\n    \"TypeError: Cannot read properties of null (reading 'prop').\",\n    \"TypeError: Cannot read properties of undefined (reading 'call').\",\n    \"SyntaxError: JSON.parse received invalid JSON: <engine message>\",\n    \"RangeError: Invalid array length.\",\n    \"RangeError: String.repeat expects a finite non-negative count.\",\n    \"RangeError\",\n    \"URIError: decodeURIComponent received malformed URI data: <engine message>\",\n    \"SyntaxError: new RegExp(...) received \\\"(\\\", which is not a valid regular expression pattern (<engine message>). To match special characters like ( ) [ ] { } + * ? . literally, escape them with a backslash (e.g. \\\"\\\\\\\\(\\\") or test for them with String.includes instead.\",\n    \"TypeError: Symbol is not callable; only Symbol.asyncIterator and Symbol.iterator are available.\",\n    \"TypeError: new Symbol(...) is not supported; call Symbol(...) without new instead.\",\n    \"TypeError: DataCloneError: a function could not be cloned.\",\n    \"TypeError: Object.defineProperty is not a function.\",\n    \"TypeError: Array.reduce of an empty array with no initial value.\",\n    \"TypeError: Array.map expects a function callback.\",\n    \"TypeError: Array.forEach expects a function callback.\",\n    \"TypeError: Array.prototype.join called on incompatible receiver null.\",\n    \"TypeError: String.prototype.trim called on null or undefined.\",\n    \"TypeError: Array.sort expects a function callback.\"\n  ]\n}",
               "type": "text"
             }
           ],
