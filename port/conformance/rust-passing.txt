@@ -953,6 +953,7 @@ scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
 tui/nav-args.test.ts › args: --continue without any session
 tui/nav-dialogs.test.ts › dialogs: escape closes a dialog opened from another
+tui/nav-dialogs.test.ts › dialogs: reload configuration
 tui/nav-dialogs.test.ts › dialogs: status
 tui/nav-exit.test.ts › exit: /exit
 tui/nav-exit.test.ts › exit: /q alias
@@ -994,6 +995,7 @@ tui/nav-paste.test.ts › paste: pasting the same text again expands the placeho
 tui/nav-paste.test.ts › paste: several file paths at once
 tui/nav-paste.test.ts › paste: short text is inserted as typed
 tui/nav-paste.test.ts › paste: toggling the paste summary from the palette
+tui/nav-paste.test.ts › paste: viewing image attachments
 tui/nav-prompt.test.ts › prompt: cursor movement
 tui/nav-prompt.test.ts › prompt: delete line, undo and redo
 tui/nav-prompt.test.ts › prompt: deleting text
