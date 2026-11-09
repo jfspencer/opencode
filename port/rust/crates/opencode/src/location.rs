@@ -41,6 +41,8 @@ pub struct Location {
     pub permission: crate::permission::Service,
     /// The location's forms (`Form.Service`).
     pub forms: crate::form::Service,
+    /// The location's shell commands (`Shell.Service`).
+    pub shell: Arc<crate::shell::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
 }
@@ -150,6 +152,7 @@ impl Locations {
             // `LocationLifecycle.shutdown`: permissions, then forms, then the announcement.
             location.permission.close(&app.bus, &location.reference());
             location.forms.close(&app.bus, &location.reference());
+            location.shell.close();
             app.bus.emit(
                 "location.shutdown",
                 Obj::new().done(),
@@ -208,6 +211,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         version_control,
         permission: Default::default(),
         forms: Default::default(),
+        shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
         snapshot: Default::default(),
     };
     {

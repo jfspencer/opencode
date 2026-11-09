@@ -21,6 +21,7 @@ pub mod prompt;
 pub mod retry;
 pub mod revert;
 pub mod runner;
+pub mod shell;
 pub mod skill;
 pub mod stats;
 pub mod step;
@@ -649,7 +650,7 @@ pub fn remove<'a>(app: &'a App, session_id: &'a str) -> std::pin::Pin<Box<dyn st
             for child in children {
                 remove(app, &child).await?;
             }
-            // TODO(port): clear the session's environment variables.
+            shell::clear_environment(session_id);
             let mut data = Obj::new();
             data.str("sessionID", session.id());
             publish(app, "session.deleted", data.done(), None)?;

@@ -49,6 +49,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(Response::no_content())
         }
         "session.synthetic" => synthetic(app, request, &decoded),
+        "session.shell" | "session.environment" => super::shell::session(app, request, &decoded).await,
         "session.switchAgent" => {
             let session_id = request.param("sessionID");
             let stored = session::require(&app.db.lock().unwrap(), session_id)?;

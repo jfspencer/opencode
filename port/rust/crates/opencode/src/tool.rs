@@ -20,6 +20,7 @@
 
 pub mod arguments;
 pub mod output;
+pub mod shell;
 mod question;
 pub mod schedule;
 pub mod skill;
@@ -205,6 +206,7 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
         .map(|(name, text)| {
             let definition = definition(name, text);
             match *name {
+                "shell" => shell::tool(definition),
                 "question" => Arc::new(question::Question { definition }) as Arc<dyn Tool>,
                 subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "skill" => Arc::new(skill::Skill { definition }),

@@ -299,6 +299,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
             insert(tx, event, &o.done())?;
         }
+        "session.shell.started" | "session.shell.ended" => crate::session::shell::project(tx, event)?,
         "session.skill.activated" => {
             let mut o = base(&id_from_event(&event.id), "skill", metadata, created);
             o.str("skill", &get_str("id")).str("name", &get_str("name")).str("text", &get_str("text"));
