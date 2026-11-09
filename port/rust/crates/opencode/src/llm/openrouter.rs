@@ -112,10 +112,6 @@ fn lower_messages(request: &Request) -> Vec<Json> {
     messages
 }
 
-fn reasoning_field(native: &Option<Json>) -> Option<String> {
-    native.as_ref().and_then(|n| json::get_str(n, "reasoningField")).map(str::to_owned)
-}
-
 fn reasoning_details(native: &Option<Json>) -> Option<&Vec<Json>> {
     match native.as_ref().and_then(|n| json::get(n, "reasoningDetails")) {
         Some(Json::Array(details)) => Some(details),
@@ -150,6 +146,7 @@ fn lower_assistant(parts: &[AssistantPart], require: bool) -> Json {
                 .iter()
                 .flat_map(|(_, native)| reasoning_details(native).cloned().unwrap_or_default())
                 .filter_map(|detail| known_detail(&detail))
+                .map(|detail| lower_detail(&detail))
                 .collect(),
         )
     } else {
@@ -199,6 +196,18 @@ fn known_detail(detail: &Json) -> Option<Json> {
             Some(only(fields, &["type", "encrypted", "index"]))
         }
         _ => None,
+    }
+}
+
+/// `lowerReasoningDetail`: Kimi rejects its stream-only `index` on requests.
+fn lower_detail(detail: &Json) -> Json {
+    match json::get_str(detail, "type") {
+        Some("summary") | Some("encrypted") => {
+            let mut out = detail.clone();
+            json::remove(&mut out, "index");
+            out
+        }
+        _ => detail.clone(),
     }
 }
 

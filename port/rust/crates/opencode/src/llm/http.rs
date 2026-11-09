@@ -61,7 +61,8 @@ impl Body {
                     Ok(data) => return Some(Ok(data)),
                     Err(_) => continue,
                 },
-                Err(error) => return Some(Err(hyper_failure(&error))),
+                // Whatever ends the body early is the connection going away.
+                Err(error) => return Some(Err(Failure::new(FailureKind::Closed, error.to_string()))),
             }
         }
     }

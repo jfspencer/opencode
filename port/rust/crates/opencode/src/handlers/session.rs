@@ -26,7 +26,14 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             Ok(data(stored.wire()))
         }
         "session.update" => session_update(app, request, &decoded).await,
-        "session.remove" => session::remove(app, request.param("sessionID")).map(|_| Response::no_content()),
+        "session.remove" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            // Stop the session's work before it goes. TODO(port): the same for its descendants.
+            app.sessions.executions.interrupt(session_id, "user");
+            app.sessions.executions.await_idle(session_id).await;
+            session::remove(app, session_id).map(|_| Response::no_content())
+        }
         "session.active" => {
             let mut active = Obj::new();
             for id in app.sessions.executions.active() {
@@ -38,6 +45,23 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "session.prompt" => prompt(app, request, &decoded).await,
         "session.synthetic" => synthetic(app, request, &decoded),
+        "session.compact" => {
+            let session_id = request.param("sessionID");
+            session::require(&app.db.lock().unwrap(), session_id)?;
+            // TODO(port): committing a staged revert first.
+            let input_id = json::get_str(&decoded.payload, "id").map(str::to_owned).unwrap_or_else(session::message::create_id);
+            let delivery = json::get_str(&decoded.payload, "delivery").unwrap_or("steer");
+            match session::inbox::admit_compaction(app, &input_id, session_id, delivery)? {
+                Ok(admitted) => {
+                    app.sessions.executions.wake(app, session_id, session::inbox::Promotable::Input);
+                    Ok(data(wire_inbox(&admitted)))
+                }
+                Err(_) => Err(conflict(
+                    format!("Compaction input ID conflicts with an existing durable record: {input_id}"),
+                    &input_id,
+                )),
+            }
+        }
         "session.message.list" => messages(app, request, &decoded),
         "session.message.get" => {
             let session_id = request.param("sessionID");
@@ -339,7 +363,9 @@ fn synthetic(app: &App, request: &Request, decoded: &Decoded) -> Result<Response
     let mut item = Obj::new();
     item.str("type", "synthetic").set("payload", item_payload.done());
     item.str("delivery", json::get_str(payload, "delivery").unwrap_or("steer"));
-    let admitted = match session::inbox::admit(app, &input_id, session_id, item.done(), Some(stored.location.clone()))? {
+    // Synthetic input is admitted outside the session's location services, so its events carry no location.
+    let _ = &stored;
+    let admitted = match session::inbox::admit(app, &input_id, session_id, item.done(), None)? {
         Ok(admitted) => admitted,
         Err(_) => {
             return Err(conflict(

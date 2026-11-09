@@ -9,6 +9,7 @@ pub mod execution;
 pub mod inbox;
 pub mod instructions;
 pub mod message;
+pub mod plan;
 pub mod retry;
 pub mod runner;
 pub mod step;
@@ -537,7 +538,9 @@ pub fn create(app: &App, input: CreateInput) -> Result<Stored> {
         input.permissions.or_else(|| parent.as_ref().and_then(|p| json::get(&p.info, "permissions").cloned())),
     );
     data.opt("model", input.model);
-    match publish(app, "session.created", data.done(), Some(location)) {
+    match publish(app, "session.created", data.done(), Some(location.clone())) {
+        // The location's plugins react to the new session (Plan mode's reminder) once they are running.
+        Ok(_) if app.locations.cached(&location).is_some() => plan::created(app, &session_id, input.agent.as_deref(), &location),
         Ok(_) => {}
         // Concurrent creation lost the projection race: the existing session wins.
         Err(failure) => {

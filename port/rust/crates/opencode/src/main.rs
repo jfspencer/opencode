@@ -5,6 +5,7 @@ mod app;
 mod auth;
 mod bus;
 mod db;
+mod generate;
 mod handlers;
 mod inventory;
 mod inventory_standin;
@@ -121,7 +122,24 @@ fn format_address(address: SocketAddr) -> String {
     }
 }
 
+/// `Global` (packages/util/src/global.ts) creates its directories when the server starts.
+fn create_global_directories() {
+    let home = std::env::var("HOME").unwrap_or_default();
+    let xdg = |name: &str, fallback: &str| {
+        std::env::var(name).ok().filter(|v| !v.is_empty()).unwrap_or_else(|| format!("{home}/{fallback}"))
+    };
+    let data = format!("{}/opencode", xdg("XDG_DATA_HOME", ".local/share"));
+    let cache = format!("{}/opencode", xdg("XDG_CACHE_HOME", ".cache"));
+    let state = format!("{}/opencode", xdg("XDG_STATE_HOME", ".local/state"));
+    let config = generate::global_config();
+    for dir in [data.clone(), config, state, format!("{data}/log"), format!("{cache}/bin"), format!("{data}/repos")] {
+        let _ = std::fs::create_dir_all(dir);
+    }
+    session::instructions::global_tmp();
+}
+
 fn serve(options: Serve) {
+    create_global_directories();
     let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().expect("tokio runtime");
     runtime.block_on(async move {
         let environment_password = std::env::var("OPENCODE_PASSWORD")

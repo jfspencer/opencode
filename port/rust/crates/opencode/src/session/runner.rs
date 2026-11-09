@@ -158,7 +158,11 @@ pub async fn drain(app: &Arc<App>, session: &str, force: bool, promotable: Promo
                 entering = true;
                 step = 1;
             }
-            // TODO(port): compaction and move controls.
+            // TODO(port): compaction and move controls. Until they are ported, a control at the boundary ends the drain
+            // and stays pending.
+            if pending.as_ref().is_some_and(|p| p.control()) {
+                return Ok(());
+            }
             if !force
                 && !continuing
                 && pending.as_ref().is_none_or(|p| p.delivery == "queue" && promotable == Promotable::Steer)
@@ -221,6 +225,7 @@ fn request(app: &App, loaded: &Loaded, step_limit: bool) -> Result<llm::Request,
     if step_limit {
         messages.push(llm::Message::Assistant(vec![llm::AssistantPart::Text { text: MAX_STEPS_PROMPT.into(), native: None }]));
     }
+    crate::session::plan::reconcile(&mut messages, &loaded.agent_id);
     // TODO(port): `SessionCompaction.estimatePrompt` (the measured and estimated prompt size).
     let estimated = (system.iter().map(String::len).sum::<usize>() / 4) as f64;
     Ok(llm::Request {

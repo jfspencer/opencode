@@ -1,6 +1,77 @@
+scenarios/agent-loop-errors.test.ts › client error marked retryable, then success
+scenarios/agent-loop-errors.test.ts › comments and blank frames are ignored
+scenarios/agent-loop-errors.test.ts › content after the finish reason
+scenarios/agent-loop-errors.test.ts › content policy rejection
+scenarios/agent-loop-errors.test.ts › empty response body, then success
+scenarios/agent-loop-errors.test.ts › error frame after output, then continued
+scenarios/agent-loop-errors.test.ts › error frame before output, then success
+scenarios/agent-loop-errors.test.ts › forbidden
+scenarios/agent-loop-errors.test.ts › invalid request
+scenarios/agent-loop-errors.test.ts › invalid request without a body
+scenarios/agent-loop-errors.test.ts › malformed SSE chunk
+scenarios/agent-loop-errors.test.ts › malformed SSE chunk before any output
+scenarios/agent-loop-errors.test.ts › non-streaming JSON reply, then success
+scenarios/agent-loop-errors.test.ts › payload too large
+scenarios/agent-loop-errors.test.ts › payment required
+scenarios/agent-loop-errors.test.ts › plain text error body
+scenarios/agent-loop-errors.test.ts › rate limited by a quota
+scenarios/agent-loop-errors.test.ts › rate limited with a past retry-after date and per-provider headers
+scenarios/agent-loop-errors.test.ts › rate limited with rate limit headers, then success
+scenarios/agent-loop-errors.test.ts › rate limited with retry-after, then success
+scenarios/agent-loop-errors.test.ts › rate limited without retry-after, then success
+scenarios/agent-loop-errors.test.ts › server error marked not retryable
+scenarios/agent-loop-errors.test.ts › server error twice, then success
+scenarios/agent-loop-errors.test.ts › server error with a retry-after header, then success
+scenarios/agent-loop-errors.test.ts › service unavailable with an HTML page, then success
+scenarios/agent-loop-errors.test.ts › stream ends after finish without DONE
+scenarios/agent-loop-errors.test.ts › stream truncated after text, then continued
+scenarios/agent-loop-errors.test.ts › stream truncated before any output, then success
+scenarios/agent-loop-errors.test.ts › stream truncated during a tool call, then continued
+scenarios/agent-loop-errors.test.ts › tool call without a name
+scenarios/agent-loop-errors.test.ts › unauthorized
+scenarios/agent-loop-errors.test.ts › unrecognized error frame, then success
+scenarios/agent-loop-interrupt.test.ts › cancel a queued prompt
+scenarios/agent-loop-interrupt.test.ts › interrupt an idle session
+scenarios/agent-loop-interrupt.test.ts › interrupt and resume with a steering prompt
+scenarios/agent-loop-interrupt.test.ts › interrupt before any output
+scenarios/agent-loop-interrupt.test.ts › interrupt keeps queued prompts parked
+scenarios/agent-loop-interrupt.test.ts › interrupt while a tool call is streaming
+scenarios/agent-loop-interrupt.test.ts › interrupt while reasoning
+scenarios/agent-loop-interrupt.test.ts › interrupt while text is streaming
+scenarios/agent-loop-interrupt.test.ts › prompt admitted without resuming
+scenarios/agent-loop-interrupt.test.ts › queued prompt runs after the turn
+scenarios/agent-loop-interrupt.test.ts › synthetic message runs the loop
+scenarios/agent-loop-transport.test.ts › connection closed before the response, then success
+scenarios/agent-loop-transport.test.ts › connection dropped after output, then continued
+scenarios/agent-loop-transport.test.ts › connection dropped before any output, then success
+scenarios/agent-loop-transport.test.ts › one-shot generation and a connection closed before the response
+scenarios/agent-loop-transport.test.ts › one-shot generation does not retry a dropped connection
+scenarios/agent-loop-transport.test.ts › response exceeds the whole-request timeout, then success
+scenarios/agent-loop-transport.test.ts › response stalls after output past the chunk timeout, then continued
+scenarios/agent-loop-transport.test.ts › response stalls past the chunk timeout, then success
+scenarios/agent-loop.test.ts › empty reply
+scenarios/agent-loop.test.ts › encrypted reasoning without readable text
+scenarios/agent-loop.test.ts › finish reason content_filter during a tool call
+scenarios/agent-loop.test.ts › finish reason content_filter fails the step
+scenarios/agent-loop.test.ts › finish reason error after output continues
+scenarios/agent-loop.test.ts › finish reason length after a complete tool call
+scenarios/agent-loop.test.ts › finish reason length continues the response
+scenarios/agent-loop.test.ts › finish reason length cuts a tool call
+scenarios/agent-loop.test.ts › finish reason length three times fails the turn
+scenarios/agent-loop.test.ts › finish reason network_error, then success
+scenarios/agent-loop.test.ts › reasoning-only reply
+scenarios/agent-loop.test.ts › refusal text
+scenarios/agent-loop.test.ts › reply without usage
+scenarios/agent-loop.test.ts › summary reasoning details beside reasoning text
+scenarios/agent-loop.test.ts › unknown finish reason
+scenarios/agent-loop.test.ts › usage accounting across turns
+scenarios/agent-loop.test.ts › usage frame without token counts
+scenarios/agent-loop.test.ts › usage with cache writes and reported cost
 scenarios/session-api-crud.test.ts › active sessions while idle
 scenarios/session-api-crud.test.ts › an empty title on a session without messages generates nothing
+scenarios/session-api-crud.test.ts › an empty title regenerates the title from the conversation
 scenarios/session-api-crud.test.ts › create a child session inherits from its parent
+scenarios/session-api-crud.test.ts › create a session with every optional field
 scenarios/session-api-crud.test.ts › create a session with invalid payloads
 scenarios/session-api-crud.test.ts › create a session without a location uses the server directory
 scenarios/session-api-crud.test.ts › create get update and remove a session
@@ -11,3 +82,17 @@ scenarios/session-api-crud.test.ts › remove a session with its descendants
 scenarios/session-api-crud.test.ts › session routes reject unknown and malformed session IDs
 scenarios/session-api-crud.test.ts › sessions follow their directory into a new git project
 scenarios/session-api-crud.test.ts › update session fields
+scenarios/session-api-crud.test.ts › view marks an observed idle transition
+scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
+scenarios/session-api-prompt.test.ts › get one message
+scenarios/session-api-prompt.test.ts › interrupt a running turn
+scenarios/session-api-prompt.test.ts › interrupt and resume pending steering input
+scenarios/session-api-prompt.test.ts › interrupt with resume leaves queued prompts parked
+scenarios/session-api-prompt.test.ts › page through messages with cursors
+scenarios/session-api-prompt.test.ts › prompt message IDs are idempotent
+scenarios/session-api-prompt.test.ts › prompt without resuming only admits the input
+scenarios/session-api-prompt.test.ts › queue a prompt behind the running turn
+scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
+scenarios/session-api-prompt.test.ts › synthetic input
+scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
+scenarios/session-basic.test.ts › text reply to a prompt

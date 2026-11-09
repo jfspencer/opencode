@@ -266,6 +266,30 @@ pub fn admit(
     }
 }
 
+/// `admitCompaction`: one pending compaction per session; its ID must not name any other record.
+pub fn admit_compaction(app: &App, id: &str, session: &str, delivery: &str) -> Result<std::result::Result<Json, Conflict>> {
+    {
+        let db = app.db.lock().unwrap();
+        if let Some((owner, row)) = find(&db, id).map_err(fatal)? {
+            if row.ty == "compaction" && owner == session {
+                return Ok(Ok(row.info(session)));
+            }
+            return Ok(Err(Conflict));
+        }
+        if !matches!(promoted(&db, session, id, delivery).map_err(fatal)?, Ok(None)) {
+            return Ok(Err(Conflict));
+        }
+        let pending = rows(&db, &format!("SELECT {COLUMNS} FROM session_inbox WHERE session_id = ?1 ORDER BY enqueued_seq ASC"), params![session])
+            .map_err(fatal)?;
+        if let Some(row) = pending.iter().find(|row| row.ty == "compaction") {
+            return Ok(Ok(row.info(session)));
+        }
+    }
+    let mut item = Obj::new();
+    item.str("type", "compaction").set("payload", json::object()).str("delivery", delivery);
+    admit(app, id, session, item.done(), None)
+}
+
 /// `projectAdmitted` (`session.inbox.enqueued`).
 pub fn project_admitted(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
     let data = &event.data;
