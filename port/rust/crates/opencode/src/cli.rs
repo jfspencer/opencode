@@ -6,8 +6,8 @@
 //! Exit codes follow `NodeRuntime.runMain`: a failure is 1 (its `Cause.pretty` on stderr), help with errors 1,
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
-//! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
-//! default command), `--wizard`; see `dispatch`.
+//! Not ported (they answer an error): `mini`, `mcp`, `plugin` (dropped from the port), `pair`, the TUI (the default
+//! command), `--wizard`; see `dispatch`.
 
 mod auth;
 mod clack;
