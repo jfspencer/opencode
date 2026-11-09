@@ -806,6 +806,14 @@ impl Context {
         for part in next.system.iter_mut().filter(|part| **part == before) {
             *part = after.clone();
         }
+        // The model-family prompt follows the model too (when the agent has no prompt of its own).
+        if json::get_str(&self.agent, "system").is_none() {
+            let names = self.tools.names();
+            let (before, after) = (context::model_prompt(&self.model, &names), context::model_prompt(&model, &names));
+            if let Some(first) = next.system.first_mut().filter(|first| **first == before) {
+                *first = after;
+            }
+        }
         next.model = model;
         next
     }

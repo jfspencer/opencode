@@ -2,9 +2,10 @@
 //! system-prompt.ts, plugin/identity.ts, tool/plugin/opencode.ts): the session's agent and model, its tools and
 //! instructions, and its history as model messages, assembled into the provider request.
 //!
-//! TODO(port): the session plugin hooks (`context`, `model.request`, `http.*`), model-family prompts
-//! (plugin/optimize.ts: GPT, Claude, Kimi, ...), image bounding, the model catalog's small
-//! model.
+//! The model-family prompts of plugin/optimize.ts (GPT, Claude, Kimi, ...) replace the default one ([`model_prompt`]).
+//!
+//! TODO(port): the session plugin hooks of external plugins (`context`, `model.request`, `http.*`), image bounding,
+//! the model catalog's small model.
 
 use std::sync::Arc;
 
@@ -34,6 +35,34 @@ ${OPENCODE_TOOL_GUIDANCE}
 
 /// `SessionSystemPrompt.make`.
 pub fn system_prompt(tools: &[String]) -> String {
+    render(PROMPT, tools)
+}
+
+/// The default system prompt as the model-family plugins render it for `model` (plugin/optimize.ts: OpenAI, Anthropic,
+/// Kimi, Arcee and Meta models get their own template, Claude's appended to the default), over the request's tools.
+pub fn model_prompt(model: &llm::Model, tools: &[String]) -> String {
+    let id = model.id.to_lowercase();
+    let mut prompt = system_prompt(tools);
+    if id.contains("gpt") {
+        prompt = render(if id.contains("astra") { include_str!("prompt/gpt-astra.txt") } else { include_str!("prompt/gpt.txt") }, tools);
+    }
+    if id.contains("claude") {
+        prompt = format!("{prompt}\n\n{}", render(include_str!("prompt/anthropic.txt"), tools));
+    }
+    if id.contains("kimi") {
+        prompt = render(include_str!("prompt/kimi.txt"), tools);
+    }
+    if id.contains("trinity") {
+        prompt = render(include_str!("prompt/trinity.txt"), tools);
+    }
+    if id.contains("muse") {
+        prompt = render(&include_str!("prompt/meta.txt").replace("{{MODEL_NAME}}", &model.name), tools);
+    }
+    prompt
+}
+
+/// `SessionSystemPrompt.render`: the tool guidance for the tools the request offers.
+fn render(prompt: &str, tools: &[String]) -> String {
     let has = |name: &str| tools.iter().any(|t| t == name);
     let mut guidance: Vec<&str> = Vec::new();
     if has("shell") {
@@ -46,7 +75,7 @@ pub fn system_prompt(tools: &[String]) -> String {
     if has("edit") {
         guidance.push("- Use the edit tool for targeted changes to existing text files. It replaces the exact text in `oldString` with `newString`, and the values must differ. By default, `oldString` must occur exactly once. If it occurs multiple times, include more surrounding context to make it unique or set `replaceAll` to true to replace every occurrence.");
     }
-    PROMPT.replacen("${OPENCODE_TOOL_GUIDANCE}", &guidance.join("\n"), 1)
+    prompt.replacen("${OPENCODE_TOOL_GUIDANCE}", &guidance.join("\n"), 1)
 }
 
 /// `IdentityPlugin.identity`.

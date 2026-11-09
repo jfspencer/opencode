@@ -32,6 +32,8 @@ pub mod file_write;
 pub mod glob;
 pub mod grep;
 pub mod opencode;
+pub mod patch;
+pub mod patch_text;
 pub mod output;
 pub mod shell;
 mod question;
@@ -39,6 +41,7 @@ pub mod read;
 pub mod schedule;
 pub mod skill;
 pub mod subagent;
+pub mod todo;
 pub mod webfetch;
 pub mod write;
 
@@ -234,7 +237,7 @@ macro_rules! definitions {
 
 /// The built-in tools' recorded definitions, `execute` included.
 const DEFINITIONS: &[(&str, &str)] =
-    definitions!["edit", "glob", "grep", "question", "read", "shell", "skill", "subagent", "webfetch", "write", "execute"];
+    definitions!["edit", "glob", "grep", "patch", "question", "read", "shell", "skill", "subagent", "webfetch", "write", "execute"];
 
 /// The built-in tools. A ported tool replaces its [`Unported`] entry here.
 fn builtin() -> Vec<Arc<dyn Tool>> {
@@ -246,6 +249,7 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
                 "edit" => Arc::new(edit::Edit { definition }) as Arc<dyn Tool>,
                 "glob" => Arc::new(glob::Glob { definition }),
                 "grep" => Arc::new(grep::Grep { definition }),
+                "patch" => Arc::new(patch::Patch { definition }),
                 "question" => Arc::new(question::Question { definition }),
                 "read" => Arc::new(read::Read { definition }),
                 "shell" => shell::tool(definition),
@@ -393,6 +397,6 @@ mod tests {
     fn snapshot_order() {
         let rules: Vec<Json> = vec![];
         let names = registry().snapshot(&rules).names();
-        assert_eq!(names, ["edit", "glob", "grep", "question", "read", "shell", "skill", "subagent", "webfetch", "write", "execute"]);
+        assert_eq!(names, ["edit", "glob", "grep", "patch", "question", "read", "shell", "skill", "subagent", "webfetch", "write", "execute"]);
     }
 }

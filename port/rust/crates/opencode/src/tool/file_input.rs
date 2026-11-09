@@ -7,7 +7,8 @@
 //! `messages`. Covers the flat object schemas of the file tools: string, boolean, integer and number fields with
 //! `minimum` / `exclusiveMinimum` / `maximum` / `minLength` / `enum`.
 //!
-//! TODO(port): nested and array fields, `$ref`s and compositions (no file tool has them); the repair's alias table
+//! Array items and nested objects are checked too (todowrite's). TODO(port): `$ref`s, compositions and array length
+//! checks (no tool decoded here has them); the repair's alias table
 //! (`bash` → `shell`) belongs to the registry, not to a tool.
 
 use opencode_protocol::Json;
@@ -216,6 +217,43 @@ fn check(value: &Json, property: &Json, wording: Option<Wording>) -> Vec<String>
     issues
 }
 
+/// The issues inside an array's items or an object's declared properties (`errors: "all"`, in order), each with its
+/// path below the value (`[0].status`).
+fn nested(value: &Json, property: &Json) -> Vec<(String, String)> {
+    let mut issues = Vec::new();
+    match value {
+        Json::Array(items) => {
+            let Some(schema) = json::get(property, "items") else { return issues };
+            for (index, item) in items.iter().enumerate() {
+                let own = check(item, schema, None);
+                let inner = if own.is_empty() { nested(item, schema) } else { vec![] };
+                issues.extend(own.into_iter().map(|message| (format!("[{index}]"), message)));
+                issues.extend(inner.into_iter().map(|(suffix, message)| (format!("[{index}]{suffix}"), message)));
+            }
+        }
+        Json::Object(fields) => {
+            let Some(Json::Object(properties)) = json::get(property, "properties") else { return issues };
+            let required: Vec<&str> = json::array(json::get(property, "required").unwrap_or(&Json::Null))
+                .map(|items| items.iter().filter_map(json::as_str).collect())
+                .unwrap_or_default();
+            for (key, schema) in properties {
+                match fields.get(key) {
+                    None if required.contains(&key.as_str()) => issues.push((format!(".{key}"), "Missing key".into())),
+                    None => {}
+                    Some(item) => {
+                        let own = check(item, schema, None);
+                        let inner = if own.is_empty() { nested(item, schema) } else { vec![] };
+                        issues.extend(own.into_iter().map(|message| (format!(".{key}"), message)));
+                        issues.extend(inner.into_iter().map(|(suffix, message)| (format!(".{key}{suffix}"), message)));
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+    issues
+}
+
 /// Repairs and decodes a call's input against the tool's definition: the decoded (repaired) input, or the
 /// "Invalid arguments" tool error. `wording` names the fields TS words differently.
 pub fn decode(definition: &Definition, input: &Json, wording: &[(&str, Wording)]) -> Result<Json, Failure> {
@@ -236,7 +274,10 @@ pub fn decode(definition: &Definition, input: &Json, wording: &[(&str, Wording)]
                         None => {}
                         Some(item) => {
                             let custom = wording.iter().find(|(field, _)| field == key).map(|(_, wording)| *wording);
-                            issues.extend(check(item, property, custom).into_iter().map(|message| (key.clone(), message)));
+                            let own = check(item, property, custom);
+                            let inner = if own.is_empty() { nested(item, property) } else { vec![] };
+                            issues.extend(own.into_iter().map(|message| (key.clone(), message)));
+                            issues.extend(inner.into_iter().map(|(suffix, message)| (format!("{key}{suffix}"), message)));
                         }
                     }
                 }
