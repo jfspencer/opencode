@@ -222,7 +222,8 @@ pub fn locale_time(ms: f64) -> String {
         12 => (12, "PM"),
         _ => (hour - 12, "PM"),
     };
-    format!("{month}/{day}/{year}, {twelve}:{minute:02}:{second:02}\u{202f}{half}")
+    // Bun's ICU separates the day period with a plain space.
+    format!("{month}/{day}/{year}, {twelve}:{minute:02}:{second:02} {half}")
 }
 
 /// Days since 1970-01-01 to (year, month, day).

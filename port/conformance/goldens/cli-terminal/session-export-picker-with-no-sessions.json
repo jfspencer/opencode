@@ -1,0 +1,30 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "export"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Export session",
+          "│",
+          "■  No sessions found",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

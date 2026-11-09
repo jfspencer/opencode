@@ -1,0 +1,349 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "env": {
+          "OPENCODE_PTY_SOCKET_DIR": "<pty-sockets>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--title",
+          "Terminals",
+          "--format",
+          "json",
+          "Hello"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "ndjson": [
+            {
+              "part": {
+                "id": "<prt_1>",
+                "messageID": "<msg_1>",
+                "sessionID": "<ses_1>",
+                "type": "step-start"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "step_start"
+            },
+            {
+              "part": {
+                "id": "<prt_2>",
+                "messageID": "<msg_1>",
+                "sessionID": "<ses_1>",
+                "text": "Hello.",
+                "time": {
+                  "end": "<time>",
+                  "start": "<time>"
+                },
+                "type": "text"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "text"
+            },
+            {
+              "part": {
+                "cost": 0,
+                "id": "<prt_3>",
+                "messageID": "<msg_1>",
+                "reason": "stop",
+                "sessionID": "<ses_1>",
+                "tokens": {
+                  "cache": {
+                    "read": 0,
+                    "write": 0
+                  },
+                  "input": 100,
+                  "output": 10,
+                  "reasoning": 0
+                },
+                "type": "step-finish"
+              },
+              "sessionID": "<ses_1>",
+              "timestamp": "<time>",
+              "type": "step_finish"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": {
+          "data": {
+            "args": [
+              "sh",
+              "-c",
+              "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+            ],
+            "command": "/usr/bin/env",
+            "cwd": "<project>",
+            "foregroundProcess": null,
+            "id": "<pty_persistent_1>",
+            "output": {
+              "head": 0,
+              "tail": 0
+            },
+            "pid": "<pid>",
+            "sessionID": "<ses_1>",
+            "size": {
+              "cols": 80,
+              "rows": 24
+            },
+            "status": "running",
+            "title": "Survivor",
+            "userTitle": null
+          }
+        },
+        "headers": {
+          "authorization": "Basic base64(opencode:<random-secret>)",
+          "x-opencode-directory": "%2Ftmp%2F<root-name>%2F<project-name>"
+        },
+        "method": "POST",
+        "request": {
+          "args": [
+            "sh",
+            "-c",
+            "printf \"ready\\n\"; read a; printf \"got %s\\n\" \"$a\"; read b"
+          ],
+          "command": "/usr/bin/env",
+          "cwd": "<project>",
+          "env": {
+            "GREETING": "hi"
+          },
+          "title": "Survivor"
+        },
+        "status": 200,
+        "url": "http://127.0.0.1:<service-port>/api/experimental/session/<ses_1>/terminal"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": {
+          "handoff": {
+            "directory": "<sandbox>/state/opencode/pty/<uuid_1>",
+            "expiresAt": "<time>",
+            "instanceID": "<token_1>",
+            "ticket": "<token_2>"
+          }
+        },
+        "headers": {
+          "authorization": "Basic base64(opencode:<random-secret>)",
+          "x-opencode-directory": "%2Ftmp%2F<root-name>%2F<project-name>"
+        },
+        "method": "POST",
+        "status": 200,
+        "url": "http://127.0.0.1:<service-port>/api/experimental/persistent-pty/handoff"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--format",
+          "json"
+        ],
+        "env": {
+          "OPENCODE_PTY_SOCKET_DIR": "<pty-sockets>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "created": "<time>",
+              "directory": "<project>",
+              "id": "<ses_1>",
+              "projectId": "<hash_1>",
+              "title": "Terminals",
+              "updated": "<time>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/state/opencode/service-conformance.json.pty-handoff"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "http",
+      "value": {
+        "body": {
+          "data": []
+        },
+        "headers": {
+          "authorization": "Basic base64(opencode:<random-secret>)",
+          "x-opencode-directory": "%2Ftmp%2F<root-name>%2F<project-name>"
+        },
+        "method": "GET",
+        "status": 200,
+        "url": "http://127.0.0.1:<service-port>/api/experimental/session/<ses_1>/terminal"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--format",
+          "json"
+        ],
+        "env": {
+          "OPENCODE_PTY_SOCKET_DIR": "<pty-sockets>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "created": "<time>",
+              "directory": "<project>",
+              "id": "<ses_1>",
+              "projectId": "<hash_1>",
+              "title": "Terminals",
+              "updated": "<time>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "expiresAt": "<time>",
+            "handoff": null,
+            "source": {
+              "id": "<uuid_2>",
+              "pid": "<pid>",
+              "url": "http://127.0.0.1:<service-port>"
+            }
+          }
+        },
+        "path": "<sandbox>/state/opencode/service-conformance.json.pty-handoff"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "stop"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/state/opencode/service-conformance.json.pty-handoff"
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Hello",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

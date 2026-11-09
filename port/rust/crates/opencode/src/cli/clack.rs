@@ -9,6 +9,8 @@
 // Not every handler uses every prompt yet.
 #![allow(dead_code)]
 
+use std::time::Duration;
+
 use super::out::{stderr, stdout};
 
 /// A prompt the user cancelled (Ctrl+C or Escape): clack's cancel symbol.
@@ -171,19 +173,27 @@ impl Clack {
         self.message_with(message, &self.red(self.symbol("■", "x")));
     }
 
-    /// `spinner().start(message)`.
+    /// `spinner().start(message)` for an operation too short to animate (no frames are drawn).
     pub fn spinner_start(&self) {
         self.write(&format!("\x1b[?25l{}\n", self.gray(self.bar())));
     }
 
-    /// `spinner().stop(message, code)`.
+    /// `spinner().stop(message, code)` after `spinner_start`.
     pub fn spinner_stop(&self, message: &str, code: u8) {
-        let step = match code {
+        self.write(&format!("{}  {message}\n\x1b[?25h", self.step_symbol(code)));
+    }
+
+    fn step_symbol(&self, code: u8) -> String {
+        match code {
             0 => self.green(self.symbol("◇", "o")),
             1 => self.red(self.symbol("■", "x")),
             _ => self.red(self.symbol("▲", "x")),
-        };
-        self.write(&format!("{step}  {message}\n\x1b[?25h"));
+        }
+    }
+
+    /// `spinner()`: an animated one, reusable across operations as the handlers reuse theirs.
+    pub fn spinner(&self) -> Spinner {
+        Spinner { clack: *self, shared: std::sync::Arc::new(std::sync::Mutex::new(Frames::default())), task: None }
     }
 
     /// `confirm({ message, initialValue })` with the default labels.
@@ -280,6 +290,68 @@ impl Clack {
             }
             screen.draw(&prompt.frame(self, message, State::Active, max_items));
         }
+    }
+}
+
+/// What a spinner has drawn: its message and the frame on screen (`_prevMessage`, kept across runs as clack keeps it).
+#[derive(Default)]
+struct Frames {
+    message: String,
+    previous: Option<String>,
+    index: usize,
+    timer: f64,
+}
+
+/// The frames' clearing (`clearPrevMessage`): back to the frame's first column, then the lines it took erased.
+fn clear_previous(previous: &Option<String>) -> String {
+    let Some(previous) = previous else { return String::new() };
+    let lines = previous.split('\n').count();
+    let down = if lines > 1 { format!("\x1b[{}B", lines - 1) } else { String::new() };
+    format!("\x1b[999D{down}{}", "\x1b[J".repeat(lines))
+}
+
+/// clack's `spinner()`: a frame (`◒◐◓◑`) every 80 ms while the operation runs, then the settled line.
+pub struct Spinner {
+    clack: Clack,
+    shared: std::sync::Arc<std::sync::Mutex<Frames>>,
+    task: Option<tokio::task::JoinHandle<()>>,
+}
+
+impl Spinner {
+    pub fn start(&mut self, message: &str) {
+        let clack = self.clack;
+        clack.write(&format!("\x1b[?25l{}\n", clack.gray(clack.bar())));
+        {
+            let mut frames = self.shared.lock().unwrap();
+            frames.message = message.trim_end_matches('.').to_owned();
+            frames.index = 0;
+            frames.timer = 0.0;
+        }
+        let shared = self.shared.clone();
+        let symbols: [&'static str; 4] = if clack.unicode { ["◒", "◐", "◓", "◑"] } else { ["•", "o", "O", "0"] };
+        let delay = Duration::from_millis(if clack.unicode { 80 } else { 120 });
+        self.task = Some(tokio::spawn(async move {
+            let mut interval = tokio::time::interval_at(tokio::time::Instant::now() + delay, delay);
+            loop {
+                interval.tick().await;
+                let mut frames = shared.lock().unwrap();
+                let mut out = clear_previous(&frames.previous);
+                frames.previous = Some(frames.message.clone());
+                let dots = ".".repeat(frames.timer.floor() as usize).chars().take(3).collect::<String>();
+                out.push_str(&format!("{}  {}{dots}", clack.magenta(symbols[frames.index]), frames.message));
+                frames.index = (frames.index + 1) % symbols.len();
+                frames.timer = if frames.timer < 4.0 { frames.timer + 0.125 } else { 0.0 };
+                clack.write(&out);
+            }
+        }));
+    }
+
+    pub fn stop(&mut self, message: &str, code: u8) {
+        if let Some(task) = self.task.take() {
+            task.abort();
+        }
+        let previous = self.shared.lock().unwrap().previous.clone();
+        self.clack.write(&format!("{}{}  {message}\n\x1b[?25h", clear_previous(&previous), self.clack.step_symbol(code)));
     }
 }
 

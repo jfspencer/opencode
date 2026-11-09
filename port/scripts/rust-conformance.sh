@@ -28,6 +28,11 @@ if [[ "${1:-}" =~ ^[0-9]+$ ]]; then shards=$1; shift; fi
 
 flags=()
 [ "$profile" = release ] && flags=(--release)
+# The executable embeds the opencode-pty daemon the reference runs (its npm build, see port/scripts/opencode-pty.sh), as
+# an installed build does: services that CLI scenarios start have no OPENCODE_PTY_BIN, as for users.
+if pty=$("$root/port/scripts/opencode-pty.sh" 2>/dev/null); then
+  export OPENCODE_PTY_EMBED=$pty OPENCODE_PTY_EMBED_VERSION=$(basename "$(dirname "$pty")")
+fi
 (cd "$root/port/rust" && OPENCODE_VERSION=conformance OPENCODE_CHANNEL=conformance cargo build --quiet "${flags[@]}" -p opencode) ||
   exit 1
 binary=$root/port/rust/target/$profile/opencode

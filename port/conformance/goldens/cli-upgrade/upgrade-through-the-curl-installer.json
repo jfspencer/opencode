@@ -1,0 +1,184 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: curl",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "v1.3.2"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: curl",
+          "│",
+          "●  From conformance → 1.3.2",
+          "\u001b[?25l│",
+          "◇  Upgrade complete",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "curl -fsSL -o <sandbox>/cache/opencode/update-<random>/install https://opencode.ai/v2/install",
+          "installer --version 1.4.0 --no-modify-path",
+          "curl -fsSL -o <sandbox>/cache/opencode/update-<random>/install https://opencode.ai/v2/install",
+          "installer --version 1.3.2 --no-modify-path",
+          ""
+        ],
+        "path": "<sandbox>/calls.log"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade"
+        ],
+        "env": {
+          "PATH": "<sandbox>/offline:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: curl",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Could not download the OpenCode installer",
+          "│",
+          "│  curl: (6) Could not resolve host: opencode.ai",
+          "│",
+          "│  Command  curl -fsSL https://opencode.ai/v2/install",
+          "│  Retry    Check your network, then run opencode upgrade again.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.4.0"
+        ],
+        "env": {
+          "PATH": "<sandbox>/failing:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: curl",
+          "│",
+          "●  From conformance → 1.4.0",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  The OpenCode installer failed",
+          "│",
+          "│  installer: unsupported platform",
+          "│",
+          "│  Command  opencode upgrade 1.4.0 --method curl",
+          "│  Retry    Fix the issue above, then run opencode upgrade again.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      },
+      {
+        "headers": {},
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opencode.ai/update/api/conformance/cli/npm?current=conformance"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

@@ -2,8 +2,9 @@
 //! length frames of JSON (`{token, request}`) over a Unix socket, the daemon's raw output frames tagged `0x00`.
 //!
 //! The server owns one daemon, in the runtime directory `<root>/<id>` (a fresh UUID per server), started detached on
-//! first use as `opencode-pty daemon --runtime-dir <root> --name <id>` (`OPENCODE_PTY_BIN`, else `opencode-pty` on
-//! `PATH`) and found through its registration (`service.json`). The server claims it over one owner connection that
+//! first use as `opencode-pty daemon --runtime-dir <root> --name <id>` (the executable `binary::resolve` names:
+//! `OPENCODE_PTY_BIN`, the embedded daemon, or `opencode-pty` on `PATH`) and found through its registration
+//! (`service.json`). The server claims it over one owner connection that
 //! stays open for the server's life: the daemon stops when that connection goes, unless a handoff was prepared on it,
 //! whose ticket lets a replacement server claim the same daemon. Every other request is one connection, one answer;
 //! a subscription keeps its connection for the stream.
@@ -43,6 +44,20 @@ pub struct DaemonError {
 
 fn error(kind: Kind, message: impl Into<String>) -> DaemonError {
     DaemonError { kind, message: message.into() }
+}
+
+/// The daemon executable, resolved once per process (`binary ??= resolveBinary(global.bin)`, retried after a failure).
+async fn resolve_binary() -> Result<String, DaemonError> {
+    static RESOLVED: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    if let Some(found) = RESOLVED.get() {
+        return Ok(found.clone());
+    }
+    let bin = format!("{}/bin", crate::inventory::config::Options::get().cache);
+    let found = tokio::task::spawn_blocking(move || super::binary::resolve(&bin))
+        .await
+        .map_err(|e| error(Kind::Spawn, e.to_string()))?
+        .map_err(|message| error(Kind::Spawn, message))?;
+    Ok(RESOLVED.get_or_init(|| found).clone())
 }
 
 /// `responseError`: a rejected token means the registration is stale.
@@ -326,7 +341,7 @@ impl Transport {
 
     /// `spawnDaemon`: starts a daemon in the runtime directory and claims it once it has registered (5 s).
     async fn spawn_daemon(&'static self) -> Result<Arc<Registration>, DaemonError> {
-        let executable = std::env::var("OPENCODE_PTY_BIN").ok().filter(|b| !b.is_empty()).unwrap_or_else(|| "opencode-pty".into());
+        let executable = resolve_binary().await?;
         let id = self.id.lock().unwrap().clone();
         let mut command = tokio::process::Command::new(&executable);
         command

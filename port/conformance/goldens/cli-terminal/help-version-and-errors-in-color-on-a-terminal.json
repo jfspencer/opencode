@@ -1,0 +1,397 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--help"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  OpenCode command line interface",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode <subcommand> [flags] [<directory>]\u001b[0m",
+          "",
+          "\u001b[1mARGUMENTS\u001b[0m",
+          "  \u001b[32mdirectory\u001b[0m \u001b[2mstring\u001b[0m    Directory to start OpenCode in\u001b[2m (optional)\u001b[0m",
+          "",
+          "\u001b[1mFLAGS\u001b[0m",
+          "  \u001b[32m--standalone\u001b[0m            Run with a private server instead of the background service",
+          "  \u001b[32m--server\u001b[0m \u001b[2mstring\u001b[0m         Connect to a server URL instead of the background service",
+          "  \u001b[32m--auto\u001b[0m                  Auto-approve permissions that are not explicitly denied",
+          "  \u001b[32m--continue\u001b[0m, \u001b[32m-c\u001b[0m          Continue the last session",
+          "  \u001b[32m--session\u001b[0m, \u001b[32m-s\u001b[0m \u001b[2mstring\u001b[0m    Session ID to continue, or to create if it does not exist",
+          "  \u001b[32m--prompt\u001b[0m \u001b[2mstring\u001b[0m         Prompt to use",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "\u001b[1mSUBCOMMANDS\u001b[0m",
+          "  \u001b[36mupgrade, update\u001b[0m    Upgrade OpenCode to the latest or a specific version",
+          "  \u001b[36muninstall\u001b[0m          Uninstall OpenCode, keeping session data, configuration, and state",
+          "  \u001b[36macp\u001b[0m                Start an Agent Client Protocol server",
+          "  \u001b[36mapi\u001b[0m                Make a request to the running server",
+          "  \u001b[36mdebug\u001b[0m              Debugging and troubleshooting tools",
+          "  \u001b[36mauth\u001b[0m               manage integrations and credentials",
+          "  \u001b[36mmcp\u001b[0m                Manage MCP (Model Context Protocol) servers",
+          "  \u001b[36mplugin\u001b[0m             Manage plugins",
+          "  \u001b[36mmodels\u001b[0m             List all available models",
+          "  \u001b[36mstats\u001b[0m              Show shareable usage statistics",
+          "  \u001b[36mmini\u001b[0m               Start the minimal interactive interface",
+          "  \u001b[36mrun\u001b[0m                Run OpenCode with a message",
+          "  \u001b[36msession\u001b[0m            Manage sessions",
+          "  \u001b[36mservice\u001b[0m            Manage the background server",
+          "  \u001b[36mreload\u001b[0m             Reload configuration",
+          "  \u001b[36mpair\u001b[0m               Print one-time links to connect a browser or app",
+          "  \u001b[36mserve\u001b[0m              Start the v2 API and web server"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--help"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  List top-level sessions in the current project, newest first",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode session list [flags]\u001b[0m",
+          "",
+          "\u001b[1mFLAGS\u001b[0m",
+          "  \u001b[32m--max-count\u001b[0m, \u001b[32m-n\u001b[0m \u001b[2minteger\u001b[0m    Limit to N most recent sessions (default: 100)",
+          "  \u001b[32m--format\u001b[0m \u001b[2mchoice\u001b[0m            Output format (choices: table, json)",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "  \u001b[32m--standalone\u001b[0m                                                        Run with a private server instead of the background service",
+          "  \u001b[32m--server\u001b[0m \u001b[2mstring\u001b[0m                                                     Connect to a server URL instead of the background service"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "--help"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  Manage the background server",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode service <subcommand> [flags]\u001b[0m",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "",
+          "\u001b[1mSUBCOMMANDS\u001b[0m",
+          "  \u001b[36mstart\u001b[0m      Start the background server",
+          "  \u001b[36mrestart\u001b[0m    Restart the background server",
+          "  \u001b[36mstatus\u001b[0m     Show background server status",
+          "  \u001b[36mstop\u001b[0m       Stop the background server",
+          "  \u001b[36mget\u001b[0m        Get service configuration",
+          "  \u001b[36mset\u001b[0m        Set service configuration",
+          "  \u001b[36munset\u001b[0m      Unset service configuration"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1mopencode\u001b[0m \u001b[2mv\u001b[1mconformance\u001b[0m"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--format",
+          "xml"
+        ],
+        "exit": 1,
+        "screen": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  List top-level sessions in the current project, newest first",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode session list [flags]\u001b[0m",
+          "",
+          "\u001b[1mFLAGS\u001b[0m",
+          "  \u001b[32m--max-count\u001b[0m, \u001b[32m-n\u001b[0m \u001b[2minteger\u001b[0m    Limit to N most recent sessions (default: 100)",
+          "  \u001b[32m--format\u001b[0m \u001b[2mchoice\u001b[0m            Output format (choices: table, json)",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "  \u001b[32m--standalone\u001b[0m                                                        Run with a private server instead of the background service",
+          "  \u001b[32m--server\u001b[0m \u001b[2mstring\u001b[0m                                                     Connect to a server URL instead of the background service",
+          "",
+          "\u001b[1;31mERROR\u001b[0m",
+          "  Invalid value for flag --format: \"xml\". Expected: \"table\" | \"json\""
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "run",
+          "--frobnicate",
+          "--model"
+        ],
+        "exit": 1,
+        "screen": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  Run OpenCode with a message",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode run [flags] [<message...>]\u001b[0m",
+          "",
+          "\u001b[1mARGUMENTS\u001b[0m",
+          "  \u001b[32mmessage...\u001b[0m \u001b[2mstring\u001b[0m    Message to send\u001b[2m (optional)\u001b[0m",
+          "",
+          "\u001b[1mFLAGS\u001b[0m",
+          "  \u001b[32m--continue\u001b[0m, \u001b[32m-c\u001b[0m            Continue the last session",
+          "  \u001b[32m--session\u001b[0m, \u001b[32m-s\u001b[0m \u001b[2mstring\u001b[0m      Session ID to continue, or to create if it does not exist",
+          "  \u001b[32m--fork\u001b[0m                    Fork the session before continuing",
+          "  \u001b[32m--worktree\u001b[0m, \u001b[32m-w\u001b[0m \u001b[2m[=name]\u001b[0m    Start a new session in a new git worktree, optionally with this name",
+          "  \u001b[32m--model\u001b[0m, \u001b[32m-m\u001b[0m \u001b[2mstring\u001b[0m        Model to use in the format provider/model#variant",
+          "  \u001b[32m--agent\u001b[0m \u001b[2mstring\u001b[0m            Agent to use",
+          "  \u001b[32m--format\u001b[0m \u001b[2mchoice\u001b[0m           Output format (choices: default, json)",
+          "  \u001b[32m--file\u001b[0m, \u001b[32m-f\u001b[0m \u001b[2mstring\u001b[0m         File to attach to the message",
+          "  \u001b[32m--title\u001b[0m \u001b[2mstring\u001b[0m            Session title",
+          "  \u001b[32m--archived\u001b[0m                Create the session archived so it stays out of session lists (useful for scripted or CI runs)",
+          "  \u001b[32m--thinking\u001b[0m                Show thinking blocks",
+          "  \u001b[32m--auto\u001b[0m                    Auto-approve permissions that are not explicitly denied",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "  \u001b[32m--standalone\u001b[0m                                                        Run with a private server instead of the background service",
+          "  \u001b[32m--server\u001b[0m \u001b[2mstring\u001b[0m                                                     Connect to a server URL instead of the background service",
+          "",
+          "\u001b[1;31mERRORS\u001b[0m",
+          "  Unrecognized flag: --frobnicate in command opencode run",
+          "  Missing value for flag --model. Expected: string"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "env": {
+          "NO_COLOR": "1"
+        },
+        "exit": 0,
+        "screen": [
+          "opencode vconformance"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "env": {
+          "TERM": "dumb"
+        },
+        "exit": 0,
+        "screen": [
+          "opencode vconformance"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "env": {
+          "NO_COLOR": ""
+        },
+        "exit": 0,
+        "screen": [
+          "\u001b[1mopencode\u001b[0m \u001b[2mv\u001b[1mconformance\u001b[0m"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": []
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "env": {
+          "FORCE_COLOR": "1"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "\u001b[1mopencode\u001b[0m \u001b[2mv\u001b[0m\u001b[1mconformance\u001b[0m",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "--version"
+        ],
+        "env": {
+          "FORCE_COLOR": "0"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "opencode vconformance",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "list",
+          "--help"
+        ],
+        "env": {
+          "FORCE_COLOR": "true"
+        },
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "\u001b[1mDESCRIPTION\u001b[0m",
+          "  List top-level sessions in the current project, newest first",
+          "",
+          "\u001b[1mUSAGE\u001b[0m",
+          "  \u001b[36mopencode session list [flags]\u001b[0m",
+          "",
+          "\u001b[1mFLAGS\u001b[0m",
+          "  \u001b[32m--max-count\u001b[0m, \u001b[32m-n\u001b[0m \u001b[2minteger\u001b[0m    Limit to N most recent sessions (default: 100)",
+          "  \u001b[32m--format\u001b[0m \u001b[2mchoice\u001b[0m            Output format (choices: table, json)",
+          "",
+          "\u001b[1mGLOBAL FLAGS\u001b[0m",
+          "  \u001b[32m--help\u001b[0m, \u001b[32m-h\u001b[0m                                                          Show help information",
+          "  \u001b[32m--version\u001b[0m, \u001b[32m-v\u001b[0m                                                       Show version information",
+          "  \u001b[32m--wizard\u001b[0m                                                            Start wizard mode for a command",
+          "  \u001b[32m--completions\u001b[0m \u001b[2m<bash|zsh|fish|powershell|sh|pwsh>\u001b[0m                    Print shell completion script (choices: bash, zsh, fish, powershell, sh, pwsh)",
+          "  \u001b[32m--log-level\u001b[0m \u001b[2m<all|trace|debug|info|warn|warning|error|fatal|none>\u001b[0m    Sets the minimum log level (choices: all, trace, debug, info, warn, warning, error, fatal, none)",
+          "  \u001b[32m--print-logs\u001b[0m                                                        Print logs to stderr (server logs require --standalone)",
+          "  \u001b[32m--standalone\u001b[0m                                                        Run with a private server instead of the background service",
+          "  \u001b[32m--server\u001b[0m \u001b[2mstring\u001b[0m                                                     Connect to a server URL instead of the background service",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

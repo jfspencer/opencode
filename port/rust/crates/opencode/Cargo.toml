@@ -45,3 +45,6 @@ jpeg-decoder = { version = "=0.3.1", default-features = false, features = ["plat
 libm = "0.2"
 # npm tarballs (the image codecs' own flate2).
 flate2 = "1"
+
+[build-dependencies]
+sha2.workspace = true

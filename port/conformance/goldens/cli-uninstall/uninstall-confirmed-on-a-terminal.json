@@ -1,0 +1,175 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "│",
+          "◇  Are you sure you want to uninstall?",
+          "│  No",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "│",
+          "■  Are you sure you want to uninstall?",
+          "│  No",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": true
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "│",
+          "◇  Are you sure you want to uninstall?",
+          "│  Yes",
+          "│",
+          "◇  Background services stopped",
+          "│",
+          "◇  Removed Cache",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[D",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": false
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

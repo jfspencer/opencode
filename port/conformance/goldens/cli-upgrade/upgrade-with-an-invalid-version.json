@@ -1,0 +1,143 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "not-a-version",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → not-a-version",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Invalid version: not-a-version",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.04.0",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → 1.04.0",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Invalid version: 1.04.0",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "1.4.0-beta.01",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → 1.4.0-beta.01",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Invalid version: 1.4.0-beta.01",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "upgrade",
+          "99999999999999999.0.0",
+          "--method",
+          "npm"
+        ],
+        "env": {
+          "PATH": "<sandbox>/bin:<PATH>"
+        },
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Upgrade",
+          "│",
+          "●  Using method: npm",
+          "│",
+          "●  From conformance → 99999999999999999.0.0",
+          "\u001b[?25l│",
+          "■  Upgrade failed",
+          "\u001b[?25h│",
+          "■  Invalid version: 99999999999999999.0.0",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/calls.log"
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

@@ -16,9 +16,11 @@ mod client;
 mod commands;
 mod connection;
 mod help;
+mod install;
 mod out;
 mod parse;
 mod paths;
+mod pty_handoff;
 mod run;
 mod serve;
 mod service;
@@ -193,8 +195,9 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["api"] => commands::api(globals, input).await,
         ["auth", name] => auth::command(name, globals, input).await,
         ["acp"] => acp::command(globals, input).await,
-        // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
-        // uninstall, pair).
+        ["upgrade" | "update"] => install::upgrade(input).await,
+        ["uninstall"] => install::uninstall(input).await,
+        // Out of scope: `mini`, `mcp`, `plugin` and the v1 migration are dropped from the port (port/README.md).
         _ => unavailable(path),
     }
 }
