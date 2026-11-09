@@ -1,0 +1,49 @@
+<html><head><title>Re: segfault when calling free() twice? - Programming Forum</title></head>
+<body>
+<table class="forumline" width="100%"><tr><td class="nav"><a href="index.php">Forum Index</a> -&gt; <a href="viewforum.php?f=3">C/C++</a></td></tr></table>
+<div class="post" id="p1001">
+  <div class="postauthor"><b>newbie_coder</b><br><span class="rank">Junior Member</span><br><img src="/avatars/1.gif" alt=""></div>
+  <div class="postbody">
+    <h3 class="posttitle">segfault when calling free() twice?</h3>
+    <p>Hi all, my program crashes with <code>Segmentation fault (core dumped)</code>. Here's the code:</p>
+    <pre><code>#include &lt;stdlib.h&gt;
+int main(void) {
+    char *p = malloc(16);
+    free(p);
+    free(p);   /* &lt;-- crash here */
+    return 0;
+}</code></pre>
+    <p>Why??? <img src="/smilies/confused.gif" alt=":?" title="Confused"></p>
+    <div class="signature">--<br>"It works on my machine"</div>
+  </div>
+</div>
+<div class="post" id="p1002">
+  <div class="postauthor"><b>old_timer</b><br><span class="rank">Moderator</span></div>
+  <div class="postbody">
+    <blockquote class="quote"><cite>newbie_coder wrote:</cite><p>Why???</p></blockquote>
+    <p>Because freeing the same pointer twice is <strong>undefined behaviour</strong>. Set it to <code>NULL</code> after freeing:</p>
+    <pre><code class="language-c">free(p);
+p = NULL;
+free(p); /* free(NULL) is a no-op */</code></pre>
+    <p>Also, run it under <a href="https://valgrind.example.org/">Valgrind</a>:</p>
+    <pre>$ valgrind ./a.out
+==1234== Invalid free() / delete / delete[] / realloc()
+==1234==    at 0x483CA3F: free (vg_replace_malloc.c:540)</pre>
+  </div>
+</div>
+<div class="post" id="p1003">
+  <div class="postauthor"><b>pedant42</b></div>
+  <div class="postbody">
+    <blockquote class="quote"><cite>old_timer wrote:</cite>
+      <blockquote class="quote"><cite>newbie_coder wrote:</cite><p>Why???</p></blockquote>
+      <p>Because freeing the same pointer twice is <strong>undefined behaviour</strong>.</p>
+    </blockquote>
+    <p>Technically it's "undefined behavior" in the standard (§7.22.3.3 &para;2), but yes.</p>
+    <details class="spoiler"><summary>Spoiler: what the standard actually says</summary><blockquote><p>if the argument does not match a pointer earlier returned by a memory management function, or if the space has been deallocated by a call to <code>free</code> or <code>realloc</code>, the behavior is undefined.</p></blockquote></details>
+    <p>Score: <span class="votes">+12</span> | <a href="report.php?p=1003">Report</a> | <a href="posting.php?mode=quote&amp;p=1003">Quote</a></p>
+  </div>
+</div>
+<div class="post deleted" id="p1004" hidden><div class="postbody"><p>This post was deleted.</p></div></div>
+<div class="pagination">Page <b>1</b> of <b>3</b> &bull; <a href="?start=20">2</a>, <a href="?start=40">3</a>&nbsp;&nbsp;<a href="?start=20">Next</a></div>
+<form action="posting.php" method="post"><textarea name="message" rows="10">Quick reply...</textarea><input type="submit" value="Post"></form>
+</body></html>

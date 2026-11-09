@@ -1,0 +1,75 @@
+<article class="markdown-body entry-content container-lg" itemprop="text"><div class="markdown-heading" dir="auto"><h1 tabindex="-1" class="heading-element" dir="auto">ripgrep (rg)</h1><a id="user-content-ripgrep-rg" class="anchor" aria-label="Permalink: ripgrep (rg)" href="#ripgrep-rg"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275 1.25-1.25a3.5 3.5 0 1 1 4.95 4.95l-2.5 2.5a3.5 3.5 0 0 1-4.95 0 .751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018 1.998 1.998 0 0 0 2.83 0l2.5-2.5a2.002 2.002 0 0 0-2.83-2.83l-1.25 1.25a.751.751 0 0 1-1.042-.018.751.751 0 0 1-.018-1.042Z"></path></svg></a></div>
+<p dir="auto">ripgrep is a line-oriented search tool that recursively searches the current directory for a regex pattern. By default, ripgrep will respect gitignore rules and automatically skip hidden files/directories and binary files. (To disable all automatic filtering by default, use <code>rg -uuu</code>.)</p>
+<p dir="auto"><a href="https://github.com/BurntSushi/ripgrep/actions"><img src="https://github.com/BurntSushi/ripgrep/workflows/ci/badge.svg" alt="Build status" style="max-width: 100%;"></a>
+<a href="https://crates.io/crates/ripgrep" rel="nofollow"><img src="https://camo.githubusercontent.com/abc/68747470733a2f2f696d672e736869656c64732e696f2f6372617465732f762f7269706772657" alt="Crates.io" data-canonical-src="https://img.shields.io/crates/v/ripgrep.svg" style="max-width: 100%;"></a>
+<a href="https://repology.org/project/ripgrep/badges" rel="nofollow"><img src="https://camo.githubusercontent.com/def/687474" alt="Packaging status" data-canonical-src="https://repology.org/badge/tiny-repos/ripgrep.svg" style="max-width: 100%;"></a></p>
+<p dir="auto">Dual-licensed under MIT or the <a href="https://www.unlicense.org/" rel="nofollow">UNLICENSE</a>.</p>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">Quick examples comparing tools</h3><a id="user-content-quick-examples-comparing-tools" class="anchor" aria-label="Permalink: Quick examples comparing tools" href="#quick-examples-comparing-tools"><svg class="octicon octicon-link" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="m7.775 3.275Z"></path></svg></a></div>
+<p dir="auto">This example searches the entire <a href="https://github.com/torvalds/linux">Linux kernel source tree</a> (after running <code>make defconfig &amp;&amp; make -j8</code>) for <code>[A-Z]+_SUSPEND</code>, where all matches must be words. Timings were collected on a system with an Intel i9-12900K 5.2 GHz.</p>
+<markdown-accessiblity-table><table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Command</th>
+<th>Line count</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ripgrep (Unicode)</td>
+<td><code>rg -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>536</td>
+<td><strong>0.082s</strong> (1.00x)</td>
+</tr>
+<tr>
+<td><a href="https://www.kernel.org/pub/software/scm/git/docs/git-grep.html" rel="nofollow">git grep</a></td>
+<td><code>LC_ALL=C git grep -E -n -w '[A-Z]+_SUSPEND'</code></td>
+<td>536</td>
+<td>0.273s (3.34x)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/Genivia/ugrep">ugrep (Unicode)</a></td>
+<td><code>ugrep -r --ignore-files --no-hidden -I -w '[A-Z]+_SUSPEND'</code></td>
+<td>536</td>
+<td>0.229s (2.80x)</td>
+</tr>
+</tbody>
+</table></markdown-accessiblity-table>
+<p dir="auto">Here's another benchmark on the same corpus as above that disregards gitignore files and searches with a whitelist instead. The corpus is the same as in the previous benchmark, and the flags passed to each command ensure that they are doing equivalent work:</p>
+<div class="highlight highlight-source-shell notranslate position-relative overflow-auto" dir="auto"><pre>$ rg -uuu -tc -n -w <span class="pl-s"><span class="pl-pds">'</span>[A-Z]+_SUSPEND<span class="pl-pds">'</span></span> <span class="pl-k">|</span> wc -l
+<span class="pl-c1">10</span>
+$ <span class="pl-k">for</span> <span class="pl-smi">f</span> <span class="pl-k">in</span> <span class="pl-k">*</span>.c<span class="pl-k">;</span> <span class="pl-k">do</span> grep -E <span class="pl-s"><span class="pl-pds">"</span>\b[A-Z]+_SUSPEND\b<span class="pl-pds">"</span></span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-smi">$f</span><span class="pl-pds">"</span></span><span class="pl-k">;</span> <span class="pl-k">done</span></pre><div class="zeroclipboard-container"><clipboard-copy aria-label="Copy" class="ClipboardButton btn btn-invisible js-clipboard-copy m-2 p-0 d-flex flex-justify-center flex-items-center" data-copy-feedback="Copied!" data-tooltip-direction="w" value="$ rg -uuu -tc -n -w '[A-Z]+_SUSPEND' | wc -l" tabindex="0" role="button"><svg aria-hidden="true" height="16" viewBox="0 0 16 16" version="1.1" width="16" class="octicon octicon-copy js-clipboard-copy-icon"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5"></path></svg></clipboard-copy></div></div>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">Why should I use ripgrep?</h3><a id="user-content-why-should-i-use-ripgrep" class="anchor" href="#why-should-i-use-ripgrep"><svg class="octicon octicon-link" aria-hidden="true"><path d="m7Z"></path></svg></a></div>
+<ul dir="auto">
+<li>It can replace many use cases served by other search tools because it contains most of their features and is generally faster. (See <a href="/BurntSushi/ripgrep/blob/master/FAQ.md#posix4ever">the FAQ</a> for more details on whether ripgrep can truly replace grep.)</li>
+<li>Like other tools specialized to code search, ripgrep defaults to <a href="/BurntSushi/ripgrep/blob/master/GUIDE.md#automatic-filtering">recursive search</a> and does <a href="/BurntSushi/ripgrep/blob/master/GUIDE.md#automatic-filtering">automatic filtering</a>.</li>
+<li>ripgrep can search specific types of files. For example, <code>rg -tpy foo</code> limits your search to Python files and <code>rg -Tjs foo</code> excludes JavaScript files from your search.</li>
+<li>ripgrep supports many features found in <code>grep</code>, such as showing the context of search results, searching multiple patterns, highlighting matches with color and full Unicode support.</li>
+</ul>
+<div class="markdown-heading" dir="auto"><h3 tabindex="-1" class="heading-element" dir="auto">Installation</h3></div>
+<ul class="contains-task-list">
+<li class="task-list-item"><input type="checkbox" id="" disabled="" class="task-list-item-checkbox" checked=""> Homebrew: <code>brew install ripgrep</code></li>
+<li class="task-list-item"><input type="checkbox" id="" disabled="" class="task-list-item-checkbox"> MacPorts: <code>sudo port install ripgrep</code></li>
+<li class="task-list-item"><input type="checkbox" disabled class="task-list-item-checkbox"> Windows: <code>winget install BurntSushi.ripgrep.MSVC</code></li>
+</ul>
+<details>
+<summary>Building from source</summary>
+<p dir="auto">ripgrep is written in Rust, so you'll need to grab a <a href="https://www.rust-lang.org/" rel="nofollow">Rust installation</a> in order to compile it. ripgrep compiles with Rust 1.85.0 (stable) or newer.</p>
+<div class="snippet-clipboard-content notranslate position-relative overflow-auto"><pre class="notranslate"><code>git clone https://github.com/BurntSushi/ripgrep
+cd ripgrep
+cargo build --release
+./target/release/rg --version
+0.1.3
+</code></pre></div>
+</details>
+<p dir="auto">Press <kbd>Ctrl</kbd>+<kbd>C</kbd> to cancel a search. <g-emoji class="g-emoji" alias="rocket">🚀</g-emoji></p>
+<div class="markdown-alert markdown-alert-note" dir="auto"><p class="markdown-alert-title" dir="auto"><svg class="octicon octicon-info mr-2" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8Z"></path></svg>Note</p><p dir="auto">The <code>--pcre2</code> flag requires the <code>pcre2</code> feature at build time.</p>
+</div>
+<section data-footnotes="" class="footnotes"><h2 id="footnote-label" class="sr-only">Footnotes</h2>
+<ol>
+<li id="user-content-fn-1">
+<p>Benchmarks were run on a quiet machine. <a href="#user-content-fnref-1" data-footnote-backref="" aria-label="Back to reference 1" class="data-footnote-backref"><g-emoji class="g-emoji" alias="leftwards_arrow_with_hook">↩</g-emoji></a></p>
+</li>
+</ol>
+</section></article>

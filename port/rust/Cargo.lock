@@ -347,6 +347,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "opencode-html"
+version = "0.1.0"
+dependencies = [
+ "ryu",
+]
+
+[[package]]
 name = "opencode-protocol"
 version = "0.1.0"
 dependencies = [

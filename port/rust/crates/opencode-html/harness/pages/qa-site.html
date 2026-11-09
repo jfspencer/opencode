@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html itemscope itemtype="https://schema.org/QAPage" class="html__responsive">
+<head>
+<title>python - How do I merge two dictionaries in a single expression? - Q&amp;A</title>
+<link rel="shortcut icon" href="/favicon.ico">
+<meta name="twitter:card" content="summary">
+<script src="https://ajax.example.com/jquery.min.js"></script>
+<script>StackExchange.ready(function () { StackExchange.using("snippets", function () { StackExchange.snippets.initSnippetRenderer(); }); });</script>
+</head>
+<body class="question-page unified-theme">
+<div id="notify-container"></div>
+<header class="s-topbar"><div class="s-topbar--container"><a href="#" class="s-topbar--menu-btn" aria-label="Menu" aria-hidden="true"><span></span></a><a class="s-topbar--logo" href="/"><span class="-img _glyph">Q&amp;A</span></a><ol class="s-navigation" role="presentation"><li><a href="/about" class="s-navigation--item">About</a></li><li><a href="/teams" class="s-navigation--item">For Teams</a></li></ol><form id="search" role="search" action="/search" class="s-topbar--searchbar"><input name="q" type="text" placeholder="Search…" value="" autocomplete="off" maxlength="240"></form></div></header>
+<div class="container">
+<div id="left-sidebar" data-is-here-when="md lg" class="left-sidebar js-pinned-left-sidebar ps-relative"><nav role="navigation"><ol class="nav-links"><li><a href="/" class="pl8 js-gps-track nav-links--link">Home</a></li><li><a href="/questions" class="nav-links--link">Questions</a></li><li><a href="/tags" class="nav-links--link">Tags</a></li></ol></nav></div>
+<div id="content" class="snippet-hidden">
+<div id="question-header" class="d-flex sm:fd-column"><h1 itemprop="name" class="fs-headline1 ow-break-word mb8 flex--item fl1"><a href="/questions/38987/how-do-i-merge-two-dictionaries-in-a-single-expression" class="question-hyperlink">How do I merge two dictionaries in a single expression?</a></h1></div>
+<div class="d-flex fw-wrap pb8 mb16 bb bc-black-200"><div class="flex--item ws-nowrap mr16 mb8" title="2008-09-02 07:44:30Z"><span class="fc-light mr2">Asked</span> <time itemprop="dateCreated" datetime="2008-09-02T07:44:30">16 years ago</time></div><div class="flex--item ws-nowrap mb8" title="Viewed 3,120,334 times"><span class="fc-light mr2">Viewed</span> 3.1m times</div></div>
+<div id="mainbar" role="main" aria-label="question and answers">
+<div class="question js-question" data-questionid="38987" id="question">
+<div class="post-layout"><div class="votecell post-layout--left"><div class="js-voting-container d-flex jc-center fd-column ai-stretch gs4 fc-black-300" data-post-id="38987"><button class="js-vote-up-btn" aria-pressed="false" aria-label="Up vote">▲</button><div class="js-vote-count flex--item d-flex fd-column ai-center fc-black-500 fs-title" itemprop="upvoteCount" data-value="6717">6717</div><button class="js-vote-down-btn" aria-label="Down vote">▼</button></div></div>
+<div class="postcell post-layout--right"><div class="s-prose js-post-body" itemprop="text">
+<p>I want to merge two dictionaries into a new dictionary.</p>
+<pre class="lang-py s-code-block"><code class="hljs language-python">x = {<span class="hljs-string">'a'</span>: <span class="hljs-number">1</span>, <span class="hljs-string">'b'</span>: <span class="hljs-number">2</span>}
+y = {<span class="hljs-string">'b'</span>: <span class="hljs-number">3</span>, <span class="hljs-string">'c'</span>: <span class="hljs-number">4</span>}
+z = merge(x, y)
+
+&gt;&gt;&gt; z
+{<span class="hljs-string">'a'</span>: <span class="hljs-number">1</span>, <span class="hljs-string">'b'</span>: <span class="hljs-number">3</span>, <span class="hljs-string">'c'</span>: <span class="hljs-number">4</span>}
+</code></pre>
+<p>Whenever a key <code>k</code> is present in both dictionaries, only the value <code>y[k]</code> should be kept.</p>
+</div>
+<div class="mt24 mb12"><div class="post-taglist d-flex gs4 gsy fd-column"><div class="d-flex ps-relative fw-wrap"><ul class="ml0 list-ls-none js-post-tag-list-wrapper d-inline"><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/python" class="post-tag" title="show questions tagged 'python'" rel="tag">python</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/dictionary" class="post-tag" rel="tag">dictionary</a></li><li class="d-inline mr4 js-post-tag-list-item"><a href="/questions/tagged/merge" class="post-tag" rel="tag">merge</a></li></ul></div></div></div>
+<div class="comments js-comments-container"><ul class="comments-list js-comments-list"><li class="comment js-comment"><div class="comment-body js-comment-edit-hide"><span class="comment-copy"><code>z = x | y</code> in Python 3.9+</span> &ndash;&nbsp;<a href="/users/1" class="comment-user">someone</a> <span class="comment-date"><span class="relativetime-clean">Jan 1, 2021</span></span></div></li></ul></div>
+</div></div></div>
+<div id="answers">
+<a name="tab-top"></a>
+<div id="answers-header"><h2 class="mb0" data-answercount="43">43 Answers <span style="display:none;" itemprop="answerCount">43</span></h2></div>
+<div id="answer-26853961" class="answer js-answer accepted-answer js-accepted-answer" data-answerid="26853961" itemprop="acceptedAnswer" itemscope itemtype="https://schema.org/Answer">
+<div class="post-layout"><div class="answercell post-layout--right"><div class="s-prose js-post-body" itemprop="text">
+<h2>How can I merge two Python dictionaries in a single expression?</h2>
+<p>For dictionaries <code>x</code> and <code>y</code>, their shallowly-merged dictionary <code>z</code> takes values from <code>y</code>, replacing those from <code>x</code>.</p>
+<ul>
+<li><p>In Python 3.9.0 or greater (released 17 October 2020, <a href="https://peps.python.org/pep-0584/" rel="noreferrer"><code>PEP-584</code></a>, <a href="https://bugs.python.org/issue36144" rel="noreferrer">discussed here</a>):</p>
+<pre class="lang-py s-code-block"><code class="hljs language-python">z = x | y
+</code></pre>
+</li>
+<li><p>In Python 3.5 or greater:</p>
+<pre class="lang-py s-code-block"><code class="hljs language-python">z = {**x, **y}
+</code></pre>
+</li>
+<li><p>In Python 2, (or 3.4 or lower) write a function:</p>
+<pre class="lang-py s-code-block"><code class="hljs language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">merge_two_dicts</span>(<span class="hljs-params">x, y</span>):
+    z = x.copy()   <span class="hljs-comment"># start with keys and values of x</span>
+    z.update(y)    <span class="hljs-comment"># modifies z with keys and values of y</span>
+    <span class="hljs-keyword">return</span> z
+</code></pre>
+</li>
+</ul>
+<h3>Performance</h3>
+<blockquote>
+<p>Note: the <code>{**x, **y}</code> form is <em>about</em> as fast as <code>x | y</code>; both beat <code>dict(x, **y)</code>.</p>
+</blockquote>
+<table><thead><tr><th style="text-align: left;">Method</th><th style="text-align: right;">Time (ns)</th></tr></thead><tbody><tr><td style="text-align: left;"><code>x | y</code></td><td style="text-align: right;">58.3</td></tr><tr><td style="text-align: left;"><code>{**x, **y}</code></td><td style="text-align: right;">59.1</td></tr><tr><td style="text-align: left;"><code>merge_two_dicts(x, y)</code></td><td style="text-align: right;">112.7</td></tr></tbody></table>
+</div></div></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<footer id="footer" class="site-footer js-footer theme-light__forced" role="contentinfo"><div class="site-footer--container"><nav class="site-footer--nav"><div class="site-footer--col"><h5 class="-title"><a href="/" class="js-gps-track">Q&amp;A</a></h5><ul class="-list js-primary-footer-links"><li class="-item"><a href="/questions" class="js-gps-track -link">Questions</a></li><li class="-item"><a href="/help" class="js-gps-track -link">Help</a></li></ul></div></nav><p class="site-footer--copyright fs-fine md:mb24">Site design / logo &copy; 2025 Example Inc; user contributions licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license">CC BY-SA</a>. <span id="svnrev">rev&nbsp;2025.1.15.21207</span></p></div></footer>
+<noscript><div id="noscript-warning">Q&amp;A works best with JavaScript enabled</div></noscript>
+</body>
+</html>

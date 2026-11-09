@@ -1,0 +1,55 @@
+<HTML>
+<HEAD><TITLE>Malformed &amp; Broken</TITLE>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+<SCRIPT LANGUAGE="JavaScript">
+<!--
+var s = "</scr" + "ipt>"; if (a < b && c > d) { document.write("<p>written</p>"); }
+// -->
+</SCRIPT>
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=black>
+<P>First paragraph<P>Second paragraph without closing the first
+<p>Para with <b>bold <i>bold italic</b> just italic?</i> plain</p>
+<div><p>unclosed p in div</div>after div
+<p>table soup: <table><tr><td>cell</p></td></tr></table>
+<a href=unquoted/path?x=1&y=2>unquoted href</a>
+<a href='single "quoted"'>single</a>
+<a href="double 'quoted'" title=no-quotes>double</a>
+<a href = "spaced" >spaced equals</a>
+<a href="no closing quote>oops</a> recovered?</p>
+<img src="a.png" alt="broken <alt> & such"/>
+<img src=b.png alt=unquoted-alt>
+<br/><br /><BR><br></br></br>
+<!-- normal comment -->
+<!--> short comment
+<!---> shorter comment
+<!-- comment with -- dashes -- inside -->
+<!-- unterminated comment? no: -- > still in comment -->
+<! weird declaration >
+<!DOCTYPE in the middle>
+<?php echo "processing instruction"; ?>
+<![CDATA[ cdata <b>section</b> ]]>
+&copy &copy; &COPY; &amp &lt3 &gt;3 &nbsp&nbsp; &#38; &#x26; &#; &#x; &; &unknownentity; &ampere; &notin &notit; &#128; &#x9F;
+5 &lt; 6 &amp;&amp; 7 &gt; 2
+<p>Stray end tags: </span></div></li></td></tr></table></body> still here</p>
+<p>Unknown tags: <foo>foo</foo> <bar baz=1>bar</bar> <x-y-z>custom</x-y-z></p>
+<p>Self-closing non-void: <div/>after div slash <span/>after span slash <p/>after p slash</p>
+<ul><li>one<li>two</ul><ol><li>uno<li>dos
+<dl><dt>a<dd>b<dt>c<dd>d</dl>
+<select><option>one<option>two<optgroup label=g><option>three</select>
+<form><input type=text value="v"><textarea>text <b>area</b> &amp; stuff</textarea><button>Go</button></form>
+<h1>Heading <p>with paragraph inside</h1>
+<h2>Unclosed heading
+<h3>Next heading</h3>
+<blockquote>unclosed quote<p>para in quote
+<table><caption>orphan caption<tr><th>h<td>d</table>
+<pre>pre <pre>nested pre</pre> after</pre>
+<code>code <code>nested code</code> after</code>
+<a href="/outer">outer <a href="/inner">inner</a> outer again</a>
+<b><p>bold across paragraph</p></b>
+<em>emphasis <div>across div</div> continues</em>
+<style>p { color: red } </style><style>unclosed style
+</BODY>
+</HTML>
+trailing text after html
+<p>last paragraph without closing

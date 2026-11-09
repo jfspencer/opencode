@@ -1,0 +1,11 @@
+[package]
+name = "opencode-html"
+description = "The webfetch tool's HTML processing: htmlparser2 8.0.2's tokenizer and parser, HTML to Markdown and to text"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+ryu.workspace = true
