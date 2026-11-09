@@ -15,7 +15,10 @@
 //! TODO(port): every tool's execution (the tools slice): until a tool is ported, a call fails with a tool error. The
 //! Code Mode catalog is the reference configuration's (`codemode-catalog.json`, the `opencode.*` tools), until the
 //! Code Mode tools are registered here; descriptions that depend on the inventory (the subagent list, skills) are
-//! the reference configuration's. `ToolOutput.truncate`, plugin `tool.execute.before/after` hooks, input repair.
+//! the reference configuration's. Plugin `tool.execute.before/after` hooks, input repair. The loop bounds every
+//! successful result with [`output::truncate`].
+
+pub mod output;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -35,6 +38,7 @@ pub struct Definition {
 
 /// What a tool call receives besides its input (`Tool.Context`).
 #[derive(Clone)]
+#[allow(dead_code)] // Read by the tools themselves (the tools slice).
 pub struct Context {
     pub session_id: String,
     pub agent: String,
@@ -70,6 +74,7 @@ impl ToolError {
 /// Why a call ended without a result: a tool error, or the user declined a permission or dismissed a question
 /// (`Permission.DeclinedError`, `QuestionTool.CancelledError`), which stops the turn.
 #[derive(Debug, Clone)]
+#[allow(dead_code)] // `Declined` comes from the permission and question tools.
 pub enum Failure {
     Error(ToolError),
     Declined { question: bool, message: String },

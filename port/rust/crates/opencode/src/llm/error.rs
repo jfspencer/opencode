@@ -16,6 +16,7 @@ use crate::json::{self, Obj};
 use super::http::{Failure, FailureKind};
 
 /// `AIError.reason._tag`.
+#[allow(dead_code)] // Every reason TS has; not all arise on OpenRouter's route.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     InvalidRequest,
@@ -32,6 +33,7 @@ pub enum Kind {
 }
 
 /// The HTTP exchange a failure came from (`HttpContext`).
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct HttpContext {
     pub url: String,
@@ -120,9 +122,32 @@ impl AIError {
         if self.body.as_deref().is_some_and(|b| b.contains("subscription_sharing_usage_limit_exceeded")) {
             return self.provider_error("provider.chatgpt-limit");
         }
+        let body = self.body.as_deref().unwrap_or_default();
         let ty = match self.kind {
             Kind::RateLimit => "provider.rate-limit",
             Kind::Authentication => "provider.auth",
+            Kind::QuotaExceeded if body.contains("FreeUsageLimitError") => {
+                return self.with_message("provider.free-limit", FREE_USAGE_LIMIT_MESSAGE.to_owned());
+            }
+            Kind::QuotaExceeded if body.contains("BudgetLimitError") => {
+                // OpenCode Console names what a refusing budget covers.
+                let models = Regex::new(r#""coverage"\s*:\s*"models""#).is_ok_and(|r| r.is_match(body));
+                return if models {
+                    self.with_message("provider.model-budget-limit", MODEL_BUDGET_LIMIT_MESSAGE.to_owned())
+                } else {
+                    self.with_message("provider.budget-limit", BUDGET_LIMIT_MESSAGE.to_owned())
+                };
+            }
+            Kind::QuotaExceeded if body.contains("GoUsageLimitError") => {
+                let name = Regex::new(r#""limitName"\s*:\s*"([^"]+)""#)
+                    .ok()
+                    .and_then(|r| r.captures(body).map(|c| c[1].to_owned()));
+                let message = format!(
+                    "OpenCode Go {}usage limit reached. Switch to a free model, or turn on Extra Usage on the Go page in OpenCode Console to keep going.",
+                    name.map(|n| format!("{n} ")).unwrap_or_default()
+                );
+                return self.with_message("provider.go-limit", message);
+            }
             Kind::QuotaExceeded => "provider.quota",
             Kind::ContentPolicy => "provider.content-filter",
             Kind::Transport => {
@@ -149,13 +174,24 @@ impl AIError {
             Kind::UnknownProvider => "provider.unknown",
             Kind::Timeout => "provider.timeout",
         };
-        // TODO(port): OpenCode Zen / Go / ChatGPT token sharing messages (not reachable through OpenRouter).
         self.provider_error(ty)
     }
 
+    fn with_message(&self, ty: &str, message: String) -> Json {
+        let mut error = self.provider_error(ty);
+        json::set(&mut error, "message", json::string(&message));
+        error
+    }
+
     fn provider_error(&self, ty: &str) -> Json {
+        let body = self.body.as_deref().unwrap_or_default();
+        let message = TOKEN_SHARING_MESSAGES
+            .iter()
+            .find(|(code, _)| body.contains(code))
+            .map(|(_, message)| (*message).to_owned())
+            .unwrap_or_else(|| self.message.clone());
         let mut o = Obj::new();
-        o.str("type", ty).str("message", &self.message);
+        o.str("type", ty).str("message", &message);
         if let Some(http) = &self.http {
             o.int("status", http.status as i64);
         }
@@ -172,6 +208,38 @@ impl AIError {
         o.done()
     }
 }
+
+const TOKEN_SHARING_MESSAGES: &[(&str, &str)] = &[
+    (
+        "subscription_sharing_user_not_eligible",
+        "ChatGPT token sharing isn't available for this account. Connect with an API key or choose another provider.",
+    ),
+    ("subscription_sharing_usage_limit_exceeded", "ChatGPT usage limit reached. Check ChatGPT Settings → Usage for details."),
+    ("subscription_sharing_usage_unavailable", "ChatGPT usage can't be checked right now. Try again later."),
+    (
+        "subscription_sharing_unsupported_capability",
+        "This request uses a feature ChatGPT token sharing doesn't support. Remove the unsupported feature and try again.",
+    ),
+    (
+        "subscription_sharing_route_not_supported",
+        "ChatGPT token sharing doesn't support this API route. Check the configured endpoint and HTTP method.",
+    ),
+    ("subscription_sharing_invalid_user", "This ChatGPT connection is no longer valid. Reconnect to ChatGPT."),
+    ("subscription_sharing_user_unavailable", "Your ChatGPT account is temporarily unavailable. Try again later."),
+    (
+        "chatpass_v2_scope_not_authorized",
+        "This ChatGPT connection isn't authorized for this request. Reconnect to ChatGPT or choose another connection.",
+    ),
+    (
+        "chatpass_v2_invalid_authorization_context",
+        "This ChatGPT connection isn't authorized for this request. Reconnect to ChatGPT or choose another connection.",
+    ),
+];
+
+const FREE_USAGE_LIMIT_MESSAGE: &str =
+    "Free usage limit reached. Connect a provider or subscribe to OpenCode Go to keep going, or switch models.";
+const BUDGET_LIMIT_MESSAGE: &str = "Workspace usage limit reached. Model use is paused until the limit resets.";
+const MODEL_BUDGET_LIMIT_MESSAGE: &str = "You've reached the spend limit for this model. Switch models to keep going.";
 
 fn host_of(url: &str) -> Option<&str> {
     let rest = url.split_once("://")?.1;

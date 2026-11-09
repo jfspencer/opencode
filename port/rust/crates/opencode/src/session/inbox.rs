@@ -26,6 +26,7 @@ pub enum Promotable {
 /// A pending row at a boundary (`SessionInbox.Promotion`).
 #[derive(Debug, Clone)]
 pub struct Promotion {
+    #[allow(dead_code)]
     pub id: String,
     pub ty: String,
     pub delivery: String,

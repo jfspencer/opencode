@@ -2,8 +2,7 @@
 //! rules as synthetic input (on creation, and on a switch to or from the agent), and every request reconciles the
 //! reminder near the tail of the history so compaction or a revert cannot strip it.
 //!
-//! TODO(port): the agent switch (`session.agent.selected`) and the plan agent's edit/write permission message
-//! rewrite (`tool.execute.after`).
+//! TODO(port): the plan agent's edit/write permission message rewrite (`tool.execute.after`).
 
 use crate::app::App;
 use crate::bus::LocationRef;
@@ -37,11 +36,28 @@ You are NO LONGER in Plan mode. The previous Plan restrictions no longer apply. 
 
 /// `session.created` with the plan agent: the reminder, admitted without waking the session.
 pub fn created(app: &App, session: &str, agent: Option<&str>, location: &LocationRef) {
-    if agent != Some(AGENT) {
-        return;
+    if agent == Some(AGENT) {
+        remind(app, session, &enter(), location);
     }
+}
+
+/// `session.agent.selected`: entering Plan mode reminds of its rules, leaving it lifts them.
+pub fn selected(app: &App, session: &str, agent: &str, previous: Option<&str>, location: &LocationRef) {
+    let text = if Some(agent) == previous {
+        return;
+    } else if agent == AGENT {
+        enter()
+    } else if previous == Some(AGENT) {
+        LEAVE.to_owned()
+    } else {
+        return;
+    };
+    remind(app, session, &text, location);
+}
+
+fn remind(app: &App, session: &str, text: &str, location: &LocationRef) {
     let mut payload = Obj::new();
-    payload.str("text", &enter());
+    payload.str("text", text);
     let mut item = Obj::new();
     item.str("type", "synthetic").set("payload", payload.done()).str("delivery", "steer");
     let id = crate::session::message::create_id();

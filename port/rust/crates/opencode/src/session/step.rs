@@ -31,6 +31,8 @@ pub enum Outcome {
     Completed { needs_continuation: bool },
     Retry { error: Json, decision: Decision },
     Continue { error: Json, decision: Decision },
+    /// A WebSocket transport's failure before output asks for a fresh request (TODO(port): WebSocket transports).
+    #[allow(dead_code)]
     RecoverFull,
     OutputLimit { needs_continuation: bool },
 }
@@ -634,7 +636,8 @@ fn interrupted_stream(error: &AIError) -> bool {
 
 enum ToolExit {
     Done,
-    Declined(tool::Failure),
+    /// The user declined the call (or dismissed its question): the turn stops.
+    Declined(String, tool::Failure),
 }
 
 /// `SessionStep.attempt`.
@@ -719,17 +722,14 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             let mut p = publisher.lock().unwrap();
             match result {
                 Ok(output) => {
-                    p.tool_execution(&id, output);
+                    p.tool_execution(&id, tool::output::truncate(output));
                     ToolExit::Done
                 }
                 Err(tool::Failure::Error(failure)) => {
                     p.fail_tool(&id, error("tool.execution", &failure.message), failure.metadata);
                     ToolExit::Done
                 }
-                Err(declined @ tool::Failure::Declined { .. }) => {
-                    let _ = &id;
-                    ToolExit::Declined(declined)
-                }
+                Err(declined @ tool::Failure::Declined { .. }) => ToolExit::Declined(id, declined),
             }
         });
     }
@@ -758,7 +758,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         match joined {
             None => break,
             Some(Ok(ToolExit::Done)) => {}
-            Some(Ok(ToolExit::Declined(failure))) => declines.push((String::new(), failure)),
+            Some(Ok(ToolExit::Declined(id, failure))) => declines.push((id, failure)),
             Some(Err(_)) => tools_interrupted = true,
         }
     }
@@ -790,13 +790,13 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
     if let Some(error) = &llm_error {
         p.fail_assistant(error.clone());
     }
-    for (_, decline) in &declines {
+    for (id, decline) in &declines {
+        // TODO(port): "Interaction cancelled because the location shut down" once locations can close.
         let message = match decline {
             tool::Failure::Declined { question: true, message } => message.clone(),
             _ => "The user declined this tool call".to_owned(),
         };
-        // TODO(port): the declined call's ID (declines are recorded by the permission slice).
-        let _ = message;
+        p.fail_tool(id, error("aborted", &message), None);
     }
     let interrupted = !declines.is_empty() || stream_interrupted || tools_interrupted;
     let tools_failure = if interrupted || recorded.provider_failed { Some(error("aborted", "Tool execution interrupted")) } else { None };

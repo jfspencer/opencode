@@ -45,6 +45,43 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         }
         "session.prompt" => prompt(app, request, &decoded).await,
         "session.synthetic" => synthetic(app, request, &decoded),
+        "session.switchAgent" => {
+            let session_id = request.param("sessionID");
+            let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+            let agent = json::get_str(&decoded.payload, "agent").unwrap_or_default().to_owned();
+            // Agents are registered by the location's plugins.
+            let location = app.locations.get(app, &stored.location).await?;
+            if location.inventory.agent(&agent).is_none() {
+                let mut o = Obj::new();
+                o.str("_tag", "AgentNotFoundError").str("agentID", &agent).str("message", &format!("Agent not found: {agent}"));
+                return Err(Failure::new(404, o.done()));
+            }
+            let previous = json::get_str(&stored.info, "agent").map(str::to_owned);
+            let mut data = Obj::new();
+            data.str("sessionID", session_id).str("agent", &agent);
+            data.opt_str("previous", previous.as_deref());
+            session::publish_event(app, "session.agent.selected", data.done(), None, None).map_err(fatal)?;
+            session::plan::selected(app, session_id, &agent, previous.as_deref(), &stored.location);
+            Ok(Response::no_content())
+        }
+        "session.switchModel" => {
+            let session_id = request.param("sessionID");
+            let stored = session::require(&app.db.lock().unwrap(), session_id)?;
+            let model = json::get(&decoded.payload, "model").cloned().unwrap_or(Json::Null);
+            let current = json::get(&stored.info, "model");
+            let field = |m: Option<&Json>, key: &str| m.and_then(|m| json::get_str(m, key)).map(str::to_owned);
+            let same = field(current, "providerID") == field(Some(&model), "providerID")
+                && field(current, "id") == field(Some(&model), "id")
+                && field(current, "variant").unwrap_or_else(|| "default".into())
+                    == field(Some(&model), "variant").unwrap_or_else(|| "default".into());
+            if !same {
+                let mut data = Obj::new();
+                data.str("sessionID", session_id).set("model", model);
+                data.opt("previous", current.cloned());
+                session::publish_event(app, "session.model.selected", data.done(), None, None).map_err(fatal)?;
+            }
+            Ok(Response::no_content())
+        }
         "session.compact" => {
             let session_id = request.param("sessionID");
             session::require(&app.db.lock().unwrap(), session_id)?;

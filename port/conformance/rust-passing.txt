@@ -1,3 +1,16 @@
+scenarios/agent-loop-agents.test.ts › generate text fails
+scenarios/agent-loop-agents.test.ts › generate text without a session
+scenarios/agent-loop-agents.test.ts › maximum steps reset on the next prompt
+scenarios/agent-loop-agents.test.ts › plan agent request
+scenarios/agent-loop-agents.test.ts › reasoning from an earlier variant is replayed
+scenarios/agent-loop-agents.test.ts › reasoning variants change the request
+scenarios/agent-loop-agents.test.ts › session created with a variant
+scenarios/agent-loop-agents.test.ts › switching from plan to build
+scenarios/agent-loop-agents.test.ts › switching to another model drops replayed reasoning
+scenarios/agent-loop-agents.test.ts › title generated for an untitled session
+scenarios/agent-loop-agents.test.ts › title generation fails
+scenarios/agent-loop-agents.test.ts › title is the first non-empty line of the reply
+scenarios/agent-loop-agents.test.ts › title skips think blocks written into the reply
 scenarios/agent-loop-errors.test.ts › client error marked retryable, then success
 scenarios/agent-loop-errors.test.ts › comments and blank frames are ignored
 scenarios/agent-loop-errors.test.ts › content after the finish reason
@@ -67,6 +80,9 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/session-api-control.test.ts › read the durable session log
+scenarios/session-api-control.test.ts › switch the agent
+scenarios/session-api-control.test.ts › switch the model and its reasoning variant
 scenarios/session-api-crud.test.ts › active sessions while idle
 scenarios/session-api-crud.test.ts › an empty title on a session without messages generates nothing
 scenarios/session-api-crud.test.ts › an empty title regenerates the title from the conversation
@@ -83,6 +99,10 @@ scenarios/session-api-crud.test.ts › session routes reject unknown and malform
 scenarios/session-api-crud.test.ts › sessions follow their directory into a new git project
 scenarios/session-api-crud.test.ts › update session fields
 scenarios/session-api-crud.test.ts › view marks an observed idle transition
+scenarios/session-api-failures.test.ts › a provider failure is retried once
+scenarios/session-api-failures.test.ts › a step stopped by the content filter
+scenarios/session-api-failures.test.ts › interrupt a session while it waits to retry
+scenarios/session-api-failures.test.ts › provider failures become session errors
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › get one message
 scenarios/session-api-prompt.test.ts › interrupt a running turn
@@ -96,3 +116,6 @@ scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
 scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
 scenarios/session-basic.test.ts › text reply to a prompt
+scenarios/tools-question.test.ts › question denied by permission rules
+scenarios/tools.test.ts › malformed tool arguments
+scenarios/tools.test.ts › unknown tool

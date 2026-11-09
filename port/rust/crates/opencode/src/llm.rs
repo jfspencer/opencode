@@ -27,6 +27,8 @@ pub struct Timeouts {
 }
 
 /// A resolved model (`SessionRunnerModel.Resolved`, reduced to what OpenRouter requests use).
+// Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct Model {
     /// `Model.Ref` (`{id, providerID, variant?}`).
@@ -48,12 +50,8 @@ pub struct Model {
     pub timeouts: Timeouts,
 }
 
-impl Model {
-    pub fn variant(&self) -> Option<&str> {
-        crate::json::get_str(&self.reference, "variant")
-    }
-}
-
+// Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum UserPart {
     Text(String),
@@ -68,6 +66,8 @@ pub enum ToolResultValue {
     Error { error: Json, content: Vec<Json> },
 }
 
+// Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ToolResult {
     pub id: String,
@@ -77,6 +77,8 @@ pub struct ToolResult {
     pub native: Option<Json>,
 }
 
+// Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum AssistantPart {
     Text { text: String, native: Option<Json> },
@@ -111,6 +113,8 @@ pub struct Request {
 }
 
 /// Token usage of a step (`Usage`): inclusive totals and the derived breakdown.
+// Some fields complete the canonical shape (`Usage`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone, Default)]
 pub struct Usage {
     pub input: Option<f64>,
@@ -137,6 +141,8 @@ pub struct Finish {
 }
 
 /// One event of a model's stream (`LLMEvent`). `native` is the provider's metadata (`providerMetadata.openrouter`).
+// Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub enum Event {
     StepStart,

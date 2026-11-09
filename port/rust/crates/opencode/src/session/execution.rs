@@ -70,6 +70,8 @@ impl Executions {
         ids
     }
 
+    /// `SessionExecution.isActive` (revert staging refuses a busy session).
+    #[allow(dead_code)]
     pub fn is_active(&self, session: &str) -> bool {
         self.map.lock().unwrap().contains_key(session)
     }
@@ -83,6 +85,14 @@ impl Executions {
             return;
         }
         start(app, &mut map, session, false, scope);
+    }
+
+    /// `SessionExecution.resume`: starts an execution that drains even without new input, unless one is active.
+    pub fn resume(&self, app: &App, session: &str) {
+        let mut map = self.map.lock().unwrap();
+        if !map.contains_key(session) {
+            start(app, &mut map, session, true, Promotable::Input);
+        }
     }
 
     /// Stops the active execution; `false` when idle. Resolves before cleanup settles.
@@ -114,6 +124,63 @@ impl Executions {
             let mut receiver = receiver;
             let _ = receiver.wait_for(|done| *done).await;
         }
+    }
+}
+
+const CONTINUE_AFTER_SERVER_RESTART: &str =
+    "The server restarted while you were working. Continue from where you left off without repeating completed work.";
+const MAX_RESUME_ATTEMPTS: i64 = 10;
+
+/// Restart continuity (packages/core/src/session/execution/restart.ts `resumeSuspendedSessions`): top-level sessions
+/// whose execution claim was never released (the process died, or shut down, mid-turn) continue where they left off,
+/// each at most ten times per turn. TODO(port): recovering background jobs (shell tools, subagents, images).
+pub fn resume_suspended(app: &App) {
+    let suspended: Vec<String> = {
+        let db = app.db.lock().unwrap();
+        // Children's claims are released: no background subagent job can recover them yet.
+        let _ = db.execute(
+            "UPDATE session_v2 SET time_suspended = NULL, resume_attempts = 0 WHERE time_suspended IS NOT NULL AND parent_id IS NOT NULL",
+            [],
+        );
+        let statement = db.prepare("SELECT id FROM session_v2 WHERE time_suspended IS NOT NULL AND parent_id IS NULL");
+        match statement {
+            Ok(mut statement) => statement
+                .query_map([], |row| row.get(0))
+                .map(|rows| rows.filter_map(Result::ok).collect())
+                .unwrap_or_default(),
+            Err(_) => vec![],
+        }
+    };
+    for session in suspended {
+        if app.sessions.executions.map.lock().unwrap().contains_key(&session) {
+            continue;
+        }
+        // Counted durably before the resume runs, so a turn that keeps dying cannot dodge the budget.
+        let attempts: Option<i64> = app
+            .db
+            .lock()
+            .unwrap()
+            .query_row(
+                "UPDATE session_v2 SET resume_attempts = resume_attempts + 1 WHERE id = ?1 RETURNING resume_attempts",
+                [&session],
+                |row| row.get(0),
+            )
+            .ok();
+        let Some(attempts) = attempts else { continue };
+        let mut data = Obj::new();
+        data.str("sessionID", &session);
+        if attempts > MAX_RESUME_ATTEMPTS {
+            let mut error = Obj::new();
+            error.str("type", "aborted").str("message", "Execution was interrupted repeatedly and will not be resumed automatically.");
+            data.set("error", error.done());
+            let _ = crate::session::publish_event(app, "session.execution.failed", data.done(), None, None);
+            continue;
+        }
+        let mut metadata = Obj::new();
+        metadata.str("notice", "restart");
+        data.str("text", CONTINUE_AFTER_SERVER_RESTART).str("description", "Continuing after restart").set("metadata", metadata.done());
+        let _ = crate::session::publish_event(app, "session.synthetic", data.done(), None, None);
+        app.sessions.executions.resume(app, &session);
     }
 }
 

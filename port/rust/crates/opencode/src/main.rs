@@ -172,6 +172,8 @@ fn serve(options: Serve) {
         if environment_password.is_none() {
             println!("server password {password}");
         }
+        // Turns a previous process left mid-way continue (restart continuity).
+        session::execution::resume_suspended(&app);
         let server = tokio::spawn(http::serve(app, listener));
         shutdown_signal().await;
         server.abort();
