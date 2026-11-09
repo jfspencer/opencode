@@ -599,6 +599,12 @@ scenarios/shell-tool.test.ts › the environment of shell commands
 scenarios/shell-tool.test.ts › timeouts
 scenarios/shell-tool.test.ts › working directories
 scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
+scenarios/tools-formatter-npm.test.ts › a version is picked as npm-pick-manifest picks it: the latest tag, then not deprecated, engines, newest
+scenarios/tools-formatter-npm.test.ts › an install that fails leaves the file as written
+scenarios/tools-formatter-npm.test.ts › conflicting versions of a dependency nest under their dependent
+scenarios/tools-formatter-npm.test.ts › optional dependencies for another platform are left out, peers are installed beside their dependent
+scenarios/tools-formatter-npm.test.ts › prettier and its dependencies install into the package cache, hoisted
+scenarios/tools-formatter-npm.test.ts › the user's npm config: credentials, a scoped registry and the install strategy
 scenarios/tools-patch.test.ts › patch: a bom file
 scenarios/tools-patch.test.ts › patch: a missing file
 scenarios/tools-patch.test.ts › patch: add update delete and move
