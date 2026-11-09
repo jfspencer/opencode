@@ -23,9 +23,11 @@
 //! `{file:~/...}` is the user's home from the password database, as `os.homedir()` answers in the reference.
 //!
 //! Out of scope: integration documents (the OpenCode Console's, delivered by its provider plugin: a catalog provider
-//! behind a Console login). TODO(port): wellknown documents (wellknown.ts: the `.well-known/opencode` manifests of the
-//! origins in `kv` `wellknown:sources`, their `config` and `remote_config` resolved with the origin's credential, and
-//! the origin as an integration with a command login); the legacy credential import already records the origins.
+//! behind a Console login). TODO(port): wellknown documents (config.ts `loadWellknown`): after the managed policies,
+//! each source of [`crate::integration::wellknown`] contributes its manifest's `config` and `remote_config` (fetched
+//! with the `{env:…}` of its headers bound to the origin's stored key, kept in `kv` `wellknown:config:<origin>` for
+//! when that fails), substituted and parsed as documents of the origin's integration, which `integration.use`
+//! policies may withhold; the providers they define authenticate through the origin (`ConfigIntegration.suppliers`).
 
 use std::sync::OnceLock;
 

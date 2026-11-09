@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # `cargo check` of the whole Rust workspace (tests included) for both macOS targets, from Linux.
 #
-# Two dependencies compile C, which needs the macOS SDK: ring (rustls's crypto) and libsqlite3-sys (bundled SQLite).
+# Three crates compile C or C++, which needs the macOS SDK: ring (rustls's crypto), libsqlite3-sys (bundled SQLite) and
+# opencode-yoga (the TUI's Yoga layout, C++).
 # Without the SDK their build scripts cannot compile, so a stub C compiler stands in for clang: it answers cc-rs's
 # compiler probe through the real clang and writes an empty object for each compilation. A check links nothing, so
 # those objects are never used; every Rust crate is checked for real. A build for macOS still needs the SDK.
@@ -34,6 +35,6 @@ status=0
 for target in aarch64-apple-darwin x86_64-apple-darwin; do
   var=${target//-/_}
   echo "== $target"
-  env "CC_$var=$stub" "AR_$var=ar" cargo check --workspace --tests --target "$target" || status=1
+  env "CC_$var=$stub" "CXX_$var=$stub" "AR_$var=ar" cargo check --workspace --tests --target "$target" || status=1
 done
 exit $status
