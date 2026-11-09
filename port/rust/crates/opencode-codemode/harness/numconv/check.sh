@@ -6,7 +6,8 @@
 # For each function (default: all), oracle.ts prints the edge cases plus <count> random cases
 # (default 1000000) generated from <seed> (default 1), and examples/numconv_check.rs recomputes them.
 # The functions run in parallel; per-function reports land in a temporary directory under $TMPDIR,
-# removed on exit. Exit status 1 when any case differs.
+# removed on exit. Exit status 1 when any case differs. NUMCONV_PROFILE=dev checks a debug build
+# (overflow checks on); the default is release.
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -21,8 +22,9 @@ else
   fns=(toString toStringRadix toFixed toExponential toPrecision toLocaleString stringToNumber parseInt parseFloat toInt32 toUint32 indexToString)
 fi
 
-(cd "$workspace" && cargo build --offline --release --quiet -p opencode-codemode --example numconv_check)
-bin="${CARGO_TARGET_DIR:-$workspace/target}/release/examples/numconv_check"
+profile="${NUMCONV_PROFILE:-release}"
+(cd "$workspace" && cargo build --offline --profile "$profile" --quiet -p opencode-codemode --example numconv_check)
+bin="${CARGO_TARGET_DIR:-$workspace/target}/$([ "$profile" = dev ] && echo debug || echo "$profile")/examples/numconv_check"
 
 out="$(mktemp -d "${TMPDIR:-/tmp}/numconv-check.XXXXXX")"
 trap 'rm -rf "$out"' EXIT

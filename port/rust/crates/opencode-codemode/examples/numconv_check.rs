@@ -4,6 +4,7 @@
 //!   bun harness/numconv/oracle.ts toFixed 1000000 1 | cargo run --release --example numconv_check
 //!
 //! Exit status 1 when any case differs. `NUMCONV_SHOW=<n>` sets how many differences to print (20).
+//! `numconv_check bench` instead times the common cases (ns per call).
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
@@ -134,23 +135,62 @@ fn result_bits(x: f64) -> String {
     if x.is_nan() { "NaN".to_string() } else { format!("{:016x}", x.to_bits()) }
 }
 
-fn describe_double(x: f64) -> String {
-    format!("{:?} ({:016x})", x, x.to_bits())
-}
-
-fn describe_units(u: &[u16]) -> String {
-    format!("{:?} [{}]", String::from_utf16_lossy(u), u.iter().map(|c| format!("{c:04x}")).collect::<Vec<_>>().join(" "))
+/// Recomputes one case: (what numconv returns, a description of the input).
+fn run(case: &Case) -> (String, impl FnOnce() -> String + '_) {
+    let d_num = || case.d.as_deref().map(|d| d.parse::<u32>().expect("integer d"));
+    let got = match case.f.as_str() {
+        "stringToNumber" | "parseFloat" | "parseInt" => {
+            let s = units(case.s.as_deref().expect("s"));
+            result_bits(match case.f.as_str() {
+                "stringToNumber" => numconv::string_to_number(&s),
+                "parseFloat" => numconv::parse_float(&s),
+                _ => numconv::parse_int(&s, bits(case.d.as_deref().expect("radix"))),
+            })
+        }
+        f => {
+            let x = bits(case.x.as_deref().expect("x"));
+            match f {
+                "toString" => numconv::to_string(x),
+                "toStringRadix" => numconv::to_string_radix(x, d_num().expect("radix")),
+                "toFixed" => numconv::to_fixed(x, d_num().expect("digits")),
+                "toExponential" => numconv::to_exponential(x, if case.d_is_num { d_num() } else { None }),
+                "toPrecision" => numconv::to_precision(x, d_num().expect("precision")),
+                "toLocaleString" => numconv::to_locale_string_en_us(x),
+                "toInt32" => numconv::to_int32(x).to_string(),
+                "toUint32" => numconv::to_uint32(x).to_string(),
+                "indexToString" => numconv::index_to_string(x as u64),
+                other => panic!("unknown function {other}"),
+            }
+        }
+    };
+    let describe = move || {
+        let arg = case.d.as_deref().map(|d| if case.f == "parseInt" { format!(", radix {:?}", bits(d)) } else { format!(", {d}") });
+        let arg = arg.unwrap_or_default();
+        match (&case.x, &case.s) {
+            (Some(x), _) => format!("{:?} ({x}){arg}", bits(x)),
+            (_, Some(s)) => {
+                let u = units(s);
+                let hex: Vec<String> = u.iter().map(|c| format!("{c:04x}")).collect();
+                format!("{:?} [{}]{arg}", String::from_utf16_lossy(&u), hex.join(" "))
+            }
+            _ => String::new(),
+        }
+    };
+    (got, describe)
 }
 
 fn main() {
+    if std::env::args().nth(1).as_deref() == Some("bench") {
+        bench();
+        return;
+    }
     let show: usize = std::env::var("NUMCONV_SHOW").ok().and_then(|v| v.parse().ok()).unwrap_or(20);
-    let stdin = std::io::stdin();
     let mut totals: BTreeMap<String, (u64, u64)> = BTreeMap::new();
     let mut shown = 0;
     let mut bad_lines = 0u64;
     let stdout = std::io::stdout();
     let mut out = stdout.lock();
-    for line in stdin.lock().lines() {
+    for line in std::io::stdin().lock().lines() {
         let line = line.expect("read stdin");
         if line.is_empty() {
             continue;
@@ -162,44 +202,14 @@ fn main() {
             }
             continue;
         };
-        let d_num = || case.d.as_deref().map(|d| d.parse::<u32>().expect("integer d"));
-        let (got, input) = match case.f.as_str() {
-            "toString" | "toStringRadix" | "toFixed" | "toExponential" | "toPrecision" | "toLocaleString" | "toInt32"
-            | "toUint32" | "indexToString" => {
-                let x = bits(case.x.as_deref().expect("x"));
-                let got = match case.f.as_str() {
-                    "toString" => numconv::to_string(x),
-                    "toStringRadix" => numconv::to_string_radix(x, d_num().expect("radix")),
-                    "toFixed" => numconv::to_fixed(x, d_num().expect("digits")),
-                    "toExponential" => numconv::to_exponential(x, if case.d_is_num { d_num() } else { None }),
-                    "toPrecision" => numconv::to_precision(x, d_num().expect("precision")),
-                    "toLocaleString" => numconv::to_locale_string_en_us(x),
-                    "toInt32" => numconv::to_int32(x).to_string(),
-                    "toUint32" => numconv::to_uint32(x).to_string(),
-                    _ => numconv::index_to_string(x as u64),
-                };
-                let d = case.d.as_deref().map(|d| format!(", {d}")).unwrap_or_default();
-                (got, format!("{}{d}", describe_double(x)))
-            }
-            "stringToNumber" | "parseFloat" | "parseInt" => {
-                let s = units(case.s.as_deref().expect("s"));
-                let got = match case.f.as_str() {
-                    "stringToNumber" => numconv::string_to_number(&s),
-                    "parseFloat" => numconv::parse_float(&s),
-                    _ => numconv::parse_int(&s, bits(case.d.as_deref().expect("radix"))),
-                };
-                let d = case.d.as_deref().map(|d| format!(", radix {}", describe_double(bits(d)))).unwrap_or_default();
-                (result_bits(got), format!("{}{d}", describe_units(&s)))
-            }
-            other => panic!("unknown function {other}"),
-        };
+        let (got, describe) = run(&case);
         let entry = totals.entry(case.f.clone()).or_default();
         entry.0 += 1;
         if got != case.r {
             entry.1 += 1;
             if shown < show {
                 shown += 1;
-                let _ = writeln!(out, "DIFF {}({input})\n  bun:  {}\n  rust: {}", case.f, case.r, got);
+                let _ = writeln!(out, "DIFF {}({})\n  bun:  {}\n  rust: {}", case.f, describe(), case.r, got);
             }
         }
     }
@@ -216,4 +226,41 @@ fn main() {
         any = true;
     }
     std::process::exit(if any { 1 } else { 0 });
+}
+
+/// `numconv_check bench`: nanoseconds per call for the common cases.
+fn bench() {
+    fn time<T>(name: &str, iters: u32, mut f: impl FnMut(u32) -> T) {
+        let start = std::time::Instant::now();
+        for i in 0..iters {
+            std::hint::black_box(f(std::hint::black_box(i)));
+        }
+        let ns = start.elapsed().as_nanos() as f64 / iters as f64;
+        println!("{name:<44} {ns:>8.1} ns");
+    }
+    let n = 2_000_000;
+    let decimals: Vec<f64> = (0..1024).map(|i| (i as f64 * 7.31 + 0.1) / 3.0).collect();
+    let utf16 = |s: &str| s.encode_utf16().collect::<Vec<u16>>();
+    let (s123, s314, s_px, s_hex, s_long) =
+        (utf16("123"), utf16("3.14159"), utf16("12.5px"), utf16("0x1F"), utf16("12345678901234567890.123e-5"));
+    time("to_string(integer)", n, |i| numconv::to_string(i as f64));
+    time("to_string(decimal)", n, |i| numconv::to_string(decimals[i as usize & 1023]));
+    time("to_string_radix(integer, 16)", n, |i| numconv::to_string_radix(i as f64, 16));
+    time("to_string_radix(decimal, 2)", n / 4, |i| numconv::to_string_radix(decimals[i as usize & 1023], 2));
+    time("to_string_radix(decimal, 36)", n / 4, |i| numconv::to_string_radix(decimals[i as usize & 1023], 36));
+    time("to_fixed(decimal, 2)", n, |i| numconv::to_fixed(decimals[i as usize & 1023], 2));
+    time("to_fixed(decimal, 30)", n / 4, |i| numconv::to_fixed(decimals[i as usize & 1023], 30));
+    time("to_precision(decimal, 4)", n, |i| numconv::to_precision(decimals[i as usize & 1023], 4));
+    time("to_precision(decimal, 20)", n / 4, |i| numconv::to_precision(decimals[i as usize & 1023], 20));
+    time("to_exponential(decimal, None)", n, |i| numconv::to_exponential(decimals[i as usize & 1023], None));
+    time("to_exponential(decimal, 3)", n, |i| numconv::to_exponential(decimals[i as usize & 1023], Some(3)));
+    time("to_locale_string_en_us(decimal)", n, |i| numconv::to_locale_string_en_us(decimals[i as usize & 1023] * 1000.0));
+    time("index_to_string", n, |i| numconv::index_to_string(i as u64));
+    time("string_to_number(\"123\")", n, |_| numconv::string_to_number(&s123));
+    time("string_to_number(\"3.14159\")", n, |_| numconv::string_to_number(&s314));
+    time("string_to_number(\"0x1F\")", n, |_| numconv::string_to_number(&s_hex));
+    time("string_to_number(long decimal)", n, |_| numconv::string_to_number(&s_long));
+    time("parse_float(\"12.5px\")", n, |_| numconv::parse_float(&s_px));
+    time("parse_int(\"123\", NaN)", n, |_| numconv::parse_int(&s123, f64::NAN));
+    time("to_int32(decimal)", n, |i| numconv::to_int32(decimals[i as usize & 1023] * 1e9));
 }

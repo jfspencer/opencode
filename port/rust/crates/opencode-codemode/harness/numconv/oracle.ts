@@ -128,6 +128,21 @@ function neighbour(): number {
   for (let i = 0; i < k; i++) y = chance(0.5) ? nextUp(y) : nextDown(y);
   return y;
 }
+// Decimal strings that sit on a rounding midpoint, or a hair off it, after `digits` significant
+// digits (significant = true) or fraction digits: where the shortest digits end in a 5 but the
+// double is slightly above or below.
+function nearTie(digits: number, significant: boolean): number {
+  const tail = pick(["5", "5", "49", "51", "4" + "9".repeat(1 + below(14)), "5" + "0".repeat(below(14)) + "1", "50", "45", "55"]);
+  let s: string;
+  if (significant) {
+    const head = String(1 + below(9)) + digitString(Math.max(0, digits - 1));
+    s = `${head}${tail}e${below(60) - 30 - head.length}`;
+  } else {
+    const ip = chance(0.3) ? "0" : String(below(10 ** (1 + below(12))));
+    s = `${ip}.${digitString(digits)}${tail}`;
+  }
+  return (chance(0.3) ? -1 : 1) * Number(s);
+}
 function anyDouble(): number {
   switch (below(12)) {
     case 0: case 1: return randomBits();
@@ -336,8 +351,8 @@ const gens: Record<string, Gen> = {
   toFixed() {
     for (const x of edges) for (let d = 0; d <= 100; d++) doubleCase("toFixed", x, d, x.toFixed(d));
     for (let i = 0; i < count; i++) {
-      const x = anyDouble();
       const d = chance(0.5) ? below(101) : below(25);
+      const x = chance(0.25) ? nearTie(Math.min(d, 20), false) : anyDouble();
       doubleCase("toFixed", x, d, x.toFixed(d));
     }
   },
@@ -347,16 +362,16 @@ const gens: Record<string, Gen> = {
       for (let d = 0; d <= 100; d++) doubleCase("toExponential", x, d, x.toExponential(d));
     }
     for (let i = 0; i < count; i++) {
-      const x = anyDouble();
       const d = chance(0.1) ? null : chance(0.5) ? below(101) : below(25);
+      const x = d !== null && chance(0.25) ? nearTie(d + 1, true) : anyDouble();
       doubleCase("toExponential", x, d, d === null ? x.toExponential() : x.toExponential(d));
     }
   },
   toPrecision() {
     for (const x of edges) for (let p = 1; p <= 100; p++) doubleCase("toPrecision", x, p, x.toPrecision(p));
     for (let i = 0; i < count; i++) {
-      const x = anyDouble();
       const p = chance(0.5) ? 1 + below(100) : 1 + below(25);
+      const x = chance(0.25) ? nearTie(p, true) : anyDouble();
       doubleCase("toPrecision", x, p, x.toPrecision(p));
     }
   },
@@ -364,7 +379,8 @@ const gens: Record<string, Gen> = {
     for (const x of edges) doubleCase("toLocaleString", x, null, x.toLocaleString("en-US"));
     for (let i = 0; i < count; i++) {
       let x = anyDouble();
-      if (chance(0.3)) x = Math.round(x * 1e4) / 1e4 + (chance(0.5) ? 0.0005 : 0.0015) * (chance(0.5) ? 1 : -1);
+      if (chance(0.15)) x = Math.round(x * 1e4) / 1e4 + (chance(0.5) ? 0.0005 : 0.0015) * (chance(0.5) ? 1 : -1);
+      else if (chance(0.3)) x = nearTie(3, false);
       doubleCase("toLocaleString", x, null, x.toLocaleString("en-US"));
     }
   },

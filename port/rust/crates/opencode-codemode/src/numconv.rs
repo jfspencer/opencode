@@ -5,8 +5,8 @@
 //!   up (the spec's "pick the larger n"), from the shortest digits when that is provably the same and
 //!   from an exact big-integer expansion otherwise.
 //! - `to_string_radix` reproduces JSC's `toStringWithRadix`: the integer part exactly, the fraction
-//!   digit by digit with `Uint16WithFraction` arithmetic until the remainder is within half the gap to
-//!   the neighbouring doubles.
+//!   digit by digit with exact `Uint16WithFraction` arithmetic until the digits, rounded half to even,
+//!   are within half the gap to the neighbouring double on that side.
 //! - `to_locale_string_en_us` reproduces ICU's default en-US formatting: the shortest digits rounded
 //!   half up ("halfExpand") to three fraction digits, grouped by thousands.
 //! - The parsers follow JSC's `jsToNumber`, `parseInt` and `parseFloat`, including their precision for
@@ -431,6 +431,7 @@ pub fn index_to_string(i: u64) -> String {
 
 /// Number.prototype.toFixed(digits), digits 0..=100.
 pub fn to_fixed(x: f64, digits: u32) -> String {
+    debug_assert!(digits <= 100, "toFixed digits out of range");
     if x.is_nan() {
         return "NaN".to_string();
     }
@@ -497,6 +498,7 @@ pub fn to_fixed(x: f64, digits: u32) -> String {
 
 /// Number.prototype.toExponential(digits): None for an undefined argument, else 0..=100.
 pub fn to_exponential(x: f64, digits: Option<u32>) -> String {
+    debug_assert!(digits.is_none_or(|d| d <= 100), "toExponential digits out of range");
     if !x.is_finite() {
         return to_string(x);
     }
@@ -544,6 +546,7 @@ pub fn to_exponential(x: f64, digits: Option<u32>) -> String {
 
 /// Number.prototype.toPrecision(precision), precision 1..=100.
 pub fn to_precision(x: f64, precision: u32) -> String {
+    debug_assert!((1..=100).contains(&precision), "toPrecision precision out of range");
     if !x.is_finite() {
         return to_string(x);
     }
@@ -805,7 +808,13 @@ fn push_integer_radix(out: &mut String, integer_part: f64, radix: u32) {
 }
 
 /// Number.prototype.toString(radix), radix 2..=36.
+///
+/// The integer part is converted exactly. Fraction digits are generated from the exact remainder
+/// until the digits so far, rounded half to even (the digits read as one integer), lie closer to
+/// the double than half the gap to its neighbour on that side (JSC's toStringWithRadix with exact
+/// comparisons).
 pub fn to_string_radix(x: f64, radix: u32) -> String {
+    debug_assert!((2..=36).contains(&radix), "toString radix out of range");
     if radix == 10 || !x.is_finite() {
         return to_string(x);
     }
@@ -818,21 +827,19 @@ pub fn to_string_radix(x: f64, radix: u32) -> String {
         push_integer_radix(&mut out, (int as i64).unsigned_abs() as f64, radix);
         return out;
     }
-    let is_negative = x < 0.0;
     let number = x.abs();
     let mut integer_part = number.floor();
     let fraction_part = number - integer_part;
-    let mut frac: Vec<u8> = Vec::new();
+    // At most 1076 fraction digits (radix 2 down to 2^-1075, where the half gap passes 1).
+    let mut frac = [0u8; 1100];
+    let mut n = 0;
     if fraction_part != 0.0 {
         let mut fraction = Uint16WithFraction::new(fraction_part, 0);
-        let next = number.next_up();
-        let last = number.next_down();
-        let mut half_delta_next = Uint16WithFraction::new(next - number, 1);
-        let mut half_delta_last = Uint16WithFraction::new(number - last, 1);
+        let mut half_delta_next = Uint16WithFraction::new(number.next_up() - number, 1);
+        let mut half_delta_last = Uint16WithFraction::new(number - number.next_down(), 1);
         let mut needs_rounding_up = false;
         // Parity of the digits so far read as one integer: an exact half rounds to even.
         let mut odd = (integer_part as u64) & 1 == 1;
-        frac.reserve(64);
         loop {
             let c = fraction.compare_point5();
             if c > 0 || (c == 0 && odd) {
@@ -845,35 +852,36 @@ pub fn to_string_radix(x: f64, radix: u32) -> String {
             }
             fraction.mul(radix);
             let digit = fraction.floor_and_subtract();
-            frac.push(DIGIT_CHARS[digit as usize]);
+            frac[n] = DIGIT_CHARS[digit as usize];
+            n += 1;
             odd = ((odd && radix & 1 == 1) as u32 + digit) & 1 == 1;
             half_delta_next.mul(radix);
             half_delta_last.mul(radix);
         }
         if needs_rounding_up {
             let max_digit = DIGIT_CHARS[radix as usize - 1];
-            while frac.last() == Some(&max_digit) {
-                frac.pop();
+            while n > 0 && frac[n - 1] == max_digit {
+                n -= 1;
             }
-            match frac.last_mut() {
-                Some(d) if *d == b'9' => *d = b'a',
-                Some(d) => *d += 1,
-                None => integer_part += 1.0,
+            if n == 0 {
+                integer_part += 1.0;
+            } else {
+                frac[n - 1] = if frac[n - 1] == b'9' { b'a' } else { frac[n - 1] + 1 };
             }
         } else {
-            while frac.last() == Some(&b'0') {
-                frac.pop();
+            while n > 0 && frac[n - 1] == b'0' {
+                n -= 1;
             }
         }
     }
-    let mut out = String::with_capacity(frac.len() + 24);
-    if is_negative {
+    let mut out = String::with_capacity(n + 24);
+    if x < 0.0 {
         out.push('-');
     }
     push_integer_radix(&mut out, integer_part, radix);
-    if !frac.is_empty() {
+    if n > 0 {
         out.push('.');
-        push_ascii(&mut out, &frac);
+        push_ascii(&mut out, &frac[..n]);
     }
     out
 }
@@ -1163,4 +1171,124 @@ pub fn to_int32(x: f64) -> i32 {
 /// ToUint32.
 pub fn to_uint32(x: f64) -> u32 {
     to_int32(x) as u32
+}
+
+// Spot checks against values bun prints; harness/numconv runs the full differential comparison.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn utf16(s: &str) -> Vec<u16> {
+        s.encode_utf16().collect()
+    }
+
+    fn same(a: f64, b: f64) -> bool {
+        (a.is_nan() && b.is_nan()) || a.to_bits() == b.to_bits()
+    }
+
+    #[test]
+    fn number_to_string() {
+        assert_eq!(to_string(1e21), "1e+21");
+        assert_eq!(to_string(1e-7), "1e-7");
+        assert_eq!(to_string(123456789012345680000.0), "123456789012345680000");
+        assert_eq!(to_string(0.1 + 0.2), "0.30000000000000004");
+        assert_eq!(to_string(-0.0), "0");
+        assert_eq!(to_string(-1.5), "-1.5");
+        assert_eq!(to_string(f64::NEG_INFINITY), "-Infinity");
+        assert_eq!(to_string(2f64.powi(50) + 0.25), "1125899906842624.2");
+        assert_eq!(index_to_string(4294967295), "4294967295");
+    }
+
+    #[test]
+    fn radix() {
+        assert_eq!(to_string_radix(0.5, 3), "0.11111111111111111111111111111111112");
+        assert_eq!(to_string_radix(0.5, 5), "0.222222222222222222222222");
+        assert_eq!(to_string_radix(0.1, 3), "0.0022002200220022002200220022002201");
+        assert_eq!(to_string_radix(std::f64::consts::PI, 36), "3.53i5ab8p5f");
+        assert_eq!(to_string_radix(1e21, 16), "3635c9adc5dea00000");
+        assert_eq!(to_string_radix(-255.5, 16), "-ff.8");
+        assert_eq!(to_string_radix(2f64.powi(-35), 36), "0.0000002a3s7r3yds4i");
+        assert_eq!(to_string_radix(-0.0, 2), "0");
+        assert_eq!(to_string_radix(255.0, 2), "11111111");
+        assert_eq!(to_string_radix(5e-324, 2).len(), 1076);
+    }
+
+    #[test]
+    fn fixed_exponential_precision() {
+        assert_eq!(to_fixed(-0.0000001, 2), "-0.00");
+        assert_eq!(to_fixed(-0.0, 2), "0.00");
+        assert_eq!(to_fixed(0.5, 0), "1");
+        assert_eq!(to_fixed(-2.5, 0), "-3");
+        assert_eq!(to_fixed(1.005, 2), "1.00");
+        assert_eq!(to_fixed(1e21, 2), "1e+21");
+        assert_eq!(to_fixed(999999999999999900000.0, 3), "999999999999999868928.000");
+        assert_eq!(to_fixed(0.1, 25), "0.1000000000000000055511151");
+        assert_eq!(to_precision(-0.0, 3), "0.00");
+        assert_eq!(to_precision(-1.5, 1), "-2");
+        assert_eq!(to_precision(123456.0, 2), "1.2e+5");
+        assert_eq!(to_precision(0.000001234, 2), "0.0000012");
+        assert_eq!(to_precision(0.0000001234, 2), "1.2e-7");
+        assert_eq!(to_exponential(-0.0, None), "0e+0");
+        assert_eq!(to_exponential(-0.0, Some(2)), "0.00e+0");
+        assert_eq!(to_exponential(1.5, Some(0)), "2e+0");
+        assert_eq!(to_exponential(2f64.powi(50) + 0.25, None), "1.1258999068426242e+15");
+        assert_eq!(to_exponential(5e-324, Some(2)), "4.94e-324");
+    }
+
+    #[test]
+    fn locale() {
+        assert_eq!(to_locale_string_en_us(1.0005), "1.001");
+        assert_eq!(to_locale_string_en_us(1234.5675), "1,234.568");
+        assert_eq!(to_locale_string_en_us(-1e-7), "-0");
+        assert_eq!(to_locale_string_en_us(-0.0), "-0");
+        assert_eq!(to_locale_string_en_us(f64::INFINITY), "∞");
+        assert_eq!(to_locale_string_en_us(f64::NEG_INFINITY), "-∞");
+        assert_eq!(to_locale_string_en_us(999.9995), "1,000");
+        assert_eq!(to_locale_string_en_us(1e21), "1,000,000,000,000,000,000,000");
+        assert_eq!(to_locale_string_en_us(f64::NAN), "NaN");
+    }
+
+    #[test]
+    fn parsers() {
+        let cases: [(&str, f64); 12] = [
+            ("", 0.0),
+            (" 12 ", 12.0),
+            ("0x1F", 31.0),
+            ("-0x1", f64::NAN),
+            ("0b101", 5.0),
+            ("1e", f64::NAN),
+            ("-0", -0.0),
+            ("+Infinity", f64::INFINITY),
+            ("infinity", f64::NAN),
+            ("\u{a0}12\u{feff}", 12.0),
+            ("0xFFFFFFFFFFFFFFFFFFFF", 1.2089258196146292e24),
+            ("1\u{180e}", f64::NAN),
+        ];
+        for (s, want) in cases {
+            assert!(same(string_to_number(&utf16(s)), want), "Number({s:?})");
+        }
+        assert!(same(parse_float(&utf16("1e5x")), 100000.0));
+        assert!(same(parse_float(&utf16("-0x1")), -0.0));
+        assert!(same(parse_float(&utf16(".5")), 0.5));
+        assert!(same(parse_float(&utf16("Infinityx")), f64::INFINITY));
+        assert!(same(parse_int(&utf16("0x10"), 16.0), 16.0));
+        assert!(same(parse_int(&utf16("0x10"), 0.0), 16.0));
+        assert!(same(parse_int(&utf16("0x10"), 10.0), 0.0));
+        assert!(same(parse_int(&utf16("10"), 37.0), f64::NAN));
+        assert!(same(parse_int(&utf16("10"), 4294967298.0), 2.0));
+        assert!(same(parse_int(&utf16("10"), 36.9), 36.0));
+        assert!(same(parse_int(&utf16("-0x10"), f64::NAN), -16.0));
+        assert!(same(parse_int(&utf16("-0"), 10.0), -0.0));
+        assert!(same(parse_int(&utf16("0x"), f64::NAN), f64::NAN));
+    }
+
+    #[test]
+    fn integers() {
+        assert_eq!(to_int32(4294967301.0), 5);
+        assert_eq!(to_int32(2147483648.0), i32::MIN);
+        assert_eq!(to_int32(4294967295.5), -1);
+        assert_eq!(to_int32(f64::NAN), 0);
+        assert_eq!(to_int32(-1e300), 0);
+        assert_eq!(to_uint32(-1.0), u32::MAX);
+    }
 }
