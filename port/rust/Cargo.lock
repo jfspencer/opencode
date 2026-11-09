@@ -502,6 +502,8 @@ dependencies = [
  "hyper",
  "hyper-util",
  "indexmap",
+ "libc",
+ "opencode-html",
  "opencode-protocol",
  "opencode-shell",
  "regex",

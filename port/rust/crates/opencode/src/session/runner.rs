@@ -106,6 +106,7 @@ pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Re
             git,
             tools.code_mode_catalog.clone(),
             instructions::skill_guidance(&inventory.skills, &rules),
+            &inventory,
         );
         // API-managed entries come last: they vary the most between sessions.
         sources.extend(crate::session::entries::sources(&db, session_id).map_err(|e| failed(fatal(e)))?);

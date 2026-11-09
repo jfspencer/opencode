@@ -769,7 +769,12 @@ impl Context {
             }) {
                 messages.truncate(unsettled);
             }
-            (messages, instructions::preview(&db, session, &loaded.sources).map_err(defect)?.0)
+            let preview = instructions::preview(&db, session, &loaded.sources).map_err(|failure| match failure {
+                instructions::Error::Db(e) => defect(e),
+                // The step admitted its instructions before compacting, so a blocked source fails as the runner reports it.
+                blocked => Stop::Failed(error("unknown", &blocked.to_string())),
+            })?;
+            (messages, preview.0)
         };
         Ok(Self::new(loaded, initial, messages))
     }

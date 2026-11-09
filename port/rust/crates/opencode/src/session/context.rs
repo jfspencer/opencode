@@ -245,11 +245,21 @@ fn tool_result(tool: &Json, native: Option<Json>) -> Option<ToolResult> {
                 Some(Json::Array(content)) => content.clone(),
                 _ => vec![],
             };
+            // `normalizeToolResult` (ai/src/tool-history.ts): empty text is shown as "(no tool output)".
+            const EMPTY: &str = "(no tool output)";
             match content.as_slice() {
                 [single] if json::get_str(single, "type") == Some("text") => {
-                    ToolResultValue::Text(json::get_str(single, "text").unwrap_or_default().to_owned())
+                    let text = json::get_str(single, "text").unwrap_or_default();
+                    ToolResultValue::Text(if text.is_empty() { EMPTY.to_owned() } else { text.to_owned() })
                 }
-                _ => ToolResultValue::Content(content),
+                _ => {
+                    let kept: Vec<Json> = content
+                        .iter()
+                        .filter(|item| json::get_str(item, "type") != Some("text") || json::get_str(item, "text") != Some(""))
+                        .cloned()
+                        .collect();
+                    if kept.is_empty() { ToolResultValue::Text(EMPTY.to_owned()) } else { ToolResultValue::Content(kept) }
+                }
             }
         }
         "error" => ToolResultValue::Error {

@@ -14,6 +14,7 @@ path = "src/main.rs"
 [dependencies]
 opencode-protocol.workspace = true
 opencode-shell = { path = "../opencode-shell" }
+opencode-html.workspace = true
 indexmap.workspace = true
 regex.workspace = true
 tokio.workspace = true
@@ -30,3 +31,4 @@ tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
 unicode-normalization.workspace = true
 sha2.workspace = true
+libc.workspace = true
