@@ -996,6 +996,11 @@ pub fn session(props: SessionProps) -> View {
             }
         });
     }
+    // TODO(port-tui): the prompt slice: the `--prompt` auto-submit effect.
+    {
+        let sid = sid.clone();
+        crate::usage::use_usage_alerts(Rc::new(move || sid.clone()));
+    }
     {
         let st = state.clone();
         let scroll_ref = props.scroll_ref.clone();
