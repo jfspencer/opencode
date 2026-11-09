@@ -529,7 +529,7 @@ fn with_recent_text(db: &Connection, session: &str, mut entries: Vec<(i64, Json)
     if !is_completed_compaction(first) {
         return Ok(entries);
     }
-    let Some(keep) = json::get(first, "metadata").and_then(|m| json::get_str(m, "keepID")).filter(|id| id.starts_with("msg"))
+    let Some(keep) = json::get(first, "metadata").and_then(|m| json::get_str(m, "keepID")).filter(|id| id.starts_with("msg_"))
     else {
         return Ok(entries);
     };
@@ -771,6 +771,16 @@ impl Context {
             (messages, instructions::preview(&db, session, &loaded.sources).map_err(defect)?.0)
         };
         Ok(Self::new(loaded, initial, messages))
+    }
+
+    /// The history a step sends, from the latest completed compaction on.
+    pub fn messages(&self) -> &[Json] {
+        &self.messages
+    }
+
+    /// The initial instructions (the epoch baseline), rendered.
+    pub fn initial(&self) -> &[(String, String)] {
+        &self.initial
     }
 
     /// The same context on another model: the request hooks name the model in the system parts.

@@ -312,18 +312,16 @@ pub async fn generate_request(app: &Arc<App>, session_id: &str, prompt: &str) ->
 }
 
 /// Builds the step's request (`baseTranscript` + `SessionModelRequest.primary` with the context hooks).
-fn request(app: &App, loaded: &Loaded, step_limit: bool, estimate: crate::session::compaction::Estimate) -> Result<llm::Request, Stop> {
+/// The history and initial instructions are the loaded context's (`compacting`), whose size `estimate` is.
+fn request(
+    loaded: &Loaded,
+    step_limit: bool,
+    compacting: &crate::session::compaction::Context,
+    estimate: crate::session::compaction::Estimate,
+) -> Result<llm::Request, Stop> {
     let session = &loaded.session;
-    let session_id = json::get_str(session, "id").unwrap_or_default();
-    let (history, initial) = {
-        let db = app.db.lock().unwrap();
-        let history = crate::session::compaction::history(&db, session_id, Some(&loaded.model.reference))
-            .map_err(|e| failed(fatal(e)))?;
-        let initial = instructions::initial(&db, session_id, &loaded.sources).map_err(|e| failed(fatal(e)))?;
-        (history, initial)
-    };
-    let system = system(loaded, &initial);
-    let mut messages = context::messages(&history, &loaded.model.reference);
+    let system = system(loaded, compacting.initial());
+    let mut messages = context::messages(compacting.messages(), &loaded.model.reference);
     if step_limit {
         messages.push(llm::Message::Assistant(vec![llm::AssistantPart::Text { text: MAX_STEPS_PROMPT.into(), native: None }]));
     }
@@ -390,7 +388,7 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
         }
         crate::session::compaction::precompute(app, &compacting, Some(estimate));
         let limit = json::get_num(&loaded.agent, "steps").is_some_and(|steps| step as f64 >= steps);
-        let request = request(app, &loaded, limit, estimate)?;
+        let request = request(&loaded, limit, &compacting, estimate)?;
         let location = loaded.reference.clone();
         let input = step::Input {
             session: session.to_owned(),
