@@ -130,10 +130,8 @@ pub enum Setter {
 /// The time value `new Date(t).setX(...args)` returns (and stores). `args.len()` is the number of arguments passed;
 /// a missing first argument counts as `undefined` (NaN).
 pub fn set(t: f64, setter: Setter, args: &[f64]) -> f64 {
-    let arg = |i: usize| args.get(i).copied();
-    let first = arg(0).unwrap_or(f64::NAN);
     if setter == Setter::Time {
-        return time_clip(first);
+        return time_clip(args.first().copied().unwrap_or(f64::NAN));
     }
     let local = !matches!(
         setter,
@@ -145,9 +143,9 @@ pub fn set(t: f64, setter: Setter, args: &[f64]) -> f64 {
             | Setter::UtcMonth
             | Setter::UtcFullYear
     );
-    let full_year = matches!(setter, Setter::FullYear | Setter::UtcFullYear);
     let base = if t.is_nan() {
-        if !full_year {
+        // Only the full-year setters start an invalid date over, from +0.
+        if !matches!(setter, Setter::FullYear | Setter::UtcFullYear) {
             return f64::NAN;
         }
         0.0
@@ -156,47 +154,37 @@ pub fn set(t: f64, setter: Setter, args: &[f64]) -> f64 {
     } else {
         t
     };
-    let day = (base / MS_PER_DAY).floor();
-    let within = time_within_day(base);
-    let fields = Fields::of(base);
     let new = match setter {
         Setter::Time => unreachable!(),
-        Setter::Milliseconds | Setter::UtcMilliseconds => set_time_fields(base, day, args, 3, 1),
-        Setter::Seconds | Setter::UtcSeconds => set_time_fields(base, day, args, 2, 2),
-        Setter::Minutes | Setter::UtcMinutes => set_time_fields(base, day, args, 1, 3),
-        Setter::Hours | Setter::UtcHours => set_time_fields(base, day, args, 0, 4),
-        Setter::Date | Setter::UtcDate => {
-            make_date(make_day(fields.year as f64, fields.month as f64, first), within)
-        }
-        Setter::Month | Setter::UtcMonth => {
-            let date = arg(1).unwrap_or(fields.date as f64);
-            if !month_in_setter_range(first) {
-                return f64::NAN;
-            }
-            make_date(make_day(fields.year as f64, first, date), within)
-        }
-        Setter::FullYear | Setter::UtcFullYear => {
-            let month = arg(1).unwrap_or(fields.month as f64);
-            let date = arg(2).unwrap_or(fields.date as f64);
-            if !(first.is_finite() && first.trunc().abs() <= 275_760.0) || !month_in_setter_range(month) {
-                return f64::NAN;
-            }
-            make_date(make_day(first, month, date), within)
-        }
+        Setter::Milliseconds | Setter::UtcMilliseconds => set_time_fields(base, args, 3, 1),
+        Setter::Seconds | Setter::UtcSeconds => set_time_fields(base, args, 2, 2),
+        Setter::Minutes | Setter::UtcMinutes => set_time_fields(base, args, 1, 3),
+        Setter::Hours | Setter::UtcHours => set_time_fields(base, args, 0, 4),
+        Setter::Date | Setter::UtcDate => set_date_fields(base, args, 2, 1),
+        Setter::Month | Setter::UtcMonth => set_date_fields(base, args, 1, 2),
+        Setter::FullYear | Setter::UtcFullYear => set_date_fields(base, args, 0, 3),
     };
     time_clip(if local { local_to_utc(new) } else { new })
 }
 
-/// The time setters as JSC computes them: the given components (from `first`: 0 hours, 1 minutes, 2 seconds,
-/// 3 milliseconds) accumulate into a millisecond count first, which is then added to the date's remaining fields.
-/// The order only shows when huge components cancel out.
-fn set_time_fields(base: f64, day: f64, args: &[f64], first: usize, length: usize) -> f64 {
+/// The given arguments of a setter whose first component is `first` and that takes `length` of them: the first
+/// always (absent means undefined), the rest as passed.
+fn given(args: &[f64], first: usize, length: usize) -> impl Iterator<Item = (usize, f64)> + '_ {
+    (first..first + length)
+        .take(args.len().clamp(1, length))
+        .enumerate()
+        .map(move |(i, slot)| (slot, args.get(i).copied().unwrap_or(f64::NAN)))
+}
+
+/// The time setters as JSC computes them: the given components (slots 0 hours, 1 minutes, 2 seconds,
+/// 3 milliseconds, from `first`) accumulate into a millisecond count first, which is then added to the date's
+/// remaining fields. The order only shows when huge components cancel out.
+fn set_time_fields(base: f64, args: &[f64], first: usize, length: usize) -> f64 {
     const UNITS: [f64; 3] = [MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND];
     let mut fields = [hour_from_time(base), min_from_time(base), sec_from_time(base)];
     let mut ms = ms_from_time(base);
     let mut accumulated = 0.0;
-    for (i, slot) in (first..4).take(args.len().clamp(1, length)).enumerate() {
-        let value = args.get(i).copied().unwrap_or(f64::NAN);
+    for (slot, value) in given(args, first, length) {
         if !value.is_finite() {
             return f64::NAN;
         }
@@ -208,11 +196,36 @@ fn set_time_fields(base: f64, day: f64, args: &[f64], first: usize, length: usiz
         }
     }
     accumulated += ms;
+    let day = (base / MS_PER_DAY).floor();
     make_date(day, ((fields[0] * 60.0 + fields[1]) * 60.0 + fields[2]) * MS_PER_SECOND + accumulated)
 }
 
-fn month_in_setter_range(month: f64) -> bool {
-    month.is_finite() && month.trunc().abs() <= 3_309_120.0
+/// The date setters as JSC computes them (slots 0 year, 1 month, 2 date, from `first`): a year beyond ±275760 or a
+/// month beyond ±3309120 gives NaN, and a given date goes in as days of milliseconds added to the time of day.
+fn set_date_fields(base: f64, args: &[f64], first: usize, length: usize) -> f64 {
+    let f = Fields::of(base);
+    let (mut year, mut month, mut date) = (f.year as f64, f.month as f64, f.date as f64);
+    let mut ms = ms_from_time(base);
+    for (slot, value) in given(args, first, length) {
+        if !value.is_finite() {
+            return f64::NAN;
+        }
+        let value = integer(value);
+        match slot {
+            0 if value.abs() > 275_760.0 => return f64::NAN,
+            0 => year = value,
+            1 if value.abs() > 3_309_120.0 => return f64::NAN,
+            1 => month = value,
+            _ => {
+                date = 0.0;
+                ms += value * MS_PER_DAY;
+            }
+        }
+    }
+    let ym = year + (month / 12.0).floor();
+    let day = civil::days_from_civil(ym as i64, month.rem_euclid(12.0) as u32 + 1, 1) as f64 + date - 1.0;
+    let time = ((hour_from_time(base) * 60.0 + min_from_time(base)) * 60.0 + sec_from_time(base)) * MS_PER_SECOND + ms;
+    make_date(day, time)
 }
 
 /// `toISOString`, or `None` for an invalid date (which throws a RangeError).
@@ -355,10 +368,6 @@ impl Fields {
         let (year, month, date) = civil::civil_from_days(day as i64);
         Fields { year, month: month - 1, date }
     }
-}
-
-fn time_within_day(t: f64) -> f64 {
-    t.rem_euclid(MS_PER_DAY) + 0.0
 }
 
 fn week_day(t: f64) -> f64 {

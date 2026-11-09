@@ -105,9 +105,20 @@ impl Zone {
     }
 
     /// The offset (milliseconds east of UTC) to subtract from the local time `t` (finite milliseconds) to get UTC.
+    ///
+    /// Outside the time value range (±8.64e15 ms) JSC gets the offset of the zone's final rule, as if the current
+    /// rules had always applied (it shows in the far past, where the real offset is local mean time).
     pub(super) fn offset_for_local(&self, t: f64) -> f64 {
-        let secs = (t / 1000.0).floor();
-        self.local_secs(clamp_secs(secs)) as f64 * 1000.0
+        let secs = clamp_secs((t / 1000.0).floor());
+        let offset = if t.abs() > super::MAX_TIME { self.final_local_secs(secs) } else { self.local_secs(secs) };
+        offset as f64 * 1000.0
+    }
+
+    fn final_local_secs(&self, local: i64) -> i32 {
+        match &self.footer {
+            Some(footer) => footer.local_secs(local, i64::MIN).unwrap_or(footer.std),
+            None => self.types[self.kinds.last().copied().unwrap_or(0)].offset,
+        }
     }
 
     fn at_utc_secs(&self, secs: i64) -> (i32, bool) {
@@ -136,19 +147,9 @@ impl Zone {
         // Transitions from the footer rule come after the explicit ones; ICU scans from the latest transition back
         // and takes the first whose local threshold (its time plus the larger of the two offsets) has passed.
         if let Some(footer) = &self.footer
-            && let Some(dst) = &footer.dst
+            && let Some(offset) = footer.local_secs(local, last)
         {
-            let year = civil_from_days((local + footer.std as i64).div_euclid(86_400)).0;
-            let transitions = footer.transitions(dst, year);
-            for &(time, to_dst) in transitions.iter().rev() {
-                if time <= last {
-                    break;
-                }
-                let (before, after) = if to_dst { (footer.std, dst.offset) } else { (dst.offset, footer.std) };
-                if local >= time + before.max(after) as i64 {
-                    return after;
-                }
-            }
+            return offset;
         }
         if n == 0 {
             return self.initial().offset;
@@ -171,6 +172,24 @@ fn clamp_secs(secs: f64) -> i64 {
 }
 
 impl Posix {
+    /// The offset for the local time `local` from the rule's transitions after `after` (UTC seconds), if one of
+    /// them has passed: ICU scans transitions from the latest back and takes the first whose local threshold (its
+    /// time plus the larger of the offsets on either side) is reached.
+    fn local_secs(&self, local: i64, after: i64) -> Option<i32> {
+        let dst = self.dst.as_ref()?;
+        let year = civil_from_days((local + self.std as i64).div_euclid(86_400)).0;
+        for &(time, to_dst) in self.transitions(dst, year).iter().rev() {
+            if time <= after {
+                break;
+            }
+            let (before, next) = if to_dst { (self.std, dst.offset) } else { (dst.offset, self.std) };
+            if local >= time + before.max(next) as i64 {
+                return Some(next);
+            }
+        }
+        None
+    }
+
     fn at_utc(&self, secs: i64) -> (i32, bool) {
         let Some(dst) = &self.dst else {
             return (self.std, false);

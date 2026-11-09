@@ -2,7 +2,7 @@
 // JavaScriptCore and prints one JSON array per line. `examples/jsdate_check.rs` recomputes each case with
 // `opencode_codemode::jsdate` and reports differences. Run both under the same TZ (see check.sh).
 //
-// usage: TZ=UTC bun harness/jsdate/oracle.ts [scale] > cases.jsonl     (scale 1 = about 330,000 checked values)
+// usage: TZ=UTC bun harness/jsdate/oracle.ts [scale] > cases.jsonl     (scale 1 = about 420,000 checked values)
 //
 // Lines (numbers: JSON numbers, or the strings "NaN", "Infinity", "-Infinity", "-0"):
 //   ["g", t, ...17 getter results]                      getters, in jsdate::Getter order
@@ -90,7 +90,8 @@ function randomTime(): number {
     const base = chance(0.5) ? Date.UTC(y, 0, 1) : new Date(y, 0, 1).getTime()
     return base + int(-2, 2) * pick([1, 1000, 3600000, DAY])
   }
-  if (r < 0.85) return int(-YEAR * 3000, YEAR * 3000)
+  if (r < 0.82) return int(-YEAR * 3000, YEAR * 3000)
+  if (r < 0.86) return (chance(0.5) ? MAX : -MAX) + int(-2 * DAY, 2 * DAY)
   if (r < 0.9) return pick(edgeTimes)
   return int(-1e12, 1e12) * pick([1, 1000, 60000])
 }
@@ -215,6 +216,11 @@ function utcCase() {
 
 function localCase() {
   let args = componentArgs(2)
+  if (chance(0.05)) {
+    // Local times at the ends of the time value range.
+    args = chance(0.5) ? [275760, 8, int(12, 14), int(-30, 30), int(-60, 60)] : [-271821, 3, int(19, 21), int(-30, 30), int(-60, 60)]
+    if (chance(0.5)) args.push(int(-60, 60), int(-1000, 1000))
+  }
   if (chance(0.3) && zoneTransitions.length) {
     // Local times around a transition: skipped and repeated hours.
     const t = pick(zoneTransitions) + int(-4, 4) * 1800000 + pick([0, 0, 1, -1, 60000])
@@ -397,9 +403,9 @@ for (let i = 0; i < n; i++) {
   localCase()
   localCase()
   if (i % 2 === 0) clipCase()
-  parseCase(formatted())
-  parseCase(chance(0.5) ? mutated(formatted()) : mutated(pick(curated)))
-  parseCase(soup())
+  for (let j = 0; j < 3; j++) parseCase(formatted())
+  for (let j = 0; j < 3; j++) parseCase(chance(0.5) ? mutated(formatted()) : mutated(pick(curated)))
+  for (let j = 0; j < 2; j++) parseCase(soup())
 }
 flush()
 console.error(`oracle: ${checked} checked values, TZ=${process.env.TZ ?? "(unset)"}, ${zoneTransitions.length} zone transitions`)
