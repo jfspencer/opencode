@@ -321,6 +321,24 @@ scenarios/project-commands.test.ts › command that selects an agent and a model
 scenarios/project-commands.test.ts › command with shell interpolation
 scenarios/project-commands.test.ts › commands from config and markdown files
 scenarios/project-commands.test.ts › unknown command and missing session
+scenarios/project-config-jsonc.test.ts › a file whose root is an array fails the patch
+scenarios/project-config-jsonc.test.ts › a shell appended to a commented jsonc file with tabs and a trailing comma
+scenarios/project-config-jsonc.test.ts › a shell removed from a file without one leaves it unchanged
+scenarios/project-config-jsonc.test.ts › a shell replaced in place keeps the rest of the line
+scenarios/project-config-jsonc.test.ts › a shell set in a file missing its closing brace
+scenarios/project-config-jsonc.test.ts › a shell set in a file of carriage returns
+scenarios/project-config-jsonc.test.ts › a shell set in a file of comments only
+scenarios/project-config-jsonc.test.ts › a shell set in a nested and oddly indented file
+scenarios/project-config-jsonc.test.ts › a shell set in an empty file
+scenarios/project-config-jsonc.test.ts › a shell set in an inline json file, then replaced and removed
+scenarios/project-config-jsonc.test.ts › a shell set in an unreadable file is written in front of it
+scenarios/project-config-jsonc.test.ts › an escaped key names the shell
+scenarios/project-config-jsonc.test.ts › removing from an empty file fails the patch
+scenarios/project-config-jsonc.test.ts › the first of duplicate shell keys is edited and the last still wins
+scenarios/project-config-jsonc.test.ts › the first property removed before others on one line
+scenarios/project-config-jsonc.test.ts › the only property removed collapses the lines it was on
+scenarios/project-config-jsonc.test.ts › the shell removed from a CRLF file, then the first and only property
+scenarios/project-config-jsonc.test.ts › with both global files the later name is edited
 scenarios/project-config.test.ts › available shells
 scenarios/project-config.test.ts › config documents with project config disabled
 scenarios/project-config.test.ts › config documents without project files

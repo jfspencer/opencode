@@ -63,11 +63,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         "experimental.config.update" => {
             let shell = json::get_str(&decoded.payload, "shell");
             if let Err(error) = inventory::config::update_shell(shell) {
-                // The TS server dies on a failed update (`Effect.orDie`).
-                eprintln!("config update failed: {error}");
-                let mut o = Obj::new();
-                o.str("_tag", "UnknownError").str("message", "Internal server error");
-                return Err(Failure::new(500, o.done()));
+                // The TS server dies on a failed update (`Effect.orDie`): an empty 500.
+                return Err(crate::app::defect(format!("config update failed: {error}")));
             }
             location.inventory.reload(&app.bus, &location.reference()).await;
             Ok(Response::no_content())
