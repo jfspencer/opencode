@@ -18,7 +18,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
         "worktree.list" => {
             let query = t::WorktreeListQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
             let rows = worktree::list(app, &query.project_id.0).map_err(worktree::Error::failure)?;
-            Ok(Response::value(200, &Json::Array(rows.iter().map(|row| row.to_json()).collect())))
+            Ok(super::encoded(request, &Json::Array(rows.iter().map(|row| row.to_json()).collect())))
         }
         "worktree.create" => {
             let payload = t::WorktreeCreateInput::decode(&decoded.payload).map_err(|issue| Failure::schema("Payload", &issue))?;
@@ -36,7 +36,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
             .map_err(worktree::Error::failure)?;
             let mut o = Obj::new();
             o.str("directory", &directory);
-            Ok(Response::value(200, &o.done()))
+            Ok(super::encoded(request, &o.done()))
         }
         "worktree.remove" => {
             let payload = t::WorktreeRemoveInput::decode(&decoded.payload).map_err(|issue| Failure::schema("Payload", &issue))?;

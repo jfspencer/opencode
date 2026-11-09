@@ -9,7 +9,6 @@ use opencode_protocol::Json;
 use opencode_protocol::Wire;
 use opencode_protocol::types as t;
 
-use super::located_data;
 use super::project::service_unavailable;
 use crate::api::Decoded;
 use crate::app::{App, defect};
@@ -25,7 +24,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
         "fs.list" => {
             let query = t::FsListQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
             let entries = crate::fs::list(&location, query.path.as_deref()).map_err(|e| failure(e, "Directory not found"))?;
-            Ok(located_data(&location, Json::Array(entries.iter().map(|e| e.to_json()).collect())))
+            Ok(super::located(request, &location, Json::Array(entries.iter().map(|e| e.to_json()).collect())))
         }
         "fs.find" => {
             let query = t::FsFindQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
@@ -35,14 +34,14 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
                 limit: query.limit.map(|l| l.0.max(0) as usize),
             };
             let entries = location.search.find(&location, &input).await.map_err(|e| defect(e.0))?;
-            Ok(located_data(&location, Json::Array(entries.iter().map(|e| e.to_json()).collect())))
+            Ok(super::located(request, &location, Json::Array(entries.iter().map(|e| e.to_json()).collect())))
         }
         "experimental.fs.write" => {
             let query = t::ExperimentalFsWriteQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
             let path = crate::fs::write(&location, &query.path, &request.body).map_err(|e| defect(e.0))?;
             let mut data = Obj::new();
             data.str("path", &path);
-            Ok(located_data(&location, data.done()))
+            Ok(super::located(request, &location, data.done()))
         }
         "experimental.fs.watch" => {
             let payload = t::ExperimentalFsWatchPayload::decode(&decoded.payload).map_err(|issue| Failure::schema("Payload", &issue))?;

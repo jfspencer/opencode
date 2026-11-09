@@ -71,3 +71,25 @@ pub fn located_data(location: &Location, value: opencode_protocol::Json) -> Resp
     o.set("location", location.reference().to_json()).set("data", value);
     Response::value(200, &o.done())
 }
+
+/// A 200 answer encoded through the endpoint's success schema, as HttpApi encodes it: keys in schema order,
+/// unknown keys dropped. A value the schema rejects is a server bug; it is sent as built (and logged).
+pub fn encoded(request: &Request, value: &opencode_protocol::Json) -> Response {
+    use opencode_protocol::routes::BodyKind;
+    let ty = request.route.success.iter().find(|b| b.kind == BodyKind::Json).and_then(|b| b.ty);
+    match ty.and_then(|ty| opencode_protocol::roots::roundtrip(ty, value)) {
+        Some(Ok(text)) => Response::json(200, text),
+        Some(Err(issue)) => {
+            eprintln!("{} answer does not fit its schema: {issue}", request.route.operation);
+            Response::value(200, value)
+        }
+        None => Response::value(200, value),
+    }
+}
+
+/// [`located_data`] encoded through the endpoint's success schema.
+pub fn located(request: &Request, location: &Location, value: opencode_protocol::Json) -> Response {
+    let mut o = crate::json::Obj::new();
+    o.set("location", location.reference().to_json()).set("data", value);
+    encoded(request, &o.done())
+}

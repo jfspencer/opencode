@@ -135,7 +135,28 @@ impl Failure {
         Self::invalid(truncate_reason(&issue.to_string()), None, Some(kind))
     }
 
+    /// A defect: HttpApi answers a request that died with an empty 500.
+    pub fn defect() -> Self {
+        Self::new(500, Json::Null)
+    }
+
+    /// A plain-text answer of HttpApi itself (`415 Unsupported content-type: ...`).
+    pub fn text(status: u16, text: impl Into<String>) -> Self {
+        Self::new(status, Json::String(text.into()))
+    }
+
     pub fn into_response(self) -> Response {
+        match self.body {
+            Json::Null => return Response { status: self.status, headers: vec![], body: Body::Empty },
+            Json::String(text) => {
+                return Response {
+                    status: self.status,
+                    headers: vec![("content-type", "text/plain".into())],
+                    body: Body::Bytes(Bytes::from(text)),
+                };
+            }
+            _ => {}
+        }
         Response::value(self.status, &self.body)
     }
 }

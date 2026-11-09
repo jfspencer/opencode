@@ -21,10 +21,10 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             let query = t::ProjectListQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
             let archived = matches!(query.archived, Some(t::ProjectListQueryArchived0::True2));
             let list = crate::project::list(&app.db.lock().unwrap(), archived).map_err(fatal)?;
-            Ok(Response::value(200, &Json::Array(list)))
+            Ok(super::encoded(request, &Json::Array(list)))
         }
         "project.update" => project_update(app, request, &decoded),
-        "location.get" => Ok(Response::value(200, &located.expect("located endpoint").info())),
+        "location.get" => Ok(super::encoded(request, &located.expect("located endpoint").info())),
         "location.reload" => {
             // TODO(port): the failure's text is Effect's `Cause.pretty` of the boot failure.
             app.locations.reload(app).await.map_err(|failure| {
@@ -33,13 +33,13 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
             })?;
             Ok(Response::no_content())
         }
-        "server.info" => Ok(Response::value(200, &server_info())),
-        "server.pair" => Ok(Response::value(200, &pairing_issue())),
+        "server.info" => Ok(super::encoded(request, &server_info())),
+        "server.pair" => Ok(super::encoded(request, &pairing_issue())),
         "server.connect" => Ok(server_connect(app, request)),
-        "debug.heapDump" => heap_dump(&decoded),
+        "debug.heapDump" => heap_dump(request, &decoded),
         "debug.location.list" => {
             let keys = app.locations.keys().iter().map(|reference| reference.to_json()).collect();
-            Ok(Response::value(200, &Json::Array(keys)))
+            Ok(super::encoded(request, &Json::Array(keys)))
         }
         "debug.location.evict" => {
             // Resolved through requestRef so the key matches the shape the location middleware cached it under.
@@ -60,6 +60,10 @@ pub fn service_unavailable(message: &str, service: &str) -> Failure {
 fn project_update(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
     let payload = t::ProjectUpdatePayload::decode(&decoded.payload).map_err(|issue| Failure::schema("Payload", &issue))?;
     let id = request.param("projectID");
+    // The stored column only takes absolute paths (database/path.ts `absoluteColumn`): the write dies.
+    if let Some(canonical) = payload.canonical.as_ref().filter(|c| !crate::project::storable(&c.0)) {
+        return Err(crate::app::defect(format!("Path is not absolute: {}", canonical.0)));
+    }
     let input = crate::project::Update {
         canonical: payload.canonical.map(|c| c.0),
         name: payload.name,
@@ -69,7 +73,7 @@ fn project_update(app: &App, request: &Request, decoded: &Decoded) -> Result<Res
     };
     let updated = crate::project::update(&app.db.lock().unwrap(), &app.bus, id, input).map_err(fatal)?;
     match updated {
-        Some(info) => Ok(Response::value(200, &info)),
+        Some(info) => Ok(super::encoded(request, &info)),
         None => {
             let mut o = Obj::new();
             o.str("_tag", "ProjectNotFoundError").str("projectID", id).str("message", &format!("Project not found: {id}"));
@@ -168,7 +172,7 @@ fn server_connect(app: &App, request: &Request) -> Response {
     if !browser {
         let mut o = Obj::new();
         o.str("token", &token);
-        return Response::value(200, &o.done());
+        return super::encoded(request, &o.done());
     }
     let name = crate::auth::session_cookie_name(request.header("host"));
     let max_age = crate::auth::SESSION_TTL_SECONDS;
@@ -184,7 +188,7 @@ fn server_connect(app: &App, request: &Request) -> Response {
 
 // --- heap snapshots (util/src/heap-snapshot.ts) ---
 
-fn heap_dump(decoded: &Decoded) -> Result<Response> {
+fn heap_dump(request: &Request, decoded: &Decoded) -> Result<Response> {
     let query = t::DebugHeapDumpQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
     if query.directory.as_ref().is_some_and(|d| !d.starts_with('/')) {
         return Err(Failure::invalid("directory must be an absolute path", Some("directory"), None));
@@ -230,5 +234,5 @@ fn heap_dump(decoded: &Decoded) -> Result<Response> {
     }
     let mut o = Obj::new();
     o.str("path", &file).int("pid", std::process::id() as i64).set("memory", memory.done());
-    Ok(Response::value(200, &o.done()))
+    Ok(super::encoded(request, &o.done()))
 }

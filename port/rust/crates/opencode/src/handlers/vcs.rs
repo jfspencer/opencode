@@ -6,7 +6,6 @@ use opencode_protocol::Json;
 use opencode_protocol::Wire;
 use opencode_protocol::types as t;
 
-use super::located_data;
 use super::project::service_unavailable;
 use crate::api::Decoded;
 use crate::app::{App, fatal};
@@ -21,20 +20,20 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
     let vcs = &location.version_control;
     match request.route.operation {
         "vcs.init" => init(app, &location, &decoded).await,
-        "vcs.get" => Ok(located_data(&location, vcs.info().to_json())),
+        "vcs.get" => Ok(super::located(request, &location, vcs.info().to_json())),
         "vcs.base" => {
             let base = vcs.base().await.map_err(review_error)?;
-            Ok(located_data(&location, base.unwrap_or(Json::Null)))
+            Ok(super::located(request, &location, base.unwrap_or(Json::Null)))
         }
         "vcs.status" => {
             let rows = vcs.status().await;
-            Ok(located_data(&location, Json::Array(rows.iter().map(|row| row.to_json()).collect())))
+            Ok(super::located(request, &location, Json::Array(rows.iter().map(|row| row.to_json()).collect())))
         }
         "vcs.branch.list" => {
             let query = t::VcsBranchListQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
             let limit = query.limit.map(|l| l.0).unwrap_or(50).min(100).max(0) as usize;
             let branches = vcs.branches(query.search.as_deref(), Some(limit)).await;
-            Ok(located_data(&location, Json::Array(branches.into_iter().map(Json::String).collect())))
+            Ok(super::located(request, &location, Json::Array(branches.into_iter().map(Json::String).collect())))
         }
         "vcs.diff" => {
             let query = t::VcsDiffQuery::decode(&decoded.query).map_err(|issue| Failure::schema("Query", &issue))?;
@@ -52,7 +51,7 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, located: Opt
                 }),
             };
             let rows = vcs.diff(mode, options).await.map_err(review_error)?;
-            Ok(located_data(&location, Json::Array(rows.iter().map(|row| row.to_json()).collect())))
+            Ok(super::located(request, &location, Json::Array(rows.iter().map(|row| row.to_json()).collect())))
         }
         _ => super::fallback(app, request),
     }

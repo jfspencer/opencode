@@ -35,13 +35,10 @@ pub fn fatal(error: rusqlite::Error) -> Failure {
     defect(format!("database error: {error}"))
 }
 
-/// Any failure the TS server dies on (`Effect.orDie`): 500.
+/// Any failure the TS server dies on (`Effect.orDie`): an empty 500.
 pub fn defect(error: impl std::fmt::Display) -> Failure {
     eprintln!("{error}");
-    let mut o = crate::json::Obj::new();
-    o.str("_tag", "UnknownError");
-    o.str("message", "Internal server error");
-    Failure::new(500, o.done())
+    Failure::defect()
 }
 
 static URLS: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
