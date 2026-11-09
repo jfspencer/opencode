@@ -18,8 +18,14 @@
 //! Documents hold the plain (config file) side of `Config.Info` ([`t::ConfigInfoPlain`]); [`wire`] writes the entries
 //! as the HTTP API's JSON codec does.
 //!
-//! TODO(port): wellknown and integration documents (Console), macOS managed preferences, the file watcher on config
-//! roots; `~` in `{file:~/...}` expands with `HOME` (TS uses `os.homedir()`, which reads the password database).
+//! On macOS the system directory is `/Library/Application Support/opencode`, and the MDM managed preferences plist
+//! (`ai.opencode.managed`) loads after it. The watches of these sources are [`super::config_watch`]'s. `~` in
+//! `{file:~/...}` is the user's home from the password database, as `os.homedir()` answers in the reference.
+//!
+//! Out of scope: integration documents (the OpenCode Console's, delivered by its provider plugin: a catalog provider
+//! behind a Console login). TODO(port): wellknown documents (wellknown.ts: the `.well-known/opencode` manifests of the
+//! origins in `kv` `wellknown:sources`, their `config` and `remote_config` resolved with the origin's credential, and
+//! the origin as an integration with a command login); the legacy credential import already records the origins.
 
 use std::sync::OnceLock;
 

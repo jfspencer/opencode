@@ -29,6 +29,8 @@ scenario(
     timeout: 180_000,
   },
   async (ctx) => {
+    // The project location booted just before the body.
+    const started = Date.now()
     const at = (directory: string) => ({ "x-opencode-directory": encodeURIComponent(path.join(ctx.project, directory)) })
     // Locations announce their plugins after they boot: wait, so the boots' announcements do not interleave.
     const booted = (directory: string) =>
@@ -51,7 +53,9 @@ scenario(
     const forms = await ctx.http("GET", `/api/session/${busy}/form`)
     await ctx.http("POST", `/api/session/${busy}/form/${forms.body.data[0].id}/reply`, { answer: { q0: "Blue" } })
     await ctx.settle(busy)
-    // The next request boots the project location again.
+    // The next request boots the project location again. A project records activity at most once a minute: boot it
+    // more than a minute after its first boot, so the reboot always records it (and announces the project).
+    await new Promise((resolve) => setTimeout(resolve, Math.max(0, started + 65_000 - Date.now())))
     const reboot = ctx.events.length
     await ctx.http("GET", "/api/agent")
     await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === ctx.project, reboot)
