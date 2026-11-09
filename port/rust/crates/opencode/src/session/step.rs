@@ -824,8 +824,8 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         p.fail_assistant(error.clone());
     }
     for (id, decline) in &declines {
-        // TODO(port): "Interaction cancelled because the location shut down" once locations can close.
         let message = match decline {
+            _ if input.located.permission.is_closed() => "Interaction cancelled because the location shut down".to_owned(),
             tool::Failure::Declined { question: true, message } => message.clone(),
             _ => "The user declined this tool call".to_owned(),
         };
