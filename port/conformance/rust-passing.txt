@@ -1,3 +1,4 @@
+scenarios/project-agents.test.ts › agent and provider lookups on a location's first request
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
 scenarios/project-agents.test.ts › custom agents from config
