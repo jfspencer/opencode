@@ -214,11 +214,14 @@ endpoint without a handler answers 501 (after the 404 of an unknown session, whi
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
 ledger, `conformance/rust-passing.txt`: a ledgered scenario that fails is a regression (exit 1); new passes are listed and
 `--update` adds them. Nothing removes a line but a hand edit: a ledgered scenario that was renamed or deleted is listed
-as not run.
+as not run. TUI scenario files are given as `tui/<file>` (or `tui` for all of them): they run from `conformance/tui`
+against `<binary> --server <url>` in a pseudo-terminal, ledgered as `tui/<file> › <scenario>`; the in-process-only ones
+are skipped, as the harness skips them for a process.
 
 ```sh
 port/scripts/rust-conformance.sh                       # every server scenario (debug build)
 port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
+port/scripts/rust-conformance.sh 3 tui/nav-home.test.ts # TUI scenarios
 port/scripts/rust-conformance.sh --update              # record new passes in the ledger
 CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
 ```
