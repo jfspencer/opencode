@@ -223,3 +223,14 @@ port/rust/crates/opencode-html/harness/run.sh                         # entity t
 port/rust/crates/opencode-html/harness/run.sh --count 60000 --seed 2  # a deeper run
 port/rust/crates/opencode-html/harness/run.sh --coverage              # needs cargo-llvm-cov
 ```
+
+`rust/crates/opencode-shell` is the shell tool's command analysis, dependency-free: `scan` (`shell/scan.ts` for Bash,
+Zsh, POSIX sh and PowerShell, with the same work budget, check order and opaque reasons), `parse` (`shell/parse.ts`:
+resources, saved patterns, arity and wrapper tables, directory changes; `FileAccess.resolvePath`), `wildcard` and
+`permission` (`Wildcard.match`, `Permission.evaluate`), `select` (the pure part of `shell/select.ts`), and `result`
+(`shell/result.ts`: output capture and paging, the tool's result shapes and texts). Strings are UTF-16 inside, so
+offsets and `?` wildcards count what TS counts. `harness/check.sh` compares the TS modules and the crate as JSON,
+byte for byte, on the inputs upstream's own shell, permission and tool tests produce, the conformance scenarios'
+commands, generated and mutated commands, and the real TS `Shell` service's capture and paging: 0 differences on about
+396k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
+is regenerated (`bun harness/gen-unicode.ts`). See the crate's README.
