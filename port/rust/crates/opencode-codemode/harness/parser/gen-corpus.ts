@@ -9,6 +9,7 @@
 import { readdirSync, realpathSync } from "node:fs"
 import path from "node:path"
 import { parse } from "../../../../../.reference/packages/codemode/node_modules/acorn/dist/acorn.mjs"
+import { randomPrograms } from "./gen-programs.ts"
 import { contexts, snippets } from "./snippets.ts"
 import { collected } from "./scenario-stub.ts"
 
@@ -115,6 +116,12 @@ function mutate(code: string) {
 for (const code of [...out].filter(accepts)) {
   const count = Math.max(4, Math.min(24, Math.ceil(code.length / 40)))
   for (let i = 0; i < count; i++) add(mutate(code))
+}
+
+// Random programs from a small grammar (gen-programs.ts), mostly valid, with a mutation each.
+for (const code of randomPrograms(20251109, 20000)) {
+  add(code)
+  add(mutate(code))
 }
 
 // Token fuzz: seeded random numeric literals, string and template escapes, regular expressions (pattern and flags)
