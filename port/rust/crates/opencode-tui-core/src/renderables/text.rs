@@ -30,7 +30,7 @@ pub fn text_context() -> TextContext {
     crate::pool::context()
 }
 
-fn default_options() -> SceneTextOptions {
+pub(crate) fn default_options() -> SceneTextOptions {
     SceneTextOptions {
         fg: RGBA::from_values(1.0, 1.0, 1.0, 1.0).0,
         bg: RGBA::from_values(0.0, 0.0, 0.0, 0.0).0,

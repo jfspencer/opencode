@@ -1,8 +1,36 @@
-//! Submitting from the home prompt (`component/prompt/index.tsx` `submit` without a session).
+//! The session route (`routes/session`) and submitting from the home prompt (`component/prompt/index.tsx`
+//! `submit` without a session).
 //!
-//! TODO(port-tui): the session feature slice: creating the session (with `--session`'s new ID), selecting its
-//! model and agent, sending the prompt, and the session route (`routes/session`) with its transcript.
+//! | module | ports |
+//! |---|---|
+//! | [`route`] | `index.tsx`: `Session` (layout, scrolling, navigation, commands), `SessionRowView`, `SessionEntryView` |
+//! | [`messages`] | `index.tsx`'s message views (user, switches, notices, compactions, footers, retries) |
+//! | [`parts`] | `SessionPartView` and the extension points the tools slice fills (tool parts, prompts) |
+//! | [`message_parts`] | `message-parts.tsx`: text and reasoning parts, `InlineToolRow` |
+//! | [`rows`], [`grouping`] | `rows.ts`, `grouping/session.ts`, `grouping/tree.ts` |
+//! | [`group_view`], [`activity_summary`] | `group-view.tsx`, `activity-summary.ts` |
+//! | [`anchors`] | `anchors.ts`, `anchor-view.tsx` |
+//! | [`mount_budget`], [`message_navigation`], [`history`] | `mount-budget.ts`, `message-navigation.ts`, `history.ts` |
+//! | [`render_context`] | `render-context.tsx` |
+//!
+//! TODO(port-tui): the prompt slice: creating the session (with `--session`'s new ID), selecting its model and
+//! agent, and sending the prompt from home.
 use crate::ctx::Tui;
+
+pub mod activity_summary;
+pub mod anchors;
+pub mod extras;
+pub mod group_view;
+pub mod grouping;
+pub mod history;
+pub mod message_navigation;
+pub mod message_parts;
+pub mod messages;
+pub mod mount_budget;
+pub mod parts;
+pub mod render_context;
+pub mod route;
+pub mod rows;
 
 pub fn submit_from_home(t: &Tui, value: String) {
     let trimmed = value.trim();

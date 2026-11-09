@@ -1441,6 +1441,11 @@ impl Element {
         self.scroll_inner().map(|i| i.borrow().visible[vertical as usize]).unwrap_or(false)
     }
 
+    /// `stickyScroll`.
+    pub fn sticky_scroll(self) -> bool {
+        self.scroll_inner().map(|i| i.borrow().sticky_scroll).unwrap_or(false)
+    }
+
     pub fn set_sticky_scroll(self, sticky: bool) {
         let Some(inner) = self.scroll_inner() else { return };
         inner.borrow_mut().sticky_scroll = sticky;

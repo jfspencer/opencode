@@ -170,8 +170,21 @@ pub trait Kind: Any {
         Vec::new()
     }
     fn destroy(&mut self, _el: Element) {}
+    /// The superclass part of a kind that extends another (a `CodeRenderable` is a `TextBufferRenderable`):
+    /// [`Element::with_kind`] finds the superclass through it, so its setters work on the subclass.
+    fn base_kind(&mut self) -> Option<&mut dyn Kind> {
+        None
+    }
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+/// `kind` as `K`, or its superclass part ([`Kind::base_kind`]) as `K`.
+fn downcast_chain<K: Kind>(kind: &mut dyn Kind) -> Option<&mut K> {
+    if kind.as_any().is::<K>() {
+        return kind.as_any_mut().downcast_mut::<K>();
+    }
+    kind.base_kind().and_then(downcast_chain::<K>)
 }
 
 /// See [`Kind::child_frame`].
@@ -399,13 +412,13 @@ impl Element {
         })
     }
 
-    /// Runs `f` on the node's kind, downcast to `K`. The kind is taken out of the arena while `f` runs, so `f` may
-    /// use the tree; a nested call on the same node returns None.
+    /// Runs `f` on the node's kind, downcast to `K` (or to its superclass part, see [`Kind::base_kind`]). The kind is
+    /// taken out of the arena while `f` runs, so `f` may use the tree; a nested call on the same node returns None.
     pub fn with_kind<K: Kind, R>(self, f: impl FnOnce(&mut K) -> R) -> Option<R> {
         let mut kind = with_tree(|t| {
             t.slots.get_mut(self.index as usize).filter(|s| s.generation == self.generation).and_then(|s| s.kind.take())
         })?;
-        let result = kind.as_any_mut().downcast_mut::<K>().map(f);
+        let result = downcast_chain::<K>(kind.as_mut()).map(f);
         with_tree(|t| {
             if let Some(slot) = t.slots.get_mut(self.index as usize).filter(|s| s.generation == self.generation) {
                 if slot.kind.is_none() {
