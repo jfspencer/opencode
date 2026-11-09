@@ -75,6 +75,9 @@
 //!
 //! **Timers and ticks**: `renderer::set_timeout(ms, f)` / `clear_timeout`, `renderer::next_tick(f)` (also
 //! `queueMicrotask`); the renderer draws on demand, so anything that changes a renderable asks for a frame itself.
+//! `renderer::on_animation_tick(fps, f)` / `off_animation_tick` is the renderer's shared animation clock, and
+//! `el.set_animation_fps(Some(fps))` (`animationFps`) ticks a kind's `Kind::on_animation_tick` on it while drawn.
+//! `renderer::on_terminal_focus(f)` / `off_terminal_focus` are the renderer's `focus`/`blur` events.
 //!
 //! **Plugins**: only the built-in feature plugins are in scope, so a `<Slot path>` renders the built-in plugin's
 //! content for that path directly (see [`home`] and [`prompt`]).
