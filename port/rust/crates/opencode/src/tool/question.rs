@@ -222,7 +222,16 @@ impl Tool for Question {
                 return Err(Failure::Error(ToolError::new(format_issues(&self.definition.name, &issues, &input))));
             }
             let questions = json::get(&input, "questions").and_then(json::array).unwrap_or_default();
-            context.assert(Ask { action: "question".into(), resources: vec!["*".into()], save: None, metadata: None }).await?;
+            // `ToolFailure("Permission denied: question", error)`: a denial or a rejection with feedback shows through
+            // the wrapper, a plain rejection declines the call, and a missing session (no message) shows the wrapper.
+            context.assert(Ask { action: "question".into(), resources: vec!["*".into()], save: None, metadata: None }).await.map_err(
+                |failure| match failure {
+                    Failure::Error(error) if error.kind == "tool.execution" => {
+                        Failure::Error(ToolError::new("Permission denied: question"))
+                    }
+                    other => other,
+                },
+            )?;
             let mut tool = Obj::new();
             tool.str("messageID", &context.message_id).str("id", &context.call_id);
             let mut metadata = Obj::new();
