@@ -32,6 +32,8 @@ use opencode_codemode::{Execution, ExecuteOptions, Hooks, Json, Limits, Runtime,
 // Once per tool inventory (TS `CodeMode.make`): builds the tool tree, signatures, and search index.
 let runtime = Runtime::new(&[ToolDef::new("files.read", "Read a file", input_schema, ToolOutput::NullOrString)])?;
 runtime.catalog(); // [(path, description, signature)], TS `runtime.catalog`
+// Namespace registrations first, so one without visible tools is still a key of `tools` (core's inventory):
+let runtime = Runtime::with_namespaces(&[("files".into(), "File tools".into())], &tools)?;
 
 // Once per program (TS `runtime.execute(code, bindings)`).
 let execution = runtime
@@ -60,7 +62,8 @@ match execution {
   - `output` is `ToolOutput::Schema(json)` (render-only), `ToolOutput::NullOrString` (core's default
     `Schema.NullOr(Schema.String)`, which is validated), or `ToolOutput::Void`.
   - `decode_input` optionally validates or decodes the input before the call is admitted.
-  - `namespace_description` is `(namespace path, text)`, from `Namespace.make`.
+  - `namespace_description` is `(namespace path, text)`, from `Namespace.make`. `Runtime::with_namespaces` takes
+    the registrations instead, placed in the tree before the tools, as core renders its inventory.
 
   The handler is `Rc<dyn Fn(path, Option<Json>) -> Fut<ToolOutcome>>`. It returns one of:
   - `ToolOutcome::Ok(value)`, where `None` is `undefined`.
@@ -184,8 +187,9 @@ The evaluator in `interp/`:
   secondary differences. It matches on every corpus case, but it is not the full collation algorithm.
 - **Dates outside UTC** use the system tz database, which can be newer than bun's ICU. The conformance suite runs
   in UTC, where the Date check finds 0 differences.
-- **URL** uses the `url` crate (WHATWG), adjusted to the WebKit behavior the corpus exercises. Rare edge cases can
-  still differ from WebKit.
+- **URL** uses the `url` crate (WHATWG), adjusted to the WebKit behavior the corpus exercises: a non-special
+  URL's authority needs a host after credentials and a port of digits (`foo://@`, `foo://-:\x` are invalid),
+  which the crate does not check. Rare edge cases can still differ from WebKit.
 - **Cleanup timeout warning.** In TS, a program can return while host cleanup outlasts the timeout, which gives
   the warning "background work was still running at the timeout". Dropping a Rust future is instantaneous, so
   that warning never appears.

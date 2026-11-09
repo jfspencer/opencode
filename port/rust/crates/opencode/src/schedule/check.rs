@@ -5,8 +5,9 @@
 //! A shell check runs its command in the Session's directory with the compatible shell; its permission resources
 //! come from the shell tool's analysis (`opencode_shell::analyze`) and `FileAccess.resolve`.
 //!
-//! TODO(port): code checks (`CodeMode.scanTools`, the Code Mode runtime and its tools, the Code Mode slice's): a code
-//! condition is rejected as invalid until they are ported.
+//! A code check runs on the Code Mode runtime ([`crate::codemode::check`]) over the Code Mode tools its program names
+//! (`CodeMode.scanTools`), with `state`, `now`, `runs` and `input` bound, under the ruleset that allows `execute` and
+//! those tools' actions.
 
 use std::collections::HashSet;
 
@@ -21,6 +22,9 @@ use crate::session::Stored;
 
 pub const TIMEOUT_MS: u64 = 30_000;
 const MAX_OUTPUT_BYTES: usize = 32 * 1024;
+/// `CODE_LIMITS`.
+const CODE_LIMITS: opencode_codemode::Limits =
+    opencode_codemode::Limits { timeout_ms: Some(TIMEOUT_MS), max_tool_calls: Some(20), max_output_bytes: Some(MAX_OUTPUT_BYTES as u64) };
 
 const FORBIDDEN_CODE_TOOLS: &[&str] = &[
     "opencode.schedule_create",
@@ -53,11 +57,8 @@ impl Outcome {
 
 /// `RunContext`.
 pub struct RunContext {
-    #[allow(dead_code)] // The Code Mode runtime's (TODO(port)).
     pub message_id: String,
-    #[allow(dead_code)]
     pub now: i64,
-    #[allow(dead_code)]
     pub checks: i64,
 }
 
@@ -107,9 +108,73 @@ fn regex(pattern: &str) -> Result<regex::Regex, regex::Error> {
     regex::Regex::new(pattern)
 }
 
-/// `CodeMode.scanTools`. TODO(port): the Code Mode parser (the Code Mode slice's).
-fn scan_tools(_code: &str) -> Result<Vec<String>, String> {
-    Err("Code Mode checks are not supported yet".into())
+/// `CodeMode.scanTools`.
+fn scan_tools(code: &str) -> Result<Vec<String>, String> {
+    crate::codemode::scan_tools(code)
+}
+
+/// `codeActions`: the registered Code Mode tools at `paths` (the schedule tools included while schedules are on) and
+/// their permission actions, deduplicated; a forbidden, unknown or editing tool is an invalid check.
+fn code_actions(location: &Location, paths: &[String]) -> Result<Vec<String>, String> {
+    let extra = crate::tool::schedule::tools(&location.inventory());
+    let registered = crate::tool::registry().code_mode_inventory(&[], &extra, None).tools;
+    let mut actions: Vec<String> = Vec::new();
+    for path in paths {
+        let forbidden = || format!("Tool {path} cannot be used inside a schedule check");
+        if FORBIDDEN_CODE_TOOLS.contains(&path.as_str()) {
+            return Err(forbidden());
+        }
+        let Some(found) = registered.iter().find(|tool| tool.code_mode_path() == *path) else {
+            return Err(format!("Unknown Code Mode tool: {path}"));
+        };
+        if found.permission() == "edit" {
+            return Err(forbidden());
+        }
+        if !actions.iter().any(|action| action == found.permission()) {
+            actions.push(found.permission().to_owned());
+        }
+    }
+    Ok(actions)
+}
+
+fn any(action: &str, metadata: Option<Json>) -> Ask {
+    Ask { action: action.into(), resources: vec!["*".into()], save: None, metadata }
+}
+
+/// `authorizeCode`: `execute` and each tool's action approved once (asked for `execute` when no tool is used),
+/// failing fast on an explicit deny.
+async fn authorize_code(
+    app: &App,
+    location: &Location,
+    requester: &Requester,
+    name: Option<&str>,
+    when: &Json,
+    mode: &str,
+    code: &str,
+) -> Result<(), Refused> {
+    let paths = scan_tools(code).map_err(Refused::Invalid)?;
+    let permission = &location.permission;
+    permission.assert_not_denied(app, location, requester, &any("execute", None)).map_err(Refused::Permission)?;
+    let actions = code_actions(location, &paths).map_err(Refused::Invalid)?;
+    let metadata = |tools: &[String]| {
+        let mut o = Obj::new();
+        o.opt_str("schedule", name).str("mode", mode).set("when", when.clone()).set("unattended", Json::Bool(true));
+        o.str("code", code).set("tools", Json::Array(tools.iter().map(|t| json::string(t)).collect()));
+        o.done()
+    };
+    if actions.is_empty() {
+        let ask = any("execute", Some(metadata(&[])));
+        return permission.assert(app, location, requester, &ask).await.map_err(Refused::Permission);
+    }
+    for action in &actions {
+        permission.assert_not_denied(app, location, requester, &any(action, None)).map_err(Refused::Permission)?;
+    }
+    for action in &actions {
+        // No `save`: "always" would save a project-wide allow, while scheduled ticks run unattended.
+        let ask = any(action, Some(metadata(&paths)));
+        permission.assert(app, location, requester, &ask).await.map_err(Refused::Permission)?;
+    }
+    Ok(())
 }
 
 /// `ScheduleCheck.describe`: the condition in one line, for notes.
@@ -156,9 +221,9 @@ pub async fn authorize(
             assert_shell(app, location, &requester, &scanned, Some(metadata.done())).await.map_err(Refused::Permission)
         }
         _ => {
-            // TODO(port): `authorizeCode` (the Code Mode tools' actions).
             let code = json::get_str(&condition, "code").unwrap_or_default();
-            scan_tools(code).map(drop).map_err(Refused::Invalid)
+            let requester = requester(location, session, unattended);
+            authorize_code(app, location, &requester, name, when, mode, code).await
         }
     }
 }
@@ -169,7 +234,7 @@ pub async fn evaluate(app: &App, location: &Location, session: &Stored, check: &
     let run = async {
         match kind(&condition) {
             "shell" => run_shell(app, location, session, &condition, previous).await,
-            _ => run_code(&condition, previous, &context),
+            _ => run_code(app, location, session, &condition, previous, &context).await,
         }
     };
     match tokio::time::timeout(std::time::Duration::from_millis(TIMEOUT_MS), run).await {
@@ -178,12 +243,105 @@ pub async fn evaluate(app: &App, location: &Location, session: &Stored, check: &
     }
 }
 
-/// `runCode`. TODO(port): the Code Mode runtime.
-fn run_code(condition: &Json, _previous: &Json, _context: &RunContext) -> Outcome {
-    match scan_tools(json::get_str(condition, "code").unwrap_or_default()) {
-        Err(error) => Outcome::Failed { error, invalid: true },
-        Ok(_) => Outcome::Failed { error: "Code Mode checks are not supported yet".into(), invalid: true },
+/// `runCode`: the program over the tools it names, under the ruleset that allows `execute` and their actions.
+async fn run_code(app: &App, location: &Location, session: &Stored, condition: &Json, previous: &Json, context: &RunContext) -> Outcome {
+    let code = json::get_str(condition, "code").unwrap_or_default();
+    let inventory = location.inventory();
+    let (agent_id, agent) = inventory.select(json::get_str(&session.info, "agent"));
+    let Some(agent) = agent else { return Outcome::failed(format!("Agent not found: {agent_id}")) };
+    let paths = match scan_tools(code) {
+        Ok(paths) => paths,
+        Err(error) => return Outcome::failed(error),
+    };
+    let actions = match code_actions(location, &paths) {
+        Ok(actions) => actions,
+        Err(error) => return Outcome::failed(error),
+    };
+    let allowed: Vec<String> = std::iter::once("execute".to_owned()).chain(actions).collect();
+    let unattended: Vec<Json> = allowed.iter().map(|action| rule(action, "*")).collect();
+    let requester = requester(location, session, Some(unattended.clone()));
+    for action in &allowed {
+        if let Err(error) = location.permission.assert_not_denied(app, location, &requester, &any(action, None)) {
+            return Outcome::failed(error.message());
+        }
     }
+    let Some(located) = app.locations.cached(&location.reference()) else {
+        return Outcome::failed(format!("Location unavailable: {}", location.directory));
+    };
+    let mut input = Obj::new();
+    input.set("state", previous.clone()).int("now", context.now).int("runs", context.checks);
+    let bindings = vec![
+        ("state".to_owned(), previous.clone()),
+        ("now".to_owned(), Json::Number(context.now as f64)),
+        ("runs".to_owned(), Json::Number(context.checks as f64)),
+        ("input".to_owned(), input.done()),
+    ];
+    // `Permission.merge(agent.permissions, session.permissions ?? [])`.
+    let mut permissions: Vec<Json> = json::get(&json::of(agent), "permissions").and_then(json::array).unwrap_or_default().to_vec();
+    permissions.extend(json::get(&session.info, "permissions").and_then(json::array).unwrap_or_default().iter().cloned());
+    let tool_context = crate::tool::Context {
+        app: app.arc(),
+        location: located,
+        session_id: session.id().to_owned(),
+        agent: agent_id,
+        message_id: context.message_id.clone(),
+        call_id: String::new(),
+        directory: location.directory.clone(),
+        progress: std::sync::Arc::new(|_| {}),
+        unattended: Some(unattended),
+    };
+    let checked = crate::codemode::check(crate::codemode::CheckInput {
+        code: code.to_owned(),
+        tools: paths,
+        bindings,
+        permissions,
+        extra: crate::tool::schedule::tools(&inventory),
+        limits: CODE_LIMITS,
+        context: tool_context,
+    })
+    .await;
+    let result = match checked {
+        Ok(checked) => checked.result,
+        Err(error) => return Outcome::failed(error),
+    };
+    code_outcome(&result, previous)
+}
+
+/// The outcome of a code check's `CodeMode.Result`: a boolean wakes or not, `{ wake, state?, message? }` also
+/// carries state and a message; any other value is an invalid check.
+fn code_outcome(result: &Json, previous: &Json) -> Outcome {
+    if json::get_bool(result, "ok") != Some(true) {
+        let error = json::get(result, "error");
+        let kind = error.and_then(|e| json::get_str(e, "kind")).unwrap_or_default();
+        let message = error.and_then(|e| json::get_str(e, "message")).unwrap_or_default().to_owned();
+        let invalid = ["ParseError", "UnsupportedSyntax", "UnknownTool", "InvalidToolInput"].contains(&kind)
+            || message.contains("needs approval");
+        return Outcome::Failed { error: message, invalid };
+    }
+    let value = json::get(result, "value").cloned().unwrap_or(Json::Null);
+    if let Json::Bool(wake) = value {
+        return Outcome::Ok { wake, state: previous.clone(), message: None };
+    }
+    // `Schema.decodeUnknownResult(Struct({ wake: Boolean, state?: Json, message?: String }))`, first issue only.
+    let issue = match &value {
+        Json::Object(fields) => match (fields.get("wake"), fields.get("message")) {
+            (None, _) => Some("Missing key\n  at [\"wake\"]"),
+            (Some(Json::Bool(_)), None | Some(Json::String(_))) => None,
+            (Some(Json::Bool(_)), Some(_)) => Some("Expected string\n  at [\"message\"]"),
+            (Some(_), _) => Some("Expected boolean\n  at [\"wake\"]"),
+        },
+        _ => Some("Expected object"),
+    };
+    if let Some(issue) = issue {
+        return Outcome::Failed {
+            error: format!("A code check must return a boolean or {{ wake, state?, message? }}: SchemaError({issue})"),
+            invalid: true,
+        };
+    }
+    let wake = json::get_bool(&value, "wake").unwrap_or(false);
+    let state = json::get(&value, "state").cloned().unwrap_or_else(|| previous.clone());
+    let message = json::get_str(&value, "message").map(|m| m.trim_matches(crate::text::is_js_whitespace)).filter(|m| !m.is_empty());
+    Outcome::wake(wake, state, message.map(str::to_owned))
 }
 
 /// What a shell check runs and needs (`scanShell`).
