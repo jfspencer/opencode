@@ -542,6 +542,12 @@ fn failure_message(failure: Failure) -> String {
     }
 }
 
+/// One call on the registered tool (`Tool.run`): its result's images normalized as for a direct call.
+async fn run_tool(tool: &Arc<dyn Tool>, context: tool::Context, input: Option<cm::Json>) -> Result<(Output, Option<Json>), Failure> {
+    let (output, structured) = tool.execute_code_mode(context, input.as_ref().map(from_cm)).await?;
+    Ok((Output { content: crate::tool::file_media::normalize_content(output.content), ..output }, structured))
+}
+
 /// The tool handler: runs each call on the registered tool with the call's context, its progress silenced (it would
 /// replace the rows). Output files are collected in call order.
 fn handler(inventory: &Inventory, context: &tool::Context, files: &Rc<RefCell<Vec<(u64, Vec<File>)>>>) -> cm::ToolHandler {
@@ -558,7 +564,7 @@ fn handler(inventory: &Inventory, context: &tool::Context, files: &Rc<RefCell<Ve
         let (context, files) = (inner.clone(), files.clone());
         Box::pin(async move {
             let Some(tool) = tool else { return cm::ToolOutcome::Err(format!("Unknown tool: {path}")) };
-            match tool.execute_code_mode(context, input.as_ref().map(from_cm)).await {
+            match run_tool(&tool, context, input).await {
                 Ok((output, structured)) => {
                     let found = output_files(&output.content);
                     if !found.is_empty() {
@@ -689,7 +695,7 @@ pub fn check(input: CheckInput) -> Pinned<Result<CheckResult, String>> {
             let tool = by_path.get(&path).cloned();
             Box::pin(async move {
                 let Some(tool) = tool else { return cm::ToolOutcome::Err(format!("Unknown tool: {path}")) };
-                match tool.execute_code_mode(context, value.as_ref().map(from_cm)).await {
+                match run_tool(&tool, context, value).await {
                     Ok((output, structured)) => cm::ToolOutcome::Ok(Some(to_cm(&result_value(&output, structured)))),
                     Err(failure) => cm::ToolOutcome::Err(failure_message(failure)),
                 }
