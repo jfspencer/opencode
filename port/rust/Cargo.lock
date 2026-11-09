@@ -702,6 +702,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "opencode-tui-sync"
+version = "0.1.0"
+dependencies = [
+ "base64",
+ "bytes",
+ "getrandom 0.4.3",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "indexmap",
+ "libc",
+ "opencode-protocol",
+ "rustls",
+ "rustls-native-certs",
+ "tokio",
+ "tokio-rustls",
+ "url",
+]
+
+[[package]]
 name = "opencode-tui-text"
 version = "0.1.0"
 dependencies = [
