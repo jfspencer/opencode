@@ -3,10 +3,10 @@
 //! measuring for Yoga, `drawEditorView`), with the terminal cursor and the content-change, cursor-change and submit
 //! callbacks.
 //!
-//! TODO(port-tui): Textarea.ts's full key binding table (word motions, line deletes, undo/redo bindings,
-//! `keyBindings`/`keyAliasMap` props), selection by mouse, extmarks and the syntax style prop. Bound here: printable
-//! input, backspace/delete, arrows (visual up/down), home/end, return (submit), shift+return and linefeed
-//! (newline), super+a (select all), ctrl+z/ctrl+shift+z (undo/redo), pastes.
+//! Keys follow Textarea.ts's default binding table with the TUI prompt's submit/newline bindings over it.
+//!
+//! TODO(port-tui): the `keyBindings`/`keyAliasMap` props, shift-extended selections (select-* actions move the
+//! cursor without extending), selection by mouse, extmarks and the syntax style prop.
 use std::any::Any;
 use std::rc::Rc;
 
@@ -71,6 +71,83 @@ impl TextareaKind {
     }
 }
 
+/// `defaultTextareaKeyBindings` (Textarea.ts), with the TUI's prompt bindings over it: `return` submits,
+/// `shift+return` and `linefeed` add a line (`input.submit` / `input.newline` of config/keybind.ts), `super+a`
+/// selects all. Entries are (name, ctrl, shift, meta, super, action); a binding matches when the name and all four
+/// modifiers are equal.
+const BINDINGS: &[(&str, bool, bool, bool, bool, &str)] = &[
+    ("return", false, false, false, false, "submit"),
+    ("return", false, true, false, false, "newline"),
+    ("a", false, false, false, true, "select-all"),
+    ("left", false, false, false, false, "move-left"),
+    ("right", false, false, false, false, "move-right"),
+    ("up", false, false, false, false, "move-up"),
+    ("down", false, false, false, false, "move-down"),
+    ("left", false, true, false, false, "select-left"),
+    ("right", false, true, false, false, "select-right"),
+    ("up", false, true, false, false, "select-up"),
+    ("down", false, true, false, false, "select-down"),
+    ("home", false, false, false, false, "buffer-home"),
+    ("end", false, false, false, false, "buffer-end"),
+    ("home", false, true, false, false, "select-buffer-home"),
+    ("end", false, true, false, false, "select-buffer-end"),
+    ("a", true, false, false, false, "line-home"),
+    ("e", true, false, false, false, "line-end"),
+    ("a", true, true, false, false, "select-line-home"),
+    ("e", true, true, false, false, "select-line-end"),
+    ("a", false, false, true, false, "visual-line-home"),
+    ("e", false, false, true, false, "visual-line-end"),
+    ("a", false, true, true, false, "select-visual-line-home"),
+    ("e", false, true, true, false, "select-visual-line-end"),
+    ("f", true, false, false, false, "move-right"),
+    ("b", true, false, false, false, "move-left"),
+    ("w", true, false, false, false, "delete-word-backward"),
+    ("backspace", true, false, false, false, "delete-word-backward"),
+    ("d", false, false, true, false, "delete-word-forward"),
+    ("delete", false, false, true, false, "delete-word-forward"),
+    ("delete", true, false, false, false, "delete-word-forward"),
+    ("d", true, true, false, false, "delete-line"),
+    ("k", true, false, false, false, "delete-to-line-end"),
+    ("u", true, false, false, false, "delete-to-line-start"),
+    ("backspace", false, false, false, false, "backspace"),
+    ("backspace", false, true, false, false, "backspace"),
+    ("d", true, false, false, false, "delete"),
+    ("delete", false, false, false, false, "delete"),
+    ("delete", false, true, false, false, "delete"),
+    ("kpenter", false, false, false, false, "newline"),
+    ("linefeed", false, false, false, false, "newline"),
+    ("return", false, false, true, false, "submit"),
+    ("kpenter", false, false, true, false, "submit"),
+    ("-", true, false, false, false, "undo"),
+    (".", true, false, false, false, "redo"),
+    ("z", false, false, false, true, "undo"),
+    ("z", false, true, false, true, "redo"),
+    ("f", false, false, true, false, "word-forward"),
+    ("b", false, false, true, false, "word-backward"),
+    ("right", false, false, true, false, "word-forward"),
+    ("left", false, false, true, false, "word-backward"),
+    ("right", true, false, false, false, "word-forward"),
+    ("left", true, false, false, false, "word-backward"),
+    ("f", false, true, true, false, "select-word-forward"),
+    ("b", false, true, true, false, "select-word-backward"),
+    ("right", false, true, true, false, "select-word-forward"),
+    ("left", false, true, true, false, "select-word-backward"),
+    ("backspace", false, false, true, false, "delete-word-backward"),
+    ("left", false, false, false, true, "visual-line-home"),
+    ("right", false, false, false, true, "visual-line-end"),
+    ("up", false, false, false, true, "buffer-home"),
+    ("down", false, false, false, true, "buffer-end"),
+];
+
+fn textarea_action(key: &KeyEvent) -> Option<&'static str> {
+    BINDINGS
+        .iter()
+        .find(|(name, ctrl, shift, meta, super_, _)| {
+            *name == key.name && *ctrl == key.ctrl && *shift == key.shift && *meta == key.meta && *super_ == key.super_
+        })
+        .map(|binding| binding.5)
+}
+
 impl Kind for TextareaKind {
     fn name(&self) -> &'static str {
         "textarea"
@@ -104,97 +181,113 @@ impl Kind for TextareaKind {
         true
     }
     fn handle_key_press(&mut self, el: Element, key: &mut KeyEvent) -> bool {
-        let modified = key.ctrl || key.meta || key.super_ || key.hyper;
-        let has_selection = self.view.has_selection();
-        let handled = match key.name.as_str() {
-            "return" if !key.shift && !modified => {
-                if let Some(submit) = self.on_submit.clone() {
-                    submit();
-                }
+        let Some(action) = textarea_action(key) else {
+            let modified = key.ctrl || key.meta || key.super_ || key.hyper;
+            let printable = !modified && !key.sequence.is_empty() && key.sequence.chars().all(|c| !c.is_control());
+            if !printable {
+                return false;
+            }
+            if self.view.has_selection() {
+                let _ = self.view.delete_selected_text();
+            }
+            let _ = self.buffer.insert_text(&key.sequence.clone());
+            self.emit(el);
+            return true;
+        };
+        if action == "submit" {
+            if let Some(submit) = self.on_submit.clone() {
+                submit();
+            }
+            return true;
+        }
+        let editing = matches!(
+            action,
+            "backspace" | "delete" | "newline" | "delete-word-backward" | "delete-word-forward" | "delete-line"
+                | "delete-to-line-end" | "delete-to-line-start"
+        );
+        if editing && self.view.has_selection() && matches!(action, "backspace" | "delete" | "newline") {
+            let _ = self.view.delete_selected_text();
+            if action != "newline" {
+                self.emit(el);
                 return true;
             }
-            "return" | "linefeed" if !modified || key.shift => {
-                if has_selection {
-                    let _ = self.view.delete_selected_text();
-                }
-                let _ = self.buffer.new_line();
-                true
+        } else if !editing && action != "select-all" && !action.starts_with("select-") {
+            self.view.reset_selection();
+        }
+        let cursor = self.buffer.get_cursor_position();
+        match action {
+            "move-left" | "select-left" => self.buffer.move_cursor_left(),
+            "move-right" | "select-right" => self.buffer.move_cursor_right(),
+            "move-up" | "select-up" => self.view.move_up_visual(),
+            "move-down" | "select-down" => self.view.move_down_visual(),
+            "buffer-home" | "select-buffer-home" => self.buffer.set_cursor(0, 0),
+            "buffer-end" | "select-buffer-end" => {
+                let eof = self.buffer.get_eof();
+                self.buffer.set_cursor(eof.row, eof.col);
             }
-            "backspace" if !modified || key.shift => {
-                if has_selection {
-                    let _ = self.view.delete_selected_text();
-                } else {
-                    let _ = self.buffer.delete_char_backward();
-                }
-                true
-            }
-            "delete" if !modified => {
-                if has_selection {
-                    let _ = self.view.delete_selected_text();
-                } else {
-                    let _ = self.buffer.delete_char();
-                }
-                true
-            }
-            "a" if key.super_ && !key.ctrl => {
-                self.select_all();
-                el.request_render();
-                return true;
-            }
-            "z" if key.ctrl && !key.shift => {
-                self.buffer.undo();
-                true
-            }
-            "z" if key.ctrl && key.shift => {
-                self.buffer.redo();
-                true
-            }
-            "left" if !modified => {
-                self.view.reset_selection();
-                self.buffer.move_cursor_left();
-                true
-            }
-            "right" if !modified => {
-                self.view.reset_selection();
-                self.buffer.move_cursor_right();
-                true
-            }
-            "up" if !modified => {
-                self.view.reset_selection();
-                self.view.move_up_visual();
-                true
-            }
-            "down" if !modified => {
-                self.view.reset_selection();
-                self.view.move_down_visual();
-                true
-            }
-            "home" if !modified => {
-                self.view.reset_selection();
-                let cursor = self.buffer.get_cursor_position();
-                self.buffer.set_cursor(cursor.row, 0);
-                true
-            }
-            "end" if !modified => {
-                self.view.reset_selection();
+            "line-home" | "select-line-home" => self.buffer.set_cursor(cursor.row, 0),
+            "line-end" | "select-line-end" => {
                 let eol = self.buffer.get_eol();
                 self.buffer.set_cursor(eol.row, eol.col);
-                true
             }
-            _ => {
-                let printable = !modified && !key.sequence.is_empty() && key.sequence.chars().all(|c| !c.is_control());
-                if !printable {
-                    return false;
-                }
-                if has_selection {
-                    let _ = self.view.delete_selected_text();
-                }
-                let _ = self.buffer.insert_text(&key.sequence.clone());
-                true
+            "visual-line-home" | "select-visual-line-home" => {
+                let sol = self.view.get_visual_sol();
+                self.buffer.set_cursor_by_offset(sol.offset);
             }
-        };
+            "visual-line-end" | "select-visual-line-end" => {
+                let eol = self.view.get_visual_eol();
+                self.buffer.set_cursor_by_offset(eol.offset);
+            }
+            "word-forward" | "select-word-forward" => {
+                let next = self.buffer.get_next_word_boundary();
+                self.buffer.set_cursor(next.row, next.col);
+            }
+            "word-backward" | "select-word-backward" => {
+                let prev = self.buffer.get_prev_word_boundary();
+                self.buffer.set_cursor(prev.row, prev.col);
+            }
+            "delete-word-forward" => {
+                let next = self.buffer.get_next_word_boundary();
+                let _ = self.buffer.delete_range(cursor.row, cursor.col, next.row, next.col);
+            }
+            "delete-word-backward" => {
+                let prev = self.buffer.get_prev_word_boundary();
+                let _ = self.buffer.delete_range(prev.row, prev.col, cursor.row, cursor.col);
+            }
+            "delete-line" => {
+                let _ = self.buffer.delete_line();
+            }
+            "delete-to-line-end" => {
+                let eol = self.buffer.get_eol();
+                let _ = self.buffer.delete_range(cursor.row, cursor.col, eol.row, eol.col);
+            }
+            "delete-to-line-start" => {
+                let _ = self.buffer.delete_range(cursor.row, 0, cursor.row, cursor.col);
+            }
+            "backspace" => {
+                let _ = self.buffer.delete_char_backward();
+            }
+            "delete" => {
+                let _ = self.buffer.delete_char();
+            }
+            "newline" => {
+                let _ = self.buffer.new_line();
+            }
+            "undo" => {
+                self.buffer.undo();
+            }
+            "redo" => {
+                self.buffer.redo();
+            }
+            "select-all" => {
+                self.select_all();
+                el.request_render();
+            }
+            _ => return false,
+        }
         self.emit(el);
-        handled
+        el.request_render();
+        true
     }
     fn handles_paste(&self) -> bool {
         true

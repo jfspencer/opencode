@@ -5,5 +5,9 @@
 use crate::ctx::Tui;
 
 pub fn submit_from_home(t: &Tui, value: String) {
-    let _ = (t, value);
+    let trimmed = value.trim();
+    // `exitWord`, and the `app.exit` command's slash name and aliases.
+    if matches!(trimmed, "exit" | "quit" | ":q" | "/exit" | "/quit" | "/q") {
+        (t.exit)();
+    }
 }

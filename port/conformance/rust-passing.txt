@@ -784,3 +784,15 @@ scenarios/tools.test.ts › shell command
 scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
+tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
+tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
+tui/nav-home.test.ts › home screen at 160x50
+tui/nav-home.test.ts › home screen at 70x11
+tui/nav-home.test.ts › home screen at 80x24
+tui/nav-home.test.ts › home screen follows terminal resizes
+tui/nav-home.test.ts › narrow home screen at 21x14
+tui/nav-home.test.ts › narrow home screen at 30x16
+tui/nav-home.test.ts › narrow home screen at 43x20
+tui/nav-home.test.ts › narrow home screen at 60x20
+tui/nav-home.test.ts › typed prompt text survives a resize
+tui/nav-keybinds.test.ts › keybinds: the leader times out

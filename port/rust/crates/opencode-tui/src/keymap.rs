@@ -3,7 +3,7 @@
 //! TODO(port-tui): opencode-tui-input's keymap (`@opentui/keymap`: layers, leader sequences, priorities,
 //! `formatKeySequence`). Until it lands, hints print the first binding of each command's default as written in
 //! `config/keybind.ts`, and the only bindings dispatched are the prompt's `prompt.clear` (ctrl+c with text) and
-//! `app.exit` (ctrl+c on an empty prompt, ctrl+d).
+//! `app.exit` (ctrl+c on an empty prompt, ctrl+d on an empty prompt, the leader then q).
 use std::collections::HashMap;
 
 use opencode_tui_core::renderer;
@@ -30,7 +30,25 @@ pub fn shortcuts() -> HashMap<&'static str, String> {
 pub fn install(t: &Tui) {
     let prompt = t.prompt.clone();
     let exit = t.exit.clone();
+    // The leader (ctrl+x) arms a second key for `leader.timeout` ms.
+    let leader = std::rc::Rc::new(std::cell::Cell::new(false));
+    let timeout = t.config.leader.timeout;
     renderer::on_key(move |key| {
+        if leader.replace(false) {
+            if key.name == "q" && !key.ctrl && !key.meta {
+                key.prevent_default();
+                exit();
+            }
+            key.prevent_default();
+            return;
+        }
+        if key.ctrl && !key.meta && !key.shift && key.name == "x" {
+            leader.set(true);
+            let leader = leader.clone();
+            renderer::set_timeout(timeout as u64, move || leader.set(false));
+            key.prevent_default();
+            return;
+        }
         let plain_ctrl = key.ctrl && !key.meta && !key.shift && !key.super_;
         if plain_ctrl && key.name == "c" {
             let input = *prompt.borrow();
