@@ -312,6 +312,8 @@ scenarios/project-agents.test.ts › default agent that is a subagent falls back
 scenarios/project-agents.test.ts › no selectable primary agent
 scenarios/project-agents.test.ts › switching a session to a custom agent
 scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
+scenarios/project-collation.test.ts › directory listings in ICU root order
+scenarios/project-collation.test.ts › the read tool lists a directory in ICU root order
 scenarios/project-commands.test.ts › command argument templating
 scenarios/project-commands.test.ts › command list on a location's first request
 scenarios/project-commands.test.ts › command list without custom commands

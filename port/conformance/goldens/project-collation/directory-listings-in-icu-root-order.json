@@ -1,0 +1,298 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": [
+          {
+            "path": "names/目录/",
+            "type": "directory"
+          },
+          {
+            "path": "names/🩵.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/🫆.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/🫨.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/🫩.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/😀.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/🛜.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/a.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/B.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/l.l.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/ll.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/l·l.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/L·L.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/xႍ𞀛.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/يႍ𞀛.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/يႍ𞀛.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/กา.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/เก.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/﷑가.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/가.txt",
+            "type": "file"
+          },
+          {
+            "path": "names/一.md",
+            "type": "file"
+          },
+          {
+            "path": "names/⼀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/丁.md",
+            "type": "file"
+          },
+          {
+            "path": "names/𠀀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/𰀀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/𪜀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/㐀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/𱍐.md",
+            "type": "file"
+          },
+          {
+            "path": "names/⺀.md",
+            "type": "file"
+          },
+          {
+            "path": "names/乙.md",
+            "type": "file"
+          },
+          {
+            "path": "names/人.md",
+            "type": "file"
+          },
+          {
+            "path": "names/日.md",
+            "type": "file"
+          },
+          {
+            "path": "names/鿿.md",
+            "type": "file"
+          },
+          {
+            "path": "names/豈.md",
+            "type": "file"
+          },
+          {
+            "path": "names/﷑가.txt",
+            "type": "file"
+          }
+        ],
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/fs/list?path=names"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {
+    "names/B.txt": "B.txt\n",
+    "names/L·L.txt": "L·L.txt\n",
+    "names/a.txt": "a.txt\n",
+    "names/l.l.txt": "l.l.txt\n",
+    "names/ll.txt": "ll.txt\n",
+    "names/l·l.txt": "l·l.txt\n",
+    "names/xႍ𞀛.txt": "xႍ𞀛.txt\n",
+    "names/يႍ𞀛.txt": "يႍ𞀛.txt\n",
+    "names/يႍ𞀛.txt": "يႍ𞀛.txt\n",
+    "names/กา.txt": "กา.txt\n",
+    "names/เก.txt": "เก.txt\n",
+    "names/⺀.md": "⺀.md\n",
+    "names/⼀.md": "⼀.md\n",
+    "names/㐀.md": "㐀.md\n",
+    "names/一.md": "一.md\n",
+    "names/丁.md": "丁.md\n",
+    "names/乙.md": "乙.md\n",
+    "names/人.md": "人.md\n",
+    "names/日.md": "日.md\n",
+    "names/目录/x.txt": "x\n",
+    "names/鿿.md": "鿿.md\n",
+    "names/가.txt": "가.txt\n",
+    "names/😀.txt": "😀.txt\n",
+    "names/🛜.txt": "🛜.txt\n",
+    "names/🩵.txt": "🩵.txt\n",
+    "names/🫆.txt": "🫆.txt\n",
+    "names/🫨.txt": "🫨.txt\n",
+    "names/🫩.txt": "🫩.txt\n",
+    "names/𠀀.md": "𠀀.md\n",
+    "names/𪜀.md": "𪜀.md\n",
+    "names/𰀀.md": "𰀀.md\n",
+    "names/𱍐.md": "𱍐.md\n",
+    "names/豈.md": "豈.md\n",
+    "names/﷑가.txt": "﷑가.txt\n",
+    "names/﷑가.txt": "﷑가.txt\n"
+  }
+}
