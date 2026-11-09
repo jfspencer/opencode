@@ -534,6 +534,10 @@ fn result_value(output: &Output, structured: Option<Json>) -> Json {
 
 /// The program-visible failure of a call (`toSessionError(error).message`). A decline is a defect in TS that the tool
 /// runtime turns into a failure named after the error (`message || name`); it does not stop the turn.
+///
+/// TODO(port): TS bug, matched: a plain rejection inside Code Mode reaches the program as an ordinary failure and the
+/// turn goes on, where a direct call's rejection stops the turn (`model-request.ts` only recovers declines from the
+/// execute call's own cause, which the program has already turned into a result).
 fn failure_message(failure: Failure) -> String {
     match failure {
         Failure::Error(error) => error.message,

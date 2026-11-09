@@ -344,7 +344,8 @@ async fn fetch(context: &tool::Context, order: &Order, args: Vec<HostValue>) -> 
         Err(permission::Error::Corrected(feedback)) => {
             return Err(error("Error", format!("The user rejected fetching {url}: {feedback}")));
         }
-        // A decline is a defect in TS; it crosses as an error without a message.
+        // A decline is a defect in TS; it crosses as an error without a message and the turn goes on (TODO(port): TS
+        // bug, matched; see `codemode::failure_message`).
         Err(permission::Error::Declined) => return Err(error("Error", "")),
         Err(other) => return Err(error("Error", other.message())),
     }
