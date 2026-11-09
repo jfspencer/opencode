@@ -30,6 +30,7 @@ pub mod file_write;
 pub mod glob;
 pub mod grep;
 pub mod output;
+mod question;
 pub mod read;
 pub mod subagent;
 pub mod write;
@@ -213,6 +214,7 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
                 "edit" => Arc::new(edit::Edit { definition }) as Arc<dyn Tool>,
                 "glob" => Arc::new(glob::Glob { definition }),
                 "grep" => Arc::new(grep::Grep { definition }),
+                "question" => Arc::new(question::Question { definition }),
                 "read" => Arc::new(read::Read { definition }),
                 subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "write" => Arc::new(write::Write { definition }),
