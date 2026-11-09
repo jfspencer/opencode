@@ -38,7 +38,7 @@ pub fn output_text(name: &str, content: Option<&Json>) -> String {
 }
 
 /// Read's model content may be a JSON page envelope; its human-facing text.
-fn read_display_text(text: &str) -> Option<String> {
+pub fn read_display_text(text: &str) -> Option<String> {
     if !text.starts_with('{') {
         return None;
     }
@@ -251,7 +251,7 @@ pub fn inline(name: &str, state: &Json, directory: &str) -> Inline {
                     let marker = match get_str(todo, "status") {
                         Some("completed") => "[✓]",
                         Some("in_progress") => "[•]",
-                        Some("cancelled") => "[✗]",
+                        Some("cancelled") => "[-]",
                         _ => "[ ]",
                     };
                     Some(format!("{marker} {content}"))
