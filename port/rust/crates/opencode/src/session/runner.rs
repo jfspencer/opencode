@@ -5,8 +5,10 @@
 //! continuation after a stream that broke after output (a synthetic message), and the output-limit streak. A `move`
 //! item at a boundary moves the session and ends the drain as `Moved`; the turn continues in the new location.
 //!
-//! TODO(port): compaction (automatic, overflow recovery, manual items in the inbox),
-//! location reloads mid-turn, the `experimental.idle` plugin hook, background jobs.
+//! Compaction (automatic before a step, overflow recovery, a manual `compaction` item at a boundary) is
+//! [`crate::session::compaction`]'s.
+//!
+//! TODO(port): location reloads mid-turn, the `experimental.idle` plugin hook, background jobs.
 
 use std::sync::Arc;
 
@@ -52,19 +54,19 @@ fn failed(error: crate::http::Failure) -> Stop {
 }
 
 /// What a step needs, selected at a boundary (`SessionContext.Selection` + `load`).
-struct Loaded {
-    session: Json,
-    agent_id: String,
-    agent: Json,
-    location: Arc<Location>,
-    reference: LocationRef,
-    tools: crate::tool::Snapshot,
-    sources: Vec<instructions::Source>,
-    model: Arc<llm::Model>,
+pub(crate) struct Loaded {
+    pub(crate) session: Json,
+    pub(crate) agent_id: String,
+    pub(crate) agent: Json,
+    pub(crate) location: Arc<Location>,
+    pub(crate) reference: LocationRef,
+    pub(crate) tools: crate::tool::Snapshot,
+    pub(crate) sources: Vec<instructions::Source>,
+    pub(crate) model: Arc<llm::Model>,
 }
 
 /// A boundary's selection (`SessionContext.Selection`), before the model is resolved.
-struct Selected {
+pub(crate) struct Selected {
     session: Json,
     agent_id: String,
     agent: Json,
@@ -76,7 +78,7 @@ struct Selected {
 }
 
 /// `prepareContext` (`SessionContext.select` + `InstructionState.prepare`); `record` false only selects (a preview).
-async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Selected, Stop> {
+pub(crate) async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Selected, Stop> {
     let stored = crate::session::require(&app.db.lock().unwrap(), session_id).map_err(failed)?;
     let location = app.locations.get(app, &stored.location).await.map_err(failed)?;
     let info = stored.info.clone();
@@ -116,7 +118,7 @@ async fn select(app: &Arc<App>, session_id: &str, record: bool) -> Result<Select
 
 /// `SessionContext.load`: resolves the selection's model. It runs after promotion, so input whose model is unavailable
 /// is still delivered before the turn fails.
-fn load(selected: Selected) -> Result<Loaded, Stop> {
+pub(crate) fn load(selected: Selected) -> Result<Loaded, Stop> {
     let Selected { session, agent_id, agent, location, reference, tools, sources, inventory } = selected;
     let model = context::resolve_model(&inventory, &session, Some(&agent)).map_err(Stop::Failed)?;
     Ok(Loaded { session, agent_id, agent, location, reference, tools, sources, model })
@@ -192,6 +194,7 @@ pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel)
         }
     }
     let location = crate::session::require(&app.db.lock().unwrap(), session).map_err(failed)?.location;
+    crate::session::compaction::settle_stale(app, session, &location)?;
     settle_stale_tool_calls(app, session, &location)?;
     loop {
         if cancel.is_cancelled() {
@@ -211,10 +214,10 @@ pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel)
             if pending.as_ref().is_some_and(|p| p.ty == "move") {
                 return Ok(Drained::Moved { continuation: continuing.then_some(step), stepped: !continuing && stepped });
             }
-            // TODO(port): compaction controls. Until they are ported, a compaction at the boundary ends the drain and
-            // stays pending.
-            if pending.as_ref().is_some_and(|p| p.control()) {
-                return Ok(Drained::Complete);
+            if let Some(next) = pending.as_ref().filter(|p| p.ty == "compaction") {
+                crate::session::compaction::manual(app, session, &next.id, &location, cancel).await?;
+                force = false;
+                continue;
             }
             if !force
                 && !continuing
@@ -253,7 +256,7 @@ pub async fn drain(app: &Arc<App>, session: &str, input: Drain, cancel: &Cancel)
 
 /// The request's system parts (`baseTranscript` with the `context` hooks): the agent's prompt, the model's identity, the
 /// initial instructions, then the worktree hint.
-fn system(loaded: &Loaded, initial: &[(String, String)]) -> Vec<String> {
+pub(crate) fn system(loaded: &Loaded, initial: &[(String, String)]) -> Vec<String> {
     let names = loaded.tools.names();
     let mut system = vec![match json::get_str(&loaded.agent, "system") {
         Some(system) => system.to_owned(),
@@ -309,12 +312,13 @@ pub async fn generate_request(app: &Arc<App>, session_id: &str, prompt: &str) ->
 }
 
 /// Builds the step's request (`baseTranscript` + `SessionModelRequest.primary` with the context hooks).
-fn request(app: &App, loaded: &Loaded, step_limit: bool) -> Result<llm::Request, Stop> {
+fn request(app: &App, loaded: &Loaded, step_limit: bool, estimate: crate::session::compaction::Estimate) -> Result<llm::Request, Stop> {
     let session = &loaded.session;
     let session_id = json::get_str(session, "id").unwrap_or_default();
     let (history, initial) = {
         let db = app.db.lock().unwrap();
-        let history = message::history(&db, session_id).map_err(|e| failed(fatal(e)))?;
+        let history = crate::session::compaction::history(&db, session_id, Some(&loaded.model.reference))
+            .map_err(|e| failed(fatal(e)))?;
         let initial = instructions::initial(&db, session_id, &loaded.sources).map_err(|e| failed(fatal(e)))?;
         (history, initial)
     };
@@ -325,15 +329,13 @@ fn request(app: &App, loaded: &Loaded, step_limit: bool) -> Result<llm::Request,
     }
     crate::session::plan::reconcile(&mut messages, &loaded.agent_id);
     context::unsupported_parts(&mut messages, &loaded.model.input, &loaded.model.provider);
-    // TODO(port): `SessionCompaction.estimatePrompt` (the measured and estimated prompt size).
-    let estimated = (system.iter().map(String::len).sum::<usize>() / 4) as f64;
     Ok(llm::Request {
         model: loaded.model.clone(),
         system,
         messages,
         tools: loaded.tools.definitions().cloned().collect(),
         tool_choice: step_limit.then_some("none"),
-        max_tokens: Some(context::output_limit(&loaded.model, 0.0, estimated)),
+        max_tokens: Some(context::output_limit(&loaded.model, estimate.measured, estimate.estimated)),
         prompt_cache_key: Some(context::cache_key(session)),
         headers: context::headers(session),
     })
@@ -370,14 +372,25 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
     let mut retry = Retry::default();
     let mut initial = Some(first);
     let mut recover_continuation = true;
+    let mut recover_overflow = true;
     loop {
         let loaded = match initial.take() {
             Some(loaded) => loaded,
             None => load(select(app, session, true).await?)?,
         };
-        // TODO(port): automatic compaction before the step.
+        let compacting = Arc::new(crate::session::compaction::Context::load(app, &loaded)?);
+        let estimate = crate::session::compaction::estimate_prompt(&compacting);
+        match crate::session::compaction::auto(app, &compacting, estimate, cancel).await? {
+            crate::session::compaction::Outcome::Failed(error) => return Err(Stop::Failed(error)),
+            crate::session::compaction::Outcome::Completed => {
+                assistant = message::create_id();
+                continue;
+            }
+            crate::session::compaction::Outcome::Skipped => {}
+        }
+        crate::session::compaction::precompute(app, &compacting, Some(estimate));
         let limit = json::get_num(&loaded.agent, "steps").is_some_and(|steps| step as f64 >= steps);
-        let request = request(app, &loaded, limit)?;
+        let request = request(app, &loaded, limit, estimate)?;
         let location = loaded.reference.clone();
         let input = step::Input {
             session: session.to_owned(),
@@ -390,10 +403,19 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
             located: loaded.location.clone(),
             directory: loaded.location.directory.clone(),
             recover_continuation,
+            recover_overflow: recover_overflow.then(|| {
+                crate::session::compaction::recover_overflow(app.clone(), compacting.clone(), estimate, cancel.clone())
+            }),
             cancel: cancel.clone(),
         };
         match step::attempt(app, input, &mut retry).await? {
-            Outcome::Completed { needs_continuation } => return Ok(needs_continuation),
+            Outcome::Completed { needs_continuation } => {
+                // The session is about to go idle, which leaves a background summary time to finish.
+                if !needs_continuation {
+                    crate::session::compaction::precompute_idle(app, &compacting);
+                }
+                return Ok(needs_continuation);
+            }
             Outcome::Retry { error, decision } => wait(app, session, &assistant, &error, &decision, &location, cancel).await?,
             Outcome::Continue { error, decision } => {
                 wait(app, session, &assistant, &error, &decision, &location, cancel).await?;
@@ -428,6 +450,10 @@ async fn run_step(app: &Arc<App>, session: &str, first: Loaded, step: i64, cance
                 assistant = message::create_id();
             }
             Outcome::RecoverFull => recover_continuation = false,
+            Outcome::Compacted => {
+                recover_overflow = false;
+                assistant = message::create_id();
+            }
         }
     }
 }
