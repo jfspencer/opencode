@@ -202,6 +202,8 @@ pub(crate) struct Handlers {
     pub size_change: Option<Rc<dyn Fn()>>,
     pub render_before: Option<PaintHook>,
     pub render_after: Option<PaintHook>,
+    /// `onLifecyclePass` with `renderer.registerLifecyclePass(el)`: runs every frame before layout.
+    pub lifecycle_pass: Option<Rc<dyn Fn()>>,
     /// `on(event, listener)` for named events ("resize", "focused", "blurred", "destroyed", custom ones).
     pub listeners: Vec<(&'static str, u64, Rc<dyn Fn()>)>,
 }
@@ -1142,6 +1144,13 @@ impl Element {
         self.with_base_mut(|b| b.handlers.size_change = handler);
     }
 
+    /// `el.onLifecyclePass = hook` with `renderer.registerLifecyclePass(el)` (`None` unregisters): the hook runs
+    /// every frame before layout, in place of the kind's own pass.
+    pub fn set_on_lifecycle_pass(self, hook: Option<Rc<dyn Fn()>>) {
+        self.with_base_mut(|b| b.handlers.lifecycle_pass = hook);
+        request_render();
+    }
+
     pub fn set_render_before(self, hook: Option<PaintHook>) {
         self.with_base_mut(|b| b.handlers.render_before = hook);
         request_render();
@@ -1353,6 +1362,11 @@ const MAX_LAYOUT_ROUNDS: usize = 8;
 pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
     let Some(root) = root() else { return };
     for el in visible_preorder(root) {
+        let hook = el.with_base(|b| b.handlers.lifecycle_pass.clone()).flatten();
+        if let Some(hook) = hook {
+            hook();
+            continue;
+        }
         let needs = el.with_dyn_kind(|k| k.needs_lifecycle_pass()).unwrap_or(false);
         if needs {
             el.with_dyn_kind(|k| k.lifecycle_pass(el));
