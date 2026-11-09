@@ -154,9 +154,118 @@ fn hypot(values: &[f64]) -> f64 {
     sum.sqrt() * largest
 }
 
-/// Math.sumPrecise: the exactly rounded sum (Shewchuk's algorithm over expansions).
+/// An unsigned big integer, little-endian 64-bit limbs.
+#[derive(Clone, Default)]
+struct Big(Vec<u64>);
+
+impl Big {
+    fn add_shifted(&mut self, mantissa: u64, shift: u32) {
+        let limb = (shift / 64) as usize;
+        let bit = shift % 64;
+        let wide = (mantissa as u128) << bit;
+        let parts = [wide as u64, (wide >> 64) as u64];
+        if self.0.len() < limb + 3 {
+            self.0.resize(limb + 3, 0);
+        }
+        let mut carry = 0u128;
+        let mut index = limb;
+        for part in parts {
+            let sum = self.0[index] as u128 + part as u128 + carry;
+            self.0[index] = sum as u64;
+            carry = sum >> 64;
+            index += 1;
+        }
+        while carry > 0 {
+            if index == self.0.len() {
+                self.0.push(0);
+            }
+            let sum = self.0[index] as u128 + carry;
+            self.0[index] = sum as u64;
+            carry = sum >> 64;
+            index += 1;
+        }
+    }
+    fn trim(&mut self) {
+        while self.0.last() == Some(&0) {
+            self.0.pop();
+        }
+    }
+    fn cmp(&self, other: &Big) -> std::cmp::Ordering {
+        let (mut a, mut b) = (self.clone(), other.clone());
+        a.trim();
+        b.trim();
+        a.0.len().cmp(&b.0.len()).then_with(|| a.0.iter().rev().cmp(b.0.iter().rev()))
+    }
+    fn sub(&self, other: &Big) -> Big {
+        let mut out = self.0.clone();
+        let mut borrow = 0i128;
+        for (index, limb) in out.iter_mut().enumerate() {
+            let rhs = *other.0.get(index).unwrap_or(&0) as i128;
+            let mut diff = *limb as i128 - rhs - borrow;
+            borrow = 0;
+            if diff < 0 {
+                diff += 1i128 << 64;
+                borrow = 1;
+            }
+            *limb = diff as u64;
+        }
+        let mut big = Big(out);
+        big.trim();
+        big
+    }
+    fn bit_len(&self) -> u32 {
+        for (index, limb) in self.0.iter().enumerate().rev() {
+            if *limb != 0 {
+                return index as u32 * 64 + (64 - limb.leading_zeros());
+            }
+        }
+        0
+    }
+    fn bit(&self, at: u32) -> bool {
+        let limb = (at / 64) as usize;
+        self.0.get(limb).is_some_and(|l| (l >> (at % 64)) & 1 == 1)
+    }
+    /// The value times 2^-1074, rounded to the nearest double, ties to even.
+    fn to_f64(&self) -> f64 {
+        let length = self.bit_len();
+        if length == 0 {
+            return 0.0;
+        }
+        if length <= 53 {
+            let mut mantissa = 0u64;
+            for at in (0..length).rev() {
+                mantissa = (mantissa << 1) | self.bit(at) as u64;
+            }
+            return mantissa as f64 * 2f64.powi(-1074);
+        }
+        let drop = length - 53;
+        let mut mantissa = 0u64;
+        for at in (drop..length).rev() {
+            mantissa = (mantissa << 1) | self.bit(at) as u64;
+        }
+        let half = self.bit(drop - 1);
+        let sticky = (0..drop - 1).any(|at| self.bit(at));
+        if half && (sticky || mantissa & 1 == 1) {
+            mantissa += 1;
+        }
+        let mut exponent = drop as i32 - 1074;
+        if mantissa == 1u64 << 53 {
+            mantissa >>= 1;
+            exponent += 1;
+        }
+        // At least 2^53 units of 2^-1074, so the result is normal: build it from its fields.
+        let biased = exponent + 52 + 1023;
+        if biased >= 2047 {
+            return f64::INFINITY;
+        }
+        f64::from_bits(((biased as u64) << 52) | (mantissa & ((1u64 << 52) - 1)))
+    }
+}
+
+/// Math.sumPrecise: the exact sum of the values, rounded once to the nearest double.
 fn sum_precise(values: &[f64]) -> f64 {
-    let mut partials: Vec<f64> = Vec::new();
+    let mut positive = Big::default();
+    let mut negative = Big::default();
     let mut infinity = 0.0f64;
     let mut nan = false;
     let mut all_negative_zero = true;
@@ -175,22 +284,18 @@ fn sum_precise(values: &[f64]) -> f64 {
         if !(x == 0.0 && x.is_sign_negative()) {
             all_negative_zero = false;
         }
-        let mut x = x;
-        let mut kept = Vec::with_capacity(partials.len() + 1);
-        for &y in &partials {
-            let (mut a, mut b) = (x, y);
-            if a.abs() < b.abs() {
-                std::mem::swap(&mut a, &mut b);
-            }
-            let hi = a + b;
-            let lo = b - (hi - a);
-            if lo != 0.0 {
-                kept.push(lo);
-            }
-            x = hi;
+        if x == 0.0 {
+            continue;
         }
-        kept.push(x);
-        partials = kept;
+        let bits = x.to_bits();
+        let exponent = ((bits >> 52) & 0x7FF) as u32;
+        let fraction = bits & ((1u64 << 52) - 1);
+        let (mantissa, shift) = if exponent == 0 { (fraction, 0) } else { (fraction | (1u64 << 52), exponent - 1) };
+        if x < 0.0 {
+            negative.add_shifted(mantissa, shift);
+        } else {
+            positive.add_shifted(mantissa, shift);
+        }
     }
     if nan {
         return f64::NAN;
@@ -201,34 +306,11 @@ fn sum_precise(values: &[f64]) -> f64 {
     if all_negative_zero {
         return -0.0;
     }
-    // Round the expansion to the nearest double (msum's final step).
-    let mut n = partials.len();
-    if n == 0 {
-        return 0.0;
+    match positive.cmp(&negative) {
+        std::cmp::Ordering::Equal => 0.0,
+        std::cmp::Ordering::Greater => positive.sub(&negative).to_f64(),
+        std::cmp::Ordering::Less => -negative.sub(&positive).to_f64(),
     }
-    n -= 1;
-    let mut hi = partials[n];
-    let mut lo = 0.0;
-    while n > 0 {
-        let x = hi;
-        n -= 1;
-        let y = partials[n];
-        hi = x + y;
-        let yr = hi - x;
-        lo = y - yr;
-        if lo != 0.0 {
-            break;
-        }
-    }
-    if n > 0 && ((lo < 0.0 && partials[n - 1] < 0.0) || (lo > 0.0 && partials[n - 1] > 0.0)) {
-        let y = lo * 2.0;
-        let x = hi + y;
-        let yr = x - hi;
-        if y == yr {
-            hi = x;
-        }
-    }
-    hi + 0.0
 }
 
 pub fn math_global(ctx: &Ctx) -> Value {
