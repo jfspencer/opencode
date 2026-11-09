@@ -309,38 +309,62 @@ pub fn array_global(ctx: &Ctx) -> Value {
     });
     ctx.method(&proto, "concat", 1, |ctx, this, args, _| {
         let target = self_array(&this, "concat")?;
-        let mut joined = target.array().unwrap().snapshot();
+        // TS joins, then checks the length; nothing observable runs in between, so the length is checked first and
+        // an oversized result is never built.
+        let spread = |item: &Value| match item {
+            Value::Obj(obj) if obj.is_array() => obj.array().unwrap().len(),
+            _ => 1,
+        };
+        let total = args.iter().fold(target.array().unwrap().len(), |total, item| total.saturating_add(spread(item)));
+        check_array_length(total as f64)?;
+        let mut joined = Vec::with_capacity(total);
+        target.array().unwrap().extend_into(&mut joined);
         for item in &args {
             match item {
-                Value::Obj(obj) if obj.is_array() => joined.extend(obj.array().unwrap().snapshot()),
+                Value::Obj(obj) if obj.is_array() => obj.array().unwrap().extend_into(&mut joined),
                 other => joined.push(Some(other.clone())),
             }
-            check_array_length(joined.len() as f64)?;
         }
         Ok(Value::Obj(ctx.new_array_holes(joined)))
     });
     ctx.method(&proto, "flat", 0, |ctx, this, args, _| {
-        // JavaScriptCore's stack gives out at about 12,000 nested arrays.
-        fn flatten(items: Vec<Option<Value>>, depth: f64, out: &mut Vec<Value>, level: usize) -> R<()> {
+        // TS flattens (skipping holes), then checks the length. Nothing observable runs in between, so a first pass
+        // counts, failing where TS would (JavaScriptCore's stack gives out at about 12,000 nested arrays), and stops
+        // once the result is too long; only a result that fits is built.
+        fn count(data: &ArrData, depth: f64, level: usize, total: &mut usize) -> R<()> {
             if level > 12_000 {
                 return Err(crate::interp::runner::host_stack_overflow());
             }
-            for item in items.into_iter().flatten() {
-                match &item {
-                    Value::Obj(obj) if obj.is_array() && depth > 0.0 => {
-                        let inner = obj.array().unwrap().snapshot();
-                        stacker::maybe_grow(64 * 1024, 1024 * 1024, || flatten(inner, depth - 1.0, out, level + 1))?
-                    }
-                    _ => out.push(item),
+            for item in data.items.borrow().iter().flatten() {
+                if *total > MAX_ARRAY_LENGTH {
+                    return Ok(());
                 }
-                check_array_length(out.len() as f64)?;
+                match item {
+                    Value::Obj(obj) if obj.is_array() && depth > 0.0 => stacker::maybe_grow(64 * 1024, 1024 * 1024, || {
+                        count(obj.array().unwrap(), depth - 1.0, level + 1, total)
+                    })?,
+                    _ => *total += 1,
+                }
             }
             Ok(())
         }
+        fn flatten(data: &ArrData, depth: f64, out: &mut Vec<Value>) {
+            for item in data.items.borrow().iter().flatten() {
+                match item {
+                    Value::Obj(obj) if obj.is_array() && depth > 0.0 => {
+                        stacker::maybe_grow(64 * 1024, 1024 * 1024, || flatten(obj.array().unwrap(), depth - 1.0, out))
+                    }
+                    _ => out.push(item.clone()),
+                }
+            }
+        }
         let target = self_array(&this, "flat")?;
         let depth = opt_number(&arg(&args, 0)).unwrap_or(1.0);
-        let mut out = Vec::new();
-        flatten(target.array().unwrap().snapshot(), depth, &mut out, 0)?;
+        let mut total = 0;
+        count(target.array().unwrap(), depth, 0, &mut total)?;
+        check_array_length(total as f64)?;
+        let mut out = Vec::with_capacity(total);
+        flatten(target.array().unwrap(), depth, &mut out);
         Ok(Value::Obj(ctx.new_array(out)))
     });
     ctx.method(&proto, "reverse", 0, |_, this, _, _| {

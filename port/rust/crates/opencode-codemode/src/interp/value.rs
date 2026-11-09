@@ -401,6 +401,12 @@ impl ArrData {
         items.resize(self.len.get(), None);
         items
     }
+    /// Appends the elements, holes kept, to `out`.
+    pub fn extend_into(&self, out: &mut Vec<Option<Value>>) {
+        let items = self.items.borrow();
+        out.extend(items.iter().cloned());
+        out.resize(out.len() + (self.len.get() - items.len()), None);
+    }
     /// The elements with holes read as undefined (`[...items]` on a host array).
     pub fn values(&self) -> Vec<Value> {
         let items = self.items.borrow();

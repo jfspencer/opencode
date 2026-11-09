@@ -415,6 +415,7 @@ if (kind === "matrix") {
   add("closures in loops", `const fs = []; for (let i = 0; i < 3; i++) fs.push(() => i); const gs = []; for (const k of [7, 8]) gs.push(() => k); return [fs.map((f) => f()), gs.map((g) => g())]`)
   add("switch", `const r = []; for (const v of [1, 2, 3, "1"]) { switch (v) { case 1: r.push("one"); case 2: r.push("two"); break; case "1": r.push("str"); break; default: r.push("default") } } return r`)
   add("getters builtin", `const re = /a/g; re.lastIndex = "3"; const m = new Map([[1, 2]]); return [re.lastIndex, m.size, re.source, re.flags, [].length, "abc".length]`)
+  add("flat and concat", `${T}const a = [1, [2, [3, [4, , 5]]], , 6]; let c = [0]; for (let i = 0; i < 13000; i++) c = [c]; return [a.flat(), a.flat(2), a.flat(Infinity), a.flat(0), a.flat(NaN), a.flat(-1), a.flat("2"), [, 1].flat(), t(() => c.flat(Infinity)), c.flat(3).length, [1].concat(2, [3, , 4], [[5]], new Array(2)), [].concat.length, [, ,].concat([, 1]), Object.keys([1, , 2].concat([, 3])), t(() => new Array(9999999).concat([1, 2])), t(() => [new Array(9999999).fill(1), [1, 2]].flat()).slice(0, 30), new Array(9999999).concat([1]).length]`)
   add("regex", `${T}const re = /(?<y>\\d{4})-(?<m>\\d{2})/g; const s = "2020-01 and 2021-12"; return [s.replace(re, "$<m>/$<y>"), [...s.matchAll(re)].map((m) => [m.index, m.groups.y]), re.exec(s), re.lastIndex, s.split(/(\\d)/, 4), "aBc".replace(/b/i, (m) => m.toUpperCase() + "!"), t(() => new RegExp("[")), t(() => new RegExp("a", "gg")), /\\u{1F600}/u.test("😀"), "x".replace(/(?:)/g, "-"), RegExp.escape("a.b*c")]`)
 }
 
