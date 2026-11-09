@@ -686,7 +686,8 @@ impl Element {
     }
 
     pub fn set_measure_func(self, measure: Option<layout::MeasureFn>) {
-        self.with_yoga(|y| y.set_measure_func(measure, false));
+        // Text and editor views: the height cap only clamps their measurement (scene.zig).
+        self.with_yoga(|y| y.set_measure_func(measure, true));
     }
 
     /// `invalidateIntrinsicSize` / native markDirty of a measured node.

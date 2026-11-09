@@ -36,8 +36,7 @@ fn bordered_box_children_start_inside_the_border() {
         let p = panel_el.unwrap().geometry();
         let l = label_el.unwrap().geometry();
         eprintln!("round {round}: panel {p:?} label {l:?}");
-        // A measured node at a half position floors its top (Yoga textRounding).
-        assert_eq!(l.screen_y, (p.screen_y + 0.5).floor(), "round {round}");
+        assert_eq!(l.screen_y, p.screen_y + 1.0, "round {round}");
         set_count.set(round + 1);
     }
 }

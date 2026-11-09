@@ -1,61 +1,13 @@
-//! Yoga 3.2.1 through OpenTUI's bridge (`native/src/yoga-bridge.cpp`), configured as `context.zig` configures the
-//! scene's Yoga config: web defaults off, point scale factor 1, positions rounded from absolute edges.
-//!
-//! TODO(port-tui): opencode-yoga. A stand-in compiled by build.rs until the input slice's crate lands; the
-//! renderables call only this module, so the swap stays here.
+//! Yoga for the renderables: `opencode-yoga` (Yoga 3.2.1 with OpenTUI's patches and bridge) configured as
+//! `context.zig` configures the scene's config (upstream defaults, positions rounded from absolute edges, the log
+//! routed away from the terminal), with the yoga.zig calls `scene.zig` makes. Errors of the checked calls are
+//! dropped: the scene treats a failed style write as no change, and a failed solve leaves the last layout.
 use std::cell::RefCell;
-use std::ffi::c_void;
-use std::ptr::NonNull;
 
-type NodeRef = *mut c_void;
-type ConfigRef = *mut c_void;
+pub use opencode_yoga::MeasureMode;
+use opencode_yoga::{Config, Layout, Size};
 
-#[repr(C)]
-#[derive(Clone, Copy, Default, Debug, PartialEq)]
-pub struct ComputedLayout {
-    pub left: f32,
-    pub top: f32,
-    pub right: f32,
-    pub bottom: f32,
-    pub width: f32,
-    pub height: f32,
-}
-
-#[repr(C)]
-#[derive(Clone, Copy)]
-struct YGSize {
-    width: f32,
-    height: f32,
-}
-
-type MeasureCallback = extern "C" fn(NodeRef, f32, i32, f32, i32) -> YGSize;
-
-unsafe extern "C" {
-    fn otYogaConfigCreate(out: *mut ConfigRef) -> u32;
-    fn otYogaConfigSetRoundsPositionsFromAbsoluteEdges(config: ConfigRef, enabled: u32);
-    fn YGConfigSetUseWebDefaults(config: ConfigRef, enabled: bool);
-    fn YGConfigSetPointScaleFactor(config: ConfigRef, factor: f32);
-    fn otYogaNodeCreate(config: ConfigRef, out: *mut NodeRef) -> u32;
-    fn otYogaNodeFree(node: NodeRef) -> u32;
-    fn otYogaNodeInsertChild(node: NodeRef, child: NodeRef, index: u32) -> u32;
-    fn otYogaNodeRemoveChild(node: NodeRef, child: NodeRef) -> u32;
-    fn otYogaNodeCalculateLayout(node: NodeRef, width: f32, height: f32, direction: u32) -> u32;
-    fn otYogaNodeMarkDirty(node: NodeRef) -> u32;
-    fn otYogaNodeSetMeasureFunc(node: NodeRef, callback: Option<MeasureCallback>, height_cap_only_clamps: u32) -> u32;
-    fn otYogaNodeGetComputedLayout(node: NodeRef, out: *mut ComputedLayout) -> u32;
-    fn otYogaNodeLayoutGetEdge(node: NodeRef, kind: u32, edge: u32, out: *mut f32) -> u32;
-    fn otYogaNodeStyleSetEnum(node: NodeRef, kind: u32, value: u32) -> u32;
-    fn otYogaNodeStyleGetEnum(node: NodeRef, kind: u32, out: *mut u32) -> u32;
-    fn otYogaNodeStyleSetFloat(node: NodeRef, kind: u32, value: f32) -> u32;
-    fn otYogaNodeStyleSetBorder(node: NodeRef, edge: u32, value: f32) -> u32;
-    fn otYogaNodeStyleSetValue(node: NodeRef, kind: u32, edge: u32, unit: u32, value: f32) -> u32;
-    fn otYogaNodeStyleSetDimension(node: NodeRef, kind: u32, unit: u32, value: f32, disable_flex_shrink: u32) -> u32;
-    fn otYogaNodeStyleSetPositions(node: NodeRef, edge_mask: u32, units: *const u32, values: *const f32) -> u32;
-    fn YGNodeSetContext(node: NodeRef, context: *mut c_void);
-    fn YGNodeGetContext(node: NodeRef) -> *mut c_void;
-    fn YGNodeGetChildCount(node: NodeRef) -> usize;
-    fn YGNodeIsDirty(node: NodeRef) -> bool;
-}
+pub type ComputedLayout = Layout;
 
 // OT_STYLE_ENUM_*
 pub const ENUM_DIRECTION: u32 = 0;
@@ -128,93 +80,57 @@ impl From<i32> for Value {
     }
 }
 
-/// `YGMeasureMode`.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum MeasureMode {
-    Undefined,
-    Exactly,
-    AtMost,
-}
-
 pub type MeasureFn = Box<dyn FnMut(f32, MeasureMode, f32, MeasureMode) -> (f32, f32)>;
-
-struct Config(ConfigRef);
 
 thread_local! {
     static CONFIG: RefCell<Option<Config>> = const { RefCell::new(None) };
 }
 
-fn config() -> ConfigRef {
+fn config() -> Config {
     CONFIG.with(|cell| {
         let mut cell = cell.borrow_mut();
         if cell.is_none() {
-            let mut config: ConfigRef = std::ptr::null_mut();
-            unsafe {
-                otYogaConfigCreate(&mut config);
-                YGConfigSetUseWebDefaults(config, false);
-                YGConfigSetPointScaleFactor(config, 1.0);
-                otYogaConfigSetRoundsPositionsFromAbsoluteEdges(config, 1);
-            }
-            *cell = Some(Config(config));
+            let config = Config::create().expect("Yoga config");
+            let _ = config.set_rounds_positions_from_absolute_edges(true);
+            // context.zig routes Yoga's log to its diagnostics, never to the terminal.
+            let _ = config.set_logger(Some(Box::new(|_, _| {})));
+            *cell = Some(config);
         }
-        cell.as_ref().unwrap().0
+        cell.as_ref().unwrap().clone()
     })
 }
 
-/// One Yoga node, freed on drop (after being detached from its parent and children by the tree).
+/// One scene Yoga node.
 pub struct Node {
-    raw: NonNull<c_void>,
-}
-
-extern "C" fn measure_trampoline(node: NodeRef, width: f32, wm: i32, height: f32, hm: i32) -> YGSize {
-    let mode = |m: i32| match m {
-        1 => MeasureMode::Exactly,
-        2 => MeasureMode::AtMost,
-        _ => MeasureMode::Undefined,
-    };
-    unsafe {
-        let context = YGNodeGetContext(node) as *mut MeasureFn;
-        if context.is_null() {
-            return YGSize { width: 0.0, height: 0.0 };
-        }
-        let (w, h) = (*context)(width, mode(wm), height, mode(hm));
-        YGSize { width: w, height: h }
-    }
+    inner: opencode_yoga::Node,
 }
 
 impl Node {
     pub fn new() -> Node {
-        let mut raw: NodeRef = std::ptr::null_mut();
-        unsafe { otYogaNodeCreate(config(), &mut raw) };
-        Node { raw: NonNull::new(raw).expect("Yoga node allocation failed") }
-    }
-
-    fn ptr(&self) -> NodeRef {
-        self.raw.as_ptr()
+        let config = config();
+        Node { inner: opencode_yoga::Node::create(Some(&config)).expect("Yoga node") }
     }
 
     pub fn set_enum(&self, kind: u32, value: u32) {
-        unsafe { otYogaNodeStyleSetEnum(self.ptr(), kind, value) };
+        let _ = self.inner.style_set_enum(kind, value);
     }
 
     pub fn get_enum(&self, kind: u32) -> u32 {
-        let mut out = 0;
-        unsafe { otYogaNodeStyleGetEnum(self.ptr(), kind, &mut out) };
-        out
+        self.inner.style_get_enum(kind).unwrap_or(0)
     }
 
     pub fn set_float(&self, kind: u32, value: f32) {
-        unsafe { otYogaNodeStyleSetFloat(self.ptr(), kind, value) };
+        let _ = self.inner.style_set_float(kind, value);
     }
 
     pub fn set_value(&self, kind: u32, edge: u32, value: Value) {
         let (unit, v) = value.unit();
-        unsafe { otYogaNodeStyleSetValue(self.ptr(), kind, edge, unit, v) };
+        let _ = self.inner.style_set_value(kind, edge, unit, v);
     }
 
     pub fn set_dimension(&self, kind: u32, value: Value, disable_flex_shrink: bool) {
         let (unit, v) = value.unit();
-        unsafe { otYogaNodeStyleSetDimension(self.ptr(), kind, unit, v, disable_flex_shrink as u32) };
+        let _ = self.inner.style_set_dimension(kind, unit, v, disable_flex_shrink as u32);
     }
 
     /// Edges in mask order left, top, right, bottom.
@@ -226,71 +142,60 @@ impl Node {
             units[i] = u;
             floats[i] = if v.is_nan() { 0.0 } else { v };
         }
-        unsafe { otYogaNodeStyleSetPositions(self.ptr(), mask, units.as_ptr(), floats.as_ptr()) };
+        let _ = self.inner.style_set_positions(mask, units, floats);
     }
 
     pub fn set_border(&self, edge: u32, value: f32) {
-        unsafe { otYogaNodeStyleSetBorder(self.ptr(), edge, value) };
+        let _ = self.inner.style_set_border(edge, value);
     }
 
     pub fn insert_child(&self, child: &Node, index: u32) {
-        unsafe { otYogaNodeInsertChild(self.ptr(), child.ptr(), index) };
+        let _ = self.inner.insert_child(&child.inner, index);
     }
 
     pub fn remove_child(&self, child: &Node) {
-        unsafe { otYogaNodeRemoveChild(self.ptr(), child.ptr()) };
+        let _ = self.inner.remove_child(&child.inner);
     }
 
     pub fn child_count(&self) -> usize {
-        unsafe { YGNodeGetChildCount(self.ptr()) }
+        self.inner.get_child_count() as usize
     }
 
     pub fn calculate_layout(&self, width: f32, height: f32) {
-        unsafe { otYogaNodeCalculateLayout(self.ptr(), width, height, 1) };
+        let _ = self.inner.calculate_layout_checked(width, height, 1);
     }
 
     pub fn computed_layout(&self) -> ComputedLayout {
-        let mut out = ComputedLayout::default();
-        unsafe { otYogaNodeGetComputedLayout(self.ptr(), &mut out) };
-        out
+        self.inner.get_computed_layout().unwrap_or_default()
     }
 
     /// `kind`: 0 margin, 1 padding, 2 border.
     pub fn layout_edge(&self, kind: u32, edge: u32) -> f32 {
-        let mut out = 0.0;
-        unsafe { otYogaNodeLayoutGetEdge(self.ptr(), kind, edge, &mut out) };
-        out
+        self.inner.layout_get_edge(kind, edge).unwrap_or(0.0)
     }
 
     pub fn is_dirty(&self) -> bool {
-        unsafe { YGNodeIsDirty(self.ptr()) }
+        self.inner.is_dirty().unwrap_or(false)
     }
 
+    /// yoga.zig `yogaNodeInvalidateMeasure`: the node's measured content changed.
     pub fn mark_dirty(&self) {
-        unsafe { otYogaNodeMarkDirty(self.ptr()) };
+        let _ = self.inner.invalidate_measure();
     }
 
+    /// A native measure function, as the scene sets one for text and editor views.
     pub fn set_measure_func(&self, measure: Option<MeasureFn>, height_cap_only_clamps: bool) {
-        unsafe {
-            let old = YGNodeGetContext(self.ptr()) as *mut MeasureFn;
-            if !old.is_null() {
-                drop(Box::from_raw(old));
-            }
-            match measure {
-                Some(f) => {
-                    YGNodeSetContext(self.ptr(), Box::into_raw(Box::new(f)) as *mut c_void);
-                    otYogaNodeSetMeasureFunc(self.ptr(), Some(measure_trampoline), height_cap_only_clamps as u32);
-                }
-                None => {
-                    YGNodeSetContext(self.ptr(), std::ptr::null_mut());
-                    otYogaNodeSetMeasureFunc(self.ptr(), None, 0);
-                }
-            }
-        }
+        let measure = measure.map(|mut f| {
+            Box::new(move |w: f32, wm: MeasureMode, h: f32, hm: MeasureMode| {
+                let (width, height) = f(w, wm, h, hm);
+                Size { width, height }
+            }) as opencode_yoga::MeasureFunction
+        });
+        let _ = self.inner.set_native_measure_func(measure, height_cap_only_clamps);
     }
 
     pub fn has_measure_func(&self) -> bool {
-        unsafe { !YGNodeGetContext(self.ptr()).is_null() }
+        self.inner.has_measure_func()
     }
 }
 
@@ -302,13 +207,7 @@ impl Default for Node {
 
 impl Drop for Node {
     fn drop(&mut self) {
-        unsafe {
-            let old = YGNodeGetContext(self.ptr()) as *mut MeasureFn;
-            if !old.is_null() {
-                drop(Box::from_raw(old));
-            }
-            otYogaNodeFree(self.ptr());
-        }
+        let _ = self.inner.free();
     }
 }
 
@@ -333,7 +232,7 @@ mod tests {
         assert_eq!(a.computed_layout().height, 24.0);
         assert_eq!(b.computed_layout().left, 35.0);
         let measured = Node::new();
-        measured.set_measure_func(Some(Box::new(|_, _, _, _| (7.0, 2.0))), false);
+        measured.set_measure_func(Some(Box::new(|_, _, _, _| (7.0, 2.0))), true);
         a.insert_child(&measured, 1);
         root.calculate_layout(80.0, 24.0);
         assert_eq!(measured.computed_layout().width, 7.0);
