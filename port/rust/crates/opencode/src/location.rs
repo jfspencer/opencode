@@ -40,6 +40,8 @@ pub struct Location {
     pub permission: crate::permission::Service,
     /// The location's shell commands (`Shell.Service`).
     pub shell: Arc<crate::shell::Service>,
+    /// The location's snapshot store (`Snapshot.Service`).
+    pub snapshot: crate::snapshot::Service,
 }
 
 #[derive(Debug, Clone)]
@@ -201,6 +203,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         version_control,
         permission: Default::default(),
         shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
+        snapshot: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

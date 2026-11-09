@@ -59,7 +59,8 @@ Out of scope:
 - the model catalog and pricing;
 - MCP, websearch and image generation (their tools are hidden from the model in the reference config);
 - fff file search (file search is ripgrep + fuzzysort, as with `OPENCODE_DISABLE_FFF=1`);
-- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM).
+- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM);
+- Windows (the port targets Linux and macOS; TS's `win32` branches are not ported).
 
 Known upstream bugs are not ported: each is fixed by a deviation patch (`patches/`), so the standard
 requires the fixed behavior. Text written by the JavaScript engine itself (JSON and regular-expression
@@ -182,6 +183,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `session/`, `llm.rs`, `llm/` | `core/src/session/*` (runner, execution, step, inbox, context, prompt, command, instructions, retry, title, move) and the OpenRouter chat-completions transport (`llm/http.rs`: proxy-aware rustls) |
 | `tool.rs`, `tool/` | `core/src/tool.ts`, `tool/plugin/*`: the registry, snapshot filtering, Code Mode catalog, output bounding; each tool's definition is recorded from the reference |
 | `job.rs`, `session/subagent.rs`, `tool/subagent.rs` | `core/src/job.ts`, `job/*`, `session/subagent-job.ts`, `subagent-completion.ts`, `background.ts`, `tool/plugin/subagent.ts`, subagent commands: a process-local job registry (one generation per job; block, background, cancel; backgrounded work kept in the durable `job` table until its completion notice is admitted); a subagent is a job running a child session, whose last answer is the tool's result or a synthetic notice that wakes the parent |
+| `snapshot.rs`, `session/revert.rs`, `session/diff.rs` | `core/src/snapshot.ts` over `git.ts`'s store operations, through the git CLI: each project worktree gets a git store under `$XDG_DATA_HOME/opencode/snapshot` that borrows the source's objects and starts from its index; captures go through a temporary index and the source's ignore rules filter what callers see. Steps record their start and end snapshots and changed files; `session/revert.ts` stages, clears and commits reverts (the next prompt or compaction commits a staged one); `session/diff.ts` diffs a turn |
 | `permission.rs` | `core/src/permission.ts`, `permission/saved.ts`: pending requests, rule evaluation (agent, session, saved approvals, managed policies), replies; tools ask through `tool::Context::assert` |
 
 Status (2026-11-09): 241 of the 672 server scenarios pass (the ledger): session CRUD, projects, locations, the file
@@ -235,3 +237,13 @@ byte for byte, on the inputs upstream's own shell, permission and tool tests pro
 commands, generated and mutated commands, and the real TS `Shell` service's capture and paging: 0 differences on about
 396k cases (`--cases 30000 --seed 7` for a deeper run). After a bun upgrade, `check.sh` fails until the Unicode table
 is regenerated (`bun harness/gen-unicode.ts`). See the crate's README.
+
+`rust/crates/opencode-codemode` is the default code-mode interpreter (the bytecode VM is not ported): what
+`CodeMode.execute` hands the tool layer and the text core's `execute` tool gives the model. It has a parser checked
+against acorn, a tree-walking interpreter with the stdlib, JS RegExp, number conversion and Date, the tool runtime,
+host extensions (the server's `fetch`), hooks, and `scanTools`. Deep programs grow the stack on demand; TS's stack
+limits are emulated by deterministic budgets, so a program gets the same catchable RangeError. `harness/check.sh`
+runs every corpus case (the conformance scenarios' `execute` programs, upstream's, and targeted ones: async, tools,
+extensions, hooks, chains, deep structures) through TS and Rust, then every program through `scanTools`: 0
+differences; component checks cover the parser (about 282k programs against acorn), number conversion, RegExp and
+Date. See the crate's README and `harness/README.md`.

@@ -2,7 +2,7 @@
 //!
 //! TS compiles a pattern to a regex: backslashes become `/` in both strings, `*` is `.*`, `?` is `.` (one UTF-16
 //! unit, dotAll), `[*]` and `[?]` are literal, everything else is literal, and a trailing ` *` also matches nothing
-//! (`( .*)?`, so `ls *` matches `ls`). Matching is case-sensitive except on Windows, which the port does not target.
+//! (`( .*)?`, so `ls *` matches `ls`). Matching is case-sensitive (TS ignores case only on Windows, which the port does not target).
 
 use crate::js::{self, JsString};
 

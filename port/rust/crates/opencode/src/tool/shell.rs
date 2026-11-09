@@ -37,7 +37,6 @@ pub fn tool(definition: Definition) -> Arc<dyn Tool> {
 fn platform() -> &'static str {
     match std::env::consts::OS {
         "macos" => "darwin",
-        "windows" => "win32",
         other => other,
     }
 }

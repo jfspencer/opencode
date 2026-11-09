@@ -24,6 +24,7 @@ mod project;
 mod project_icon;
 mod session;
 mod shell;
+mod snapshot;
 mod text;
 mod tool;
 mod vcs;

@@ -15,7 +15,7 @@ use std::process::Stdio;
 #[derive(Debug, Clone)]
 pub enum Failure {
     /// `BadArgument`: a NUL character in the command, an argument or an environment variable.
-    BadArgument(String),
+    BadArgument,
     /// `SystemError` with its tag (`toTag` of the errno) and the errno itself.
     System { tag: &'static str, errno: Option<i32> },
 }
@@ -37,7 +37,7 @@ impl Error {
     }
 
     pub fn bad_argument(&self) -> bool {
-        matches!(self.failure, Failure::BadArgument(_))
+        matches!(self.failure, Failure::BadArgument)
     }
 }
 
@@ -85,7 +85,7 @@ pub fn spawn(shell: &str, args: &[String], cwd: &str, env: &[(String, String)]) 
     if let Some(description) = nul(shell, args, env) {
         return Err(Error {
             message: format!("ChildProcess.spawn: {description}"),
-            failure: Failure::BadArgument(description),
+            failure: Failure::BadArgument,
         });
     }
     // `fs.access(cwd)` before spawning.
