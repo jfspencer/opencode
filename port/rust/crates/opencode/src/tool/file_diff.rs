@@ -324,6 +324,27 @@ mod tests {
         );
     }
 
+    /// Cases recorded from jsdiff (`DIFF_CASES=<file>`: `[{before, after, patch, additions, deletions}]`).
+    #[test]
+    #[ignore]
+    fn recorded() {
+        let path = std::env::var("DIFF_CASES").expect("DIFF_CASES names the recorded cases");
+        let cases = crate::json::parse(&std::fs::read_to_string(path).unwrap()).unwrap();
+        let mut failures = 0;
+        for case in crate::json::array(&cases).unwrap() {
+            let get = |key: &str| crate::json::get_str(case, key).unwrap_or_default();
+            let diff = file_diff("f.txt", get("before"), get("after"), "modified");
+            let counts = (crate::json::get_num(case, "additions").unwrap() as usize, crate::json::get_num(case, "deletions").unwrap() as usize);
+            if diff.patch != get("patch") || (diff.additions, diff.deletions) != counts {
+                failures += 1;
+                if failures < 4 {
+                    eprintln!("before {:?}\nafter {:?}\nwant {:?}\ngot  {:?}", get("before"), get("after"), get("patch"), diff.patch);
+                }
+            }
+        }
+        assert_eq!(failures, 0);
+    }
+
     #[test]
     fn added_and_unchanged() {
         let diff = file_diff("a.txt", "", "one\ntwo", "added");
