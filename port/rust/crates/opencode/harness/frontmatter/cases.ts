@@ -258,7 +258,8 @@ function yamlDocument(): string {
   return lines.join("\n")
 }
 
-const engines = ["", "yaml", "YAML", "yml", "json", "js", "javascript", "constructor", "toString", "valueOf", "hasOwnProperty",
+// Not `js`/`javascript`: the port does not evaluate that engine (inventory/frontmatter_js.rs).
+const engines = ["", "yaml", "YAML", "yml", "json", "constructor", "toString", "valueOf", "hasOwnProperty",
   "__proto__", "__lookupGetter__", "__defineSetter__", "coffee", "Constructor"]
 
 function document(): string {

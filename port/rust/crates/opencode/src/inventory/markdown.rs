@@ -16,8 +16,9 @@
 //!
 //! Engines (lib/engine.js): `options.engines[name] || options.engines[aliase(name)]`, where the engines are an
 //! ordinary object, so a name is looked up as written, then lower-cased for the aliases (`js`, `javascript`, `yaml`,
-//! `yml`). `yaml` is [`yaml::load`] (js-yaml's `safeLoad`); `json` (lower case only) is `JSON.parse`; `javascript` is
-//! [`frontmatter_js::evaluate`]. A name of an `Object.prototype` member finds that member: a function engine is
+//! `yml`). `yaml` is [`yaml::load`] (js-yaml's `safeLoad`); `json` (lower case only) is `JSON.parse`; `javascript`
+//! `eval`s the frontmatter, which the port does not ([`frontmatter_js`]: the file is skipped). A name of an
+//! `Object.prototype` member finds that member: a function engine is
 //! called as `{ parse: member }.parse(matter, options)` (`constructor` makes a `String` object of the frontmatter,
 //! `toString` gives `"[object Object]"`, `valueOf` the engine object itself, `hasOwnProperty` `false`, and so on),
 //! and `__proto__` is no function. Any other language is an [`Error`] where gray-matter throws (`coffee`, `toml`,
