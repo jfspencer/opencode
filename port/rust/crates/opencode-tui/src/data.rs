@@ -123,8 +123,6 @@ pub struct Data {
     pub event: EventContext,
     /// The event stream and its reconnects (`client.connection`).
     pub connection: ClientConnection,
-    /// `useEvent()`: the client's event bus.
-    pub event: Emitter,
     pub directory: Signal<Option<String>>,
     pub agents: Memo<Option<Vec<AgentInfo>>>,
     pub models: Memo<Option<Vec<ModelInfo>>>,

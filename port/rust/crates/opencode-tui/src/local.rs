@@ -242,7 +242,7 @@ pub fn install() -> Local {
         let event = data.event.clone();
         let deleted = {
             let local = local.clone();
-            event.on("session.deleted", move |evt| {
+            event.on("session.deleted", move |evt, _| {
                 let Some(id) = get_str(evt.data(), "sessionID").map(str::to_string) else { return };
                 local.0.agent_drafts.update(|d| {
                     d.remove(&id);
@@ -256,7 +256,7 @@ pub fn install() -> Local {
         };
         let agent_selected = {
             let local = local.clone();
-            event.on("session.agent.selected", move |evt| {
+            event.on("session.agent.selected", move |evt, _| {
                 let data = evt.data();
                 let Some(id) = get_str(data, "sessionID").map(str::to_string) else { return };
                 let agent = get_str(data, "agent").map(str::to_string);
@@ -272,7 +272,7 @@ pub fn install() -> Local {
         };
         let model_selected = {
             let local = local.clone();
-            event.on("session.model.selected", move |evt| {
+            event.on("session.model.selected", move |evt, _| {
                 if let Some(id) = get_str(evt.data(), "sessionID").map(str::to_string) {
                     local.reconcile_session_selection(&id);
                 }
