@@ -7,15 +7,13 @@
 //! Schema formatter's messages, unknown keys dropped), and a failure carries the curated message TS maps it to.
 //! Permission failures keep their own message (`toSessionError` unwraps them), and a decline stops the turn as it
 //! does for any tool.
-//!
-//! TODO(port): `FileAccess.resolve` / `authorizeExternal` are reproduced here for directories until the file tools'
-//! `tool::file_access` reaches dev.
 
 use std::sync::Arc;
 
 use opencode_protocol::Json;
 
 use super::{CodeModeExecution, Context, Definition, Execution, Failure, Output, Tool, ToolError};
+use crate::file_access;
 use crate::json::{self, Obj};
 use crate::permission::Ask;
 
@@ -333,16 +331,17 @@ async fn session_move(context: &Context, input: &Json) -> Done {
     let failed = || format!("Unable to move session to {written}");
     let session_id = string(input, "sessionID").unwrap_or(&context.session_id).to_owned();
     let Ok(session) = crate::session::require(&context.app.db.lock().unwrap(), &session_id) else { return Err(curated(failed())) };
-    let directory = resolve_path(&session.location.directory, crate::text::trim(&written));
+    let directory = file_access::resolve_path(&session.location.directory, crate::text::trim(&written));
     // The destination becomes the session's directory, so leaving the project needs the same approval as reaching
     // outside it. The project's own worktrees don't.
-    let target = resolve_directory(&context.location, &directory);
+    let target = file_access::resolve(&context.location, &directory, Some(file_access::Kind::Directory)).await;
     let worktrees = match &target.external {
         Some(_) => crate::worktree::list(&context.app, &context.location.project.id).unwrap_or_default(),
         None => Vec::new(),
     };
     if !worktrees.iter().any(|worktree| crate::project::contains(&worktree.directory, &directory)) {
-        authorize_external(context, &target).await.map_err(|failure| wrap(failed(), failure))?;
+        let authorized = file_access::authorize_external(context, std::slice::from_ref(&target), None).await;
+        authorized.map_err(|failure| wrap(failed(), failure))?;
     }
     let mut request = Obj::new();
     request.str("directory", &directory).str("delivery", "steer");
@@ -389,7 +388,7 @@ fn worktree_list(context: &Context) -> Done {
 async fn worktree_remove(context: &Context, input: &Json) -> Done {
     let written = string(input, "directory").unwrap_or_default().to_owned();
     // Removing a worktree deletes files, so it requires the same approval as editing them.
-    let target = resolve_directory(&context.location, &resolve_path(&context.location.directory, &written));
+    let target = file_access::resolve(&context.location, &written, Some(file_access::Kind::Directory)).await;
     let ask = Ask { action: "edit".into(), resources: vec![target.resource.clone()], save: Some(vec!["*".into()]), metadata: None };
     context.assert(ask).await.map_err(|failure| wrap(format!("Unable to remove worktree {written}"), failure))?;
     let force = json::get_bool(input, "force").unwrap_or(false);
@@ -529,96 +528,6 @@ fn models(context: &Context, input: &Json) -> Done {
     output.set("providers", Json::Array(providers)).set("total", Json::Number(matching.len() as f64));
     output.set("next", if end < matching.len() { Json::Number(end as f64) } else { Json::Null });
     Ok((output.done(), None))
-}
-
-// --- File access for directories (file-access.ts) ------------------------------------------------------------------
-
-/// `FileAccess.Target` of a directory.
-struct Target {
-    absolute: String,
-    resource: String,
-    /// `(resource, save)` of the external directory approval, for a target outside the location.
-    external: Option<(String, String)>,
-}
-
-/// `FileAccess.resolvePath`: a leading `~` expanded, then resolved against `directory`.
-fn resolve_path(directory: &str, input: &str) -> String {
-    let home = crate::inventory::config::Options::get().home.clone();
-    let expanded = match input {
-        "~" => home,
-        _ => match input.strip_prefix("~/") {
-            Some(rest) => format!("{home}/{rest}"),
-            None => input.to_owned(),
-        },
-    };
-    crate::fs::resolve(directory, &expanded)
-}
-
-/// Symlinks followed through the part of the path that exists.
-fn real_path(target: &str) -> String {
-    match std::fs::canonicalize(target) {
-        Ok(real) => real.to_string_lossy().into_owned(),
-        Err(_) => match target.rsplit_once('/') {
-            Some((parent, name)) if !parent.is_empty() => crate::project::normalize(&format!("{}/{name}", real_path(parent))),
-            Some(("", name)) if !name.is_empty() => format!("/{name}"),
-            _ => target.to_owned(),
-        },
-    }
-}
-
-fn inside(target: &str, directory: &str, worktree: &str) -> bool {
-    crate::project::contains(directory, target) || (worktree != "/" && crate::project::contains(worktree, target))
-}
-
-/// `FileAccess.resolve({ path, kind: "directory" })`.
-fn resolve_directory(location: &crate::location::Location, absolute: &str) -> Target {
-    let real = |p: &str| if location.workspace_id.is_some() { p.to_owned() } else { real_path(p) };
-    let canonical = real(absolute);
-    let worktree = crate::project::normalize(&location.project.directory);
-    if inside(absolute, &location.directory, &worktree) && inside(&canonical, &real(&location.directory), &real(&worktree)) {
-        let relative = crate::text::relative(&location.directory, absolute);
-        return Target { absolute: absolute.to_owned(), resource: if relative.is_empty() { ".".into() } else { relative }, external: None };
-    }
-    // Escaped so that a `*` or `?` in a directory name stays literal in the saved approval.
-    let root = project_root(&canonical).unwrap_or_else(|| canonical.clone());
-    let escaped: String = root.chars().map(|c| if c == '*' || c == '?' { format!("[{c}]") } else { c.to_string() }).collect();
-    Target { absolute: absolute.to_owned(), external: Some((join_star(&canonical), join_star(&escaped))), resource: canonical }
-}
-
-/// `path.join(directory, "*")`.
-fn join_star(directory: &str) -> String {
-    if directory.ends_with('/') { format!("{directory}*") } else { format!("{directory}/*") }
-}
-
-/// `Project.root`: the nearest directory with a `.git` or `.hg`.
-fn project_root(directory: &str) -> Option<String> {
-    let mut current = directory.to_owned();
-    loop {
-        if [".git", ".hg"].iter().any(|marker| std::path::Path::new(&format!("{current}/{marker}")).exists()) {
-            return Some(current);
-        }
-        let parent = match current.rsplit_once('/') {
-            Some(("", _)) => "/".to_owned(),
-            Some((parent, _)) => parent.to_owned(),
-            None => return None,
-        };
-        if parent == current {
-            return None;
-        }
-        current = parent;
-    }
-}
-
-/// `FileAccess.authorizeExternal` for one target.
-async fn authorize_external(context: &Context, target: &Target) -> Result<(), Failure> {
-    let Some((resource, save)) = &target.external else { return Ok(()) };
-    let ask = Ask {
-        action: "external_directory".into(),
-        resources: vec![resource.clone()],
-        save: Some(vec![save.clone()]),
-        metadata: None,
-    };
-    context.assert(ask).await
 }
 
 #[cfg(test)]

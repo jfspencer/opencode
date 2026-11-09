@@ -21,15 +21,26 @@
 //! `tool.execute.before/after` hooks, input repair. The loop bounds every successful result with [`output::truncate`].
 
 pub mod arguments;
+pub mod edit;
 pub mod execute;
+pub mod file_diff;
+pub mod file_input;
+pub mod file_media;
+pub mod file_read;
+pub mod file_search;
+pub mod file_write;
+pub mod glob;
+pub mod grep;
 pub mod opencode;
 pub mod output;
 pub mod shell;
 mod question;
+pub mod read;
 pub mod schedule;
 pub mod skill;
 pub mod subagent;
 pub mod webfetch;
+pub mod write;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -232,11 +243,16 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
         .map(|(name, text)| {
             let definition = definition(name, text);
             match *name {
+                "edit" => Arc::new(edit::Edit { definition }) as Arc<dyn Tool>,
+                "glob" => Arc::new(glob::Glob { definition }),
+                "grep" => Arc::new(grep::Grep { definition }),
+                "question" => Arc::new(question::Question { definition }),
+                "read" => Arc::new(read::Read { definition }),
                 "shell" => shell::tool(definition),
-                "question" => Arc::new(question::Question { definition }) as Arc<dyn Tool>,
-                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "skill" => Arc::new(skill::Skill { definition }),
+                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "webfetch" => Arc::new(webfetch::WebFetch { definition }),
+                "write" => Arc::new(write::Write { definition }),
                 _ => Arc::new(Unported { definition }),
             }
         })
@@ -299,7 +315,8 @@ impl Snapshot {
     /// Runs a call against the tools this snapshot advertised.
     pub async fn execute(&self, name: &str, context: Context, input: Json) -> Result<Output, Failure> {
         match self.tools.iter().find(|tool| tool.definition().name == name) {
-            Some(tool) => tool.execute(context, input).await,
+            // `normalizeImages` of the result's content (after the tool's own `execute.after` hooks).
+            Some(tool) => tool.execute(context, input).await.map(|output| Output { content: file_media::normalize_content(output.content), ..output }),
             None => Err(Failure::Error(ToolError::new(format!(
                 "No tool named \"{name}\" is currently available. Please use a tool from the available tool list."
             )))),

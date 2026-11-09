@@ -200,12 +200,27 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
     let query = parts.uri.query().map(parse_query).unwrap_or_default();
     let headers = parts.headers;
 
+    // effect's `HttpMiddleware.cors` and `RequestSite` wrap everything else.
+    if method == "OPTIONS" {
+        return finish(Response { status: 204, headers: crate::cors::preflight(&headers), body: Body::Empty });
+    }
+    let cors = crate::cors::decorate(&headers);
+    let with_cors = |mut response: Response| {
+        response.headers.extend(cors.iter().cloned());
+        finish(response)
+    };
+    if crate::cors::rejected(&raw_path, &headers) {
+        let mut o = Obj::new();
+        o.str("_tag", "ForbiddenError").str("message", "Cross-site requests to the API are not allowed");
+        return with_cors(Response::value(403, &o.done()));
+    }
+
     if !crate::auth::authorized(&app, &raw_path, &headers, &query) {
-        return finish(crate::auth::unauthorized(&headers));
+        return with_cors(crate::auth::unauthorized(&headers));
     }
 
     let Some((route, params)) = find(&method, &raw_path) else {
-        return finish(Response { status: 404, headers: vec![], body: Body::Empty });
+        return with_cors(Response { status: 404, headers: vec![], body: Body::Empty });
     };
     let body = match body.collect().await {
         Ok(collected) => collected.to_bytes(),
@@ -213,7 +228,7 @@ async fn handle(app: Arc<App>, request: hyper::Request<Incoming>) -> Out {
     };
     let request = Request { path: raw_path, query, headers, body, route, params };
     let response = crate::api::dispatch(&app, request).await;
-    finish(response)
+    with_cors(response)
 }
 
 fn finish(response: Response) -> Out {
