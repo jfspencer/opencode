@@ -1,0 +1,329 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "integration_authorization",
+        "message": "Key method does not accept a form answer"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "region": "eu"
+        },
+        "key": "sk-or-a"
+      },
+      "status": 400,
+      "url": "/api/integration/openrouter/connect/key"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {},
+        "key": "sk-or-a"
+      },
+      "status": 204,
+      "url": "/api/integration/openrouter/connect/key"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "key": "sk-or-b",
+        "label": "Work"
+      },
+      "status": 204,
+      "url": "/api/integration/openrouter/connect/key"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "key": "sk-or-c"
+      },
+      "status": 204,
+      "url": "/api/integration/openrouter/connect/key"
+    },
+    {
+      "body": {
+        "_tag": "InvalidRequestError",
+        "kind": "integration_authorization",
+        "message": "Key method does not accept a form answer"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "answer": {
+          "region": "eu"
+        },
+        "key": "x"
+      },
+      "status": 400,
+      "url": "/api/integration/amazon-bedrock/connect/key"
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [
+            {
+              "id": "<cred_1>",
+              "label": "OpenRouter 2",
+              "method": "key",
+              "type": "credential"
+            },
+            {
+              "id": "<cred_2>",
+              "label": "Work",
+              "method": "key",
+              "type": "credential"
+            },
+            {
+              "id": "<cred_3>",
+              "label": "OpenRouter",
+              "method": "key",
+              "type": "credential"
+            },
+            {
+              "name": "OPENROUTER_API_KEY",
+              "type": "env"
+            }
+          ],
+          "id": "openrouter",
+          "methods": [
+            {
+              "label": "Manually enter API Key",
+              "type": "key"
+            },
+            {
+              "names": [
+                "OPENROUTER_API_KEY"
+              ],
+              "type": "env"
+            }
+          ],
+          "name": "OpenRouter"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/openrouter"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "active": false,
+            "id": "<cred_3>",
+            "integrationID": "openrouter",
+            "label": "OpenRouter",
+            "value": {
+              "key": "sk-or-a",
+              "type": "key"
+            }
+          },
+          {
+            "active": false,
+            "id": "<cred_2>",
+            "integrationID": "openrouter",
+            "label": "Work",
+            "value": {
+              "key": "sk-or-b",
+              "type": "key"
+            }
+          },
+          {
+            "active": true,
+            "id": "<cred_1>",
+            "integrationID": "openrouter",
+            "label": "OpenRouter 2",
+            "value": {
+              "key": "sk-or-c",
+              "type": "key"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/credential"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "type": "credential.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "credentialID": "<cred_3>",
+          "integrationID": "openrouter"
+        },
+        "id": "<evt_14>",
+        "type": "credential.switched"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "type": "credential.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "credentialID": "<cred_2>",
+          "integrationID": "openrouter"
+        },
+        "id": "<evt_16>",
+        "type": "credential.switched"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_17>",
+        "type": "credential.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "credentialID": "<cred_1>",
+          "integrationID": "openrouter"
+        },
+        "id": "<evt_18>",
+        "type": "credential.switched"
+      }
+    ]
+  },
+  "files": {}
+}

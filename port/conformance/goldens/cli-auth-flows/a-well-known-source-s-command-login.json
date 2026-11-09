@@ -1,0 +1,195 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "https://auth.example.test/"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "\u001b[?25l│",
+          "◇  Authentication provider discovered",
+          "\u001b[?25h\u001b[?25l│",
+          "◇  Authentication command started",
+          "\u001b[?25h│",
+          "◇  Waiting for authentication command...",
+          "│",
+          "│  Opening the company login",
+          "│  Signed in as alice",
+          "│",
+          "◆  Connected to auth.example.test",
+          "│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "https://refused.example.test"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "\u001b[?25l│",
+          "◇  Authentication provider discovered",
+          "\u001b[?25h\u001b[?25l│",
+          "◇  Authentication command started",
+          "\u001b[?25h│",
+          "◇  Waiting for authentication command...",
+          "│",
+          "│  Access denied for alice",
+          "│",
+          "■  Access denied for alice",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "https://manual.example.test"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "\u001b[?25l│",
+          "■  Discovery failed",
+          "\u001b[?25h│",
+          "■  No authentication method found at https://manual.example.test",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "https://missing.example.test"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "\u001b[?25l│",
+          "■  Discovery failed",
+          "\u001b[?25h│",
+          "■  Failed to load wellknown manifest from https://missing.example.test/.well-known/opencode",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "auth.example.test  auth.example.test           stored",
+          "OpenRouter         OPENROUTER_API_KEY          environment",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "export",
+          "https://auth.example.test"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "active": true,
+              "id": "<cred_1>",
+              "integrationID": "https://auth.example.test",
+              "label": "auth.example.test",
+              "value": {
+                "key": "company-token",
+                "type": "key"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://auth.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://refused.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://manual.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://missing.example.test/.well-known/opencode"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

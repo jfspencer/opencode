@@ -1,0 +1,382 @@
+{
+  "transcript": [
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://auth.example.test//"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://auth.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "kind": "note",
+      "label": "listed",
+      "value": [
+        "amazon-bedrock (amazon-bedrock)",
+        "https://auth.example.test (auth.example.test)",
+        "azure (azure)",
+        "claude-agent (Claude Agent)",
+        "cloudflare-ai-gateway (cloudflare-ai-gateway)",
+        "cloudflare-workers-ai (cloudflare-workers-ai)",
+        "databricks (databricks)",
+        "digitalocean (digitalocean)",
+        "exa (Exa)",
+        "firecrawl (Firecrawl)",
+        "github-copilot (github-copilot)",
+        "gitlab (gitlab)",
+        "google-vertex (google-vertex)",
+        "neon (neon)",
+        "openai (openai)",
+        "opencode (OpenCode Console)",
+        "openrouter (OpenRouter)",
+        "parallel (Parallel)",
+        "poe (poe)",
+        "snowflake-cortex (snowflake-cortex)",
+        "tavily (Tavily)",
+        "tinyfish (TinyFish)",
+        "xai (xAI)"
+      ]
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [],
+          "id": "https://auth.example.test",
+          "methods": [
+            {
+              "command": [
+                "sh",
+                "-c",
+                "echo 'Opening the company login' >&2; echo 'Signed in as alice' >&2; echo '  company-token  '"
+              ],
+              "id": "login",
+              "label": "Log in",
+              "type": "command"
+            }
+          ],
+          "name": "auth.example.test"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationMethodNotFoundError",
+        "integrationID": "https://auth.example.test",
+        "message": "Integration method not found: other",
+        "methodID": "other"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "other"
+      },
+      "status": 404,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_1>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "label": "Company",
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "status": "complete",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test/connect/command/<con_1>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test/connect/command/<con_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "status": "complete",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test/connect/command/<con_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [
+            {
+              "id": "<cred_1>",
+              "label": "Company",
+              "method": "key",
+              "type": "credential"
+            }
+          ],
+          "id": "https://auth.example.test",
+          "methods": [
+            {
+              "command": [
+                "sh",
+                "-c",
+                "echo 'Opening the company login' >&2; echo 'Signed in as alice' >&2; echo '  company-token  '"
+              ],
+              "id": "login",
+              "label": "Log in",
+              "type": "command"
+            }
+          ],
+          "name": "auth.example.test"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fauth.example.test"
+    },
+    {
+      "body": {
+        "data": [
+          {
+            "active": true,
+            "id": "<cred_1>",
+            "integrationID": "https://auth.example.test",
+            "label": "Company",
+            "value": {
+              "key": "company-token",
+              "type": "key"
+            }
+          }
+        ]
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/credential"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://auth.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://auth.example.test/.well-known/opencode"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "type": "credential.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {
+          "credentialID": "<cred_1>",
+          "integrationID": "https://auth.example.test"
+        },
+        "id": "<evt_15>",
+        "type": "credential.switched"
+      }
+    ]
+  },
+  "files": {}
+}

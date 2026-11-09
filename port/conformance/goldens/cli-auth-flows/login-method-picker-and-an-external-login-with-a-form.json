@@ -1,0 +1,95 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock"
+        ],
+        "exit": 0,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "◇  Select login method",
+          "│  AWS profile (SSO or named profile)",
+          "│",
+          "●  No profiles found in your AWS configuration.",
+          "│",
+          "◇  AWS profile",
+          "│  Type your own answer",
+          "│",
+          "◇  AWS profile",
+          "│  dev",
+          "│",
+          "◇  Connected to amazon-bedrock",
+          "│",
+          "└  Done"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "\r",
+            " \r",
+            "dev\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "◇  Select login method",
+          "│  Bedrock API key",
+          "│",
+          "■  Bedrock API key",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[B",
+            "\r",
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "amazon-bedrock  amazon-bedrock              stored",
+          "OpenRouter      OPENROUTER_API_KEY          environment",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

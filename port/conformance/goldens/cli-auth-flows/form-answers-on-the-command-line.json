@@ -1,0 +1,173 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock",
+          "--method",
+          "aws-profile"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Authentication form input requires an interactive terminal",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock",
+          "--method",
+          "aws-profile",
+          "--answer",
+          "profile="
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  profile: Answer required",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock",
+          "--method",
+          "aws-profile",
+          "--answer",
+          "region=eu"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Unknown form field: region",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "amazon-bedrock",
+          "--method",
+          "aws-profile",
+          "--answer",
+          "profile=dev"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "\u001b[?25l│",
+          "◇  Connected to amazon-bedrock",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "claude-agent",
+          "--answer",
+          "profile=dev"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Unknown form field: profile",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "list",
+          "--format",
+          "json"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": {
+          "json": [
+            {
+              "connections": [
+                {
+                  "id": "<cred_1>",
+                  "label": "amazon-bedrock",
+                  "method": "external",
+                  "type": "credential"
+                }
+              ],
+              "id": "amazon-bedrock",
+              "name": "amazon-bedrock"
+            },
+            {
+              "connections": [
+                {
+                  "name": "OPENROUTER_API_KEY",
+                  "type": "env"
+                }
+              ],
+              "id": "openrouter",
+              "name": "OpenRouter"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}
