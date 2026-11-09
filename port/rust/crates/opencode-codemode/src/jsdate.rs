@@ -1,75 +1,63 @@
-//! TEMPORARY STUB (replaced by the jsdate work): JS Date algorithms, UTC only.
+//! The JavaScript Date algorithms the interpreter delegates to its host, matching JavaScriptCore as bun runs it.
+//!
+//! Time values are `f64` milliseconds since the epoch, NaN for an invalid date, exactly as in JavaScript. Every
+//! function is pure apart from the local time zone, which is read once per process (see `tz.rs`), and `now`.
+//!
+//! Where JSC departs from the specification, this follows JSC (verified against bun by `harness/jsdate`):
+//! - `Date.parse` is bun's port of V8's date parser (`parse.rs`).
+//! - The constructor and `Date.UTC` give NaN when the year after month normalization does not fit an int32.
+//! - The month and full-year setters give NaN for a year argument beyond ±275760 or a month argument beyond
+//!   ±3309120 (275760 years of months).
+//! - `getTimezoneOffset` and the `GMT+hhmm` of `toTimeString` truncate the offset to whole minutes (local
+//!   mean time offsets have seconds).
+//! - `toLocale*String` are ICU's en-US formats in UTC with the proleptic Gregorian calendar and era years
+//!   (year 0 is "1", i.e. 1 BC).
 
+mod parse;
+mod tz;
+mod zone_names;
+
+use std::time::{SystemTime, UNIX_EPOCH};
+
+const MS_PER_SECOND: f64 = 1000.0;
+const MS_PER_MINUTE: f64 = 60_000.0;
+const MS_PER_HOUR: f64 = 3_600_000.0;
 const MS_PER_DAY: f64 = 86_400_000.0;
+/// ±100,000,000 days around the epoch.
+const MAX_TIME: f64 = 8.64e15;
 
+/// `Date.now()`.
 pub fn now() -> f64 {
-    std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis() as f64).unwrap_or(0.0)
+    match SystemTime::now().duration_since(UNIX_EPOCH) {
+        Ok(elapsed) => elapsed.as_millis() as f64,
+        Err(before) => -(before.duration().as_millis() as f64),
+    }
 }
 
+/// TimeClip: what `new Date(number).getTime()` gives.
 pub fn time_clip(t: f64) -> f64 {
-    if !t.is_finite() || t.abs() > 8.64e15 {
+    if !t.is_finite() || t.abs() > MAX_TIME {
         return f64::NAN;
     }
     t.trunc() + 0.0
 }
 
-fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
-    let y = if m <= 2 { y - 1 } else { y };
-    let era = if y >= 0 { y } else { y - 399 } / 400;
-    let yoe = y - era * 400;
-    let mp = (m + 9) % 12;
-    let doy = (153 * mp + 2) / 5 + d - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146097 + doe - 719468
+/// `Date.parse(string)`.
+pub fn parse(s: &[u16]) -> f64 {
+    parse::parse(s)
 }
 
-fn civil_from_days(z: i64) -> (i64, i64, i64) {
-    let z = z + 719468;
-    let era = if z >= 0 { z } else { z - 146096 } / 146097;
-    let doe = z - era * 146097;
-    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    let y = yoe + era * 400;
-    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    let mp = (5 * doy + 2) / 153;
-    let d = doy - (153 * mp + 2) / 5 + 1;
-    let m = if mp < 10 { mp + 3 } else { mp - 9 };
-    (if m <= 2 { y + 1 } else { y }, m, d)
-}
-
-fn make_day(year: f64, month: f64, date: f64) -> f64 {
-    if !year.is_finite() || !month.is_finite() || !date.is_finite() {
-        return f64::NAN;
-    }
-    let ym = year.trunc() + (month.trunc() / 12.0).floor();
-    let mn = month.trunc().rem_euclid(12.0);
-    let days = days_from_civil(ym as i64, mn as i64 + 1, 1) as f64;
-    days + date.trunc() - 1.0
-}
-
-fn make_time(h: f64, m: f64, s: f64, ms: f64) -> f64 {
-    if !h.is_finite() || !m.is_finite() || !s.is_finite() || !ms.is_finite() {
-        return f64::NAN;
-    }
-    h.trunc() * 3_600_000.0 + m.trunc() * 60_000.0 + s.trunc() * 1000.0 + ms.trunc()
-}
-
-fn components(args: &[f64]) -> f64 {
-    let year = args.first().copied().unwrap_or(f64::NAN);
-    let year = if year.is_finite() && (0.0..=99.0).contains(&year.trunc()) { 1900.0 + year.trunc() } else { year };
-    let get = |i: usize, d: f64| args.get(i).copied().unwrap_or(d);
-    let day = make_day(year, get(1, 0.0), get(2, 1.0));
-    time_clip(day * MS_PER_DAY + make_time(get(3, 0.0), get(4, 0.0), get(5, 0.0), get(6, 0.0)))
-}
-
+/// `Date.UTC(...args)` with the arguments already converted to numbers.
 pub fn utc(args: &[f64]) -> f64 {
-    components(args)
+    time_clip(from_components(args))
 }
 
+/// `new Date(y, m, d?, h?, min?, s?, ms?).getTime()`.
 pub fn from_local_components(args: &[f64]) -> f64 {
-    components(args)
+    time_clip(local_to_utc(from_components(args)))
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Getter {
     FullYear,
     Month,
@@ -90,27 +78,37 @@ pub enum Getter {
     TimezoneOffset,
 }
 
+/// `new Date(t).getX()`.
 pub fn get(t: f64, getter: Getter) -> f64 {
-    if t.is_nan() {
+    if !t.is_finite() {
         return f64::NAN;
     }
-    let day = (t / MS_PER_DAY).floor();
-    let ms_in_day = t - day * MS_PER_DAY;
-    let (y, m, d) = civil_from_days(day as i64);
+    let local = || {
+        let (offset, _) = tz::zone().offset_at_utc(t);
+        t + offset
+    };
     match getter {
-        Getter::FullYear | Getter::UtcFullYear => y as f64,
-        Getter::Month | Getter::UtcMonth => (m - 1) as f64,
-        Getter::Date | Getter::UtcDate => d as f64,
-        Getter::Day | Getter::UtcDay => ((day + 4.0).rem_euclid(7.0)),
-        Getter::Hours | Getter::UtcHours => (ms_in_day / 3_600_000.0).floor(),
-        Getter::Minutes | Getter::UtcMinutes => ((ms_in_day / 60_000.0).floor()).rem_euclid(60.0),
-        Getter::Seconds | Getter::UtcSeconds => ((ms_in_day / 1000.0).floor()).rem_euclid(60.0),
-        Getter::Milliseconds | Getter::UtcMilliseconds => ms_in_day.rem_euclid(1000.0),
-        Getter::TimezoneOffset => 0.0,
+        Getter::FullYear => Fields::of(local()).year as f64,
+        Getter::Month => Fields::of(local()).month as f64,
+        Getter::Date => Fields::of(local()).date as f64,
+        Getter::Day => week_day(local()),
+        Getter::Hours => hour_from_time(local()),
+        Getter::Minutes => min_from_time(local()),
+        Getter::Seconds => sec_from_time(local()),
+        Getter::Milliseconds => ms_from_time(t),
+        Getter::UtcFullYear => Fields::of(t).year as f64,
+        Getter::UtcMonth => Fields::of(t).month as f64,
+        Getter::UtcDate => Fields::of(t).date as f64,
+        Getter::UtcDay => week_day(t),
+        Getter::UtcHours => hour_from_time(t),
+        Getter::UtcMinutes => min_from_time(t),
+        Getter::UtcSeconds => sec_from_time(t),
+        Getter::UtcMilliseconds => ms_from_time(t),
+        Getter::TimezoneOffset => -(offset_minutes(t) as f64) + 0.0,
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Setter {
     Time,
     Milliseconds,
@@ -129,138 +127,377 @@ pub enum Setter {
     UtcFullYear,
 }
 
+/// The time value `new Date(t).setX(...args)` returns (and stores). `args.len()` is the number of arguments passed;
+/// a missing first argument counts as `undefined` (NaN).
 pub fn set(t: f64, setter: Setter, args: &[f64]) -> f64 {
-    let arg = |i: usize| args.get(i).copied();
-    if let Setter::Time = setter {
-        return time_clip(arg(0).unwrap_or(f64::NAN));
+    if setter == Setter::Time {
+        return time_clip(args.first().copied().unwrap_or(f64::NAN));
     }
-    let base = if t.is_nan() { 0.0 } else { t };
-    let (y, mo, d) = (get(base, Getter::FullYear), get(base, Getter::Month), get(base, Getter::Date));
-    let (h, mi, s, ms) = (get(base, Getter::Hours), get(base, Getter::Minutes), get(base, Getter::Seconds), get(base, Getter::Milliseconds));
-    let (y, mo, d, h, mi, s, ms) = match setter {
-        Setter::Milliseconds | Setter::UtcMilliseconds => (y, mo, d, h, mi, s, arg(0).unwrap_or(f64::NAN)),
-        Setter::Seconds | Setter::UtcSeconds => (y, mo, d, h, mi, arg(0).unwrap_or(f64::NAN), arg(1).unwrap_or(ms)),
-        Setter::Minutes | Setter::UtcMinutes => (y, mo, d, h, arg(0).unwrap_or(f64::NAN), arg(1).unwrap_or(s), arg(2).unwrap_or(ms)),
-        Setter::Hours | Setter::UtcHours => (y, mo, d, arg(0).unwrap_or(f64::NAN), arg(1).unwrap_or(mi), arg(2).unwrap_or(s), arg(3).unwrap_or(ms)),
-        Setter::Date | Setter::UtcDate => (y, mo, arg(0).unwrap_or(f64::NAN), h, mi, s, ms),
-        Setter::Month | Setter::UtcMonth => (y, arg(0).unwrap_or(f64::NAN), arg(1).unwrap_or(d), h, mi, s, ms),
-        Setter::FullYear | Setter::UtcFullYear => (arg(0).unwrap_or(f64::NAN), arg(1).unwrap_or(mo), arg(2).unwrap_or(d), h, mi, s, ms),
-        Setter::Time => unreachable!(),
+    let local = !matches!(
+        setter,
+        Setter::UtcMilliseconds
+            | Setter::UtcSeconds
+            | Setter::UtcMinutes
+            | Setter::UtcHours
+            | Setter::UtcDate
+            | Setter::UtcMonth
+            | Setter::UtcFullYear
+    );
+    let base = if !t.is_finite() {
+        // Only the full-year setters start an invalid date over, from +0.
+        if !matches!(setter, Setter::FullYear | Setter::UtcFullYear) {
+            return f64::NAN;
+        }
+        0.0
+    } else if local {
+        t + tz::zone().offset_at_utc(t).0
+    } else {
+        t
     };
-    time_clip(make_day(y, mo, d) * MS_PER_DAY + make_time(h, mi, s, ms))
+    let new = match setter {
+        Setter::Time => unreachable!(),
+        Setter::Milliseconds | Setter::UtcMilliseconds => set_time_fields(base, args, 3, 1),
+        Setter::Seconds | Setter::UtcSeconds => set_time_fields(base, args, 2, 2),
+        Setter::Minutes | Setter::UtcMinutes => set_time_fields(base, args, 1, 3),
+        Setter::Hours | Setter::UtcHours => set_time_fields(base, args, 0, 4),
+        Setter::Date | Setter::UtcDate => set_date_fields(base, args, 2, 1),
+        Setter::Month | Setter::UtcMonth => set_date_fields(base, args, 1, 2),
+        Setter::FullYear | Setter::UtcFullYear => set_date_fields(base, args, 0, 3),
+    };
+    time_clip(if local { local_to_utc(new) } else { new })
 }
 
+/// The given arguments of a setter whose first component is `first` and that takes `length` of them: the first
+/// always (absent means undefined), the rest as passed.
+fn given(args: &[f64], first: usize, length: usize) -> impl Iterator<Item = (usize, f64)> + '_ {
+    (first..first + length)
+        .take(args.len().clamp(1, length))
+        .enumerate()
+        .map(move |(i, slot)| (slot, args.get(i).copied().unwrap_or(f64::NAN)))
+}
+
+/// The time setters as JSC computes them: the given components (slots 0 hours, 1 minutes, 2 seconds,
+/// 3 milliseconds, from `first`) accumulate into a millisecond count first, which is then added to the date's
+/// remaining fields. The order only shows when huge components cancel out.
+fn set_time_fields(base: f64, args: &[f64], first: usize, length: usize) -> f64 {
+    const UNITS: [f64; 3] = [MS_PER_HOUR, MS_PER_MINUTE, MS_PER_SECOND];
+    let mut fields = [hour_from_time(base), min_from_time(base), sec_from_time(base)];
+    let mut ms = ms_from_time(base);
+    let mut accumulated = 0.0;
+    for (slot, value) in given(args, first, length) {
+        if !value.is_finite() {
+            return f64::NAN;
+        }
+        if slot < 3 {
+            fields[slot] = 0.0;
+            accumulated += integer(value) * UNITS[slot];
+        } else {
+            ms = integer(value);
+        }
+    }
+    accumulated += ms;
+    let day = (base / MS_PER_DAY).floor();
+    make_date(day, ((fields[0] * 60.0 + fields[1]) * 60.0 + fields[2]) * MS_PER_SECOND + accumulated)
+}
+
+/// The date setters as JSC computes them (slots 0 year, 1 month, 2 date, from `first`): a year beyond ±275760 or a
+/// month beyond ±3309120 gives NaN, and a given date goes in as days of milliseconds added to the time of day.
+fn set_date_fields(base: f64, args: &[f64], first: usize, length: usize) -> f64 {
+    let f = Fields::of(base);
+    let (mut year, mut month, mut date) = (f.year as f64, f.month as f64, f.date as f64);
+    let mut ms = ms_from_time(base);
+    for (slot, value) in given(args, first, length) {
+        if !value.is_finite() {
+            return f64::NAN;
+        }
+        let value = integer(value);
+        match slot {
+            0 if value.abs() > 275_760.0 => return f64::NAN,
+            0 => year = value,
+            1 if value.abs() > 3_309_120.0 => return f64::NAN,
+            1 => month = value,
+            _ => {
+                date = 0.0;
+                ms += value * MS_PER_DAY;
+            }
+        }
+    }
+    let ym = year + (month / 12.0).floor();
+    let day = civil::days_from_civil(ym as i64, month.rem_euclid(12.0) as u32 + 1, 1) as f64 + date - 1.0;
+    let time = ((hour_from_time(base) * 60.0 + min_from_time(base)) * 60.0 + sec_from_time(base)) * MS_PER_SECOND + ms;
+    make_date(day, time)
+}
+
+/// `toISOString`, or `None` for an invalid date (which throws a RangeError).
 pub fn to_iso_string(t: f64) -> Option<String> {
     if !t.is_finite() {
         return None;
     }
-    let y = get(t, Getter::UtcFullYear) as i64;
-    let year = if (0..=9999).contains(&y) { format!("{y:04}") } else if y < 0 { format!("-{:06}", -y) } else { format!("+{y:06}") };
+    let f = Fields::of(t);
+    let year = if (0..=9999).contains(&f.year) {
+        format!("{:04}", f.year)
+    } else {
+        format!("{}{:06}", if f.year < 0 { '-' } else { '+' }, f.year.unsigned_abs())
+    };
     Some(format!(
         "{year}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
-        get(t, Getter::UtcMonth) as i64 + 1,
-        get(t, Getter::UtcDate) as i64,
-        get(t, Getter::UtcHours) as i64,
-        get(t, Getter::UtcMinutes) as i64,
-        get(t, Getter::UtcSeconds) as i64,
-        get(t, Getter::UtcMilliseconds) as i64
+        f.month + 1,
+        f.date,
+        hour_from_time(t),
+        min_from_time(t),
+        sec_from_time(t),
+        ms_from_time(t)
     ))
 }
 
-const DAYS: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEK_DAYS: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const INVALID: &str = "Invalid Date";
 
+/// JSC's year in date strings: at least four digits, with a minus sign for years before 1 BC.
+fn year4(year: i64) -> String {
+    if year < 0 { format!("-{:04}", year.unsigned_abs()) } else { format!("{year:04}") }
+}
+
+/// `toUTCString` (and `toGMTString`).
 pub fn to_utc_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
+    let f = Fields::of(t);
     format!(
-        "{}, {:02} {} {:04} {:02}:{:02}:{:02} GMT",
-        DAYS[get(t, Getter::UtcDay) as usize],
-        get(t, Getter::UtcDate) as i64,
-        MONTHS[get(t, Getter::UtcMonth) as usize],
-        get(t, Getter::UtcFullYear) as i64,
-        get(t, Getter::UtcHours) as i64,
-        get(t, Getter::UtcMinutes) as i64,
-        get(t, Getter::UtcSeconds) as i64
+        "{}, {:02} {} {} {:02}:{:02}:{:02} GMT",
+        WEEK_DAYS[week_day(t) as usize],
+        f.date,
+        MONTHS[f.month as usize],
+        year4(f.year),
+        hour_from_time(t),
+        min_from_time(t),
+        sec_from_time(t)
     )
 }
 
+/// `toDateString`, in the local time zone.
 pub fn to_date_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
-    format!(
-        "{} {} {:02} {:04}",
-        DAYS[get(t, Getter::Day) as usize],
-        MONTHS[get(t, Getter::Month) as usize],
-        get(t, Getter::Date) as i64,
-        get(t, Getter::FullYear) as i64
-    )
+    let local = t + tz::zone().offset_at_utc(t).0;
+    let f = Fields::of(local);
+    format!("{} {} {:02} {}", WEEK_DAYS[week_day(local) as usize], MONTHS[f.month as usize], f.date, year4(f.year))
 }
 
+/// `toTimeString`, in the local time zone, e.g. "00:00:00 GMT+0000 (Coordinated Universal Time)".
 pub fn to_time_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
+    let zone = tz::zone();
+    let (offset, dst) = zone.offset_at_utc(t);
+    let local = t + offset;
+    let minutes = offset_minutes(t);
+    let sign = if minutes < 0 { '-' } else { '+' };
+    let abs = minutes.unsigned_abs();
     format!(
-        "{:02}:{:02}:{:02} GMT+0000 (Coordinated Universal Time)",
-        get(t, Getter::Hours) as i64,
-        get(t, Getter::Minutes) as i64,
-        get(t, Getter::Seconds) as i64
+        "{:02}:{:02}:{:02} GMT{sign}{:02}{:02} ({})",
+        hour_from_time(local),
+        min_from_time(local),
+        sec_from_time(local),
+        abs / 60,
+        abs % 60,
+        zone.name(dst)
     )
 }
 
+/// The local offset at `t` in whole minutes, truncated toward zero as JSC's `utcOffsetInMinute`.
+fn offset_minutes(t: f64) -> i64 {
+    let (offset, _) = tz::zone().offset_at_utc(t);
+    (offset / MS_PER_SECOND) as i64 / 60
+}
+
+fn locale_date(f: &Fields) -> String {
+    let year = if f.year <= 0 { 1 - f.year } else { f.year };
+    format!("{}/{}/{}", f.month + 1, f.date, year)
+}
+
+fn locale_time(t: f64) -> String {
+    let hour = hour_from_time(t) as u32;
+    let h12 = if hour.is_multiple_of(12) { 12 } else { hour % 12 };
+    let meridiem = if hour < 12 { "AM" } else { "PM" };
+    format!("{h12}:{:02}:{:02} {meridiem}", min_from_time(t), sec_from_time(t))
+}
+
+/// `toLocaleString("en-US", { timeZone: "UTC" })`, e.g. "1/1/1970, 12:00:00 AM".
 pub fn to_locale_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
-    format!("{}, {}", to_locale_date_string(t), to_locale_time_string(t))
+    format!("{}, {}", locale_date(&Fields::of(t)), locale_time(t))
 }
 
+/// `toLocaleDateString("en-US", { timeZone: "UTC" })`.
 pub fn to_locale_date_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
-    format!("{}/{}/{}", get(t, Getter::UtcMonth) as i64 + 1, get(t, Getter::UtcDate) as i64, get(t, Getter::UtcFullYear) as i64)
+    locale_date(&Fields::of(t))
 }
 
+/// `toLocaleTimeString("en-US", { timeZone: "UTC" })`.
 pub fn to_locale_time_string(t: f64) -> String {
     if !t.is_finite() {
-        return "Invalid Date".into();
+        return INVALID.to_string();
     }
-    let h = get(t, Getter::UtcHours) as i64;
-    let (hour, suffix) = match h {
-        0 => (12, "AM"),
-        1..=11 => (h, "AM"),
-        12 => (12, "PM"),
-        _ => (h - 12, "PM"),
-    };
-    format!("{hour}:{:02}:{:02}\u{202f}{suffix}", get(t, Getter::UtcMinutes) as i64, get(t, Getter::UtcSeconds) as i64)
+    locale_time(t)
 }
 
-pub fn parse(s: &[u16]) -> f64 {
-    let text = String::from_utf16_lossy(s);
-    let text = text.trim();
-    let digits = |s: &str| s.parse::<f64>().ok();
-    let date_part = text.split(['T', ' ']).next().unwrap_or("");
-    let pieces: Vec<&str> = date_part.split('-').collect();
-    if pieces.len() >= 1 && pieces.len() <= 3 && pieces[0].len() == 4 {
-        let y = digits(pieces[0]);
-        let m = pieces.get(1).and_then(|p| digits(p)).unwrap_or(1.0);
-        let d = pieces.get(2).and_then(|p| digits(p)).unwrap_or(1.0);
-        if let Some(y) = y {
-            let mut time = 0.0;
-            if let Some(rest) = text.get(date_part.len() + 1..) {
-                let rest = rest.trim_end_matches('Z');
-                let parts: Vec<&str> = rest.split(':').collect();
-                let h = parts.first().and_then(|p| digits(p)).unwrap_or(0.0);
-                let mi = parts.get(1).and_then(|p| digits(p)).unwrap_or(0.0);
-                let sec = parts.get(2).and_then(|p| digits(p)).unwrap_or(0.0);
-                time = h * 3_600_000.0 + mi * 60_000.0 + (sec * 1000.0).round();
-            }
-            return time_clip(make_day(y, m - 1.0, d) * MS_PER_DAY + time);
-        }
+// --- The specification's date arithmetic ---
+
+/// Calendar fields of a finite time value (UTC or already shifted to local time).
+struct Fields {
+    year: i64,
+    /// 0..=11.
+    month: u32,
+    /// 1..=31.
+    date: u32,
+}
+
+impl Fields {
+    fn of(t: f64) -> Fields {
+        let day = (t / MS_PER_DAY).floor();
+        let (year, month, date) = civil::civil_from_days(day as i64);
+        Fields { year, month: month - 1, date }
     }
-    f64::NAN
+}
+
+fn week_day(t: f64) -> f64 {
+    ((t / MS_PER_DAY).floor() + 4.0).rem_euclid(7.0) + 0.0
+}
+
+fn hour_from_time(t: f64) -> f64 {
+    (t / MS_PER_HOUR).floor().rem_euclid(24.0) + 0.0
+}
+
+fn min_from_time(t: f64) -> f64 {
+    (t / MS_PER_MINUTE).floor().rem_euclid(60.0) + 0.0
+}
+
+fn sec_from_time(t: f64) -> f64 {
+    (t / MS_PER_SECOND).floor().rem_euclid(60.0) + 0.0
+}
+
+fn ms_from_time(t: f64) -> f64 {
+    t.rem_euclid(MS_PER_SECOND) + 0.0
+}
+
+/// ToIntegerOrInfinity of a finite number.
+fn integer(x: f64) -> f64 {
+    x.trunc() + 0.0
+}
+
+fn make_time(hour: f64, min: f64, sec: f64, ms: f64) -> f64 {
+    if !(hour.is_finite() && min.is_finite() && sec.is_finite() && ms.is_finite()) {
+        return f64::NAN;
+    }
+    integer(hour) * MS_PER_HOUR + integer(min) * MS_PER_MINUTE + integer(sec) * MS_PER_SECOND + integer(ms)
+}
+
+/// MakeDay, with JSC's limit: the normalized year must fit an int32.
+fn make_day(year: f64, month: f64, date: f64) -> f64 {
+    if !(year.is_finite() && month.is_finite() && date.is_finite()) {
+        return f64::NAN;
+    }
+    let (y, m, dt) = (integer(year), integer(month), integer(date));
+    let ym = y + (m / 12.0).floor();
+    if !(ym >= i32::MIN as f64 && ym <= i32::MAX as f64) {
+        return f64::NAN;
+    }
+    let mn = m.rem_euclid(12.0) as u32;
+    let days = civil::days_from_civil(ym as i64, mn + 1, 1) as f64;
+    days + dt - 1.0
+}
+
+fn make_date(day: f64, time: f64) -> f64 {
+    if !(day.is_finite() && time.is_finite()) {
+        return f64::NAN;
+    }
+    let tv = day * MS_PER_DAY + time;
+    if tv.is_finite() { tv } else { f64::NAN }
+}
+
+/// The unclipped time value of the components of `Date.UTC` and the multi-argument constructor.
+fn from_components(args: &[f64]) -> f64 {
+    let arg = |i: usize, default: f64| args.get(i).copied().unwrap_or(default);
+    let year = arg(0, f64::NAN);
+    if !year.is_finite() {
+        return f64::NAN;
+    }
+    let mut y = integer(year);
+    if (0.0..=99.0).contains(&y) {
+        y += 1900.0;
+    }
+    let day = make_day(y, arg(1, 0.0), arg(2, 1.0));
+    make_date(day, make_time(arg(3, 0.0), arg(4, 0.0), arg(5, 0.0), arg(6, 0.0)))
+}
+
+/// UTC(t): a local time value to UTC, with the offset before a transition for skipped and repeated times.
+fn local_to_utc(t: f64) -> f64 {
+    if !t.is_finite() {
+        return f64::NAN;
+    }
+    t - tz::zone().offset_for_local(t)
+}
+
+mod civil {
+    //! Proleptic Gregorian calendar conversions on day numbers (days since 1970-01-01).
+
+    /// Days since the epoch of `year`-`month`-`day` (month 1..=12).
+    pub(super) fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
+        let y = if month <= 2 { year - 1 } else { year };
+        let era = y.div_euclid(400);
+        let yoe = y.rem_euclid(400);
+        let m = month as i64;
+        let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + day as i64 - 1;
+        let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+        era * 146_097 + doe - 719_468
+    }
+
+    /// (year, month 1..=12, day 1..=31) of a day number.
+    pub(super) fn civil_from_days(days: i64) -> (i64, u32, u32) {
+        let z = days + 719_468;
+        let era = z.div_euclid(146_097);
+        let doe = z.rem_euclid(146_097);
+        let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
+        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+        let mp = (5 * doy + 2) / 153;
+        let day = (doy - (153 * mp + 2) / 5 + 1) as u32;
+        let month = if mp < 10 { mp + 3 } else { mp - 9 } as u32;
+        let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 };
+        (year, month, day)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn civil_round_trip() {
+        for days in [-100_000_000i64, -719_468, -1, 0, 1, 59, 365, 11_016, 100_000_000] {
+            let (y, m, d) = civil::civil_from_days(days);
+            assert_eq!(civil::days_from_civil(y, m, d), days);
+        }
+        assert_eq!(civil::civil_from_days(0), (1970, 1, 1));
+        assert_eq!(civil::civil_from_days(-100_000_000), (-271_821, 4, 20));
+    }
+
+    #[test]
+    fn utc_strings() {
+        assert_eq!(to_iso_string(0.0).as_deref(), Some("1970-01-01T00:00:00.000Z"));
+        assert_eq!(to_iso_string(8.64e15).as_deref(), Some("+275760-09-13T00:00:00.000Z"));
+        assert_eq!(to_iso_string(-62198755200000.0).as_deref(), Some("-000001-01-01T00:00:00.000Z"));
+        assert_eq!(to_utc_string(-8.64e15), "Tue, 20 Apr -271821 00:00:00 GMT");
+        assert_eq!(to_locale_string(-8.64e15), "4/20/271822, 12:00:00 AM");
+        assert_eq!(utc(&[2020.0, 0.0, 1.0, 0.0, 0.0, 0.0, 3e9]), 1580836800000.0);
+    }
 }
