@@ -3,7 +3,9 @@
 //! project's worktree needs `external_directory` approval for the directory that holds it. The approval's saved
 //! pattern is the enclosing repository's root (or the directory itself), with `*` and `?` escaped.
 //!
-//! TODO(port): `authorizeRead` (the read tool's sibling-file recovery) is the file tools'.
+//! `authorizeRead` asks for the external directory, then for the read itself; a recovered file name in the same
+//! directory (the read tool's near-miss recovery) shares the directory's approval. The editing tools ask through
+//! [`authorize_external_for`] and [`crate::session::plan::assert`], which reword the plan agent's denials.
 
 use opencode_protocol::Json;
 
@@ -31,7 +33,6 @@ pub struct External {
 pub struct Target {
     pub absolute: String,
     /// Location-relative inside the location, absolute outside it.
-    #[allow(dead_code)]
     pub resource: String,
     pub external: Option<External>,
 }
@@ -53,11 +54,29 @@ pub fn resolve_path(directory: &str, input: &str) -> String {
     opencode_shell::resolve_path(directory, input, &home())
 }
 
-fn dirname(path: &str) -> String {
-    match path.rfind('/') {
-        Some(0) => "/".into(),
-        Some(index) => path[..index].to_owned(),
-        None => ".".into(),
+/// `path.posix.dirname`.
+pub fn dirname(path: &str) -> String {
+    let bytes = path.as_bytes();
+    if bytes.is_empty() {
+        return ".".into();
+    }
+    let rooted = bytes[0] == b'/';
+    let mut end = None;
+    let mut matched_slash = true;
+    for index in (1..bytes.len()).rev() {
+        if bytes[index] == b'/' {
+            if !matched_slash {
+                end = Some(index);
+                break;
+            }
+        } else {
+            matched_slash = false;
+        }
+    }
+    match end {
+        None => (if rooted { "/" } else { "." }).into(),
+        Some(1) if rooted => "//".into(),
+        Some(end) => path[..end].to_owned(),
     }
 }
 
@@ -65,7 +84,8 @@ fn basename(path: &str) -> &str {
     path.rsplit('/').next().unwrap_or(path)
 }
 
-fn join(directory: &str, name: &str) -> String {
+/// `path.join(directory, name)`.
+pub fn join(directory: &str, name: &str) -> String {
     crate::project::normalize(&format!("{directory}/{name}"))
 }
 
@@ -140,8 +160,8 @@ pub async fn resolve(location: &Location, path: &str, kind: Option<Kind>) -> Tar
         .expect("path resolution")
 }
 
-/// `FileAccess.authorizeExternal`: one approval for every external directory among `targets`, in first-seen order.
-pub async fn authorize_external(context: &Context, targets: &[Target], metadata: Option<Json>) -> Result<(), Failure> {
+/// The `external_directory` request for the external directories among `targets`, in first-seen order.
+fn external_ask(targets: &[Target], metadata: Option<Json>) -> Option<crate::permission::Ask> {
     let mut external: Vec<&External> = Vec::new();
     for item in targets.iter().filter_map(|t| t.external.as_ref()) {
         if !external.iter().any(|seen| seen.resource == item.resource) {
@@ -149,14 +169,48 @@ pub async fn authorize_external(context: &Context, targets: &[Target], metadata:
         }
     }
     if external.is_empty() {
-        return Ok(());
+        return None;
+    }
+    Some(crate::permission::Ask {
+        action: "external_directory".into(),
+        resources: external.iter().map(|e| e.resource.clone()).collect(),
+        save: Some(external.iter().map(|e| e.save.clone()).collect()),
+        metadata,
+    })
+}
+
+/// `FileAccess.authorizeExternal`: one approval for every external directory among `targets`, in first-seen order.
+pub async fn authorize_external(context: &Context, targets: &[Target], metadata: Option<Json>) -> Result<(), Failure> {
+    match external_ask(targets, metadata) {
+        None => Ok(()),
+        Some(ask) => context.assert(ask).await,
+    }
+}
+
+/// [`authorize_external`] for the tool named `tool` (the plan agent's rewording of a denied edit applied).
+pub async fn authorize_external_for(context: &Context, tool: &str, targets: &[Target], metadata: Option<Json>) -> Result<(), Failure> {
+    match external_ask(targets, metadata) {
+        None => Ok(()),
+        Some(ask) => crate::session::plan::assert(context, tool, ask).await,
+    }
+}
+
+/// `FileAccess.authorizeRead`: the external directory approved, then the read itself. A recovered file name
+/// (`sibling_of`, in the same directory as the target it recovers) shares its directory approval but checks its own
+/// read rules.
+pub async fn authorize_read(context: &Context, file: &str, sibling_of: Option<&Target>) -> Result<Target, Failure> {
+    let target = resolve(&context.location, file, sibling_of.map(|_| Kind::File)).await;
+    let sibling = sibling_of.is_some_and(|other| dirname(&target.absolute) == dirname(&other.absolute));
+    if !sibling {
+        authorize_external(context, std::slice::from_ref(&target), None).await?;
     }
     context
         .assert(crate::permission::Ask {
-            action: "external_directory".into(),
-            resources: external.iter().map(|e| e.resource.clone()).collect(),
-            save: Some(external.iter().map(|e| e.save.clone()).collect()),
-            metadata,
+            action: "read".into(),
+            resources: vec![target.resource.clone()],
+            save: Some(vec!["*".into()]),
+            metadata: None,
         })
-        .await
+        .await?;
+    Ok(target)
 }

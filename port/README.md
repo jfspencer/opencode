@@ -163,12 +163,13 @@ sets. Known gaps, also listed at the top of `generated/types.rs`:
 
 ## Rust server
 
-`rust/crates/opencode` is the `opencode` executable. So far it runs `opencode serve` (`--hostname`, `--port`), configured
+`rust/crates/opencode` is the `opencode` executable: the CLI (see `cli/`) and the server it runs, configured
 like the TS server through the environment (`OPENCODE_PASSWORD`/`OPENCODE_SERVER_PASSWORD`, `OPENCODE_DB`, XDG
 directories). It is one process on a single-threaded tokio runtime: hyper for HTTP/1.1, SQLite through rusqlite.
 
 | Module | TS counterpart |
 |---|---|
+| `cli.rs`, `cli/`, `cors.rs` | `packages/cli`: the command line on effect/cli's parsing, help and error texts (help, version, completions, `serve`, `service`, `models`, `debug`, `session`, `api`), CORS preflight and the request-site check |
 | `http.rs`, `auth.rs` | `server/src/process.ts`, `auth.ts`, `middleware/authorization.ts`: Basic credentials (or `auth_token`), routing over the generated route table (static segments over parameters over wildcards) |
 | `api.rs` | the HttpApi pipeline: location middleware, then the request decoded against the endpoint's generated schemas (`roots::roundtrip`), a rejection being a 400 `InvalidRequestError` naming the part |
 | `handlers/` | `server/src/handlers/*.ts`, one module per area of the API (`handlers/mod.rs` routes an operation by its name) |
@@ -191,13 +192,15 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `schedule.rs`, `schedule/`, `zone.rs`, `flag.rs`, `tool/schedule.rs` | `core/src/schedule.ts`, `schedule/check.ts`, `flag.ts`, `tool/plugin/schedule.ts`, Effect's `Cron` and `DateTime` zones: schedules (`in`, `at`, `every`, `cron`; `if`/`until` shell checks under `Permission.Unattended`) and the leader-leased firing loop, zones from the system tzdata, feature flags; code checks and the schedule tools' execution are TODO |
 | `session/transfer.rs`, `session/stats.rs`, `session/blob.rs` | `session/transfer.ts`, `Session.fork`, `session-legacy.ts`, `session/stats.ts`, `session/blob.ts`: export (sanitized), import, fork, statistics, media blobs on read, import and fork |
 | `shell.rs`, `shell/`, `file_access.rs`, `tool/shell.rs`, `session/shell.rs` | `core/src/shell.ts`, `shell/select.ts`, `file-access.ts`, `tool/plugin/shell.ts`, `session/shell.ts`, `session/environment.ts`, `server/src/handlers/shell.ts`: a location's shell commands (each leads its own process group; stdout and stderr stream from two pipes into `<data>/shell/<project>/<id>.out` with byte and newline counts; timeouts send SIGTERM, then SIGKILL; 25 exited commands kept; an hourly 7-day sweep), shell selection, the shell tool (workdir resolution, `opencode-shell` analysis, `external_directory` and `shell` permissions, a job that blocks, is backgrounded or notifies the session), users' `!commands`, and the session environment. TODO(port): PTY and persistent PTY |
+| `tool/{read,write,edit,glob,grep}.rs`, `tool/file_*.rs`, `formatter.rs` | `core/src/tool/plugin/{read,write,edit,glob,grep}.ts`, `file-diff.ts`, `tool/read-filesystem.ts`, `tool/search.ts`, `file-write.ts`, `file-mutation.ts`, `ripgrep.ts`, `formatter.ts`, `formatter/builtins.ts`, `plugin/tool-input-repair.ts` and `tool/runtime.ts`'s input decoding, `tool.ts`'s `normalizeImages`: read pages text in 256 KiB chunks (2,000 lines or 50 KiB), lists directories, returns images and PDFs inline, suggests near-miss names, and loads nearby `AGENTS.md` once per session; write and edit approve the external directory, then the edit, with a jsdiff preview, keep BOMs and run the configured formatters; edit matches the LF view, then typographic variants, then trailing whitespace; glob and grep run ripgrep, bounded by the limit and 30 s. `harness/file-tools/run.sh` checks diffs, edit matching and read pages against the reference on random cases. TODO(port): `patch` (shown only to `gpt-*` models), `todowrite` (off by flag), resizing large images, installing npm formatters |
 | `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
 | `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
-Status (2026-11-09): 456 of the 673 server scenarios pass (the ledger): session CRUD, projects, locations, the file
+Status (2026-11-09): 569 of the 673 server scenarios pass (the ledger): session CRUD, projects, locations, the file
 system, version control, worktrees, config, agents, providers and models, the execution loop, compaction, permissions,
 questions and forms, subagents and jobs, snapshots and reverts, schedules, session transfer, webfetch, skills and
-instructions, and shell. The file tools, Code Mode's `execute`, the CLI and the PTY APIs are in progress. Release builds peak at about 9
+instructions, shell, the file tools, and the CLI's meta, service, serve, models, debug, session and api commands.
+Code Mode's `execute`, `opencode run`, auth, stats, ACP and the PTY APIs are in progress. Release builds peak at about 9
 to 12 MiB per server process on the passing scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
 endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
