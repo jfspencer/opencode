@@ -1,0 +1,161 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "export",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode session export",
+          "",
+          "EXPORT · FLAGS",
+          "✔ Set Sanitize (--sanitize)? … yes",
+          "✔ Sanitize (--sanitize) … true",
+          "",
+          "Current command",
+          "  $ opencode session export --sanitize true",
+          "",
+          "EXPORT · ARGUMENTS",
+          "✔ Set Session? … no",
+          "",
+          "Command ready",
+          "  $ opencode session export --sanitize true",
+          "",
+          "✔ Run this command? … yes / no"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "t",
+            "\r",
+            "\t",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode service get",
+          "",
+          "GET · ARGUMENTS",
+          "✔ Set Key? … yes",
+          "? Key › po",
+          "Wizard cancelled."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "po\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "stats",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "\u001b[1;96mopencode\u001b[0m \u001b[37mvconformance\u001b[0m \u001b[1;37m· Command wizard\u001b[0m",
+          "OpenCode command line interface",
+          "\u001b[90mBuild a command interactively. Press Ctrl+C to cancel.\u001b[0m",
+          "",
+          "\u001b[1;37mCurrent command\u001b[0m",
+          "\u001b[35m  $ opencode stats\u001b[0m",
+          "",
+          "\u001b[1;96mSTATS\u001b[0m \u001b[90m·\u001b[0m \u001b[1;37mFLAGS\u001b[0m",
+          "\u001b[32m✔\u001b[0m \u001b[1mSet Days (--days)?\u001b[0m \u001b[90m…\u001b[0m yes",
+          "\u001b[96m?\u001b[0m \u001b[1mDays (--days)\u001b[0m \u001b[90m›\u001b[0m \u001b[4;96m7\u001b[0m",
+          "\u001b[31mWizard cancelled.\u001b[0m"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "7\u0004"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "debug",
+          "paths",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode debug paths",
+          "",
+          "PATHS · ARGUMENTS",
+          "✔ Set Name? … yes",
+          "? Name ›",
+          "❯ db",
+          "  home",
+          "  data",
+          "  config",
+          "  cache",
+          "  state",
+          "  tmp",
+          "  bin",
+          "  log",
+          "  repos",
+          "Wizard cancelled."
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "\u001b"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}
