@@ -197,3 +197,25 @@ port/scripts/rust-conformance.sh scenarios/session-api-crud.test.ts
 port/scripts/rust-conformance.sh --update              # record new passes in the ledger
 CONFORMANCE_MEMORY_LOG=m.jsonl port/scripts/rust-conformance.sh --release; bun conformance/memory.ts m.jsonl
 ```
+
+### Support crates
+
+Self-contained ports of the libraries the tools build on, each proven byte for byte against the TS code it replaces
+by a differential harness of its own.
+
+`rust/crates/opencode-html` is the webfetch tool's body processing: `html_to_markdown` (`html-markdown.ts`),
+`html_to_text` (`extractTextFromHTML` in `webfetch.ts`), and in `webfetch` the pure response steps (Accept header,
+content-type checks, body limit, decoding, choice of conversion). Both converters run on a port of htmlparser2 8.0.2's
+Tokenizer and Parser with entities 4.5.0's decode trie, so they see the same events as TS, quirks included. JS string
+semantics are kept over generalized UTF-8 (64 Ki-unit write chunks, astral entities as two surrogate events,
+TextEncoder byte counts); the output is the TS string as TextEncoder encodes it, so a lone surrogate in a TS result
+comes out as U+FFFD. `harness/run.sh` runs the upstream converter tests with a recording preload, then compares TS and
+Rust on the scenario bodies, the recorded upstream inputs, hand-written pages and their mutations, and generated cases
+(tag soup, nesting, chunk boundaries, end of input, list numbers, the budget, content types, decoding, the body
+limit): 0 differences on about 150k cases.
+
+```sh
+port/rust/crates/opencode-html/harness/run.sh                         # entity table, unit tests, upstream tests, differential
+port/rust/crates/opencode-html/harness/run.sh --count 60000 --seed 2  # a deeper run
+port/rust/crates/opencode-html/harness/run.sh --coverage              # needs cargo-llvm-cov
+```
