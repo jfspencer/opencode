@@ -11,6 +11,12 @@ publish.workspace = true
 opencode-yoga = { path = "../opencode-yoga" }
 opencode-tui-text = { path = "../opencode-tui-text" }
 opencode-tui-input = { path = "../opencode-tui-input" }
+# The Diff renderable's content side (jsdiff's parsePatch and Diff.ts's line model).
+opencode-tui-markup = { path = "../opencode-tui-markup" }
 libc.workspace = true
 tokio.workspace = true
+
+[dev-dependencies]
+# JSON cases for the renderables harness (examples/renderables.rs).
+opencode-protocol.workspace = true
 
