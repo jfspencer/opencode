@@ -1,0 +1,11 @@
+[package]
+name = "opencode-tui"
+description = "The opencode TUI (packages/tui), on opencode-tui-core"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+opencode-tui-core = { path = "../opencode-tui-core" }

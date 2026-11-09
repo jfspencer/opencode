@@ -1,0 +1,12 @@
+[package]
+name = "opencode-tui-core"
+description = "OpenTUI 0.8.1 for the opencode TUI: cell buffer, diffed output, terminal session, renderables and a reactive layer with Solid's semantics"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+libc.workspace = true
+tokio.workspace = true
