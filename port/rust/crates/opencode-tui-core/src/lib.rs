@@ -6,12 +6,22 @@
 //! - [`terminal`]: `session.zig`, `terminal.zig`, `lib/terminal-capability-detection.ts` (setup, queries and their
 //!   replies, modes, teardown), without I/O: the renderer writes what it returns.
 //! - [`reactive`]: Solid 1.9's reactive core (signals, memos, effects, owners, contexts, batch, stores).
+//! - [`tree`], [`renderables`], [`layout`]: `Renderable.ts` and the native scene (layout feedback, paint order,
+//!   clipping, opacity, hits), the renderables, and Yoga.
+//! - [`solid`], [`elements`]: `@opentui/solid`'s element mapping (insert, reconcile, control flow, intrinsics).
+//! - [`renderer`], [`input`]: `CliRenderer` (frames, keys, pastes, mouse, resize, the event loop) and key events.
 pub mod border;
 pub mod buffer;
 pub mod layout;
 pub mod color;
+pub mod elements;
+pub mod input;
 pub mod output;
 pub mod pool;
 pub mod reactive;
+pub mod renderables;
+pub mod renderer;
+pub mod solid;
 pub mod terminal;
+pub mod tree;
 pub mod unicode;

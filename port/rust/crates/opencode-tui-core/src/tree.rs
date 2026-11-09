@@ -1243,7 +1243,12 @@ pub(crate) fn prepare_frame(width: u32, height: u32, delta: f64) {
         el.with_dyn_kind(|k| k.on_update(el, delta));
     }
     for _ in 0..MAX_LAYOUT_ROUNDS {
-        root.with_yoga(|y| y.calculate_layout(width as f32, height as f32));
+        // Measure functions read the tree: solve without holding it. The node stays put (no node is created or
+        // freed while Yoga runs).
+        let yoga = with_tree(|t| t.base(root).and_then(|b| b.yoga.as_ref()).map(|y| y as *const layout::Node));
+        if let Some(yoga) = yoga {
+            unsafe { (*yoga).calculate_layout(width as f32, height as f32) };
+        }
         let mut resized = Vec::new();
         let order = visible_preorder(root);
         for &el in &order {
@@ -1433,6 +1438,18 @@ pub(crate) fn create_root(width: u32, height: u32) -> Element {
     root.set_height(Some(Value::Point(height as f32)));
     with_tree(|t| t.root = Some(root));
     root
+}
+
+/// Test support: a root without a renderer.
+#[doc(hidden)]
+pub fn create_root_for_tests(width: u32, height: u32) -> Element {
+    create_root(width, height)
+}
+
+/// Test support: one frame's layout without a renderer.
+#[doc(hidden)]
+pub fn prepare_frame_for_tests(width: u32, height: u32) {
+    prepare_frame(width, height, 0.0)
 }
 
 /// `RootRenderable.resize`.

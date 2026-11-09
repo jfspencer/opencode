@@ -12,7 +12,7 @@
 //! | `insertNode(el, child)` | `insert_node(el, child, None)` |
 //! | `setProp(el, "flexGrow", 1)` | `el.set_flex_grow(Some(1.0))` (typed setters, see `elements`) |
 //! | `effect(() => setProp(el, "fg", x()))` | `bind(move \|\| x.get(), move \|v\| el.set_fg(v))` |
-//! | `insert(el, expr)` / `insert(el, () => expr, marker)` | `insert(el, view, marker)` with a [`View`] |
+//! | `insert(el, expr)` / `insert(el, expr, null)` / `insert(el, expr, sibling)` | `insert(el, view, At::Only)` / `At::End` / `At::Before(sibling)` |
 //! | `createComponent(Comp, props)` | `component(\|\| comp(props))` (runs untracked) |
 //! | `memo(() => cond)` | `create_memo(move \|\| cond)` |
 use std::cell::RefCell;
@@ -239,9 +239,32 @@ impl PartialEq for Current {
     }
 }
 
+/// Where an insertion goes among the parent's children: the compiler's marker argument.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum At {
+    /// No marker (`undefined`): the expression is the parent's only child and owns all its children.
+    Only,
+    /// `null`: after the parent's static children (the expression is the last child).
+    End,
+    /// Before a static sibling.
+    Before(Element),
+}
+
+impl At {
+    fn multi(self) -> bool {
+        !matches!(self, At::Only)
+    }
+    fn anchor(self) -> Option<Element> {
+        match self {
+            At::Before(el) => Some(el),
+            _ => None,
+        }
+    }
+}
+
 /// `insert(parent, accessor, marker)`.
-pub fn insert(parent: Element, value: View, marker: Option<Element>) {
-    let multi = marker.is_some();
+pub fn insert(parent: Element, value: View, marker: At) {
+    let multi = marker.multi();
     let initial = if multi { Current::Nodes(Vec::new()) } else { Current::Undefined };
     match value {
         View::Dyn(f) => {
@@ -271,9 +294,9 @@ fn unwrap_current(mut current: Current) -> Current {
 }
 
 /// `insertExpression(parent, value, current, marker, unwrapArray)`.
-fn insert_expression(parent: Element, value: View, current: Current, marker: Option<Element>, unwrap_array: bool) -> Current {
+fn insert_expression(parent: Element, value: View, current: Current, marker: At, unwrap_array: bool) -> Current {
     let mut current = unwrap_current(current);
-    let multi = marker.is_some();
+    let multi = marker.multi();
     // `value === current`
     match (&value, &current) {
         (View::Node(a), Current::Node(b)) if a == b => return current,
@@ -294,7 +317,7 @@ fn insert_expression(parent: Element, value: View, current: Current, marker: Opt
                     }
                     _ => create_text_node(&text),
                 };
-                current = clean_children(parent, current, marker, Some(node), true);
+                current = clean_children(parent, current, marker, Some(node));
             } else if matches!(&current, Current::Str(s) if !s.is_empty()) {
                 if let Some(first) = get_first_child(parent) {
                     replace_text(first, &text);
@@ -302,12 +325,12 @@ fn insert_expression(parent: Element, value: View, current: Current, marker: Opt
                 current = Current::Str(text);
             } else {
                 let node = create_text_node(&text);
-                clean_children(parent, current, marker, Some(node), true);
+                clean_children(parent, current, marker, Some(node));
                 current = Current::Str(text);
             }
         }
         View::Empty => {
-            current = clean_children(parent, current, marker, None, true);
+            current = clean_children(parent, current, marker, None);
         }
         View::Dyn(f) => {
             let cell = Rc::new(RefCell::new(current));
@@ -341,7 +364,7 @@ fn insert_expression(parent: Element, value: View, current: Current, marker: Opt
                 })
                 .collect();
             if nodes.is_empty() {
-                let replacement = clean_children(parent, current.clone(), marker, None, true);
+                let replacement = clean_children(parent, current.clone(), marker, None);
                 if multi {
                     return replacement;
                 }
@@ -354,8 +377,8 @@ fn insert_expression(parent: Element, value: View, current: Current, marker: Opt
                             reconcile_arrays(parent, existing.clone(), &nodes);
                         }
                     }
-                    Current::Undefined => append_nodes(parent, &nodes, None),
-                    _ if get_first_child(parent).is_none() => append_nodes(parent, &nodes, None),
+                    Current::Undefined => append_nodes(parent, &nodes, At::End),
+                    _ if get_first_child(parent).is_none() => append_nodes(parent, &nodes, At::End),
                     _ => {
                         let a = match (&current, multi) {
                             (Current::Nodes(n), true) => n.clone(),
@@ -370,9 +393,9 @@ fn insert_expression(parent: Element, value: View, current: Current, marker: Opt
         View::Node(node) => {
             if let Current::Nodes(_) = &current {
                 if multi {
-                    return clean_children(parent, current, marker, Some(node), true);
+                    return clean_children(parent, current, marker, Some(node));
                 }
-                clean_children(parent, current, None, Some(node), false);
+                clean_children(parent, current, At::End, Some(node));
             } else if matches!(current, Current::Undefined) || get_first_child(parent).is_none() {
                 insert_node(parent, node, None);
             } else if let Some(first) = get_first_child(parent) {
@@ -508,10 +531,9 @@ fn reconcile_arrays(parent: Element, mut a: Vec<Element>, b: &[Element]) {
     }
 }
 
-/// `cleanChildren(parent, current, marker, replacement)`. `marker_given` distinguishes Solid's `undefined`
-/// marker (single-child mode: clear everything) from a null one.
-fn clean_children(parent: Element, current: Current, marker: Option<Element>, replacement: Option<Element>, marker_undefined: bool) -> Current {
-    if marker.is_none() && marker_undefined {
+/// `cleanChildren(parent, current, marker, replacement)`.
+fn clean_children(parent: Element, current: Current, marker: At, replacement: Option<Element>) -> Current {
+    if !marker.multi() {
         while let Some(removed) = get_first_child(parent) {
             remove_node(parent, removed);
         }
@@ -537,7 +559,7 @@ fn clean_children(parent: Element, current: Current, marker: Option<Element>, re
                     if is_parent {
                         replace_node(parent, node, el);
                     } else {
-                        insert_node(parent, node, marker);
+                        insert_node(parent, node, marker.anchor());
                     }
                 } else if is_parent {
                     remove_node(parent, el);
@@ -547,14 +569,14 @@ fn clean_children(parent: Element, current: Current, marker: Option<Element>, re
             }
         }
     } else {
-        insert_node(parent, node, marker);
+        insert_node(parent, node, marker.anchor());
     }
     Current::Nodes(vec![node])
 }
 
-fn append_nodes(parent: Element, array: &[Element], marker: Option<Element>) {
+fn append_nodes(parent: Element, array: &[Element], marker: At) {
     for node in array {
-        insert_node(parent, *node, marker);
+        insert_node(parent, *node, marker.anchor());
     }
 }
 
@@ -567,7 +589,7 @@ fn replace_node(parent: Element, new_node: Element, old_node: Element) {
 pub fn render(code: impl FnOnce() -> View, root: Element) -> crate::reactive::Dispose {
     crate::reactive::create_root(|dispose| {
         let view = code();
-        insert(root, view, None);
+        insert(root, view, At::Only);
         dispose
     })
 }
