@@ -157,7 +157,8 @@ pub fn create_goal(session_id: Option<String>) -> Signal<Option<Goal>> {
                     && current == turn.get()
                     && goal.is_alive()
                 {
-                    goal.set(goal_of(&value.json()));
+                    // The RPC's result is its `output`.
+                    goal.set(value.json().get("output").and_then(goal_of));
                 }
             });
         })
