@@ -394,7 +394,7 @@ pub async fn api(globals: &Globals, input: &Input) -> Result {
     let params: Vec<(String, String)> = input.pairs("param").map(|p| p.to_vec()).unwrap_or_default();
     let server = connection::resolve(globals, Args::default()).await?;
     let result = async {
-        let (method, path) = resolve_request(&request, &params)?;
+        let (method, path) = resolve_request(&server.endpoint, &request, &params).await?;
         let mut headers = server.endpoint.headers();
         for header in input.list("header") {
             let index = header.find(':').filter(|i| *i >= 1);
@@ -426,37 +426,59 @@ pub async fn api(globals: &Globals, input: &Input) -> Result {
     result
 }
 
-/// `rawRequest`, else the operation from the route table (the TS CLI reads it from the server's
-/// `/openapi.json`; the Rust build knows its own API).
-fn resolve_request(request: &[String], params: &[(String, String)]) -> Result<(String, String)> {
+/// `resolveRequest`: `rawRequest`, else the operation as the server's OpenAPI document (`/openapi.json`) names it.
+async fn resolve_request(
+    endpoint: &super::client::Endpoint,
+    request: &[String],
+    params: &[(String, String)],
+) -> Result<(String, String)> {
     if request.len() == 2 && METHODS.contains(&request[0].to_ascii_lowercase().as_str()) && request[1].starts_with('/') {
         return Ok((request[0].to_ascii_uppercase(), request[1].clone()));
     }
     if request.len() != 1 {
         return Err(Fail::error("Expected an operation name or an HTTP method and path"));
     }
-    let operation = &request[0];
-    let route = opencode_protocol::routes::ROUTES
-        .iter()
-        .find(|r| r.operation == operation.as_str())
-        .ok_or_else(|| Fail::error(format!("Operation not found: {operation}")))?;
-    let mut used = vec![];
-    let mut path = String::new();
-    for segment in route.path.split('/').skip(1) {
-        path.push('/');
-        match segment.strip_prefix(':') {
-            Some(name) => {
-                let value = params
-                    .iter()
-                    .find(|(n, _)| n == name)
-                    .map(|(_, v)| v)
-                    .ok_or_else(|| Fail::error(format!("Missing path parameter: {name}")))?;
-                used.push(name.to_owned());
-                path.push_str(&encode_component(value));
-            }
-            None => path.push_str(segment),
-        }
+    let url = format!("{}/openapi.json", endpoint.url.trim_end_matches('/'));
+    let answer = fetch("GET", &url, &endpoint.headers(), None).await.map_err(|cause| Fail::named("TypeError", cause))?;
+    if !(200..300).contains(&answer.status) {
+        return Err(Fail::error(format!("Failed to load OpenAPI document: HTTP {}", answer.status)));
     }
+    let spec = crate::json::parse(&answer.body).ok_or_else(|| Fail::error("Failed to parse the OpenAPI document"))?;
+    resolve_operation(&spec, &request[0], params)
+}
+
+/// `resolveOperation`: the first path whose operation has this ID, its `{name}` parameters filled in and the other
+/// params as the query.
+fn resolve_operation(spec: &Json, operation: &str, params: &[(String, String)]) -> Result<(String, String)> {
+    let paths = match crate::json::get(spec, "paths") {
+        Some(Json::Object(paths)) => paths.iter().collect::<Vec<_>>(),
+        _ => vec![],
+    };
+    let found = paths.into_iter().find_map(|(path, operations)| {
+        let Json::Object(operations) = operations else { return None };
+        operations
+            .iter()
+            .find(|(method, item)| METHODS.contains(&method.as_str()) && crate::json::get_str(item, "operationId") == Some(operation))
+            .map(|(method, _)| (method.to_ascii_uppercase(), path.clone()))
+    });
+    let Some((method, template)) = found else { return Err(Fail::error(format!("Operation not found: {operation}"))) };
+    let mut used: Vec<String> = vec![];
+    let mut path = String::new();
+    let mut rest = template.as_str();
+    while let Some(open) = rest.find('{') {
+        let Some(close) = rest[open + 1..].find('}').map(|i| open + 1 + i).filter(|close| *close > open + 1) else { break };
+        path.push_str(&rest[..open]);
+        let name = &rest[open + 1..close];
+        let value = params
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, v)| v)
+            .ok_or_else(|| Fail::error(format!("Missing path parameter: {name}")))?;
+        used.push(name.to_owned());
+        path.push_str(&encode_component(value));
+        rest = &rest[close + 1..];
+    }
+    path.push_str(rest);
     let query: Vec<String> = params
         .iter()
         .filter(|(n, _)| !used.contains(n))
@@ -466,5 +488,5 @@ fn resolve_request(request: &[String], params: &[(String, String)]) -> Result<(S
         path.push('?');
         path.push_str(&query.join("&"));
     }
-    Ok((route.method.to_owned(), path))
+    Ok((method, path))
 }
