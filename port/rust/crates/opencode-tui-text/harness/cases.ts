@@ -532,3 +532,80 @@ export function extmarkEdgeCases(): Case[] {
   }
   return cases
 }
+
+const SCENE_PROPS = ["content", "wrapMode", "truncate", "textAlign", "fg", "bg", "attributes", "tabIndicator", "tabIndicatorColor", "width", "height", "left", "top"]
+
+function sceneValue(r: Rng, key: string): unknown {
+  switch (key) {
+    case "content":
+      return r.chance(0.3) ? styledChunks(r) : r.chance(0.05) ? "" : text(r)
+    case "wrapMode":
+      return r.pick(["none", "char", "word"])
+    case "truncate":
+      return r.chance(0.5)
+    case "textAlign":
+      return r.pick(["left", "center", "right"])
+    case "fg":
+    case "bg":
+    case "tabIndicatorColor":
+      return r.pick(COLORS)
+    case "attributes":
+      return r.int(256)
+    case "tabIndicator":
+      return r.pick(["→", "·", 0x2192, 0x3e])
+    case "width":
+      return r.range(1, 24)
+    case "height":
+      return r.chance(0.3) ? null : r.range(1, 8)
+    case "left":
+      return r.int(6)
+    case "top":
+      return r.int(4)
+  }
+  throw new Error(key)
+}
+
+/**
+ * A random scene Text program: a `TextRenderable` (absolute, a point width, a point or auto height) set up,
+ * laid out and painted by frames, changed through its setters, scrolled, selected in local cells and queried.
+ */
+export function sceneCase(r: Rng): Case {
+  const props: any = { left: r.int(6), top: r.int(4), width: r.range(1, 24) }
+  if (r.chance(0.9)) props.content = sceneValue(r, "content")
+  if (r.chance(0.6)) props.height = r.range(1, 8)
+  for (const key of ["wrapMode", "truncate", "textAlign", "fg", "bg", "attributes", "tabIndicator", "tabIndicatorColor"]) {
+    if (r.chance(0.25)) props[key] = sceneValue(r, key)
+  }
+  const ops: Op[] = []
+  if (r.chance(0.3)) ops.push([r.pick(["sInfo", "sLineInfo", "sSelected"])])
+  ops.push(["sRender"])
+  const draw = (): Op => ["sDraw", r.chance(0.8) ? props.left : r.int(32) - 2, r.chance(0.8) ? props.top : r.int(12) - 2]
+  const opCount = r.range(3, 30)
+  for (let i = 0; i < opCount; i++) {
+    const roll = r.int(100)
+    if (roll < 15) ops.push(["sRender"])
+    else if (roll < 30) ops.push(draw())
+    else if (roll < 50) {
+      const key = r.pick(SCENE_PROPS)
+      const value = sceneValue(r, key)
+      if (key === "left") props.left = value
+      if (key === "top") props.top = value
+      ops.push(["sSet", key, value])
+    } else if (roll < 58) ops.push(["sScroll", r.pick(["scrollX", "scrollY"]), r.chance(0.2) ? r.int(40) / 4 : r.int(12)])
+    else if (roll < 70) {
+      const op = r.chance(0.1) ? "reset" : r.pick(["set", "update"])
+      const sel: Op = ["sSel", op, r.int(28) - 2, r.int(10) - 2, r.int(28) - 2, r.int(10) - 2]
+      if (r.chance(0.4)) sel.push(r.pick(["cell", "word", "line"]))
+      if (r.chance(0.3)) {
+        if (sel.length === 6) sel.push("cell")
+        sel.push(r.pick(COLORS), r.chance(0.5) ? r.pick(COLORS) : null)
+      }
+      ops.push(sel)
+    } else if (roll < 76) ops.push([r.pick(["sSelection", "sSelected"])])
+    else if (roll < 84) ops.push([r.pick(["sInfo", "sLayout"])])
+    else if (roll < 92) ops.push(["sLineInfo"])
+    else ops.push(["sLineSources", r.int(6), r.int(6)])
+  }
+  ops.push(["sRender"], ["sLayout"], ["sInfo"], ["sLineInfo"], ["sSelected"], ["sDraw", props.left, props.top])
+  return { k: "scene", m: "unicode", sw: 30, sh: 12, props, ops }
+}

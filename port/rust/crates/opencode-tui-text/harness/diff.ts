@@ -3,13 +3,25 @@
 //
 // usage: bun harness/diff.ts --driver <text-driver> --work <dir> [--count N] [--seed S] [--show N] [--case I]
 //   --count   random cases (default 3000); hand-picked edge cases always run
+//   --edit-count, --extmark-count, --scene-count   random edit buffer, extmark and scene Text cases
 //   --seed    PRNG seed (default 1)
 //   --show    print the first N differences in full (default 5)
 //   --case    run only case I (an index into the generated list) and print its ops
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { Rng, editCase, editEdgeCases, edgeCases, extmarkCase, extmarkEdgeCases, tableCases, textCase } from "./cases.ts"
-import { runCase, runEditCase, type Case } from "./ts-exec.ts"
+import {
+  Rng,
+  editCase,
+  editEdgeCases,
+  edgeCases,
+  extmarkCase,
+  extmarkEdgeCases,
+  sceneCase,
+  tableCases,
+  textCase,
+} from "./cases.ts"
+import { disposeScene, runAnyCase, sceneWidthMethod } from "./scene-exec.ts"
+import type { Case } from "./ts-exec.ts"
 
 const args = process.argv.slice(2)
 const opt = (name: string, fallback?: string) => {
@@ -33,6 +45,9 @@ const editRng = new Rng(seed * 7919 + 1)
 for (let i = 0; i < editCount; i++) cases.push(editCase(editRng))
 const extmarkCount = Number(opt("extmark-count", String(Math.ceil(editCount / 2))))
 for (let i = 0; i < extmarkCount; i++) cases.push(extmarkCase(editRng))
+const sceneCount = Number(opt("scene-count", String(Math.ceil(editCount / 3))))
+const sceneRng = new Rng(seed * 104729 + 3)
+for (let i = 0; i < sceneCount; i++) cases.push(sceneCase(sceneRng))
 if (only !== undefined) {
   cases = [cases[Number(only)]]
   writeFileSync(join(work, "case.json"), JSON.stringify(cases[0], null, 1))
@@ -40,7 +55,12 @@ if (only !== undefined) {
 
 const started = performance.now()
 const expected: unknown[][] = []
-for (const c of cases) expected.push(c.k === "edit" ? await runEditCase(c) : runCase(c))
+if (cases.some((c) => c.k === "scene")) {
+  const method = await sceneWidthMethod()
+  for (const c of cases) if (c.k === "scene") c.m = method
+}
+for (const c of cases) expected.push(await runAnyCase(c))
+await disposeScene()
 const tsMs = performance.now() - started
 
 const input = join(work, "cases.jsonl")
