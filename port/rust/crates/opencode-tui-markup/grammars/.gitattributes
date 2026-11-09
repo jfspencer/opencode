@@ -1,2 +1,0 @@
-# Generated grammar tables: no textual diffs.
-parser.c -diff linguist-generated=true
