@@ -7,16 +7,15 @@ import { chmodSync, mkdirSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { scenario, type Ctx } from "../lib/scenario"
 
-// The locations that did boot announce their inventory in the background; when the reload fails, the project's
-// location is asked for again and awaited, so the recording does not end before (or between) its announcements.
+// The locations that did boot announce their inventory in the background, so the project's announcements are awaited
+// before anything else is recorded; when the reload fails, the project's location is asked for again first.
 async function reload(ctx: Ctx) {
   const from = ctx.events.length
   const response = await ctx.handler(new Request("http://opencode.local/api/location/reload", { method: "POST" }))
   const body = await response.json().catch(() => null)
   const message = typeof body?.message === "string" ? body.message.split("\n")[0] : body?.message
   ctx.note("POST /api/location/reload", { status: response.status, body: body && { ...body, message } })
-  if (response.status === 204) return
-  await ctx.http("GET", "/api/location")
+  if (response.status !== 204) await ctx.http("GET", "/api/location")
   await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === ctx.project, from)
 }
 
