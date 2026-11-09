@@ -8,8 +8,8 @@
 //! Snapshots (packages/core/src/snapshot.ts over git.ts's index, tree and object operations) are
 //! [`crate::snapshot`].
 //!
-//! TODO(port): refreshing the branch when the repository's HEAD changes (the file watcher's `filesystem.changed`
-//! events); providers registered by external plugins.
+//! A `filesystem.changed` of the branch metadata (the location watcher's, or a watched file's) reads the branch again
+//! ([`changed`]). VCS providers registered by external plugins are out of scope (external plugins are).
 
 use std::collections::{HashMap, HashSet};
 use std::sync::Mutex;
@@ -71,7 +71,7 @@ pub enum InitializeError {
     Missing,
     Conflict,
     Unknown,
-    /// A provider without `init`; the built-in ones both have it. TODO(port): VCS providers of external plugins.
+    /// A provider without `init`; the built-in ones both have it (only an external plugin's, out of scope, could lack it).
     #[allow(dead_code)]
     Unsupported,
     Failed,
@@ -127,6 +127,8 @@ pub struct Service {
     directory: String,
     worktree: String,
     current: Mutex<Info>,
+    /// Serializes refreshes (`refreshLock`).
+    refreshing: tokio::sync::Mutex<()>,
 }
 
 /// `Vcs.Info`.
@@ -158,11 +160,13 @@ impl Service {
             // Markerless locations need both definitions to initialize their first repository.
             _ => (vec![Provider::Git, Provider::Hg], None),
         };
-        Self { providers, selected, directory: directory.into(), worktree: worktree.into(), current: Mutex::new(Info::default()) }
+        let current = Mutex::new(Info::default());
+        Self { providers, selected, directory: directory.into(), worktree: worktree.into(), current, refreshing: Default::default() }
     }
 
     /// Reads the branch information again (`Vcs.refresh`); the new current branch when it changed.
     pub async fn refresh(&self) -> Option<Option<String>> {
+        let _refreshing = self.refreshing.lock().await;
         let next = match self.selected {
             Some(provider) => {
                 let mut info = match provider {
@@ -247,6 +251,41 @@ impl Service {
         match result {
             Ok(output) if output.code == 0 => Ok(()),
             _ => Err(InitializeError::Failed),
+        }
+    }
+}
+
+/// `Vcs`'s subscription to `filesystem.changed` of its location: a change of the branch metadata (a `HEAD` in the git
+/// store, the Mercurial store's `branch`) re-reads the branch, and a new one is announced.
+pub fn changed(app: &std::sync::Arc<crate::app::App>, reference: &crate::bus::LocationRef, file: &str) {
+    let Some(location) = app.locations.cached(reference) else { return };
+    let Some(vcs) = &location.vcs else { return };
+    let store = std::fs::canonicalize(&vcs.store).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|_| vcs.store.clone());
+    let metadata = match vcs.kind {
+        "git" => text::basename(file) == "HEAD" && crate::project::contains(&store, file),
+        _ => crate::project::normalize(file) == format!("{store}/branch"),
+    };
+    if !metadata {
+        return;
+    }
+    let app = app.clone();
+    tokio::spawn(async move {
+        if location.version_control.refresh().await.is_some() {
+            announce(&app, &location);
+        }
+    });
+}
+
+/// `vcs.branch.updated` with the current branch, announced again if a refresh overtook the announcement.
+fn announce(app: &crate::app::App, location: &crate::location::Location) {
+    loop {
+        let branch = location.version_control.info().current;
+        let mut data = Obj::new();
+        data.opt_str("branch", branch.as_deref());
+        let options = crate::bus::PublishOptions { id: None, location: Some(location.reference()) };
+        app.bus.emit("vcs.branch.updated", data.done(), options);
+        if branch == location.version_control.info().current {
+            return;
         }
     }
 }

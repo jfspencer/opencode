@@ -7,8 +7,9 @@
 //! A Mercurial checkout is identified by the ID cached in `.hg/opencode`, else its first root changeset (`hg log`).
 //! Icons are discovered when a project is resolved (`crate::project_icon`).
 //!
-//! TODO(port): the archive sweep, the fingerprint cache of git discovery (it only saves spawning git), remote-derived
-//! Mercurial identity (also missing upstream).
+//! Git discoveries are cached by the fingerprint of what they read, so repeated resolutions spawn no git. The archive
+//! sweep ([`sweep`]) archives or moves projects whose directories are gone. As upstream, Mercurial identity is never
+//! derived from a remote (TS leaves that as a follow-up).
 
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -38,8 +39,7 @@ pub struct Resolved {
 #[derive(Debug, Clone)]
 pub struct Vcs {
     pub kind: &'static str,
-    /// The repository's store (git's common directory, `.hg`). TODO(port): the location watcher watches its HEAD.
-    #[allow(dead_code)]
+    /// The repository's store (git's common directory, `.hg`): where branch metadata lives ([`crate::vcs::changed`]).
     pub store: String,
 }
 
@@ -219,17 +219,33 @@ fn remote_identity(input: &str) -> Option<String> {
     parts(host, path)
 }
 
-fn discover_git(dot_git: &str) -> Option<Resolved> {
-    let repo = discover_repository(dot_git)?;
+/// `gitDiscover`: the checkout's project, and whether it may be cached (failures resolve the same way, uncached).
+fn discover_git(dot_git: &str) -> (Option<Resolved>, bool) {
+    let Some(repo) = discover_repository(dot_git) else { return (None, false) };
+    let mut cacheable = true;
     let previous = cached(&repo.common_directory);
-    let remote = git(&repo.worktree, &["remote", "get-url", "origin"])
-        .filter(|r| r.code == 0)
-        .and_then(|r| Some(r.text.trim().to_owned()).filter(|t| !t.is_empty()))
+    // `Git.remote.get`: exit 2 is no such remote; another failure resolves the same, uncached.
+    let remote = match git(&repo.worktree, &["remote", "get-url", "origin"]) {
+        Some(result) if result.code == 0 => Some(result.text.trim().to_owned()).filter(|t| !t.is_empty()),
+        Some(result) if result.code == 2 => None,
+        _ => {
+            cacheable = false;
+            None
+        }
+    };
+    let remote = remote
         .and_then(|origin| remote_identity(&origin))
         .map(|normalized| hash(&format!("git-remote:{normalized}")));
     let id = remote.or_else(|| previous.clone()).or_else(|| {
-        let result = git(&repo.worktree, &["rev-list", "--max-parents=0", "HEAD"])?;
+        // `Git.history.rootCommits`: none while HEAD is unborn.
+        let Some(result) = git(&repo.worktree, &["rev-list", "--max-parents=0", "HEAD"]) else {
+            cacheable = false;
+            return None;
+        };
         if result.code != 0 {
+            if git(&repo.worktree, &["rev-parse", "-q", "--verify", "HEAD"]).is_none_or(|verify| verify.code != 1) {
+                cacheable = false;
+            }
             return None;
         }
         let mut roots: Vec<&str> = result.text.split('\n').map(str::trim).filter(|l| !l.is_empty()).collect();
@@ -239,22 +255,104 @@ fn discover_git(dot_git: &str) -> Option<Resolved> {
     let canonical = if repo.git_directory == repo.common_directory {
         repo.worktree.clone()
     } else {
-        git(&repo.worktree, &["worktree", "list", "--porcelain"])
-            .filter(|r| r.code == 0)
-            .and_then(|r| {
-                r.text
-                    .split('\n')
-                    .find_map(|line| line.strip_prefix("worktree ").map(|d| resolve_against(&repo.worktree, d.trim())))
-            })
-            .unwrap_or_else(|| repo.worktree.clone())
+        let main = git(&repo.worktree, &["worktree", "list", "--porcelain"]).filter(|r| r.code == 0).map(|r| {
+            r.text
+                .split('\n')
+                .find_map(|line| line.strip_prefix("worktree ").map(|d| resolve_against(&repo.worktree, d.trim())))
+        });
+        match main {
+            Some(main) => main.unwrap_or_else(|| repo.worktree.clone()),
+            None => {
+                cacheable = false;
+                repo.worktree.clone()
+            }
+        }
     };
-    Some(Resolved {
+    let resolved = Resolved {
         previous,
         id: id.unwrap_or_else(|| GLOBAL.to_owned()),
         directory: repo.worktree,
         canonical,
         vcs: Some(Vcs { kind: "git", store: repo.common_directory }),
-    })
+    };
+    (Some(resolved), cacheable)
+}
+
+/// `Git.repo.fingerprint`: a stamp of everything git discovery reads (the `.git` entry, a linked worktree's gitdir and
+/// commondir, HEAD and the ref it names, loose, packed and reftable refs, repository, worktree, global, XDG and system
+/// config, the cached project ID); `None` when `.git` is no checkout.
+fn fingerprint(dot_git: &str) -> Option<String> {
+    let read = |path: &str| std::fs::read_to_string(path).ok();
+    let dot = std::fs::metadata(dot_git).ok().filter(|m| m.is_file() || m.is_dir())?;
+    let git_file = if dot.is_file() {
+        let text = read(dot_git)?;
+        text.lines().find_map(|line| line.strip_prefix("gitdir:")).map(|rest| rest.trim().to_owned()).filter(|r| !r.is_empty())?
+    } else {
+        String::new()
+    };
+    let resolve = |base: &str, relative: &str| {
+        let joined = if relative.starts_with('/') { relative.to_owned() } else { format!("{base}/{relative}") };
+        resolve_path(&normalize(&joined))
+    };
+    let parent = Path::new(dot_git).parent().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    let git_dir = if git_file.is_empty() { dot_git.to_owned() } else { resolve(&parent, &git_file) };
+    let commondir = read(&format!("{git_dir}/commondir")).map(|t| t.trim().to_owned()).unwrap_or_default();
+    let common_dir = if commondir.is_empty() { git_dir.clone() } else { resolve(&git_dir, &commondir) };
+    let head = read(&format!("{git_dir}/HEAD"))?.trim().to_owned();
+    let reference = head.strip_prefix("ref:").map(|r| r.trim().to_owned());
+    let env = |name: &str| std::env::var(name).ok().filter(|v| !v.is_empty());
+    let home = env("HOME").unwrap_or_default();
+    let nosystem = env("GIT_CONFIG_NOSYSTEM").is_some_and(|v| matches!(v.to_lowercase().as_str(), "1" | "true" | "yes" | "on"));
+    let mut files = vec![
+        format!("{git_dir}/HEAD"),
+        format!("{common_dir}/config"),
+        format!("{common_dir}/config.worktree"),
+        format!("{git_dir}/config.worktree"),
+        format!("{common_dir}/packed-refs"),
+        format!("{common_dir}/reftable/tables.list"),
+        format!("{common_dir}/opencode"),
+    ];
+    if let Some(reference) = &reference {
+        files.push(normalize(&format!("{common_dir}/{reference}")));
+        files.push(normalize(&format!("{git_dir}/{reference}")));
+    }
+    files.push(env("GIT_CONFIG_GLOBAL").unwrap_or_else(|| format!("{home}/.gitconfig")));
+    files.push(format!("{}/git/config", env("XDG_CONFIG_HOME").unwrap_or_else(|| format!("{home}/.config"))));
+    if !nosystem {
+        files.push(env("GIT_CONFIG_SYSTEM").unwrap_or_else(|| "/etc/gitconfig".into()));
+    }
+    let stamp = |path: &str| {
+        use std::os::unix::fs::MetadataExt;
+        match std::fs::metadata(path) {
+            Ok(m) => format!("{}:{}:{}:{}", m.file_type().is_dir(), m.ino(), m.size(), m.mtime() * 1000 + m.mtime_nsec() / 1_000_000),
+            Err(_) => "missing".into(),
+        }
+    };
+    let stamps: Vec<String> = std::iter::once(dot_git.to_owned()).chain(files.iter().cloned()).map(|f| stamp(&f)).collect();
+    let mut parts = vec![git_dir, common_dir, head];
+    parts.extend(files);
+    parts.extend(stamps);
+    Some(parts.join("\0"))
+}
+
+/// Git discoveries by `.git` path and fingerprint, so repeated resolutions spawn no git (`gitCache`, 512 entries).
+fn discover_git_cached(dot_git: &str) -> Option<Resolved> {
+    static CACHE: std::sync::OnceLock<Mutex<indexmap::IndexMap<String, Resolved>>> = std::sync::OnceLock::new();
+    let Some(fingerprint) = fingerprint(dot_git) else { return discover_git(dot_git).0 };
+    let key = format!("{dot_git}\0{fingerprint}");
+    let cache = CACHE.get_or_init(Default::default);
+    if let Some(resolved) = cache.lock().unwrap().get(&key) {
+        return Some(resolved.clone());
+    }
+    let (resolved, cacheable) = discover_git(dot_git);
+    if let Some(resolved) = resolved.as_ref().filter(|_| cacheable) {
+        let mut cache = cache.lock().unwrap();
+        if cache.len() >= 512 {
+            cache.shift_remove_index(0);
+        }
+        cache.insert(key, resolved.clone());
+    }
+    resolved
 }
 
 /// The project owning `input`, without touching the database (`Project.resolve` without `persist`). It spawns git or
@@ -263,7 +361,7 @@ pub fn discover(input: &str) -> Resolved {
     let directory = resolve_path(input);
     if let Some(native) = up(&[".git", ".hg"], &directory, None) {
         if native.ends_with("/.git") {
-            if let Some(resolved) = discover_git(&native) {
+            if let Some(resolved) = discover_git_cached(&native) {
                 return resolved;
             }
         } else {
@@ -346,6 +444,78 @@ pub struct Update {
     pub icon_override: Option<String>,
     pub icon_color: Option<String>,
     pub start: Option<String>,
+}
+
+/// How long a project sits untouched before the archive sweep considers it, and how often the sweep runs.
+const SWEEP_INTERVAL_MS: i64 = 60 * 60_000;
+
+/// `Project.sweep`: a project untouched for an hour (not updated, not active) whose canonical directory is gone moves
+/// to a surviving main checkout among its known worktrees, else (when none of them survives) is archived; each change
+/// is announced. Unreadable paths count as present.
+pub fn sweep(db: &Connection, bus: &Bus) -> rusqlite::Result<()> {
+    let cutoff = crate::id::now() - SWEEP_INTERVAL_MS;
+    const IDLE: &str = "time_archived IS NULL AND time_updated < ?1 AND time_active < ?1";
+    let projects: Vec<(String, String)> = db
+        .prepare(&format!("SELECT id, worktree FROM project WHERE {IDLE} AND id <> ?2"))?
+        .query_map(params![cutoff, GLOBAL], |row| Ok((row.get(0)?, row.get(1)?)))?
+        .collect::<rusqlite::Result<_>>()?;
+    let worktrees: Vec<(String, String, Option<String>)> = db
+        .prepare("SELECT project_id, directory, strategy FROM worktree")?
+        .query_map([], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)))?
+        .collect::<rusqlite::Result<_>>()?;
+    let exists = |directory: &str| match std::fs::metadata(directory) {
+        Ok(_) => true,
+        Err(error) => error.kind() != std::io::ErrorKind::NotFound,
+    };
+    for (id, canonical) in projects {
+        if exists(&canonical) {
+            continue;
+        }
+        let surviving: Vec<&(String, String, Option<String>)> =
+            worktrees.iter().filter(|w| w.0 == id && w.1 != canonical && exists(&w.1)).collect();
+        // Linked worktrees carry a strategy; only another main checkout can become the canonical directory.
+        let main = surviving.iter().find(|w| w.2.is_none());
+        if main.is_none() && !surviving.is_empty() {
+            continue;
+        }
+        let now = crate::id::now();
+        let info = match main {
+            Some(main) => db
+                .query_row(
+                    &format!("UPDATE project SET worktree = ?2, time_updated = ?3 WHERE id = ?4 AND {IDLE} RETURNING *"),
+                    params![cutoff, main.1, now, id],
+                    info_from_row,
+                )
+                .optional()?,
+            None => db
+                .query_row(
+                    &format!("UPDATE project SET time_archived = ?2 WHERE id = ?3 AND {IDLE} RETURNING *"),
+                    params![cutoff, now, id],
+                    info_from_row,
+                )
+                .optional()?,
+        };
+        if let Some(info) = info {
+            bus.emit("project.updated", info, PublishOptions::default());
+        }
+    }
+    Ok(())
+}
+
+/// The archive sweep runs when the server starts and every hour after (`Project.sweepNode`).
+pub fn start_sweep(app: &std::sync::Arc<crate::app::App>) {
+    let app = app.clone();
+    tokio::spawn(async move {
+        loop {
+            {
+                let db = app.db.lock().unwrap();
+                if let Err(error) = sweep(&db, &app.bus) {
+                    eprintln!("Project archive sweep failed: {error}");
+                }
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(SWEEP_INTERVAL_MS as u64)).await;
+        }
+    });
 }
 
 /// `Project.update`: the updated project, announced; `None` when there is no such project.

@@ -18,8 +18,16 @@
 //! Documents hold the plain (config file) side of `Config.Info` ([`t::ConfigInfoPlain`]); [`wire`] writes the entries
 //! as the HTTP API's JSON codec does.
 //!
-//! TODO(port): wellknown and integration documents (Console), macOS managed preferences, the file watcher on config
-//! roots; `~` in `{file:~/...}` expands with `HOME` (TS uses `os.homedir()`, which reads the password database).
+//! On macOS the system directory is `/Library/Application Support/opencode`, and the MDM managed preferences plist
+//! (`ai.opencode.managed`) loads after it. The watches of these sources are [`super::config_watch`]'s. `~` in
+//! `{file:~/...}` is the user's home from the password database, as `os.homedir()` answers in the reference.
+//!
+//! Out of scope: integration documents (the OpenCode Console's, delivered by its provider plugin: a catalog provider
+//! behind a Console login). TODO(port): wellknown documents (config.ts `loadWellknown`): after the managed policies,
+//! each source of [`crate::integration::wellknown`] contributes its manifest's `config` and `remote_config` (fetched
+//! with the `{env:…}` of its headers bound to the origin's stored key, kept in `kv` `wellknown:config:<origin>` for
+//! when that fails), substituted and parsed as documents of the origin's integration, which `integration.use`
+//! policies may withhold; the providers they define authenticate through the origin (`ConfigIntegration.suppliers`).
 
 use std::sync::OnceLock;
 
@@ -35,7 +43,10 @@ use crate::project::{absolutize, normalize, resolve_path};
 pub const NAMES: [&str; 2] = ["opencode.json", "opencode.jsonc"];
 
 /// The platform system configuration directory (`ConfigDiscovery.systemDirectory`).
+#[cfg(not(target_os = "macos"))]
 pub const SYSTEM: &str = "/etc/opencode";
+#[cfg(target_os = "macos")]
+pub const SYSTEM: &str = "/Library/Application Support/opencode";
 
 /// One config entry (`Config.Entry`).
 #[derive(Debug, Clone, PartialEq)]
@@ -75,6 +86,22 @@ fn homedir() -> String {
     env("HOME").unwrap_or_default()
 }
 
+/// `os.homedir()` as the reference's runtime answers it: the user's home from the password database (`HOME` is not
+/// consulted), else `HOME`.
+fn user_home() -> String {
+    let mut buffer = vec![0u8; 16 * 1024];
+    // SAFETY: getpwuid_r fills `entry` with pointers into `buffer`, which outlives their use here.
+    unsafe {
+        let mut entry: libc::passwd = std::mem::zeroed();
+        let mut found: *mut libc::passwd = std::ptr::null_mut();
+        let code = libc::getpwuid_r(libc::getuid(), &mut entry, buffer.as_mut_ptr().cast(), buffer.len(), &mut found);
+        if code == 0 && !found.is_null() && !entry.pw_dir.is_null() {
+            return std::ffi::CStr::from_ptr(entry.pw_dir).to_string_lossy().into_owned();
+        }
+    }
+    homedir()
+}
+
 impl Options {
     pub fn get() -> &'static Options {
         static OPTIONS: OnceLock<Options> = OnceLock::new();
@@ -102,6 +129,8 @@ impl Options {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Sources {
     pub system: (String, bool),
+    /// The macOS MDM managed preferences plist (`ai.opencode.managed`), when one is deployed.
+    pub preferences: Option<String>,
     pub global: String,
     pub explicit: Option<String>,
     pub direct: Vec<String>,
@@ -196,6 +225,7 @@ pub fn discover(directory: &str) -> Sources {
     };
     Sources {
         system: (SYSTEM.to_owned(), is_dir(SYSTEM)),
+        preferences: preferences(),
         global: global_directory,
         explicit: options.file.as_ref().map(|f| absolutize(f)),
         direct: visible
@@ -309,7 +339,7 @@ fn substitute_files(text: &str, dir: &str) -> String {
         } else {
             let file = &token[6..token.len() - 1];
             let expanded = match file.strip_prefix("~/") {
-                Some(rest) => format!("{}/{rest}", homedir()),
+                Some(rest) => format!("{}/{rest}", user_home()),
                 None => file.to_owned(),
             };
             let resolved = if expanded.starts_with('/') { expanded } else { normalize(&format!("{dir}/{expanded}")) };
@@ -329,6 +359,74 @@ pub fn parse_info(text: &str) -> Option<t::ConfigInfoPlain> {
     let input = jsonc::parse(text)?;
     let encoded = normalize_document(&input)?;
     t::ConfigInfoPlain::decode(&Json::Object(encoded)).ok()
+}
+
+/// The managed preferences plist that applies (`preferencePaths`: the user's, else the machine's), on macOS only.
+fn preferences() -> Option<String> {
+    if !cfg!(target_os = "macos") {
+        return None;
+    }
+    // `os.userInfo().username`, from the password database.
+    // SAFETY: getpwuid returns a pointer into static storage (or null), read at once.
+    let user = unsafe {
+        let entry = libc::getpwuid(libc::getuid());
+        if entry.is_null() || (*entry).pw_name.is_null() {
+            "user".to_owned()
+        } else {
+            std::ffi::CStr::from_ptr((*entry).pw_name).to_string_lossy().into_owned()
+        }
+    };
+    [format!("/Library/Managed Preferences/{user}/ai.opencode.managed.plist"), "/Library/Managed Preferences/ai.opencode.managed.plist".into()]
+        .into_iter()
+        .find(|path| std::path::Path::new(path).is_file())
+}
+
+/// Keys macOS and MDM profiles inject into managed preferences that are not OpenCode config.
+const PREFERENCE_METADATA: [&str; 6] =
+    ["PayloadDisplayName", "PayloadIdentifier", "PayloadType", "PayloadUUID", "PayloadVersion", "_manualProfile"];
+
+/// `loadPreferences`: the plist converted to JSON by `plutil` (within 10 seconds), without the MDM payload metadata,
+/// substituted and parsed as a document of its own; nothing when the conversion fails.
+fn load_preferences(plist: &str) -> Option<Entry> {
+    let mut child = std::process::Command::new("plutil")
+        .args(["-convert", "json", "-o", "-", plist])
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .ok()?;
+    let mut stdout = child.stdout.take()?;
+    let reader = std::thread::spawn(move || {
+        let mut out = Vec::new();
+        std::io::Read::read_to_end(&mut stdout, &mut out).map(|_| out)
+    });
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+    let status = loop {
+        if let Some(status) = child.try_wait().ok()? {
+            break status;
+        }
+        if std::time::Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            return None;
+        }
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    };
+    let output = reader.join().ok()?.ok()?;
+    if !status.success() {
+        return None;
+    }
+    let text = String::from_utf8_lossy(&output).into_owned();
+    // `stripPreferenceMetadata`: a JSON object loses the metadata keys; anything else is kept as it is.
+    let stripped = match crate::json::parse(&text) {
+        Some(Json::Object(mut object)) => {
+            object.retain(|key, _| !PREFERENCE_METADATA.contains(&key.as_str()));
+            crate::json::text(&Json::Object(object))
+        }
+        _ => text,
+    };
+    let info = parse_info(&substitute(&stripped, &dirname(plist)))?;
+    Some(Entry::Document { path: Some(plist.to_owned()), info })
 }
 
 fn load_file(path: &str) -> Option<Entry> {
@@ -355,7 +453,9 @@ pub fn load(directory: &str, sources: &Sources) -> Vec<Entry> {
         .map(|info| Entry::Document { path: None, info })
         .into_iter()
         .collect();
-    let managed = if sources.system.1 { load_directory(&sources.system.0) } else { vec![] };
+    // MDM preferences outrank the system directory.
+    let mut managed = if sources.system.1 { load_directory(&sources.system.0) } else { vec![] };
+    managed.extend(sources.preferences.as_deref().and_then(load_preferences));
     // Managed policies load first (policies evaluate earliest-loaded first), the rest of the managed settings last.
     let mut managed_policies: Vec<Entry> = managed
         .iter()

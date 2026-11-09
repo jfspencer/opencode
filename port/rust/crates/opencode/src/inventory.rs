@@ -267,7 +267,13 @@ impl Rescan {
                 match kind {
                     Kind::Skills => location.inventory.rescan_skills(&app.bus, &reference).await,
                     Kind::Instructions => location.inventory.rescan_instructions().await,
-                    Kind::Config => location.inventory.reload(&app.bus, &reference).await,
+                    Kind::Config => {
+                        if location.inventory.reload(&app.bus, &reference).await {
+                            crate::repository_cache::refresh(&app, &location.inventory().references);
+                        }
+                        // The location watcher follows the reloaded `watcher.ignore` lists.
+                        location.watcher.reconcile(&app, &location).await;
+                    }
                 }
             }
         });
@@ -340,6 +346,11 @@ impl Shared {
         }
     }
 
+    /// Waits out a reload in progress (`Plugin.awaitActivation`), so a step reads the settled inventory.
+    pub async fn settled(&self) {
+        drop(self.reloading.lock().await);
+    }
+
     pub fn get(&self) -> Arc<Inventory> {
         self.current.read().unwrap().clone()
     }
@@ -348,8 +359,8 @@ impl Shared {
     /// When the documents (or the compatibility roots) changed, publishes `config.updated`, then the providers and
     /// models are rebuilt twice (by the provider and policy plugins, each announcing); agents, commands, skills and
     /// references announce only when their listings changed (a markdown file edit changes them without
-    /// `config.updated`).
-    pub async fn reload(&self, bus: &Bus, location: &LocationRef) {
+    /// `config.updated`). Whether the references changed (their checkouts follow, [`crate::repository_cache`]).
+    pub async fn reload(&self, bus: &Bus, location: &LocationRef) -> bool {
         let _reloading = self.reloading.lock().await;
         let previous = self.get();
         let sources = config::discover(&previous.directory);
@@ -398,6 +409,7 @@ impl Shared {
         if references_changed {
             bus.emit("reference.updated", Obj::new().done(), options());
         }
+        references_changed
     }
 }
 

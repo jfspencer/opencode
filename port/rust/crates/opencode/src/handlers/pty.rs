@@ -175,8 +175,10 @@ async fn connect(app: &App, request: &Request) -> Result<Response> {
         }
     };
     drop(outbox);
+    // The socket keeps its location from the idle sweep while it stays open (`holdLocation`).
+    let retain = crate::location_activity::Retain::new(location);
     tokio::spawn(async move {
-        let _location = location;
+        let _retain = retain;
         if let Some(socket) = Socket::open(pending).await {
             socket
                 .run(messages, |message| {

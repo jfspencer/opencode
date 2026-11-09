@@ -39,7 +39,7 @@ async fn run<A>(
     pattern: Option<&str>,
     mut parse: impl FnMut(&str) -> Result<Option<A>, SearchError>,
 ) -> Result<Vec<A>, SearchError> {
-    let binary = crate::fs::ripgrep().ok_or_else(|| SearchError::Ripgrep("ripgrep execution failed".into()))?;
+    let binary = crate::fs::ripgrep().await.map_err(|e| SearchError::Ripgrep(e.message("ripgrep execution failed")))?;
     let mut child = tokio::process::Command::new(binary)
         .args(&args)
         .current_dir(cwd)
