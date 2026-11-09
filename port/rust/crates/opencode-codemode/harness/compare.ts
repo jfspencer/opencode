@@ -1,10 +1,10 @@
 // Compares the TS and Rust outputs of a corpus line by line and reports every difference.
 //
 // Engine diagnostics (JSON.parse, URI and regular-expression syntax errors in JavaScriptCore's words) are masked
-// as the conformance standard masks them (port/conformance/lib/normalize.ts `engine`).
+// as the conformance standard masks them (port/conformance/lib/normalize.ts `diagnostics`).
 //
 // usage: bun harness/compare.ts ts.jsonl rust.jsonl [--show N]
-import { engine } from "../../../../conformance/lib/normalize.ts"
+import { diagnostics } from "../../../../conformance/lib/normalize.ts"
 const [tsPath, rustPath] = process.argv.slice(2)
 const showIndex = process.argv.indexOf("--show")
 const show = showIndex >= 0 ? Number(process.argv[showIndex + 1]) : 5
@@ -18,7 +18,7 @@ for (let index = 0; index < Math.max(ts.length, rust.length); index++) {
   const expected = ts[index]
   const actual = rust[index]
   if (expected === actual) continue
-  if (expected !== undefined && actual !== undefined && engine(expected) === engine(actual)) {
+  if (expected !== undefined && actual !== undefined && diagnostics(expected) === diagnostics(actual)) {
     masked++
     continue
   }
@@ -31,8 +31,8 @@ for (let index = 0; index < Math.max(ts.length, rust.length); index++) {
       return `line ${index + 1}`
     }
   })()
-  const a = engine(expected ?? "<missing>")
-  const b = engine(actual ?? "<missing>")
+  const a = diagnostics(expected ?? "<missing>")
+  const b = diagnostics(actual ?? "<missing>")
   let at = 0
   while (at < a.length && a[at] === b[at]) at++
   const from = Math.max(0, at - 200)

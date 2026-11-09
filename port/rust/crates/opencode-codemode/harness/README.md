@@ -51,7 +51,7 @@ because a microtask runs before `Effect.yieldNow`'s macrotask.
 | `tools.jsonl` | 33 | tool paths, schemas, search, limits, output bounding | `bun harness/gen-cases.ts tools` |
 | `extensions.jsonl` | 50 | host globals: values crossing both ways, errors, promises, timing | `bun harness/gen-cases.ts extensions` |
 | `hooks.jsonl` | 13 | hook order and call identity, interrupted calls | `bun harness/gen-cases.ts hooks` |
-| `matrix.jsonl` | 156 | operators, coercions, and built-ins crossed with a spread of values | `bun harness/gen-cases.ts matrix` |
+| `matrix.jsonl` | 157 | operators, coercions, and built-ins crossed with a spread of values | `bun harness/gen-cases.ts matrix` |
 | `chains.jsonl` | 28 | expression chains of 3,000 and 45,000 links, in every context that walks or evaluates them | `bun harness/gen-cases.ts chains` |
 | `deep.jsonl` | 27 | statements, expressions, and patterns nested 1,000 and 20,000 levels deep | `bun harness/gen-cases.ts deep` |
 | `scan.jsonl` | 82 | `scanTools` only: scopes, chains, error positions, depth | `bun harness/gen-cases.ts scan` |
