@@ -503,6 +503,7 @@ dependencies = [
  "hyper-util",
  "indexmap",
  "opencode-protocol",
+ "opencode-shell",
  "regex",
  "rusqlite",
  "rustls",

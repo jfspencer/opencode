@@ -207,6 +207,11 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-schedule.test.ts › create schedules of every kind
+scenarios/project-schedule.test.ts › denied shell conditions
+scenarios/project-schedule.test.ts › schedule lifecycle routes
+scenarios/project-schedule.test.ts › schedules are disabled without the experimental flag
+scenarios/project-schedule.test.ts › shell conditions at creation
 scenarios/project-skills.test.ts › activate a skill through the session endpoint
 scenarios/project-skills.test.ts › built-in skills
 scenarios/project-skills.test.ts › denied skills are hidden from the model
@@ -234,6 +239,7 @@ scenarios/project-worktree.test.ts › removing a dirty worktree requires force
 scenarios/project-worktree.test.ts › worktree directory from config
 scenarios/project-worktree.test.ts › worktree routes for unknown projects and non-git projects
 scenarios/project-worktree.test.ts › worktree start command and name collisions
+scenarios/session-api-control.test.ts › a session on an unknown agent fails its turn
 scenarios/session-api-control.test.ts › a session on an unknown model fails its turn
 scenarios/session-api-control.test.ts › a slash command that fails to run
 scenarios/session-api-control.test.ts › activate skills and attach them to prompts
@@ -247,6 +253,7 @@ scenarios/session-api-control.test.ts › run slash commands
 scenarios/session-api-control.test.ts › switch the agent
 scenarios/session-api-control.test.ts › switch the model and its reasoning variant
 scenarios/session-api-crud.test.ts › active sessions while idle
+scenarios/session-api-crud.test.ts › an empty title on a location's first request
 scenarios/session-api-crud.test.ts › an empty title on a session without messages generates nothing
 scenarios/session-api-crud.test.ts › an empty title regenerates the title from the conversation
 scenarios/session-api-crud.test.ts › create a child session inherits from its parent
@@ -266,9 +273,11 @@ scenarios/session-api-failures.test.ts › a provider failure is retried once
 scenarios/session-api-failures.test.ts › a step stopped by the content filter
 scenarios/session-api-failures.test.ts › interrupt a session while it waits to retry
 scenarios/session-api-failures.test.ts › provider failures become session errors
+scenarios/session-api-failures.test.ts › title generation edge cases
 scenarios/session-api-inputs.test.ts › an inline attachment over the size limit
 scenarios/session-api-inputs.test.ts › attachments the model cannot read
 scenarios/session-api-inputs.test.ts › forms of a session whose location is not loaded
+scenarios/session-api-inputs.test.ts › import inline media into blob storage
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
@@ -286,9 +295,13 @@ scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
 scenarios/session-api-revert.test.ts › diff a session without changes or without git
 scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
+scenarios/session-api-storage.test.ts › a tool file that refers to missing media reads as unavailable
 scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
+scenarios/session-api-transfer.test.ts › export leaves out unsettled messages
+scenarios/session-api-transfer.test.ts › import without a location and as a child
+scenarios/session-api-transfer.test.ts › session statistics over imported history
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells

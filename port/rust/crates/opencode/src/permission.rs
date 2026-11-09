@@ -15,7 +15,8 @@
 //! policies' `tool.use` statements (config/plugin/policy.ts's `permission.evaluate` hook). A request with any
 //! resource that evaluates to `ask` is published (`permission.asked`) and waits for [`Service::reply`].
 //!
-//! TODO(port): the `Unattended` ruleset (schedule checks).
+//! A requester's `unattended` rules (`Permission.Unattended`) settle what would ask: allowed when they allow every
+//! resource, else denied as needing approval nobody is present to give.
 
 // The interface is the tools' (built concurrently): allow it to be unused until then.
 #![allow(dead_code)]
@@ -53,6 +54,9 @@ pub struct Requester {
     pub agent: Option<String>,
     /// The tool call that asks (`{type: "tool", messageID, id}`).
     pub source: Option<Source>,
+    /// `Permission.Unattended`: rules that settle a request which would otherwise ask, for work nobody is present to
+    /// answer (a schedule's check); a request they do not allow is denied. Configured denies still win.
+    pub unattended: Option<Vec<Json>>,
 }
 
 #[derive(Debug, Clone)]
@@ -290,6 +294,14 @@ impl Service {
             effect = "deny";
             message = reason;
         }
+        if let (true, Some(unattended)) = (effect == "ask", &requester.unattended) {
+            let settled: Vec<Json> = all.iter().chain(unattended).cloned().collect();
+            if ask.resources.iter().all(|resource| evaluate(&ask.action, resource, &settled) == "allow") {
+                return Ok(Evaluation { effect: "allow", message: None, rules: all });
+            }
+            let message = format!("Permission {} needs approval, and nobody is present to give it", ask.action);
+            return Ok(Evaluation { effect: "deny", message: Some(message), rules: all });
+        }
         Ok(Evaluation { effect, message, rules: all })
     }
 
@@ -480,6 +492,7 @@ impl Service {
                         session_id: item.session_id.clone(),
                         agent: item.agent.clone(),
                         source: None,
+                        unattended: None,
                     },
                     Ask { action: item.action.clone(), resources: item.resources.clone(), save: None, metadata: None },
                 )

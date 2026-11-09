@@ -740,6 +740,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             call_id: id.clone(),
             directory: input.directory.clone(),
             progress: Arc::new(move |metadata| context_publisher.lock().unwrap().progress(&call_id, metadata)),
+            unattended: None,
         };
         tools.spawn(async move {
             let result = if tools_disabled {

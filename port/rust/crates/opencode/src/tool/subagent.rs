@@ -169,6 +169,7 @@ async fn assert_allowed(context: &Context, agent: &str) -> Result<(), Failure> {
         session_id: context.session_id.clone(),
         agent: Some(context.agent.clone()),
         source: Some(Source { message_id: context.message_id.clone(), id: context.call_id.clone() }),
+        unattended: context.unattended.clone(),
     };
     let ask = Ask { action: NAME.into(), resources: vec![agent.into()], save: Some(vec![agent.into()]), metadata: None };
     match context.location.permission.assert(&context.app, &context.location, &requester, &ask).await {

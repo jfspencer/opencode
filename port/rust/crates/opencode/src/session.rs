@@ -5,6 +5,7 @@
 //! [`retry`], [`title`].
 
 pub mod attachment;
+pub mod blob;
 pub mod command;
 pub mod compaction;
 pub mod context;
@@ -21,9 +22,11 @@ pub mod retry;
 pub mod revert;
 pub mod runner;
 pub mod skill;
+pub mod stats;
 pub mod step;
 pub mod subagent;
 pub mod title;
+pub mod transfer;
 
 use std::collections::HashSet;
 use std::sync::Mutex;
@@ -222,7 +225,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
             }
         }
         "session.deleted" => {
-            // TODO(port): SessionBlob.releaseSession.
+            blob::release_session(tx, id)?;
             tx.execute("DELETE FROM session_v2 WHERE id = ?1", params![id])?;
         }
         "session.renamed" => set_session(
@@ -259,6 +262,7 @@ pub fn project(tx: &Transaction, event: &Event) -> rusqlite::Result<()> {
         "session.unarchived" => {
             set_session(tx, id, "time_archived = NULL, time_updated = ?1", vec![Value::Integer(created)])?
         }
+        "session.forked" => transfer::project_fork(tx, event)?,
         "worktree.resolved" => adopt(tx, data)?,
         "session.inbox.enqueued" => inbox::project_admitted(tx, event)?,
         "session.inbox.delivered" => inbox::project_delivered(tx, event)?,

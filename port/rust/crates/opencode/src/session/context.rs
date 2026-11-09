@@ -72,7 +72,7 @@ pub fn select_agent(inventory: &Inventory, session: &Json) -> Result<(String, Js
         (id, Some(info)) => Ok((id, json::of(info))),
         (id, None) => {
             let mut o = Obj::new();
-            o.str("type", "unknown").str("message", &format!("Agent not found: {id}"));
+            o.str("type", "unknown").str("message", &format!("Agent not found: \"{id}\""));
             Err(o.done())
         }
     }
