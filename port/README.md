@@ -59,7 +59,8 @@ Out of scope:
 - the model catalog and pricing;
 - MCP, websearch and image generation (their tools are hidden from the model in the reference config);
 - fff file search (file search is ripgrep + fuzzysort, as with `OPENCODE_DISABLE_FFF=1`);
-- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM).
+- experimental flags, which are off in release builds (e.g. the code-mode bytecode VM);
+- Windows (the port targets Linux and macOS; TS's `win32` branches are not ported).
 
 Known upstream bugs are not ported: each is fixed by a deviation patch (`patches/`), so the standard
 requires the fixed behavior. Text written by the JavaScript engine itself (JSON and regular-expression
