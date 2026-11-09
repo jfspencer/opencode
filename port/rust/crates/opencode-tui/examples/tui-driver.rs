@@ -173,6 +173,166 @@ fn run_theme(registry: &mut ThemeRegistry, case: &Json) -> Json {
     }
 }
 
+// --- config cases ----------------------------------------------------------------------------------------------
+
+use opencode_tui::config::file::{CliConfig, parse_record};
+use opencode_tui::config::jsonc::{self, FormattingOptions, Segment};
+use opencode_tui::config::keybind::{Binding, DEFINITIONS, default_value};
+use opencode_tui::config::resolve::{ResolveOptions, resolve, to_json};
+use opencode_tui::config::schema::decode_info;
+
+fn bindings_json(bindings: &[Binding]) -> Json {
+    Json::Array(bindings.iter().map(|b| Json::Object(b.0.clone())).collect())
+}
+
+/// Walks to the parent of `path`, replacing non-objects on the way with `{}` (as the harness's TS mutation does).
+fn parent_of<'a>(draft: &'a mut Json, path: &[String]) -> &'a mut Object {
+    if !matches!(draft, Json::Object(_)) {
+        *draft = Json::Object(Object::new());
+    }
+    let Json::Object(target) = draft else { unreachable!() };
+    let mut target: &mut Object = target;
+    for key in &path[..path.len() - 1] {
+        let entry = target.entry(key.clone()).or_insert(Json::Null);
+        if !matches!(entry, Json::Object(_)) {
+            *entry = Json::Object(Object::new());
+        }
+        let Json::Object(next) = entry else { unreachable!() };
+        target = next;
+    }
+    target
+}
+
+fn apply_ops(draft: &mut Json, ops: &[Json]) {
+    for op in ops {
+        let path: Vec<String> = match get(op, "path") {
+            Json::Array(items) => items.iter().map(|i| str_of(i).to_owned()).collect(),
+            _ => continue,
+        };
+        let last = path.last().unwrap().clone();
+        let parent = parent_of(draft, &path);
+        match str_of(get(op, "op")) {
+            "set" => {
+                parent.insert(last, get(op, "value").clone());
+            }
+            "delete" => {
+                parent.shift_remove(&last);
+            }
+            _ => {
+                let mut spread = match parent.get(&last) {
+                    Some(Json::Object(o)) => o.clone(),
+                    _ => Object::new(),
+                };
+                spread.insert(str_of(get(op, "key")).to_owned(), get(op, "value").clone());
+                parent.insert(last, Json::Object(spread));
+            }
+        }
+    }
+}
+
+fn run_config(case: &Json, id: &Json) -> Json {
+    match str_of(get(case, "kind")) {
+        "definitions" => Json::Array(
+            DEFINITIONS
+                .iter()
+                .map(|(name, _, description)| Json::Array(vec![s(name), default_value(name).unwrap(), s(description)]))
+                .collect(),
+        ),
+        "decode" => decode_info(get(case, "input")).map(|v| s(&opencode_protocol::to_string(&v))).unwrap_or(Json::Null),
+        "resolve" => {
+            let mut info = decode_info(get(case, "input")).unwrap_or(Json::Object(Object::new()));
+            if let Json::Array(unknown) = get(case, "unknown")
+                && !unknown.is_empty()
+            {
+                let Json::Object(object) = &mut info else { unreachable!() };
+                let mut keybinds = match object.get("keybinds") {
+                    Some(Json::Object(k)) => k.clone(),
+                    _ => Object::new(),
+                };
+                for name in unknown {
+                    keybinds.insert(str_of(name).to_owned(), s("x"));
+                }
+                object.insert("keybinds".into(), Json::Object(keybinds));
+            }
+            let options = ResolveOptions {
+                terminal_suspend: matches!(get(case, "terminalSuspend"), Json::Bool(true)),
+                herdr_env: matches!(get(case, "herdr"), Json::Bool(true)).then(|| "1".to_owned()),
+            };
+            guard((|| {
+                let resolved = resolve(&info, &options)?;
+                let keybinds = &resolved.keybinds;
+                let sample = ["app.exit", "session.list", "prompt.paste", "nope"];
+                let gather = keybinds.gather("g", &["prompt.paste", "app.exit", "nope", "session.new"]);
+                let again = keybinds.gather("g", &["session.list"]);
+                Ok(obj(vec![
+                    ("resolved", to_json(&resolved)),
+                    ("get", Json::Array(sample.iter().map(|n| bindings_json(keybinds.get(n))).collect())),
+                    ("has", Json::Array(sample.iter().map(|n| Json::Bool(keybinds.has(n))).collect())),
+                    ("gather", bindings_json(&gather)),
+                    ("again", bindings_json(&again)),
+                    ("pick", bindings_json(&keybinds.pick("g", &["session.new", "app.exit"]))),
+                    ("omit", bindings_json(&keybinds.omit("g", &["app.exit"]))),
+                    ("omitMany", bindings_json(&keybinds.omit("g", &["app.exit", "session.new"]))),
+                    ("missing", bindings_json(&keybinds.pick("h", &["app.exit"]))),
+                ]))
+            })())
+        }
+        "parse" => {
+            let (value, errors) = jsonc::parse(str_of(get(case, "text")));
+            if errors {
+                obj(vec![("errors", Json::Bool(true))])
+            } else {
+                obj(vec![("value", value.map(|v| s(&opencode_protocol::to_string(&v))).unwrap_or(Json::Null))])
+            }
+        }
+        "modify" => {
+            let text = str_of(get(case, "text"));
+            let path: Vec<Segment> = match get(case, "path") {
+                Json::Array(items) => items
+                    .iter()
+                    .map(|i| match i {
+                        Json::Number(n) => Segment::Index(*n as i64),
+                        other => Segment::Key(str_of(other).to_owned()),
+                    })
+                    .collect(),
+                _ => Vec::new(),
+            };
+            let remove = matches!(get(case, "remove"), Json::Bool(true));
+            let value = get(case, "value");
+            let options = FormattingOptions { tab_size: 2, insert_spaces: true };
+            guard((|| {
+                let edits = jsonc::modify(text, &path, if remove { None } else { Some(value) }, options)?;
+                jsonc::apply_edits(text, &edits).map(|t| s(&t))
+            })())
+        }
+        "service" => {
+            let work = std::path::PathBuf::from(std::env::var("OPENCODE_TUI_WORK").expect("OPENCODE_TUI_WORK"));
+            let directory = work.join(format!("rust-{}", opencode_protocol::to_string(id)));
+            let _ = std::fs::remove_dir_all(&directory);
+            std::fs::create_dir_all(&directory).unwrap();
+            if let Json::String(file) = get(case, "file") {
+                std::fs::write(directory.join("cli.json"), file).unwrap();
+            }
+            let content = match get(case, "content") {
+                Json::String(text) if !text.is_empty() => parse_record(text).and_then(|r| decode_info(&r)),
+                _ => None,
+            };
+            let config = CliConfig::with_content(&directory, &directory, content);
+            let result = match get(case, "ops") {
+                Json::Array(ops) => match config.update(|draft| apply_ops(draft, ops)) {
+                    Ok(value) => ("ok", value),
+                    Err(error) => ("error", s(&error.to_string())),
+                },
+                _ => ("ok", config.get()),
+            };
+            let text = std::fs::read_to_string(directory.join("cli.json")).map(|t| s(&t)).unwrap_or(Json::Null);
+            let _ = std::fs::remove_dir_all(&directory);
+            obj(vec![result, ("text", text)])
+        }
+        _ => Json::Null,
+    }
+}
+
 fn main() {
     let mut registry = ThemeRegistry::new();
     let stdin = std::io::stdin();
@@ -186,6 +346,7 @@ fn main() {
         let case = get(&input, "case");
         let out = match str_of(get(&input, "group")) {
             "theme" => run_theme(&mut registry, case),
+            "config" => run_config(case, get(&input, "id")),
             _ => Json::Null,
         };
         let result = obj(vec![("id", get(&input, "id").clone()), ("out", out)]);

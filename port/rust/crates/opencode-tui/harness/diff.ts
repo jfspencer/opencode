@@ -34,7 +34,7 @@ type Entry = { group: "theme" | "config"; case: unknown }
 const cases: Entry[] = []
 
 const { runTheme, builtinNames } = await import("./theme.ts")
-const { runConfig, configCases } = await import("./config.ts").catch(() => ({ runConfig: undefined, configCases: undefined }))
+const { runConfig, configCases } = only === "theme" ? { runConfig: undefined, configCases: undefined } : await import("./config.ts")
 
 // --- theme cases -----------------------------------------------------------------------------------------------
 if (only !== "config") {
@@ -112,10 +112,11 @@ if (only !== "config") {
 if (only !== "theme" && configCases) for (const c of configCases(count, random)) cases.push({ group: "config", case: c })
 
 // --- run both sides --------------------------------------------------------------------------------------------
-const expected = cases.map((entry) => {
-  const out = entry.group === "theme" ? runTheme(entry.case as any) : runConfig!(entry.case as any)
-  return JSON.parse(JSON.stringify(out ?? null))
-})
+const expected: unknown[] = []
+for (const entry of cases) {
+  const out = entry.group === "theme" ? runTheme(entry.case as any) : await runConfig!(entry.case as any)
+  expected.push(JSON.parse(JSON.stringify(out ?? null)))
+}
 
 const proc = Bun.spawn([driver], { stdin: "pipe", stdout: "pipe", stderr: "inherit" })
 for (const [id, entry] of cases.entries()) proc.stdin.write(JSON.stringify({ id, group: entry.group, case: entry.case }) + "\n")
