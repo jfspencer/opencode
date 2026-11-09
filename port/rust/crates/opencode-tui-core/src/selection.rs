@@ -6,9 +6,9 @@
 //! is in the renderer's mouse dispatch.
 //!
 //! Renderables take part through [`Element::should_start_selection`], [`Element::on_selection_changed`],
-//! [`Element::selected_text`] and [`Element::has_selection`]: a `<text>` (and every TextRenderable subclass,
-//! whose kind reads as a `TextKind`) selects in its scene text, a `<textarea>` in its editor view, any other kind
-//! through its `Kind` methods.
+//! [`Element::selected_text`] and [`Element::has_selection`]: a `<text>` selects in its scene text, a
+//! `<textarea>` in its editor view, any other kind through its `Kind` methods, whose defaults are its superclass
+//! part's (`Kind::base_kind`), so a TextRenderable subclass selects as a `<text>`.
 use std::cell::RefCell;
 use std::time::Instant;
 
@@ -494,7 +494,7 @@ fn primary_axis(el: Element) -> FlexDirection {
 }
 
 impl Element {
-    // A TextRenderable subclass's kind reads as its inner `TextKind`, so it selects as a `<text>` does.
+    // A kind that reads as a `TextKind` (`create_text_with` subclasses) selects as a `<text>` does.
     fn with_selection_kind<R>(self, text: impl FnOnce(&mut TextKind) -> R, other: impl FnOnce(&mut dyn Kind) -> R) -> Option<R> {
         self.with_dyn_kind(|k| {
             if k.as_any().is::<TextKind>() {

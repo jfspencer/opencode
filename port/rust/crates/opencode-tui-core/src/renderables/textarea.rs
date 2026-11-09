@@ -10,9 +10,11 @@
 //! The textarea's state lives in a registry keyed by its element, so its getters and setters work while the tree
 //! has the kind out (from its own callbacks, which run during a key press).
 //!
-//! TODO(port-tui): the `keyBindings`/`keyAliasMap` props, mouse selection, extmarks and the syntax style prop. The
-//! keyboard selection (`select-*`) keeps its anchor here instead of in the renderer's selection
-//! (`startSelection`/`updateSelection`), so it does not reach other renderables' selections.
+//! Selections, by keyboard (`select-*`) or mouse, are the renderer's ([`crate::selection`]); the textarea's
+//! `onSelectionChanged` puts them in its editor view, moving the cursor to their focus.
+//!
+//! TODO(port-tui): the `keyBindings`/`keyAliasMap` props, mouse wheel scrolling (`handleScroll`), extmarks and
+//! the syntax style prop.
 use std::any::Any;
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;

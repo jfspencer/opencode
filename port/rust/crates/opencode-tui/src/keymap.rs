@@ -488,7 +488,9 @@ pub fn install(t: &Tui) {
             km::Layer {
                 fields: vec![(
                     "enabled".into(),
-                    km::Field::Fn(Rc::new(|| renderer::current_focused_editor().is_some())),
+                    km::Field::Fn(Rc::new(|| {
+                        renderer::current_focused_editor().is_some_and(edit_buffer_bindings::is_managed_textarea)
+                    })),
                 )],
                 bindings: TextareaAction::ALL
                     .iter()
