@@ -60,9 +60,11 @@ pub fn service_unavailable(message: &str, service: &str) -> Failure {
 fn project_update(app: &App, request: &Request, decoded: &Decoded) -> Result<Response> {
     let payload = t::ProjectUpdatePayload::decode(&decoded.payload).map_err(|issue| Failure::schema("Payload", &issue))?;
     let id = request.param("projectID");
-    // The stored column only takes absolute paths (database/path.ts `absoluteColumn`): the write dies.
-    if let Some(canonical) = payload.canonical.as_ref().filter(|c| !crate::project::storable(&c.0)) {
-        return Err(crate::app::defect(format!("Path is not absolute: {}", canonical.0)));
+    // A relative canonical directory is rejected before the lookup (D220; upstream dies when it is stored).
+    if payload.canonical.as_ref().is_some_and(|c| !c.0.starts_with('/')) {
+        let mut o = Obj::new();
+        o.str("_tag", "InvalidRequestError").str("message", "canonical must be an absolute path").str("field", "canonical");
+        return Err(Failure::new(400, o.done()));
     }
     let input = crate::project::Update {
         canonical: payload.canonical.map(|c| c.0),

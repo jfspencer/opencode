@@ -108,13 +108,6 @@ pub fn normalize(input: &str) -> String {
     }
 }
 
-/// Whether a path can be stored in an absolute-path column (database/path.ts `storedAbsolutePath`): POSIX
-/// absolute, or a Windows drive or UNC path.
-pub fn storable(path: &str) -> bool {
-    let bytes = path.as_bytes();
-    path.starts_with('/') || (bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && bytes[2] == b'/')
-}
-
 /// Whether `child` is `parent` or inside it (`FSUtil.contains`).
 pub fn contains(parent: &str, child: &str) -> bool {
     child == parent || child.starts_with(&format!("{}/", parent.trim_end_matches('/')))
