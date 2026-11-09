@@ -41,6 +41,8 @@ pub struct Location {
     pub permission: crate::permission::Service,
     /// The location's forms (`Form.Service`).
     pub forms: crate::form::Service,
+    /// The location's snapshot store (`Snapshot.Service`).
+    pub snapshot: crate::snapshot::Service,
 }
 
 #[derive(Debug, Clone)]
@@ -202,6 +204,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         version_control,
         permission: Default::default(),
         forms: Default::default(),
+        snapshot: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();
