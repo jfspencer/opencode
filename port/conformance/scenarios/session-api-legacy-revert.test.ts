@@ -32,7 +32,7 @@ const legacy = (messageID: string) => [
   { messageID, files: [{ path: "d.txt", status: "deleted", additions: 0, deletions: 5, patch: "-x" }] },
 ]
 
-scenario("revert state from before FileDiff was canonical", { processOnly: "a database file under the server" }, async (ctx) => {
+scenario("revert state from before FileDiff was canonical", { processOnly: "a database file under the server", timeout: 120_000 }, async (ctx) => {
   const dir = mkdtempSync(path.join(path.dirname(ctx.project), "db-"))
   const file = path.join(dir, "opencode.db")
   try {

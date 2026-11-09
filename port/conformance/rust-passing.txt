@@ -231,6 +231,9 @@ scenarios/cli-session.test.ts › session import into another directory
 scenarios/cli-session.test.ts › session list formats and limits
 scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is refused
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is reset
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: certificates a client refuses
 scenarios/codemode-lang-async.test.ts › async delegation and settlement edge cases
 scenarios/codemode-lang-async.test.ts › async functions and await ordering
 scenarios/codemode-lang-async.test.ts › generators and iterators
@@ -361,6 +364,8 @@ scenarios/project-frontmatter.test.ts › an excerpt separator without a string 
 scenarios/project-frontmatter.test.ts › engines named after Object.prototype members
 scenarios/project-frontmatter.test.ts › nesting as deep as the JS stack allows
 scenarios/project-frontmatter.test.ts › values JSON cannot say
+scenarios/project-fs-dates.test.ts › if-modified-since in every date form
+scenarios/project-fs-dates.test.ts › if-range in every date form
 scenarios/project-fs.test.ts › conditional reads
 scenarios/project-fs.test.ts › find files and directories
 scenarios/project-fs.test.ts › find from the home directory
@@ -385,6 +390,10 @@ scenarios/project-instructions.test.ts › unreadable AGENTS.md blocks instructi
 scenarios/project-jobs.test.ts › background subagent job
 scenarios/project-jobs.test.ts › deleting a session cancels its background jobs
 scenarios/project-jobs.test.ts › foreground subagent moved to the background
+scenarios/project-location-reload.test.ts › a request for an unreadable directory
+scenarios/project-location-reload.test.ts › reload after a location's directory became unreadable
+scenarios/project-location-reload.test.ts › reload after a location's directory went away
+scenarios/project-location-reload.test.ts › reload with a broken project config
 scenarios/project-projects.test.ts › a moved checkout replaces the missing canonical directory
 scenarios/project-projects.test.ts › debug loaded locations and evict one
 scenarios/project-projects.test.ts › git repository without commits shares the global project
@@ -407,6 +416,12 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys beside the app headers
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys that are not a record
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys that are not all strings
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys with headers of their own
+scenarios/project-providers-openrouter.test.ts › openrouter settings: empty api keys
 scenarios/project-schedule.test.ts › code conditions at creation
 scenarios/project-schedule.test.ts › create schedules of every kind
 scenarios/project-schedule.test.ts › denied shell conditions
@@ -471,6 +486,7 @@ scenarios/pty.test.ts › pty connect tickets
 scenarios/pty.test.ts › pty sessions over the API
 scenarios/pty.test.ts › pty websocket authentication and tickets
 scenarios/pty.test.ts › pty websocket input, output, replay and exit
+scenarios/session-api-bodies.test.ts › raw JSON bodies
 scenarios/session-api-control.test.ts › a session on an unknown agent fails its turn
 scenarios/session-api-control.test.ts › a session on an unknown model fails its turn
 scenarios/session-api-control.test.ts › a slash command that fails to run
@@ -524,6 +540,7 @@ scenarios/session-api-inputs.test.ts › prompt attachments that cannot be read
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
 scenarios/session-api-inputs.test.ts › the model reads an image into media storage
+scenarios/session-api-legacy-revert.test.ts › revert state from before FileDiff was canonical
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › compaction requests wait in the inbox of a busy session
 scenarios/session-api-prompt.test.ts › get one message
@@ -554,6 +571,9 @@ scenarios/session-api-subagents.test.ts › a background subagent reports back t
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
 scenarios/session-api-subagents.test.ts › background jobs of a child session listed from its ancestors
+scenarios/session-api-transfer-legacy.test.ts › an old field replacing an invalid new one
+scenarios/session-api-transfer-legacy.test.ts › an old name holding what the new name rejects
+scenarios/session-api-transfer-legacy.test.ts › non-object messages and a byte order mark
 scenarios/session-api-transfer.test.ts › export a live session and import it elsewhere
 scenarios/session-api-transfer.test.ts › export leaves out unsettled messages
 scenarios/session-api-transfer.test.ts › import a transcript exported by an earlier release
@@ -631,6 +651,15 @@ scenarios/tools-formatter-npm.test.ts › conflicting versions of a dependency n
 scenarios/tools-formatter-npm.test.ts › optional dependencies for another platform are left out, peers are installed beside their dependent
 scenarios/tools-formatter-npm.test.ts › prettier and its dependencies install into the package cache, hoisted
 scenarios/tools-formatter-npm.test.ts › the user's npm config: credentials, a scoped registry and the install strategy
+scenarios/tools-patch-errors.test.ts › patch: a file in an unsearchable directory
+scenarios/tools-patch-errors.test.ts › patch: a later change failing
+scenarios/tools-patch-errors.test.ts › patch: adding below a file
+scenarios/tools-patch-errors.test.ts › patch: adding below a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: adding to a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: an unreadable file
+scenarios/tools-patch-errors.test.ts › patch: deleting in a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: moving out of a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: updating a read-only file
 scenarios/tools-patch.test.ts › patch: a bom file
 scenarios/tools-patch.test.ts › patch: a missing file
 scenarios/tools-patch.test.ts › patch: add update delete and move
@@ -679,6 +708,18 @@ scenarios/tools-skill.test.ts › skill from a remote index updated to a new ver
 scenarios/tools-skill.test.ts › skill from configured paths
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
 scenarios/tools-skill.test.ts › skill remote index that fails
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the agent
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the model
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the session ID
+scenarios/tools-subagent-inputs.test.ts › subagent input: a session ID without its prefix
+scenarios/tools-subagent-inputs.test.ts › subagent input: a string
+scenarios/tools-subagent-inputs.test.ts › subagent input: a stringified input with an empty model
+scenarios/tools-subagent-inputs.test.ts › subagent input: a word for background
+scenarios/tools-subagent-inputs.test.ts › subagent input: an array
+scenarios/tools-subagent-inputs.test.ts › subagent input: empty model and session ID are dropped
+scenarios/tools-subagent-inputs.test.ts › subagent input: every field wrong
+scenarios/tools-subagent-inputs.test.ts › subagent input: every key missing
+scenarios/tools-subagent-inputs.test.ts › subagent input: null fields
 scenarios/tools-subagent.test.ts › subagent child interrupted while the parent waits
 scenarios/tools-subagent.test.ts › subagent continuation of a session that is not a child
 scenarios/tools-subagent.test.ts › subagent continued by sessionID
