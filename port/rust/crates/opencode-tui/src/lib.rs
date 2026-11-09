@@ -61,7 +61,9 @@
 //! **Reaching renderables**: every intrinsic constructor returns an [`Element`](opencode_tui_core::tree::Element)
 //! (`Copy`), the handle the TS keeps as a ref: geometry (`x`, `y`, `width`, `height`), `focus`/`blur`,
 //! `children`, `find_descendant_by_id`, the kind's setters (`set_content`, `set_wrap_mode`, `textarea_text`,
-//! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`.
+//! `editor_view`, ...). A kind's own state is behind `el.with_kind::<K, _>(|k| ...)`. A custom renderable
+//! (`extend({ name: XRenderable })`) is a `Kind` made with `tree::create`; a TextRenderable subclass is
+//! `renderables::text::create_text_with(|text| Box::new(Sub { text, .. }))`, delegating to the inner `TextKind`.
 //!
 //! **Keybinds**: TODO(port-tui): opencode-tui-input's keymap (`@opentui/keymap`). Until it lands, [`keymap`]
 //! registers renderer key listeners (`renderer::on_key`, global listeners run before the focused renderable, in
