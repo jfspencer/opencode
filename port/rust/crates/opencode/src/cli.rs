@@ -24,6 +24,7 @@ mod service;
 mod spec;
 mod stats;
 mod tool;
+mod tui;
 
 use out::{Fail, quote, stderr, stdout};
 use parse::{Globals, Input, Outcome};
@@ -173,7 +174,7 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
     paths::create();
     let names: Vec<&str> = path[1..].to_vec();
     match names.as_slice() {
-        [] => default(input).await,
+        [] => default(input, globals).await,
         ["serve"] => serve::run(input).await,
         ["run"] => run::command(globals, input).await,
         ["stats"] => stats::command(globals, input).await,
@@ -197,14 +198,14 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
     }
 }
 
-/// The default command: the TUI in a directory. An unknown command word arrives here as that directory.
-async fn default(input: &Input) -> out::Result {
+/// The default command: the TUI in a directory (handlers/default.ts). An unknown command word arrives here as that
+/// directory.
+async fn default(input: &Input, globals: &Globals) -> out::Result {
     if let Some(directory) = input.str("directory") {
         if std::env::set_current_dir(directory).is_err() {
             stderr(&format!("Unknown command or directory: {directory}\n"));
             return Ok(1);
         }
     }
-    // TODO(port): the TUI (packages/tui) is another slice's.
-    Err(Fail::error(format!("the interactive interface is not available in this build ({})", quote("opencode"))))
+    tui::run(input, globals).await
 }

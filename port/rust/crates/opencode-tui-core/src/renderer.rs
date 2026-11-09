@@ -377,16 +377,43 @@ pub fn set_background_color(color: RGBA) {
 }
 
 /// `setCursorPosition(x, y, visible)` (0-based cells).
+/// Cursor changes wait for the frame: renderables set the cursor while they paint, with the output borrowed.
+#[derive(Default)]
+struct CursorRequests {
+    position: Option<(u32, u32, bool)>,
+    style: Option<(terminal::CursorStyle, bool)>,
+    color: Option<RGBA>,
+}
+
+thread_local! {
+    static CURSOR: RefCell<CursorRequests> = RefCell::new(CursorRequests::default());
+}
+
+fn apply_cursor(output: &mut output::Renderer) {
+    CURSOR.with(|c| {
+        let mut c = c.borrow_mut();
+        if let Some((x, y, visible)) = c.position.take() {
+            output.terminal.set_cursor_position(x + 1, y + 1, visible);
+        }
+        if let Some((style, blinking)) = c.style.take() {
+            output.terminal.set_cursor_style(style, blinking);
+        }
+        if let Some(color) = c.color.take() {
+            output.terminal.set_cursor_color(color);
+        }
+    });
+}
+
 pub fn set_cursor_position(x: u32, y: u32, visible: bool) {
-    with(|s| s.output.borrow_mut().terminal.set_cursor_position(x + 1, y + 1, visible));
+    CURSOR.with(|c| c.borrow_mut().position = Some((x, y, visible)));
 }
 
 pub fn set_cursor_style(style: terminal::CursorStyle, blinking: bool) {
-    with(|s| s.output.borrow_mut().terminal.set_cursor_style(style, blinking));
+    CURSOR.with(|c| c.borrow_mut().style = Some((style, blinking)));
 }
 
 pub fn set_cursor_color(color: RGBA) {
-    with(|s| s.output.borrow_mut().terminal.set_cursor_color(color));
+    CURSOR.with(|c| c.borrow_mut().color = Some(color));
 }
 
 /// Writes raw bytes to the terminal with the next output (OSC sequences the app emits itself).
@@ -1094,6 +1121,7 @@ fn render_frame() {
         for hit in hits {
             out.add_to_hit_grid(hit.x, hit.y, hit.width, hit.height, hit.num);
         }
+        apply_cursor(&mut out);
         out.render(force, &mut bytes);
     }
     with(|s| s.out.extend_from_slice(&bytes));

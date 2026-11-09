@@ -15,6 +15,8 @@ path = "src/main.rs"
 opencode-protocol.workspace = true
 opencode-shell = { path = "../opencode-shell" }
 opencode-html.workspace = true
+# The TUI (the default command).
+opencode-tui = { path = "../opencode-tui" }
 # The JS engine's RegExp and Date.parse, as the reference runs them (form answers).
 opencode-codemode = { path = "../opencode-codemode" }
 url = "2.5"

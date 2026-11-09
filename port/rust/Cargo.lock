@@ -632,6 +632,7 @@ dependencies = [
  "opencode-html",
  "opencode-protocol",
  "opencode-shell",
+ "opencode-tui",
  "regex",
  "rusqlite",
  "rustls",
@@ -687,8 +688,11 @@ dependencies = [
  "libc",
  "opencode-protocol",
  "opencode-tui-core",
+ "opencode-tui-sync",
+ "opencode-tui-text",
  "regex",
  "sha1",
+ "tokio",
 ]
 
 [[package]]
