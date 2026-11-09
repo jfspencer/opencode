@@ -155,16 +155,21 @@ pub fn locale_compare(a: &JsStr, b: &JsStr) -> f64 {
                 continue;
             }
             let lower = ch.to_lowercase().next().unwrap_or(ch);
-            let class = if ch.is_whitespace() {
-                1
-            } else if ch.is_ascii_punctuation() || (!ch.is_alphanumeric() && (ch as u32) < 0x3000) {
-                2
+            // The root collation's primary order: whitespace, punctuation and symbols (ASCII ones in their
+            // collation order), digits, then letters.
+            const SYMBOLS: &str = "_-,;:!?.'\"()[]{}@*/\\&#%`^+<=>|~$";
+            let (class, weight) = if ch.is_whitespace() {
+                (1, ch as u32)
+            } else if let Some(at) = SYMBOLS.find(ch) {
+                (2, at as u32)
+            } else if !ch.is_alphanumeric() {
+                (2, 0x100 + ch as u32)
             } else if ch.is_numeric() {
-                3
+                (3, lower.to_digit(10).unwrap_or(lower as u32))
             } else {
-                4
+                (4, lower as u32)
             };
-            primary.push((class << 24) | lower as u32);
+            primary.push((class << 24) | weight);
             secondary.push(0);
             tertiary.push(if ch.is_uppercase() { 1 } else { 0 });
         }

@@ -1,0 +1,178 @@
+// Generates the targeted corpora (JSON lines): async ordering, tools, limits and output bounding, and value matrices
+// that cross every operator, coercion, and common built-in with a spread of values. Deterministic.
+//
+// usage: bun harness/gen-cases.ts <async|tools|matrix> > corpus/<name>.jsonl
+const kind = process.argv[2]
+const out: Array<Record<string, unknown>> = []
+const add = (name: string, code: string, extra: Record<string, unknown> = {}) => out.push({ name: `${kind}/${name}`, code, ...extra })
+
+const T = `const t = (f) => { try { return f() } catch (e) { return "!" + (e && e.name) + ": " + (e && e.message) } }\n`
+const object = (properties: Record<string, unknown> = {}, required: string[] = []) => ({ type: "object", properties, ...(required.length ? { required } : {}) })
+
+if (kind === "async") {
+  const programs: Record<string, string> = {
+    order1: `const log = []; const a = async () => { log.push("a1"); await null; log.push("a2"); await null; log.push("a3") }; const b = async () => { log.push("b1"); await null; log.push("b2") }; const pa = a(); const pb = b(); log.push("sync"); await pa; await pb; return log`,
+    order2: `const log = []; Promise.resolve().then(() => log.push(1)).then(() => log.push(2)); queueMicrotask?.(() => {}); await null; log.push("x"); await null; log.push("y"); return log`,
+    thenables: `const log = []; const th = { then(r) { log.push("then"); r(7) } }; const v = await th; log.push(v); const p = Promise.resolve(th); log.push("sync"); log.push(await p); return log`,
+    finally: `const log = []; await Promise.resolve(1).finally(() => log.push("f1")).then((v) => log.push("v" + v)); await Promise.reject(new Error("x")).finally(() => log.push("f2")).catch((e) => log.push(e.message)); try { await Promise.resolve(1).finally(() => { throw new TypeError("cleanup") }) } catch (e) { log.push(e.name) } return log`,
+    combinators: `const log = []; const r = await Promise.allSettled([1, Promise.reject(new Error("no")), Promise.resolve(3)]); log.push(JSON.stringify(r)); log.push(await Promise.race([new Promise(() => {}), Promise.resolve("fast")])); try { await Promise.any([Promise.reject(1), Promise.reject(2)]) } catch (e) { log.push(e.name, e.message, e.errors) } log.push(await Promise.all([])); return log`,
+    raceOrder: `const log = []; const p1 = Promise.resolve(1); p1.then(() => log.push("p1 reaction")); Promise.race([p1]).then(() => log.push("race")); Promise.all([p1]).then(() => log.push("all")); await null; await null; await null; await null; return log`,
+    unhandled: `Promise.reject(new Error("lost")); const p = Promise.reject(new TypeError("handled later")); await null; p.catch(() => {}); Promise.reject("str"); return "done"`,
+    stuck: `await new Promise(() => {})`,
+    stuckNested: `const f = async () => { await new Promise(() => {}) }; await f()`,
+    generatorBasics: `function* g() { const x = yield 1; try { yield x * 2 } finally { yield "cleanup" } } const it = g(); return [it.next(), it.next(5), it.return(9), it.next(), it.next()]`,
+    generatorThrow: `function* g() { try { yield 1 } catch (e) { yield "caught " + e } } const it = g(); return [it.next(), it.throw("boom"), it.next(), [...g()]]`,
+    generatorRunning: `${T}function* g() { yield t(() => it.next()) } const it = g(); return it.next()`,
+    asyncGenerator: `async function* ag() { yield 1; await null; yield 2; return 3 } const out = []; for await (const v of ag()) out.push(v); const it = ag(); return [out, await it.next(), await it.return(5), await it.next()]`,
+    asyncGeneratorQueue: `const log = []; async function* ag() { log.push("start"); const a = yield "first"; log.push("got " + a); yield "second" } const it = ag(); const p1 = it.next("ignored"); const p2 = it.next("A"); const p3 = it.next("B"); log.push("queued"); log.push(JSON.stringify(await p1), JSON.stringify(await p2), JSON.stringify(await p3)); return log`,
+    forAwaitSync: `const out = []; for await (const v of [1, Promise.resolve(2), 3]) out.push(v); return out`,
+    delegate: `function* inner() { yield 1; return "r" } function* outer() { const r = yield* inner(); yield r; yield* [7, 8] } return [...outer()]`,
+    asyncDelegate: `async function* inner() { yield 1; yield 2 } async function* outer() { yield* inner(); yield* [3, Promise.resolve(4)] } const out = []; for await (const v of outer()) out.push(v); return out`,
+    awaitInLoop: `let s = 0; for (let i = 0; i < 50; i++) s += await i; return s`,
+    recursionAsync: `const f = async (n) => n === 0 ? 0 : 1 + await f(n - 1); return await f(200)`,
+    deepRecursion: `const f = (n) => n === 0 ? 0 : 1 + f(n - 1); return f(5000)`,
+    tooDeep: `const f = (n) => n === 0 ? 0 : 1 + f(n - 1); try { return f(20000) } catch (e) { return [e.name, e.message] }`,
+    tooDeepUncaught: `const f = (n) => 1 + f(n + 1); f(0)`,
+    promiseCtor: `const log = []; const p = new Promise((resolve, reject) => { log.push("executor"); resolve(1); reject(2); resolve(3) }); log.push(await p); const q = new Promise(() => { throw new RangeError("in executor") }); try { await q } catch (e) { log.push(e.name) } return log`,
+    selfResolve: `let res; const p = new Promise((r) => { res = r }); res(p); try { await p } catch (e) { return [e.name, e.message] }`,
+    withResolvers: `const { promise, resolve } = Promise.withResolvers(); setTimeout?.(() => {}); resolve(42); return await promise`,
+    tryStatic: `return [await Promise.try(() => 1), await Promise.try((a, b) => a + b, 2, 3), await Promise.try(() => { throw new Error("t") }).catch((e) => e.message)]`,
+    awaitPlain: `const log = []; (async () => { log.push(1); await 0; log.push(3) })(); log.push(2); await 0; await 0; return log`,
+    rejectionIdentity: `const p = Promise.reject(new Error("same")); let a, b; try { await p } catch (e) { a = e } try { await p } catch (e) { b = e } return a === b`,
+    interpreterErrorIdentity: `const p = (async () => null.x)(); const r = await Promise.allSettled([p, p]); return [r[0].reason === r[1].reason, r[0].reason.name, r[0].reason.message]`,
+    promiseProps: `const p = Promise.resolve(1); try { return p.value } catch (e) { return e.name + ": " + e.message }`,
+    asyncReturnsPromise: `const f = async () => Promise.resolve(5); return [await f(), f() instanceof Promise]`,
+    microtaskStorm: `const log = []; for (let i = 0; i < 5; i++) Promise.resolve(i).then((v) => log.push(v)); await Promise.resolve(); return log`,
+    labels: `const out = []; outer: for (let i = 0; i < 3; i++) { for (let j = 0; j < 3; j++) { if (j === 1) continue outer; if (i === 2) break outer; out.push([i, j]) } } return out`,
+  }
+  for (const [name, code] of Object.entries(programs)) add(name, code)
+  const tool = (timing: string) => [{ path: "t.echo", description: "echo", output: object(), timing }, { path: "t.fail", description: "fail", output: object(), behavior: { kind: "fail", message: "nope" }, timing }]
+  for (const timing of ["sync", "yield"]) {
+    add(`tools-order-${timing}`, `const log = []; const p = tools.t.echo({ a: 1 }); p.then(() => log.push("tool")); Promise.resolve().then(() => log.push("r1")).then(() => log.push("r2")); await null; log.push("a1"); await null; log.push("a2"); await p; log.push("after"); return log`, { tools: tool(timing) })
+    add(`tools-all-${timing}`, `const r = await Promise.allSettled([tools.t.echo({ n: 1 }), tools.t.fail({}), tools.t.echo({ n: 2 })]); return r`, { tools: tool(timing) })
+    add(`tools-unawaited-${timing}`, `tools.t.fail({}); tools.t.echo({}); return "left"`, { tools: tool(timing) })
+    add(`tools-unawaited-await-${timing}`, `tools.t.fail({}); await tools.t.echo({}); return "left"`, { tools: tool(timing) })
+    add(`tools-race-${timing}`, `return await Promise.race([tools.t.echo({ who: "a" }), tools.t.echo({ who: "b" })])`, { tools: tool(timing) })
+    add(`tools-catch-${timing}`, `try { await tools.t.fail({ x: 1 }) } catch (e) { return [e.name, e.message, e instanceof Error, Object.keys(e)] }`, { tools: tool(timing) })
+    add(`tools-uncaught-${timing}`, `await tools.t.fail({ x: 1 })`, { tools: tool(timing) })
+    add(`tools-args-promise-${timing}`, `return await tools.t.echo({ v: Promise.resolve(3) })`, { tools: tool(timing) })
+    add(`tools-arg-await-${timing}`, `return await tools.t.echo(Promise.resolve({ v: 4 }))`, { tools: tool(timing) })
+  }
+}
+
+if (kind === "tools") {
+  const inventory = [
+    { path: "opencode.models", description: "Search the models available to use.", input: object({ query: { type: "string", description: "Text to search for." }, limit: { type: "integer", minimum: 1, maximum: 100, description: "Maximum number." } }), output: object({ providers: { type: "array", items: object({ id: { type: "string" } }, ["id"]) }, next: { anyOf: [{ type: "number" }, { type: "null" }] } }, ["providers"]) },
+    { path: "opencode.session_rename", description: "Rename a session, or omit sessionID to rename the current session.", input: object({ sessionID: { type: "string", pattern: "^ses", description: "Omit to rename the current session." }, title: { type: "string", minLength: 1 } }, ["title"]), output: object({ title: { type: "string" } }) },
+    { path: "opencode.worktree_list", description: "List a repository's worktrees.", input: object(), output: object({ worktrees: { type: "array" } }) },
+    { path: "files.read_file", description: "Read a file from disk.", input: object({ path: { type: "string" } }, ["path"]), output: "nullOrString", behavior: { kind: "value", value: "contents" } },
+    { path: "files.list-dir", description: "List a directory.", input: object({ path: { type: "string" } }), output: { type: "array", items: { type: "string" } }, behavior: { kind: "value", value: ["a", "b"] } },
+    { path: "weird.voidTool", description: "Returns nothing.", input: object({ x: { type: "number" } }) },
+    { path: "weird.enumTool", description: "Takes an enum.", input: object({ mode: { enum: ["a", "b"], default: "a" }, flag: { type: "boolean", deprecated: true } }), output: { type: "string" }, behavior: { kind: "sequence", values: [{ ok: "first" }, { fail: "second failed" }, { ok: "third" }] } },
+    { path: "dotted.name.tool", description: "A dotted tool name.", input: object(), output: object() },
+  ]
+  const programs: Record<string, string> = {
+    keys: `return [Object.keys(tools), Object.keys(tools.opencode), Object.keys(tools.files), typeof tools, typeof tools.opencode, typeof tools.opencode.models, typeof tools.nope, String(tools), "opencode" in tools, "nope" in tools]`,
+    keysUnknown: `${T}return [t(() => Object.keys(tools.nope)), t(() => "x" in tools.nope)]`,
+    forIn: `const out = []; for (const k in tools) out.push(k); for (const k in tools.files) out.push(k); return out`,
+    call: `return [await tools.opencode.models({ query: "flash" }), await tools.files.read_file({ path: "/x" }), await tools.files["list-dir"]({}), await tools.weird.voidTool({ x: 1 })]`,
+    sequence: `const out = []; for (let i = 0; i < 3; i++) { try { out.push(await tools.weird.enumTool({ mode: "b" })) } catch (e) { out.push(e.message) } } return out`,
+    unknown: `await tools.opencode.modles({})`,
+    unknownNs: `await tools.nothere.thing({})`,
+    unknownSimilar: `await tools.files.read({})`,
+    notCallable: `await tools.opencode({})`,
+    root: `${T}return t(() => tools())`,
+    twoArgs: `await tools.opencode.models({}, {})`,
+    noArgs: `return await tools.opencode.worktree_list()`,
+    searchAll: `return search()`,
+    searchQuery: `return [search({ query: "rename session" }), search({ query: "file" }), search({ query: "zzz" })]`,
+    searchNs: `return [search({ namespace: "files" }), search({ namespace: "tools.opencode", limit: 1 }), search({ namespace: "opencode", offset: 1, limit: 1 })]`,
+    searchExact: `return [search({ query: "opencode.models" }).items.map((i) => i.path), search({ query: 'tools.files["list-dir"]' }).items.map((i) => i.path)]`,
+    searchSignatures: `return search({ query: "" , limit: 20 }).items.map((i) => i.signature)`,
+    searchThen: `const r = await search({ query: "models" }); const s = await search({ query: "models" }).then((v) => v.items.length); return [r.items.length, s, typeof search({}).then, Object.keys(search({}))]`,
+    toolsSearch: `return await tools.search({ query: "worktree" })`,
+    searchBad: `${T}return [t(() => search({ limit: 0 })), t(() => search(1)), t(() => search({ query: 1 }))]`,
+    limits: `const out = []; for (let i = 0; i < 4; i++) { try { await tools.opencode.worktree_list({}); out.push("ok") } catch (e) { out.push(e.name + ": " + e.message) } } return out`,
+    limitSearch: `search({}); search({}); try { search({}) } catch (e) { return e.message }`,
+    pathSegments: `return [typeof tools.dotted.name.tool, await tools["dotted.name"].tool({}), await tools.dotted["name.tool"]({})]`,
+    toolRefs: `${T}const r = tools.opencode.models; return [r === tools.opencode.models, t(() => r + 1), t(() => JSON.stringify(tools)), t(() => [1].map(tools.opencode.models)), t(() => new tools.opencode.models())]`,
+    deleteTool: `${T}return [t(() => delete tools.opencode), t(() => { tools.x = 1 })]`,
+    invalidOutput: `try { await tools.files.read_file({ path: 1 }) } catch (e) { return e.message }`,
+    bigOutput: `return "x".repeat(300)`,
+    bigLogs: `for (let i = 0; i < 20; i++) console.log("line " + i + " " + "y".repeat(20)); return "ok"`,
+    bigWarnings: `for (let i = 0; i < 10; i++) Promise.reject(new Error("w" + i)); return 1`,
+    bindingsUse: `return [boundValue, typeof boundObject, boundObject.nested.deep]`,
+    bindingShadow: `const boundValue = 2; return boundValue`,
+  }
+  for (const [name, code] of Object.entries(programs)) {
+    const extra: Record<string, unknown> = { tools: inventory }
+    if (name === "limits" || name === "limitSearch") extra.limits = { maxToolCalls: 2 }
+    if (name.startsWith("big")) extra.limits = { maxOutputBytes: 200 }
+    if (name.startsWith("binding")) extra.bindings = { boundValue: 1, boundObject: { nested: { deep: [1, 2] } } }
+    add(name, code, extra)
+  }
+  add("timeout", `console.log("before"); while (true) {}`, { limits: { timeoutMs: 50 } })
+  add("timeoutAsync", `console.log("before"); await new Promise(() => {})`, { limits: { timeoutMs: 50 } })
+}
+
+if (kind === "matrix") {
+  const values = [`undefined`, `null`, `true`, `false`, `0`, `-0`, `1`, `-1.5`, `NaN`, `Infinity`, `""`, `"0"`, `"1e3"`, `" 12 "`, `"abc"`, `[]`, `[1]`, `[1,2]`, `{}`, `{ valueOf() { return 3 } }`, `{ toString() { return "s" } }`, `new Date(0)`, `/x/g`, `Symbol.iterator`]
+  const binary = ["+", "-", "*", "/", "%", "**", "==", "!=", "===", "!==", "<", "<=", ">", ">=", "&", "|", "^", "<<", ">>", ">>>"]
+  for (const op of binary) {
+    const rows = values.map((a) => `[${values.map((b) => `t(() => (${a}) ${op} (${b}))`).join(", ")}]`).join(",\n")
+    add(`binary ${op}`, `${T}return [\n${rows}\n]`)
+  }
+  for (const op of ["+", "-", "~", "!", "typeof ", "void "]) {
+    add(`unary ${op.trim()}`, `${T}return [${values.map((v) => `t(() => ${op}(${v}))`).join(", ")}]`)
+  }
+  const coercions = ["String", "Number", "Boolean", "parseInt", "parseFloat", "isNaN", "isFinite", "JSON.stringify", "Object.keys", "Array.isArray", "Number.isInteger", "Math.abs", "Math.round", "encodeURIComponent"]
+  for (const fn of coercions) add(`coerce ${fn}`, `${T}return [${values.map((v) => `t(() => ${fn}(${v}))`).join(", ")}]`)
+  const numbers = [`0`, `-0`, `1`, `0.1`, `-1.5`, `123.456`, `1e21`, `1e-7`, `5e-324`, `1.7976931348623157e308`, `NaN`, `-Infinity`, `2**53`, `0.000001`, `1234.5678`, `-0.0005`, `255`, `1/3`]
+  for (const method of ["toFixed(2)", "toFixed()", "toPrecision(3)", "toPrecision()", "toExponential(2)", "toExponential()", "toString(16)", "toString(2)", "toString(36)", "toLocaleString()"]) {
+    add(`number ${method}`, `${T}return [${numbers.map((n) => `t(() => (${n}).${method})`).join(", ")}]`)
+  }
+  const strings = [`""`, `"abc"`, `"  Hello World  "`, `"a,b,,c"`, `"ß"`, `"İ"`, `"😀x"`, `"\\ud800"`, `"aAbB"`, `"12px"`, `"x".repeat(5)`]
+  for (const method of ["toUpperCase()", "toLowerCase()", "trim()", "split(',')", "split('')", "split()", "slice(1, -1)", "substring(2, 1)", "substr(-2)", "at(-1)", "charAt(1)", "charCodeAt(0)", "codePointAt(0)", "indexOf('b')", "lastIndexOf('a')", "includes('b')", "startsWith('a')", "endsWith('c')", "padStart(8, '-')", "padEnd(6)", "repeat(2)", "replace('a', '$&$&')", "replaceAll('a', 'x')", "normalize('NFD')", "localeCompare('b')", "match(/./g)", "search(/b/)", "isWellFormed()", "toWellFormed()", "concat(1, [2])", "[Symbol.iterator]().next()"]) {
+    add(`string ${method}`, `${T}return [${strings.map((s) => `t(() => (${s}).${method})`).join(", ")}]`)
+  }
+  const arrays = [`[]`, `[3, 1, 2]`, `[1, , 3]`, `["b", "a", 10, 9]`, `[undefined, null, 0]`, `[[1, [2]], [3]]`, `Array(3)`, `[{ a: 1 }, { a: 0 }]`]
+  for (const method of ["join()", "join('-')", "toString()", "slice(1)", "concat([9], 8)", "flat()", "flat(Infinity)", "includes(undefined)", "indexOf(1)", "lastIndexOf(3)", "at(-1)", "toSorted()", "toReversed()", "with(0, 'w')", "toSpliced(1, 1)", "keys().toArray()", "entries().toArray()", "map((x) => typeof x)", "filter(Boolean)", "reduce((a, b) => a + '' + b, '')", "findLast((x) => x)", "some((x) => x === undefined)", "every(Boolean)", "fill(7, 1)", "copyWithin(0, 1)", "reverse()", "sort()", "sort((a, b) => a - b)", "splice(1)", "flatMap((x) => [x, x])", "toLocaleString()"]) {
+    add(`array ${method}`, `${T}return [${arrays.map((a) => `t(() => ${a}.${method})`).join(", ")}]`)
+  }
+  add("collation ascii", `const cs = []; for (let c = 32; c < 127; c++) cs.push(String.fromCharCode(c)); return cs.map((a) => cs.map((b) => a.localeCompare(b)).join(""))`)
+  add("collation words", `const w = ["a", "A", "b", "B", "á", "Á", "ab", "aB", "Ab", "a b", "a-b", "a_b", "a1", "a10", "a2", "é", "e", "f", "ß", "ss", "z", "Z", "Ö", "o", "ö", "ő", "0", "9", "", " ", "zebra", "Zebra", "apple", "Apple", "file.txt", "file-1", "file_2", "File10", "résumé", "resume", "naïve", "naive", "😀", "中", "日本", "Ωmega", "omega", "αβ", "Ä", "ä", "Æ", "æ"]; return [...w].sort((a, b) => a.localeCompare(b)).concat(w.map((a) => w.map((b) => a.localeCompare(b)).join(",")))`)
+  add("console formats", `console.log("%s|%d|%i|%f|%o|%O|%c|%%|%x", "s", "42.9px", 3.7, "1.5e2", {a: 1}, [1], "css", "extra", 5); console.log(1, "two", [3], { four: 4 }, null, undefined, () => 1, new Map([[1, {a: 1}]]), new Set([1]), new Date(0), /r/g, new Error("e"), new TypeError(), Symbol.iterator); console.warn("w"); console.error("e"); console.debug("d"); console.info("i"); console.dir({ deep: { er: [1, { x: "y" }] } }); console.table([{ a: 1, b: 2 }, { a: 3, c: 4 }]); console.table([[1, 2], [3]]); console.table({ x: { v: 1 }, y: 2 }, ["v"]); console.log(); return null`)
+  add("dates", `${T}const d = new Date(Date.UTC(2024, 1, 29, 13, 5, 9, 7)); return [d.toISOString(), d.toString(), d.toUTCString(), d.toDateString(), d.toTimeString(), d.toLocaleString(), d.toLocaleDateString(), d.toLocaleTimeString(), d.getDay(), d.getTimezoneOffset(), JSON.stringify(d), t(() => new Date(NaN).toISOString()), String(new Date(NaN)), Date.parse("2020-01-02"), Date.parse("Tue, 01 Mar 2022 10:00:00 GMT"), Date.parse("March 7, 2021"), new Date(2020, 0, 31).setMonth(1), Date.UTC(99), new Date(8.64e15 + 1).getTime(), d - new Date(0), d + 1]`)
+  add("urls", `${T}const u = new URL("https://user:pw@example.com:8080/a/b/../c?x=1&y=2#frag"); const before = u.href; u.searchParams.append("z", "3 4"); u.hash = ""; u.pathname = "/new path"; const p = new URLSearchParams("a=1&b=2&a=3"); p.sort(); return [before, u.href, u.origin, u.host, u.searchParams.get("x"), [...u.searchParams], p.toString(), p.getAll("a"), t(() => new URL("not a url")), URL.canParse("/x", "https://e.com"), new URL("/p?q", "https://e.com/base/").href, encodeURI("a b/é?#"), encodeURIComponent("a b/é?#"), decodeURIComponent("%E2%82%AC"), t(() => decodeURIComponent("%E2%82")), JSON.stringify({ u }), new URLSearchParams({ k: "v", n: 1 }).toString()]`)
+  add("bytes", `${T}const b = new Uint8Array([1, 255, 256, -1, 3.7]); return [[...b], b.length, b.toHex(), b.toBase64(), [...Uint8Array.fromBase64("AQID")], [...new TextEncoder().encode("é😀")], new TextDecoder().decode(new Uint8Array([0xe2, 0x82, 0xac, 0xff])), t(() => new TextDecoder("utf-8", { fatal: true }).decode(new Uint8Array([0xff]))), String(b), JSON.stringify(b), b.subarray(1, 3).fill(9) && [...b], atob("aGVsbG8="), btoa("hi"), t(() => btoa("é😀")), t(() => atob("***")), structuredClone(new Map([[1, [2]]])).get(1)]`)
+  add("collections", `${T}const m = new Map([[NaN, 1], [0, "zero"]]); m.set(-0, "negzero"); const s = new Set([1, 1, "1", NaN, NaN]); const seen = []; const live = new Map([[1, 1], [2, 2]]); live.forEach((v, k) => { seen.push(k); if (k === 1) { live.delete(2); live.set(3, 3) } }); return [m.get(NaN), m.get(0), m.size, [...m.keys()], [...s], s.size, seen, Object.groupBy([1, 2, 3, 4], (x) => (x % 2 ? "odd" : "even")), [...Map.groupBy([1, 2, 3], (x) => x > 1)], new Set([1, 2]).union(new Set([2, 3])).size, t(() => new WeakMap().set(1, 1)), JSON.stringify([m, s])]`)
+  add("objects", `${T}const o = { b: 1, a: 2, 10: "x", 2: "y", [Symbol.iterator]: null }; const frozen = Object.freeze({ k: 1 }); return [Object.keys(o), JSON.stringify(o), Object.entries({ x: [1] }), Object.assign({}, { a: 1 }, null, "hi"), Object.fromEntries([["a", 1], ["b", 2]]), t(() => { "use strict"; frozen.k = 2 }), Object.isFrozen(frozen), Object.getPrototypeOf([]) === Array.prototype, ({}).toString.call([]), Object.prototype.toString.call(null), t(() => Object.create(1)), { ...[1, 2], ..."hi", ...null }, structuredClone({ d: new Date(0), r: /x/gi })]`)
+  add("errors", `${T}const e = new Error("msg", { cause: 1 }); const te = new TypeError("tt"); const ag = new AggregateError([1, 2], "agg"); class_ = 1; return [String(e), e.cause, Object.keys(e), te instanceof Error, te.name, String(ag), ag.errors, Error("no new").message, t(() => { throw { custom: 1 } }), t(() => null.x), t(() => undefined.y.z), t(() => x.y), t(() => { const c = 1; c = 2 }), t(() => [].reduce((a, b) => a)), JSON.stringify(e), Error.isError(e), Error.isError({})]`)
+  add("uncaught object", `throw { custom: 1, list: [1, 2] }`)
+  add("uncaught string", `throw "plain"`)
+  add("uncaught number", `throw 42`)
+  add("uncaught error subclass", `throw new RangeError("ranged")`)
+  add("uncaught function", `throw () => 1`)
+  add("uncaught located", `const o = null;\n\n  o.prop`)
+  add("rethrow keeps location", `try { null.x } catch (e) { throw e }`)
+  add("unsupported class", `class A {}`)
+  add("unsupported getter", `const o = { get x() { return 1 } }`)
+  add("unsupported new.target", `function f() { return new.target }`)
+  add("parse error", `return 1 +`)
+  add("parse error 2", `let x = ;`)
+  add("parse error regex", `/(/`)
+  add("export", `export const x = 1`)
+  add("empty", `   \n `)
+  add("imports", `${T}import { URL as U } from "url"; import * as util from "node:util"; const u = require("url"); return [typeof U, Object.keys(util), Object.keys(u), t(() => require("fs")), t(() => require(1)), typeof (await import("buffer")).atob]`)
+  add("import missing", `import fs from "fs"`)
+  add("this and arguments", `${T}function f() { return [typeof this, arguments.length, [...arguments]] } const o = { m() { return this === o }, a: () => typeof this }; return [f(1, 2), o.m(), o.a(), f.call("x", 1), f.apply(null, [1, 2, 3]), f.bind(null, 9)(8), f.bind(null).name, f.length]`)
+  add("hoisting", `${T}return [t(() => before), typeof fn, fn(), t(() => { tdz; let tdz = 1 })]; var before = 1; function fn() { return "hoisted" }`)
+  add("destructuring", `${T}const [a, , b = 5, ...rest] = [1, 2, undefined, 4, 5]; const { x, y: { z } = { z: 9 }, ...others } = { x: 1, w: 2, v: 3 }; let p, q; [p, q] = [q, p] = [1, 2]; return [a, b, rest, x, z, others, p, q, t(() => { const { m } = null }), t(() => { const [n] = 1 })]`)
+  add("templates", `function tag(s, ...v) { return [s, s.raw, v] } const n = 1; return [\`a\${n}b\${{ toString() { return "S" } }}\`, tag\`x\${1}y\\n\${2}\`, String.raw\`\\u{41}\${n}\`]`)
+  add("closures in loops", `const fs = []; for (let i = 0; i < 3; i++) fs.push(() => i); const gs = []; for (const k of [7, 8]) gs.push(() => k); return [fs.map((f) => f()), gs.map((g) => g())]`)
+  add("switch", `const r = []; for (const v of [1, 2, 3, "1"]) { switch (v) { case 1: r.push("one"); case 2: r.push("two"); break; case "1": r.push("str"); break; default: r.push("default") } } return r`)
+  add("getters builtin", `const re = /a/g; re.lastIndex = "3"; const m = new Map([[1, 2]]); return [re.lastIndex, m.size, re.source, re.flags, [].length, "abc".length]`)
+  add("regex", `${T}const re = /(?<y>\\d{4})-(?<m>\\d{2})/g; const s = "2020-01 and 2021-12"; return [s.replace(re, "$<m>/$<y>"), [...s.matchAll(re)].map((m) => [m.index, m.groups.y]), re.exec(s), re.lastIndex, s.split(/(\\d)/, 4), "aBc".replace(/b/i, (m) => m.toUpperCase() + "!"), t(() => new RegExp("[")), t(() => new RegExp("a", "gg")), /\\u{1F600}/u.test("😀"), "x".replace(/(?:)/g, "-"), RegExp.escape("a.b*c")]`)
+}
+
+for (const item of out) process.stdout.write(JSON.stringify(item) + "\n")

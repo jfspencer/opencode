@@ -111,6 +111,20 @@ pub fn js_pow(base: f64, exponent: f64) -> f64 {
     if (base == 1.0 || base == -1.0) && exponent.is_infinite() {
         return f64::NAN;
     }
+    // JSC exponentiates by squaring for small non-negative integer exponents (operationMathPow's fastPow).
+    if exponent.fract() == 0.0 && (0.0..=1000.0).contains(&exponent) {
+        let mut result = 1.0;
+        let mut x = base;
+        let mut y = exponent as u32;
+        while y != 0 {
+            if y & 1 == 1 {
+                result *= x;
+            }
+            x *= x;
+            y >>= 1;
+        }
+        return result;
+    }
     base.powf(exponent)
 }
 
