@@ -119,13 +119,63 @@ fn info_from_row(row: &Row) -> rusqlite::Result<Json> {
     o.opt_str("subpath", text("path")?.filter(|p| !p.is_empty()).as_deref());
     o.opt("metadata", parsed("metadata")?);
     o.opt("permissions", parsed("permission")?);
-    // TODO(port): legacy (v1) reverts are upgraded on read (decodeRevert).
-    o.opt("revert", parsed("revert")?);
+    o.opt("revert", parsed("revert")?.map(decode_revert));
     let mut location = Obj::new();
     location.str("directory", &row.get::<_, String>("directory")?);
     location.opt_str("workspaceID", text("workspace_id")?.as_deref());
     o.set("location", location.done());
     Ok(o.done())
+}
+
+/// `decodeRevert` (session/info.ts, `PersistedRevert` of @opencode/schema/session-revert): the stored revert state as
+/// a `Session.Revert`, or upgraded from `Session.RevertV1`, the shape it had before FileDiff became canonical
+/// (files with `path`, a `diff` string). A v2 release's database holds that shape where its migration imported an
+/// `opencode-next.db`, whose `revert` it copies as stored. The current shape is tried first, so an old value it
+/// already fits (no files) only loses `diff`. A value neither fits stays as stored (TS fails the read).
+fn decode_revert(value: Json) -> Json {
+    if let Ok(current) = t::SessionRevert::decode(&value) {
+        return json::of(&current);
+    }
+    let Some(upgraded) = upgrade_revert_v1(&value) else { return value };
+    t::SessionRevert::decode(&upgraded).map(|current| json::of(&current)).unwrap_or(value)
+}
+
+/// `RevertV1` decoded and made a `Revert`: `{ messageID, partID?, snapshot?, files?: [{ file, status, additions,
+/// deletions, patch }] }`.
+fn upgrade_revert_v1(value: &Json) -> Option<Json> {
+    let Json::Object(_) = value else { return None };
+    let message_id = json::get_str(value, "messageID")?;
+    let optional_string = |key: &str| match json::get(value, key) {
+        None => Some(None),
+        Some(Json::String(text)) => Some(Some(text.clone())),
+        Some(_) => None,
+    };
+    let (part_id, snapshot) = (optional_string("partID")?, optional_string("snapshot")?);
+    optional_string("diff")?;
+    let files = match json::get(value, "files") {
+        None => None,
+        Some(Json::Array(items)) => Some(
+            items
+                .iter()
+                .map(|item| {
+                    let status = json::get_str(item, "status").filter(|s| matches!(*s, "added" | "modified" | "deleted"))?;
+                    let finite = |key: &str| json::get_num(item, key).filter(|n| n.is_finite());
+                    let mut file = Obj::new();
+                    file.str("file", json::get_str(item, "path")?)
+                        .str("status", status)
+                        .set("additions", Json::Number(finite("additions")?))
+                        .set("deletions", Json::Number(finite("deletions")?))
+                        .str("patch", json::get_str(item, "patch")?);
+                    Some(file.done())
+                })
+                .collect::<Option<Vec<Json>>>()?,
+        ),
+        Some(_) => return None,
+    };
+    let mut revert = Obj::new();
+    revert.str("messageID", message_id).opt_str("partID", part_id.as_deref()).opt_str("snapshot", snapshot.as_deref());
+    revert.opt("files", files.map(Json::Array));
+    Some(revert.done())
 }
 
 /// A stored session: its info and where it lives.

@@ -7,7 +7,7 @@
 //! `evaluateTemplate`'s argument substitution (shell interpolation, `` !`cmd` ``, runs after it, in the location's
 //! directory with the configured shell); [`append`] is the built-ins' `$ARGUMENTS` handling.
 //!
-//! TODO(port): MCP prompts as commands (MCP is out of scope).
+//! MCP prompts as commands are out of scope (MCP is not ported).
 
 use opencode_protocol::types as t;
 use opencode_protocol::wire::Object;
