@@ -30,12 +30,12 @@ done
 
 case "${1:-generate}" in
 generate)
-  (cd "$gen" && bun src/generate.ts && bun src/database.ts)
+  (cd "$gen" && bun src/generate.ts && bun src/database.ts && bun src/mime.ts)
   ;;
 check)
   shift
   start=$(date +%s.%N)
-  (cd "$gen" && bun src/generate.ts --check && bun src/database.ts --check)
+  (cd "$gen" && bun src/generate.ts --check && bun src/database.ts --check && bun src/mime.ts --check)
   (cd "$root/port/rust" && cargo build --locked --quiet && cargo test --locked --quiet -p opencode-protocol 2>&1 | grep -E "^test result" | head -1)
   (cd "$gen" && bun src/roundtrip.ts "$@")
   echo "gen-types check: ok ($(printf '%.1f' "$(echo "$(date +%s.%N) - $start" | bc)")s)"
