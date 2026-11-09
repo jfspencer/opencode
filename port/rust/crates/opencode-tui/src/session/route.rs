@@ -15,7 +15,7 @@ use opencode_tui_core::elements::{box_, scrollbox, text};
 use opencode_tui_core::layout::Value;
 use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderables::scrollbox::{
-    LinearScrollAccel, MacOSScrollAccel, ScrollAcceleration, ScrollBarOptions, ScrollUnit, StickyStart,
+    ScrollBarOptions, ScrollUnit, StickyStart,
 };
 use opencode_tui_core::renderer;
 use opencode_tui_core::solid::*;
@@ -89,6 +89,7 @@ type Continuations = Rc<RefCell<Vec<Box<dyn FnOnce()>>>>;
 /// The route's state, shared by its handlers (TS keeps these in the component's closure).
 struct State {
     t: crate::ctx::Tui,
+    dialog: crate::ui::dialog::DialogContext,
     session_id: String,
     scroll: Cell<Option<Element>>,
     rows: Rows,
@@ -419,13 +420,15 @@ impl State {
             );
             if let Some(target) = target {
                 this.jump_to_message(target.id);
-                // TODO(port-tui): dialogs: dialog.clear().
+                this.dialog.clear();
                 return;
             }
             if !next && untrack(|| data.store.session.message.more(&this.session_id)) {
                 let me = this.clone();
                 this.history().prepend(0.0, Some(Box::new(move || me.scroll_to_message(next, user_only))));
+                return;
             }
+            this.dialog.clear();
         }));
     }
 
@@ -450,14 +453,17 @@ impl State {
     fn move_transcript(self: &Rc<Self>, delta: f64) {
         self.clear_message_navigation();
         if delta < 0.0 && self.reveal_older_rows(delta) {
+            self.dialog.clear();
             return;
         }
         if delta > 0.0 && self.reveal_newer_rows(delta) {
+            self.dialog.clear();
             return;
         }
         let Some(scroll) = self.scroll() else { return };
         scroll.scroll_by(delta, ScrollUnit::Absolute);
         self.update_away_from_bottom();
+        self.dialog.clear();
     }
 
     /// `session.first`.
@@ -566,23 +572,7 @@ impl State {
         }));
         let start = start.borrow().clone().expect("start");
         self.history().after(Box::new(move || start()));
-    }
-}
-
-/// `getScrollAcceleration(config)` (util/scroll.ts).
-fn scroll_acceleration(config: &crate::config::Resolved) -> Rc<dyn ScrollAcceleration> {
-    struct CustomSpeedScroll(f64);
-    impl ScrollAcceleration for CustomSpeedScroll {
-        fn tick(&self, _now: f64) -> f64 {
-            self.0
-        }
-        fn reset(&self) {}
-    }
-    let _ = LinearScrollAccel;
-    match config.scroll.as_ref() {
-        Some(scroll) if scroll.acceleration == Some(true) => Rc::new(MacOSScrollAccel::new(None, None, None)),
-        Some(scroll) if scroll.speed.is_some() => Rc::new(CustomSpeedScroll(scroll.speed.unwrap_or(3.0))),
-        _ => Rc::new(CustomSpeedScroll(3.0)),
+        self.dialog.clear();
     }
 }
 
@@ -832,6 +822,7 @@ pub fn session(props: SessionProps) -> View {
     let (latest_hovered, set_latest_hovered) = create_signal(false);
     let state = Rc::new(State {
         t: t.clone(),
+        dialog: crate::ui::dialog::use_dialog(),
         session_id: sid.clone(),
         scroll: Cell::new(None),
         rows,
@@ -1027,6 +1018,7 @@ pub fn session(props: SessionProps) -> View {
     }
 
     let prompt_ref: Rc<RefCell<Option<PromptRef>>> = Rc::new(RefCell::new(None));
+    let pending = super::pending::Pending::new(t.clone(), sid.clone());
 
     // ---- commands ----
     let global_commands = {
@@ -1053,7 +1045,10 @@ pub fn session(props: SessionProps) -> View {
             let (a, b) = (st.clone(), st.clone());
             vec![
                 Command::new("session.first", move || a.first()).title("First message").group("Session").bind(Bind::Off),
-                Command::new("session.last", move || b.to_bottom()).title("Last message").group("Session").bind(Bind::Off),
+                Command::new("session.last", move || {
+                    b.to_bottom();
+                    b.dialog.clear();
+                }).title("Last message").group("Session").bind(Bind::Off),
             ]
         }
     };
@@ -1062,14 +1057,16 @@ pub fn session(props: SessionProps) -> View {
         let config_state = t.config_context.clone();
         let data = data.clone();
         let sid = sid.clone();
+        let pending = pending.clone();
         move || -> Vec<Command> {
             let toggle = |id: &str, title: String, mutate: Rc<dyn Fn(&mut Json)>| {
-                let (config_state, toast) = (config_state.clone(), st.t.toast.clone());
+                let (config_state, toast, dialog) = (config_state.clone(), st.t.toast.clone(), st.dialog.clone());
                 Command::new(id, move || {
                     let mutate = mutate.clone();
                     if let Err(error) = config_state.update(move |draft| mutate(draft)) {
                         toast.error(error);
                     }
+                    dialog.clear();
                 })
                 .title(title)
                 .group("Session")
@@ -1099,7 +1096,10 @@ pub fn session(props: SessionProps) -> View {
             let (n1, n2, n3, n4) = (st.clone(), st.clone(), st.clone(), st.clone());
             let levels = [Verbosity::Low, Verbosity::Medium, Verbosity::High];
             let next_level = levels[(levels.iter().position(|l| *l == verbosity.get()).unwrap_or(1) + 1) % 3];
-            let session_command = |id: &str, title: &str| Command::new(id, || {}).title(title).group("Session").palette(true).bind(Bind::Off);
+            let session_command = |id: &str, title: &str| {
+                let dialog = st.dialog.clone();
+                Command::new(id, move || dialog.clear()).title(title).group("Session").palette(true).bind(Bind::Off)
+            };
             let call = {
                 let (client, toast) = (st.t.data.client.clone(), st.t.toast.clone());
                 move |name: &'static str, input: Json| {
@@ -1117,7 +1117,8 @@ pub fn session(props: SessionProps) -> View {
                 let call = call.clone();
                 Command::with_input("session.rename", move |input| {
                     let Some(input) = input else {
-                        // TODO(port-tui): the dialogs slice: `DialogSessionRename.show(dialog, sessionID, title)`.
+                        let title = untrack(|| st.t.data.store.session.get(&sid)).and_then(|s| s.str("title").map(str::to_string));
+                        crate::component::dialog_session_rename::show(&st.dialog, &sid, title);
                         return true;
                     };
                     let title = input.trim().to_string();
@@ -1160,6 +1161,7 @@ pub fn session(props: SessionProps) -> View {
                             toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, error.message()));
                         }
                     });
+                    st.dialog.clear();
                 })
                 .title("Compact session")
                 .group("Session")
@@ -1168,9 +1170,17 @@ pub fn session(props: SessionProps) -> View {
                 .slash("compact", &[])
             };
             let redo = {
-                let call = call.clone();
+                let (client, toast, dialog) = (st.t.data.client.clone(), st.t.toast.clone(), st.dialog.clone());
                 let input = sid_json();
-                Command::new("session.redo", move || call("session.revert.clear", input.clone()))
+                Command::new("session.redo", move || {
+                    let (client, toast, dialog, input) = (client.clone(), toast.clone(), dialog.clone(), input.clone());
+                    tokio::task::spawn_local(async move {
+                        if let Err(error) = client.call_named("session.revert.clear", &input, Default::default()).await {
+                            toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, error.message()).duration(5000));
+                        }
+                        dialog.clear();
+                    });
+                })
                     .title("Redo")
                     .group("Session")
                     .palette(true)
@@ -1179,9 +1189,12 @@ pub fn session(props: SessionProps) -> View {
                     .slash("redo", &[])
             };
             let background = {
-                let call = call.clone();
+                let (call, dialog) = (call.clone(), st.dialog.clone());
                 let input = sid_json();
-                Command::new("session.background", move || call("session.background", input.clone()))
+                Command::new("session.background", move || {
+                    call("session.background", input.clone());
+                    dialog.clear();
+                })
                     .title("Background blocking tools")
                     .group("Session")
                     .bind(Bind::Off)
@@ -1194,6 +1207,7 @@ pub fn session(props: SessionProps) -> View {
                     if let Some(id) = parent_id.clone() {
                         st.t.route.set(Route::Session { session_id: id });
                     }
+                    st.dialog.clear();
                 })
                 .title("Go to parent session")
                 .group("Session")
@@ -1201,6 +1215,16 @@ pub fn session(props: SessionProps) -> View {
                 .enabled(enabled)
             };
             let queued = !pending_users.with(|p| p.iter().all(|i| i.str("delivery") != Some("queue")));
+            let queued_list = move || {
+                pending_users.with(|p| {
+                    p.iter()
+                        .filter(|i| i.str("delivery") == Some("queue"))
+                        .map(|i| {
+                            (i.str("id").unwrap_or_default().to_string(), i.get("payload").and_then(|p| p.str("text")).unwrap_or_default().to_string())
+                        })
+                        .collect::<Vec<_>>()
+                })
+            };
             vec![
                 rename,
                 // TODO(port-tui): the dialogs slice: DialogTimeline, DialogFork.
@@ -1240,7 +1264,11 @@ pub fn session(props: SessionProps) -> View {
                 background,
                 // TODO(port-tui): the prompt slice's composer (subagent picker) and the queued prompts dialog.
                 session_command("session.child.first", "Toggle subagent picker"),
-                Command::new("session.queued_prompts", || {}).title("View queued prompts").group("Prompt").palette(true).bind(Bind::Off).enabled(queued),
+                Command::new("session.queued_prompts", {
+                    let (pending, dialog) = (pending.clone(), st.dialog.clone());
+                    move || pending.open_queued(&dialog, Rc::new(queued_list))
+                })
+                .title("View queued prompts").group("Prompt").palette(true).bind(Bind::Off).enabled(queued),
                 parent,
             ]
         }
@@ -1353,10 +1381,15 @@ pub fn session(props: SessionProps) -> View {
             let config = t.config_context.clone();
             Rc::new(move || config.data())
         },
-        mutate_pending: Rc::new(|_action: PendingAction, _id: &str| {
-            // TODO(port-tui): `session.inbox.update` / `cancel` through the client, and their toasts.
-            opencode_tui_sync::runtime::Deferred::resolved(false)
-        }),
+        mutate_pending: {
+            let pending = pending.clone();
+            Rc::new(move |action: PendingAction, id: &str| pending.mutate(action, id))
+        },
+        open_pending_steer: {
+            let (pending, dialog) = (pending.clone(), state.dialog.clone());
+            let render_filter = !t.config.new_designs();
+            Rc::new(move |id: String| pending.open_steer(&dialog, id, render_filter))
+        },
         pending_delivery: Rc::new(move |id: &str| pending_deliveries.with(|list| list.iter().find(|(i, _)| i == id).map(|(_, d)| d.clone()))),
     };
     let mut view = View::Empty;
@@ -1420,7 +1453,7 @@ pub fn session(props: SessionProps) -> View {
                 }
                 scroll.set_sticky_start(Some(StickyStart::Bottom));
                 scroll.set_flex_grow(Some(1.0));
-                bind_always(move || scroll_acceleration(&tui().config_context.data()), move |a| scroll.set_scroll_acceleration(a));
+                bind_always(move || crate::ui::scroll::scroll_acceleration(&tui().config_context.data()), move |a| scroll.set_scroll_acceleration(a));
                 {
                     let st = st.clone();
                     scroll.set_on_mouse(
@@ -1549,6 +1582,7 @@ pub fn session(props: SessionProps) -> View {
                 let prompt_for = prompt_for.clone();
                 let sid = st_view.session_id.clone();
                 // `<Show when={!composer.open && !disabled() && queuedPrompts().length > 0}><QueuedPromptDock/>`.
+                let (pending_for_dock, st_dock) = (pending.clone(), st_view.clone());
                 let queued_prompts = move || {
                     pending_users.with(|p| {
                         p.iter()
@@ -1566,7 +1600,11 @@ pub fn session(props: SessionProps) -> View {
                         move || !disabled.get() && !queued_prompts().is_empty(),
                         move || {
                             // TODO(port-tui): the dialogs slice: the queued prompts DialogSelect (`openQueuedPrompts`).
-                            super::extras::queued_prompt_dock(Rc::new(queued_prompts), Rc::new(|| {}))
+                            let (pending, dialog) = (pending_for_dock.clone(), st_dock.dialog.clone());
+                            super::extras::queued_prompt_dock(
+                                Rc::new(queued_prompts),
+                                Rc::new(move || pending.open_queued(&dialog, Rc::new(queued_prompts))),
+                            )
                         },
                         None,
                     ),

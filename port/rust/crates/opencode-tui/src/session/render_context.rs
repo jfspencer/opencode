@@ -86,6 +86,8 @@ pub struct RenderCtx {
     pub config: Rc<dyn Fn() -> Rc<crate::config::Resolved>>,
     pub mutate_pending: Rc<dyn Fn(PendingAction, &str) -> opencode_tui_sync::runtime::Deferred<bool>>,
     pub pending_delivery: Rc<dyn Fn(&str) -> Option<String>>,
+    /// Opens the pending-steer dialog of a user message (move to queue, delete).
+    pub open_pending_steer: Rc<dyn Fn(String)>,
 }
 
 thread_local! {

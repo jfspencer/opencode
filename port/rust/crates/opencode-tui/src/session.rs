@@ -28,6 +28,7 @@ pub mod message_parts;
 pub mod messages;
 pub mod mount_budget;
 pub mod parts;
+pub mod pending;
 pub mod render_context;
 pub mod route;
 pub mod rows;

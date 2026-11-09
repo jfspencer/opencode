@@ -168,7 +168,19 @@ pub fn user_message(message: Message) -> View {
             insert_node(outer, inner, None);
             inner.set_on_mouse(Some(MouseEventType::Over), Some(Rc::new(move |_| set_hover.set(true))));
             inner.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| set_hover.set(false))));
-            // TODO(port-tui): the dialogs slice: the pending-steer DialogSelect and DialogMessage on mouse up.
+            {
+                let (ctx, message) = (ctx.clone(), message.clone());
+                inner.set_on_mouse(
+                    Some(MouseEventType::Up),
+                    Some(Rc::new(move |_| {
+                        // TODO(port-tui): the renderer's selection (`renderer.getSelection()?.getSelectedText()`).
+                        if untrack(|| delivery.get()).as_deref() == Some("steer") {
+                            (ctx.open_pending_steer)(str_of(&untrack(|| message()), "id"));
+                        }
+                        // TODO(port-tui): the dialogs slice: `<DialogMessage messageID sessionID>` otherwise.
+                    })),
+                );
+            }
             inner.set_padding(Edge::Top, Some(Value::Point(1.0)));
             inner.set_padding(Edge::Bottom, Some(Value::Point(1.0)));
             inner.set_padding(Edge::Left, Some(Value::Point(2.0)));
