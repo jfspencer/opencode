@@ -2,7 +2,7 @@
 //! `createElement(tag)` does, with only an id; props are then set one by one (the typed setters on
 //! [`Element`]).
 use crate::color::text_attributes;
-use crate::renderables::{box_, code, markdown, text, text_table, textarea};
+use crate::renderables::{box_, code, diff, line_number, markdown, text, text_table, textarea};
 use crate::tree::Element;
 
 /// `<box>`.
@@ -67,4 +67,14 @@ pub fn markdown() -> Element {
 /// `<text_table>`.
 pub fn text_table() -> Element {
     text_table::create_text_table()
+}
+
+/// `<line_number>`.
+pub fn line_number() -> Element {
+    line_number::create_line_number(line_number::LineNumberOptions::default())
+}
+
+/// `<diff>`.
+pub fn diff() -> Element {
+    diff::create_diff()
 }

@@ -4,7 +4,7 @@
 //!
 //! - [`app`]: `run` and `<App>` (app.tsx); [`commands`]: App's command registry; [`ctx`]: what the providers give
 //!   components; [`home`], [`prompt`], [`local`], [`session`], [`data`]: the home route and what it reads;
-//!   [`keymap`], [`interactivity`]: keybinds; [`util`]: locale, path and color helpers.
+//!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -77,6 +77,13 @@
 //! `tokio::task::spawn_local` and write their results into signals. TODO(port-tui): the sync slice's data store
 //! (data.ts) replaces [`data::Data`]'s direct loads; its `reactive::Reactivity` maps onto signals.
 //!
+//! **Event handlers run without an owner** (as in Solid, where the renderer calls them outside any computation):
+//! `tui()` and `use_context` return nothing there, so take what a handler needs (`tui().toast`, signals, the data)
+//! when the component is created, and move it into the closure.
+//!
+//! **Toasts**: `tui().toast.show(ToastInput::new(Variant::Info, "...").duration(3000))`, `tui().toast.error(..)`
+//! ([`toast`], ui/toast.tsx); App draws `<Toast>` last.
+//!
 //! **Timers and ticks**: `renderer::set_timeout(ms, f)` / `clear_timeout`, `renderer::next_tick(f)` (also
 //! `queueMicrotask`); the renderer draws on demand, so anything that changes a renderable asks for a frame itself.
 //!
@@ -96,4 +103,5 @@ pub mod local;
 pub mod prompt;
 pub mod session;
 pub mod theme;
+pub mod toast;
 pub mod util;
