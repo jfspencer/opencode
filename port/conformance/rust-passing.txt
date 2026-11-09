@@ -6,9 +6,12 @@ scenarios/project-agents.test.ts › default agent that is a subagent falls back
 scenarios/project-agents.test.ts › no selectable primary agent
 scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
 scenarios/project-commands.test.ts › command list on a location's first request
+scenarios/project-commands.test.ts › command list without custom commands
+scenarios/project-commands.test.ts › commands from config and markdown files
 scenarios/project-config.test.ts › available shells
 scenarios/project-config.test.ts › config documents with project config disabled
 scenarios/project-config.test.ts › config documents without project files
+scenarios/project-config.test.ts › config from parent directories of a nested location
 scenarios/project-config.test.ts › env and file substitution in config
 scenarios/project-config.test.ts › invalid fields are dropped while valid ones are kept
 scenarios/project-config.test.ts › invalid native config sections
@@ -43,6 +46,7 @@ scenarios/project-projects.test.ts › project icon from an icon composer bundle
 scenarios/project-projects.test.ts › project icon from windows resources
 scenarios/project-projects.test.ts › project of a git repository is keyed by its root commit
 scenarios/project-projects.test.ts › project of a plain directory
+scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
 scenarios/project-skills.test.ts › built-in skills
@@ -66,6 +70,7 @@ scenarios/project-worktree.test.ts › create a worktree at a ref and from a lin
 scenarios/project-worktree.test.ts › create, list and remove worktrees
 scenarios/project-worktree.test.ts › refresh discovers and forgets worktrees
 scenarios/project-worktree.test.ts › removing a dirty worktree requires force
+scenarios/project-worktree.test.ts › worktree directory from config
 scenarios/project-worktree.test.ts › worktree routes for unknown projects and non-git projects
 scenarios/project-worktree.test.ts › worktree start command and name collisions
 scenarios/session-api-crud.test.ts › active sessions while idle
