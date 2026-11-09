@@ -13,7 +13,7 @@ export interface Model {
   readonly defs: Def[]
   readonly roots: RootTy[]
   readonly endpoints: ReadonlyArray<Endpoint>
-  readonly events: ReadonlyArray<{ type: string; version?: number; root: Root }>
+  readonly events: ReadonlyArray<{ type: string; version?: number; aggregate?: string; root: Root }>
   readonly sse: Root
   readonly config: Root
   readonly notes: Note[]
