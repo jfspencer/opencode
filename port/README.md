@@ -198,12 +198,12 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `permission.rs`, `handlers/permission.rs` | `core/src/permission.ts`, `permission/saved.ts`, `server/src/handlers/permission.ts`: pending requests (asked by tools through `tool::Context::assert` or through the API, listed, answered; a rejection settles the session's other requests, "always" saves approvals and settles what they now allow), rule evaluation (the session's agent or the default agent, session rules, saved approvals, managed policies), saved approvals listed, edited and removed; closed with the location, before its forms |
 | `form.rs`, `form/`, `handlers/form.rs`, `tool/question.rs` | `core/src/form.ts`, `server/src/handlers/form.ts` and the session form endpoints, `tool/plugin/question.ts`: a location's forms in recency order (settled ones kept ten minutes), definitions and answers validated as the JS engine does (`form/formats.rs`: patterns on `opencode_codemode::jsregex`, dates on `opencode_codemode::jsdate`, `URL.canParse` on the `url` crate), cancelled when interrupted or at shutdown; the question tool asks through a form |
 
-Status (2026-11-09): every server scenario of the standard passes (686 run, 3 skipped by the standard), including the
+Status (2026-11-09): every server scenario of the standard but the 11 new PTY ones passes (686 of 697 run, 3 skipped), including the
 70 CLI scenarios: session CRUD, projects, locations, the file system, version control, worktrees, config, agents,
 providers and models, the execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots
 and reverts, schedules, session transfer, webfetch, skills and instructions, shell, the file tools and the patch tool,
 Code Mode, stored credentials, media blobs, restart recovery, and the CLI (`run`, `serve`, `service`, `session`, `api`,
-`auth`, `stats`, `acp` and the rest). The PTY APIs (their scenarios are being recorded) and the TUI are in progress. Release builds peak (VmHWM) at a median of 19.6 MiB per server process
+`auth`, `stats`, `acp` and the rest). The PTY APIs and the TUI are in progress. Release builds peak (VmHWM) at a median of 19.6 MiB per server process
 over 600 passing scenarios (p90 21.3 MiB); an idle server holds about 2 MiB of anonymous memory, the rest being clean
 pages of the 20 MB executable. The TS server peaks at a median of about 312 MiB, and at 377 to 728 MiB on the five
 scenarios where Rust peaks highest (62 to 141 MiB: large attachments, Code Mode limits, the webfetch budget). Unported behavior is marked `TODO(port)` in the source; an
