@@ -70,6 +70,8 @@ fn selection_key(value: &Selection) -> String {
 
 struct Inner {
     data: Rc<Data>,
+    /// `useArgs()`, taken at install: `agent.current()` also runs from async handlers, which have no owner.
+    args: Rc<crate::ctx::Args>,
     toast: crate::toast::Toasts,
     theme: Signal<crate::theme::ResolvedTheme>,
     route: Signal<Route>,
@@ -192,6 +194,7 @@ pub fn install() -> Local {
     // The selection reads the agent through the instance: its memo is made once the instance exists.
     let inner = Rc::new(Inner {
         data: data.clone(),
+        args: t.args.clone(),
         toast: t.toast.clone(),
         theme: t.theme,
         route,
@@ -330,7 +333,8 @@ impl Local {
                 match draft {
                     Some(Some(agent)) => Some(agent),
                     Some(None) => session_agent(&self.0.data, &session).or_else(|| self.0.agent_current.get()),
-                    None => tui()
+                    None => self
+                        .0
                         .args
                         .agent
                         .clone()
