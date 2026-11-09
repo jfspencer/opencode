@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# The differential check of opencode-tui-input against the reference's @opentui/core 0.8.1 (see harness/oracle.ts):
-# runs the crate's unit tests, has the oracle generate and run the stdin programs through the TS StdinParser on a
-# manual clock, replays them through the Rust crate (examples/input-driver.rs), and compares every answer. Work
-# files go to port/rust/target/opencode-tui-input.
+# The differential check of opencode-tui-input against the reference's @opentui/core and @opentui/keymap 0.8.1: runs
+# the crate's unit tests; has harness/oracle.ts generate and run the stdin programs through the TS StdinParser on a
+# manual clock and harness/keymap-oracle.ts the keymap programs through the TS Keymap; replays both through the Rust
+# crate (examples/input-driver.rs, examples/keymap-driver.rs); and compares every answer. Work files go to
+# port/rust/target/opencode-tui-input.
 #
 # usage: port/rust/crates/opencode-tui-input/harness/run.sh [--count N] [--seed S] [--show N]
 set -euo pipefail
@@ -32,9 +33,16 @@ cargo test -q --manifest-path "$manifest" -p opencode-tui-input >"$work/unit-tes
   cat "$work/unit-tests.log" >&2
   exit 1
 }
-cargo build -q --release --manifest-path "$manifest" -p opencode-tui-input --example input-driver
+cargo build -q --release --manifest-path "$manifest" -p opencode-tui-input --example input-driver --example keymap-driver
 
+status=0
 bun "$crate/harness/oracle.ts" --programs "$work/stdin-programs.txt" --results "$work/stdin-ts.txt" --count "$count" \
   --seed "$seed"
 "$port/rust/target/release/examples/input-driver" "$work/stdin-programs.txt" "$work/stdin-rust.txt"
-exec bun "$crate/harness/compare.ts" --work "$work" --name stdin- --show "$show"
+bun "$crate/harness/compare.ts" --work "$work" --name stdin- --show "$show" || status=1
+
+bun "$crate/harness/keymap-oracle.ts" --programs "$work/keymap-programs.txt" --results "$work/keymap-ts.txt" \
+  --count "$count" --seed "$seed"
+"$port/rust/target/release/examples/keymap-driver" "$work/keymap-programs.txt" "$work/keymap-rust.txt"
+bun "$crate/harness/compare.ts" --work "$work" --name keymap- --show "$show" || status=1
+exit $status
