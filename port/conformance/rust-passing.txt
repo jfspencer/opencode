@@ -112,6 +112,7 @@ scenarios/project-commands.test.ts › command argument templating
 scenarios/project-commands.test.ts › command list on a location's first request
 scenarios/project-commands.test.ts › command list without custom commands
 scenarios/project-commands.test.ts › command naming an agent that does not exist
+scenarios/project-commands.test.ts › command that runs as a subagent
 scenarios/project-commands.test.ts › command that selects an agent and a model
 scenarios/project-commands.test.ts › command with shell interpolation
 scenarios/project-commands.test.ts › commands from config and markdown files
@@ -136,6 +137,9 @@ scenarios/project-fs.test.ts › read files
 scenarios/project-fs.test.ts › read with byte ranges
 scenarios/project-fs.test.ts › watch and unwatch files
 scenarios/project-fs.test.ts › write files
+scenarios/project-jobs.test.ts › background subagent job
+scenarios/project-jobs.test.ts › deleting a session cancels its background jobs
+scenarios/project-jobs.test.ts › foreground subagent moved to the background
 scenarios/project-projects.test.ts › a moved checkout replaces the missing canonical directory
 scenarios/project-projects.test.ts › debug loaded locations and evict one
 scenarios/project-projects.test.ts › git repository without commits shares the global project
@@ -233,11 +237,27 @@ scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
 scenarios/session-api-revert.test.ts › diff a session without changes or without git
 scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
+scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
+scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
+scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools-skill.test.ts › skill activated by the user
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
+scenarios/tools-subagent.test.ts › subagent child interrupted while the parent waits
+scenarios/tools-subagent.test.ts › subagent continuation of a session that is not a child
+scenarios/tools-subagent.test.ts › subagent continued by sessionID
+scenarios/tools-subagent.test.ts › subagent denied by permission rules
+scenarios/tools-subagent.test.ts › subagent depth limit
+scenarios/tools-subagent.test.ts › subagent failure in the child
+scenarios/tools-subagent.test.ts › subagent in the background
+scenarios/tools-subagent.test.ts › subagent moved to the background while running
+scenarios/tools-subagent.test.ts › subagent nested within a raised depth limit
+scenarios/tools-subagent.test.ts › subagent parent interrupted while the child runs
+scenarios/tools-subagent.test.ts › subagent with empty optional arguments
+scenarios/tools-subagent.test.ts › subagent with model overrides
+scenarios/tools-subagent.test.ts › subagent with unknown and primary agents
 scenarios/tools.test.ts › malformed tool arguments
 scenarios/tools.test.ts › unknown tool
