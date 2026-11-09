@@ -207,9 +207,11 @@ fn report(result: Result) -> Result {
     }
 }
 
-/// `toLocaleString()` of a time in milliseconds, en-US style. TODO(port): the local time zone (UTC here).
-fn locale_time(ms: f64) -> String {
-    let seconds = (ms / 1000.0).floor() as i64;
+/// `new Date(ms).toLocaleString()`, en-US style, in the process's time zone (`TZ`, else /etc/localtime).
+pub fn locale_time(ms: f64) -> String {
+    static LOCAL: std::sync::OnceLock<crate::zone::Zone> = std::sync::OnceLock::new();
+    let wall = LOCAL.get_or_init(crate::zone::Zone::local).to_wall(ms.trunc() as i64);
+    let seconds = wall.div_euclid(1000);
     let days = seconds.div_euclid(86_400);
     let rest = seconds.rem_euclid(86_400);
     let (year, month, day) = civil(days);
@@ -220,7 +222,8 @@ fn locale_time(ms: f64) -> String {
         12 => (12, "PM"),
         _ => (hour - 12, "PM"),
     };
-    format!("{month}/{day}/{year}, {twelve}:{minute:02}:{second:02}\u{202f}{half}")
+    // Bun's ICU separates the day period with a plain space.
+    format!("{month}/{day}/{year}, {twelve}:{minute:02}:{second:02} {half}")
 }
 
 /// Days since 1970-01-01 to (year, month, day).
@@ -283,12 +286,36 @@ pub async fn session_list(globals: &Globals, input: &Input) -> Result {
                     .collect();
                 pretty(&Json::Array(items))
             };
-            // TODO(port): on a terminal without --max-count, the table goes through `less -R -S`.
-            stdout(&format!("{output}\n"));
+            let output = format!("{output}\n");
+            if !table || limit.is_some() || !super::stdout_tty() {
+                stdout(&output);
+                return Ok(0);
+            }
+            pager(&output).await;
             Ok(0)
         })
         .await,
     )
+}
+
+/// The table on a terminal goes through `less -R -S` (its stdout and stderr the terminal), or straight to stdout when
+/// it cannot start.
+async fn pager(output: &str) {
+    use tokio::io::AsyncWriteExt;
+    let child = tokio::process::Command::new("less")
+        .args(["-R", "-S"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::inherit())
+        .stderr(std::process::Stdio::inherit())
+        .spawn();
+    let Ok(mut child) = child else {
+        stdout(output);
+        return;
+    };
+    if let Some(mut stdin) = child.stdin.take() {
+        let _ = stdin.write_all(output.as_bytes()).await;
+    }
+    let _ = child.wait().await;
 }
 
 pub async fn session_delete(globals: &Globals, input: &Input) -> Result {
@@ -311,8 +338,13 @@ pub async fn session_export(globals: &Globals, input: &Input) -> Result {
     }
     report(
         with_server(globals, Args::default(), |client| async move {
-            // TODO(port): without a session ID on a terminal, a picker of the project's sessions.
-            let Some(id) = requested else { return Ok(0) };
+            let id = match requested {
+                Some(id) => id,
+                None => match pick_session(&client).await? {
+                    Picked::Session(id) => id,
+                    Picked::Exit(code) => return Ok(code),
+                },
+            };
             let mut query = Obj::new();
             query.set("sanitize", Json::Bool(sanitize));
             let exported = client.call("experimental.session.export", &[("sessionID", &id)], Some(query.done()), None).await?;
@@ -321,6 +353,56 @@ pub async fn session_export(globals: &Globals, input: &Input) -> Result {
         })
         .await,
     )
+}
+
+enum Picked {
+    Session(String),
+    Exit(i32),
+}
+
+/// Without a session ID on a terminal: the location's latest top-level sessions in clack's `autocomplete`, on stderr.
+async fn pick_session(client: &super::client::Client) -> Result<Picked> {
+    let clack = super::clack::Clack::new().stderr();
+    clack.intro("Export session");
+    let located = client.call("location.get", &[], Some(location(&cwd())), None).await?;
+    let mut query = Obj::new();
+    query
+        .opt("directory", json::get(&located, "directory").cloned())
+        .set("parentID", Json::Null)
+        .str("order", "desc")
+        .int("limit", 50);
+    let page = client.call("session.list", &[], Some(query.done()), None).await?;
+    let sessions = data(&page);
+    if sessions.is_empty() {
+        clack.error("No sessions found");
+        clack.outro("Done");
+        return Ok(Picked::Exit(0));
+    }
+    let choices: Vec<super::clack::Choice> = sessions
+        .iter()
+        .map(|session| {
+            let id = json::get_str(session, "id").unwrap_or("").to_owned();
+            let updated = json::get(session, "time").and_then(|t| json::get_num(t, "updated")).unwrap_or(0.0);
+            let tail: String = id.chars().rev().take(8).collect::<Vec<_>>().into_iter().rev().collect();
+            super::clack::Choice {
+                label: json::get_str(session, "title").map(String::from).unwrap_or_else(|| id.clone()),
+                hint: Some(format!("{} - {tail}", locale_time(updated))),
+                value: id,
+            }
+        })
+        .collect();
+    // The prompt blocks the (single) runtime thread while it reads keys, as the password prompt does.
+    let picked = clack.autocomplete("Select session to export", &choices, 10);
+    match picked {
+        Ok(id) => {
+            clack.outro("Exporting session...");
+            Ok(Picked::Session(id))
+        }
+        Err(super::clack::Cancelled) => {
+            clack.cancel("Cancelled");
+            Ok(Picked::Exit(130))
+        }
+    }
 }
 
 pub async fn session_import(globals: &Globals, input: &Input) -> Result {

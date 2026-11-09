@@ -4,7 +4,8 @@
 // usage: bun harness/trace.ts --driver <text-driver> --work <dir> [probe ops as JSON, default [["eInfo"]]]
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { runCase, runEditCase, type Case } from "./ts-exec.ts"
+import { disposeScene, runAnyCase } from "./scene-exec.ts"
+import type { Case } from "./ts-exec.ts"
 
 const args = process.argv.slice(2)
 const opt = (name: string) => args[args.indexOf(`--${name}`) + 1]
@@ -14,7 +15,8 @@ const probe: unknown[][] = JSON.parse(args.find((a) => a.startsWith("[")) ?? '[[
 const base: Case = JSON.parse(readFileSync(join(work, "case.json"), "utf8"))
 const ops = base.ops.flatMap((op) => [op, ...probe])
 const c: Case = { ...base, ops }
-const expected = c.k === "edit" ? await runEditCase(c) : runCase(c)
+const expected = await runAnyCase(c)
+await disposeScene()
 writeFileSync(join(work, "trace.jsonl"), JSON.stringify(c) + "\n")
 Bun.spawnSync([driver, join(work, "trace.jsonl"), join(work, "trace-rust.jsonl")], { stdout: "inherit", stderr: "inherit" })
 const actual = JSON.parse(readFileSync(join(work, "trace-rust.jsonl"), "utf8").split("\n")[0])

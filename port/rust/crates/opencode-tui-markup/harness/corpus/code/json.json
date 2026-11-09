@@ -1,0 +1,8 @@
+[
+ "[\n  345,\n  10.1,\n  10,\n  -10,\n  null,\n  true,\n  false,\n  { \"stuff\": \"good\" }\n]",
+ "[\n  \"\",\n  \"abc\",\n  \"def\\n\",\n  \"ghi\\t\",\n  \"jkl\\f\",\n  \"//\",\n  \"/**/\"\n]",
+ "-1",
+ "null",
+ "{\n  \"a\": 1,\n\n  // we allow comments, because several\n  // commonly used tools allow comments in\n  // files with the extension `.json`\n  \"b\": \"2\",\n\n  /*\n   * Block comments are also ok\n   */\n  \"c\": 3\n}",
+ "{}\n{}"
+]

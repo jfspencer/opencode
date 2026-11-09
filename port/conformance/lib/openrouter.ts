@@ -32,7 +32,7 @@ export type Turn =
     }
   | { readonly status: number; readonly body?: unknown; readonly headers?: Record<string, string> }
   | {
-      readonly raw: string
+      readonly raw: string | Uint8Array
       readonly status?: number
       readonly headers?: Record<string, string>
       /** `raw` is base64: the body is the bytes it decodes to (binary files, such as images). */
@@ -166,7 +166,7 @@ export class FakeOpenRouter {
         ...init(turn.status, { "content-type": "application/json", ...turn.headers }),
       })
     if ("raw" in turn)
-      return new Response(method === "HEAD" ? null : turn.base64 ? Buffer.from(turn.raw, "base64") : turn.raw, {
+      return new Response(method === "HEAD" ? null : turn.base64 && typeof turn.raw === "string" ? Buffer.from(turn.raw, "base64") : turn.raw, {
         ...init(turn.status ?? 200, { "content-type": "text/event-stream", ...turn.headers }),
       })
     const id = `gen-conformance-${++this.counter}`

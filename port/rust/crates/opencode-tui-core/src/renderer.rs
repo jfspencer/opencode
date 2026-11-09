@@ -104,6 +104,7 @@ thread_local! {
     static THEME: Rc<Notify> = Rc::new(Notify::new());
     static CLOSED: Rc<Notify> = Rc::new(Notify::new());
     static FOCUSED: Cell<Option<Element>> = const { Cell::new(None) };
+    static FOCUSED_LISTENERS: RefCell<(u64, Vec<(u64, Rc<dyn Fn()>)>)> = RefCell::new((0, Vec::new()));
 }
 
 fn with<R>(f: impl FnOnce(&mut State) -> R) -> Option<R> {
@@ -586,6 +587,25 @@ pub async fn closed() {
 
 pub(crate) fn focus_changed(el: Option<Element>) {
     FOCUSED.with(|f| f.set(el));
+    let listeners: Vec<Rc<dyn Fn()>> = FOCUSED_LISTENERS.with(|l| l.borrow().1.iter().map(|(_, f)| f.clone()).collect());
+    for listener in listeners {
+        listener();
+    }
+}
+
+/// `on(CliRenderEvents.FOCUSED_RENDERABLE, listener)`: after a renderable takes focus, or the focused one blurs.
+pub fn on_focused_renderable(listener: impl Fn() + 'static) -> u64 {
+    FOCUSED_LISTENERS.with(|l| {
+        let mut l = l.borrow_mut();
+        l.0 += 1;
+        let token = l.0;
+        l.1.push((token, Rc::new(listener)));
+        token
+    })
+}
+
+pub fn off_focused_renderable(token: u64) {
+    FOCUSED_LISTENERS.with(|l| l.borrow_mut().1.retain(|(t, _)| *t != token));
 }
 
 pub fn current_focused_renderable() -> Option<Element> {

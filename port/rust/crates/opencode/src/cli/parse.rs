@@ -257,8 +257,8 @@ pub enum Outcome {
     Help { path: Vec<&'static str>, errors: Vec<CliError> },
     Version,
     Completions(&'static str),
-    /// `--wizard`. TODO(port): the interactive wizard.
-    Wizard,
+    /// `--wizard` on the command at `path` (see `wizard.rs`).
+    Wizard { path: Vec<&'static str> },
     Run { path: Vec<&'static str>, input: Input, globals: Globals },
 }
 
@@ -632,6 +632,11 @@ fn parse_one(param: &Param, raw: &str) -> Result<Val, CliError> {
         flag: param.flag,
     };
     let value = primitive(param, raw).map_err(|expected| invalid(raw.to_owned(), expected))?;
+    if let (Val::Str(text), Check::PairingUrl) = (&value, param.check) {
+        return super::pair::url(text).map(Val::Str).ok_or_else(|| {
+            invalid(text.clone(), "Expected an HTTP(S) server URL without credentials, query parameters, or a fragment".into())
+        });
+    }
     let failed = match (&value, param.check) {
         (Val::Int(n), Check::AtLeast(min)) if *n < min => {
             Some((n.to_string(), format!("Expected a value greater than or equal to {min}")))
@@ -666,7 +671,7 @@ fn default_value(param: &Param, raw: &'static str) -> Val {
     }
 }
 
-fn parse_flag(param: &Param, given: &[String]) -> Result<Val, CliError> {
+pub(super) fn parse_flag(param: &Param, given: &[String]) -> Result<Val, CliError> {
     if let Mode::Many { min, max, optional } = param.mode {
         let count = given.len();
         if let Some(min) = min.filter(|min| count < *min) {
@@ -733,7 +738,7 @@ fn parse_flag(param: &Param, given: &[String]) -> Result<Val, CliError> {
     parse_one(param, &given[0])
 }
 
-fn parse_argument(param: &Param, arguments: &mut Vec<String>) -> Result<Val, CliError> {
+pub(super) fn parse_argument(param: &Param, arguments: &mut Vec<String>) -> Result<Val, CliError> {
     if let Mode::Many { min, max, .. } = param.mode {
         let mut list = vec![];
         while !arguments.is_empty() && max.is_none_or(|max| list.len() < max) {
@@ -883,7 +888,7 @@ pub fn run(root: &Command, argv: &[String]) -> Outcome {
         return match (global, value) {
             (Global::Help, _) => Outcome::Help { path, errors: vec![] },
             (Global::Version, _) => Outcome::Version,
-            (Global::Wizard, _) => Outcome::Wizard,
+            (Global::Wizard, _) => Outcome::Wizard { path },
             (Global::Completions, Val::Str(shell)) => {
                 Outcome::Completions(super::spec::SHELLS.iter().find(|s| **s == shell).copied().unwrap_or("bash"))
             }

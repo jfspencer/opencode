@@ -1,0 +1,119 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "start"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "http://127.0.0.1:<service-port>",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall",
+          "--force"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "●    Stop background service and persistent terminals: <sandbox>/state/opencode/service-conformance.json",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "\u001b[?25l│",
+          "◇  Background services stopped",
+          "\u001b[?25h\u001b[?25l│",
+          "◇  Removed Cache",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": false
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/state/opencode/service-conformance.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "status"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "stopped",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall",
+          "-f"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "\u001b[?25l│",
+          "◇  Removed Cache",
+          "\u001b[?25h│",
+          "└  Done",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": false
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

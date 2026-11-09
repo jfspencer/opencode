@@ -1,0 +1,118 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "api",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode api",
+          "",
+          "API · FLAGS",
+          "✔ Set Request body (--data)? … no",
+          "",
+          "? Header (--header) count ›",
+          "✔ Header (--header) count … 1",
+          "✔ Header (--header) … x-test: it's",
+          "",
+          "✔ Set OpenAPI path or query parameter (--param)? … yes",
+          "✔ OpenAPI path or query parameter (--param) count … 1",
+          "✔ OpenAPI path or query parameter (--param) … sessionID=-odd",
+          "",
+          "Current command",
+          "  $ opencode api --header 'x-test: it'\"'\"'s' --param sessionID=-odd",
+          "",
+          "API · ARGUMENTS",
+          "? Operation | method path count › 3",
+          "✔ Operation | method path count … 2",
+          "✔ Operation | method path … GET",
+          "✔ Operation | method path … /api/info",
+          "",
+          "Command ready",
+          "  $ opencode api --header 'x-test: it'\"'\"'s' --param sessionID=-odd GET /api/info",
+          "",
+          "✔ Run this command? … yes / no"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "\r",
+            "k",
+            "\r",
+            "x-test: it's\r",
+            "y",
+            "\r",
+            "sessionID=-odd\r",
+            "3\r",
+            "2\r",
+            "GET\r",
+            "/api/info\r",
+            "0",
+            "\r"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "session",
+          "import",
+          "--wizard"
+        ],
+        "exit": 0,
+        "screen": [
+          "opencode vconformance · Command wizard",
+          "OpenCode command line interface",
+          "Build a command interactively. Press Ctrl+C to cancel.",
+          "",
+          "Current command",
+          "  $ opencode session import",
+          "",
+          "IMPORT · FLAGS",
+          "✔ Set Directory (--directory)? … yes",
+          "✔ Directory (--directory) … -odd dir",
+          "",
+          "Current command",
+          "  $ opencode session import '--directory=-odd dir'",
+          "",
+          "IMPORT · ARGUMENTS",
+          "✔ File … its.json",
+          "",
+          "Command ready",
+          "  $ opencode session import '--directory=-odd dir' its.json",
+          "",
+          "✔ Run this command? … yes / no"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "y",
+            "-odd dir\r",
+            "it's.json\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D\u001b[D",
+            "\r",
+            "\u001b[B",
+            "\r"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

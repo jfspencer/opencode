@@ -1,0 +1,230 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelClientError: Failed to read certificate: HTTP 503 {",
+          "  [cause]: HttpClientError: StatusCode error (503 GET https://opentunnel.xyz/api/tunnel/tun_conformance/certificate)",
+          "}",
+          "OpenTunnelClientError: Failed to read certificate: SchemaError: Expected a valid JSON string {",
+          "  [cause]: SchemaError: Expected a valid JSON string",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelClientError: Failed to read certificate: UnauthorizedError: Invalid tunnel token {",
+          "  [cause]: UnauthorizedError: Invalid tunnel token",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelClientError: Failed to read certificate: CertificateNotFoundError: No certificate yet {",
+          "  [cause]: CertificateNotFoundError: No certificate yet",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelClientError: Failed to read certificate: HTTP 418 {",
+          "  [cause]: HttpClientError: Decode: undeclared status code (418 GET https://opentunnel.xyz/api/tunnel/tun_conformance/certificate)",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "OpenTunnelClientError: Failed to read certificate: SchemaError: Expected { readonly \"type\": \"challenge\", ... } | { readonly \"type\": \"issuing\", ... } | { readonly \"type\": \"ready\", ... } | { readonly \"type\": \"failed\", ... } {",
+          "  [cause]: SchemaError: Expected { readonly \"type\": \"challenge\", ... } | { readonly \"type\": \"issuing\", ... } | { readonly \"type\": \"ready\", ... } | { readonly \"type\": \"failed\", ... }",
+          "}",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": {
+          "json": {
+            "port": "<service-port>"
+          }
+        },
+        "path": "<sandbox>/config/opencode/service-conformance.json"
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_conformance"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_conformance/certificate"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

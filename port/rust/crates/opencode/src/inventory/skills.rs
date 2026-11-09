@@ -25,6 +25,7 @@ use opencode_protocol::types as t;
 use opencode_protocol::{Json, Wire};
 
 use super::config::{self, Entry, Sources};
+use super::jsvalue::{self, Value};
 use super::markdown;
 use crate::json::Obj;
 
@@ -511,12 +512,12 @@ pub fn scan(root: &str) -> Vec<String> {
 }
 
 /// `booleanValue` of skill frontmatter.
-fn boolean(value: Option<&Json>) -> Option<bool> {
+fn boolean(value: Option<Value>) -> Option<bool> {
     match value? {
-        Json::Bool(b) => Some(*b),
-        Json::Number(n) if *n == 1.0 => Some(true),
-        Json::Number(n) if *n == 0.0 => Some(false),
-        Json::String(s) => match config::js_trim(s).to_lowercase().as_str() {
+        Value::Bool(b) => Some(b),
+        Value::Number(n) if n == 1.0 => Some(true),
+        Value::Number(n) if n == 0.0 => Some(false),
+        Value::String(s) => match config::js_trim(&s).to_lowercase().as_str() {
             "true" | "yes" | "on" | "1" => Some(true),
             "false" | "no" | "off" | "0" => Some(false),
             _ => None,
@@ -525,17 +526,18 @@ fn boolean(value: Option<&Json>) -> Option<bool> {
     }
 }
 
-/// `SkillFile.parse`.
+/// `SkillFile.parse`: the frontmatter decodes as `Struct({ name, description, metadata, "disable-model-invocation" })`,
+/// which takes any object but an array or a function (a `Date` is one without fields) and reads its fields through the
+/// prototype chain (an `Error`'s `name` is inherited); `metadata` counts when it is such an object too (`isRecord`).
 pub fn parse(directory: &str, file: &str, content: &str) -> Option<t::SkillInfo> {
     let parsed = markdown::parse_option(content)?;
-    let data = match &parsed.data {
-        Json::Object(o) => o.clone(),
-        // Only an object decodes as the frontmatter struct.
-        _ => return None,
-    };
-    let string = |key: &str| match data.get(key) {
-        None => Ok(None),
-        Some(Json::String(s)) => Ok(Some(s.clone())),
+    let data = &parsed.data.root;
+    if !jsvalue::is_record(data) {
+        return None;
+    }
+    let string = |key: &str| match jsvalue::get(data, key) {
+        None | Some(Value::Undefined) => Ok(None),
+        Some(Value::String(s)) => Ok(Some(s.to_string())),
         Some(_) => Err(()),
     };
     let name = string("name").ok()?;
@@ -547,8 +549,10 @@ pub fn parse(directory: &str, file: &str, content: &str) -> Option<t::SkillInfo>
     } else {
         config::basename(&parent).to_owned()
     };
-    let metadata = data.get("metadata").and_then(|m| m.as_object()).and_then(|m| boolean(m.get("opencode/autoinvoke")));
-    let disabled = boolean(data.get("disable-model-invocation"));
+    let metadata = jsvalue::get(data, "metadata")
+        .filter(jsvalue::is_record)
+        .and_then(|m| boolean(jsvalue::get(&m, "opencode/autoinvoke")));
+    let disabled = boolean(jsvalue::get(data, "disable-model-invocation"));
     let autoinvoke = metadata.or(if disabled == Some(true) { Some(false) } else { None });
     Some(skill(&id, name.as_deref().unwrap_or(&id), description.as_deref(), autoinvoke, file, &parsed.content))
 }

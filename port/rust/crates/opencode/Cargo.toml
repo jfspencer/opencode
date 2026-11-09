@@ -34,6 +34,8 @@ getrandom.workspace = true
 rustls.workspace = true
 tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
+# rustls's own crypto provider, for the OpenTunnel certificate request (a P-256 key and its ECDSA signature).
+ring = { version = "0.17", default-features = false, features = ["alloc"] }
 unicode-normalization.workspace = true
 sha2.workspace = true
 libc.workspace = true
@@ -47,3 +49,8 @@ jpeg-decoder = { version = "=0.3.1", default-features = false, features = ["plat
 libm = "0.2"
 # npm tarballs (the image codecs' own flate2).
 flate2 = "1"
+# Frontmatter nesting as deep as the JS engine allows (inventory/yaml.rs), on any thread's stack (the Code Mode crate's own).
+stacker = "0.1"
+
+[build-dependencies]
+sha2.workspace = true

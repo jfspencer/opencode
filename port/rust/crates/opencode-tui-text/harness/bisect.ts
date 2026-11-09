@@ -4,7 +4,8 @@
 // usage: bun harness/bisect.ts --driver <text-driver> --work <dir> [probe ops as JSON, default [["vVisual"]]]
 import { readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
-import { runCase, runEditCase, type Case } from "./ts-exec.ts"
+import { disposeScene, runAnyCase } from "./scene-exec.ts"
+import type { Case } from "./ts-exec.ts"
 
 const args = process.argv.slice(2)
 const opt = (name: string) => args[args.indexOf(`--${name}`) + 1]
@@ -15,7 +16,8 @@ const base: Case = JSON.parse(readFileSync(join(work, "case.json"), "utf8"))
 const cases: Case[] = []
 for (let n = 0; n <= base.ops.length; n++) cases.push({ ...base, ops: [...base.ops.slice(0, n), ...probe] })
 const expected: unknown[][] = []
-for (const c of cases) expected.push(c.k === "edit" ? await runEditCase(c) : runCase(c))
+for (const c of cases) expected.push(await runAnyCase(c))
+await disposeScene()
 writeFileSync(join(work, "bisect.jsonl"), cases.map((c) => JSON.stringify(c)).join("\n") + "\n")
 Bun.spawnSync([driver, join(work, "bisect.jsonl"), join(work, "bisect-rust.jsonl")], { stdout: "inherit", stderr: "inherit" })
 const actual = readFileSync(join(work, "bisect-rust.jsonl"), "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l))
