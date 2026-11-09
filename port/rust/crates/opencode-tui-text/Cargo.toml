@@ -1,0 +1,11 @@
+[package]
+name = "opencode-tui-text"
+description = "OpenTUI's text core: widths and grapheme breaks, text buffers and views, edit buffers and editor views"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+indexmap.workspace = true
