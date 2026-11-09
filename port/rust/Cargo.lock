@@ -618,6 +618,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "bytes",
+ "flate2",
  "getrandom 0.4.3",
  "http-body-util",
  "hyper",

@@ -6,8 +6,8 @@
 //! the first formatter for its extension whose command is enabled and exits with 0, run in the location's
 //! directory with its environment over the server's.
 //!
-//! TODO(port): the npm-installed formatters (prettier, oxfmt, biome) resolve through `Npm.which`, which installs the
-//! package when the cache lacks it; without network access that fails and they stay disabled, as here. TS caches an
+//! The npm formatters (prettier, oxfmt, biome) run from opencode's package cache ([`crate::npm::which`], which installs
+//! the package when the cache lacks it; without network access that fails and they stay disabled). TS caches an
 //! enabled formatter's command until the config changes; here it is resolved on each write.
 
 use std::collections::HashMap;
@@ -36,8 +36,11 @@ enum Enabled {
 enum BuiltIn {
     /// An executable found on `PATH` (or opencode's bin directory), with its arguments.
     Executable(&'static str, &'static [&'static str]),
-    /// An npm-installed formatter (TODO(port), see the module doc).
-    Npm,
+    /// An npm-installed formatter: when a `package.json` up to the worktree depends on the package, its executable
+    /// with the arguments.
+    NpmDependency(&'static str, &'static [&'static str]),
+    /// Biome: when a `biome.json` or `biome.jsonc` is found up to the worktree.
+    Biome,
     /// An executable enabled by a marker file found walking up to the worktree.
     Marker(&'static str, &'static str, &'static [&'static str]),
     Ruff,
@@ -67,9 +70,9 @@ fn builtins() -> Vec<Info> {
     vec![
         exe("gofmt", &[".go"], &["-w", "$FILE"]),
         exe("mix", &[".ex", ".exs", ".eex", ".heex", ".leex", ".neex", ".sface"], &["format", "$FILE"]),
-        item("oxfmt", JS, bun(), Npm),
-        item("prettier", WEB, bun(), Npm),
-        item("biome", WEB, bun(), Npm),
+        item("oxfmt", JS, bun(), NpmDependency("oxfmt", &["$FILE"])),
+        item("prettier", WEB, bun(), NpmDependency("prettier", &["--write", "$FILE"])),
+        item("biome", WEB, bun(), Biome),
         exe("zig", &[".zig", ".zon"], &["fmt", "$FILE"]),
         item(
             "clang-format",
@@ -243,7 +246,28 @@ async fn command(enabled: &Enabled, location: &Location) -> Option<Vec<String>> 
         Enabled::Command(command) => command.clone(),
         Enabled::BuiltIn(builtin) => match *builtin {
             BuiltIn::Executable(name, args) => which(name).map(|bin| with_args(bin, args)),
-            BuiltIn::Npm => None,
+            BuiltIn::NpmDependency(package, args) => {
+                for file in find_up("package.json", directory, worktree) {
+                    // A `package.json` that cannot be read as JSON disables the formatter.
+                    let manifest = crate::json::parse(&std::fs::read_to_string(&file).ok()?)?;
+                    let depends = ["dependencies", "devDependencies"].iter().any(|field| {
+                        matches!(crate::json::get(&manifest, field), Some(opencode_protocol::Json::Object(o)) if o.contains_key(package))
+                    });
+                    if !depends {
+                        continue;
+                    }
+                    if let Some(bin) = crate::npm::which(package, None).await {
+                        return Some(with_args(bin, args));
+                    }
+                }
+                None
+            }
+            BuiltIn::Biome => {
+                if ["biome.json", "biome.jsonc"].iter().all(|name| find_up(name, directory, worktree).is_empty()) {
+                    return None;
+                }
+                crate::npm::which("@biomejs/biome", None).await.map(|bin| with_args(bin, &["format", "--write", "$FILE"]))
+            }
             BuiltIn::Marker(marker, name, args) => {
                 if find_up(marker, directory, worktree).is_empty() {
                     return None;

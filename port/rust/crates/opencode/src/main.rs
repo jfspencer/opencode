@@ -17,6 +17,7 @@ mod formatter;
 mod fs;
 mod fuzzysort;
 mod generate;
+mod npm;
 mod handlers;
 mod instruction_discovery;
 mod inventory;

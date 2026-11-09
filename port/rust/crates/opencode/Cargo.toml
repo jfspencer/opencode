@@ -43,3 +43,5 @@ image = { version = "=0.24.9", default-features = false, features = ["gif", "jpe
 jpeg-decoder = { version = "=0.3.1", default-features = false, features = ["platform_independent"] }
 # The wasm target's `sinf` (compiler-builtins' libm), for the Lanczos kernel.
 libm = "0.2"
+# npm tarballs (the image codecs' own flate2).
+flate2 = "1"
