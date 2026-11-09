@@ -103,6 +103,22 @@ fn classify(error: ClientError) -> RpcError {
 
 type Reply = std::result::Result<Json, RpcError>;
 
+fn response_json(id: &Json, reply: Reply) -> Json {
+    let mut o = Obj::new();
+    o.str("jsonrpc", "2.0").set("id", id.clone());
+    match reply {
+        Ok(result) => {
+            o.set("result", result);
+        }
+        Err(error) => {
+            let mut e = Obj::new();
+            e.int("code", error.code).str("message", &error.message).opt("data", error.data);
+            o.set("error", e.done());
+        }
+    }
+    o.done()
+}
+
 /// The connection to the client: one message per line on stdout, and the requests the agent sends the client.
 struct Connection {
     write: Mutex<()>,
@@ -127,21 +143,6 @@ impl Connection {
         let mut params = Obj::new();
         params.str("sessionId", session).set("update", update);
         self.notify("session/update", params.done());
-    }
-    fn respond(&self, id: &Json, reply: Reply) {
-        let mut o = Obj::new();
-        o.str("jsonrpc", "2.0").set("id", id.clone());
-        match reply {
-            Ok(result) => {
-                o.set("result", result);
-            }
-            Err(error) => {
-                let mut e = Obj::new();
-                e.int("code", error.code).str("message", &error.message).opt("data", error.data);
-                o.set("error", e.done());
-            }
-        }
-        self.send(&o.done());
     }
 
     /// A request to the client; its answer's result or error. Dropped before the answer, it is withdrawn.
@@ -1236,7 +1237,11 @@ pub async fn command(globals: &super::parse::Globals, input: &Input) -> Result {
                 match line {
                     None => break None,
                     Some(Line::TooLarge) => break Some(format!("incoming message exceeded the {} MiB limit", MAX_MESSAGE_BYTES / 1024 / 1024)),
-                    Some(Line::Text(line)) => dispatch(&agent, &line),
+                    Some(Line::Text(line)) => {
+                        if dispatch(&agent, &line) {
+                            break None;
+                        }
+                    }
                 }
             }
             exit = private.exited() => {
@@ -1320,27 +1325,44 @@ fn protocol_error(conn: &Connection, code: i64, message: &str, data: Option<Json
     conn.send(&o.done());
 }
 
-fn dispatch(agent: &Arc<Agent>, line: &str) {
+fn valid_id(id: Option<&Json>) -> bool {
+    matches!(id, Some(Json::Null | Json::String(_))) || matches!(id, Some(Json::Number(n)) if n.is_finite())
+}
+
+fn is_request(message: &Json) -> bool {
+    get_str(message, "jsonrpc") == Some("2.0") && get_str(message, "method").is_some() && get(message, "id").is_some() && valid_id(get(message, "id"))
+}
+
+fn is_notification(message: &Json) -> bool {
+    get_str(message, "jsonrpc") == Some("2.0") && get_str(message, "method").is_some() && get(message, "id").is_none()
+}
+
+fn is_response_shaped(message: &Json) -> bool {
+    matches!(message, Json::Object(_)) && get(message, "method").is_none() && ["id", "result", "error"].iter().any(|k| get(message, k).is_some())
+}
+
+/// One line from the client; `true` when it closes the connection: ACP connections refuse JSON-RPC batches
+/// (`allowBatches: false`), so an array ends the agent as the end of its input does.
+fn dispatch(agent: &Arc<Agent>, line: &str) -> bool {
     let line = line.trim_matches(crate::text::is_js_whitespace);
     if line.is_empty() {
-        return;
+        return false;
     }
-    let Some(message) = json::parse(line) else { return protocol_error(&agent.conn, -32700, "Parse error", None) };
-    // TODO(port): JSON-RPC batches (an array of messages, answered by one array) are not taken apart.
-    if !matches!(message, Json::Object(_) | Json::Array(_)) {
-        return protocol_error(&agent.conn, -32600, "Invalid request", Some(message));
+    let Some(message) = json::parse(line) else {
+        protocol_error(&agent.conn, -32700, "Parse error", None);
+        return false;
+    };
+    match message {
+        Json::Array(_) => return true,
+        Json::Object(_) if is_request(&message) || is_notification(&message) || is_response_shaped(&message) => dispatch_message(agent, message),
+        other => protocol_error(&agent.conn, -32600, "Invalid request", Some(other)),
     }
-    let envelope = get_str(&message, "jsonrpc") == Some("2.0");
-    let valid_id = |id: Option<&Json>| matches!(id, Some(Json::Null | Json::String(_))) || matches!(id, Some(Json::Number(n)) if n.is_finite());
-    let has_method = get(&message, "method").is_some();
-    let method = get_str(&message, "method").map(String::from);
-    let request = envelope && method.is_some() && valid_id(get(&message, "id"));
-    let notification = envelope && method.is_some() && get(&message, "id").is_none();
-    let response_shaped = matches!(message, Json::Object(_)) && !has_method && ["id", "result", "error"].iter().any(|k| get(&message, k).is_some());
-    if !request && !notification && !response_shaped {
-        return protocol_error(&agent.conn, -32600, "Invalid request", Some(message));
-    }
-    let Some(method) = method.filter(|_| has_method) else {
+    false
+}
+
+/// One request, notification or answer.
+fn dispatch_message(agent: &Arc<Agent>, message: Json) {
+    let Some(method) = get_str(&message, "method").map(String::from) else {
         if get(&message, "id").is_some() {
             agent.conn.answered(&message);
         }
@@ -1349,19 +1371,20 @@ fn dispatch(agent: &Arc<Agent>, line: &str) {
     let params = get(&message, "params").cloned().unwrap_or_else(json::object);
     let id = get(&message, "id").cloned();
     if id.is_none() {
-        match method.as_str() {
+        let cancel = match method.as_str() {
             "$/cancel_request" => {
                 let target = get(&params, "requestId").map(json::text);
                 if let Some(cancel) = target.and_then(|t| agent.conn.incoming.lock().unwrap().get(&t).cloned()) {
                     let _ = cancel.send(true);
                 }
+                None
             }
-            "session/cancel" => {
-                let agent = agent.clone();
-                let session = get_str(&params, "sessionId").unwrap_or("").to_owned();
-                tokio::spawn(async move { agent.cancel(&session).await });
-            }
-            _ => {}
+            "session/cancel" => Some(get_str(&params, "sessionId").unwrap_or("").to_owned()),
+            _ => None,
+        };
+        if let Some(session) = cancel {
+            let agent = agent.clone();
+            tokio::spawn(async move { agent.cancel(&session).await });
         }
         return;
     }
@@ -1373,11 +1396,10 @@ fn dispatch(agent: &Arc<Agent>, line: &str) {
     tokio::spawn(async move {
         let (reply, after) = agent.request(&method, &params, cancelled).await;
         let succeeded = reply.is_ok();
-        agent.conn.respond(&id, reply);
+        agent.conn.send(&response_json(&id, reply));
         agent.conn.incoming.lock().unwrap().remove(&key);
-        match after {
-            Some(After::Activate(attached, catalog)) if succeeded => agent.activate(&attached, catalog).await,
-            _ => {}
+        if let (Some(After::Activate(attached, catalog)), true) = (after, succeeded) {
+            agent.activate(&attached, catalog).await;
         }
     });
 }

@@ -1,0 +1,61 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n[{\"jsonrpc\":\"2.0\",\"id\":\"batched\",\"method\":\"authenticate\",\"params\":{\"methodId\":\"opencode-login\"}}]\n{\"jsonrpc\":\"2.0\",\"id\":\"after\",\"method\":\"authenticate\",\"params\":{\"methodId\":\"opencode-login\"}}\n",
+        "stdout": {
+          "json": {
+            "id": 1,
+            "jsonrpc": "2.0",
+            "result": {
+              "agentCapabilities": {
+                "_meta": {
+                  "opencode/child-session-updates": true
+                },
+                "loadSession": true,
+                "mcpCapabilities": {
+                  "http": true,
+                  "sse": false
+                },
+                "promptCapabilities": {
+                  "embeddedContext": true,
+                  "image": true
+                },
+                "sessionCapabilities": {
+                  "additionalDirectories": {},
+                  "close": {},
+                  "delete": {},
+                  "fork": {},
+                  "list": {},
+                  "resume": {}
+                }
+              },
+              "agentInfo": {
+                "name": "OpenCode",
+                "version": "conformance"
+              },
+              "authMethods": [
+                {
+                  "description": "Run `opencode auth login` in the terminal",
+                  "id": "opencode-login",
+                  "name": "Login with opencode"
+                }
+              ],
+              "protocolVersion": 1
+            }
+          }
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

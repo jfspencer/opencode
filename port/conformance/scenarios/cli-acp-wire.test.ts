@@ -32,3 +32,14 @@ cliScenario("acp framing of incoming messages", {}, async (ctx) => {
   agent.end()
   await agent.exited(30_000)
 })
+
+// ACP connections refuse JSON-RPC batches (`allowBatches: false`): a batch closes the connection, and the agent
+// exits as at the end of its input, without answering it or anything after it.
+cliScenario("acp JSON-RPC batches close the connection", {}, async (ctx) => {
+  const agent = ctx.start(["acp"])
+  const client = acp(agent)
+  await initialize(client)
+  const authenticate = (id: string) => ({ jsonrpc: "2.0", id, method: "authenticate", params: { methodId: "opencode-login" } })
+  agent.write(JSON.stringify([authenticate("batched")]) + "\n" + JSON.stringify(authenticate("after")) + "\n")
+  await agent.exited(30_000)
+})
