@@ -234,6 +234,11 @@ pub fn frame_id() -> u64 {
     with(|s| s.frame_id).unwrap_or(0)
 }
 
+/// Whether a frame is being prepared or painted (the scene's active attempt).
+pub fn rendering() -> bool {
+    with(|s| s.rendering).unwrap_or(false)
+}
+
 /// `keyInput.on("keypress", handler)`: global handlers run before the focused node, in registration order.
 pub fn on_key(handler: impl Fn(&mut KeyEvent) + 'static) -> u64 {
     with(|s| {
@@ -842,6 +847,7 @@ fn mouse_event(kind: MouseEventType, raw: &RawMouse, target: Option<Element>) ->
         is_dragging: false,
         propagation_stopped: false,
         default_prevented: false,
+        scroll_taker: None,
     }
 }
 
