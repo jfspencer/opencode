@@ -2,11 +2,14 @@
 //! the steps of the native Context calls behind them (`context.zig`: `editCommand`, `editorSelect`, ...;
 //! `context-editor-abi.zig`: positions, lines, measuring).
 //!
-//! Edit events reach TS listeners in microtasks after the call; here they queue on the buffer until
-//! [`EditBuffer::take_events`] (`"cursor-changed"`, `"content-changed"`, `"cursorChanged"`).
+//! Edit events reach TS listeners in microtasks after the call; here they queue on the buffer
+//! (`"cursor-changed"`, `"content-changed"`, `"cursorChanged"`) until the host delivers them with
+//! [`EditBuffer::dispatch_events`] where TS would run microtasks, which also runs an installed extmarks
+//! controller's content-changed listener; [`EditBuffer::take_events`] only drains them.
 
 use crate::edit_buffer::{measure_edit_text, Cursor, EditBufferCore, EditEvent, EditListener};
 use crate::editor_view::{EditorViewCore, VisualCursor};
+use crate::extmarks::{wrapped, ExtmarksState, SharedExtmarks};
 use crate::iterators;
 use crate::syntax_style::{StyleDefinition, SyntaxStyle};
 use crate::text::{
@@ -46,6 +49,9 @@ pub(crate) struct EditShared {
     input_mem_id: Option<u8>,
     views: Vec<Option<Box<EditorViewCore>>>,
     style: Option<SyntaxStyle>,
+    extmarks: Option<SharedExtmarks>,
+    /// Queued events from before the controller's install, which its listener does not see.
+    extmarks_from: usize,
 }
 
 /// Every editor view of a buffer as its cursor listeners.
@@ -79,7 +85,7 @@ impl EditBuffer {
     /// `EditBuffer.create(widthMethod, owner)`.
     pub fn create(width_method: WidthMethod, ctx: &TextContext) -> EditBuffer {
         let eb = EditBufferCore::new(width_method, ctx.links.clone());
-        EditBuffer { shared: Rc::new(RefCell::new(EditShared { eb, input_mem_id: None, views: Vec::new(), style: None })) }
+        EditBuffer { shared: Rc::new(RefCell::new(EditShared { eb, input_mem_id: None, views: Vec::new(), style: None, extmarks: None, extmarks_from: 0 })) }
     }
 
     pub fn ptr_eq(&self, other: &EditBuffer) -> bool {
@@ -105,7 +111,7 @@ impl EditBuffer {
     }
 
     /// `setText`: replaces the text and clears the history.
-    pub fn set_text(&self, text: &str) -> Result<(), TextError> {
+    pub(crate) fn raw_set_text(&self, text: &str) -> Result<(), TextError> {
         self.set_native_text(text, false)
     }
 
@@ -114,7 +120,7 @@ impl EditBuffer {
     }
 
     /// `replaceText`: replaces the text as an undo step.
-    pub fn replace_text(&self, text: &str) -> Result<(), TextError> {
+    pub(crate) fn raw_replace_text(&self, text: &str) -> Result<(), TextError> {
         self.set_native_text(text, true)
     }
 
@@ -145,26 +151,26 @@ impl EditBuffer {
         decode_text(self.shared.borrow().eb.tb.plain_text())
     }
 
-    pub fn insert_char(&self, text: &str) -> Result<(), TextError> {
-        self.insert_text(text)
+    pub(crate) fn raw_insert_char(&self, text: &str) -> Result<(), TextError> {
+        self.raw_insert_text(text)
     }
 
-    pub fn insert_text(&self, text: &str) -> Result<(), TextError> {
+    pub(crate) fn raw_insert_text(&self, text: &str) -> Result<(), TextError> {
         self.with(|eb, l| {
             validate_text_bytes(eb.tb.tab_width, text.len(), eb.tb.byte_size())?;
             eb.insert_text(text.as_bytes(), l)
         })
     }
 
-    pub fn delete_char(&self) -> Result<(), TextError> {
+    pub(crate) fn raw_delete_char(&self) -> Result<(), TextError> {
         self.with(|eb, l| eb.delete_forward(l))
     }
 
-    pub fn delete_char_backward(&self) -> Result<(), TextError> {
+    pub(crate) fn raw_delete_char_backward(&self) -> Result<(), TextError> {
         self.with(|eb, l| eb.backspace(l))
     }
 
-    pub fn delete_range(&self, start_line: u32, start_col: u32, end_line: u32, end_col: u32) -> Result<(), TextError> {
+    pub(crate) fn raw_delete_range(&self, start_line: u32, start_col: u32, end_line: u32, end_col: u32) -> Result<(), TextError> {
         self.with(|eb, l| {
             eb.delete_range(
                 Cursor { row: start_line, col: start_col, ..Cursor::default() },
@@ -174,22 +180,22 @@ impl EditBuffer {
         })
     }
 
-    pub fn new_line(&self) -> Result<(), TextError> {
+    pub(crate) fn raw_new_line(&self) -> Result<(), TextError> {
         self.with(|eb, l| {
             validate_text_bytes(eb.tb.tab_width, 1, eb.tb.byte_size())?;
             eb.insert_text(b"\n", l)
         })
     }
 
-    pub fn delete_line(&self) -> Result<(), TextError> {
+    pub(crate) fn raw_delete_line(&self) -> Result<(), TextError> {
         self.with(|eb, l| eb.delete_line(l))
     }
 
-    pub fn move_cursor_left(&self) {
+    pub(crate) fn raw_move_cursor_left(&self) {
         self.with(|eb, l| eb.move_left(l))
     }
 
-    pub fn move_cursor_right(&self) {
+    pub(crate) fn raw_move_cursor_right(&self) {
         self.with(|eb, l| eb.move_right(l))
     }
 
@@ -213,7 +219,7 @@ impl EditBuffer {
         self.set_cursor(line, col)
     }
 
-    pub fn set_cursor_by_offset(&self, offset: u32) {
+    pub(crate) fn raw_set_cursor_by_offset(&self, offset: u32) {
         self.with(|eb, l| eb.set_cursor_by_offset(offset, l))
     }
 
@@ -287,11 +293,11 @@ impl EditBuffer {
     }
 
     /// `undo`: the restored step's cursor metadata (`cursor:row:col:desired`), `None` with no history.
-    pub fn undo(&self) -> Option<String> {
+    pub(crate) fn raw_undo(&self) -> Option<String> {
         self.with(|eb, l| if eb.can_undo() { eb.undo(l) } else { None }).filter(|m| !m.is_empty())
     }
 
-    pub fn redo(&self) -> Option<String> {
+    pub(crate) fn raw_redo(&self) -> Option<String> {
         self.with(|eb, l| if eb.can_redo() { eb.redo(l) } else { None }).filter(|m| !m.is_empty())
     }
 
@@ -366,8 +372,149 @@ impl EditBuffer {
     }
 
     /// `clear`: empties the text (keeping history and highlights) and moves the cursor home.
-    pub fn clear(&self) {
+    pub(crate) fn raw_clear(&self) {
         self.with(|eb, l| eb.clear(l))
+    }
+
+    pub(crate) fn extmarks_state(&self) -> Option<SharedExtmarks> {
+        self.shared.borrow().extmarks.clone()
+    }
+
+    pub(crate) fn uninstall_extmarks(&self) {
+        self.shared.borrow_mut().extmarks = None;
+    }
+
+    pub(crate) fn view_has_selection(&self, index: usize) -> bool {
+        self.shared.borrow().views.get(index).and_then(|v| v.as_ref()).is_some_and(|v| v.tbv.selection_info().is_some())
+    }
+
+    /// Delivers the queued events, in order: `f` (the host's listeners) for each, then the extmarks controller's
+    /// content-changed listener when one was installed before the event was queued (TS listeners registered
+    /// after an event do not see it).
+    pub fn dispatch_events(&self, mut f: impl FnMut(EditEvent)) {
+        let (events, from) = {
+            let mut s = self.shared.borrow_mut();
+            let from = std::mem::take(&mut s.extmarks_from);
+            (s.eb.take_events(), from)
+        };
+        for (i, event) in events.into_iter().enumerate() {
+            f(event);
+            if event == EditEvent::ContentChanged
+                && i >= from
+                && let Some(state) = self.extmarks_state()
+            {
+                let _ = crate::extmarks::update_highlights(&state, self);
+            }
+        }
+    }
+
+    /// `setText`: replaces the text and clears the history.
+    pub fn set_text(&self, text: &str) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::set_text(&x, self, text, false),
+            None => self.raw_set_text(text),
+        }
+    }
+
+    /// `replaceText`: replaces the text as an undo step.
+    pub fn replace_text(&self, text: &str) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::set_text(&x, self, text, true),
+            None => self.raw_replace_text(text),
+        }
+    }
+
+    pub fn insert_char(&self, text: &str) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::insert_text(&x, self, text),
+            None => self.raw_insert_char(text),
+        }
+    }
+
+    pub fn insert_text(&self, text: &str) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::insert_text(&x, self, text),
+            None => self.raw_insert_text(text),
+        }
+    }
+
+    pub fn delete_char(&self) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::delete_char(&x, self),
+            None => self.raw_delete_char(),
+        }
+    }
+
+    pub fn delete_char_backward(&self) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::delete_char_backward(&x, self),
+            None => self.raw_delete_char_backward(),
+        }
+    }
+
+    pub fn delete_range(&self, start_line: u32, start_col: u32, end_line: u32, end_col: u32) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::delete_range(&x, self, start_line, start_col, end_line, end_col),
+            None => self.raw_delete_range(start_line, start_col, end_line, end_col),
+        }
+    }
+
+    pub fn new_line(&self) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::new_line(&x, self),
+            None => self.raw_new_line(),
+        }
+    }
+
+    pub fn delete_line(&self) -> Result<(), TextError> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::delete_line(&x, self),
+            None => self.raw_delete_line(),
+        }
+    }
+
+    pub fn move_cursor_left(&self) {
+        match self.extmarks_state() {
+            Some(x) => wrapped::move_cursor_left(&x, self),
+            None => self.raw_move_cursor_left(),
+        }
+    }
+
+    pub fn move_cursor_right(&self) {
+        match self.extmarks_state() {
+            Some(x) => wrapped::move_cursor_right(&x, self),
+            None => self.raw_move_cursor_right(),
+        }
+    }
+
+    pub fn set_cursor_by_offset(&self, offset: u32) {
+        match self.extmarks_state() {
+            Some(x) => wrapped::set_cursor_by_offset(&x, self, offset),
+            None => self.raw_set_cursor_by_offset(offset),
+        }
+    }
+
+    /// `undo`: the restored step's cursor metadata (`cursor:row:col:desired`), `None` with no history.
+    pub fn undo(&self) -> Option<String> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::undo(&x, self, false),
+            None => self.raw_undo(),
+        }
+    }
+
+    pub fn redo(&self) -> Option<String> {
+        match self.extmarks_state() {
+            Some(x) => wrapped::undo(&x, self, true),
+            None => self.raw_redo(),
+        }
+    }
+
+    /// `clear`: empties the text (keeping history and highlights) and moves the cursor home.
+    pub fn clear(&self) {
+        match self.extmarks_state() {
+            Some(x) => wrapped::clear(&x, self),
+            None => self.raw_clear(),
+        }
     }
 
     /// The events queued since the last call, in order.
@@ -397,7 +544,13 @@ pub struct EditorView {
 impl Drop for EditorView {
     fn drop(&mut self) {
         if let Ok(mut s) = self.shared.try_borrow_mut() {
-            s.views[self.index] = None;
+            // Destroying the view destroys its controller.
+            if let Some(state) = s.views[self.index].take().and_then(|v| v.extmarks) {
+                if s.extmarks.as_ref().is_some_and(|x| Rc::ptr_eq(x, &state)) {
+                    s.extmarks = None;
+                }
+                state.borrow_mut().clear_destroyed();
+            }
         }
     }
 }
@@ -682,27 +835,27 @@ impl EditorView {
         self.position(|v, eb| v.visual_cursor(eb))
     }
 
-    pub fn move_up_visual(&self) {
+    pub(crate) fn raw_move_up_visual(&self) {
         self.with(|v, eb, _| {
             Self::prepare(v, eb);
             v.move_up_visual(eb);
         })
     }
 
-    pub fn move_down_visual(&self) {
+    pub(crate) fn raw_move_down_visual(&self) {
         self.with(|v, eb, _| {
             Self::prepare(v, eb);
             v.move_down_visual(eb);
         })
     }
 
-    pub fn delete_selected_text(&self) -> Result<(), TextError> {
+    pub(crate) fn raw_delete_selected_text(&self) -> Result<(), TextError> {
         self.with(|v, eb, others| v.delete_selected_text(eb, others))
     }
 
     /// `_replaceSelectedText`: the selection (or the cursor position) replaced by `text`, as a deletion step and
     /// an insertion step.
-    pub fn replace_selected_text(&self, text: &str) -> Result<Replacement, TextError> {
+    pub(crate) fn raw_replace_selected_text(&self, text: &str) -> Result<Replacement, TextError> {
         self.with(|v, eb, others| {
             validate_text_bytes(eb.tb.tab_width, text.len(), eb.tb.byte_size())?;
             let steps = v.replace_selected_text(eb, text.as_bytes(), others)?;
@@ -710,8 +863,68 @@ impl EditorView {
         })
     }
 
-    pub fn set_cursor_by_offset(&self, offset: u32) {
+    pub(crate) fn raw_set_cursor_by_offset(&self, offset: u32) {
         self.with(|v, eb, others| v.set_cursor_by_offset(eb, offset, others))
+    }
+
+    /// The view's extmarks controller (`extmarks`), installed on the buffer on first use: from then on the
+    /// buffer's and this view's editing and motion methods run through it.
+    // TODO(port): TS chains a second view's controller over the first; there is one controller per buffer here.
+    pub fn extmarks(&self) -> crate::extmarks::Extmarks {
+        let buffer = self.buffer();
+        let state = {
+            let mut s = self.shared.borrow_mut();
+            let s = &mut *s;
+            let view = s.views[self.index].as_mut().expect("live view");
+            match &view.extmarks {
+                Some(state) => state.clone(),
+                None => {
+                    let state = Rc::new(RefCell::new(ExtmarksState::new(self.index)));
+                    if s.extmarks.is_none() {
+                        s.extmarks = Some(state.clone());
+                        s.extmarks_from = s.eb.events.len();
+                    }
+                    view.extmarks = Some(state.clone());
+                    state
+                }
+            }
+        };
+        crate::extmarks::Extmarks { state, buffer }
+    }
+
+    pub fn move_up_visual(&self) {
+        match self.buffer().extmarks_state() {
+            Some(x) => wrapped::move_vertical(&x, &self.buffer(), self, false),
+            None => self.raw_move_up_visual(),
+        }
+    }
+
+    pub fn move_down_visual(&self) {
+        match self.buffer().extmarks_state() {
+            Some(x) => wrapped::move_vertical(&x, &self.buffer(), self, true),
+            None => self.raw_move_down_visual(),
+        }
+    }
+
+    pub fn delete_selected_text(&self) -> Result<(), TextError> {
+        match self.buffer().extmarks_state() {
+            Some(x) => wrapped::delete_selected_text(&x, &self.buffer(), self),
+            None => self.raw_delete_selected_text(),
+        }
+    }
+
+    /// `_replaceSelectedText`: the selection (or the cursor position) replaced by `text`, as a deletion step and
+    /// an insertion step.
+    pub fn replace_selected_text(&self, text: &str) -> Result<Replacement, TextError> {
+        match self.buffer().extmarks_state() {
+            Some(x) => wrapped::replace_selected_text(&x, &self.buffer(), self, text),
+            None => self.raw_replace_selected_text(text),
+        }
+    }
+
+    /// `setCursorByOffset` of the view (not wrapped by extmarks).
+    pub fn set_cursor_by_offset(&self, offset: u32) {
+        self.raw_set_cursor_by_offset(offset)
     }
 
     pub fn get_next_word_boundary(&self) -> VisualCursor {

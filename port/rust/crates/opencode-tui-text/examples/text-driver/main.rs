@@ -499,12 +499,18 @@ fn run_case(case: &Value, out: &mut String) {
     let tb = TextBuffer::create(method, &ctx);
     let view = TextBufferView::create(&tb);
     let mut state = TextState { ctx, tb, view, style: SyntaxStyle::create() };
+    // OPENCODE_TUI_TEXT_TIME=1 prints each op's time (and output size) to stderr.
+    let timing = std::env::var_os("OPENCODE_TUI_TEXT_TIME").is_some();
     out.push('[');
     for (i, op) in case.get("ops").unwrap().arr().iter().enumerate() {
         if i > 0 {
             out.push(',');
         }
+        let (start, len) = (std::time::Instant::now(), out.len());
         text_op(&mut state, op.arr(), out);
+        if timing {
+            eprintln!("{} {:?} {}B", op.arr()[0].str(), start.elapsed(), out.len() - len);
+        }
     }
     out.push(']');
     let _ = &state.ctx;
