@@ -107,6 +107,7 @@ scenarios/agent-loop.test.ts › reasoning is echoed back on the next request
 scenarios/agent-loop.test.ts › reasoning-only reply
 scenarios/agent-loop.test.ts › refusal text
 scenarios/agent-loop.test.ts › reply without usage
+scenarios/agent-loop.test.ts › steps in a git project record the files they changed
 scenarios/agent-loop.test.ts › summary reasoning details beside reasoning text
 scenarios/agent-loop.test.ts › text and tool call in one step
 scenarios/agent-loop.test.ts › tool call streamed without indexes
@@ -185,6 +186,12 @@ scenarios/project-skills.test.ts › denied skills are hidden from the model
 scenarios/project-skills.test.ts › references on a location's first request
 scenarios/project-skills.test.ts › skill list changes between turns
 scenarios/project-skills.test.ts › skills from config directories and compatibility roots
+scenarios/project-snapshots.test.ts › revert a turn restores files from snapshots
+scenarios/project-snapshots.test.ts › revert restores non-ASCII paths one by one
+scenarios/project-snapshots.test.ts › snapshots in a session at a nested location
+scenarios/project-snapshots.test.ts › snapshots skip oversized untracked files and nested repositories
+scenarios/project-snapshots.test.ts › turn diffs and file lists from snapshots
+scenarios/project-snapshots.test.ts › turn diffs with quoted file names
 scenarios/project-vcs.test.ts › binary, empty and special file names in the diff
 scenarios/project-vcs.test.ts › branch listing with search and limit
 scenarios/project-vcs.test.ts › detached head and branch switches
@@ -256,7 +263,11 @@ scenarios/session-api-prompt.test.ts › steer a prompt into a busy session
 scenarios/session-api-prompt.test.ts › synthetic input
 scenarios/session-api-prompt.test.ts › wait on an idle and a busy session
 scenarios/session-api-revert.test.ts › diff a session without changes or without git
+scenarios/session-api-revert.test.ts › diff the files a turn changed
+scenarios/session-api-revert.test.ts › new input commits a staged revert
 scenarios/session-api-revert.test.ts › revert endpoints refuse a busy session
+scenarios/session-api-revert.test.ts › stage a revert without touching files
+scenarios/session-api-revert.test.ts › stage move clear and commit a revert
 scenarios/session-api-subagents.test.ts › a background subagent reports back to its parent
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
