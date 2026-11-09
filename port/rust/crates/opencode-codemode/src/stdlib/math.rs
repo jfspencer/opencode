@@ -6,6 +6,28 @@ use crate::interp::errors::type_error;
 use crate::interp::value::*;
 use crate::interp::{Ctx, R, boxed};
 
+// The C library's inverse hyperbolic functions, as JSC calls them (Rust's std computes these itself, and differs in
+// the last place).
+mod libm {
+    unsafe extern "C" {
+        pub fn asinh(x: f64) -> f64;
+        pub fn acosh(x: f64) -> f64;
+        pub fn atanh(x: f64) -> f64;
+    }
+}
+
+fn c_asinh(x: f64) -> f64 {
+    unsafe { libm::asinh(x) }
+}
+
+fn c_acosh(x: f64) -> f64 {
+    unsafe { libm::acosh(x) }
+}
+
+fn c_atanh(x: f64) -> f64 {
+    unsafe { libm::atanh(x) }
+}
+
 fn round(x: f64) -> f64 {
     if !x.is_finite() || x == 0.0 {
         return x;
@@ -42,11 +64,11 @@ fn unary(name: &str) -> fn(f64) -> f64 {
     match name {
         "abs" => f64::abs,
         "acos" => f64::acos,
-        "acosh" => f64::acosh,
+        "acosh" => c_acosh,
         "asin" => f64::asin,
-        "asinh" => |x| if x == 0.0 { x } else { x.asinh() },
+        "asinh" => c_asinh,
         "atan" => f64::atan,
-        "atanh" => f64::atanh,
+        "atanh" => c_atanh,
         "floor" => f64::floor,
         "ceil" => f64::ceil,
         "round" => round,

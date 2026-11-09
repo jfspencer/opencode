@@ -4,7 +4,7 @@
 use crate::interp::callback::apply_collection_callback;
 use crate::interp::coerce::{is_runtime_reference, to_string_plain};
 use crate::interp::cursor::{Cursor, HostIter, IterKind};
-use crate::interp::errors::{Fail, type_error};
+use crate::interp::errors::type_error;
 use crate::interp::native::{NativeOptions, prototype_from, receiver, requires_new};
 use crate::interp::object::{define, entries, get_data};
 use crate::interp::value::*;
@@ -18,59 +18,60 @@ pub struct HeaderList {
     list: Vec<(String, String)>,
 }
 
-fn is_token(name: &str) -> bool {
-    !name.is_empty()
-        && name.bytes().all(|b| b.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&b))
+fn is_token(name: &[u16]) -> bool {
+    !name.is_empty() && name.iter().all(|&u| u < 0x80 && ((u as u8).is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&(u as u8))))
 }
 
-fn normalize(value: &str) -> String {
-    value.trim_matches(|c| matches!(c, '\t' | '\n' | '\r' | ' ')).to_string()
+fn normalize(value: &[u16]) -> &[u16] {
+    let ws = |u: &u16| matches!(*u, 0x09 | 0x0A | 0x0D | 0x20);
+    let start = value.iter().position(|u| !ws(u)).unwrap_or(value.len());
+    let end = value.iter().rposition(|u| !ws(u)).map(|i| i + 1).unwrap_or(start);
+    &value[start..end.max(start)]
 }
 
-fn byte_string(text: &JsStr) -> Result<String, Fail> {
-    let mut out = String::new();
-    for &unit in text.units() {
-        if unit > 0xFF {
-            return Err(type_error(format!(
-                "Cannot convert argument to a ByteString because the character at index {} has a value of {} which is greater than 255.",
-                out.chars().count(),
-                unit
-            )));
-        }
-        out.push(char::from_u32(unit as u32).unwrap());
+fn latin1_string(units: &[u16]) -> String {
+    units.iter().map(|&u| char::from_u32(u as u32).unwrap_or('\u{fffd}')).collect()
+}
+
+fn message(parts: &[&[u16]]) -> crate::jsstr::JsStr {
+    let mut out = crate::jsstr::JsStrBuf::new();
+    for part in parts {
+        out.push_units(part);
     }
-    Ok(out)
+    out.finish()
 }
 
-fn check_name(name: &str) -> R<()> {
-    if !is_token(name) {
-        return Err(type_error(format!("Invalid header name: '{name}'")));
+fn check_name(name: &JsStr, has: bool) -> R<String> {
+    if !is_token(name.units()) {
+        let open: Vec<u16> = "Invalid header name: '".encode_utf16().collect();
+        // bun's own wording; `has` closes the quote with a double quote.
+        let close: Vec<u16> = if has { vec![b'"' as u16] } else { vec![b'\'' as u16] };
+        return Err(type_error(message(&[&open, name.units(), &close])));
     }
-    Ok(())
+    Ok(latin1_string(name.units()).to_ascii_lowercase())
 }
 
-fn check_value(value: &str) -> R<()> {
-    if value.chars().any(|c| matches!(c, '\0' | '\r' | '\n')) {
-        return Err(type_error(format!("Header '{value}' has invalid value")));
+fn check_value(name: &JsStr, value: &JsStr) -> R<String> {
+    let normalized = normalize(value.units());
+    if normalized.iter().any(|&u| matches!(u, 0 | 0x0A | 0x0D) || u > 0xFF) {
+        let a: Vec<u16> = "Header '".encode_utf16().collect();
+        let b: Vec<u16> = "' has invalid value: '".encode_utf16().collect();
+        let c: Vec<u16> = vec![b'\'' as u16];
+        return Err(type_error(message(&[&a, name.units(), &b, normalized, &c])));
     }
-    Ok(())
+    Ok(latin1_string(normalized))
 }
 
 impl HeaderList {
     pub fn append(&mut self, name: &JsStr, value: &JsStr) -> R<()> {
-        let name = byte_string(name)?;
-        let value = normalize(&byte_string(value)?);
-        check_name(&name)?;
-        check_value(&value)?;
-        self.list.push((name.to_ascii_lowercase(), value));
+        let lower = check_name(name, false)?;
+        let value = check_value(name, value)?;
+        self.list.push((lower, value));
         Ok(())
     }
     pub fn set(&mut self, name: &JsStr, value: &JsStr) -> R<()> {
-        let name = byte_string(name)?;
-        let value = normalize(&byte_string(value)?);
-        check_name(&name)?;
-        check_value(&value)?;
-        let lower = name.to_ascii_lowercase();
+        let lower = check_name(name, false)?;
+        let value = check_value(name, value)?;
         match self.list.iter().position(|(n, _)| *n == lower) {
             Some(first) => {
                 self.list[first].1 = value;
@@ -86,23 +87,17 @@ impl HeaderList {
         Ok(())
     }
     pub fn delete(&mut self, name: &JsStr) -> R<()> {
-        let name = byte_string(name)?;
-        check_name(&name)?;
-        let lower = name.to_ascii_lowercase();
+        let lower = check_name(name, false)?;
         self.list.retain(|(n, _)| *n != lower);
         Ok(())
     }
     pub fn get(&self, name: &JsStr) -> R<Option<String>> {
-        let name = byte_string(name)?;
-        check_name(&name)?;
-        let lower = name.to_ascii_lowercase();
+        let lower = check_name(name, false)?;
         let values: Vec<&str> = self.list.iter().filter(|(n, _)| *n == lower).map(|(_, v)| v.as_str()).collect();
         Ok(if values.is_empty() { None } else { Some(values.join(", ")) })
     }
     pub fn has(&self, name: &JsStr) -> R<bool> {
-        let name = byte_string(name)?;
-        check_name(&name)?;
-        let lower = name.to_ascii_lowercase();
+        let lower = check_name(name, true)?;
         Ok(self.list.iter().any(|(n, _)| *n == lower))
     }
     pub fn set_cookies(&self) -> Vec<String> {

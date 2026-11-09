@@ -24,6 +24,10 @@ pub fn to_string_plain(value: &Value) -> JsStr {
 }
 
 pub fn obj_to_string(obj: &Obj) -> JsStr {
+    stacker::maybe_grow(64 * 1024, 1024 * 1024, || obj_to_string_inner(obj))
+}
+
+fn obj_to_string_inner(obj: &Obj) -> JsStr {
     match obj.kind() {
         Kind::Array(data) => {
             let mut buf = JsStrBuf::new();

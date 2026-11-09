@@ -295,18 +295,37 @@ async fn load_set_record(ctx: &Ctx, source: &Value, name: &str) -> R<SetRecord> 
     Ok(SetRecord::Like { source: obj.clone(), size: size.trunc().max(0.0), has, keys })
 }
 
+/// Visits a Set's values live, as a host `for (const item of set.values())` does: deleted values are skipped and
+/// added ones visited.
+async fn for_each_live<F, Fut2>(set: &Obj, mut visit: F) -> R<bool>
+where
+    F: FnMut(Value) -> Fut2,
+    Fut2: std::future::Future<Output = R<bool>>,
+{
+    let mut position = 0;
+    loop {
+        let next = set_of(set).borrow().value_from(position);
+        let Some((after, item)) = next else { return Ok(true) };
+        position = after;
+        if !visit(item).await? {
+            return Ok(false);
+        }
+    }
+}
+
 async fn set_operation(ctx: &Ctx, target: Obj, name: &str, source: Value) -> R<Value> {
     let other = load_set_record(ctx, &source, name).await?;
     let new_set = || ctx.new_object(Some(ctx.builtins.set.clone()), Kind::Set(Default::default()));
     let copy = || {
         let result = new_set();
-        for item in set_of(&target).borrow().values() {
+        let items = set_of(&target).borrow().values();
+        for item in items {
             set_of(&result).borrow_mut().add(item);
         }
         result
     };
     let size = set_of(&target).borrow().len() as f64;
-    let values = || set_of(&target).borrow().values();
+    let other = &other;
     match name {
         "union" => {
             let result = copy();
@@ -318,11 +337,16 @@ async fn set_operation(ctx: &Ctx, target: Obj, name: &str, source: Value) -> R<V
         "intersection" => {
             let result = new_set();
             if size <= other.size() {
-                for item in values() {
-                    if other.has(ctx, &item).await? {
-                        set_of(&result).borrow_mut().add(item);
+                for_each_live(&target, |item| {
+                    let result = result.clone();
+                    async move {
+                        if other.has(ctx, &item).await? {
+                            set_of(&result).borrow_mut().add(item);
+                        }
+                        Ok(true)
                     }
-                }
+                })
+                .await?;
                 return Ok(Value::Obj(result));
             }
             for item in other.keys(ctx).await? {
@@ -335,11 +359,17 @@ async fn set_operation(ctx: &Ctx, target: Obj, name: &str, source: Value) -> R<V
         "difference" => {
             let result = copy();
             if size <= other.size() {
-                for item in set_of(&result).borrow().values() {
-                    if other.has(ctx, &item).await? {
-                        set_of(&result).borrow_mut().delete(&item);
+                let live = result.clone();
+                for_each_live(&live, |item| {
+                    let result = result.clone();
+                    async move {
+                        if other.has(ctx, &item).await? {
+                            set_of(&result).borrow_mut().delete(&item);
+                        }
+                        Ok(true)
                     }
-                }
+                })
+                .await?;
                 return Ok(Value::Obj(result));
             }
             for item in other.keys(ctx).await? {
@@ -362,12 +392,8 @@ async fn set_operation(ctx: &Ctx, target: Obj, name: &str, source: Value) -> R<V
             if size > other.size() {
                 return Ok(Value::Bool(false));
             }
-            for item in values() {
-                if !other.has(ctx, &item).await? {
-                    return Ok(Value::Bool(false));
-                }
-            }
-            Ok(Value::Bool(true))
+            let all = for_each_live(&target, |item| async move { other.has(ctx, &item).await }).await?;
+            Ok(Value::Bool(all))
         }
         "isSupersetOf" => {
             if size < other.size() {
@@ -382,12 +408,8 @@ async fn set_operation(ctx: &Ctx, target: Obj, name: &str, source: Value) -> R<V
         }
         _ => {
             if size <= other.size() {
-                for item in values() {
-                    if other.has(ctx, &item).await? {
-                        return Ok(Value::Bool(false));
-                    }
-                }
-                return Ok(Value::Bool(true));
+                let none = for_each_live(&target, |item| async move { Ok(!other.has(ctx, &item).await?) }).await?;
+                return Ok(Value::Bool(none));
             }
             for item in other.keys(ctx).await? {
                 if set_of(&target).borrow().has(&item) {

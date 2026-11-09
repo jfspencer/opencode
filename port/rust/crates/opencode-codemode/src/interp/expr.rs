@@ -1148,16 +1148,25 @@ pub fn dispatch(
                 // A loop made only of built-in calls has no other step to count, so count the call.
                 let slice = ctx.runner.tick();
                 if !slice {
+                    ctx.runner.check_native_depth().map_err(|e| e.at(site))?;
                     let result = call(&ctx, this, args, site);
                     return Ok(match result {
                         Err(error) => return Err(error.at(site)),
                         Ok(NOut::Val(value)) => boxed(async move { Ok(value) }),
-                        Ok(NOut::Work(work)) => boxed(async move { work.await.map_err(|e| e.at(site)) }),
+                        Ok(NOut::Work(work)) => {
+                            let work = crate::interp::runner::native_work(&ctx, work);
+                            boxed(async move { work.await.map_err(|e| e.at(site)) })
+                        }
                     });
                 }
                 Ok(boxed(async move {
                     crate::interp::runner::slice(&ctx).await;
-                    native_result(call(&ctx, this, args, site), site).await
+                    ctx.runner.check_native_depth().map_err(|e| e.at(site))?;
+                    match call(&ctx, this, args, site) {
+                        Err(error) => Err(error.at(site)),
+                        Ok(NOut::Val(value)) => Ok(value),
+                        Ok(NOut::Work(work)) => crate::interp::runner::native_work(&ctx, work).await.map_err(|e| e.at(site)),
+                    }
                 }))
             }
             None => Err(not_a_function(callee, callee_loc)),

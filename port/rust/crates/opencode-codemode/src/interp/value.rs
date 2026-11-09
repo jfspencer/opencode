@@ -680,7 +680,7 @@ impl Registry {
             if let Some(inner) = weak.upgrade() {
                 let props = std::mem::take(&mut *inner.props.borrow_mut());
                 let proto = inner.proto.borrow_mut().take();
-                let state = clear_kind(&inner.kind);
+                let state = clear_kind(&inner.kind, true);
                 drop((props, proto, state));
             }
         }
@@ -688,10 +688,10 @@ impl Registry {
 }
 
 /// Takes out whatever values a kind holds, so dropping them breaks cycles.
-fn clear_kind(kind: &Kind) -> Box<dyn std::any::Any> {
+fn clear_kind(kind: &Kind, deep: bool) -> Box<dyn std::any::Any> {
     match kind {
         Kind::Array(data) => Box::new(std::mem::take(&mut *data.items.borrow_mut())),
-        Kind::Error(host) => Box::new(host.borrow_mut().take().map(|_| ())),
+        Kind::Error(host) => Box::new(host.borrow_mut().take()),
         Kind::Function(Callable::Program(program)) => Box::new(std::mem::take(&mut *program.captured.borrow_mut())),
         Kind::Function(Callable::Native(native)) => {
             let call = std::mem::replace(&mut *native.call.borrow_mut(), Rc::new(|_, _, _, _| Ok(NOut::Val(Value::Undefined))));
@@ -699,23 +699,54 @@ fn clear_kind(kind: &Kind) -> Box<dyn std::any::Any> {
             Box::new((call, construct))
         }
         Kind::Promise(data) => {
-            let result = data.result.borrow_mut().take().map(|_| ());
+            let result = data.result.borrow_mut().take();
             let reactions = std::mem::take(&mut *data.reactions.borrow_mut());
             Box::new((result, reactions))
         }
         Kind::Generator(data) => {
             let body = data.body.borrow_mut().take();
             let queue = std::mem::take(&mut *data.queue.borrow_mut());
-            Box::new((body.map(|_| ()), queue))
+            Box::new((body, queue))
         }
         Kind::Iterator(cursor) => {
-            cursor.clear();
+            if deep {
+                cursor.clear();
+            }
             Box::new(())
         }
         Kind::Map(map) => Box::new(std::mem::take(&mut *map.borrow_mut())),
         Kind::Set(set) => Box::new(std::mem::take(&mut *set.borrow_mut())),
         Kind::WeakMap(table) | Kind::WeakSet(table) => Box::new(std::mem::take(&mut *table.borrow_mut())),
         _ => Box::new(()),
+    }
+}
+
+thread_local! {
+    /// Contents of dropped objects waiting to be dropped in turn, so freeing a deeply nested value never recurses.
+    static DROPS: RefCell<Vec<Box<dyn std::any::Any>>> = const { RefCell::new(Vec::new()) };
+    static DRAINING: Cell<bool> = const { Cell::new(false) };
+}
+
+impl Drop for ObjInner {
+    fn drop(&mut self) {
+        let props = std::mem::take(self.props.get_mut());
+        let proto = self.proto.get_mut().take();
+        let state = clear_kind(&self.kind, false);
+        if props.is_empty() && proto.is_none() && state.is::<()>() {
+            return;
+        }
+        let _ = DROPS.try_with(|drops| drops.borrow_mut().push(Box::new((props, proto, state))));
+        if DRAINING.try_with(|draining| draining.replace(true)).unwrap_or(true) {
+            return;
+        }
+        loop {
+            let next = DROPS.try_with(|drops| drops.borrow_mut().pop()).ok().flatten();
+            match next {
+                Some(item) => drop(item),
+                None => break,
+            }
+        }
+        let _ = DRAINING.try_with(|draining| draining.set(false));
     }
 }
 

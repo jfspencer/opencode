@@ -233,7 +233,7 @@ fn types_of(schema: &JsonObj) -> Vec<String> {
 fn jsdoc(schema: &JsonObj, pad: &str) -> String {
     let mut content = doc_lines(schema, pad.len());
     let types = types_of(schema);
-    let mut append = |label: &str, child: &JsonObj, content: &mut Vec<String>| {
+    let append = |label: &str, child: &JsonObj, content: &mut Vec<String>| {
         for (index, line) in doc_lines(child, pad.len() + label.len() + 2).into_iter().enumerate() {
             if index == 0 {
                 content.push(format!("{label}: {line}"));

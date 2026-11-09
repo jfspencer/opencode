@@ -176,7 +176,14 @@ fn main() {
                     Ok(Json::Obj(case)) => case,
                     _ => continue,
                 };
-                let result = runtime.block_on(run_case(&case));
+                let name = case.get("name").cloned().unwrap_or(Json::Null);
+                let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| runtime.block_on(run_case(&case))))
+                    .unwrap_or_else(|_| {
+                        let mut line = JsonObj::new();
+                        line.insert_str("name", name);
+                        line.insert_str("panic", Json::Bool(true));
+                        Json::Obj(line)
+                    });
                 use std::io::Write;
                 let text: JsStr = result.to_js_string();
                 writeln!(out, "{}", text.to_rust_lossy()).unwrap();

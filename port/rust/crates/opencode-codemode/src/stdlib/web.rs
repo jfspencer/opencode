@@ -31,7 +31,22 @@ pub fn base64_global(ctx: &Ctx, name: &'static str) -> Value {
     }))
 }
 
+/// How deep structuredClone recurses before JavaScriptCore's stack gives out (about 10,000 levels).
+const MAX_CLONE_DEPTH: usize = 10_000;
+
 fn clone(ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>) -> R<Value> {
+    clone_at(ctx, value, memo, 0)
+}
+
+fn clone_at(ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>, depth: usize) -> R<Value> {
+    if depth > MAX_CLONE_DEPTH {
+        return Err(crate::interp::runner::host_stack_overflow());
+    }
+    stacker::maybe_grow(64 * 1024, 1024 * 1024, || clone_inner(ctx, value, memo, depth))
+}
+
+fn clone_inner(ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>, depth: usize) -> R<Value> {
+    let clone = |ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>| clone_at(ctx, value, memo, depth + 1);
     let cannot = |value: &Value| type_error(format!("DataCloneError: {} could not be cloned.", describe_value(value)));
     let obj = match value {
         Value::Sym(_) | Value::Tool(_) => return Err(cannot(value)),
@@ -46,7 +61,8 @@ fn clone(ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>) -> R<Value> {
         Kind::Map(map) => {
             let copy = ctx.new_object(Some(builtins.map.clone()), Kind::Map(Default::default()));
             memo.push((obj.addr(), copy.clone()));
-            for (key, item) in map.borrow().entries() {
+            let pairs = map.borrow().entries();
+            for (key, item) in pairs {
                 let (key, item) = (clone(ctx, &key, memo)?, clone(ctx, &item, memo)?);
                 if let Kind::Map(target) = copy.kind() {
                     target.borrow_mut().set(key, item);
@@ -57,7 +73,8 @@ fn clone(ctx: &Ctx, value: &Value, memo: &mut Vec<(usize, Obj)>) -> R<Value> {
         Kind::Set(set) => {
             let copy = ctx.new_object(Some(builtins.set.clone()), Kind::Set(Default::default()));
             memo.push((obj.addr(), copy.clone()));
-            for item in set.borrow().values() {
+            let items = set.borrow().values();
+            for item in items {
                 let item = clone(ctx, &item, memo)?;
                 if let Kind::Set(target) = copy.kind() {
                     target.borrow_mut().add(item);

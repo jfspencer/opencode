@@ -234,7 +234,13 @@ fn parse_failure(message: &str, line: u32, column: u32) -> Diagnostic {
 /// acorn's parse plus the export check (parseProgram).
 pub fn parse_program(code: &str) -> Result<crate::parser::ast::Program, Diagnostic> {
     let units: Vec<u16> = code.encode_utf16().collect();
-    let program = crate::parser::parse(&units).map_err(|error| parse_failure(&error.message, error.loc.line, error.loc.column))?;
+    let program = crate::parser::parse(&units).map_err(|error| {
+        // acorn exhausting the JS stack is a RangeError, not a SyntaxError: it fails the execution as a defect.
+        if error.message == crate::parser::STACK_OVERFLOW_MESSAGE {
+            return Diagnostic::new(DiagnosticKind::ExecutionFailure, "Execution exceeded the maximum nesting depth.");
+        }
+        parse_failure(&error.message, error.loc.line, error.loc.column)
+    })?;
     use crate::parser::ast::Stmt;
     if let Some(exported) =
         program.body.iter().find(|s| matches!(s, Stmt::ExportNamed(_) | Stmt::ExportDefault(_) | Stmt::ExportAll(_)))

@@ -320,11 +320,16 @@ pub fn array_global(ctx: &Ctx) -> Value {
         Ok(Value::Obj(ctx.new_array_holes(joined)))
     });
     ctx.method(&proto, "flat", 0, |ctx, this, args, _| {
-        fn flatten(items: Vec<Option<Value>>, depth: f64, out: &mut Vec<Value>) -> R<()> {
+        // JavaScriptCore's stack gives out at about 12,000 nested arrays.
+        fn flatten(items: Vec<Option<Value>>, depth: f64, out: &mut Vec<Value>, level: usize) -> R<()> {
+            if level > 12_000 {
+                return Err(crate::interp::runner::host_stack_overflow());
+            }
             for item in items.into_iter().flatten() {
                 match &item {
                     Value::Obj(obj) if obj.is_array() && depth > 0.0 => {
-                        flatten(obj.array().unwrap().snapshot(), depth - 1.0, out)?
+                        let inner = obj.array().unwrap().snapshot();
+                        stacker::maybe_grow(64 * 1024, 1024 * 1024, || flatten(inner, depth - 1.0, out, level + 1))?
                     }
                     _ => out.push(item),
                 }
@@ -335,7 +340,7 @@ pub fn array_global(ctx: &Ctx) -> Value {
         let target = self_array(&this, "flat")?;
         let depth = opt_number(&arg(&args, 0)).unwrap_or(1.0);
         let mut out = Vec::new();
-        flatten(target.array().unwrap().snapshot(), depth, &mut out)?;
+        flatten(target.array().unwrap().snapshot(), depth, &mut out, 0)?;
         Ok(Value::Obj(ctx.new_array(out)))
     });
     ctx.method(&proto, "reverse", 0, |_, this, _, _| {
@@ -361,9 +366,13 @@ pub fn array_global(ctx: &Ctx) -> Value {
             let holes = items.iter().filter(|item| item.is_none()).count();
             let count = length - holes;
             let sorted = sort_array(&ctx, items, arg(&args, 0), "Array.sort").await?;
-            let mut written: Vec<Option<Value>> = sorted.into_iter().take(count).map(Some).collect();
-            written.resize(length, None);
-            data.replace(written);
+            // Written back by index over the live array, as TS does: a comparator's own changes past them stay.
+            for (index, item) in sorted.into_iter().take(count).enumerate() {
+                data.set(index, item);
+            }
+            for index in count..count + holes {
+                data.delete(index);
+            }
             Ok(Value::Obj(target))
         })))
     });

@@ -195,6 +195,7 @@ pub struct Runner {
     signal: RefCell<Option<Signal>>,
     resume: RefCell<Option<Input>>,
     depth: Cell<usize>,
+    native_depth: Cell<usize>,
     stopping: Cell<bool>,
     waker: RefCell<Option<Waker>>,
     /// The intrinsic `Promise.prototype.then`.
@@ -217,6 +218,7 @@ impl Default for Runner {
             signal: Default::default(),
             resume: Default::default(),
             depth: Cell::new(0),
+            native_depth: Cell::new(0),
             stopping: Cell::new(false),
             waker: Default::default(),
             intrinsic_then: Default::default(),
@@ -526,7 +528,7 @@ impl Runner {
                 Poll::Ready(completion) => {
                     match &task.boundary {
                         Some(boundary) => {
-                            boundary.finish(ctx, completion);
+                            let _ = boundary.finish(ctx, completion);
                         }
                         None => {
                             completion?;
@@ -664,15 +666,59 @@ pub struct Activation {
 impl Future for Activation {
     type Output = R<Value>;
     fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<R<Value>> {
-        let runner = &self.ctx.runner as *const Runner;
-        // SAFETY: the runner lives in the context this activation holds.
-        let runner = unsafe { &*runner };
+        let ctx = self.ctx.clone();
+        let runner = &ctx.runner;
         runner.depth.set(runner.depth.get() + 1);
+        // Built-ins nest on the host stack only within one activation; a program call starts afresh.
+        let natives = runner.native_depth.replace(0);
         let fut = &mut self.fut;
         let result = stacker::maybe_grow(256 * 1024, 4 * 1024 * 1024, || fut.as_mut().poll(cx));
+        runner.native_depth.set(natives);
         runner.depth.set(runner.depth.get() - 1);
         result
     }
+}
+
+/// How deep built-ins may nest within one activation before the host stack would overflow in TS (JavaScriptCore
+/// gives up at about 3,000 levels of `toString` calling `toString`).
+pub const MAX_NATIVE_DEPTH: usize = 3_000;
+
+/// A built-in's work, counted as one level of host nesting while it is polled.
+pub struct NativeWork {
+    ctx: Ctx,
+    fut: Fut<R<Value>>,
+}
+
+impl Future for NativeWork {
+    type Output = R<Value>;
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<R<Value>> {
+        let ctx = self.ctx.clone();
+        let runner = &ctx.runner;
+        runner.native_depth.set(runner.native_depth.get() + 1);
+        let fut = &mut self.fut;
+        let result = stacker::maybe_grow(256 * 1024, 4 * 1024 * 1024, || fut.as_mut().poll(cx));
+        runner.native_depth.set(runner.native_depth.get() - 1);
+        result
+    }
+}
+
+impl Runner {
+    /// The host stack overflow TS reaches when built-ins nest too deeply.
+    pub fn check_native_depth(&self) -> R<()> {
+        if self.native_depth.get() >= MAX_NATIVE_DEPTH {
+            return Err(host_stack_overflow());
+        }
+        Ok(())
+    }
+}
+
+/// JavaScriptCore's stack overflow, as a host error escaping a built-in.
+pub fn host_stack_overflow() -> Fail {
+    Fail::Host(Rc::new((crate::jsstr::JsStr::from("RangeError"), crate::jsstr::JsStr::from("Maximum call stack size exceeded."))))
+}
+
+pub fn native_work(ctx: &Ctx, fut: Fut<R<Value>>) -> Fut<R<Value>> {
+    boxed(NativeWork { ctx: ctx.clone(), fut })
 }
 
 pub fn activation(ctx: &Ctx, fut: Fut<R<Value>>) -> Fut<R<Value>> {
