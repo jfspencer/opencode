@@ -54,6 +54,9 @@ pub struct Model {
     /// `capabilities.input`.
     pub input: Vec<String>,
     pub timeouts: Timeouts,
+    /// The prompt-cache lifetime of the model's `cache.ttl` setting (the request's `cache`); session requests carry it,
+    /// one-shot generations clear it.
+    pub cache_ttl: Option<String>,
 }
 
 // Some fields complete the canonical shape (`LLMRequest` / `LLMEvent`) for later slices.
@@ -61,7 +64,7 @@ pub struct Model {
 #[derive(Debug, Clone)]
 pub enum UserPart {
     Text(String),
-    /// TODO(port): media parts (attachments, images).
+    /// Inline media (base64 `data`): attachments are read inline before a request is built.
     Media { mime: String, data: String, filename: Option<String> },
 }
 

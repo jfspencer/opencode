@@ -731,6 +731,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
         let snapshot = input.tools.clone();
         let context_publisher = publisher.clone();
         let call_id = id.clone();
+        let located = input.located.clone();
         let context = tool::Context {
             app: app.clone(),
             location: input.located.clone(),
@@ -751,7 +752,7 @@ pub async fn attempt(app: &Arc<App>, input: Input, retry: &mut Retry) -> Result<
             let mut p = publisher.lock().unwrap();
             match result {
                 Ok(output) => {
-                    p.tool_execution(&id, tool::output::truncate(output));
+                    p.tool_execution(&id, tool::output::bound(output, &located));
                     ToolExit::Done
                 }
                 Err(tool::Failure::Error(failure)) => {

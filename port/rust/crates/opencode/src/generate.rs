@@ -3,7 +3,7 @@
 //! provider clearly never ran (`ModelRetry.retryOneShot`: rate limits, overload, connections refused or unresolved),
 //! at most three times. Generation from a session (session/generate.ts) sends what its next step would, plus the prompt.
 //!
-//! Image and decision generation resolve their model; TODO(port): their provider calls (see [`media`]).
+//! Image and decision generation run on OpenRouter's media routes ([`media`]).
 
 use std::sync::Arc;
 
@@ -17,6 +17,8 @@ use crate::json::{self, Obj};
 use crate::llm::error::Kind;
 use crate::llm::{self, AIError, Event};
 use crate::session::retry::Retry;
+
+mod media;
 
 /// `Global.Path.config`: `$OPENCODE_CONFIG_DIR`, else `$XDG_CONFIG_HOME/opencode`.
 pub fn global_config() -> String {
@@ -152,22 +154,10 @@ pub async fn session(app: &App, session_id: &str, prompt: &str) -> Result<Json> 
     }
 }
 
-/// `Generate.image` / `Generate.decisions` up to model resolution (`resolver.resolveImage` / `resolveDecision`, then
-/// `missing`): the requested model among the enabled models of that type, else the 422 or 404 of `missing`.
-///
-/// TODO(port): the calls themselves (OpenRouter's image route, `OpenAIImages`, and decision route, `SystemOne`, in
-/// packages/ai); a resolved model answers 503 meanwhile.
-fn media(inventory: &crate::inventory::Inventory, reference: &Json, capability: &str) -> Failure {
+/// `missing` for an image or decision request: a model of another type (422) or no model at all (404).
+fn missing_media(inventory: &crate::inventory::Inventory, reference: &Json, capability: &str) -> Failure {
     let provider = json::get_str(reference, "providerID").unwrap_or_default();
     let id = json::get_str(reference, "id").unwrap_or_default();
-    let typed = |model: &&opencode_protocol::types::ModelInfo| {
-        json::get_str(&json::of(*model), "type") == Some(capability)
-    };
-    if inventory.catalog.other.iter().filter(typed).any(|m| m.provider_id.0 == provider && m.id == id) {
-        let mut o = Obj::new();
-        o.str("_tag", "ServiceUnavailableError").str("message", &format!("{capability} generation is not available"));
-        return Failure::new(503, o.done());
-    }
     // `models.available(["chat", "image", "decision"])`: the chat models first.
     let other = inventory
         .available_models()
@@ -190,7 +180,8 @@ fn media(inventory: &crate::inventory::Inventory, reference: &Json, capability: 
 /// `POST /api/experimental/generate/image`.
 pub async fn image(app: &App, payload: &Json) -> Result<Json> {
     let location = app.locations.get(app, &LocationRef::directory(global_config())).await?;
-    Err(media(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "image"))
+    let model = media::resolve(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "image")?;
+    media::image(&model, payload).await
 }
 
 /// `POST /api/experimental/generate/decisions`: question names must be unique.
@@ -203,7 +194,8 @@ pub async fn decisions(app: &App, payload: &Json) -> Result<Json> {
     if names.len() != questions.len() {
         return Err(Failure::invalid("Decision question names must be unique", Some("questions"), None));
     }
-    Err(media(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "decision"))
+    let model = media::resolve(&location.inventory(), json::get(payload, "model").unwrap_or(&Json::Null), "decision")?;
+    media::decisions(&model, payload).await
 }
 
 /// `POST /api/experimental/generate/text`.
@@ -213,7 +205,8 @@ pub async fn text(app: &App, payload: &Json) -> Result<Json> {
     // `resolver.resolve(model)`: the requested model, else the default one.
     let requested = json::get(payload, "model").filter(|m| !matches!(m, Json::Null));
     let model: Arc<llm::Model> = match crate::session::context::resolve(&inventory, requested) {
-        Some(Ok(model)) => Arc::new(model),
+        // A stateless request has no cache policy of its own (`ai.request` without `cache`).
+        Some(Ok(model)) => Arc::new(llm::Model { cache_ttl: None, ..model }),
         Some(Err(error)) => {
             let message = json::get_str(&error, "message").unwrap_or_default().to_owned();
             if requested.is_some() {

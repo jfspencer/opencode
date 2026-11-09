@@ -203,6 +203,8 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     }
     let version_control =
         crate::vcs::Service::new(resolved.vcs.as_ref().map(|v| v.kind), &key.directory, &resolved.directory);
+    // A location's `ToolOutput` starts the global `tool-output-cleanup` sweep.
+    crate::tool::output::start_cleanup();
     let location = Location {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),

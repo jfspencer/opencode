@@ -122,8 +122,10 @@ fn timeout(value: Option<&Json>) -> Option<Option<u64>> {
     }
 }
 
-/// Settings the route reads itself (`toConfig`: the connection), not provider options.
-const CONNECTION_KEYS: &[&str] = &["baseURL", "apiKey", "headers", "body", "encoding"];
+/// Settings the route reads itself (`toConfig`: the connection) and opencode's own (`Provider.nativeSettings` omits
+/// `Provider.Settings`' fields: timeouts, compaction, cache, transport, encoding), not provider options.
+const CONNECTION_KEYS: &[&str] =
+    &["baseURL", "apiKey", "headers", "body", "encoding", "timeout", "headerTimeout", "chunkTimeout", "compaction", "cache", "transport"];
 
 /// A model reference's variant, `None` for none.
 fn variant_of(reference: &Json) -> Option<&str> {
@@ -198,6 +200,11 @@ fn build(inventory: &Inventory, info: &t::ModelInfo, variant: Option<&str>) -> R
             headers: timeout(json::get(&provider_settings, "headerTimeout")).unwrap_or(Some(300_000)),
             chunk: timeout(json::get(&provider_settings, "chunkTimeout")).unwrap_or(Some(900_000)),
         },
+        // `runtimeInfo.settings.cache`: the model's over the provider's (a variant cannot change it).
+        cache_ttl: [&settings, &provider_settings]
+            .iter()
+            .find_map(|s| json::get(s, "cache").and_then(|cache| json::get_str(cache, "ttl")))
+            .map(str::to_owned),
     })
 }
 

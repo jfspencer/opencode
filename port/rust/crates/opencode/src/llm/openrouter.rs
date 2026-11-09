@@ -3,7 +3,13 @@
 //! what `JSON.stringify` sends) and the stream parser (`OpenAIChat.protocol.stream`: `step`, `finishEvents`, with
 //! `Lifecycle` and `ToolStream`), fed by the SSE framing of `Framing.sseWithDone` (Effect's SSE parser).
 //!
-//! TODO(port): media parts, custom (freeform) tools, cache-control markers, Kimi-style reasoning details.
+//! Prompt-cache breakpoints follow `applyCachePolicy` for the `openrouter` route ([`Markers`]): OpenRouter's Anthropic
+//! upstreams get them on the last tool, the first and last system parts and the conversation's tail, Qwen's on the
+//! system parts and the tail, and other upstreams none (a requested lifetime then goes in the body instead).
+//!
+//! Not reachable here: custom (freeform) tools, which only `@opencode/ai` tool definitions declare and no tool of
+//! opencode's does (the stream parser still reads a provider's custom calls), and per-message effort updates, which
+//! the route does not support (`applyEffortUpdates` strips them before lowering).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -55,15 +61,67 @@ fn wrap_system_update(text: &str) -> String {
     format!("<system-update>\n{escaped}\n</system-update>")
 }
 
+/// Where a request's cache breakpoints go (`applyCachePolicy` with the `openrouter` route's `gatewayPolicy`): the
+/// last tool, the first and last system parts, and the last message, each `cache_control: {type: "ephemeral", ttl?}`.
+/// At most four, which the policy never exceeds.
+pub struct Markers {
+    tool: bool,
+    system: bool,
+    tail: bool,
+    ttl: Option<String>,
+}
+
+impl Markers {
+    pub fn of(request: &Request) -> Self {
+        // `~anthropic/claude-sonnet-latest` style IDs are OpenRouter aliases for the latest model in a family.
+        let id = request.model.model_id.strip_prefix('~').unwrap_or(&request.model.model_id);
+        let (tool, system, tail) = if id.starts_with("anthropic/") {
+            (true, true, true)
+        } else if id.starts_with("qwen/") || id.starts_with("alibaba/qwen") {
+            (false, true, true)
+        } else {
+            (false, false, false)
+        };
+        Markers { tool, system, tail, ttl: request.model.cache_ttl.clone() }
+    }
+
+    fn places(&self) -> bool {
+        self.tool || self.system || self.tail
+    }
+
+    fn control(&self) -> Json {
+        let mut o = Obj::new();
+        o.str("type", "ephemeral").opt_str("ttl", self.ttl.as_deref());
+        o.done()
+    }
+}
+
+fn text_part(text: &str, cache: Option<Json>) -> Json {
+    let mut o = Obj::new();
+    o.str("type", "text").str("text", text).opt("cache_control", cache);
+    o.done()
+}
+
 /// A lowered chat message (`OpenAIChatMessage`), kept as JSON so its key order is the object literal's.
-fn lower_messages(request: &Request) -> Vec<Json> {
+fn lower_messages(request: &Request, markers: &Markers) -> Vec<Json> {
     let model = &request.model;
     let mut messages: Vec<Json> = Vec::new();
     if !request.system.is_empty() {
         let mut o = Obj::new();
-        o.str("role", "system").str("content", &request.system.join("\n"));
+        o.str("role", "system");
+        if markers.system {
+            let last = request.system.len() - 1;
+            let parts = request.system.iter().enumerate().map(|(index, text)| {
+                text_part(text, (index == 0 || index == last).then(|| markers.control()))
+            });
+            o.set("content", Json::Array(parts.collect()));
+        } else {
+            o.str("content", &request.system.join("\n"));
+        }
         messages.push(o.done());
     }
+    // The tail breakpoint marks the last message (`markMessageAt`): its last text part, else its last part.
+    let tail = if markers.tail { request.messages.len().checked_sub(1) } else { None };
     let require = require_reasoning(model);
     // The files of tool results, sent as a user message after the tool messages (`lowerToolMessages`).
     let mut pending: Vec<Json> = Vec::new();
@@ -74,29 +132,40 @@ fn lower_messages(request: &Request) -> Vec<Json> {
             messages.push(o.done());
         }
     };
-    for message in &request.messages {
+    for (index, message) in request.messages.iter().enumerate() {
+        let marked = tail == Some(index);
         match message {
             Message::System(text) => {
                 let text = wrap_system_update(text);
+                let cache = marked.then(|| markers.control());
                 if !pending.is_empty() {
-                    pending.push(lower_user_part(&UserPart::Text(text)));
+                    pending.push(text_part(&text, cache));
                     flush(&mut messages, &mut pending);
                     continue;
                 }
                 match messages.last_mut() {
                     Some(previous) if json::get_str(previous, "role") == Some("user") && json::get_str(previous, "content").is_some() => {
-                        let joined = format!("{}\n{text}", json::get_str(previous, "content").unwrap_or_default());
-                        json::set(previous, "content", json::string(&joined));
+                        let before = json::get_str(previous, "content").unwrap_or_default().to_owned();
+                        match cache {
+                            Some(cache) => {
+                                json::set(previous, "content", Json::Array(vec![text_part(&before, None), text_part(&text, Some(cache))]))
+                            }
+                            None => json::set(previous, "content", json::string(&format!("{before}\n{text}"))),
+                        }
                     }
                     // A user message with content parts (attachments) gets the update as one more text part.
                     Some(previous) if json::get_str(previous, "role") == Some("user") => {
                         if let Some(Json::Array(content)) = json::get_mut(previous, "content") {
-                            content.push(lower_user_part(&UserPart::Text(text)));
+                            content.push(text_part(&text, cache));
                         }
                     }
                     _ => {
                         let mut o = Obj::new();
-                        o.str("role", "user").str("content", &text);
+                        o.str("role", "user");
+                        match cache {
+                            Some(cache) => o.set("content", Json::Array(vec![text_part(&text, Some(cache))])),
+                            None => o.str("content", &text),
+                        };
                         messages.push(o.done());
                     }
                 }
@@ -105,18 +174,30 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                 flush(&mut messages, &mut pending);
                 let mut o = Obj::new();
                 o.str("role", "user");
-                if parts.iter().all(|part| matches!(part, UserPart::Text(_))) {
+                // The marked part: the last text part, else the last part (media, which carries no marker).
+                let target = marked.then(|| parts.iter().rposition(|part| matches!(part, UserPart::Text(_))).unwrap_or(usize::MAX));
+                if target.is_none_or(|t| t == usize::MAX) && parts.iter().all(|part| matches!(part, UserPart::Text(_))) {
                     let text: String = parts.iter().map(|part| if let UserPart::Text(text) = part { text.as_str() } else { "" }).collect();
                     o.str("content", &text);
                 } else {
-                    o.set("content", Json::Array(parts.iter().map(lower_user_part).collect()));
+                    let content = parts.iter().enumerate().map(|(index, part)| match part {
+                        UserPart::Text(text) => text_part(text, (target == Some(index)).then(|| markers.control())),
+                        media => lower_user_part(media),
+                    });
+                    o.set("content", Json::Array(content.collect()));
                 }
                 messages.push(o.done());
             }
             Message::Tool(results) => {
-                for result in results {
+                for (position, result) in results.iter().enumerate() {
                     let mut o = Obj::new();
-                    o.str("role", "tool").str("tool_call_id", &result.id).str("content", &tool_result_text(result));
+                    o.str("role", "tool").str("tool_call_id", &result.id);
+                    // Chat cache breakpoints belong on text content parts, not on the message itself.
+                    if marked && position + 1 == results.len() {
+                        o.set("content", Json::Array(vec![text_part(&tool_result_text(result), Some(markers.control()))]));
+                    } else {
+                        o.str("content", &tool_result_text(result));
+                    }
                     messages.push(o.done());
                     if let ToolResultValue::Content(content) = &result.value {
                         pending.extend(content.iter().filter(|item| json::get_str(item, "type") == Some("file")).map(lower_tool_file));
@@ -128,7 +209,11 @@ fn lower_messages(request: &Request) -> Vec<Json> {
                     continue;
                 }
                 flush(&mut messages, &mut pending);
-                messages.push(lower_assistant(parts, require));
+                let cache = marked
+                    .then(|| parts.iter().rposition(|part| matches!(part, AssistantPart::Text { .. })))
+                    .flatten()
+                    .map(|index| (index, markers.control()));
+                messages.push(lower_assistant(parts, require, cache));
             }
         }
     }
@@ -196,14 +281,18 @@ fn reasoning_details(native: &Option<Json>) -> Option<&Vec<Json>> {
     }
 }
 
-/// `lowerAssistantMessage` with OpenRouter's `assistant` override.
-fn lower_assistant(parts: &[AssistantPart], require: bool) -> Json {
+/// `lowerAssistantMessage` with OpenRouter's `assistant` override; `cache` marks one text part (by index).
+fn lower_assistant(parts: &[AssistantPart], require: bool, cache: Option<(usize, Json)>) -> Json {
     let mut content = String::new();
+    let mut texts: Vec<Json> = Vec::new();
     let mut reasoning: Vec<(&String, &Option<Json>)> = Vec::new();
     let mut calls: Vec<Json> = Vec::new();
-    for part in parts {
+    for (index, part) in parts.iter().enumerate() {
         match part {
-            AssistantPart::Text { text, .. } => content.push_str(text),
+            AssistantPart::Text { text, .. } => {
+                content.push_str(text);
+                texts.push(text_part(text, cache.as_ref().filter(|(at, _)| *at == index).map(|(_, c)| c.clone())));
+            }
             AssistantPart::Reasoning { text, native } => reasoning.push((text, native)),
             AssistantPart::ToolCall { id, name, input, .. } => {
                 let mut function = Obj::new();
@@ -232,7 +321,9 @@ fn lower_assistant(parts: &[AssistantPart], require: bool) -> Json {
     let _ = require;
     let mut o = Obj::new();
     o.str("role", "assistant");
-    if content.is_empty() && !calls.is_empty() {
+    if cache.is_some() {
+        o.set("content", Json::Array(texts));
+    } else if content.is_empty() && !calls.is_empty() {
         o.set("content", Json::Null);
     } else {
         o.str("content", &content);
@@ -340,22 +431,29 @@ pub fn body(request: &Request) -> String {
             }
         }
         o.key("model").string(&model.model_id);
+        let markers = Markers::of(request);
         {
             let mut messages = o.key("messages").array();
-            for message in lower_messages(request) {
+            for message in lower_messages(request, &markers) {
                 messages.item().json(&message);
             }
         }
         if !request.tools.is_empty() {
             let mut tools = o.key("tools").array();
-            for tool in &request.tools {
+            let last = request.tools.len() - 1;
+            for (index, tool) in request.tools.iter().enumerate() {
                 let mut t = tools.item().object();
                 t.key("type").string("function");
-                let mut f = t.key("function").object();
-                f.key("name").string(&tool.name);
-                f.key("description").string(&tool.description);
-                f.key("parameters").json(&tool.parameters);
-                f.key("strict").bool(false);
+                {
+                    let mut f = t.key("function").object();
+                    f.key("name").string(&tool.name);
+                    f.key("description").string(&tool.description);
+                    f.key("parameters").json(&tool.parameters);
+                    f.key("strict").bool(false);
+                }
+                if markers.tool && index == last {
+                    t.key("cache_control").json(&markers.control());
+                }
             }
         } else if has_tool_history(request) {
             o.key("tools").raw("[]");
@@ -377,6 +475,15 @@ pub fn body(request: &Request) -> String {
             // OpenAI limits the key to 64 characters.
             let key: String = key.chars().take(64).collect();
             o.key("prompt_cache_key").string(&key);
+        }
+        // `openAIRequestTTL`: without markers to carry it, the lifetime is a request option.
+        if let Some(ttl) = markers.ttl.as_deref().filter(|_| !markers.places()) {
+            if ttl == "24h" {
+                o.key("prompt_cache_retention").string(ttl);
+            } else {
+                let mut options = o.key("prompt_cache_options").object();
+                options.key("ttl").string(ttl);
+            }
         }
         // `usage`: `{include: true}` unless the options say otherwise.
         match options.get("usage") {
