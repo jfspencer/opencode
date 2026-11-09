@@ -188,7 +188,7 @@ impl GutterKind {
         self.max_before_width = 0;
         self.max_after_width = state.layout.min_after_width;
         self.sign_widths.clear();
-        self.sign_width_method = Some(WidthMethod::Unicode);
+        self.sign_width_method = Some(crate::renderer::width_method());
         for sign in state.signs.values() {
             if let Some(before) = &sign.before {
                 self.max_before_width = self.max_before_width.max(self.sign_width(before));
@@ -243,7 +243,7 @@ impl Kind for GutterKind {
     /// Detects line count changes before layout.
     fn lifecycle_pass(&mut self, el: Element) {
         let (_, current) = line_info::counts(self.target);
-        let stale = self.sign_width_method != Some(WidthMethod::Unicode);
+        let stale = self.sign_width_method != Some(crate::renderer::width_method());
         if stale {
             self.calculate_sign_widths();
         }
