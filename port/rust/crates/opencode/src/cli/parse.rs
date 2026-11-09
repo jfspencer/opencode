@@ -234,6 +234,7 @@ impl Input {
             _ => None,
         }
     }
+    #[allow(dead_code)] // `run --worktree`, next
     /// A `CliFlag.optionalValue` flag: `Some(None)` for the bare flag, `Some(Some(value))` with a value.
     pub fn optional_value(&self, name: &str) -> Option<Option<&str>> {
         match self.get(name) {
@@ -258,7 +259,7 @@ pub enum Outcome {
     Version,
     Completions(&'static str),
     /// `--wizard`. TODO(port): the interactive wizard.
-    Wizard { path: Vec<&'static str> },
+    Wizard,
     Run { path: Vec<&'static str>, input: Input, globals: Globals },
 }
 
@@ -883,7 +884,7 @@ pub fn run(root: &Command, argv: &[String]) -> Outcome {
         return match (global, value) {
             (Global::Help, _) => Outcome::Help { path, errors: vec![] },
             (Global::Version, _) => Outcome::Version,
-            (Global::Wizard, _) => Outcome::Wizard { path },
+            (Global::Wizard, _) => Outcome::Wizard,
             (Global::Completions, Val::Str(shell)) => {
                 Outcome::Completions(super::spec::SHELLS.iter().find(|s| **s == shell).copied().unwrap_or("bash"))
             }

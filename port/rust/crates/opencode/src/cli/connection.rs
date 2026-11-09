@@ -18,6 +18,7 @@ pub struct Private {
     lease: Option<ChildStdin>,
 }
 
+#[allow(dead_code)] // `acp`, next
 impl Private {
     /// Ends the lease and waits for the server, as the command's scope does on exit (SIGTERM, SIGKILL after 3 s).
     pub async fn close(mut self) {
@@ -53,6 +54,7 @@ impl Private {
 pub struct Resolved {
     pub endpoint: Endpoint,
     /// The background service (it can be reconnected to or restarted).
+    #[allow(dead_code)] // `run`, next
     pub service: bool,
     pub private: Option<Private>,
 }

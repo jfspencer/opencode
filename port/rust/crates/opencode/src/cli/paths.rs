@@ -64,10 +64,6 @@ pub fn all() -> Vec<(&'static str, String)> {
     ]
 }
 
-fn truthy(value: Option<String>) -> bool {
-    value.is_some_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
-}
-
 /// `databasePath(global.data)`.
 pub fn database() -> String {
     let filename = std::env::var("OPENCODE_DB").unwrap_or_else(|_| {
@@ -88,8 +84,4 @@ pub fn database() -> String {
         return crate::project::absolutize(&filename);
     }
     crate::project::absolutize(&format!("{}/{filename}", data()))
-}
-
-pub fn truthy_env(name: &str) -> bool {
-    truthy(std::env::var(name).ok())
 }

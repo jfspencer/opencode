@@ -35,6 +35,7 @@ pub fn stdin_tty() -> bool {
 }
 
 /// `process.stdout.isTTY`.
+#[allow(dead_code)] // `run`, next
 pub fn stdout_tty() -> bool {
     // SAFETY: as above.
     unsafe { libc::isatty(1) == 1 }
@@ -138,7 +139,7 @@ pub fn main() -> ! {
             });
             0
         }
-        Outcome::Wizard { .. } => {
+        Outcome::Wizard => {
             stderr("Error: --wizard is not available in this build\n");
             1
         }

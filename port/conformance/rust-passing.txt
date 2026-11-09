@@ -134,6 +134,34 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/cli-api.test.ts › api by method and path
+scenarios/cli-api.test.ts › api by operation ID
+scenarios/cli-api.test.ts › api errors
+scenarios/cli-inspect.test.ts › debug agents and config
+scenarios/cli-inspect.test.ts › debug paths
+scenarios/cli-inspect.test.ts › models lists only the configured model
+scenarios/cli-inspect.test.ts › models with a second configured model
+scenarios/cli-meta.test.ts › command groups without a subcommand
+scenarios/cli-meta.test.ts › help of each in-scope command
+scenarios/cli-meta.test.ts › missing required arguments
+scenarios/cli-meta.test.ts › shell completions
+scenarios/cli-meta.test.ts › unknown commands and subcommands
+scenarios/cli-meta.test.ts › unknown flags and invalid flag values
+scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-serve.test.ts › serve argument errors
+scenarios/cli-serve.test.ts › serve generates a password when none is given
+scenarios/cli-serve.test.ts › serve over stdio ends when stdin closes
+scenarios/cli-serve.test.ts › serve with an allowed CORS origin
+scenarios/cli-service.test.ts › changing service settings stops the running service
+scenarios/cli-service.test.ts › disabled service makes commands use a private server
+scenarios/cli-service.test.ts › reload configuration
+scenarios/cli-service.test.ts › server flag addresses a running server
+scenarios/cli-service.test.ts › service configuration errors
+scenarios/cli-service.test.ts › service configuration get, set and unset
+scenarios/cli-service.test.ts › service lifecycle
+scenarios/cli-service.test.ts › standalone flag keeps the service stopped
+scenarios/cli-session.test.ts › session import errors
+scenarios/cli-session.test.ts › session list with no sessions
 scenarios/permissions.test.ts › always approve a shell command prefix
 scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
 scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
