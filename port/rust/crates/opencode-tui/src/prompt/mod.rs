@@ -220,12 +220,19 @@ thread_local! {
 }
 
 /// The app-wide prompt contexts (`PromptHistoryProvider`, `PromptStashProvider`, `FrecencyProvider`), created with
-/// the first prompt.
+/// the first prompt in a detached root, so they outlive it as the providers outlive every route.
 fn contexts(t: &Tui) -> (History, Stash, frecency::Frecency) {
-    let history = HISTORY.with(|h| h.borrow_mut().get_or_insert_with(|| History::new(&t.paths.state)).clone());
-    let stash = STASH.with(|s| s.borrow_mut().get_or_insert_with(|| Stash::new(&t.paths.state)).clone());
-    let frecency =
-        FRECENCY.with(|f| f.borrow_mut().get_or_insert_with(|| frecency::Frecency::new(&t.paths.state, &t.paths.cwd)).clone());
+    if let Some(existing) = HISTORY.with(|h| h.borrow().clone()) {
+        let stash = STASH.with(|s| s.borrow().clone()).expect("the stash context");
+        let frecency = FRECENCY.with(|f| f.borrow().clone()).expect("the frecency context");
+        return (existing, stash, frecency);
+    }
+    let (history, stash, frecency) = create_root(|_dispose| {
+        (History::new(&t.paths.state), Stash::new(&t.paths.state), frecency::Frecency::new(&t.paths.state, &t.paths.cwd))
+    });
+    HISTORY.with(|h| *h.borrow_mut() = Some(history.clone()));
+    STASH.with(|s| *s.borrow_mut() = Some(stash.clone()));
+    FRECENCY.with(|f| *f.borrow_mut() = Some(frecency.clone()));
     (history, stash, frecency)
 }
 
