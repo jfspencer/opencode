@@ -146,6 +146,19 @@ pub fn prompt(props: PromptProps) -> View {
     // <textarea>
     let input = textarea();
     insert_node(inner, input, None);
+    // TODO(port-tui): the keymap's managed textarea layer (config `input.*` bindings); until then the prompt's
+    // submit and newline keys override the textarea's table.
+    if let Some(ta) = input.textarea() {
+        let binding = |name: &str, shift: bool, action: &'static str| opencode_tui_core::renderables::textarea::KeyBinding {
+            name: name.to_string(),
+            ctrl: false,
+            shift,
+            meta: false,
+            super_: false,
+            action,
+        };
+        ta.set_key_bindings(vec![binding("return", false, "submit"), binding("return", true, "newline")]);
+    }
     input.set_width(Some(Value::Percent(100.0)));
     bind(move || placeholder_text.get(), move |p| input.set_placeholder(&p));
     bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| input.set_placeholder_color(c));
