@@ -17,7 +17,11 @@ pub const BASE_TIME: f64 = 1_700_000_000_000.0;
 
 thread_local! {
     static START: Cell<Option<tokio::time::Instant>> = const { Cell::new(None) };
+    static RANDOM: Cell<u32> = const { Cell::new(SEED) };
 }
+
+/// The TS driver's xorshift seed (harness/ts/env.ts).
+const SEED: u32 = 0x9e3779b9;
 
 pub fn install() {
     START.with(|s| s.set(Some(tokio::time::Instant::now())));
@@ -25,11 +29,24 @@ pub fn install() {
         let start = START.with(|s| s.get()).expect("clock installed");
         BASE_TIME + (tokio::time::Instant::now() - start).as_millis() as f64
     })));
+    runtime::set_random(Some(Rc::new(|bytes: &mut [u8]| {
+        RANDOM.with(|state| {
+            for byte in bytes.iter_mut() {
+                let mut s = state.get();
+                s ^= s << 13;
+                s ^= s >> 17;
+                s ^= s << 5;
+                state.set(s);
+                *byte = (s & 0xff) as u8;
+            }
+        })
+    })));
 }
 
-/// Restarts the clock at the base time (the previous case's timers are gone with its tasks).
+/// Restarts the clock at the base time and reseeds the random source.
 pub fn reset() {
     START.with(|s| s.set(Some(tokio::time::Instant::now())));
+    RANDOM.with(|state| state.set(SEED));
 }
 
 pub fn clock() -> f64 {

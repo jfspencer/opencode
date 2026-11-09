@@ -1,0 +1,12 @@
+[
+ "<template>\n\n<span>Message: {{ msg }}</span>\n<span v-once>This will never change: {{ msg }}</span>\n\n</template>",
+ "<template>\n\n<p>Using mustaches: {{ rawHtml }}</p>\n<p>Using v-html directive: <span v-html=\"rawHtml\"></span></p>\n\n</template>",
+ "<template>\n\n<div v-bind:id=\"dynamicId\"></div>\n<button v-bind:disabled=\"isButtonDisabled\">Button</button>\n\n</template>",
+ "<template>\n\n{{ number + 1 }}\n\n{{ ok ? 'YES' : 'NO' }}\n\n{{ message.split('').reverse().join('') }}\n\n<div v-bind:id=\"'list-' + id\"></div>\n\n<!-- this is a statement, not an expression: -->\n{{ var a = 1 }}\n\n<!-- flow control won't work either, use ternary expressions -->\n{{ if (ok) { return message } }}\n\n</template>",
+ "<template>\n\n<p v-if=\"seen\">Now you see me</p>\n\n</template>",
+ "<template>\n\n<a v-bind:href=\"url\"> ... </a>\n<a v-on:click=\"doSomething\"> ... </a>\n\n</template>",
+ "<template>\n\n<!--\nNote that there are some constraints to the argument expression, as explained\nin the \"Dynamic Argument Expression Constraints\" section below.\n-->\n<a v-bind:[attributeName]=\"url\"> ... </a>\n<a v-on:[eventName]=\"doSomething\"> ... </a>\n\n<!-- This will trigger a compiler warning. -->\n<a v-bind:['foo' + bar]=\"value\"> ... </a>\n\n</template>",
+ "<template>\n\n<form v-on:submit.prevent=\"onSubmit\"> ... </form>\n\n</template>",
+ "<template>\n\n<!-- full syntax -->\n<a v-bind:href=\"url\"> ... </a>\n\n<!-- shorthand -->\n<a :href=\"url\"> ... </a>\n\n<!-- shorthand with dynamic argument (2.6.0+) -->\n<a :[key]=\"url\"> ... </a>\n\n</template>",
+ "<template>\n\n<!-- full syntax -->\n<a v-on:click=\"doSomething\"> ... </a>\n\n<!-- shorthand -->\n<a @click=\"doSomething\"> ... </a>\n\n<!-- shorthand with dynamic argument (2.6.0+) -->\n<a @[event]=\"doSomething\"> ... </a>\n\n</template>"
+]

@@ -42,23 +42,26 @@ export function install() {
     const id = timer instanceof FakeTimeout ? timer.id : Number(timer)
     timers.delete(id)
   }) as typeof clearTimeout
-  let state = 0x9e3779b9
+  randomState = 0x9e3779b9
   crypto.getRandomValues = (<T extends ArrayBufferView | null>(array: T): T => {
     if (array) {
       const bytes = new Uint8Array(array.buffer, array.byteOffset, array.byteLength)
       for (let i = 0; i < bytes.length; i++) {
-        state ^= state << 13
-        state ^= state >>> 17
-        state ^= state << 5
-        state >>>= 0
-        bytes[i] = state & 0xff
+        randomState ^= randomState << 13
+        randomState ^= randomState >>> 17
+        randomState ^= randomState << 5
+        randomState >>>= 0
+        bytes[i] = randomState & 0xff
       }
     }
     return array
   }) as typeof crypto.getRandomValues
 }
 
+let randomState = 0x9e3779b9
+
 export function reset() {
+  randomState = 0x9e3779b9
   now = BASE_TIME
   timers.clear()
   seq = 0

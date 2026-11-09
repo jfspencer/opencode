@@ -33,7 +33,7 @@ import path from "node:path"
 import { Writable } from "node:stream"
 import { fakeNetwork } from "./network"
 import { scenario, type Ctx, type ScenarioOptions } from "./scenario"
-import { implementation, opencodeCommand, runsTs, status, tsEnv } from "./server"
+import { implementation, opencodeCommand, ptyEnv, runsTs, status, tsEnv } from "./server"
 import { PtyTerminal, VirtualTerminal, type Modifiers } from "./terminal"
 
 export interface TuiOptions extends ScenarioOptions {
@@ -427,6 +427,7 @@ async function terminalScreen(
     TERM: "xterm-256color",
     SHELL: "/bin/bash",
     OPENCODE_DISABLE_AUTOUPDATE: "1",
+    ...ptyEnv(path.join(state, "pty")),
     ...network.env,
     ...(runsTs() ? tsEnv() : {}),
   }

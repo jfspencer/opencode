@@ -249,10 +249,24 @@ scenarios/cli-meta.test.ts › shell completions
 scenarios/cli-meta.test.ts › unknown commands and subcommands
 scenarios/cli-meta.test.ts › unknown flags and invalid flag values
 scenarios/cli-meta.test.ts › version and top-level help
+scenarios/cli-pair.test.ts › pair URL validation
+scenarios/cli-pair.test.ts › pair refuses conflicting flags and a disabled service
+scenarios/cli-pair.test.ts › pair through an external URL
+scenarios/cli-pair.test.ts › pair with the local service
+scenarios/cli-pair.test.ts › remote pairing consent on a terminal
+scenarios/cli-pair.test.ts › remote pairing needs consent off a terminal
 scenarios/cli-project-archive.test.ts › projects whose directories are gone are archived or moved
 scenarios/cli-project-archive.test.ts › recently active projects are not swept
 scenarios/cli-references.test.ts › a cache directory of another repository is replaced
 scenarios/cli-references.test.ts › git references are checked out and refreshed daily
+scenarios/cli-remote.test.ts › remote access creates the device's tunnel
+scenarios/cli-remote.test.ts › remote access fails when the certificate cannot be checked
+scenarios/cli-remote.test.ts › remote access keeps an unexpired certificate while the API is unavailable
+scenarios/cli-remote.test.ts › remote access resumes an interrupted certificate issuance
+scenarios/cli-remote.test.ts › remote access saves a renewed certificate
+scenarios/cli-remote.test.ts › remote access when the tunnel cannot be created
+scenarios/cli-remote.test.ts › remote access with an incomplete tunnel identity
+scenarios/cli-remote.test.ts › remote access with the device's tunnel
 scenarios/cli-ripgrep.test.ts › a ripgrep download that fails verification is not used
 scenarios/cli-ripgrep.test.ts › an unanswered ripgrep download fails the search
 scenarios/cli-run.test.ts › run --auto approves permission requests
@@ -279,6 +293,9 @@ scenarios/cli-serve.test.ts › serve generates a password when none is given
 scenarios/cli-serve.test.ts › serve over stdio ends when stdin closes
 scenarios/cli-serve.test.ts › serve with a password
 scenarios/cli-serve.test.ts › serve with an allowed CORS origin
+scenarios/cli-service-handoff.test.ts › a handoff published by another service is not adopted
+scenarios/cli-service-handoff.test.ts › a replacement service adopts the persistent terminals of a published handoff
+scenarios/cli-service-handoff.test.ts › an expired or empty handoff is not adopted
 scenarios/cli-service.test.ts › changing service settings stops the running service
 scenarios/cli-service.test.ts › commands start the service on demand and run reuses it
 scenarios/cli-service.test.ts › disabled service makes commands use a private server
@@ -298,6 +315,39 @@ scenarios/cli-session.test.ts › session import into another directory
 scenarios/cli-session.test.ts › session list formats and limits
 scenarios/cli-session.test.ts › session list is scoped to the current project
 scenarios/cli-session.test.ts › session list with no sessions
+scenarios/cli-terminal.test.ts › help, version and errors in color on a terminal
+scenarios/cli-terminal.test.ts › session export picker cancelled
+scenarios/cli-terminal.test.ts › session export picker with no sessions
+scenarios/cli-terminal.test.ts › session export picks a session on a terminal
+scenarios/cli-terminal.test.ts › session list on a terminal goes through the pager
+scenarios/cli-terminal.test.ts › session list on a terminal with no sessions
+scenarios/cli-terminal.test.ts › session times in the local time zone
+scenarios/cli-uninstall.test.ts › uninstall answered with y on a terminal
+scenarios/cli-uninstall.test.ts › uninstall confirmed on a terminal
+scenarios/cli-uninstall.test.ts › uninstall dry run lists what would be removed
+scenarios/cli-uninstall.test.ts › uninstall needs a terminal or --force
+scenarios/cli-uninstall.test.ts › uninstall of a curl install
+scenarios/cli-uninstall.test.ts › uninstall with --force stops the service and removes the cache
+scenarios/cli-upgrade.test.ts › upgrade skipped when the version is already installed
+scenarios/cli-upgrade.test.ts › upgrade through WinGet
+scenarios/cli-upgrade.test.ts › upgrade through the curl installer
+scenarios/cli-upgrade.test.ts › upgrade when the package manager fails
+scenarios/cli-upgrade.test.ts › upgrade when the update service answers without a release
+scenarios/cli-upgrade.test.ts › upgrade when the update service fails
+scenarios/cli-upgrade.test.ts › upgrade when the update service is unreachable
+scenarios/cli-upgrade.test.ts › upgrade with an invalid version
+scenarios/cli-upgrade.test.ts › upgrade with each package manager
+scenarios/cli-upgrade.test.ts › upgrade without a detectable installation method
+scenarios/cli-wizard.test.ts › wizard after flags already given
+scenarios/cli-wizard.test.ts › wizard boolean answers and cancelling mid-way
+scenarios/cli-wizard.test.ts › wizard command not run
+scenarios/cli-wizard.test.ts › wizard counts, repeated flags and quoting
+scenarios/cli-wizard.test.ts › wizard on the root command, cancelled
+scenarios/cli-wizard.test.ts › wizard picks a command from the root and runs it
+scenarios/cli-wizard.test.ts › wizard with a limit and a format
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is refused
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: a connection that is reset
+scenarios/codemode-fetch-failures.test.ts › codemode fetch: certificates a client refuses
 scenarios/codemode-lang-async.test.ts › async delegation and settlement edge cases
 scenarios/codemode-lang-async.test.ts › async functions and await ordering
 scenarios/codemode-lang-async.test.ts › generators and iterators
@@ -399,6 +449,9 @@ scenarios/project-agents.test.ts › default agent that is a subagent falls back
 scenarios/project-agents.test.ts › no selectable primary agent
 scenarios/project-agents.test.ts › switching a session to a custom agent
 scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
+scenarios/project-collation.test.ts › a name whose collation never ends sorts among names that end
+scenarios/project-collation.test.ts › directory listings in ICU root order
+scenarios/project-collation.test.ts › the read tool lists a directory in ICU root order
 scenarios/project-commands.test.ts › command argument templating
 scenarios/project-commands.test.ts › command list on a location's first request
 scenarios/project-commands.test.ts › command list without custom commands
@@ -408,6 +461,24 @@ scenarios/project-commands.test.ts › command that selects an agent and a model
 scenarios/project-commands.test.ts › command with shell interpolation
 scenarios/project-commands.test.ts › commands from config and markdown files
 scenarios/project-commands.test.ts › unknown command and missing session
+scenarios/project-config-jsonc.test.ts › a file whose root is an array fails the patch
+scenarios/project-config-jsonc.test.ts › a shell appended to a commented jsonc file with tabs and a trailing comma
+scenarios/project-config-jsonc.test.ts › a shell removed from a file without one leaves it unchanged
+scenarios/project-config-jsonc.test.ts › a shell replaced in place keeps the rest of the line
+scenarios/project-config-jsonc.test.ts › a shell set in a file missing its closing brace
+scenarios/project-config-jsonc.test.ts › a shell set in a file of carriage returns
+scenarios/project-config-jsonc.test.ts › a shell set in a file of comments only
+scenarios/project-config-jsonc.test.ts › a shell set in a nested and oddly indented file
+scenarios/project-config-jsonc.test.ts › a shell set in an empty file
+scenarios/project-config-jsonc.test.ts › a shell set in an inline json file, then replaced and removed
+scenarios/project-config-jsonc.test.ts › a shell set in an unreadable file is written in front of it
+scenarios/project-config-jsonc.test.ts › an escaped key names the shell
+scenarios/project-config-jsonc.test.ts › removing from an empty file fails the patch
+scenarios/project-config-jsonc.test.ts › the first of duplicate shell keys is edited and the last still wins
+scenarios/project-config-jsonc.test.ts › the first property removed before others on one line
+scenarios/project-config-jsonc.test.ts › the only property removed collapses the lines it was on
+scenarios/project-config-jsonc.test.ts › the shell removed from a CRLF file, then the first and only property
+scenarios/project-config-jsonc.test.ts › with both global files the later name is edited
 scenarios/project-config.test.ts › available shells
 scenarios/project-config.test.ts › config documents with project config disabled
 scenarios/project-config.test.ts › config documents without project files
@@ -422,6 +493,13 @@ scenarios/project-config.test.ts › project config files layer in priority orde
 scenarios/project-forms.test.ts › answer with an invalid pattern
 scenarios/project-forms.test.ts › create, list, answer and cancel forms
 scenarios/project-forms.test.ts › invalid form definitions
+scenarios/project-frontmatter.test.ts › a legacy agent JSON.stringify cannot write fails the agent plugin
+scenarios/project-frontmatter.test.ts › an excerpt separator without a string form skips the file
+scenarios/project-frontmatter.test.ts › engines named after Object.prototype members
+scenarios/project-frontmatter.test.ts › nesting as deep as the JS stack allows
+scenarios/project-frontmatter.test.ts › values JSON cannot say
+scenarios/project-fs-dates.test.ts › if-modified-since in every date form
+scenarios/project-fs-dates.test.ts › if-range in every date form
 scenarios/project-fs.test.ts › conditional reads
 scenarios/project-fs.test.ts › find files and directories
 scenarios/project-fs.test.ts › find from the home directory
@@ -447,6 +525,10 @@ scenarios/project-instructions.test.ts › unreadable AGENTS.md blocks instructi
 scenarios/project-jobs.test.ts › background subagent job
 scenarios/project-jobs.test.ts › deleting a session cancels its background jobs
 scenarios/project-jobs.test.ts › foreground subagent moved to the background
+scenarios/project-location-reload.test.ts › a request for an unreadable directory
+scenarios/project-location-reload.test.ts › reload after a location's directory became unreadable
+scenarios/project-location-reload.test.ts › reload after a location's directory went away
+scenarios/project-location-reload.test.ts › reload with a broken project config
 scenarios/project-projects.test.ts › a moved checkout replaces the missing canonical directory
 scenarios/project-projects.test.ts › debug loaded locations and evict one
 scenarios/project-projects.test.ts › git repository without commits shares the global project
@@ -469,6 +551,12 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys beside the app headers
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys that are not a record
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys that are not all strings
+scenarios/project-providers-openrouter.test.ts › openrouter settings: api keys with headers of their own
+scenarios/project-providers-openrouter.test.ts › openrouter settings: empty api keys
 scenarios/project-schedule-tick.test.ts › schedules due together fire in one tick
 scenarios/project-schedule.test.ts › code conditions at creation
 scenarios/project-schedule.test.ts › create schedules of every kind
@@ -541,6 +629,7 @@ scenarios/pty.test.ts › pty connect tickets
 scenarios/pty.test.ts › pty sessions over the API
 scenarios/pty.test.ts › pty websocket authentication and tickets
 scenarios/pty.test.ts › pty websocket input, output, replay and exit
+scenarios/session-api-bodies.test.ts › raw JSON bodies
 scenarios/session-api-control.test.ts › a session on an unknown agent fails its turn
 scenarios/session-api-control.test.ts › a session on an unknown model fails its turn
 scenarios/session-api-control.test.ts › a slash command that fails to run
@@ -594,6 +683,7 @@ scenarios/session-api-inputs.test.ts › prompt attachments that cannot be read
 scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-inputs.test.ts › session forms
 scenarios/session-api-inputs.test.ts › the model reads an image into media storage
+scenarios/session-api-legacy-revert.test.ts › revert state from before FileDiff was canonical
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › compaction requests wait in the inbox of a busy session
 scenarios/session-api-prompt.test.ts › get one message
@@ -624,6 +714,9 @@ scenarios/session-api-subagents.test.ts › a background subagent reports back t
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
 scenarios/session-api-subagents.test.ts › background jobs of a child session listed from its ancestors
+scenarios/session-api-transfer-legacy.test.ts › an old field replacing an invalid new one
+scenarios/session-api-transfer-legacy.test.ts › an old name holding what the new name rejects
+scenarios/session-api-transfer-legacy.test.ts › non-object messages and a byte order mark
 scenarios/session-api-transfer.test.ts › export a live session and import it elsewhere
 scenarios/session-api-transfer.test.ts › export leaves out unsettled messages
 scenarios/session-api-transfer.test.ts › import a transcript exported by an earlier release
@@ -724,6 +817,12 @@ scenarios/shell-tool.test.ts › the environment of shell commands
 scenarios/shell-tool.test.ts › timeouts
 scenarios/shell-tool.test.ts › working directories
 scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
+scenarios/tools-formatter-npm.test.ts › a version is picked as npm-pick-manifest picks it: the latest tag, then not deprecated, engines, newest
+scenarios/tools-formatter-npm.test.ts › an install that fails leaves the file as written
+scenarios/tools-formatter-npm.test.ts › conflicting versions of a dependency nest under their dependent
+scenarios/tools-formatter-npm.test.ts › optional dependencies for another platform are left out, peers are installed beside their dependent
+scenarios/tools-formatter-npm.test.ts › prettier and its dependencies install into the package cache, hoisted
+scenarios/tools-formatter-npm.test.ts › the user's npm config: credentials, a scoped registry and the install strategy
 scenarios/tools-output-limits.test.ts › a fetched page beyond the limits is saved
 scenarios/tools-output-limits.test.ts › a first line beyond the byte limit shows no lines
 scenarios/tools-output-limits.test.ts › a trailing newline does not count as a line
@@ -733,6 +832,15 @@ scenarios/tools-output-limits.test.ts › output within the configured limits is
 scenarios/tools-output-limits.test.ts › saved outputs older than seven days are removed at startup
 scenarios/tools-output-limits.test.ts › the default limits bound a long result
 scenarios/tools-output-limits.test.ts › tools that bound their own output keep their result
+scenarios/tools-patch-errors.test.ts › patch: a file in an unsearchable directory
+scenarios/tools-patch-errors.test.ts › patch: a later change failing
+scenarios/tools-patch-errors.test.ts › patch: adding below a file
+scenarios/tools-patch-errors.test.ts › patch: adding below a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: adding to a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: an unreadable file
+scenarios/tools-patch-errors.test.ts › patch: deleting in a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: moving out of a read-only directory
+scenarios/tools-patch-errors.test.ts › patch: updating a read-only file
 scenarios/tools-patch.test.ts › patch: a bom file
 scenarios/tools-patch.test.ts › patch: a missing file
 scenarios/tools-patch.test.ts › patch: add update delete and move
@@ -781,6 +889,18 @@ scenarios/tools-skill.test.ts › skill from a remote index updated to a new ver
 scenarios/tools-skill.test.ts › skill from configured paths
 scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
 scenarios/tools-skill.test.ts › skill remote index that fails
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the agent
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the model
+scenarios/tools-subagent-inputs.test.ts › subagent input: a number for the session ID
+scenarios/tools-subagent-inputs.test.ts › subagent input: a session ID without its prefix
+scenarios/tools-subagent-inputs.test.ts › subagent input: a string
+scenarios/tools-subagent-inputs.test.ts › subagent input: a stringified input with an empty model
+scenarios/tools-subagent-inputs.test.ts › subagent input: a word for background
+scenarios/tools-subagent-inputs.test.ts › subagent input: an array
+scenarios/tools-subagent-inputs.test.ts › subagent input: empty model and session ID are dropped
+scenarios/tools-subagent-inputs.test.ts › subagent input: every field wrong
+scenarios/tools-subagent-inputs.test.ts › subagent input: every key missing
+scenarios/tools-subagent-inputs.test.ts › subagent input: null fields
 scenarios/tools-subagent.test.ts › subagent child interrupted while the parent waits
 scenarios/tools-subagent.test.ts › subagent continuation of a session that is not a child
 scenarios/tools-subagent.test.ts › subagent continued by sessionID
@@ -832,7 +952,12 @@ scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
+tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
+tui/nav-exit.test.ts › exit: leader q
+tui/nav-exit.test.ts › exit: typing ":q" and enter
+tui/nav-exit.test.ts › exit: typing "exit" and enter
+tui/nav-exit.test.ts › exit: typing "quit" and enter
 tui/nav-home.test.ts › home screen at 160x50
 tui/nav-home.test.ts › home screen at 70x11
 tui/nav-home.test.ts › home screen at 80x24
@@ -843,3 +968,5 @@ tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
 tui/nav-keybinds.test.ts › keybinds: the leader times out
+tui/nav-toasts.test.ts › toasts: info toast comes and goes
+tui/nav-toasts.test.ts › toasts: no model to send the prompt to

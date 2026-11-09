@@ -88,9 +88,17 @@ fn app(id: &str, title: &str, group: &str, run: impl Fn() + 'static) -> Command 
 pub fn install(t: &Tui) {
     let commands = {
         let t = t.clone();
+        let local = crate::local::local();
         move || {
             let exit = t.exit.clone();
-            vec![app("app.exit", "Exit the app", "System", move || exit()).slash("exit", &["quit", "q"])]
+            let favorite = local.clone();
+            let reverse = local.clone();
+            vec![
+                app("model.cycle_favorite", "Favorite cycle", "Agent", move || favorite.cycle_favorite(1)).palette(false),
+                app("model.cycle_favorite_reverse", "Favorite cycle reverse", "Agent", move || reverse.cycle_favorite(-1))
+                    .palette(false),
+                app("app.exit", "Exit the app", "System", move || exit()).slash("exit", &["quit", "q"]),
+            ]
         }
     };
     create_layer(move || Layer { mode: Some("global"), commands: commands(), ..Layer::default() });

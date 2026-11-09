@@ -1,0 +1,336 @@
+{
+  "transcript": [
+    {
+      "body": null,
+      "kind": "http",
+      "method": "PATCH",
+      "request": {
+        "shell": "/bin/sh"
+      },
+      "status": 204,
+      "url": "/api/experimental/config"
+    },
+    {
+      "kind": "note",
+      "label": "opencode.jsonc",
+      "value": "   {\n \"tool_output\": {\n\t\t\"max_lines\": 50,\n      \"max_bytes\": 4096 },\n        \"username\": \"dev\",\n        \"shell\": \"/bin/sh\" /* last */\n}\n"
+    },
+    {
+      "body": [
+        {
+          "info": {
+            "shell": "/bin/sh",
+            "tool_output": {
+              "max_bytes": 4096,
+              "max_lines": 50
+            },
+            "username": "dev"
+          },
+          "path": "<root>/config/opencode/opencode.jsonc",
+          "type": "document"
+        },
+        {
+          "path": "<root>/config/opencode",
+          "type": "directory"
+        },
+        {
+          "info": {
+            "agents": {
+              "build": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "compaction": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "explore": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "general": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "plan": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "summary": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              },
+              "title": {
+                "model": {
+                  "model": "deepseek/deepseek-v4.1-flash-1017",
+                  "providerID": "openrouter",
+                  "variant": "max"
+                }
+              }
+            },
+            "model": {
+              "model": "deepseek/deepseek-v4.1-flash-1017",
+              "providerID": "openrouter"
+            },
+            "permissions": [
+              {
+                "action": "experimental_image_generate",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "websearch",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_list_mcp_resources",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "opencode_read_mcp_resource",
+                "effect": "deny",
+                "resource": "*"
+              }
+            ],
+            "policies": [
+              {
+                "action": "provider.use",
+                "effect": "deny",
+                "resource": "*"
+              },
+              {
+                "action": "provider.use",
+                "effect": "allow",
+                "resource": "openrouter"
+              }
+            ],
+            "providers": {
+              "openrouter": {
+                "env": [
+                  "OPENROUTER_API_KEY"
+                ],
+                "models": {
+                  "deepseek/deepseek-v4.1-flash-1017": {
+                    "capabilities": {
+                      "input": [
+                        "text",
+                        "image/jpeg",
+                        "image/png",
+                        "image/gif",
+                        "image/webp"
+                      ],
+                      "output": [
+                        "text"
+                      ],
+                      "reasoning": {
+                        "effort": [
+                          "none",
+                          "low",
+                          "high",
+                          "max"
+                        ],
+                        "supported": true
+                      },
+                      "temperature": true,
+                      "tools": true
+                    },
+                    "family": "deepseek-flash",
+                    "limit": {
+                      "context": 1048576,
+                      "output": 393216
+                    },
+                    "name": "DeepSeek V4.1 Flash 1017",
+                    "package": "@opencode/ai/providers/openrouter"
+                  }
+                },
+                "name": "OpenRouter",
+                "package": "@opencode/ai/providers/openrouter",
+                "settings": {
+                  "baseURL": "https://openrouter.ai/api/v1"
+                }
+              }
+            },
+            "share": "disabled",
+            "update": "disable",
+            "websearch": false
+          },
+          "type": "document"
+        }
+      ],
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/config"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "config.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      }
+    ]
+  },
+  "files": {}
+}

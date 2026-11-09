@@ -229,6 +229,86 @@ export function randomMarkdown(rng: Rng): string {
   return text
 }
 
+/** Code samples per filetype: the grammars' own test corpora (corpus/code) and hand-written ones (code-extra.json,
+ * where `*` applies to every filetype). */
+export function codeSamples(): { filetype: string; name: string; code: string }[] {
+  const dir = join(here, "corpus/code")
+  const extra = JSON.parse(readFileSync(join(here, "corpus/code-extra.json"), "utf8"))
+  const out: { filetype: string; name: string; code: string }[] = []
+  for (const file of readdirSync(dir).sort()) {
+    const filetype = file.replace(/\.json$/, "")
+    const samples: string[] = [...JSON.parse(readFileSync(join(dir, file), "utf8")), ...(extra[filetype] ?? []), ...extra["*"]]
+    samples.forEach((code, i) => out.push({ filetype, name: `${filetype}#${i}`, code }))
+  }
+  // Aliases and a filetype with no parser.
+  for (const [alias, of] of [["javascriptreact", "javascript"], ["udiff", "diff"], ["patch", "diff"], ["makefile", "make"], ["nolang", "python"]]) {
+    const samples: string[] = JSON.parse(readFileSync(join(dir, `${of}.json`), "utf8")).slice(0, 6)
+    samples.forEach((code, i) => out.push({ filetype: alias!, name: `${alias}#${i}`, code }))
+  }
+  return out
+}
+
+/** Every unified diff in the conformance goldens (strings with a hunk header under any key). */
+export function goldenDiffs(): { name: string; diff: string }[] {
+  const root = join(port, "conformance/goldens")
+  const seen = new Set<string>()
+  const out: { name: string; diff: string }[] = []
+  const visit = (value: unknown, file: string) => {
+    if (typeof value === "string") {
+      if (/^@@ -\d/m.test(value) && !seen.has(value)) {
+        seen.add(value)
+        out.push({ name: file, diff: value })
+      }
+    } else if (Array.isArray(value)) value.forEach((v) => visit(v, file))
+    else if (value && typeof value === "object") Object.values(value).forEach((v) => visit(v, file))
+  }
+  for (const dir of readdirSync(root).sort()) {
+    if (dir === "_blobs") continue
+    const path = join(root, dir)
+    if (!statSync(path).isDirectory()) continue
+    for (const file of readdirSync(path).sort()) {
+      if (file.endsWith(".json")) visit(JSON.parse(readFileSync(join(path, file), "utf8")), `${dir}/${file}`)
+    }
+  }
+  return out
+}
+
+const LINES = ["const a = 1", "let b = 2;", "", "  indented", "\tTabbed", "function f() {", "}", "// comment", "日本語 ✓", "x".repeat(90), "return a + b", "import x from 'y'"]
+
+/** A random file pair diffed with jsdiff, then sometimes damaged the ways real patches are (headers, counts,
+ * markers, Git extended headers). */
+export function randomDiff(rng: Rng, jsdiff: any): string {
+  const old = Array.from({ length: rng.int(14) }, () => rng.pick(LINES))
+  const neu = old.flatMap((l) => (rng.chance(0.2) ? [] : rng.chance(0.2) ? [rng.pick(LINES), l] : [rng.chance(0.15) ? rng.pick(LINES) : l]))
+  if (rng.chance(0.3)) neu.push(rng.pick(LINES))
+  const a = old.join("\n") + (rng.chance(0.8) ? "\n" : "")
+  const b = neu.join("\n") + (rng.chance(0.8) ? "\n" : "")
+  let patch: string = jsdiff.createTwoFilesPatch(rng.pick(["a/x.ts", "src/file.py", "dir with space/f"]), rng.pick(["b/x.ts", "src/file.py"]), a, b, rng.pick(["", "old\theader"]), rng.pick(["", "new"]), { context: rng.int(4) })
+  const lines = patch.split("\n")
+  switch (rng.int(10)) {
+    case 0:
+      lines.unshift("diff --git a/x.ts b/x.ts", rng.pick(["index 83db48f..bf269f4 100644", "new file mode 100644", "deleted file mode 100755", "similarity index 90%\nrename from x.ts\nrename to y.ts", "old mode 100644\nnew mode 100755", "Binary files a/x and b/x differ"]))
+      break
+    case 1:
+      if (lines.length > 4) lines.splice(2 + rng.int(lines.length - 3), 1)
+      break
+    case 2:
+      lines.push(rng.pick(["+extra", " context", "-gone", "\\ No newline at end of file", "garbage"]))
+      break
+    case 3:
+      lines.splice(0, 2)
+      break
+    case 4:
+      lines.unshift('diff --git "a/tab\\tname" "b/tab\\tname"', "index 1..2 100644")
+      break
+    case 5:
+      return lines.filter((l) => !l.startsWith("===")).join("\n") + "\n" + patch
+    default:
+      break
+  }
+  return lines.join("\n")
+}
+
 /** Cut points for streaming a text: prefixes as a model would emit them. */
 export function streamSteps(rng: Rng, text: string): string[] {
   const steps: string[] = []

@@ -7,7 +7,14 @@
 //! converts it (text, bytes, form data, an array's parts, anything else as its string), and the body's default
 //! `content-type` when none is given. One 30 s timeout covers every hop and the body.
 //!
-//! TODO(port): Bun's wording for network failures (connection refused, DNS, TLS) is approximated.
+//! A request that fails below HTTP rejects with the `TypeError` Bun 1.4.2's fetch gives ([`network_error`]):
+//! `ConnectionRefused` (also for an unreachable proxy), `ENOTFOUND` (`getaddrinfo ENOTFOUND <host>`, with `syscall`
+//! and `hostname`), `ECONNRESET` (before or while the response is read), and the certificate failures under
+//! BoringSSL's codes and texts (`crate::llm::http`'s verifier tells webpki's unknown issuers apart), a hostname
+//! mismatch as `ERR_TLS_CERT_ALTNAME_INVALID fetching "<url>". ...`. The connection-refused, reset and certificate
+//! cases are proven by `scenarios/codemode-fetch-failures.test.ts`; the DNS text was recorded from Bun by hand, since
+//! resolving a name needs the network. Not reproduced: a proxy that refuses the `CONNECT` (Bun hands back the
+//! proxy's own response, the shared client fails the request).
 
 use std::cell::{Cell, RefCell};
 use std::future::Future;
@@ -437,16 +444,42 @@ async fn send(order: &Order, target: &str, request: &Request) -> Result<(http::R
     })
     .await;
     drop(turn);
-    response.map_err(|failure| {
-        let message = match failure.kind {
-            http::FailureKind::Refused | http::FailureKind::Unresolved => {
-                "Unable to connect. Is the computer able to access the url?".to_owned()
-            }
-            _ => failure.message,
-        };
-        error("Error", message)
-    })
+    response.map_err(|failure| network_error(&failure, &url))
 }
+
+/// The `TypeError` Bun's fetch rejects with when the request fails below HTTP (recorded from Bun 1.4.2): its message,
+/// then its own `code`, `path` (the URL) and `errno`, with `syscall` and `hostname` for a name that does not resolve.
+fn network_error(failure: &http::Failure, url: &url::Url) -> HostValue {
+    let path = url.as_str();
+    let fields = |code: &str| vec![(JsStr::from("code"), text(code)), (JsStr::from("path"), text(path)), (JsStr::from("errno"), HostValue::Num(0.0))];
+    let (message, fields) = match (failure.kind, failure.tls_code) {
+        (http::FailureKind::Refused, _) => ("Unable to connect. Is the computer able to access the url?".to_owned(), fields("ConnectionRefused")),
+        (http::FailureKind::Unresolved, _) => {
+            let host = url.host_str().unwrap_or_default();
+            let fields = vec![
+                (JsStr::from("code"), text("ENOTFOUND")),
+                (JsStr::from("path"), text(path)),
+                (JsStr::from("syscall"), text("getaddrinfo")),
+                (JsStr::from("hostname"), text(host)),
+                (JsStr::from("errno"), HostValue::Num(4.0)),
+            ];
+            (format!("getaddrinfo ENOTFOUND {host}"), fields)
+        }
+        (http::FailureKind::Closed, _) => (CLOSED.to_owned(), fields("ECONNRESET")),
+        (http::FailureKind::Tls, Some(code)) => {
+            let message = http::certificate_message(code).map(str::to_owned).unwrap_or_else(|| {
+                format!("{code} fetching {}. For more information, pass `verbose: true` in the second argument to fetch()", crate::json::text(&Json::String(path.to_owned())))
+            });
+            (message, fields(code))
+        }
+        _ => return error("Error", failure.message.clone()),
+    };
+    HostValue::Error(HostError { name: "TypeError".into(), message: JsStr::from(message), cause: None, fields })
+}
+
+/// Bun's words for a connection that ended before or while the response was read.
+const CLOSED: &str =
+    "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()";
 
 /// `read`: the body read whole, and the `Response`-like object the program gets.
 async fn read(fetched: Fetched) -> Result<HostValue, HostValue> {
@@ -456,7 +489,10 @@ async fn read(fetched: Fetched) -> Result<HostValue, HostValue> {
     let mut body = response.body;
     let mut bytes = Vec::new();
     while let Some(chunk) = body.next().await {
-        let chunk = chunk.map_err(|failure| error("Error", failure.message))?;
+        let chunk = chunk.map_err(|failure| match url::Url::parse(&url) {
+            Ok(parsed) => network_error(&failure, &parsed),
+            Err(_) => error("Error", failure.message),
+        })?;
         bytes.extend_from_slice(&chunk);
     }
     let headers = Rc::new(headers);

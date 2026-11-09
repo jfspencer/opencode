@@ -1,0 +1,40 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "uninstall"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Uninstall OpenCode",
+          "│",
+          "●  Installation method: unknown",
+          "│",
+          "│  The following global files will be removed (shared by OpenCode versions and channels):",
+          "│",
+          "●    Cache: <sandbox>/cache/opencode",
+          "│",
+          "▲  Could not detect the installation method. Remove the installation manually after cleanup.",
+          "│",
+          "■  Use --force to uninstall without an interactive terminal, or --dry-run to preview.",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cache exists",
+      "value": true
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

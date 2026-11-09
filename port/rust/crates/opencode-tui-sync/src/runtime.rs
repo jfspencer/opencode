@@ -29,6 +29,73 @@ pub fn set_clock(clock: Option<Rc<dyn Fn() -> f64>>) {
     CLOCK.with(|slot| *slot.borrow_mut() = clock);
 }
 
+thread_local! {
+    static RANDOM: RefCell<Option<Rc<dyn Fn(&mut [u8])>>> = const { RefCell::new(None) };
+}
+
+/// `crypto.getRandomValues(bytes)`.
+pub fn random(bytes: &mut [u8]) {
+    if let Some(source) = RANDOM.with(|r| r.borrow().clone()) {
+        return source(bytes);
+    }
+    getrandom::fill(bytes).expect("system random source");
+}
+
+/// Replaces the random source on this thread (`None` restores the system's).
+pub fn set_random(source: Option<Rc<dyn Fn(&mut [u8])>>) {
+    RANDOM.with(|slot| *slot.borrow_mut() = source);
+}
+
+/// Identifiers (packages/schema/src/identifier.ts): 12 hex digits of `timestamp * 0x1000 + counter` (negated for
+/// descending IDs), then 14 random base-62 characters.
+pub mod id {
+    use std::cell::Cell;
+
+    const CHARS: &[u8; 62] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    thread_local! {
+        static LAST: Cell<(u64, u64)> = const { Cell::new((0, 0)) };
+    }
+
+    pub fn create(descending: bool) -> String {
+        let timestamp = super::now() as u64;
+        let counter = LAST.with(|last| {
+            let (at, count) = last.get();
+            let count = if at == timestamp { count + 1 } else { 1 };
+            last.set((timestamp, count));
+            count
+        });
+        let current = (timestamp as u128) * 0x1000 + counter as u128;
+        let value = if descending { !current } else { current };
+        let mut out = String::with_capacity(26);
+        for index in 0..6 {
+            out.push_str(&format!("{:02x}", (value >> (40 - 8 * index)) & 0xff));
+        }
+        let mut bytes = [0u8; 14];
+        super::random(&mut bytes);
+        out.extend(bytes.iter().map(|b| CHARS[(*b % 62) as usize] as char));
+        out
+    }
+
+    /// `SessionID.create()`.
+    pub fn session() -> String {
+        format!("ses_{}", create(true))
+    }
+
+    /// `SessionMessage.ID.create()`.
+    pub fn message() -> String {
+        format!("msg_{}", create(false))
+    }
+
+    /// `SessionMessage.ID.fromEvent(eventID)`.
+    pub fn from_event(event: &str) -> String {
+        match event.strip_prefix("evt_") {
+            Some(rest) => format!("msg_{rest}"),
+            None => event.to_owned(),
+        }
+    }
+}
+
 /// Runs a future to completion in the background (`void promise`): a local task.
 pub fn spawn(future: impl Future<Output = ()> + 'static) {
     tokio::task::spawn_local(future);

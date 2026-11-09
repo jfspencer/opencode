@@ -20,9 +20,11 @@
 //! creation is one) waits until the update completes, after the render effects queued with it; a write inside a
 //! batch notifies at the end of the batch; cleanups run last-registered first, before a computation re-runs.
 pub mod flow;
+pub mod keyed;
 pub mod runtime;
 
 pub use flow::{Mapped, index_array, map_array, on};
+pub use keyed::KeyedSignals;
 pub use runtime::{
     Context, Dispose, Memo, Owner, Signal, batch, create_computed, create_computed_with, create_context, create_effect,
     create_effect_with, create_memo, create_memo_equals, create_memo_with, create_render_effect,

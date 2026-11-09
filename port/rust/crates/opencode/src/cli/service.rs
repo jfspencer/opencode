@@ -299,9 +299,11 @@ pub async fn set(key: &str, value: &str, nested: Option<&str>) -> Result<()> {
             if value != "true" && value != "false" {
                 return Err(Fail::error("Remote must be true or false"));
             }
+            // A tunnel that cannot be created leaves remote access off instead of a service that keeps retrying.
             if value == "true" {
-                // TODO(port): remote access through OpenTunnel (RemoteTunnel.ensure) is not ported.
-                return Err(Fail::error("Remote access is not available in this build"));
+                super::tunnel::ensure().await.map_err(super::tunnel::Failure::into_fail)?;
+                stop(false).await?;
+                return enable_remote().map(|_| ());
             }
             stop(false).await?;
             disable_remote()
@@ -350,6 +352,28 @@ pub async fn set(key: &str, value: &str, nested: Option<&str>) -> Result<()> {
             write_config(&config)
         }
     }
+}
+
+/// `ServiceConfig.remote()`: turns remote access on and returns its route, created once and kept so the remote URL
+/// survives restarts.
+pub fn enable_remote() -> Result<String> {
+    let mut config = read_config();
+    if let Some(route) = json::get(&config, "remote").and_then(|r| json::get_str(r, "route")) {
+        return Ok(route.to_owned());
+    }
+    let route = random_route();
+    let mut remote = Obj::new();
+    remote.str("route", &route);
+    json::set(&mut config, "remote", remote.done());
+    write_config(&config)?;
+    Ok(route)
+}
+
+/// `ServiceConfig.acceptRemote()`.
+pub fn accept_remote() -> Result<()> {
+    let mut config = read_config();
+    json::set(&mut config, "remoteAccepted", Json::Bool(true));
+    write_config(&config)
 }
 
 fn disable_remote() -> Result<()> {
@@ -595,15 +619,21 @@ async fn terminate(info: &Info, file: &str) -> Result<()> {
     Ok(())
 }
 
-fn handoff_file(file: &str) -> String {
-    format!("{file}.pty-handoff")
+/// `Service.stop` (`pty` unset or `"clear"`): any published terminal handoff is dropped.
+pub async fn stop_file(file: &str) -> Result<()> {
+    stop_with(file, false).await
 }
 
-/// `Service.stop` (with `pty: "clear"`, or `"handoff"` for a restart). TODO(port): persistent terminal handoff
-/// (`PtyHandoff.prepare`) belongs to the shell slice; a replaced service's terminals start fresh.
-pub async fn stop_file(file: &str) -> Result<()> {
+/// `Service.stop`; with `handoff` (`pty: "handoff"`: a ready service replaced, by `ensure` on a version mismatch or
+/// by the TUI's `managedService.restart`), its persistent terminals are handed to the replacement
+/// (`PtyHandoff.prepare`) before it stops.
+pub async fn stop_with(file: &str, handoff: bool) -> Result<()> {
     let info = read_registration(file);
-    let _ = std::fs::remove_file(handoff_file(file));
+    // Terminal handoff is best-effort; it must never keep the old service running.
+    match (&info, handoff) {
+        (Some(info), true) => super::pty_handoff::prepare(file, info, Duration::from_secs(2)).await,
+        _ => super::pty_handoff::clear(file),
+    }
     if let Some(info) = info {
         terminate(&info, file).await?;
     }
@@ -673,7 +703,7 @@ pub fn signal_name(signal: i32) -> String {
     }
 }
 
-fn spawn_contender(env: &[(String, String)]) -> Result<Contender> {
+fn spawn_contender(file: &str, env: &[(String, String)]) -> Result<Contender> {
     let executable = std::env::current_exe().map_err(|e| Fail::error(format!("Failed to start server: {e}")))?;
     let mut command = tokio::process::Command::new(executable);
     command
@@ -686,6 +716,11 @@ fn spawn_contender(env: &[(String, String)]) -> Result<Contender> {
     for (key, value) in env {
         command.env(key, value);
     }
+    // `PtyHandoff.environment`: the published ticket, which wins over (or removes) any configured one.
+    match super::pty_handoff::environment(file) {
+        Some(handoff) => command.env("OPENCODE_PTY_HANDOFF", handoff),
+        None => command.env_remove("OPENCODE_PTY_HANDOFF"),
+    };
     let mut child = command.spawn().map_err(|e| Fail::error(format!("Failed to start server: {e}")))?;
     let stderr = Arc::new(Mutex::new(Vec::new()));
     let eof = Arc::new(std::sync::atomic::AtomicBool::new(false));
@@ -787,7 +822,8 @@ pub async fn ensure(file: &str, version: Option<&str>, env: &[(String, String)],
                 timeouts = Some((info.clone(), count));
                 if count >= 3 {
                     announce("missing");
-                    let _ = std::fs::remove_file(handoff_file(file));
+                    // An unresponsive service cannot hand off its terminals.
+                    super::pty_handoff::clear(file);
                     terminate(info, file).await?;
                     pool.evict(info.pid);
                     pool.last_spawn = Some(Instant::now() - pool.spawn_delay);
@@ -800,13 +836,15 @@ pub async fn ensure(file: &str, version: Option<&str>, env: &[(String, String)],
             pool.spawn_delay = SPAWN_DELAY;
             if !matches_version(service.version.as_deref(), version) {
                 announce("version-mismatch");
-                let _ = stop_file(file).await;
+                // A ready service hands its persistent terminals to its replacement (`decide`'s `pty`).
+                let _ = stop_with(file, service.state == State::Ready).await;
                 pool.evict(service.info.pid);
             } else if !service.compatible {
                 return Err(Fail::error(
                     "Background service uses an incompatible health protocol. Update this client or explicitly restart the service.",
                 ));
             } else if service.state == State::Ready {
+                super::pty_handoff::complete(file, &service.info);
                 return Ok(service.info.endpoint());
             } else if service.state == State::Failed {
                 return Err(Fail::error("Background service failed to start"));
@@ -817,7 +855,7 @@ pub async fn ensure(file: &str, version: Option<&str>, env: &[(String, String)],
             }
             if pool.should_recruit(info.is_some()) {
                 announce("missing");
-                pool.contenders.push(spawn_contender(env)?);
+                pool.contenders.push(spawn_contender(file, env)?);
                 pool.last_spawn = Some(Instant::now());
             }
         }

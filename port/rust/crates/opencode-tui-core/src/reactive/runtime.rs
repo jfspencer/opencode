@@ -946,6 +946,10 @@ impl<T: 'static> Memo<T> {
         let value = read_signal(self.id);
         f(&unwrap_ref::<T>(&value).borrow())
     }
+
+    pub fn with_untracked<R>(&self, f: impl FnOnce(&T) -> R) -> R {
+        untrack(|| self.with(f))
+    }
 }
 
 fn memo_node<T: Clone + 'static>(f: impl FnMut(Option<T>) -> T + 'static, comparator: Option<Comparator>) -> Memo<T> {

@@ -33,6 +33,9 @@ pub enum Check {
     AtLeast(i64),
     Between(i64, i64),
     NonEmpty,
+    /// `pair --url`'s `Flag.mapTryCatch`: an HTTP(S) URL without credentials, query or fragment, its `href` without
+    /// trailing slashes.
+    PairingUrl,
 }
 
 #[derive(Clone, Debug)]
@@ -482,7 +485,10 @@ pub fn root() -> Command {
             ]),
             command("reload", "Reload configuration").globals(SERVER_FLAGS),
             command("pair", "Print one-time links to connect a browser or app").params(vec![
-                flag("url", Kind::Str).describe("Use an external HTTP(S) server URL in pairing links").optional(),
+                flag("url", Kind::Str)
+                    .check(Check::PairingUrl)
+                    .describe("Use an external HTTP(S) server URL in pairing links")
+                    .optional(),
                 flag("remote", Kind::Bool)
                     .describe(
                         "Pair through the OpenTunnel remote address, enabling remote access if needed (exposes the server to the internet)",

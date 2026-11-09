@@ -58,22 +58,14 @@ fn failure(message: impl Into<String>) -> Failure {
     Failure::Error(ToolError::new(message))
 }
 
-/// `errorMessage` of a file system failure.
+/// `errorMessage` of a file system failure: an `Environment.Failed` is its cause's message, the system error as
+/// Node words it (`EACCES: permission denied, open '<path>'`).
 fn error_message(error: &ReadError) -> String {
     match error {
         ReadError::NotFound => "file does not exist".into(),
         ReadError::WrongKind("directory") => "path is a directory".into(),
         ReadError::WrongKind(other) => format!("path is {other}"),
-        // TODO(port): the system error's own text (Node's `EACCES: permission denied, open '…'`).
-        ReadError::Failed => "the file system refused the operation".into(),
-    }
-}
-
-fn io_message(error: &std::io::Error) -> String {
-    match error.kind() {
-        std::io::ErrorKind::NotFound => "file does not exist".into(),
-        std::io::ErrorKind::IsADirectory => "path is a directory".into(),
-        _ => error_message(&ReadError::Failed),
+        ReadError::Failed(message) => message.clone(),
     }
 }
 
@@ -142,16 +134,16 @@ impl Patch {
         for change in &prepared {
             let target = change.move_target.as_ref().unwrap_or(&change.target);
             if change.change == Change::Delete {
-                if let Err(error) = std::fs::remove_file(&change.target.absolute) {
-                    return Err(fail(&applied, format!("Failed to delete {}", change.target.resource), io_message(&error)));
+                if let Err(message) = crate::fs::rm_force(&change.target.absolute) {
+                    return Err(fail(&applied, format!("Failed to delete {}", change.target.resource), message));
                 }
-            } else if let Err(error) = write(&target.absolute, &change.content) {
-                return Err(fail(&applied, format!("Failed to write {}", target.resource), io_message(&error)));
+            } else if let Err(message) = file_write::write_bytes(&target.absolute, change.content.as_bytes()) {
+                return Err(fail(&applied, format!("Failed to write {}", target.resource), message));
             }
             if let Some(moved) = &change.move_target {
-                if let Err(error) = std::fs::remove_file(&change.target.absolute) {
+                if let Err(message) = crate::fs::rm_force(&change.target.absolute) {
                     let operation = format!("Wrote {} but failed to remove {}", moved.resource, change.target.resource);
-                    return Err(fail(&applied, operation, io_message(&error)));
+                    return Err(fail(&applied, operation, message));
                 }
             }
             applied.push((change.change, target.resource.clone(), target.absolute.clone()));
@@ -195,13 +187,6 @@ impl Patch {
     }
 }
 
-/// `environment.files.write`: the parent directories created.
-fn write(path: &str, content: &str) -> std::io::Result<()> {
-    if let Some(parent) = std::path::Path::new(path).parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    std::fs::write(path, content.as_bytes())
-}
 
 /// `resolveTarget`: a hunk's path resolved as a file, its external directory approved.
 async fn resolve_target(context: &Context, path: &str) -> Result<Target, Failure> {

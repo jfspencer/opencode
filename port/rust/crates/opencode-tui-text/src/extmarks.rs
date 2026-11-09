@@ -364,6 +364,8 @@ pub(crate) mod wrapped {
 
     pub fn delete_char_backward(state: &SharedExtmarks, buffer: &EditBuffer) -> Result<(), TextError> {
         let current = buffer.get_cursor_position().offset as i64;
+        // TODO(port): with a selection the buffer still deletes one grapheme, but TS (and so this) shifts no
+        // extmark, which then lags the text; `deleteChar` below does the same.
         if current == 0 || has_selection(state, buffer) {
             buffer.raw_delete_char_backward()?;
             state.borrow_mut().save_snapshot();

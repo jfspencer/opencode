@@ -1,0 +1,220 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 1,
+        "stderr": [
+          "Setting up remote access; this can take a minute...",
+          "OpenTunnelClientError: Certificate issuance failed: DNS challenge timed out",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "false",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "{",
+          "  \"id\": \"tun_created\",",
+          "  \"hostname\": \"k7x2q.tunnel.example\",",
+          "  \"csr\": \"<csr 1 for k7x2q.tunnel.example>\"",
+          "}"
+        ],
+        "path": "<sandbox>/data/opentunnel/default/pending.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "tok_created",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/token"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "<private key 1>",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/private-key.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/data/opentunnel/default/tunnel.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "set",
+          "remote",
+          "true"
+        ],
+        "exit": 0,
+        "stderr": [
+          "Setting up remote access; this can take a minute...",
+          ""
+        ],
+        "stdout": ""
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": null,
+        "path": "<sandbox>/data/opentunnel/default/pending.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "{",
+          "  \"id\": \"tun_created\",",
+          "  \"hostname\": \"k7x2q.tunnel.example\",",
+          "  \"certificateExpiry\": \"<iso-time>\"",
+          "}"
+        ],
+        "path": "<sandbox>/data/opentunnel/default/tunnel.json"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "<private key 1>",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/private-key.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "file",
+      "value": {
+        "content": [
+          "-----BEGIN CERTIFICATE-----",
+          "MIIBconformance",
+          "-----END CERTIFICATE-----",
+          ""
+        ],
+        "path": "<sandbox>/data/opentunnel/default/certificate.pem"
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "service",
+          "get",
+          "remote"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdout": [
+          "true",
+          ""
+        ]
+      }
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "body": {},
+        "headers": {
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://opentunnel.xyz/api/tunnel"
+      },
+      {
+        "body": {
+          "csr": "<csr 1 for k7x2q.tunnel.example>"
+        },
+        "headers": {
+          "authorization": "Bearer tok_created",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_created/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_created"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_created/certificate"
+      },
+      {
+        "body": {
+          "csr": "<csr 1 for k7x2q.tunnel.example>"
+        },
+        "headers": {
+          "authorization": "Bearer tok_created",
+          "content-type": "application/json"
+        },
+        "kind": "other",
+        "method": "POST",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_created/certificate"
+      },
+      {
+        "headers": {
+          "authorization": "Bearer tok_created"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://opentunnel.xyz/api/tunnel/tun_created/certificate"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}
