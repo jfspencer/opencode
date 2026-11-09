@@ -13,11 +13,15 @@ use hyper_util::rt::TokioIo;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 
+pub use super::certificate::message as certificate_message;
+
 /// A transport failure below HTTP (`TransportError`'s native cause): what failed and the error's own words.
 #[derive(Debug, Clone)]
 pub struct Failure {
     pub kind: FailureKind,
     pub message: String,
+    /// What Bun's fetch calls a TLS failure (`DEPTH_ZERO_SELF_SIGNED_CERT`, ...), where it names one.
+    pub tls_code: Option<&'static str>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -35,7 +39,11 @@ pub enum FailureKind {
 
 impl Failure {
     fn new(kind: FailureKind, message: impl Into<String>) -> Self {
-        Self { kind, message: message.into() }
+        Self { kind, message: message.into(), tls_code: None }
+    }
+
+    fn tls(error: std::io::Error) -> Self {
+        Self { kind: FailureKind::Tls, message: error.to_string(), tls_code: super::certificate::code(&error) }
     }
 }
 
@@ -179,10 +187,14 @@ fn tls() -> &'static Arc<rustls::ClientConfig> {
         let found = rustls_native_certs::load_native_certs();
         roots.add_parsable_certificates(found.certs);
         let provider = Arc::new(rustls::crypto::ring::default_provider());
+        let verifier = rustls::client::WebPkiServerVerifier::builder_with_provider(Arc::new(roots), provider.clone())
+            .build()
+            .expect("certificate verifier");
         let mut config = rustls::ClientConfig::builder_with_provider(provider)
             .with_safe_default_protocol_versions()
             .expect("TLS versions")
-            .with_root_certificates(roots)
+            .dangerous()
+            .with_custom_certificate_verifier(Arc::new(super::certificate::Verifier(verifier)))
             .with_no_client_auth();
         config.alpn_protocols = vec![b"http/1.1".to_vec()];
         Arc::new(config)
@@ -274,7 +286,7 @@ pub async fn send(method: &str, url: &str, headers: &[(String, String)], body: S
         let tls = tokio_rustls::TlsConnector::from(tls().clone())
             .connect(name, stream)
             .await
-            .map_err(|e| Failure::new(FailureKind::Tls, e.to_string()))?;
+            .map_err(Failure::tls)?;
         let (sender, connection) = handshake(tls).await?;
         (sender, connection, target.path.clone())
     } else {
@@ -336,7 +348,7 @@ pub async fn request(
         let tls = tokio_rustls::TlsConnector::from(tls().clone())
             .connect(name, stream)
             .await
-            .map_err(|e| Failure::new(FailureKind::Tls, e.to_string()))?;
+            .map_err(Failure::tls)?;
         let (sender, connection) = handshake(Flushed { inner: tls, wrote: false, written }).await?;
         (sender, connection, target.path.clone())
     } else {

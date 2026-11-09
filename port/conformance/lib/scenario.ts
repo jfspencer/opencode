@@ -76,6 +76,13 @@ export interface ScenarioOptions {
    * what only a real listener has, like WebSocket upgrades (`ctx.socket`).
    */
   readonly processOnly?: string
+  /**
+   * Outbound requests the implementation sends concurrently, so that their arrival order is timing (an npm
+   * install's prefetched packuments and its tarball downloads). Within each recorded group, the requests the
+   * predicate matches keep the positions they arrived in but fill them in a fixed order (by their recorded form):
+   * they are compared as a multiset. Default: every request is compared in arrival order.
+   */
+  readonly unordered?: (request: { readonly method: string; readonly url: string }) => boolean
 }
 
 /** One frame a WebSocket received: text as sent, binary as bytes. */
@@ -487,7 +494,7 @@ async function run(file: string, name: string, options: ScenarioOptions, body: (
   })
   const normalizedTranscript = normalize.value(transcript)
   const normalizedProvider = normalize.value(
-    groupBy(provider.requests.filter(inScopeRequest), requestGroup, stripIndex),
+    unorder(groupBy(provider.requests.filter(inScopeRequest), requestGroup, stripIndex), options.unordered),
   )
   const recorded = options.events === false ? [] : coalesce(events.filter(keepEvent))
   const grouped = groupBy(recorded, eventGroup, (event) => event)
@@ -585,6 +592,24 @@ function groupBy<T>(items: readonly T[], key: (item: T) => string, map: (item: T
 }
 
 const stripIndex = ({ index: _index, ...request }: { index: number } & Record<string, unknown>) => request
+
+/** `ScenarioOptions.unordered`: the matching requests of each group refill their own positions in a fixed order. */
+function unorder(groups: Record<string, unknown[]>, unordered: ScenarioOptions["unordered"]) {
+  if (!unordered) return groups
+  const out: Record<string, unknown[]> = {}
+  for (const [key, requests] of Object.entries(groups)) {
+    const matches = (request: unknown) => unordered(request as { method: string; url: string })
+    const slots = requests.flatMap((request, index) => (matches(request) ? [index] : []))
+    const sorted = slots
+      .map((slot) => [JSON.stringify(requests[slot]), requests[slot]] as const)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([, request]) => request)
+    const list = [...requests]
+    slots.forEach((slot, k) => (list[slot] = sorted[k]))
+    out[key] = list
+  }
+  return out
+}
 
 function requestGroup(request: { kind: string; body: unknown }) {
   const session = (request.body as { prompt_cache_key?: unknown } | undefined)?.prompt_cache_key

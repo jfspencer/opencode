@@ -630,42 +630,94 @@ pub fn unwatch(location: &Location, file: &str) {
 
 /// The message Node gives a failed file system call: `ENOTDIR: not a directory, mkdir '<path>'`.
 pub fn node_error(error: &std::io::Error, syscall: &str, path: &str) -> String {
-    let (code, description) = match error.raw_os_error() {
-        Some(1) => ("EPERM", "operation not permitted"),
-        Some(2) => ("ENOENT", "no such file or directory"),
-        Some(5) => ("EIO", "i/o error"),
-        Some(13) => ("EACCES", "permission denied"),
-        Some(16) => ("EBUSY", "resource busy or locked"),
-        Some(17) => ("EEXIST", "file already exists"),
-        Some(18) => ("EXDEV", "cross-device link not permitted"),
-        Some(20) => ("ENOTDIR", "not a directory"),
-        Some(21) => ("EISDIR", "illegal operation on a directory"),
-        Some(22) => ("EINVAL", "invalid argument"),
-        Some(24) => ("EMFILE", "too many open files"),
-        Some(28) => ("ENOSPC", "no space left on device"),
-        Some(30) => ("EROFS", "read-only file system"),
-        Some(36) => ("ENAMETOOLONG", "name too long"),
-        Some(39) => ("ENOTEMPTY", "directory not empty"),
-        Some(40) => ("ELOOP", "too many symbolic links encountered"),
-        Some(122) => ("EDQUOT", "disk quota exceeded"),
-        _ => return format!("{error}, {syscall} '{path}'"),
+    match node_code(error) {
+        Some((code, description)) => format!("{code}: {description}, {syscall} '{path}'"),
+        None => format!("{error}, {syscall} '{path}'"),
+    }
+}
+
+/// The message of a failed call Node reports without a path (`write` on an open file): `ENOSPC: no space left on
+/// device, write`.
+pub fn node_call_error(error: &std::io::Error, syscall: &str) -> String {
+    match node_code(error) {
+        Some((code, description)) => format!("{code}: {description}, {syscall}"),
+        None => format!("{error}, {syscall}"),
+    }
+}
+
+/// libuv's code and description of an OS error.
+fn node_code(error: &std::io::Error) -> Option<(&'static str, &'static str)> {
+    Some(match error.raw_os_error()? {
+        1 => ("EPERM", "operation not permitted"),
+        2 => ("ENOENT", "no such file or directory"),
+        5 => ("EIO", "i/o error"),
+        13 => ("EACCES", "permission denied"),
+        16 => ("EBUSY", "resource busy or locked"),
+        17 => ("EEXIST", "file already exists"),
+        18 => ("EXDEV", "cross-device link not permitted"),
+        20 => ("ENOTDIR", "not a directory"),
+        21 => ("EISDIR", "illegal operation on a directory"),
+        22 => ("EINVAL", "invalid argument"),
+        24 => ("EMFILE", "too many open files"),
+        26 => ("ETXTBSY", "text file is busy"),
+        27 => ("EFBIG", "file too large"),
+        28 => ("ENOSPC", "no space left on device"),
+        30 => ("EROFS", "read-only file system"),
+        36 => ("ENAMETOOLONG", "name too long"),
+        39 => ("ENOTEMPTY", "directory not empty"),
+        40 => ("ELOOP", "too many symbolic links encountered"),
+        122 => ("EDQUOT", "disk quota exceeded"),
+        _ => return None,
+    })
+}
+
+/// `fs.mkdir(dir, { recursive: true })` as Bun runs it, failing with Node's message: a missing parent is created
+/// first, an existing directory is fine, and the message names the directory whose creation failed (`mkdir
+/// '/p/ro/a'` for `/p/ro/a/b/c` under a read-only `/p/ro`).
+pub fn mkdir_recursive(dir: &str) -> Result<(), String> {
+    let exists = |error: &std::io::Error| error.kind() == std::io::ErrorKind::AlreadyExists && Path::new(dir).is_dir();
+    match std::fs::create_dir(dir) {
+        Ok(()) => Ok(()),
+        Err(error) if exists(&error) => Ok(()),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            match Path::new(dir).parent().and_then(Path::to_str) {
+                Some(parent) if !parent.is_empty() && parent != dir => mkdir_recursive(parent)?,
+                _ => return Err(node_error(&error, "mkdir", dir)),
+            }
+            match std::fs::create_dir(dir) {
+                Err(error) if !exists(&error) => Err(node_error(&error, "mkdir", dir)),
+                _ => Ok(()),
+            }
+        }
+        Err(error) => Err(node_error(&error, "mkdir", dir)),
+    }
+}
+
+/// `fs.writeFile(path, bytes)`, failing with Node's message (`open '<path>'`, or `write` once it is open).
+pub fn write_file(path: &str, bytes: &[u8]) -> Result<(), String> {
+    use std::io::Write;
+    let mut file = std::fs::File::create(path).map_err(|error| node_error(&error, "open", path))?;
+    file.write_all(bytes).map_err(|error| node_call_error(&error, "write"))
+}
+
+/// `fs.rm(path, { recursive: true, force: true })`, failing with Node's message (`rm '<path>'`): a missing path is
+/// fine, a directory goes with its contents.
+pub fn rm_force(path: &str) -> Result<(), String> {
+    let missing = |error: &std::io::Error| error.kind() == std::io::ErrorKind::NotFound;
+    let removed = match std::fs::symlink_metadata(path) {
+        Err(error) if missing(&error) => return Ok(()),
+        Err(error) => Err(error),
+        Ok(info) if info.is_dir() => std::fs::remove_dir_all(path),
+        Ok(_) => std::fs::remove_file(path),
     };
-    format!("{code}: {description}, {syscall} '{path}'")
+    match removed {
+        Err(error) if !missing(&error) => Err(node_error(&error, "rm", path)),
+        _ => Ok(()),
+    }
 }
 
 const DAYS: [&str; 7] = ["Thu", "Fri", "Sat", "Sun", "Mon", "Tue", "Wed"];
 const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/// Days since the epoch of a civil date (Howard Hinnant's algorithm).
-fn days_from_civil(year: i64, month: i64, day: i64) -> i64 {
-    let year = if month <= 2 { year - 1 } else { year };
-    let era = year.div_euclid(400);
-    let yoe = year - era * 400;
-    let mp = (month + 9) % 12;
-    let doy = (153 * mp + 2) / 5 + day - 1;
-    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
-    era * 146_097 + doe - 719_468
-}
 
 fn civil_from_days(days: i64) -> (i64, i64, i64) {
     let z = days + 719_468;
@@ -707,80 +759,13 @@ pub fn utc_iso(ms: i64) -> String {
     )
 }
 
-/// `Date.parse` for the forms HTTP clients send (IMF-fixdate, RFC 850, asctime) and ISO 8601; `None` is `NaN`.
-/// TODO(port): the rest of JavaScriptCore's lenient date grammar.
+/// `Date.parse(input)`: JavaScriptCore's whole lenient grammar (ISO 8601, then the legacy forms HTTP clients and
+/// people write), through the Code Mode interpreter's port of it (`opencode_codemode::jsdate`, checked against Bun
+/// by its `harness/jsdate`). A date without a zone is local time, as in TS. `None` is `NaN`.
 pub fn parse_date(input: &str) -> Option<i64> {
-    let text = crate::text::trim(input);
-    if let Some(ms) = parse_iso(text) {
-        return Some(ms);
-    }
-    let tokens: Vec<&str> = text.split(|c: char| c == ' ' || c == ',' || c == '-').filter(|t| !t.is_empty()).collect();
-    let month_of = |t: &str| MONTHS.iter().position(|m| m.eq_ignore_ascii_case(t.get(..3).unwrap_or(""))).map(|i| i as i64 + 1);
-    let mut day = None;
-    let mut month = None;
-    let mut year = None;
-    let mut time = None;
-    let mut offset = 0i64;
-    const WEEKDAYS: [&str; 7] = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-    for token in tokens {
-        let alphabetic = token.chars().all(|c| c.is_ascii_alphabetic());
-        if token.contains(':') {
-            let parts: Vec<i64> = token.split(':').map(|p| p.parse().ok()).collect::<Option<_>>()?;
-            time = Some((parts[0], *parts.get(1)?, parts.get(2).copied().unwrap_or(0)));
-        } else if let Ok(number) = token.parse::<i64>() {
-            if day.is_none() && token.len() <= 2 {
-                day = Some(number);
-            } else if year.is_none() {
-                year = Some(if token.len() <= 2 { if number < 50 { 2000 + number } else { 1900 + number } } else { number });
-            } else {
-                return None;
-            }
-        } else if let Some(m) = month_of(token).filter(|_| alphabetic && token.len() >= 3) {
-            month = Some(m);
-        } else if ["GMT", "UTC", "UT", "Z"].iter().any(|z| z.eq_ignore_ascii_case(token)) {
-        } else if let Some((sign, digits)) = token.strip_prefix('+').map(|r| (1, r)).or_else(|| token.strip_prefix('-').map(|r| (-1, r))) {
-            let digits: i64 = digits.parse().ok()?;
-            offset = sign * ((digits / 100) * 60 + digits % 100);
-        } else if !(alphabetic && token.len() >= 3 && WEEKDAYS.iter().any(|d| d.eq_ignore_ascii_case(&token[..3]))) {
-            return None;
-        }
-    }
-    let (hour, minute, second) = time.unwrap_or((0, 0, 0));
-    let (day, month, year) = (day?, month?, year?);
-    if !(1..=31).contains(&day) || hour > 24 || minute > 59 || second > 59 {
-        return None;
-    }
-    Some((days_from_civil(year, month, day) * 86_400 + hour * 3600 + minute * 60 + second - offset * 60) * 1000)
-}
-
-fn parse_iso(text: &str) -> Option<i64> {
-    let bytes = text.as_bytes();
-    if bytes.len() < 10 || bytes[4] != b'-' || bytes[7] != b'-' {
-        return None;
-    }
-    let number = |range: std::ops::Range<usize>| text.get(range).and_then(|t| t.parse::<i64>().ok());
-    let (year, month, day) = (number(0..4)?, number(5..7)?, number(8..10)?);
-    let mut ms = days_from_civil(year, month, day) * 86_400_000;
-    let rest = &text[10..];
-    if rest.is_empty() {
-        return Some(ms);
-    }
-    let rest = rest.strip_prefix('T')?;
-    let (clock, zone) = match rest.find(['Z', '+', '-']) {
-        Some(index) => (&rest[..index], &rest[index..]),
-        None => (rest, ""),
-    };
-    let (hms, fraction) = clock.split_once('.').unwrap_or((clock, ""));
-    let parts: Vec<i64> = hms.split(':').map(|p| p.parse().ok()).collect::<Option<_>>()?;
-    ms += parts.first()? * 3_600_000 + parts.get(1)? * 60_000 + parts.get(2).copied().unwrap_or(0) * 1000;
-    if !fraction.is_empty() {
-        ms += format!("{:0<3}", &fraction[..fraction.len().min(3)]).parse::<i64>().ok()?;
-    }
-    if let Some(offset) = zone.strip_prefix('+').map(|r| (-1, r)).or_else(|| zone.strip_prefix('-').map(|r| (1, r))) {
-        let (h, m) = offset.1.split_once(':').unwrap_or((offset.1, "0"));
-        ms += offset.0 * (h.parse::<i64>().ok()? * 3_600_000 + m.parse::<i64>().ok()? * 60_000);
-    }
-    Some(ms)
+    let utf16: Vec<u16> = input.encode_utf16().collect();
+    let ms = opencode_codemode::jsdate::parse(&utf16);
+    (!ms.is_nan()).then_some(ms as i64)
 }
 
 #[cfg(test)]
@@ -794,6 +779,10 @@ mod tests {
         assert_eq!(parse_date("Fri, 02 Jan 2026 00:00:00 GMT"), Some(1_767_312_000_000));
         assert_eq!(parse_date("not a date"), None);
         assert_eq!(parse_date("2026-01-01T00:00:00Z"), Some(1_767_225_600_000));
+        // The legacy grammar: asctime, RFC 850, a bare month name with a zone.
+        assert_eq!(parse_date("Thu Jan  1 00:00:00 UTC 2026"), Some(1_767_225_600_000));
+        assert_eq!(parse_date("Thursday, 01-Jan-26 00:00:00 GMT"), Some(1_767_225_600_000));
+        assert_eq!(parse_date("Jan 1 2026 01:00 +0100"), Some(1_767_225_600_000));
     }
 
     #[test]

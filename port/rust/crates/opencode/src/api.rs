@@ -105,14 +105,23 @@ fn decode(request: &Request) -> Result<Decoded> {
     }
     let payload = match route.payload.first() {
         Some(body) if body.kind == BodyKind::Json => {
-            let text = std::str::from_utf8(&request.body).unwrap_or("");
-            // An empty body decodes as `undefined`, which reports as `null` does; a body that is not JSON is
-            // HttpApiBuilder's own rejection. TODO(port): confirm its `kind` against the TS server.
-            let value = if text.trim().is_empty() {
+            // The request's text as Bun decodes it (invalid UTF-8 replaced, one leading BOM dropped). Only an empty
+            // text is no body: it decodes as `undefined`, which reports as `null` does. A text JSON.parse refuses
+            // (white space only included) is HttpApiBuilder's own rejection, of kind `Payload` as for a schema issue.
+            let text = String::from_utf8_lossy(&request.body);
+            let text = text.strip_prefix('\u{feff}').unwrap_or(&text);
+            let mut value = if text.is_empty() {
                 Json::Null
             } else {
                 json::parse(text).ok_or_else(|| Failure::invalid("Expected a valid JSON body", None, Some("Payload")))?
             };
+            // `ImportedMessages`: an import's messages are plain JSON on the wire, upgraded from the names they had
+            // before v2.1 (`SessionLegacy.messages`) and only then decoded as current messages.
+            if route.operation == "experimental.session.import" {
+                if let Some(Json::Array(messages)) = json::get_mut(&mut value, "messages") {
+                    *messages = crate::session::transfer::legacy_messages(messages);
+                }
+            }
             decode_part("Payload", body.ty, value)?
         }
         Some(body) if body.kind == BodyKind::Query => decode_part("Payload", body.ty, request.query_tree())?,

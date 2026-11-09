@@ -219,19 +219,8 @@ pub async fn handle(app: &App, request: &Request, decoded: Decoded, _located: Op
                 },
                 None => LocationRef::directory(app.cwd.clone()),
             };
-            // Transcripts exported before v2.1 carry older names for native data: decoding upgrades them first.
-            let mut payload = decoded.payload.clone();
-            let raw = std::str::from_utf8(&request.body).ok().and_then(json::parse);
-            if let Some(Json::Array(messages)) = raw.as_ref().and_then(|raw| json::get(raw, "messages")) {
-                let upgraded: Option<Vec<Json>> = session::transfer::legacy_messages(messages)
-                    .iter()
-                    .map(|message| t::SessionMessageInfo::decode(message).ok().map(|info| json::of(&info)))
-                    .collect();
-                if let Some(upgraded) = upgraded {
-                    json::set(&mut payload, "messages", Json::Array(upgraded));
-                }
-            }
-            let stored = session::transfer::import(app, &payload, location).await?;
+            // Transcripts exported before v2.1 were upgraded before decoding (`api::decode`).
+            let stored = session::transfer::import(app, &decoded.payload, location).await?;
             Ok(data(stored.wire()))
         }
         "experimental.session.export" => {
