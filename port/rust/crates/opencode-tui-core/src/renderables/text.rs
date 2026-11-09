@@ -32,7 +32,7 @@ pub fn text_context() -> TextContext {
     crate::pool::context()
 }
 
-fn default_options() -> SceneTextOptions {
+pub(crate) fn default_options() -> SceneTextOptions {
     SceneTextOptions {
         fg: RGBA::from_values(1.0, 1.0, 1.0, 1.0).0,
         bg: RGBA::from_values(0.0, 0.0, 0.0, 0.0).0,
@@ -63,6 +63,11 @@ pub struct TextKind {
 }
 
 impl TextKind {
+    /// A text kind on `scene` (for TextRenderable subclasses that make their own scene text).
+    pub fn new(scene: Rc<RefCell<SceneText>>, options: SceneTextOptions, manual: bool) -> TextKind {
+        TextKind { scene, options, dirty: false, manual, last_local: None, selection_bg: None, selection_fg: None }
+    }
+
     /// `updateLocalSelection(localSelection, isStart)` on the scene text.
     fn update_local_selection(&mut self, local: Option<LocalSelection>, is_start: bool) -> bool {
         let (bg, fg) = (self.selection_bg.map(|c| c.0), self.selection_fg.map(|c| c.0));
@@ -259,16 +264,7 @@ pub fn create_text_with(wrap: impl FnOnce(TextKind) -> Box<dyn Kind>) -> Element
     let scene = Rc::new(RefCell::new(SceneText::new(crate::renderer::width_method(), &text_context())));
     let options = default_options();
     let measured = scene.clone();
-    let kind = TextKind {
-        scene,
-        options,
-        dirty: false,
-        manual: false,
-        last_local: None,
-        selection_bg: None,
-        selection_fg: None,
-    };
-    let el = tree::create(wrap(kind), "text", false);
+    let el = tree::create(wrap(TextKind::new(scene, options, false)), "text", false);
     el.set_selectable(true);
     el.with_kind::<TextKind, _>(|k| {
         let _ = k.scene.borrow_mut().set_options(k.options, || [None, None]);

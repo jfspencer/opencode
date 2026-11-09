@@ -55,6 +55,13 @@ export class Generator {
       return { op: "status", value: "connected" }
     }
     if (this.random.bool(0.06)) return this.retention()
+    // Mostly while a page of history is in flight, and mostly the newest signal (the one paging).
+    const paging = pending.some((entry) => entry.request.recorded.url.includes("cursor="))
+    if (this.signals.length && this.random.bool(paging ? 0.25 : 0.02)) {
+      const at = this.random.bool(0.7) ? this.signals.length - 1 : this.random.int(this.signals.length)
+      const signal = this.signals.splice(at, 1)[0]
+      return { op: "abort", signal, reason: this.random.bool(0.8) ? { name: "AbortError" } : { name: "Error", message: "moved on" } }
+    }
     if (pending.length && roll < 0.38) return this.answer(pending)
     if (roll < 0.7) return { op: "events", events: Array.from({ length: 1 + this.random.int(3) }, () => this.event()) }
     if (roll < 0.9) return this.call()
@@ -66,6 +73,9 @@ export class Generator {
   }
 
   private retained = false
+  private lastSignal = 0
+  private signals: number[] = []
+  private paged = new Set<string>()
 
   // Session retention (created once, then navigated) and the context-usage selection.
   private retention(): Step {
@@ -137,11 +147,14 @@ export class Generator {
       if (this.random.bool(0.1)) return this.notFound(index, session)
       return this.json(index, 200, { data: this.info(session) })
     }
-    if (segments[2] === "message" && segments.length === 3)
+    if (segments[2] === "message" && segments.length === 3) {
+      const more = this.random.bool(0.4)
+      if (more) this.paged.add(session)
       return this.json(index, 200, {
         data: this.history(session, query.get("cursor") !== null).reverse(),
-        cursor: this.random.bool(0.4) ? { next: `cursor_${this.counter}` } : {},
+        cursor: more ? { next: `cursor_${this.counter}` } : {},
       })
+    }
     if (segments[2] === "message" && segments.length === 4) {
       if (this.random.bool(0.2)) return this.json(index, 404, { _tag: "MessageNotFoundError", sessionID: session, messageID: segments[3], message: "not found" })
       return this.json(index, 200, { data: { id: segments[3], type: "model-switched", model: MODEL, time: { created: this.now } } })
@@ -428,8 +441,22 @@ export class Generator {
         return call("session.message.sync", session)
       case 3:
         return call("session.pending.sync", session)
-      case 4:
-        return call("session.message.loadMore", session, ...(this.random.bool(0.3) ? [{ all: true }] : []))
+      case 4: {
+        // The TUI's backfill passes a signal it aborts when the view moves on (an `abort` step); mostly a session
+        // with more history to page through.
+        const paged = [...this.paged]
+        const target = paged.length && this.random.bool(0.6) ? this.random.pick(paged) : session
+        const options: Record<string, unknown> = this.random.bool(0.3) ? { all: true } : {}
+        if (this.random.bool(0.5)) {
+          const id = ++this.lastSignal
+          if (this.random.bool(0.15)) options.signal = { $signal: id, aborted: { name: "AbortError" } }
+          else {
+            options.signal = { $signal: id }
+            this.signals.push(id)
+          }
+        }
+        return call("session.message.loadMore", target, ...(Object.keys(options).length || this.random.bool(0.5) ? [options] : []))
+      }
       case 5:
         return call("session.permission.sync", session)
       case 6:

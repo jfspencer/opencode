@@ -5,6 +5,7 @@ use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
 use opencode_protocol::Json;
+use opencode_tui_sync::abort::{AbortController, AbortSignal, Reason};
 use opencode_tui_sync::bus::Emitter;
 use opencode_tui_sync::client::Error;
 use opencode_tui_sync::connection::Status;
@@ -46,6 +47,32 @@ impl ConnectionState for Stub {
     }
 }
 
+thread_local! {
+    /// Recorded calls name AbortSignals `{ "$signal": n }`; an `abort` step aborts one.
+    static SIGNALS: RefCell<std::collections::HashMap<u64, AbortController>> = RefCell::default();
+}
+
+fn controller(id: u64) -> AbortController {
+    SIGNALS.with(|signals| signals.borrow_mut().entry(id).or_default().clone())
+}
+
+/// The recorded reason: the default `AbortError` is `abort()` without one.
+fn abort_reason(reason: Option<&Json>) -> Option<Reason> {
+    reason.filter(|reason| get_str(reason, "name") != Some("AbortError")).map(env::reason)
+}
+
+fn signal_of(value: Option<&Json>) -> Option<AbortSignal> {
+    let value = value?;
+    let id = get(value, "$signal").and_then(num)? as u64;
+    let found = controller(id);
+    if let Some(aborted) = get(value, "aborted") {
+        if !found.signal().aborted() {
+            found.abort(abort_reason(Some(aborted)));
+        }
+    }
+    Some(found.signal().clone())
+}
+
 fn parse_status(text: &str) -> Status {
     match text {
         "connected" => Status::Connected,
@@ -54,7 +81,8 @@ fn parse_status(text: &str) -> Status {
     }
 }
 
-/// The request a respond step names: an index, "last", or the first unsettled one matching `METHOD path`.
+/// The request a respond step names: an index, "last", or the first unsettled one whose `METHOD path?query` starts
+/// with `match` (or is `match`, with `exact`).
 pub fn request_index(script: &Script, target: Option<&Json>) -> Option<usize> {
     let requests = script.requests.borrow();
     match target? {
@@ -62,13 +90,15 @@ pub fn request_index(script: &Script, target: Option<&Json>) -> Option<usize> {
         Json::String(last) if last == "last" => requests.len().checked_sub(1),
         target => {
             let wanted = target.str("match")?;
+            let exact = target.bool("exact").unwrap_or(false);
             requests.iter().position(|pending| {
                 if pending.settled.get() {
                     return false;
                 }
                 let url = url::Url::parse(&pending.recorded.url).ok();
                 let path = url.map(|u| format!("{}{}", u.path(), u.query().map(|q| format!("?{q}")).unwrap_or_default())).unwrap_or_default();
-                format!("{} {path}", pending.recorded.method).starts_with(wanted)
+                let key = format!("{} {path}", pending.recorded.method);
+                if exact { key == wanted } else { key.starts_with(wanted) }
             })
         }
     }
@@ -209,7 +239,8 @@ fn dispatch(data: &Data, path: &str, args: &[Json]) -> Result<Returned, String> 
         "session.message.sync" => unit(session.message.sync(&s(0))),
         "session.message.loadMore" => {
             let all = args.get(1).and_then(|o| o.bool("all")).unwrap_or(false);
-            unit(session.message.load_more(&s(0), LoadMoreOptions { all, ..Default::default() }))
+            let signal = signal_of(args.get(1).and_then(|o| o.get("signal")));
+            unit(session.message.load_more(&s(0), LoadMoreOptions { all, signal, ..Default::default() }))
         }
         "session.message.invalidate" => {
             session.message.invalidate(&s(0));
@@ -290,6 +321,7 @@ fn failure(error: &Error) -> Json {
 }
 
 pub async fn run(spec: &Json, script: &Rc<Script>) -> Json {
+    SIGNALS.with(|signals| signals.borrow_mut().clear());
     let client = crate::make_client(&obj(vec![]), script).with_media_refs();
     let stub = Rc::new(Stub::default());
     stub.set(parse_status(get_str(spec, "status").unwrap_or("connected")));
@@ -357,8 +389,12 @@ pub async fn run(spec: &Json, script: &Rc<Script>) -> Json {
             }
             "fail" => {
                 if let Some(index) = request_index(script, get(step, "request")) {
-                    script.fail(index, get(step, "error").map(env::reason).unwrap_or(opencode_tui_sync::abort::Reason::error("")));
+                    script.fail(index, get(step, "error").map(env::reason).unwrap_or(Reason::error("")));
                 }
+            }
+            "abort" => {
+                let id = get(step, "signal").and_then(num).unwrap_or(0.0) as u64;
+                controller(id).abort(abort_reason(get(step, "reason")));
             }
             "status" => stub.set(parse_status(get_str(step, "value").unwrap_or(""))),
             "retain" => {

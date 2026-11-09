@@ -232,13 +232,15 @@ impl Transport for ScriptTransport {
     }
 }
 
-/// Marks a request closed when its pending fetch is dropped (aborted) before the response.
+/// Marks a request closed when its pending fetch is dropped (aborted) before the response, and settled: as the TS
+/// script's abort listener does, so no later step answers it.
 struct PendingGuard(Option<Rc<Pending>>);
 
 impl Drop for PendingGuard {
     fn drop(&mut self) {
         if let Some(pending) = self.0.take() {
             pending.closed.set(true);
+            pending.settled.set(true);
         }
     }
 }

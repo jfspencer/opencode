@@ -699,11 +699,13 @@ dependencies = [
  "opencode-protocol",
  "opencode-tui-core",
  "opencode-tui-input",
+ "opencode-tui-markup",
  "opencode-tui-sync",
  "opencode-tui-text",
  "regex",
  "sha1",
  "tokio",
+ "unicode-normalization",
 ]
 
 [[package]]
@@ -744,7 +746,6 @@ dependencies = [
  "hyper",
  "hyper-util",
  "indexmap",
- "libc",
  "opencode-protocol",
  "rustls",
  "rustls-native-certs",
