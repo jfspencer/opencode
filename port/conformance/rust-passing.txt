@@ -348,6 +348,7 @@ scenarios/session-api-failures.test.ts › a step stopped by the content filter
 scenarios/session-api-failures.test.ts › interrupt a session while it waits to retry
 scenarios/session-api-failures.test.ts › provider failures become session errors
 scenarios/session-api-failures.test.ts › title generation edge cases
+scenarios/session-api-failures.test.ts › tool failures and permission rejections
 scenarios/session-api-inputs.test.ts › an inline attachment over the size limit
 scenarios/session-api-inputs.test.ts › attachments the model cannot read
 scenarios/session-api-inputs.test.ts › background a blocking shell tool
