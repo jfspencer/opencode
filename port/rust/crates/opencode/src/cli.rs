@@ -10,6 +10,7 @@
 //! default command), `--wizard`; see `dispatch`.
 
 mod auth;
+mod prompt;
 mod acp;
 mod client;
 mod commands;

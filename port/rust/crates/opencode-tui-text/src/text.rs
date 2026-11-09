@@ -758,6 +758,7 @@ impl TextBufferView {
 
     /// Prepares the layout and passes what drawing reads (as `buffer.zig`'s `drawTextBufferInternal` does
     /// through the view). `draw_y` is the row the view is drawn at (hit-testing and alignment read it).
+    /// `drawTextViewOn` calls this only when the origin is inside the target (`x < width && y < height`).
     pub fn draw<R>(&self, draw_y: i32, f: impl FnOnce(&DrawSource) -> R) -> R {
         let mut s = self.shared.borrow_mut();
         let (tb, view) = s.view(self.index);

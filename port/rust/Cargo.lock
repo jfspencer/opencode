@@ -706,6 +706,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "opencode-tui-input"
+version = "0.1.0"
+
+[[package]]
 name = "opencode-tui-sync"
 version = "0.1.0"
 dependencies = [

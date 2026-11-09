@@ -47,6 +47,8 @@ pub struct Location {
     pub pty: Arc<crate::pty::Service>,
     /// The location's snapshot store (`Snapshot.Service`).
     pub snapshot: crate::snapshot::Service,
+    /// The location's login attempts (`Integration.Service`).
+    pub integration: crate::integration::Attempts,
 }
 
 #[derive(Debug, Clone)]
@@ -203,6 +205,9 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
     }
     let version_control =
         crate::vcs::Service::new(resolved.vcs.as_ref().map(|v| v.kind), &key.directory, &resolved.directory);
+    // A location's `ToolOutput` starts the global `tool-output-cleanup` sweep; its goal plugin follows session events.
+    crate::tool::output::start_cleanup();
+    crate::session::goal::start(app);
     let location = Location {
         directory: key.directory.clone(),
         workspace_id: key.workspace_id.clone(),
@@ -217,6 +222,7 @@ async fn boot(app: &App, key: &LocationRef) -> Result<Location, Failure> {
         shell: crate::shell::Service::new(app, key.clone(), &resolved.id),
         pty: crate::pty::Service::new(app, key.clone()),
         snapshot: Default::default(),
+        integration: Default::default(),
     };
     {
         let db = app.db.lock().unwrap();

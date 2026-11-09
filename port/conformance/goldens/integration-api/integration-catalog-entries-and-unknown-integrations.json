@@ -1,0 +1,275 @@
+{
+  "transcript": [
+    {
+      "body": {
+        "data": {
+          "connections": [
+            {
+              "name": "OPENROUTER_API_KEY",
+              "type": "env"
+            }
+          ],
+          "id": "openrouter",
+          "methods": [
+            {
+              "label": "Manually enter API Key",
+              "type": "key"
+            },
+            {
+              "names": [
+                "OPENROUTER_API_KEY"
+              ],
+              "type": "env"
+            }
+          ],
+          "name": "OpenRouter"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/openrouter"
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [],
+          "id": "claude-agent",
+          "methods": [
+            {
+              "id": "claude-login",
+              "label": "Claude Code login (claude auth login)",
+              "type": "external"
+            }
+          ],
+          "name": "Claude Agent"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/claude-agent"
+    },
+    {
+      "body": {
+        "data": {
+          "connections": [],
+          "id": "poe",
+          "methods": [
+            {
+              "id": "browser",
+              "label": "Login with Poe (browser)",
+              "type": "oauth"
+            }
+          ],
+          "name": "poe"
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/poe"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/integration/no-such-integration"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "key": "x"
+      },
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/key"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "x"
+      },
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/external"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "x"
+      },
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/command"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/oauth/<con_1>"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {},
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/oauth/<con_1>/complete"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationNotFoundError",
+        "integrationID": "no-such-integration",
+        "message": "Integration not found: no-such-integration"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/integration/no-such-integration/connect/command/<con_1>"
+    }
+  ],
+  "provider": {},
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      }
+    ]
+  },
+  "files": {}
+}

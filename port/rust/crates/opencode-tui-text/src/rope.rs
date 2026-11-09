@@ -244,7 +244,6 @@ pub(crate) enum Bias {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum RopeError {
-    OutOfBounds,
     OutOfMemory,
 }
 
@@ -523,11 +522,6 @@ impl Tree {
 
     pub fn delete(&mut self, index: u32) {
         self.delete_range(index, index + 1);
-    }
-
-    pub fn append(&mut self, data: Segment) {
-        let count = self.count();
-        self.insert_slice(count, &[data]);
     }
 
     /// `replaceRangeByWeight`: `items` in place of the weight range; returns the grapheme that holds the end.
@@ -810,14 +804,6 @@ impl Rope {
         self.tree.root = empty.root;
     }
 
-    /// `setSegments`: replace the content (without the end invariant, which `items` already keeps).
-    pub fn set_segments(&mut self, items: &[Segment]) {
-        if items.is_empty() {
-            self.clear_with_undo(None);
-            return;
-        }
-        self.tree.root = from_slice(items);
-    }
 }
 
 impl Drop for Rope {

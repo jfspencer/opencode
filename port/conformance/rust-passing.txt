@@ -38,6 +38,22 @@ scenarios/agent-loop-agents.test.ts › title generation fails
 scenarios/agent-loop-agents.test.ts › title is the first non-empty line of the reply
 scenarios/agent-loop-agents.test.ts › title skips think blocks written into the reply
 scenarios/agent-loop-agents.test.ts › tool call after the maximum steps
+scenarios/agent-loop-attachments.test.ts › an attachment-only prompt
+scenarios/agent-loop-attachments.test.ts › an audio attachment is typed by its bytes, not its declared type
+scenarios/agent-loop-attachments.test.ts › an image a tool reads follows the tool message
+scenarios/agent-loop-attachments.test.ts › an image a tool reads for a model without image input becomes a note
+scenarios/agent-loop-attachments.test.ts › an image that cannot be decoded is refused
+scenarios/agent-loop-attachments.test.ts › audio and video the model cannot read become notes
+scenarios/agent-loop-attachments.test.ts › images replayed to a model without image input become notes
+scenarios/agent-loop-attachments.test.ts › mixed attachments keep their order
+scenarios/agent-loop-attachments.test.ts › video the model reads is sent as a video part
+scenarios/agent-loop-cache.test.ts › Anthropic models on OpenRouter get cache breakpoints
+scenarios/agent-loop-cache.test.ts › Qwen models get breakpoints on the system prompt and the tail
+scenarios/agent-loop-cache.test.ts › a cache lifetime goes on the breakpoints
+scenarios/agent-loop-cache.test.ts › an Anthropic alias gets cache breakpoints
+scenarios/agent-loop-cache.test.ts › an instruction update before the prompt stays plain text
+scenarios/agent-loop-cache.test.ts › other models get the cache lifetime as a request option
+scenarios/agent-loop-cache.test.ts › the tail breakpoint lands on an attachment prompt's text
 scenarios/agent-loop-compaction.test.ts › automatic compaction between prompts
 scenarios/agent-loop-compaction.test.ts › automatic compaction keeps recent exchanges
 scenarios/agent-loop-compaction.test.ts › automatic compaction within a turn
@@ -125,6 +141,11 @@ scenarios/agent-loop-interrupt.test.ts › prompt admitted without resuming
 scenarios/agent-loop-interrupt.test.ts › queued prompt runs after the turn
 scenarios/agent-loop-interrupt.test.ts › steering prompt joins at the next step
 scenarios/agent-loop-interrupt.test.ts › synthetic message runs the loop
+scenarios/agent-loop-reasoning-details.test.ts › Kimi reasoning details merge by index and replay without it
+scenarios/agent-loop-reasoning-details.test.ts › OpenRouter reasoning details keep their identity
+scenarios/agent-loop-reasoning-details.test.ts › a Kimi summary shows when no reasoning text streams
+scenarios/agent-loop-reasoning-details.test.ts › reasoning details with conflicting identities stay apart
+scenarios/agent-loop-reasoning-details.test.ts › reasoning details without content open the reasoning block
 scenarios/agent-loop-transport.test.ts › connection closed before the response, then success
 scenarios/agent-loop-transport.test.ts › connection dropped after output, then continued
 scenarios/agent-loop-transport.test.ts › connection dropped before any output, then success
@@ -167,6 +188,14 @@ scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
+scenarios/cli-auth-flows.test.ts › OAuth login in the browser
+scenarios/cli-auth-flows.test.ts › a well-known source's command login
+scenarios/cli-auth-flows.test.ts › account pickers for switching and logging out
+scenarios/cli-auth-flows.test.ts › auth login picks an integration from the list
+scenarios/cli-auth-flows.test.ts › form answers on the command line
+scenarios/cli-auth-flows.test.ts › form fields that depend on earlier answers
+scenarios/cli-auth-flows.test.ts › login method picker and an external login with a form
+scenarios/cli-auth-flows.test.ts › the integration picker's search and cancel
 scenarios/cli-auth.test.ts › auth import from a file and its errors
 scenarios/cli-auth.test.ts › auth list with the API key from the environment
 scenarios/cli-auth.test.ts › auth list without credentials
@@ -283,6 +312,26 @@ scenarios/codemode-tools.test.ts › codemode tool references and failures
 scenarios/codemode-tools.test.ts › codemode tool scan scopes
 scenarios/codemode-tools.test.ts › codemode worktree tools
 scenarios/codemode-tools.test.ts › codemode worktree tools outside a repository
+scenarios/generate-media.test.ts › decision failures
+scenarios/generate-media.test.ts › decisions answer predicate, choice and score questions
+scenarios/generate-media.test.ts › decisions take text, JSON and media input
+scenarios/generate-media.test.ts › generate an image
+scenarios/generate-media.test.ts › generate images from references with a count, aspect and resolution
+scenarios/generate-media.test.ts › image provider failures
+scenarios/generate-media.test.ts › image requests the API rejects
+scenarios/generate-media.test.ts › image results are typed from their bytes
+scenarios/generate-media.test.ts › image results given by URL are downloaded
+scenarios/generate-media.test.ts › invalid image responses
+scenarios/integration-api.test.ts › API keys with labels and form answers
+scenarios/integration-api.test.ts › OAuth attempts that do not exist
+scenarios/integration-api.test.ts › a browser OAuth login
+scenarios/integration-api.test.ts › a well-known source's command login
+scenarios/integration-api.test.ts › command logins without a command method
+scenarios/integration-api.test.ts › external credential references are validated
+scenarios/integration-api.test.ts › failed and cancelled command logins
+scenarios/integration-api.test.ts › integration catalog entries and unknown integrations
+scenarios/integration-api.test.ts › integrations a policy does not allow to connect
+scenarios/integration-api.test.ts › well-known sources that cannot be added
 scenarios/permissions.test.ts › always approve a shell command prefix
 scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
 scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
@@ -537,6 +586,35 @@ scenarios/session-api-transfer.test.ts › session statistics over imported hist
 scenarios/session-api-transfer.test.ts › statistics after compacting imported history
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
+scenarios/session-goal-compaction.test.ts › a goal is restated after a compaction within its round
+scenarios/session-goal-loop.test.ts › a failing reviewer pauses the goal
+scenarios/session-goal-loop.test.ts › a failing session pauses its goal
+scenarios/session-goal-loop.test.ts › a goal continued until it is met
+scenarios/session-goal-loop.test.ts › a goal met after one round
+scenarios/session-goal-loop.test.ts › a goal names an untitled session
+scenarios/session-goal-loop.test.ts › a goal paused after rounds without progress
+scenarios/session-goal-loop.test.ts › a goal paused when its reviewer gives no usable verdict
+scenarios/session-goal-loop.test.ts › a goal paused when the reviewer repeats its reason
+scenarios/session-goal-loop.test.ts › a goal with attachments starts as a prompt
+scenarios/session-goal-loop.test.ts › a new goal replaces the current one
+scenarios/session-goal-loop.test.ts › a paused goal resumed, described and cleared
+scenarios/session-goal-loop.test.ts › a reviewer pausing the goal
+scenarios/session-goal-loop.test.ts › a reviewer verdict wrapped in prose is read
+scenarios/session-goal-loop.test.ts › a reviewer waiting without background work is asked again
+scenarios/session-goal-loop.test.ts › deleting a session drops its goal
+scenarios/session-goal-loop.test.ts › goal commands without a goal
+scenarios/session-goal-loop.test.ts › interrupting the session pauses its goal
+scenarios/session-goal-loop.test.ts › pausing an active goal
+scenarios/session-goal-loop.test.ts › the goal RPC rejects unknown methods and bad input
+scenarios/session-title-models.test.ts › regenerated title uses the small model
+scenarios/session-title-models.test.ts › title agent's own model at its minimal variant
+scenarios/session-title-models.test.ts › title falls back to the primary model when the small model fails
+scenarios/session-title-models.test.ts › title keeps a session at low on the primary model
+scenarios/session-title-models.test.ts › title on a primary model without variants
+scenarios/session-title-models.test.ts › title prefers the earliest small family
+scenarios/session-title-models.test.ts › title skips a small model that is disabled or not a text model
+scenarios/session-title-models.test.ts › title uses the primary model's lower variant
+scenarios/session-title-models.test.ts › title uses the provider's small model at its minimal variant
 scenarios/shell-api.test.ts › configured shell: a missing shell
 scenarios/shell-api.test.ts › configured shell: an absolute path
 scenarios/shell-api.test.ts › configured shell: an incompatible shell
@@ -599,6 +677,15 @@ scenarios/shell-tool.test.ts › the environment of shell commands
 scenarios/shell-tool.test.ts › timeouts
 scenarios/shell-tool.test.ts › working directories
 scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
+scenarios/tools-output-limits.test.ts › a fetched page beyond the limits is saved
+scenarios/tools-output-limits.test.ts › a first line beyond the byte limit shows no lines
+scenarios/tools-output-limits.test.ts › a trailing newline does not count as a line
+scenarios/tools-output-limits.test.ts › configured byte limit bounds a tool result
+scenarios/tools-output-limits.test.ts › configured line limit bounds a tool result
+scenarios/tools-output-limits.test.ts › output within the configured limits is untouched
+scenarios/tools-output-limits.test.ts › saved outputs older than seven days are removed at startup
+scenarios/tools-output-limits.test.ts › the default limits bound a long result
+scenarios/tools-output-limits.test.ts › tools that bound their own output keep their result
 scenarios/tools-patch.test.ts › patch: a bom file
 scenarios/tools-patch.test.ts › patch: a missing file
 scenarios/tools-patch.test.ts › patch: add update delete and move
@@ -663,6 +750,8 @@ scenarios/tools-subagent.test.ts › subagent that finishes without text
 scenarios/tools-subagent.test.ts › subagent with empty optional arguments
 scenarios/tools-subagent.test.ts › subagent with model overrides
 scenarios/tools-subagent.test.ts › subagent with unknown and primary agents
+scenarios/tools-webfetch-signed.test.ts › a redirect to a signed URL keeps the requested URL in the error
+scenarios/tools-webfetch-signed.test.ts › signed query parameters are redacted in status errors
 scenarios/tools-webfetch.test.ts › webfetch Cloudflare challenge retried with another user agent
 scenarios/tools-webfetch.test.ts › webfetch HTML as text and as raw HTML
 scenarios/tools-webfetch.test.ts › webfetch HTML conversion edge cases

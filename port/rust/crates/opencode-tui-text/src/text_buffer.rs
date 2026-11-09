@@ -4,7 +4,7 @@
 //! Divergences: the arena and the per-view dirty flags are gone (reference counting frees replaced ropes; views
 //! compare roots to tell that the text changed). Every registered slot owns a copy of its bytes.
 
-use crate::iterators::{self, Bounds, Coords, LineInfo, LineWalker, TextSettings};
+use crate::iterators::{self, Bounds, LineInfo, LineWalker, TextSettings};
 use crate::link::{self, LinkPool, LinkTracker};
 use crate::mem_registry::{MemRegistry, RegistryFull};
 use crate::rope::{Rope, Tree};
@@ -14,7 +14,6 @@ use crate::utf8::{self, ControlDisplay, TextWidthCursor, WidthMethod};
 use crate::{Rgba, TextError};
 use indexmap::IndexSet;
 use std::cell::RefCell;
-use std::collections::HashSet;
 use std::rc::Rc;
 
 /// Style ids with this bit index the buffer's run styles (`run_style_flag`).
@@ -46,8 +45,6 @@ pub(crate) struct TextBufferCore {
     internal_highlight_count: usize,
     run_styles: IndexSet<StyleDefinition>,
     run_links_retired: bool,
-    highlight_batch_depth: u32,
-    dirty_span_lines: HashSet<usize>,
     pub(crate) tab_width: u8,
     pub(crate) tab_metrics_generation: u64,
 }
@@ -86,8 +83,6 @@ impl TextBufferCore {
             internal_highlight_count: 0,
             run_styles: IndexSet::new(),
             run_links_retired: false,
-            highlight_batch_depth: 0,
-            dirty_span_lines: HashSet::new(),
             tab_width: 2,
             tab_metrics_generation: 1,
         }
@@ -198,10 +193,6 @@ impl TextBufferCore {
         self.rope = Rope::new();
         self.mem_registry.clear();
         self.mark_all_views_dirty();
-    }
-
-    pub fn syntax_style(&self) -> Option<&SyntaxStyle> {
-        self.style.as_ref()
     }
 
     pub fn set_syntax_style(&mut self, style: Option<SyntaxStyle>) {
@@ -347,7 +338,6 @@ impl TextBufferCore {
         self.drop_run_styles();
         self.line_highlights = highlights;
         self.line_spans = spans;
-        self.dirty_span_lines.clear();
         self.mark_all_views_dirty();
     }
 
@@ -419,7 +409,6 @@ impl TextBufferCore {
         self.line_highlights = highlights;
         self.line_spans = spans;
         self.internal_highlight_count = internal;
-        self.dirty_span_lines.clear();
         self.mark_all_views_dirty();
         let retired = std::mem::replace(&mut self.link_tracker, links);
         self.mem_registry.replace(id, text);
@@ -506,25 +495,6 @@ impl TextBufferCore {
         walker.out
     }
 
-    pub fn start_highlights_transaction(&mut self) {
-        self.highlight_batch_depth += 1;
-    }
-
-    pub fn end_highlights_transaction(&mut self) {
-        if self.highlight_batch_depth == 0 {
-            return;
-        }
-        self.highlight_batch_depth -= 1;
-        if self.highlight_batch_depth == 0 {
-            let lines: Vec<usize> = self.dirty_span_lines.drain().collect();
-            for line in lines {
-                if line < self.line_spans.len() {
-                    self.line_spans[line] = build_line_spans(self.line_highlights(line));
-                }
-            }
-        }
-    }
-
     /// `commitHighlights` for one highlight.
     fn commit_highlight(&mut self, line: usize, highlight: Highlight) {
         while self.line_highlights.len() <= line {
@@ -534,11 +504,7 @@ impl TextBufferCore {
             self.line_spans.push(Vec::new());
         }
         self.line_highlights[line].push(highlight);
-        if self.highlight_batch_depth == 0 {
-            self.line_spans[line] = build_line_spans(&self.line_highlights[line]);
-        } else {
-            self.dirty_span_lines.insert(line);
-        }
+        self.line_spans[line] = build_line_spans(&self.line_highlights[line]);
     }
 
     pub fn add_highlight(&mut self, line: usize, col_start: u32, col_end: u32, style_id: u32, priority: u8, hl_ref: u16) -> Result<(), TextError> {
@@ -550,21 +516,6 @@ impl TextBufferCore {
         }
         self.commit_highlight(line, Highlight { col_start, col_end, style_id, priority, hl_ref, internal: false });
         Ok(())
-    }
-
-    pub fn add_highlight_by_coords(
-        &mut self,
-        start_row: u32,
-        start_col: u32,
-        end_row: u32,
-        end_col: u32,
-        style_id: u32,
-        priority: u8,
-        hl_ref: u16,
-    ) -> Result<(), TextError> {
-        let start = iterators::coords_to_offset(self.tree(), start_row, start_col).ok_or(TextError::InvalidIndex)?;
-        let end = iterators::coords_to_offset(self.tree(), end_row, end_col).ok_or(TextError::InvalidIndex)?;
-        self.add_highlight_by_char_range(start - start_row, end - end_row, style_id, priority, hl_ref)
     }
 
     /// `addHighlightByCharRange`: offsets in cells that exclude line breaks.
@@ -631,11 +582,7 @@ impl TextBufferCore {
                 }
             });
             self.internal_highlight_count = self.internal_highlight_count.saturating_sub(removed_internal);
-            if self.highlight_batch_depth == 0 {
-                self.line_spans[line] = build_line_spans(&self.line_highlights[line]);
-            } else {
-                self.dirty_span_lines.insert(line);
-            }
+            self.line_spans[line] = build_line_spans(&self.line_highlights[line]);
         }
     }
 
@@ -735,13 +682,6 @@ impl TextBufferCore {
         self.text_range(start, end)
     }
 
-    pub fn coords_to_offset(&self, row: u32, col: u32) -> Option<u32> {
-        iterators::coords_to_offset(self.tree(), row, col)
-    }
-
-    pub fn offset_to_coords(&self, offset: u32) -> Option<Coords> {
-        iterators::offset_to_coords(self.tree(), offset)
-    }
 }
 
 pub(crate) fn effective_tab_width(width: u8) -> u8 {

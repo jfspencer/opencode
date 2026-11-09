@@ -7,7 +7,12 @@
 //! selected one first, then the environment variables of its `env` methods that are set; the first is the active
 //! connection, whose key a provider request authenticates with (over a configured `apiKey`).
 //!
-//! TODO(port): refreshing an expiring OAuth credential (no OAuth login is in scope), `integration.use` accounts.
+//! A change of the integrations with credentials, or of an integration's account, reloads every location's providers
+//! (the policy plugin's `integration.use` accounts).
+//!
+//! An OAuth credential is used as stored: refreshing one that expires (`Integration.connection.resolve` with its
+//! implementation's `refresh`) belongs to the catalog providers whose logins issue them (out of scope); the one OAuth
+//! login here, Poe's, issues keys its provider (a catalog provider too) would only reject once expired.
 
 use std::sync::{OnceLock, Weak};
 
@@ -109,6 +114,30 @@ pub fn entries(credentials: &[Info]) -> Vec<Json> {
         .collect()
 }
 
+/// What a location's policy plugin watches (`ManagedPolicy.accounts`, config/plugin/policy.ts): each integration with
+/// stored credentials, and the account of its selected one (its metadata's `orgID`, else `accountID`).
+fn accounts(db: &Connection) -> std::collections::BTreeMap<String, Option<String>> {
+    let account = |value: &Json| {
+        let metadata = json::get(value, "metadata")?;
+        ["orgID", "accountID"].iter().find_map(|key| json::get_str(metadata, key).filter(|a| !a.is_empty()).map(str::to_owned))
+    };
+    // Each integration's selected credential is listed last.
+    all(db).unwrap_or_default().iter().map(|c| (c.integration_id.clone(), account(&c.value))).collect()
+}
+
+/// The policy plugin's answer to a credential event: when the accounts changed, every location reloads its providers,
+/// which announce it.
+fn reload_on_accounts(app: &App, before: &std::collections::BTreeMap<String, Option<String>>) {
+    if accounts(&app.db.lock().unwrap()) == *before {
+        return;
+    }
+    for location in app.locations.keys() {
+        for ty in ["provider.updated", "model.updated"] {
+            app.bus.emit(ty, json::object(), PublishOptions { id: None, location: Some(location.clone()) });
+        }
+    }
+}
+
 fn publish_updated(app: &App) {
     app.bus.emit("credential.updated", json::object(), PublishOptions::default());
 }
@@ -147,6 +176,7 @@ pub fn create(app: &App, input: Create) -> rusqlite::Result<Info> {
         label: input.label.unwrap_or_else(|| "default".into()),
         value: input.value,
     };
+    let before = accounts(&app.db.lock().unwrap());
     let activated = {
         let mut db = app.db.lock().unwrap();
         let tx = db.transaction()?;
@@ -169,6 +199,7 @@ pub fn create(app: &App, input: Create) -> rusqlite::Result<Info> {
         activate
     };
     publish_updated(app);
+    reload_on_accounts(app, &before);
     if activated {
         publish_switched(app, &credential.integration_id, Some(&credential.id));
     }
@@ -177,6 +208,7 @@ pub fn create(app: &App, input: Create) -> rusqlite::Result<Info> {
 
 /// `Credential.activate`: selects a stored credential for its integration.
 pub fn activate(app: &App, id: &str) -> rusqlite::Result<()> {
+    let before = accounts(&app.db.lock().unwrap());
     let integration = {
         let mut db = app.db.lock().unwrap();
         let tx = db.transaction()?;
@@ -191,6 +223,7 @@ pub fn activate(app: &App, id: &str) -> rusqlite::Result<()> {
         integration
     };
     publish_switched(app, &integration, Some(id));
+    reload_on_accounts(app, &before);
     Ok(())
 }
 
@@ -223,6 +256,7 @@ pub fn update_label(app: &App, id: &str, label: Option<&str>) -> rusqlite::Resul
 
 /// `Credential.remove`: a removed selection passes to the integration's newest other credential.
 pub fn remove(app: &App, id: &str) -> rusqlite::Result<()> {
+    let before = accounts(&app.db.lock().unwrap());
     let removed = {
         let mut db = app.db.lock().unwrap();
         let tx = db.transaction()?;
@@ -254,6 +288,7 @@ pub fn remove(app: &App, id: &str) -> rusqlite::Result<()> {
         switched
     };
     publish_updated(app);
+    reload_on_accounts(app, &before);
     if let Some((integration, replacement)) = removed {
         publish_switched(app, &integration, replacement.as_deref());
     }

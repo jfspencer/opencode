@@ -11,9 +11,6 @@ use crate::utf8::{self, ControlDisplay, WidthMethod};
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct LineInfo {
     pub line_idx: u32,
-    /// The offset (weight) of the line's start.
-    pub col_offset: u32,
-    pub width_cols: u32,
 }
 
 pub(crate) trait LineWalker {
@@ -40,7 +37,7 @@ pub(crate) fn walk_line_range(tree: &Tree, first: u32, start: Position, count: u
                 line_width += chunk.width_cols();
             }
             Segment::Brk => {
-                walker.line_end(LineInfo { line_idx, col_offset, width_cols: line_width });
+                walker.line_end(LineInfo { line_idx });
                 line_idx += 1;
                 col_offset += line_width + 1;
                 line_start_seg = idx + 1;
@@ -58,7 +55,7 @@ pub(crate) fn walk_line_range(tree: &Tree, first: u32, start: Position, count: u
     let had_breaks = line_idx > 0;
     let has_content_after_break = line_start_seg < current_seg;
     if has_content_after_break || had_breaks {
-        walker.line_end(LineInfo { line_idx, col_offset, width_cols: line_width });
+        walker.line_end(LineInfo { line_idx });
     }
 }
 

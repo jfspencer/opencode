@@ -2,7 +2,7 @@
 //! session/prompt.ts `prepare`): input is prepared (file attachments read inline, skill attachments given their
 //! content), admitted into the inbox (idempotently by ID), and the session is woken unless `resume` is `false`.
 //!
-//! TODO(port): the `session.prompt` plugin hook.
+//! The `session.prompt` plugin hook is out of scope: no built-in plugin registers it, only external plugins do.
 
 use opencode_protocol::Json;
 

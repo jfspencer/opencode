@@ -1,0 +1,542 @@
+{
+  "transcript": [
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://refused.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://silent.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://empty.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://killed.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://waiting.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "url": "https://absent.example.test"
+      },
+      "status": 204,
+      "url": "/api/experimental/integration/wellknown"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_1>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Frefused.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Access denied for alice\nAsk your administrator",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Frefused.example.test/connect/command/<con_1>"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_2>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fsilent.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Authentication command exited 4",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fsilent.example.test/connect/command/<con_2>"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_3>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fempty.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Authentication command returned no credential",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fempty.example.test/connect/command/<con_3>"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_4>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fkilled.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Unknown: ChildProcess.exitCode (sh -c echo 'Interrupted' >&2; kill -TERM $$)",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fkilled.example.test/connect/command/<con_4>"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_5>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fabsent.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "NotFound: ChildProcess.spawn (no-such-command-conformance --login)",
+          "status": "failed",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fabsent.example.test/connect/command/<con_5>"
+    },
+    {
+      "body": {
+        "data": {
+          "attemptID": "<con_6>",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "POST",
+      "request": {
+        "methodID": "login"
+      },
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fwaiting.example.test/connect/command"
+    },
+    {
+      "body": {
+        "data": {
+          "message": "Waiting for approval\n",
+          "status": "pending",
+          "time": {
+            "created": "<time>",
+            "expires": "<time>"
+          }
+        },
+        "location": {
+          "directory": "<project>"
+        }
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/integration/https%3A%2F%2Fwaiting.example.test/connect/command/<con_6>"
+    },
+    {
+      "body": null,
+      "kind": "http",
+      "method": "DELETE",
+      "status": 204,
+      "url": "/api/integration/https%3A%2F%2Fwaiting.example.test/connect/command/<con_6>"
+    },
+    {
+      "body": {
+        "_tag": "IntegrationAttemptNotFoundError",
+        "attemptID": "<con_6>",
+        "integrationID": "https://waiting.example.test",
+        "message": "Command attempt not found: <con_6>"
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 404,
+      "url": "/api/integration/https%3A%2F%2Fwaiting.example.test/connect/command/<con_6>"
+    },
+    {
+      "body": {
+        "data": []
+      },
+      "kind": "http",
+      "method": "GET",
+      "status": 200,
+      "url": "/api/credential"
+    }
+  ],
+  "provider": {
+    "other": [
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://refused.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://silent.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://empty.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://killed.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://waiting.example.test/.well-known/opencode"
+      },
+      {
+        "headers": {
+          "accept": "application/json"
+        },
+        "kind": "other",
+        "method": "GET",
+        "url": "https://absent.example.test/.well-known/opencode"
+      }
+    ]
+  },
+  "events": {
+    "global": [
+      {
+        "created": "<time>",
+        "data": {
+          "canonical": "<project>",
+          "id": "<hash_1>",
+          "sandboxes": [],
+          "time": {
+            "active": "<time>",
+            "created": "<time>",
+            "updated": "<time>"
+          }
+        },
+        "id": "<evt_1>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "project.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_2>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_3>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "provider.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_4>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "model.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_5>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "agent.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_6>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "command.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_7>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "skill.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_8>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "websearch.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_9>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "reference.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_10>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "plugin.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_11>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_12>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_13>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_14>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_15>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      },
+      {
+        "created": "<time>",
+        "data": {},
+        "id": "<evt_16>",
+        "location": {
+          "directory": "<project>"
+        },
+        "type": "integration.updated"
+      }
+    ]
+  },
+  "files": {}
+}

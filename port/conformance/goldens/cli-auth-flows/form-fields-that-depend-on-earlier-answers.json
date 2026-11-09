@@ -1,0 +1,134 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "github-copilot",
+          "--answer",
+          "deploymentType=other"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  deploymentType: Select an available option",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "github-copilot",
+          "--answer",
+          "deploymentType=github.com",
+          "--answer",
+          "enterpriseUrl=x"
+        ],
+        "exit": 1,
+        "stderr": "",
+        "stdout": [
+          "┌  Connect an integration",
+          "│",
+          "■  Form field is not active: enterpriseUrl",
+          "│",
+          "└  Failed",
+          "",
+          ""
+        ]
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "github-copilot"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "◇  Select GitHub deployment type",
+          "│  GitHub Enterprise",
+          "│",
+          "■  Enter your GitHub Enterprise URL or domain",
+          "│  company.ghe.com",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\u001b[B",
+            "\r",
+            "company.ghe.com",
+            "\u0003"
+          ]
+        }
+      }
+    },
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "auth",
+          "login",
+          "google-vertex"
+        ],
+        "exit": 130,
+        "screen": [
+          "┌  Connect an integration",
+          "│",
+          "●  No projects found in your gcloud configuration.",
+          "│",
+          "◇  Google Cloud project",
+          "│  Type your own answer",
+          "│",
+          "◇  Google Cloud project",
+          "│  my-project",
+          "│",
+          "●  global serves the most models. Use us, eu, or a single region for data residency or regional quota.",
+          "│",
+          "◇  Location",
+          "│  Type your own answer",
+          "│",
+          "■  Location",
+          "│  global",
+          "│",
+          "└  Cancelled"
+        ],
+        "terminal": {
+          "cols": 80,
+          "rows": 24,
+          "typed": [
+            "\r",
+            "my-project\r",
+            "\u001b[B\u001b[B\u001b[B",
+            "\r",
+            "\u0003"
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {}
+}

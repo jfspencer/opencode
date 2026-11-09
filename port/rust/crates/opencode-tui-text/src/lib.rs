@@ -14,7 +14,9 @@
 //! | [`link`] | `link.zig` |
 //! | `rope`, `segment`, `mem_registry`, `iterators` | `rope.zig`, `text-buffer-segment.zig`, `mem-registry.zig`, `text-buffer-iterators.zig` |
 //! | `text_buffer`, `text_buffer_view` | `text-buffer.zig`, `text-buffer-view.zig` |
+//! | `edit_buffer`, `editor_view` | `edit-buffer.zig`, `editor-view.zig` |
 //! | [`text`] | `text-buffer.ts`, `text-buffer-view.ts` over the Context ABI |
+//! | [`edit`] | `edit-buffer.ts`, `editor-view.ts` over the Context ABI |
 //! | [`scene_text`] | the native scene Text node (`Context.Text`, `scene*Text*`) |
 //! | [`syntax_style`] | `syntax-style.zig`, `syntax-style.ts` |
 //!
@@ -31,6 +33,24 @@
 //! view.set_wrap_width(Some(8)).unwrap();
 //! assert_eq!(view.get_virtual_line_count(), 3);
 //! assert_eq!(view.line_info().line_width_cols, vec![6, 7, 4]);
+//! ```
+//!
+//! Editing (what `Textarea`, `Input` and `EditBufferRenderable` call):
+//!
+//! ```
+//! use opencode_tui_text::{EditBuffer, EditEvent, EditorView, TextContext, WidthMethod, WrapMode};
+//!
+//! let ctx = TextContext::new();
+//! let buffer = EditBuffer::create(WidthMethod::Unicode, &ctx);
+//! let view = EditorView::create(&buffer, 10, 3).unwrap();
+//! view.set_wrap_mode(WrapMode::Word);
+//! buffer.insert_text("hello wide 世界").unwrap();
+//! buffer.move_cursor_left();
+//! assert_eq!(buffer.get_cursor_position().col, 13);
+//! assert_eq!(view.get_visual_cursor().visual_row, 1);
+//! assert_eq!(buffer.undo().as_deref(), Some("cursor:0:0:0"));
+//! assert_eq!(buffer.get_text(), "");
+//! assert_eq!(buffer.take_events().first(), Some(&EditEvent::CursorChanged));
 //! ```
 //!
 //! The width method is the renderer's (`renderer.widthMethod`: the terminal capability `caps.unicode`, `unicode`
@@ -57,9 +77,9 @@
 //! - TS reads text with `TextDecoder`, which drops a leading U+FEFF; reads here do the same (`TODO(port)`).
 //! - Line spans break priority ties in Zig's hash map iteration order, which is emulated (`ZigUsizeSet`).
 
-// TODO(port-tui): the edit buffer (milestone 2) uses the rope edits and buffer queries that are dead until then.
-#![allow(dead_code)]
-
+pub mod edit;
+mod edit_buffer;
+mod editor_view;
 pub mod grapheme;
 mod iterators;
 pub mod link;
@@ -75,6 +95,9 @@ pub mod unicode;
 mod unicode_tables;
 pub mod utf8;
 
+pub use edit::{measure_edit_text_with as measure_edit_text, EditBuffer, EditorView, LogicalCursor};
+pub use edit_buffer::EditEvent;
+pub use editor_view::VisualCursor;
 pub use segment::{Highlight, StyleSpan, TextChunk};
 pub use syntax_style::{MergedStyle, StyleDefinition, StyleSpec, SyntaxStyle};
 pub use scene_text::{SceneText, SceneTextMetrics, SceneTextOptions};
