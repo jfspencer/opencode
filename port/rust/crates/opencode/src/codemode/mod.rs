@@ -7,7 +7,9 @@
 //!   of the `core/codemode` instructions ([`instructions`]).
 //! - [`execute`] is the `execute` tool's run (codemode/tool.ts `create`): each tool call goes to the registered tool
 //!   with the call's context (its own progress silenced), the progress rows of the calls are published at most every
-//!   100 ms, and the result is the program's formatted text plus the files the tools returned.
+//!   100 ms, and the result is the program's formatted text plus the files the tools returned. A call or `fetch` the
+//!   user declines ends the program uncaught, and the `execute` call fails with the decline however the program
+//!   ended, so the turn stops as for a direct call (`CodeModeDecline`).
 //! - [`check`] is `Tool.check`: a program over the tools a schedule check names, with limits and bindings and no
 //!   `fetch`.
 //!
@@ -532,12 +534,9 @@ fn result_value(output: &Output, structured: Option<Json>) -> Json {
     if text.is_empty() { Json::Null } else { Json::String(text) }
 }
 
-/// The program-visible failure of a call (`toSessionError(error).message`). A decline is a defect in TS that the tool
-/// runtime turns into a failure named after the error (`message || name`); it does not stop the turn.
-///
-/// TODO(port): TS bug, matched: a plain rejection inside Code Mode reaches the program as an ordinary failure and the
-/// turn goes on, where a direct call's rejection stops the turn (`model-request.ts` only recovers declines from the
-/// execute call's own cause, which the program has already turned into a result).
+/// The program-visible failure of a schedule check's call (`toSessionError(error).message`). A check runs unattended,
+/// so nothing asks and nothing is declined; were a call declined, the check's runtime (which has no
+/// `CodeModeDecline`) would hand the program a failure named after the defect (`message || name`).
 fn failure_message(failure: Failure) -> String {
     match failure {
         Failure::Error(error) => error.message,
@@ -546,6 +545,9 @@ fn failure_message(failure: Failure) -> String {
     }
 }
 
+/// The decline one of an `execute` call's host calls met (`CodeModeDecline.Service`): the last one recorded.
+type Declined = Rc<RefCell<Option<Failure>>>;
+
 /// One call on the registered tool (`Tool.run`): its result's images normalized as for a direct call.
 async fn run_tool(tool: &Arc<dyn Tool>, context: tool::Context, input: Option<cm::Json>) -> Result<(Output, Option<Json>), Failure> {
     let (output, structured) = tool.execute_code_mode(context, input.as_ref().map(from_cm)).await?;
@@ -553,19 +555,26 @@ async fn run_tool(tool: &Arc<dyn Tool>, context: tool::Context, input: Option<cm
 }
 
 /// The tool handler: runs each call on the registered tool with the call's context, its progress silenced (it would
-/// replace the rows). Output files are collected in call order.
-fn handler(inventory: &Inventory, context: &tool::Context, files: &Rc<RefCell<Vec<(u64, Vec<File>)>>>) -> cm::ToolHandler {
+/// replace the rows). Output files are collected in call order. A decline (the user's plain "no", or a dismissed
+/// question) is recorded in `declined` and ends the call interrupted (`CodeModeDecline.stop`), which the program
+/// cannot catch.
+fn handler(
+    inventory: &Inventory,
+    context: &tool::Context,
+    files: &Rc<RefCell<Vec<(u64, Vec<File>)>>>,
+    declined: &Declined,
+) -> cm::ToolHandler {
     let tools: HashMap<String, Arc<dyn Tool>> =
         inventory.tools.iter().map(|tool| (tool.code_mode_path(), tool.clone())).collect();
     let mut inner = context.clone();
     inner.progress = Arc::new(|_| {});
-    let files = files.clone();
+    let (files, declined) = (files.clone(), declined.clone());
     let index = Rc::new(Cell::new(0u64));
     Rc::new(move |path: String, input: Option<cm::Json>| {
         let call = index.get();
         index.set(call + 1);
         let tool = tools.get(&path).cloned();
-        let (context, files) = (inner.clone(), files.clone());
+        let (context, files, declined) = (inner.clone(), files.clone(), declined.clone());
         Box::pin(async move {
             let Some(tool) = tool else { return cm::ToolOutcome::Err(format!("Unknown tool: {path}")) };
             match run_tool(&tool, context, input).await {
@@ -576,7 +585,11 @@ fn handler(inventory: &Inventory, context: &tool::Context, files: &Rc<RefCell<Ve
                     }
                     cm::ToolOutcome::Ok(Some(to_cm(&result_value(&output, structured))))
                 }
-                Err(failure) => cm::ToolOutcome::Err(failure_message(failure)),
+                Err(decline @ Failure::Declined { .. }) => {
+                    *declined.borrow_mut() = Some(decline);
+                    cm::ToolOutcome::Interrupted
+                }
+                Err(Failure::Error(error)) => cm::ToolOutcome::Err(error.message),
             }
         })
     })
@@ -593,27 +606,38 @@ pub async fn execute(inventory: Arc<Inventory>, code: String, context: tool::Con
         sink: context.progress.clone(),
     });
     let files: Rc<RefCell<Vec<(u64, Vec<File>)>>> = Rc::new(RefCell::new(Vec::new()));
+    let declined: Declined = Rc::new(RefCell::new(None));
     let mut flush = Flush { progress: progress.clone(), armed: true };
     let options = cm::ExecuteOptions {
         limits: cm::Limits::default(),
         bindings: Vec::new(),
-        handler: handler(&inventory, &context, &files),
+        handler: handler(&inventory, &context, &files, &declined),
         hooks: progress_hooks(&progress),
-        extensions: vec![fetch::extension(context.clone())],
+        extensions: vec![fetch::extension(context.clone(), declined.clone())],
     };
     let execution = Throttled { execution: Box::pin(runtime.execute(&code, options)), progress: progress.clone(), sleep: None };
     let result = execution.await;
     // A result carries the final rows: a pending update is dropped.
     flush.armed = false;
+    // A call's decline fails the call however the program ended (`CodeModeDecline.resume`), so the turn stops as for
+    // a direct call's decline.
+    let declined = declined.take();
     let result = match result {
         cm::Execution::Done(result) => result,
-        // Host work interrupted on its own interrupts the call (TS fails the effect with an interrupt).
+        // Host work interrupted on its own interrupts the call (TS fails the effect with an interrupt), and pending
+        // rows are sent first.
         cm::Execution::Interrupted => {
             flush.armed = true;
             drop(flush);
-            return Err(Failure::Error(ToolError { kind: "aborted", message: "Tool execution interrupted".into(), metadata: None }));
+            return Err(declined.unwrap_or_else(|| {
+                Failure::Error(ToolError { kind: "aborted", message: "Tool execution interrupted".into(), metadata: None })
+            }));
         }
     };
+    // A program that ended on its own drops a pending update even so: TS sends one only when the run fails.
+    if let Some(declined) = declined {
+        return Err(declined);
+    }
     let mut collected: Vec<(u64, Vec<File>)> = files.take();
     collected.sort_by_key(|(index, _)| *index);
     let mut content = vec![{

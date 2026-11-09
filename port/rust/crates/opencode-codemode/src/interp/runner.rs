@@ -604,7 +604,11 @@ impl Runner {
                         }
                         continue;
                     }
-                    self.poll_hosts(cx);
+                    // Host work makes progress only once the settled work is all handled, as TS waits for a host
+                    // fiber only when its inbox is empty.
+                    if self.inbox.borrow().is_empty() {
+                        self.poll_hosts(cx);
+                    }
                     let settle = self.inbox.borrow_mut().pop_front();
                     if let Some(settle) = settle {
                         settle(ctx);

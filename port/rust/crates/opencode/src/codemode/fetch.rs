@@ -1,6 +1,7 @@
 //! Code Mode's `fetch` (packages/core/src/codemode/fetch.ts): a host global that sends an HTTP request for the
 //! program under the webfetch tool's permission rules, follows redirects itself (each hop checked against the deny
-//! rules, a browser's method and credential rules applied), and hands back a `Response`-like object.
+//! rules, a browser's method and credential rules applied), and hands back a `Response`-like object. A rejection
+//! with feedback rejects the call with the feedback; a plain "no" ends it interrupted and stops the turn.
 //!
 //! The request is what Bun's `fetch` sends for the same `init`: header names lowercased, a body converted as Bun
 //! converts it (text, bytes, form data, an array's parts, anything else as its string), and the body's default
@@ -15,7 +16,7 @@ use std::rc::Rc;
 use std::task::{Poll, Waker};
 use std::time::Duration;
 
-use opencode_codemode::{self as cm, HostError, HostFunction, HostReturn, HostValue, JsStr};
+use opencode_codemode::{self as cm, HostError, HostFunction, HostOutcome, HostReturn, HostValue, JsStr};
 use opencode_protocol::Json;
 
 use crate::json::Obj;
@@ -27,13 +28,13 @@ const TIMEOUT: Duration = Duration::from_secs(30);
 pub const MAX_REDIRECTS: usize = 20;
 const REDIRECT_STATUSES: [u16; 5] = [301, 302, 303, 307, 308];
 
-/// The `fetch` extension of one `execute` call, acting for its session.
-pub fn extension(context: tool::Context) -> cm::Extension {
+/// The `fetch` extension of one `execute` call, acting for its session. A declined request is recorded in `declined`.
+pub(super) fn extension(context: tool::Context, declined: super::Declined) -> cm::Extension {
     let context = Rc::new(context);
     let order = Rc::new(Order::default());
     let call = move |args: Vec<HostValue>| {
-        let (context, order) = (context.clone(), order.clone());
-        HostReturn::Async(Box::pin(async move { fetch(&context, &order, args).await }))
+        let (context, order, declined) = (context.clone(), order.clone(), declined.clone());
+        HostReturn::Async(Box::pin(async move { fetch(&context, &order, &declined, args).await }))
     };
     cm::Extension {
         name: "fetch".into(),
@@ -316,7 +317,8 @@ struct Fetched {
     redirects: usize,
 }
 
-async fn fetch(context: &tool::Context, order: &Order, args: Vec<HostValue>) -> Result<HostValue, HostValue> {
+/// One call: the response, what it throws, or interrupted when the user declines it.
+async fn fetch(context: &tool::Context, order: &Order, declined: &super::Declined, args: Vec<HostValue>) -> HostOutcome {
     let input = args.first().cloned().unwrap_or(HostValue::Undefined);
     let init = args.get(1).cloned().unwrap_or(HostValue::Undefined);
     // Rules match the URL as written; the fragment is never sent and would keep a rule for the exact URL from matching.
@@ -324,11 +326,11 @@ async fn fetch(context: &tool::Context, order: &Order, args: Vec<HostValue>) -> 
     let url = written.split('#').next().unwrap_or_default().to_owned();
     let parsed = url::Url::parse(&url).ok();
     if parsed.as_ref().is_some_and(|u| u.scheme() == "file") {
-        return Err(error("Error", "fetch cannot be used for filesystem access."));
+        return HostOutcome::Throw(error("Error", "fetch cannot be used for filesystem access."));
     }
     // Rules match the URL, so `https://user@evil.com` would slip past a rule for `https://evil.com/*`.
     if parsed.as_ref().is_some_and(|u| !u.username().is_empty() || u.password().is_some()) {
-        return Err(error("TypeError", "fetch cannot be used with credentials in the URL."));
+        return HostOutcome::Throw(error("TypeError", "fetch cannot be used with credentials in the URL."));
     }
     let requester = context.requester();
     // The webfetch tool's rules, so a URL denied there is denied here.
@@ -342,21 +344,27 @@ async fn fetch(context: &tool::Context, order: &Order, args: Vec<HostValue>) -> 
         Ok(()) => {}
         // The feedback is the user talking to the model, so it reaches the program as the error's message.
         Err(permission::Error::Corrected(feedback)) => {
-            return Err(error("Error", format!("The user rejected fetching {url}: {feedback}")));
+            return HostOutcome::Throw(error("Error", format!("The user rejected fetching {url}: {feedback}")));
         }
-        // A decline is a defect in TS; it crosses as an error without a message and the turn goes on (TODO(port): TS
-        // bug, matched; see `codemode::failure_message`).
-        Err(permission::Error::Declined) => return Err(error("Error", "")),
-        Err(other) => return Err(error("Error", other.message())),
+        // A plain "no" stops the turn instead (`CodeModeDecline.stop`): recorded for the execute call, which fails
+        // with it, and the call ends interrupted, which the program cannot catch.
+        Err(declined_error @ permission::Error::Declined) => {
+            *declined.borrow_mut() = Some(tool::Failure::from(declined_error));
+            return HostOutcome::Interrupted;
+        }
+        Err(other) => return HostOutcome::Throw(error("Error", other.message())),
     }
-    let request = request(&init)?;
+    let request = match request(&init) {
+        Ok(request) => request,
+        Err(reason) => return HostOutcome::Throw(reason),
+    };
     let run = async {
         let fetched = follow(context, order, &requester, &init, &url, request).await?;
         read(fetched).await
     };
     match tokio::time::timeout(TIMEOUT, run).await {
-        Ok(result) => result,
-        Err(_) => Err(error("TimeoutError", "The operation timed out.")),
+        Ok(result) => result.into(),
+        Err(_) => HostOutcome::Throw(error("TimeoutError", "The operation timed out.")),
     }
 }
 
@@ -486,7 +494,7 @@ async fn read(fetched: Fetched) -> Result<HostValue, HostValue> {
     let text_decoded = decoded.clone();
     let read_text = function("text", 0, true, move |_| {
         let value = text(text_decoded());
-        HostReturn::Async(Box::pin(async move { Ok(value) }))
+        HostReturn::Async(Box::pin(async move { HostOutcome::Value(value) }))
     });
     let read_json = function("json", 0, true, move |_| {
         let units: Vec<u16> = decoded().encode_utf16().collect();
@@ -494,11 +502,11 @@ async fn read(fetched: Fetched) -> Result<HostValue, HostValue> {
             Ok(value) => Ok(json_to_host(&value)),
             Err(message) => Err(error("SyntaxError", message)),
         };
-        HostReturn::Async(Box::pin(async move { parsed }))
+        HostReturn::Async(Box::pin(async move { parsed.into() }))
     });
     let read_bytes = function("bytes", 0, true, move |_| {
         let value = HostValue::Bytes((*bytes).clone());
-        HostReturn::Async(Box::pin(async move { Ok(value) }))
+        HostReturn::Async(Box::pin(async move { HostOutcome::Value(value) }))
     });
     let key = JsStr::from;
     Ok(HostValue::Object(vec![
