@@ -176,7 +176,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `project.rs`, `location.rs` | `core/src/project.ts`, `location*.ts`: project identity (directory hash; git remote, cached ID or root commit), `worktree.resolved` adoption, location boot and its announcements |
 | `session.rs` | `core/src/session.ts`, `session/store.ts`, `session/projector.ts` |
 
-Status (2026-11-08): 9 of the 18 session CRUD scenarios pass; the rest of the standard needs agents, config, the
+Status (2026-11-08): 13 of the 18 session CRUD scenarios pass; the rest of the standard needs agents, config, the
 model loop and tools. On those 18 scenarios the release build peaks at a median 8.3 MiB per server process, the TS
 server at 311.7 MiB. Unported behavior is marked `TODO(port)` in the source; an endpoint without a handler answers 501 (after the 404 of
 an unknown session, which most session routes check first).

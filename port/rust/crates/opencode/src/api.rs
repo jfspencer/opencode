@@ -125,11 +125,12 @@ fn decode(request: &Request) -> Result<Decoded> {
     let payload = match route.payload.first() {
         Some(body) if body.kind == BodyKind::Json => {
             let text = std::str::from_utf8(&request.body).unwrap_or("");
-            // TODO(port): Effect's wording for a body that is not JSON.
+            // An empty body decodes as `undefined`, which reports as `null` does; a body that is not JSON is
+            // HttpApiBuilder's own rejection. TODO(port): confirm its `kind` against the TS server.
             let value = if text.trim().is_empty() {
                 Json::Null
             } else {
-                json::parse(text).ok_or_else(|| Failure::invalid("Invalid JSON body", None, Some("Payload")))?
+                json::parse(text).ok_or_else(|| Failure::invalid("Expected a valid JSON body", None, Some("Payload")))?
             };
             decode_part("Payload", body.ty, value)?
         }
