@@ -185,6 +185,7 @@ scenarios/project-fs.test.ts › watch and unwatch files
 scenarios/project-fs.test.ts › write files
 scenarios/project-instructions.test.ts › AGENTS.md files from a nested location up to the git root
 scenarios/project-instructions.test.ts › AGENTS.md in the project root
+scenarios/project-instructions.test.ts › absolute and home instruction paths
 scenarios/project-instructions.test.ts › all instructions removed between turns
 scenarios/project-instructions.test.ts › configured instruction paths and globs
 scenarios/project-instructions.test.ts › configured instructions resolve upward from a nested location
@@ -223,6 +224,8 @@ scenarios/project-schedule.test.ts › denied shell conditions
 scenarios/project-schedule.test.ts › schedule lifecycle routes
 scenarios/project-schedule.test.ts › schedules are disabled without the experimental flag
 scenarios/project-schedule.test.ts › shell conditions at creation
+scenarios/project-schedule.test.ts › shell conditions need permission
+scenarios/project-schedule.test.ts › shell conditions outside the project need external directory permission
 scenarios/project-skills.test.ts › URL skill index with an invalid shape
 scenarios/project-skills.test.ts › URL skill whose file is missing
 scenarios/project-skills.test.ts › activate a skill through the session endpoint
@@ -271,6 +274,7 @@ scenarios/session-api-control.test.ts › move a session whose directory is gone
 scenarios/session-api-control.test.ts › move to a directory with an invalid configuration
 scenarios/session-api-control.test.ts › read the durable session log
 scenarios/session-api-control.test.ts › run slash commands
+scenarios/session-api-control.test.ts › sessions whose directory was deleted
 scenarios/session-api-control.test.ts › switch the agent
 scenarios/session-api-control.test.ts › switch the model and its reasoning variant
 scenarios/session-api-crud.test.ts › active sessions while idle
@@ -321,8 +325,10 @@ scenarios/session-api-subagents.test.ts › a background subagent reports back t
 scenarios/session-api-subagents.test.ts › a background subagent whose turn fails
 scenarios/session-api-subagents.test.ts › a slash command delegates to a subagent
 scenarios/session-api-transfer.test.ts › export leaves out unsettled messages
+scenarios/session-api-transfer.test.ts › import a transcript exported by an earlier release
 scenarios/session-api-transfer.test.ts › import without a location and as a child
 scenarios/session-api-transfer.test.ts › session statistics over imported history
+scenarios/session-api-transfer.test.ts › statistics after compacting imported history
 scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
@@ -338,6 +344,7 @@ scenarios/tools-question.test.ts › question with no questions or without optio
 scenarios/tools-question.test.ts › question with one choice answered by option
 scenarios/tools-question.test.ts › question with several questions and a multiselect
 scenarios/tools-skill.test.ts › skill activated by the user
+scenarios/tools-skill.test.ts › skill denied and asked by permission rules
 scenarios/tools-skill.test.ts › skill from a remote index
 scenarios/tools-skill.test.ts › skill from a remote index updated to a new version
 scenarios/tools-skill.test.ts › skill from configured paths
@@ -360,6 +367,7 @@ scenarios/tools-webfetch.test.ts › webfetch Cloudflare challenge retried with 
 scenarios/tools-webfetch.test.ts › webfetch HTML as text and as raw HTML
 scenarios/tools-webfetch.test.ts › webfetch HTML conversion edge cases
 scenarios/tools-webfetch.test.ts › webfetch HTTP errors and invalid URLs
+scenarios/tools-webfetch.test.ts › webfetch asked by permission and answered
 scenarios/tools-webfetch.test.ts › webfetch deeply nested HTML
 scenarios/tools-webfetch.test.ts › webfetch denied by permission rules
 scenarios/tools-webfetch.test.ts › webfetch non-HTML content types
