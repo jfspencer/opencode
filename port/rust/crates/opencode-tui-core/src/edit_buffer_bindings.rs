@@ -150,7 +150,7 @@ pub fn register_textarea_mapping_suspension(keymap: &km::Keymap<Element>) -> km:
             let previous_states = previous_states.clone();
             let suspended = suspended.clone();
             move |editor: Option<Element>| {
-                let Some(editor) = editor.filter(|e| e.is_textarea() && !e.is_destroyed()) else {
+                let Some(editor) = editor.filter(|e| is_managed_textarea(*e) && !e.is_destroyed()) else {
                     *suspended.borrow_mut() = None;
                     return;
                 };
@@ -167,7 +167,7 @@ pub fn register_textarea_mapping_suspension(keymap: &km::Keymap<Element>) -> km:
             move |editor: Option<Element>| {
                 let Some(editor) = editor else { return };
                 let Some(previous) = previous_states.borrow_mut().remove(&editor) else { return };
-                if editor.is_textarea() && !editor.is_destroyed() {
+                if is_managed_textarea(editor) && !editor.is_destroyed() {
                     let mut traits = editor.textarea_traits();
                     traits.suspend = previous;
                     editor.set_textarea_traits(traits);
@@ -193,6 +193,11 @@ pub fn register_textarea_mapping_suspension(keymap: &km::Keymap<Element>) -> km:
             restore(current);
         })
     })
+}
+
+/// `isManagedTextarea`: a textarea that is not an `<input>` (Input keeps its own bindings).
+pub fn is_managed_textarea(editor: Element) -> bool {
+    editor.is_textarea() && !editor.is_input()
 }
 
 /// `withFocusedEditor`.

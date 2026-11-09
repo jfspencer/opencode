@@ -614,11 +614,12 @@ pub fn usage_limit_notice(notice: Rc<dyn Fn() -> Option<LimitNotice>>) -> View {
                 insert(label, View::dynamic(move || View::from(value.get().map(|(l, _)| l).unwrap_or_default())), At::Only);
                 insert_node(wrap, label, None);
                 let href = untrack(|| value.get()).map(|(_, h)| h).unwrap_or_default();
-                insert(
-                    wrap,
-                    link(LinkProps { fg: Some(Rc::new(move || rgba(theme.with(|th| th.text.base)))), ..LinkProps::new(href) }),
-                    At::End,
-                );
+                let anchor = link(LinkProps { href, ..LinkProps::default() });
+                if let View::Node(anchor) = &anchor {
+                    let anchor = *anchor;
+                    bind_always(move || rgba(theme.with(|th| th.text.base)), move |c| anchor.set_fg(Some(c)));
+                }
+                insert(wrap, anchor, At::End);
                 View::Node(wrap)
             },
             None,

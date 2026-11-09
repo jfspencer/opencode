@@ -4,7 +4,8 @@
 //!
 //! - [`app`]: `run` and `<App>` (app.tsx); [`commands`]: App's command registry; [`ctx`]: what the providers give
 //!   components; [`home`], [`prompt`], [`local`], [`session`], [`data`]: the home route and what it reads;
-//!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
+//!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`selection`]: copying the selection; [`util`]:
+//!   locale, path and color helpers.
 //! - [`ui`]: the dialog framework; [`component`]: the dialogs and the command palette; [`themes`]: `useThemes()`;
 //!   [`model_preference`]: model.json.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
@@ -83,7 +84,7 @@
 //! (`opencode_tui_core::edit_buffer_bindings`, `registerManagedTextareaLayer`), so a layer of a later-mounted
 //! component that binds the same key wins over them, as in TS. The textarea itself then only inserts printable
 //! keys; its edit methods are `el.textarea_action(TextareaAction::..)`, and its `traits` are
-//! `textarea_traits`/`set_textarea_traits`.
+//! `textarea_traits`/`set_textarea_traits`. An `<input>` is not managed: it keeps its own bindings.
 //!
 //! **Dialogs** ([`ui::dialog`], `ui/dialog.tsx`): `ui::dialog::use_dialog()` gives `show(|| component(my_dialog))`,
 //! `replace(view, on_close, key, size)` and `clear()`; a dialog is built from `dialog_layout`/`dialog_header`/
@@ -110,6 +111,14 @@
 //! **Toasts**: `tui().toast.show(ToastInput::new(Variant::Info, "...").duration(3000))`, `tui().toast.error(..)`
 //! ([`toast`], ui/toast.tsx); App draws `<Toast>` last.
 //!
+//! **Selection and the clipboard**: `renderer.getSelection()` is `opencode_tui_core::selection::get_selection()`
+//! (`selected_text()`, `is_start()`, `behavior()`, `selected`), `renderer.clearSelection()` is
+//! `selection::clear_selection()`; the mouse selects as in OpenTUI. `Selection.copy` / `copyOnSelectRelease` are
+//! [`selection::copy`] / [`selection::copy_on_select_release`] (App wires them and `handleSelectionKey`), and
+//! `clipboard.write(text)` is [`selection::write_clipboard`] (async: host clipboard and OSC 52). A custom
+//! renderable that selects implements `Kind::should_start_selection`, `on_selection_changed`, `selected_text`
+//! and `has_selection`; a TextRenderable subclass selects as its inner `TextKind` (through `Kind::base_kind`).
+//!
 //! **Timers and ticks**: `renderer::set_timeout(ms, f)` / `clear_timeout`, `renderer::next_tick(f)` (also
 //! `queueMicrotask`); the renderer draws on demand, so anything that changes a renderable asks for a frame itself.
 //! `renderer::on_animation_tick(fps, f)` / `off_animation_tick` is the renderer's shared animation clock, and
@@ -134,6 +143,7 @@ pub mod fuzzysort;
 pub mod home;
 pub mod interactivity;
 pub mod keymap;
+pub mod selection;
 pub mod local;
 pub mod model_preference;
 pub mod permission;

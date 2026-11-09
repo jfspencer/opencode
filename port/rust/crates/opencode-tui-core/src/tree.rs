@@ -169,6 +169,22 @@ pub trait Kind: Any {
     fn hits_after_children(&self, _el: Element, _x: i32, _y: i32, _w: u32, _h: u32) -> Vec<(i32, i32, u32, u32)> {
         Vec::new()
     }
+    /// `shouldStartSelection(x, y)`, in screen cells (see [`crate::selection`]); the superclass part's by default.
+    fn should_start_selection(&mut self, el: Element, x: i32, y: i32) -> bool {
+        self.base_kind().is_some_and(|base| base.should_start_selection(el, x, y))
+    }
+    /// `onSelectionChanged(selection)`: whether the node now holds a selection.
+    fn on_selection_changed(&mut self, el: Element, selection: Option<&crate::selection::SelectionEvent>) -> bool {
+        self.base_kind().is_some_and(|base| base.on_selection_changed(el, selection))
+    }
+    /// `getSelectedText()`.
+    fn selected_text(&mut self, el: Element) -> String {
+        self.base_kind().map(|base| base.selected_text(el)).unwrap_or_default()
+    }
+    /// `hasSelection()`.
+    fn has_selection(&mut self, el: Element) -> bool {
+        self.base_kind().is_some_and(|base| base.has_selection(el))
+    }
     fn destroy(&mut self, _el: Element) {}
     /// The superclass part of a kind that extends another (a `CodeRenderable` is a `TextBufferRenderable`):
     /// [`Element::with_kind`] finds the superclass through it, so its setters work on the subclass.
@@ -723,6 +739,11 @@ impl Element {
             )
         });
         self.yoga_changed();
+    }
+
+    /// `zIndex`.
+    pub fn z_index(self) -> i32 {
+        self.with_base(|b| b.z_index).unwrap_or(0)
     }
 
     pub fn set_z_index(self, z: i32) {
