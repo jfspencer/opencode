@@ -762,3 +762,13 @@ pub fn pending_value(fail: &Fail) -> Option<Rc<PendingThrow>> {
         _ => None,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    /// Arrays and properties hold values inline: two words each (JavaScriptCore's take one).
+    #[test]
+    fn value_is_two_words() {
+        assert_eq!(std::mem::size_of::<super::Value>(), 16);
+        assert_eq!(std::mem::size_of::<Option<super::Value>>(), 16);
+    }
+}

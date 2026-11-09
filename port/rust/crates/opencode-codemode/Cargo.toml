@@ -9,9 +9,9 @@ publish.workspace = true
 
 [dependencies]
 indexmap.workspace = true
-regress = { version = "0.11", features = ["utf16"] }
 ryu-js = "1"
 stacker = "0.1"
+triomphe = { version = "0.1.16", default-features = false, features = ["std"] }
 unicode-normalization = "0.1"
 url = "2.5"
 tokio.workspace = true

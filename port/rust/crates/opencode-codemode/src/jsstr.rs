@@ -2,43 +2,50 @@
 
 use std::fmt;
 use std::hash::{Hash, Hasher};
-use std::rc::Rc;
+use triomphe::ThinArc;
 
-#[derive(Clone, Default)]
-pub struct JsStr(Rc<[u16]>);
+/// One pointer wide (the length lives in the allocation), so a `Value` holding a string stays two words.
+#[derive(Clone)]
+pub struct JsStr(ThinArc<(), u16>);
+
+impl Default for JsStr {
+    fn default() -> JsStr {
+        JsStr::new()
+    }
+}
 
 impl JsStr {
     pub fn new() -> JsStr {
-        JsStr(Rc::from([] as [u16; 0]))
+        JsStr::from_slice(&[])
     }
     pub fn from_units(units: Vec<u16>) -> JsStr {
-        JsStr(Rc::from(units))
+        JsStr::from_slice(&units)
     }
     pub fn from_slice(units: &[u16]) -> JsStr {
-        JsStr(Rc::from(units))
+        JsStr(ThinArc::from_header_and_slice((), units))
     }
     pub fn units(&self) -> &[u16] {
-        &self.0
+        &self.0.slice
     }
     pub fn len(&self) -> usize {
-        self.0.len()
+        self.0.slice.len()
     }
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.0.slice.is_empty()
     }
     pub fn ptr_eq(&self, other: &JsStr) -> bool {
-        Rc::ptr_eq(&self.0, &other.0)
+        self.0.ptr() == other.0.ptr()
     }
     /// Lossy conversion: a lone surrogate becomes U+FFFD.
     pub fn to_rust_lossy(&self) -> String {
-        String::from_utf16_lossy(&self.0)
+        String::from_utf16_lossy(self.units())
     }
     /// Exact conversion when the string is well formed.
     pub fn to_rust(&self) -> Option<String> {
-        String::from_utf16(&self.0).ok()
+        String::from_utf16(self.units()).ok()
     }
     pub fn is_well_formed(&self) -> bool {
-        let units = &self.0;
+        let units = self.units();
         let mut index = 0;
         while index < units.len() {
             let unit = units[index];
@@ -60,7 +67,7 @@ impl JsStr {
         if start == 0 && end == self.len() {
             return self.clone();
         }
-        JsStr::from_slice(&self.0[start..end])
+        JsStr::from_slice(&self.units()[start..end])
     }
     pub fn concat(&self, other: &JsStr) -> JsStr {
         if self.is_empty() {
@@ -70,13 +77,13 @@ impl JsStr {
             return self.clone();
         }
         let mut units = Vec::with_capacity(self.len() + other.len());
-        units.extend_from_slice(&self.0);
-        units.extend_from_slice(&other.0);
+        units.extend_from_slice(self.units());
+        units.extend_from_slice(other.units());
         JsStr::from_units(units)
     }
     pub fn eq_str(&self, text: &str) -> bool {
         let mut units = text.encode_utf16();
-        for unit in self.0.iter() {
+        for unit in self.units() {
             if units.next() != Some(*unit) {
                 return false;
             }
@@ -86,7 +93,7 @@ impl JsStr {
     pub fn starts_with_str(&self, text: &str) -> bool {
         let mut index = 0;
         for unit in text.encode_utf16() {
-            if self.0.get(index) != Some(&unit) {
+            if self.units().get(index) != Some(&unit) {
                 return false;
             }
             index += 1;
@@ -95,10 +102,10 @@ impl JsStr {
     }
     /// Code points, with lone surrogates as themselves (as `String.prototype[Symbol.iterator]` yields them).
     pub fn code_points(&self) -> CodePoints<'_> {
-        CodePoints { units: &self.0, index: 0 }
+        CodePoints { units: self.units(), index: 0 }
     }
     pub fn index_of(&self, search: &[u16], from: usize) -> Option<usize> {
-        let units = &self.0;
+        let units = self.units();
         if search.is_empty() {
             return if from <= units.len() { Some(from) } else { None };
         }
@@ -147,14 +154,14 @@ impl From<String> for JsStr {
 
 impl PartialEq for JsStr {
     fn eq(&self, other: &JsStr) -> bool {
-        Rc::ptr_eq(&self.0, &other.0) || self.0 == other.0
+        self.ptr_eq(other) || self.units() == other.units()
     }
 }
 impl Eq for JsStr {}
 
 impl Hash for JsStr {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.0.hash(state)
+        self.units().hash(state)
     }
 }
 
@@ -166,7 +173,7 @@ impl PartialOrd for JsStr {
 /// Code unit order, as JS `<` compares strings.
 impl Ord for JsStr {
     fn cmp(&self, other: &JsStr) -> std::cmp::Ordering {
-        self.0.cmp(&other.0)
+        self.units().cmp(other.units())
     }
 }
 
