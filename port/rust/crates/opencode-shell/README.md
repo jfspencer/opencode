@@ -61,8 +61,8 @@ are the arguments a shell runs a command with.
 ## Verification
 
 ```sh
-port/rust/crates/opencode-shell/harness/check.sh                        # the standard run (about 360,000 cases)
-port/rust/crates/opencode-shell/harness/check.sh --cases 30000 --seed 7 # a deeper one
+port/rust/crates/opencode-shell/harness/check.sh                        # the standard run: ~395,000 cases, ~35 s
+port/rust/crates/opencode-shell/harness/check.sh --cases 30000 --seed 7 # a deeper one: ~1,000,000 cases, ~1 min
 port/rust/crates/opencode-shell/harness/check.sh --no-upstream --only parse --show 20
 ```
 
@@ -80,9 +80,26 @@ byte-identical; differences go to `port/rust/target/shell-harness/differences.js
    compound commands, functions, comments, Unicode and odd whitespace, half of them mutated (truncated, spliced,
    sprinkled with special characters) into unterminated and malformed constructs; PowerShell lines the same way;
    `cd`-family commands with tilde, environment and path forms; wildcard patterns, paths, rulesets, shell results
-   and byte sequences.
+   and byte sequences. Targeted families add what a random grammar reaches too rarely: nesting across the
+   32-level limit, inputs at the 64 KiB limit, Zsh glob qualifiers and flag groups, escapes and bound values that
+   reach arithmetic sinks (also through heredocs and `[[ ]]`), PowerShell labels, member chains and here-strings;
+4. `Shell.result`'s capture and `Shell.output` pages (no pure TS function): the TS `Shell` service itself, built
+   with upstream's test fixtures, runs `cat` on generated output files under several `tool_output` limits
+   (`harness/capture.ts`);
+5. the shell tool's module-private texts (its description per shell, background and timeout results, the
+   background instruction): the strings the conformance goldens recorded from TS.
 
 The TS side runs with this process's home, user and environment; the harness passes them to Rust.
+
+The harness is itself checked by mutation (`bun harness/mutants.ts [count] [seed]`: random operator mutants of
+the scanner, parser and helpers, `<`/`<=`, `+ 1`/`+ 2`, `&&`/`||`, `==`/`!=`, `true`/`false`, `break`/`continue`,
+each built and run against a quick corpus; it restores every file it touches). Two sweeps of 60 plus hand-picked
+mutants: every mutant that changes behavior is caught by the standard run. Five survivors are equivalent: an
+assignment word ending in `=` is never one character; a `<<` at the end of input fails before its prefix is used;
+the character after `/` always resets the segment state; an escaped character in double quotes cannot be the first
+to break a static word; a sticky `u`-flag regex never starts mid-pair after an ASCII `@` or `$`. One is not caught:
+the work budget's off-by-one (`budget < 0` against `<= 0`), observable only by an input that exhausts exactly
+2,097,152 steps.
 
 ## Known gaps
 
@@ -92,9 +109,11 @@ The TS side runs with this process's home, user and environment; the harness pas
   `/proc/self` on Linux and has no current user on macOS (where `/etc/passwd` rarely lists people anyway).
 - `select::name` lowercases with Rust's Unicode tables, JavaScriptCore with its own; they differ only for
   characters newer than one of them, and only the ASCII result is ever compared.
-- `result::capture` decodes the tail with `String::from_utf8_lossy`; the harness checks that against
-  `Buffer#toString("utf8")` byte sequence by byte sequence, but `capture` itself has no exported TS counterpart, so
-  its arithmetic is checked by the conformance scenarios that truncate output (`shell-tool`), not here.
+- `permission::decide`, `denied`, `relevant`, `allowed_unattended` and `wholly_disabled` are closures inside TS
+  services (`Permission`'s layer, `tool.ts`); only `Permission.evaluate`, which they compose, is checked
+  differentially. `result::output`, `notice`, `notification`, `user_notification`, `capture` and `page` are
+  checked; `result_messages`, `tool_metadata`, `job_text` and `tool_timeout` only through the scenarios.
+- `SystemHost` is not run by the harness (it passes TS's own home, user and environment instead).
 
 ## TS defects reproduced (to be fixed in the reference by a deviation patch)
 

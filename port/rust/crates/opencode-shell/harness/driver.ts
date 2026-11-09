@@ -117,11 +117,37 @@ function recordUpstream() {
   return lines.length
 }
 
+// The shell tool's own texts (its description, background and timeout results) come from functions the TS module
+// does not export, so the goldens recorded from TS are their expected answers.
+const goldenAnswers = new Map<string, string>()
+const BACKGROUND_RE = /^Command moved to the background \(shell ID: ([^)]+)\)\.\nOutput is streaming to: ([^\n]+)(?:\n([\s\S]*))?$/
+const TIMEOUT_RE = /^([\s\S]*)\n\nCommand exceeded timeout of (\d+) ms\. Retry with a larger timeout if the command is expected to take longer\.$/
+function goldenText(text: string) {
+  const golden = (value: Case, answer: string) => {
+    if (only && value.fn !== only) return
+    const key = JSON.stringify(value)
+    if (goldenAnswers.has(key)) return
+    goldenAnswers.set(key, JSON.stringify(answer))
+    cases.push(value)
+  }
+  const description = /^Execute a shell command and return its output\.(?: Commands run on (\S+) using (\S+)\.)?/.exec(text)
+  if (description && text.endsWith("you will be notified when they complete."))
+    golden({ fn: "description", ...(description[2] ? { shell: description[2] } : {}), platform: "linux" }, text)
+  const background = BACKGROUND_RE.exec(text)
+  if (background) {
+    golden({ fn: "background", shellID: background[1], file: background[2] }, text.split("\n").slice(0, 2).join("\n"))
+    if (background[3] !== undefined) golden({ fn: "backgroundInstruction" }, background[3])
+  }
+  const timeout = TIMEOUT_RE.exec(text)
+  if (timeout) golden({ fn: "timeoutOutput", output: timeout[1], timeout: Number(timeout[2]) }, text)
+}
+
 // (2) Every command a conformance golden records.
 function scenarioCommands() {
   const goldens = path.join(port, "conformance/goldens")
   const commands = new Set<string>()
   const visit = (value: unknown) => {
+    if (typeof value === "string") goldenText(value)
     if (typeof value === "string") {
       if (value.startsWith("{") && value.includes('"command"')) {
         try {
@@ -269,7 +295,7 @@ function canonicalScan(result: any) {
 }
 
 function expected(value: Case): string {
-  const answer = precomputed.get(value)
+  const answer = precomputed.get(value) ?? goldenAnswers.get(JSON.stringify(value))
   if (answer !== undefined) return answer
   switch (value.fn) {
     case "scan":

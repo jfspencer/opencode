@@ -103,7 +103,10 @@ function expansion(rand: Random, depth: number): string {
 }
 
 function arith(rand: Random, depth: number): string {
-  const atoms = ["1", "x", "$x", "${x}", "x[1]", "x[$i]", "a+b", "2#101", "16#ff", "$#", "$$", "$$[1]", "'1'", '"$x"', "$(echo 1)", "i++", "--j", "x?1:2", "(1)", "1 << 2", "0x10"]
+  const atoms = [
+    "1", "x", "$x", "${x}", "x[1]", "x[$i]", "a+b", "2#101", "16#ff", "$#", "$$", "$$[1]", "'1'", '"$x"', "$(echo 1)",
+    "i++", "--j", "x?1:2", "(1)", "1 << 2", "0x10", "$'1'", "$'\\x28'", "$'\\x41'", "$'a'", "$'\\''", "$'\\x5b1]'", "$'1",
+  ]
   const parts = [pick(rand, atoms)]
   for (let i = int(rand, 3); i > 0; i--) parts.push(pick(rand, [" + ", "*", " - ", " == ", ",", " && ", ";", "#"]), depth < 4 && chance(rand, 0.2) ? expansion(rand, depth + 1) : pick(rand, atoms))
   return parts.join("")

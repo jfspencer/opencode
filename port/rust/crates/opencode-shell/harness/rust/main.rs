@@ -304,6 +304,19 @@ fn answer(case: &Value, host: &HarnessHost) -> String {
                 ("truncated", Some(page.truncated.to_string())),
             ])
         }
+        "description" => text(&result::tool_description(case.opt_text("shell").as_deref(), &case.text("platform"))),
+        "background" => text(&result::background(&case.text("shellID"), &case.text("file")).output),
+        "backgroundInstruction" => text(result::BACKGROUND_INSTRUCTION),
+        "timeoutOutput" => {
+            let output = result::Output {
+                output: case.text("output"),
+                truncated: false,
+                exit: None,
+                signal: None,
+                timeout: Some(true),
+            };
+            text(&result::completed(&output, case.num("timeout") as u64).output)
+        }
         other => panic!("unknown function {other}"),
     }
 }
