@@ -231,8 +231,9 @@ const addPoint = (ranges: Ranges, c: number) => {
 for (let c = 0; c < 0x110000; c++) {
   if (c >= 0xd800 && c < 0xe000) continue
   const ch = String.fromCodePoint(c)
-  if (ch === ">" ) continue
-  if (accepts(`(?<${ch}>)`, "")) addPoint(nameStart, c)
+  if (ch === ">") continue
+  // `(?<!>)` and `(?<=>)` are lookbehinds, not groups.
+  if (ch !== "!" && ch !== "=" && accepts(`(?<${ch}>)`, "")) addPoint(nameStart, c)
   if (accepts(`(?<a${ch}>)`, "")) addPoint(namePart, c)
 }
 // Spot-check that unicode mode agrees.

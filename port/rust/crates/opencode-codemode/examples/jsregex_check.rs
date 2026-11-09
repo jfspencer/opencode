@@ -158,7 +158,17 @@ fn constructor(pattern: &[u16], flags: &[u16]) -> String {
 }
 
 fn main() {
-    let max_reports: usize = std::env::args().nth(1).and_then(|a| a.parse().ok()).unwrap_or(40);
+    // `--try <pattern> <flags> [subject]`: the constructor result (and the operations on a subject), for debugging.
+    let args: Vec<String> = std::env::args().collect();
+    if args.get(1).map(String::as_str) == Some("--try") {
+        let (pattern, flags) = (units(&args[2]), units(args.get(3).map_or("", String::as_str)));
+        println!("{}", constructor(&pattern, &flags));
+        if let Some(subject) = args.get(4) {
+            println!("{}", operations(&pattern, &flags, &units(subject), true).replace(' ', "\n"));
+        }
+        return;
+    }
+    let max_reports: usize = args.get(1).and_then(|a| a.parse().ok()).unwrap_or(40);
     let stdin = std::io::stdin();
     let mut cases = 0u64;
     let mut differences = 0u64;
@@ -211,8 +221,16 @@ fn main() {
                 let text = dec(fields[1]);
                 let expected = fields[2];
                 let full = expected.split(' ').count() > 20;
+                if std::env::var_os("JSREGEX_TRACE").is_some() {
+                    eprintln!("case /{}/{} on \"{}\"", enc(pattern), enc(flags), fields[1]);
+                }
+                let started = std::time::Instant::now();
                 let actual = std::panic::catch_unwind(|| operations(pattern, flags, &text, full))
                     .unwrap_or_else(|_| "PANIC".to_string());
+                let elapsed = started.elapsed();
+                if elapsed.as_millis() > 200 {
+                    eprintln!("SLOW {elapsed:?}: /{}/{} on \"{}\"", enc(pattern), enc(flags), fields[1]);
+                }
                 if actual != expected {
                     let e: Vec<&str> = expected.split(' ').collect();
                     let a: Vec<&str> = actual.split(' ').collect();

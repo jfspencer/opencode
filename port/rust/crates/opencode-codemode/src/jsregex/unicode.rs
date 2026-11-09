@@ -116,8 +116,31 @@ impl Folding {
         }
     }
 
+    /// The members of c's class (None when c has no case partner).
+    pub fn class_of(&self, c: u32) -> Option<&[u32]> {
+        let rep = self.canon(c);
+        let index = self.classes.binary_search_by_key(&rep, |(r, _)| *r).ok()?;
+        Some(&self.classes[index].1)
+    }
+
     /// Every character with a case partner in `set`, added to it.
     pub fn close(&self, set: &CharSet) -> CharSet {
+        let size: u64 = set.ranges().iter().map(|&(a, b)| (b - a) as u64 + 1).sum();
+        if size <= 64 {
+            let mut extra = Vec::new();
+            for &(a, b) in set.ranges() {
+                for c in a..=b {
+                    if let Some(members) = self.class_of(c) {
+                        extra.extend(members.iter().filter(|&&m| !set.contains(m)).map(|&m| (m, m)));
+                    }
+                }
+            }
+            if extra.is_empty() {
+                return set.clone();
+            }
+            extra.extend_from_slice(set.ranges());
+            return CharSet::from_ranges(extra);
+        }
         let mut extra = Vec::new();
         for (_, members) in &self.classes {
             if members.iter().any(|&m| set.contains(m)) {

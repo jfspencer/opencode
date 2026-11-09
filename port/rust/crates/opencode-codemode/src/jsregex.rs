@@ -116,10 +116,45 @@ impl Match {
 
 const FLAGS_MESSAGE: &str = "Invalid flags supplied to RegExp constructor.";
 
+/// Recently compiled patterns: a regex literal evaluated in a loop makes a new RegExp object each time.
+const COMPILE_CACHE_SIZE: usize = 32;
+
+type CacheEntry = (Rc<[u16]>, Flags, Rc<Compiled>);
+
+thread_local! {
+    static COMPILE_CACHE: std::cell::RefCell<Vec<CacheEntry>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
 impl JsRegExp {
     /// `new RegExp(pattern, flags)` with string pattern and flags.
     pub fn new(pattern: &[u16], flags: &[u16]) -> Result<JsRegExp, RegExpError> {
         let parsed_flags = Flags::parse(flags).ok_or_else(|| RegExpError::Flags(FLAGS_MESSAGE.to_string()))?;
+        // The flags that matter to the compiled program (g, y and d only affect exec's bookkeeping).
+        let key_flags = Flags { global: false, sticky: false, has_indices: false, ..parsed_flags };
+        let cached = COMPILE_CACHE.with(|cache| {
+            let mut cache = cache.borrow_mut();
+            let index = cache.iter().position(|(p, f, _)| *f == key_flags && **p == *pattern)?;
+            let entry = cache.remove(index);
+            let compiled = entry.2.clone();
+            cache.insert(0, entry);
+            Some(compiled)
+        });
+        let compiled = match cached {
+            Some(compiled) => compiled,
+            None => {
+                let compiled = Rc::new(Self::compile(pattern, parsed_flags)?);
+                COMPILE_CACHE.with(|cache| {
+                    let mut cache = cache.borrow_mut();
+                    cache.insert(0, (Rc::from(pattern), key_flags, compiled.clone()));
+                    cache.truncate(COMPILE_CACHE_SIZE);
+                });
+                compiled
+            }
+        };
+        Ok(JsRegExp { pattern: Rc::from(pattern), flags: parsed_flags, compiled, last_index: Cell::new(0.0) })
+    }
+
+    fn compile(pattern: &[u16], parsed_flags: Flags) -> Result<Compiled, RegExpError> {
         let parse_flags = parser::ParseFlags {
             icase: parsed_flags.ignore_case,
             multiline: parsed_flags.multiline,
@@ -130,12 +165,7 @@ impl JsRegExp {
         let parsed = parser::parse(pattern, parse_flags)
             .map_err(|message| RegExpError::Pattern(format!("Invalid regular expression: {message}")))?;
         let program = vm::compile(&parsed.node, parsed.capture_count, parsed_flags.full_unicode());
-        Ok(JsRegExp {
-            pattern: Rc::from(pattern),
-            flags: parsed_flags,
-            compiled: Rc::new(Compiled { program, names: parsed.names }),
-            last_index: Cell::new(0.0),
-        })
+        Ok(Compiled { program, names: parsed.names })
     }
 
     /// RegExp.prototype.source, escaped as JSC does it.

@@ -31,6 +31,7 @@ pub const NEGATED_MAY_CONTAIN_STRINGS: &str = "negated class set may contain str
 pub const INVALID_CLASS_SET_CHARACTER: &str = "invalid class set character";
 pub const INVALID_MODIFIER: &str = "invalid regular expression modifier";
 pub const PATTERN_TOO_LONG: &str = "pattern exceeds string length limits";
+pub const CLASS_STRING_UNMATCHED: &str = "missing terminating } for class string disjunction";
 
 type Fail = &'static str;
 
@@ -194,6 +195,19 @@ enum OperandKind {
     Escape,
     Nested,
     Strings,
+}
+
+/// Where a v-flag class operand is parsed, which decides some of JSC's error messages.
+#[derive(Clone, Copy, PartialEq)]
+enum Position {
+    /// In a union, where `]` or an operator could also come.
+    Union,
+    /// After `&&` or `--`.
+    Required,
+    /// After a range's `-`.
+    Range,
+    /// Inside `\q{}`.
+    String,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -616,6 +630,9 @@ impl<'a> Parser<'a> {
                         let Some(name) = self.try_consume_group_name()? else {
                             return Err(INVALID_GROUP_NAME);
                         };
+                        if self.k_identity_seen {
+                            return Err(INVALID_NAMED_BACKREFERENCE);
+                        }
                         let path: Vec<(u32, u32)> = self.frames.iter().map(|f| (f.disjunction, f.alternative)).collect();
                         for (other, _, other_path) in &self.names {
                             if *other == name && might_both_participate(&path, other_path) {
@@ -1311,19 +1328,11 @@ impl<'a> Parser<'a> {
         self.peek_is(c) && self.peek_at(1) == Some(c as u16)
     }
 
-    /// After `[` (and `^`): a ClassSetExpression through its `]`, as JSC parses it: `&&` and `--` may follow a
-    /// union whose characters and ranges are limited to a first character (nested classes and escapes are fine),
-    /// and once an operator is in force a nested class may follow an operand without repeating it.
+    /// After `[` (and `^`): a ClassSetExpression through its `]`, as JSC parses it. `&&` and `--` may follow a
+    /// union whose characters and ranges are limited to a first character (nested classes and escapes are fine);
+    /// once an operator is in force a nested class may follow an operand without repeating it. Which error a
+    /// malformed class reports follows JSC's order of checks.
     fn parse_class_set_contents(&mut self) -> Result<ClassValue, Fail> {
-        if self.at_end() {
-            return Err(CLASS_UNMATCHED);
-        }
-        if self.try_consume(b']') {
-            return Ok(ClassValue::default());
-        }
-        if self.at_double(b'&') || self.at_double(b'-') {
-            return Err(INVALID_CLASS_SET_OPERATION);
-        }
         let mut result = ClassValue::default();
         let mut committed = false;
         let mut first = true;
@@ -1336,48 +1345,55 @@ impl<'a> Parser<'a> {
             }
             let intersect = self.at_double(b'&');
             if intersect || self.at_double(b'-') {
-                if committed {
+                self.consume_class_set_operator(intersect)?;
+                if committed || first {
                     return Err(INVALID_CLASS_SET_OPERATION);
                 }
                 return self.parse_class_set_operation(result, intersect);
             }
-            let (value, kind) = self.parse_class_set_operand(false)?;
-            let single_dash = self.peek_is(b'-') && !self.at_double(b'-');
-            match kind {
-                OperandKind::Char(a) if single_dash => {
-                    let range = self.parse_class_set_range(Some(a))?;
-                    result.set.add_set(&self.fold_v(range));
-                    committed = true;
+            let (value, kind) = self.parse_class_set_operand(Position::Union)?;
+            if self.peek_is(b'-') && !self.at_double(b'-') {
+                if self.peek_at(1).is_none() {
+                    return Err(CLASS_UNMATCHED);
                 }
-                OperandKind::Escape if single_dash => {
-                    self.parse_class_set_range(None)?;
-                }
-                OperandKind::Nested | OperandKind::Strings if single_dash => {
-                    return Err(INVALID_CLASS_SET_OPERATION);
-                }
-                kind => {
-                    if matches!(kind, OperandKind::Char(_)) && !first {
+                match kind {
+                    OperandKind::Char(a) => {
+                        let range = self.parse_class_set_range(Some(a))?;
+                        result.set.add_set(&self.fold_v(range));
                         committed = true;
                     }
-                    result.union(value);
+                    OperandKind::Escape => {
+                        self.parse_class_set_range(None)?;
+                    }
+                    OperandKind::Nested | OperandKind::Strings => return Err(INVALID_CLASS_SET_OPERATION),
                 }
+            } else {
+                if matches!(kind, OperandKind::Char(_)) && !first {
+                    committed = true;
+                }
+                result.union(value);
             }
             first = false;
         }
     }
 
-    /// At the first `&&` or `--` of an intersection or subtraction whose left side is `result`.
+    /// Consumes `&&` or `--`; a third `&` (or `-`) and the end of the pattern are errors before anything else.
+    fn consume_class_set_operator(&mut self, intersect: bool) -> Result<(), Fail> {
+        self.i += 2;
+        if self.peek_is(if intersect { b'&' } else { b'-' }) || self.at_end() {
+            return Err(INVALID_CLASS_SET_CHARACTER);
+        }
+        Ok(())
+    }
+
+    /// After the first `&&` or `--` of an intersection or subtraction whose left side is `result`.
     fn parse_class_set_operation(&mut self, mut result: ClassValue, intersect: bool) -> Result<ClassValue, Fail> {
-        let op = if intersect { b'&' } else { b'-' };
+        let (op, other) = if intersect { (b'&', b'-') } else { (b'-', b'&') };
         let apply = |result: &mut ClassValue, value: ClassValue| {
             if intersect { result.intersect(value) } else { result.subtract(value) }
         };
         loop {
-            self.i += 2;
-            if intersect && self.peek_is(b'&') {
-                return Err(INVALID_CLASS_SET_CHARACTER);
-            }
-            let (value, _) = self.parse_class_set_operand(true)?;
+            let (value, _) = self.parse_class_set_operand(Position::Required)?;
             apply(&mut result, value);
             loop {
                 if self.at_end() {
@@ -1387,16 +1403,28 @@ impl<'a> Parser<'a> {
                     return Ok(result);
                 }
                 if self.at_double(op) {
+                    self.consume_class_set_operator(intersect)?;
                     break;
                 }
-                if self.at_double(b'&') || self.peek_is(b'-') {
+                if self.at_double(other) {
                     return Err(INVALID_CLASS_SET_OPERATION);
                 }
-                let (value, kind) = self.parse_class_set_operand(false)?;
-                if kind != OperandKind::Nested {
-                    return Err(INVALID_CLASS_SET_OPERATION);
+                let c = self.peek() as u32;
+                if c == '[' as u32 {
+                    let (value, _) = self.parse_class_set_operand(Position::Required)?;
+                    apply(&mut result, value);
+                    continue;
                 }
-                apply(&mut result, value);
+                if c == '-' as u32 {
+                    return Err(if self.peek_at(1).is_none() { CLASS_UNMATCHED } else { INVALID_CLASS_SET_OPERATION });
+                }
+                if in_ascii(b"(){}/|", c) {
+                    return Err(INVALID_CLASS_SET_CHARACTER);
+                }
+                if c == '&' as u32 && self.peek_at(1).is_none() {
+                    return Err(CLASS_UNMATCHED);
+                }
+                return Err(INVALID_CLASS_SET_OPERATION);
             }
         }
     }
@@ -1407,7 +1435,7 @@ impl<'a> Parser<'a> {
         if self.peek_is(b'[') || (self.peek_is(b'\\') && self.peek_at(1) == Some(b'q' as u16)) {
             return Err(INVALID_CLASS_SET_CHARACTER);
         }
-        let (_, kind) = self.parse_class_set_operand(true)?;
+        let (_, kind) = self.parse_class_set_operand(Position::Range)?;
         let (Some(a), OperandKind::Char(b)) = (first, kind) else {
             return Err(CLASS_RANGE_INVALID);
         };
@@ -1417,8 +1445,8 @@ impl<'a> Parser<'a> {
         Ok(CharSet::range(a, b))
     }
 
-    /// A ClassSetOperand and its kind. `required`: an operand must come here (after an operator or a range's `-`).
-    fn parse_class_set_operand(&mut self, required: bool) -> Result<(ClassValue, OperandKind), Fail> {
+    /// A ClassSetOperand and its kind, at a position of the given kind.
+    fn parse_class_set_operand(&mut self, position: Position) -> Result<(ClassValue, OperandKind), Fail> {
         if self.at_end() {
             return Err(CLASS_UNMATCHED);
         }
@@ -1460,13 +1488,16 @@ impl<'a> Parser<'a> {
                 _ => {}
             }
         }
-        let ch = self.parse_class_set_character(required)?;
+        if position == Position::Required && (self.at_double(b'&') || self.at_double(b'-')) {
+            return Err(INVALID_CLASS_SET_OPERATION);
+        }
+        let ch = self.parse_class_set_character(position)?;
         let folded = if self.icase { unicode::unicode_folding().canon(ch) } else { ch };
         let value = ClassValue { set: CharSet::single(folded), strings: Vec::new(), may_contain_strings: false };
         Ok((value, OperandKind::Char(ch)))
     }
 
-    fn parse_class_set_character(&mut self, required: bool) -> Result<u32, Fail> {
+    fn parse_class_set_character(&mut self, position: Position) -> Result<u32, Fail> {
         if self.at_end() {
             return Err(CLASS_UNMATCHED);
         }
@@ -1482,14 +1513,37 @@ impl<'a> Parser<'a> {
                     self.i += 2;
                     return Ok(next);
                 }
+                if position == Position::String {
+                    // Inside \q{} JSC reads \d \D \s \S \w \W as the letters and rejects \p.
+                    if in_ascii(b"dDsSwW", next) {
+                        self.i += 2;
+                        return Ok(next);
+                    }
+                    if in_ascii(b"pP", next) {
+                        return Err(INVALID_IDENTITY_ESCAPE);
+                    }
+                }
             }
             return match self.parse_escape(Context::ClassSet)? {
                 Escape::Char(ch) => Ok(ch),
                 _ => Err(INVALID_CLASS_SET_CHARACTER),
             };
         }
-        if in_ascii(CLASS_SET_DOUBLE_PUNCTUATORS, c) && self.peek_at(1) == Some(c as u16) {
-            return Err(if required { INVALID_CLASS_SET_CHARACTER } else { INVALID_CLASS_SET_OPERATION });
+        if in_ascii(CLASS_SET_DOUBLE_PUNCTUATORS, c) {
+            match self.peek_at(1) {
+                Some(next) if next as u32 == c => {
+                    return Err(if position == Position::Range {
+                        INVALID_CLASS_SET_CHARACTER
+                    } else {
+                        INVALID_CLASS_SET_OPERATION
+                    });
+                }
+                None if matches!(position, Position::Union | Position::Required) => return Err(CLASS_UNMATCHED),
+                _ => {}
+            }
+        }
+        if c == '-' as u32 && position != Position::String && self.peek_at(1).is_none() {
+            return Err(CLASS_UNMATCHED);
         }
         if in_ascii(CLASS_SET_SYNTAX_CHARACTERS, c) {
             return Err(INVALID_CLASS_SET_CHARACTER);
@@ -1503,7 +1557,7 @@ impl<'a> Parser<'a> {
         let mut current: Vec<u32> = Vec::new();
         loop {
             if self.at_end() {
-                return Err(CLASS_UNMATCHED);
+                return Err(CLASS_STRING_UNMATCHED);
             }
             let c = self.peek();
             if c == '}' as u16 || c == '|' as u16 {
@@ -1522,7 +1576,7 @@ impl<'a> Parser<'a> {
                 }
                 continue;
             }
-            current.push(self.parse_class_set_character(true)?);
+            current.push(self.parse_class_set_character(Position::String)?);
         }
     }
 }
