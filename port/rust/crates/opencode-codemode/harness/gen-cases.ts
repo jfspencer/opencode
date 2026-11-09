@@ -2,7 +2,7 @@
 // hooks, scanTools, and value matrices that cross every operator, coercion, and common built-in with a spread of
 // values. Deterministic.
 //
-// usage: bun harness/gen-cases.ts <async|tools|extensions|hooks|scan|chains|matrix> > corpus/<name>.jsonl
+// usage: bun harness/gen-cases.ts <async|tools|extensions|hooks|scan|chains|deep|matrix> > corpus/<name>.jsonl
 const kind = process.argv[2]
 const out: Array<Record<string, unknown>> = []
 const add = (name: string, code: string, extra: Record<string, unknown> = {}) => out.push({ name: `${kind}/${name}`, code, ...extra })
@@ -378,6 +378,37 @@ if (kind === "chains") {
     }
     for (const [name, code] of Object.entries(shapes)) add(`${name} ${n}`, code)
   }
+}
+
+if (kind === "deep") {
+  // Deep program structure on a 2 MiB stack: 1,000 levels run in TS (the undeclared `x` shows the innermost level
+  // was reached), 20,000 overflow acorn or the interpreter. Between about 2,500 and 5,000 levels TS's outcome
+  // depends on JIT warm-up, so no case sits there.
+  const shapes: Record<string, (n: number) => string> = {
+    blocks: (n) => "{".repeat(n) + "x = 1" + "}".repeat(n) + "; return 1",
+    ifs: (n) => "if (1) ".repeat(n) + "x = 1; return 1",
+    elseIfs: (n) => "if (0) {} " + "else if (0) {} ".repeat(n) + "else { x = 2 } return 1",
+    labels: (n) => Array.from({ length: n }, (_, i) => `l${i}: `).join("") + "x = 1; return 1",
+    whiles: (n) => "while (true) { ".repeat(n) + "break; " + "} break; ".repeat(n - 1) + "} return 1",
+    tries: (n) => "try { ".repeat(n) + "x = 1" + " } finally {}".repeat(n) + "; return 1",
+    switches: (n) => "switch (1) { case 1: ".repeat(n) + "x = 1" + " }".repeat(n) + "; return 1",
+    fors: (n) => "for (let i = 0; i < 1; i++) ".repeat(n) + "x = 1; return 1",
+    parens: (n) => "return " + "(".repeat(n) + "1" + ")".repeat(n),
+    arrays: (n) => "return " + "[".repeat(n) + "1" + "]".repeat(n) + ".length",
+    arrows: (n) => "return " + "(() => ".repeat(n) + "1" + ")()".repeat(n),
+    functions: (n) => "return " + "(function () { return ".repeat(n) + "1" + " })()".repeat(n),
+    unary: (n) => "return " + "!".repeat(n) + "1",
+    ternary: (n) => "return " + "1 ? ".repeat(n) + "1" + " : 0".repeat(n),
+    assign: (n) => "let a; return " + "a = ".repeat(n) + "1",
+    exponent: (n) => "return " + "1 ** ".repeat(n) + "1",
+    template: (n) => "return " + "`${".repeat(n) + "1" + "}`".repeat(n),
+    spread: (n) => "return [" + "...[".repeat(n) + "1" + "]".repeat(n) + "]",
+    arrayPattern: (n) => "const " + "[".repeat(n) + "a" + "]".repeat(n) + " = " + "[".repeat(n) + "1" + "]".repeat(n) + "; return a",
+    objectPattern: (n) => "const " + "{a:".repeat(n) + "b" + "}".repeat(n) + " = " + "{a:".repeat(n) + "1" + "}".repeat(n) + "; return b",
+    callArgs: (n) => "const f = (x) => x; return " + "f(".repeat(n) + "1" + ")".repeat(n),
+  }
+  for (const [name, make] of Object.entries(shapes)) add(`${name} 1000`, make(1000))
+  for (const name of ["blocks", "ifs", "tries", "parens", "arrays", "arrayPattern"]) add(`${name} 20000`, shapes[name](20000))
 }
 
 if (kind === "matrix") {

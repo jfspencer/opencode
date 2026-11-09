@@ -19,7 +19,7 @@ It has no server dependencies. Its futures are single-threaded and can be driven
 runtime.
 
 Fidelity is checked against the TS package, never against hand-written expectations. With `harness/check.sh` (see
-harness/README.md), the 1,982 execution cases and the `scanTools` pass over every corpus program (2,064) show
+harness/README.md), the 2,009 execution cases and the `scanTools` pass over every corpus program (2,091) show
 **0 differences**. Only text that JavaScriptCore itself writes, such as `JSON.parse` diagnostics, is masked as
 `<engine message>`. Everything the interpreter writes matches byte for byte, including JS number-to-string
 conversion.
@@ -168,8 +168,13 @@ The evaluator in `interp/`:
   TS's own thresholds move with JIT warm-up, by as much as 17,000 to 30,000 for `+`, so the corpus stays clear of
   them.
 - **No build-dependent limits.** Chains the parser builds in a loop (`a + b + …`, `a.b.c()`) parse at any length,
-  as acorn's do. Their trees are freed one link at a time. Every recursive walk grows its stack on demand, so a
-  debug build on a 2 MiB stack gives the same results as release.
+  as acorn's do. Their trees are freed one link at a time. Statement evaluation, patterns, and every recursive
+  walk grow their stack on demand, so a debug build on a 2 MiB stack gives the same results as release, and no
+  program crashes the process.
+- **Between about 2,500 and 5,000 nested levels** of brackets, statements, or patterns, acorn and the interpreter
+  run out of JS stack in TS. Rust's parser limit (8 MiB of parser stack) is not exact there. A stress run of 136
+  such programs found 10 that differ in that band, for example `((…1…))` nested 2,500 deep: TS overflowed after
+  JIT warm-up, while Rust evaluates it. At 1,000 and at 20,000 levels the results match (`deep.jsonl`).
 - **`localeCompare`** approximates ICU root collation: ASCII punctuation order, common expansions, and accents as
   secondary differences. It matches on every corpus case, but it is not the full collation algorithm.
 - **Dates outside UTC** use the system tz database, which can be newer than bun's ICU. The conformance suite runs

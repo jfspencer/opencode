@@ -53,6 +53,7 @@ because a microtask runs before `Effect.yieldNow`'s macrotask.
 | `hooks.jsonl` | 13 | hook order and call identity, interrupted calls | `bun harness/gen-cases.ts hooks` |
 | `matrix.jsonl` | 156 | operators, coercions, and built-ins crossed with a spread of values | `bun harness/gen-cases.ts matrix` |
 | `chains.jsonl` | 28 | expression chains of 3,000 and 45,000 links, in every context that walks or evaluates them | `bun harness/gen-cases.ts chains` |
+| `deep.jsonl` | 27 | statements, expressions, and patterns nested 1,000 and 20,000 levels deep | `bun harness/gen-cases.ts deep` |
 | `scan.jsonl` | 82 | `scanTools` only: scopes, chains, error positions, depth | `bun harness/gen-cases.ts scan` |
 
 `gen-cases.ts` writes to stdout, so send each kind to `corpus/<kind>.jsonl`. All its output is deterministic.
