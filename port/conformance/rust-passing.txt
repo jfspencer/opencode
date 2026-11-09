@@ -832,7 +832,12 @@ scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
+tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
+tui/nav-exit.test.ts › exit: leader q
+tui/nav-exit.test.ts › exit: typing ":q" and enter
+tui/nav-exit.test.ts › exit: typing "exit" and enter
+tui/nav-exit.test.ts › exit: typing "quit" and enter
 tui/nav-home.test.ts › home screen at 160x50
 tui/nav-home.test.ts › home screen at 70x11
 tui/nav-home.test.ts › home screen at 80x24
