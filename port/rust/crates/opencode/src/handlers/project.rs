@@ -102,7 +102,7 @@ fn hostname() -> Option<String> {
 fn server_info() -> Json {
     let mut paths = Obj::new();
     paths.str("tmp", &global_tmp());
-    // TODO(port): persistent PTYs (PersistentPty.available) are the shell slice's; the TS server on Linux has them.
+    // `PersistentPty.available`: persistent terminals run in the opencode-pty daemon (`crate::persistent_pty`).
     let mut capabilities = Obj::new();
     capabilities.set("persistentPty", Json::Bool(true));
     let mut o = Obj::new();
