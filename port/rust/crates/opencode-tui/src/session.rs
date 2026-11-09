@@ -12,6 +12,7 @@
 //! | [`anchors`] | `anchors.ts`, `anchor-view.tsx` |
 //! | [`mount_budget`], [`message_navigation`], [`history`] | `mount-budget.ts`, `message-navigation.ts`, `history.ts` |
 //! | [`render_context`] | `render-context.tsx` |
+//! | [`location_missing`] | `location-missing.tsx` |
 //!
 //! TODO(port-tui): the prompt slice: creating the session (with `--session`'s new ID), selecting its model and
 //! agent, and sending the prompt from home.
@@ -23,6 +24,7 @@ pub mod extras;
 pub mod group_view;
 pub mod grouping;
 pub mod history;
+pub mod location_missing;
 pub mod message_navigation;
 pub mod message_parts;
 pub mod messages;

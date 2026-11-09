@@ -1670,6 +1670,29 @@ pub fn session(props: SessionProps) -> View {
                                     None,
                                 )
                             }),
+                            when(
+                                {
+                                    let current_location = current_location.clone();
+                                    move || {
+                                        let error = current_location.error();
+                                        super::location_missing::location_missing(
+                                            error.as_ref().map(|e| &e.location),
+                                            session.get().as_deref(),
+                                        )
+                                    }
+                                },
+                                {
+                                    let sid = sid.clone();
+                                    move || {
+                                        let Some(info) = untrack(|| session.get()) else { return View::Empty };
+                                        super::location_missing::session_location_missing(
+                                            info.get("location").and_then(|l| l.str("directory")).unwrap_or_default().to_string(),
+                                            info.str("projectID").unwrap_or_default().to_string(),
+                                            sid.clone(),
+                                        )
+                                    }
+                                },
+                            ),
                             when(move || !disabled.get(), move || {
                                 let prompt_for = prompt_for.clone();
                                 let st = st5.clone();
