@@ -598,7 +598,8 @@ pub fn remove(app: &App, session_id: &str) -> Result<()> {
     let session = require(&app.db.lock().unwrap(), session_id)?;
     app.sessions.removing.lock().unwrap().insert(session_id.to_owned());
     let result = (|| {
-        // TODO(port): interrupt execution, wait for idle, cancel the session's jobs, close its model transport.
+        // The handler stops the session's own execution first. TODO(port): interrupt and await descendants'
+        // executions, cancel the session's jobs, close its model transport.
         let children: Vec<String> = {
             let db = app.db.lock().unwrap();
             let mut statement =

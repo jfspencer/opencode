@@ -7,8 +7,9 @@
 //!
 //! The execution's lifecycle events are `session.execution.started` (which claims the session: `time_suspended`)
 //! and one terminal event per busy period: `succeeded`, `failed` (with the session error) or `interrupted` (with
-//! its reason); their projections set the session's busy and idle times. TODO(port): resuming claimed sessions at
-//! boot (execution/restart.ts), cancelling the session's background jobs on interruption.
+//! its reason); their projections set the session's busy and idle times. A claim that survives the process is
+//! picked up at the next boot ([`resume_suspended`]). TODO(port): cancelling the session's background jobs on
+//! interruption.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
