@@ -76,6 +76,7 @@ struct State {
     frame_listeners: Vec<(u64, Rc<dyn Fn()>, bool)>,
     destroy_listeners: Vec<Rc<dyn Fn()>>,
     theme_listeners: Vec<(u64, Rc<dyn Fn(ThemeMode)>)>,
+    capability_listeners: Vec<(u64, Rc<dyn Fn(terminal::Capabilities)>)>,
     focus_listeners: Vec<(u64, Rc<dyn Fn(bool)>)>,
     /// `onAnimationTick` subscribers and the timer that requests their next frame.
     animation_tickers: Vec<AnimationTicker>,
@@ -338,6 +339,25 @@ pub fn on_theme_mode(handler: impl Fn(ThemeMode) + 'static) -> u64 {
         s.next_listener
     })
     .unwrap_or(0)
+}
+
+/// `capabilities`: what the terminal reported so far.
+pub fn capabilities() -> Option<terminal::Capabilities> {
+    with(|s| s.output.borrow().terminal.capabilities())
+}
+
+/// `on("capabilities", ...)`: the terminal's capabilities changed.
+pub fn on_capabilities(handler: impl Fn(terminal::Capabilities) + 'static) -> u64 {
+    with(|s| {
+        s.next_listener += 1;
+        s.capability_listeners.push((s.next_listener, Rc::new(handler)));
+        s.next_listener
+    })
+    .unwrap_or(0)
+}
+
+pub fn off_capabilities(token: u64) {
+    with(|s| s.capability_listeners.retain(|(id, _)| *id != token));
 }
 
 /// `on("focus" | "blur", ...)`: terminal focus.
@@ -763,6 +783,7 @@ pub async fn create_cli_renderer(config: RendererConfig) -> std::io::Result<()> 
         frame_listeners: Vec::new(),
         destroy_listeners: Vec::new(),
         theme_listeners: Vec::new(),
+        capability_listeners: Vec::new(),
         focus_listeners: Vec::new(),
         animation_tickers: Vec::new(),
         animation_timer: None,
@@ -873,6 +894,12 @@ fn apply_effects(effects: ReplyEffects) {
     if effects.capabilities_changed {
         with(|s| s.force_full_repaint = true);
         request_render();
+        let listeners = with(|s| s.capability_listeners.clone()).unwrap_or_default();
+        if let Some(capabilities) = capabilities() {
+            for (_, listener) in listeners {
+                listener(capabilities);
+            }
+        }
     }
     if effects.resolution.is_some() || effects.palette_applied {
         request_render();
