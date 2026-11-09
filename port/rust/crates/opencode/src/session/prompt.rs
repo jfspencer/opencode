@@ -1,9 +1,8 @@
 //! Prompting a session (packages/core/src/session/session.ts `prompt`, `switchAgent`, `switchModel`, and
-//! session/prompt.ts `prepare`): input is admitted into the inbox (idempotently by ID) and the session is woken unless
-//! `resume` is `false`.
+//! session/prompt.ts `prepare`): input is prepared (file attachments read inline, skill attachments given their
+//! content), admitted into the inbox (idempotently by ID), and the session is woken unless `resume` is `false`.
 //!
-//! TODO(port): attachments (files, agents' and skills' content), the `session.prompt` plugin hook, committing a
-//! staged revert before admission.
+//! TODO(port): the `session.prompt` plugin hook, committing a staged revert before admission.
 
 use opencode_protocol::Json;
 

@@ -1,10 +1,29 @@
+scenarios/agent-loop-agents.test.ts › PDF attachment to a model that reads PDFs
+scenarios/agent-loop-agents.test.ts › agent with a custom system prompt
+scenarios/agent-loop-agents.test.ts › binary attachment of an unsupported type is reported to the model
 scenarios/agent-loop-agents.test.ts › generate text fails
+scenarios/agent-loop-agents.test.ts › generate text from session context
+scenarios/agent-loop-agents.test.ts › generate text from session context fails
 scenarios/agent-loop-agents.test.ts › generate text without a session
+scenarios/agent-loop-agents.test.ts › instruction entries change between prompts
+scenarios/agent-loop-agents.test.ts › instruction update right after a prompt
 scenarios/agent-loop-agents.test.ts › maximum steps reset on the next prompt
+scenarios/agent-loop-agents.test.ts › model settings become OpenRouter request options
+scenarios/agent-loop-agents.test.ts › no model available
 scenarios/agent-loop-agents.test.ts › plan agent request
+scenarios/agent-loop-agents.test.ts › prompt with a PDF attachment
+scenarios/agent-loop-agents.test.ts › prompt with a directory attachment
+scenarios/agent-loop-agents.test.ts › prompt with a missing attachment
+scenarios/agent-loop-agents.test.ts › prompt with a text file attachment
+scenarios/agent-loop-agents.test.ts › prompt with image attachments
+scenarios/agent-loop-agents.test.ts › prompt with inline attachments
 scenarios/agent-loop-agents.test.ts › reasoning from an earlier variant is replayed
 scenarios/agent-loop-agents.test.ts › reasoning variants change the request
+scenarios/agent-loop-agents.test.ts › repeated inline images are sent once
+scenarios/agent-loop-agents.test.ts › request overlays from provider, model and agent config
 scenarios/agent-loop-agents.test.ts › session created with a variant
+scenarios/agent-loop-agents.test.ts › session with an unavailable model
+scenarios/agent-loop-agents.test.ts › session with an unknown variant
 scenarios/agent-loop-agents.test.ts › switching from plan to build
 scenarios/agent-loop-agents.test.ts › switching to another model drops replayed reasoning
 scenarios/agent-loop-agents.test.ts › title generated for an untitled session
@@ -80,16 +99,23 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/project-agents.test.ts › a markdown agent prompt reaches the provider
 scenarios/project-agents.test.ts › agents from markdown files
 scenarios/project-agents.test.ts › built-in agents
 scenarios/project-agents.test.ts › custom agents from config
 scenarios/project-agents.test.ts › default agent from config
 scenarios/project-agents.test.ts › default agent that is a subagent falls back to build
 scenarios/project-agents.test.ts › no selectable primary agent
+scenarios/project-agents.test.ts › switching a session to a custom agent
 scenarios/project-agents.test.ts › without build or a configured default the first selectable agent leads
+scenarios/project-commands.test.ts › command argument templating
 scenarios/project-commands.test.ts › command list on a location's first request
 scenarios/project-commands.test.ts › command list without custom commands
+scenarios/project-commands.test.ts › command naming an agent that does not exist
+scenarios/project-commands.test.ts › command that selects an agent and a model
+scenarios/project-commands.test.ts › command with shell interpolation
 scenarios/project-commands.test.ts › commands from config and markdown files
+scenarios/project-commands.test.ts › unknown command and missing session
 scenarios/project-config.test.ts › available shells
 scenarios/project-config.test.ts › config documents with project config disabled
 scenarios/project-config.test.ts › config documents without project files
@@ -131,8 +157,11 @@ scenarios/project-projects.test.ts › project of a plain directory
 scenarios/project-projects.test.ts › reload every loaded location
 scenarios/project-projects.test.ts › server info
 scenarios/project-projects.test.ts › update project metadata
+scenarios/project-skills.test.ts › activate a skill through the session endpoint
 scenarios/project-skills.test.ts › built-in skills
+scenarios/project-skills.test.ts › denied skills are hidden from the model
 scenarios/project-skills.test.ts › references on a location's first request
+scenarios/project-skills.test.ts › skill list changes between turns
 scenarios/project-skills.test.ts › skills from config directories and compatibility roots
 scenarios/project-vcs.test.ts › binary, empty and special file names in the diff
 scenarios/project-vcs.test.ts › branch listing with search and limit
@@ -155,7 +184,16 @@ scenarios/project-worktree.test.ts › removing a dirty worktree requires force
 scenarios/project-worktree.test.ts › worktree directory from config
 scenarios/project-worktree.test.ts › worktree routes for unknown projects and non-git projects
 scenarios/project-worktree.test.ts › worktree start command and name collisions
+scenarios/session-api-control.test.ts › a session on an unknown model fails its turn
+scenarios/session-api-control.test.ts › a slash command that fails to run
+scenarios/session-api-control.test.ts › activate skills and attach them to prompts
+scenarios/session-api-control.test.ts › generate text from session context
+scenarios/session-api-control.test.ts › instruction entries reach the model and announce changes
+scenarios/session-api-control.test.ts › move a session to the home directory
+scenarios/session-api-control.test.ts › move a session whose directory is gone
+scenarios/session-api-control.test.ts › move to a directory with an invalid configuration
 scenarios/session-api-control.test.ts › read the durable session log
+scenarios/session-api-control.test.ts › run slash commands
 scenarios/session-api-control.test.ts › switch the agent
 scenarios/session-api-control.test.ts › switch the model and its reasoning variant
 scenarios/session-api-crud.test.ts › active sessions while idle
@@ -178,6 +216,9 @@ scenarios/session-api-failures.test.ts › a provider failure is retried once
 scenarios/session-api-failures.test.ts › a step stopped by the content filter
 scenarios/session-api-failures.test.ts › interrupt a session while it waits to retry
 scenarios/session-api-failures.test.ts › provider failures become session errors
+scenarios/session-api-inputs.test.ts › an inline attachment over the size limit
+scenarios/session-api-inputs.test.ts › attachments the model cannot read
+scenarios/session-api-inputs.test.ts › prompt with file and agent attachments
 scenarios/session-api-prompt.test.ts › change and cancel pending inbox items
 scenarios/session-api-prompt.test.ts › get one message
 scenarios/session-api-prompt.test.ts › interrupt a running turn
@@ -194,5 +235,7 @@ scenarios/session-basic.test.ts › provider and model listing
 scenarios/session-basic.test.ts › text reply to a prompt
 scenarios/shell-api.test.ts › list available shells
 scenarios/tools-question.test.ts › question denied by permission rules
+scenarios/tools-skill.test.ts › skill activated by the user
+scenarios/tools-skill.test.ts › skill prompt with skills selected by the user
 scenarios/tools.test.ts › malformed tool arguments
 scenarios/tools.test.ts › unknown tool

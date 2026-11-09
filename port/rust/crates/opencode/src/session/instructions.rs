@@ -550,4 +550,17 @@ mod tests {
         assert_eq!(canonical(&value), r#"{"a":[{"c":null,"d":true}],"b":1}"#);
         assert_eq!(hash(&json::string("x")).len(), 64);
     }
+
+    #[test]
+    fn entries_render_as_context_blocks() {
+        let value = json::parse(r#"{"lead":"sam","size":4,"tags":[],"nested":{"a":[1,"b"]}}"#).unwrap();
+        assert_eq!(
+            entry_block("team", &value),
+            "<context key=\"team\">\n{\n  \"lead\": \"sam\",\n  \"size\": 4,\n  \"tags\": [],\n  \"nested\": {\n    \"a\": [\n      1,\n      \"b\"\n    ]\n  }\n}\n</context>"
+        );
+        assert_eq!(entry_block("style", &json::string("Answer tersely.")), "<context key=\"style\">\nAnswer tersely.\n</context>");
+        let source = Source::entry("style", None);
+        assert_eq!(source.key, "api/style");
+        assert_eq!(source.removed(&Json::Null).as_deref(), Some("The context under \"style\" no longer applies. Disregard it."));
+    }
 }
