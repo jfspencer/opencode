@@ -10,6 +10,7 @@
 //! default command), `--wizard`; see `dispatch`.
 
 mod auth;
+mod clack;
 mod acp;
 mod client;
 mod commands;
@@ -122,16 +123,17 @@ pub fn main() -> ! {
     let root = spec::root();
     let code = match parse::run(&root, &argv) {
         Outcome::Help { path, errors } => {
-            stdout(&format!("{}\n", help::render(&root, &path)));
+            let palette = help::Palette::detect();
+            stdout(&format!("{}\n", help::render(&root, &path, palette)));
             if errors.is_empty() {
                 0
             } else {
-                stderr(&format!("{}\n", help::errors(&errors)));
+                stderr(&format!("{}\n", help::errors(&errors, palette)));
                 1
             }
         }
         Outcome::Version => {
-            stdout(&format!("{} v{}\n", root.name, crate::app::VERSION));
+            stdout(&format!("{}\n", help::version(root.name, crate::app::VERSION, help::Palette::detect())));
             0
         }
         Outcome::Completions(shell) => {

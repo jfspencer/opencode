@@ -112,6 +112,14 @@ export interface TerminalStep {
   readonly type: string
 }
 
+export interface TerminalOptions extends Omit<RunOptions, "stdin"> {
+  /**
+   * Keep the screen's text attributes (SGR: bold, colors...): each line carries the canonical `ESC[...m` sequence
+   * wherever the attributes change, and `ESC[0m` where they end before the line does. Off by default (plain text).
+   */
+  readonly styles?: boolean
+}
+
 export interface CliCtx extends Ctx {
   /** The sandbox directory used as HOME / XDG dirs / TMPDIR by the scenario's CLI processes. */
   readonly sandbox: string
@@ -126,13 +134,20 @@ export interface CliCtx extends Ctx {
    * shows `waitFor`, then types `type` ("\r" is Enter). Records argv, what was typed, the exit code and the final
    * screen (prompt redraws and spinner frames overwrite each other on a screen, so it does not depend on timing).
    */
-  terminal(args: readonly string[], steps: readonly TerminalStep[], options?: Omit<RunOptions, "stdin">): Promise<{ code: number | null; screen: string[] }>
+  terminal(args: readonly string[], steps: readonly TerminalStep[], options?: TerminalOptions): Promise<{ code: number | null; screen: string[] }>
   /** HTTP request against a server the CLI started; recorded like `ctx.http`. */
   fetch(method: string, url: string, body?: unknown, headers?: Record<string, string>): Promise<{ status: number; body: any }>
   /** Reserve a free local TCP port; it is recorded as `<port-N>`. */
   port(): Promise<number>
   /** Record a file under the sandbox (e.g. "config/opencode/service-conformance.json"), or note its absence. */
   file(relative: string): void
+  /**
+   * Add a rewrite applied to every text recorded from now on (command output, screens, files, HTTP notes, and at the
+   * end the provider requests), before the equality rules above. For values the CLI draws at random that a scenario
+   * can still check: the rewrite verifies the value and replaces it with a placeholder (e.g. a pairing code and the
+   * QR code that carries it), so a wrong value stays visible in the record.
+   */
+  scrub(rewrite: (text: string) => string): void
 }
 
 const live = new Set<string>()
@@ -202,11 +217,14 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
     ])
     const ports = new Map<number, string>()
     const children = new Set<number>()
+    // Rewrites the scenario registered (`ctx.scrub`).
+    const rewrites: ((text: string) => string)[] = []
 
     const scrubText = (input: string) => {
       // Spinner animation frames ("◒  Removing credential" then cursor-left + clear-line) only appear when an
       // operation outlasts a spinner tick: timing, not behavior. The settled line that follows is kept.
       let out = input.replace(/[◐◓◑◒][^\n]*?(\x1b)?\[999D(\x1b)?\[J/g, "")
+      for (const rewrite of rewrites) out = rewrite(out)
       for (const [raw, placeholder] of [...replacements].sort((a, b) => b[0].length - a[0].length))
         out = out.split(raw).join(placeholder)
       for (const [port, placeholder] of ports) out = out.replace(new RegExp(`(?<![0-9])${port}(?![0-9])`, "g"), placeholder)
@@ -404,7 +422,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
           }
           const code = await child.exited
           await Bun.sleep(50)
-          const screen = render(raw)
+          const screen = options.styles ? renderStyled(raw) : render(raw)
           ctx.note("cli", {
             argv: args.map(scrubText),
             ...(options.cwd !== undefined && options.cwd !== ctx.project ? { cwd: scrubText(options.cwd) } : {}),
@@ -451,12 +469,16 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
         const full = path.join(sandbox, relative)
         ctx.note("file", { path: `<sandbox>/${relative}`, content: existsSync(full) ? recordOutput(readFileSync(full, "utf8")) : null })
       },
+      scrub(rewrite) {
+        rewrites.push(rewrite)
+      },
     }
 
     // Provider requests are recorded by scenario(); give them the same names for the sandbox and the fake.
     const scrubPaths = (input: unknown): unknown => {
       if (typeof input === "string") {
         let out = input
+        for (const rewrite of rewrites) out = rewrite(out)
         for (const [raw, placeholder] of replacements) out = out.split(raw).join(placeholder)
         return out
       }
@@ -620,6 +642,101 @@ function render(output: string) {
     }
   }
   const text = Array.from({ length: lines.length }, (_, index) => (lines[index] ?? []).join("").trimEnd())
+  while (text.length > 0 && text[text.length - 1] === "") text.pop()
+  return text
+}
+
+/**
+ * `render` that keeps the text attributes: SGR sequences (`ESC[...m`) set the attributes of the cells written after
+ * them. Each line shows the attributes as canonical sequences where they change: `ESC[<codes>m` with every attribute in
+ * effect (bold, dim, italic, underline, blink, inverse, hidden, strike, then foreground and background), `ESC[0m` where
+ * they end before the line does. Trailing plain spaces are trimmed.
+ */
+function renderStyled(output: string) {
+  type Cell = { readonly char: string; readonly style: string }
+  const lines: Cell[][] = [[]]
+  let row = 0
+  let col = 0
+  const flags = new Set<number>()
+  let fg = ""
+  let bg = ""
+  let style = ""
+  const line = () => (lines[row] ??= [])
+  const sgr = (params: string) => {
+    const codes = (params === "" ? "0" : params).split(";").map((code) => Number(code || 0))
+    for (let index = 0; index < codes.length; index++) {
+      const code = codes[index]
+      if (code === 0) {
+        flags.clear()
+        fg = ""
+        bg = ""
+      } else if (code === 22) {
+        flags.delete(1)
+        flags.delete(2)
+      } else if ([1, 2, 3, 4, 5, 7, 8, 9].includes(code)) flags.add(code)
+      else if ([23, 24, 25, 27, 28, 29].includes(code)) flags.delete(code - 20)
+      else if ((code >= 30 && code <= 37) || (code >= 90 && code <= 97)) fg = String(code)
+      else if ((code >= 40 && code <= 47) || (code >= 100 && code <= 107)) bg = String(code)
+      else if (code === 39) fg = ""
+      else if (code === 49) bg = ""
+      else if (code === 38 || code === 48) {
+        const extended = codes[index + 1] === 5 ? codes.slice(index, index + 3) : codes.slice(index, index + 5)
+        index += extended.length - 1
+        if (code === 38) fg = extended.join(";")
+        else bg = extended.join(";")
+      }
+    }
+    style = [...[...flags].sort((a, b) => a - b).map(String), ...(fg ? [fg] : []), ...(bg ? [bg] : [])].join(";")
+  }
+  const pattern = /\x1b\[([?0-9;]*)([A-Za-z])|\x1b[()][0-9A-Za-z]|\x1b[=>78]|\r|\n|\x07|\x08|[^\x1b\r\n\x07\x08]/gu
+  for (const match of output.matchAll(pattern)) {
+    const [token, params, command] = match
+    if (command !== undefined) {
+      const n = Number(params?.split(";")[0] || 1) || 1
+      if (params?.startsWith("?")) continue
+      if (command === "m") sgr(params ?? "")
+      else if (command === "A") row = Math.max(0, row - n)
+      else if (command === "B") row += n
+      else if (command === "C") col += n
+      else if (command === "D") col = Math.max(0, col - n)
+      else if (command === "G") col = Math.max(0, (Number(params) || 1) - 1)
+      else if (command === "H") [row, col] = [(Number(params?.split(";")[0]) || 1) - 1, (Number(params?.split(";")[1]) || 1) - 1]
+      else if (command === "K") {
+        const mode = Number(params || 0)
+        if (mode === 2) lines[row] = []
+        else if (mode === 0) line().length = Math.min(line().length, col)
+      } else if (command === "J") {
+        if (Number(params || 0) === 0) {
+          line().length = Math.min(line().length, col)
+          lines.length = Math.min(lines.length, row + 1)
+        }
+      }
+      continue
+    }
+    if (token === "\r") col = 0
+    else if (token === "\n") row++
+    else if (token === "\x08") col = Math.max(0, col - 1)
+    else if (token.length === 1 || token.codePointAt(0)! > 0xffff) {
+      if (token.startsWith("\x1b") || token === "\x07") continue
+      const current = line()
+      while (current.length < col) current.push({ char: " ", style: "" })
+      current[col++] = { char: token, style }
+    }
+  }
+  const text = Array.from({ length: lines.length }, (_, index) => {
+    const cells = lines[index] ?? []
+    let end = cells.length
+    while (end > 0 && cells[end - 1] !== undefined && cells[end - 1].char === " " && cells[end - 1].style === "") end--
+    let out = ""
+    let current = ""
+    for (const cell of cells.slice(0, end)) {
+      const next = cell?.style ?? ""
+      if (next !== current) out += `\x1b[${next || "0"}m`
+      current = next
+      out += cell?.char ?? " "
+    }
+    return current ? `${out}\x1b[0m` : out
+  })
   while (text.length > 0 && text[text.length - 1] === "") text.pop()
   return text
 }
