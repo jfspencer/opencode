@@ -1,0 +1,128 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:57:17 -0700
+Subject: [PATCH] D117 permissions: a quoted or escaped cd still reports the
+ directory it moves to
+
+Upstream: the shell tool reports the directories a command moves to (cd, pushd...), and each is checked against
+external_directory rules. It recognizes them by the word as written, so Bash `'cd' /outside && touch x` (also
+`c\d /outside`, `c''d`, or a quoted `command`/`builtin` wrapper) reports no directory: with external_directory set
+to ask or deny and the shell command allowed, the directory check is bypassed. Upstream asserted that such a
+"source-shaped" head stays under shell authorization; it did not check its directory.
+Fixed: directory commands are recognized by the words' values, so the directory is reported and checked; a cd
+written quoted or escaped also stays a shell command, as upstream intended.
+Found by the Rust opencode-shell crate's differential harness.
+Scenarios: permissions.test.ts "always on a quoted or path-qualified command" (new; it also runs a quoted cd)
+Upstream tests: packages/core/test/shell-parse.test.ts "keeps source-shaped command heads under shell
+authorization" now expects the directories; packages/core/test/shell-parse-compatibility.test.ts adds a case
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 0247ff09f1..437a5ec783 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -237,11 +237,18 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+               unquotedTilde: raw.startsWith("~"),
+             }
+           })
+-      const directoryCommand = unwrapDirectoryCommand(powershell ? words : item.rawWords, parts, powershell)
++      // By value: a quoted or escaped `cd` (`'cd' /tmp`, `c\d /tmp`) still changes the directory, which
++      // external_directory rules check. Written that way, the command also stays under shell authorization.
++      const directoryCommand = unwrapDirectoryCommand(
++        powershell ? words : item.rawWords.map((raw, index) => item.words[index] ?? raw),
++        parts,
++        powershell,
++      )
+       if (directoryCommand) {
+         const resolved = directoryArgs(directoryCommand, powershell, cwd, shell)
+         output.directories.push(...resolved.directories)
+-        if (directoryCommand === parts && resolved.complete) continue
++        const plain = powershell || item.rawWords[0] === item.words[0]
++        if (directoryCommand === parts && resolved.complete && plain) continue
+       }
+       const selected = powershell
+         ? prefix(words)
+@@ -280,22 +287,22 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+   })
+ }
+ 
+-function unwrapDirectoryCommand(rawWords: string[], parts: Part[], powershell: boolean) {
+-  const head = powershell ? rawWords[0]?.toLowerCase() : rawWords[0]
++function unwrapDirectoryCommand(words: string[], parts: Part[], powershell: boolean) {
++  const head = powershell ? words[0]?.toLowerCase() : words[0]
+   if (CWD.has(head ?? "")) return parts
+   if (powershell) return
+   let index = 0
+-  while (rawWords[index] === "builtin" || rawWords[index] === "command") {
+-    const wrapper = rawWords[index]
++  while (words[index] === "builtin" || words[index] === "command") {
++    const wrapper = words[index]
+     index++
+-    while (rawWords[index]?.startsWith("-")) {
+-      const flag = rawWords[index]
++    while (words[index]?.startsWith("-")) {
++      const flag = words[index]
+       index++
+       if (flag === "--") break
+       if (wrapper === "command" && /^-[p]*[vV]/.test(flag)) return
+     }
+   }
+-  return index > 0 && CWD.has(rawWords[index] ?? "") ? parts.slice(index) : undefined
++  return index > 0 && CWD.has(words[index] ?? "") ? parts.slice(index) : undefined
+ }
+ 
+ function isStaticBashWord(raw: string) {
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index acac61e86a..10f396f7f8 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -84,6 +84,20 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       { commands: [{ resource: "git status", save: "git status *" }], directories: ["src dir"] },
+     ],
+     ["bash", 'cd "src dir"; cd escaped\\ space', {}, { commands: [], directories: ["src dir", "escaped space"] }],
++    // A quoted or escaped cd still changes the directory, and stays under shell authorization.
++    [
++      "bash",
++      "'cd' /tmp && c\\d /var && touch x",
++      {},
++      {
++        commands: [
++          { resource: "'cd' /tmp", save: "'cd' *" },
++          { resource: "c\\d /var", save: "c\\d *" },
++          { resource: "touch x", save: "touch *" },
++        ],
++        directories: ["/tmp", "/var"],
++      },
++    ],
+     [
+       "bash",
+       "cd '$HOME'; cd '~/outside'",
+diff --git a/packages/core/test/shell-parse.test.ts b/packages/core/test/shell-parse.test.ts
+index ea8bd0381f..d032c28fe2 100644
+--- a/packages/core/test/shell-parse.test.ts
++++ b/packages/core/test/shell-parse.test.ts
+@@ -120,14 +120,17 @@ describe("ShellParse", () => {
+     })
+   })
+ 
+-  test.each(['c"\\d" relative', "'cd' /tmp", "c''d /tmp", "c\\\nd /tmp"])(
+-    "keeps source-shaped command heads under shell authorization: %s",
+-    async (command) => {
+-      const scanned = await Effect.runPromise(ShellParse.scan(command, "/bin/bash", "/workspace"))
+-      expect(scanned.commands.map((item) => item.resource)).toEqual([command])
+-      expect(scanned.directories).toEqual([])
+-    },
+-  )
++  test.each([
++    ['c"\\d" relative', []],
++    ["'cd' /tmp", ["/tmp"]],
++    ["c''d /tmp", ["/tmp"]],
++    ["c\\\nd /tmp", ["/tmp"]],
++  ])("keeps source-shaped command heads under shell authorization: %s", async (command, directories) => {
++    const scanned = await Effect.runPromise(ShellParse.scan(command, "/bin/bash", "/workspace"))
++    expect(scanned.commands.map((item) => item.resource)).toEqual([command])
++    // A quoted cd still changes the directory, so external_directory rules see it.
++    expect(scanned.directories).toEqual(directories)
++  })
+ 
+   test.each(["declare", "typeset", "export", "readonly", "local", "unset", "unsetenv"])(
+     "preserves declaration permission behavior for %s without hiding nested commands",

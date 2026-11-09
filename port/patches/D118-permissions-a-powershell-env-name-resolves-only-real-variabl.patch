@@ -1,0 +1,48 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:58:22 -0700
+Subject: [PATCH] D118 permissions: a PowerShell $env: name resolves only real
+ variables
+
+Upstream: the PowerShell scan resolves `$env:NAME` and `${env:NAME}` through `process.env[NAME]`, which reaches
+Object.prototype members: `cd $env:toString` reports the directory "function toString() { [native code] }", and
+`$env:__proto__` and `$env:constructor` behave the same way. The directory checked against external_directory
+rules is then not the one the command moves to (an unset variable).
+Fixed: only the environment's own keys resolve (the Windows branch, out of scope here, already matched them by
+name); such a name is an unset variable, like any other unknown one.
+Found by the Rust opencode-shell crate's differential harness.
+Scenarios: none (PowerShell scans are covered by the crate's harness and upstream's tests)
+Upstream tests: packages/core/test/shell-parse-compatibility.test.ts adds a case
+
+diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
+index 437a5ec783..06047cf111 100644
+--- a/packages/core/src/shell/parse.ts
++++ b/packages/core/src/shell/parse.ts
+@@ -634,7 +634,8 @@ function resolveUserHome(user: string) {
+ }
+ 
+ function environment(key: string) {
+-  if (process.platform !== "win32") return process.env[key]
++  // Own keys only: `$env:toString` names no variable, not an Object.prototype member.
++  if (process.platform !== "win32") return Object.hasOwn(process.env, key) ? process.env[key] : undefined
+   const name = Object.keys(process.env).find((item) => item.toLowerCase() === key.toLowerCase())
+   return name ? process.env[name] : undefined
+ }
+diff --git a/packages/core/test/shell-parse-compatibility.test.ts b/packages/core/test/shell-parse-compatibility.test.ts
+index 10f396f7f8..ba0796db3c 100644
+--- a/packages/core/test/shell-parse-compatibility.test.ts
++++ b/packages/core/test/shell-parse-compatibility.test.ts
+@@ -252,6 +252,13 @@ const compatibilityCases: Array<[string, string, Record<string, string>, ShellPa
+       { T: "/workspace" },
+       { commands: [{ resource: "Set-Item Env:T /outside", save: "Set-Item *" }], directories: ["/workspace"] },
+     ],
++    // Only variables resolve: an Object.prototype member names none.
++    [
++      "pwsh",
++      "cd $env:toString",
++      {},
++      { commands: [{ resource: "cd $env:toString", save: "cd *" }], directories: [] },
++    ],
+     [
+       "pwsh",
+       "sl /outside; Microsoft.PowerShell.Management\\Set-Location /outside",

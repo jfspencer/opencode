@@ -1,0 +1,47 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 02:59:29 -0700
+Subject: [PATCH] D119 permissions: a ? in a pattern matches one character,
+ astral ones included
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream: permission patterns document `?` as "Exactly one character" (permissions.mdx), but Wildcard.match builds
+a regular expression without the Unicode flag, so `?` matches one UTF-16 unit: `a?` matches `aé` but not `a😀`.
+Fixed: the expression is built in Unicode mode, where `?` (`.`) matches one code point.
+Found by the Rust opencode-shell crate's differential harness.
+Scenarios: none (no golden matches a pattern against an astral character; the crate's harness covers it)
+Upstream tests: packages/core/test/permission.test.ts adds a test
+
+diff --git a/packages/core/src/util/wildcard.ts b/packages/core/src/util/wildcard.ts
+index 8f3193d037..f6de6ff66b 100644
+--- a/packages/core/src/util/wildcard.ts
++++ b/packages/core/src/util/wildcard.ts
+@@ -11,7 +11,8 @@ export function match(input: string, pattern: string) {
+ 
+   if (escaped.endsWith(" .*")) escaped = escaped.slice(0, -3) + "( .*)?"
+ 
+-  return new RegExp("^" + escaped + "$", process.platform === "win32" ? "si" : "s").test(normalized)
++  // Unicode mode: `?` is one character, an astral one included (`a?` matches `a😀`).
++  return new RegExp("^" + escaped + "$", process.platform === "win32" ? "siu" : "su").test(normalized)
+ }
+ 
+ /** A pattern that matches `text` itself, for building patterns from commands and paths. */
+diff --git a/packages/core/test/permission.test.ts b/packages/core/test/permission.test.ts
+index 9d76372d02..6113188ffc 100644
+--- a/packages/core/test/permission.test.ts
++++ b/packages/core/test/permission.test.ts
+@@ -478,6 +478,12 @@ describe("Wildcard", () => {
+     expect(Wildcard.match("echo [*]", Wildcard.escape("echo [*]"))).toBe(true)
+     expect(Wildcard.match("echo [x]", Wildcard.escape("echo [*]"))).toBe(false)
+   })
++
++  test("? matches one character, astral ones included", () => {
++    expect(Wildcard.match("a\u{1f600}", "a?")).toBe(true)
++    expect(Wildcard.match("aé", "a?")).toBe(true)
++    expect(Wildcard.match("a\u{1f600}\u{1f600}", "a?")).toBe(false)
++  })
+ })
+ 
+ describe("shell scanner permission impact", () => {
