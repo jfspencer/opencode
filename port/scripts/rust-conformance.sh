@@ -31,6 +31,9 @@ if [[ "${1:-}" =~ ^[0-9]+$ ]]; then shards=$1; shift; fi
 
 flags=()
 [ "$profile" = release ] && flags=(--release)
+# The TUI crates build from fetched sources (gitignored port/.vendor): OpenTUI's (Yoga) and the tree-sitter grammars.
+[ -d "$root/port/.vendor/opentui/packages/native/zig-deps/yoga" ] || "$root/port/scripts/vendor-opentui.sh" || exit 1
+[ -d "$root/port/.vendor/tree-sitter" ] || "$root/port/scripts/vendor-grammars.sh" || exit 1
 (cd "$root/port/rust" && OPENCODE_VERSION=conformance OPENCODE_CHANNEL=conformance cargo build --quiet "${flags[@]}" -p opencode) ||
   exit 1
 binary=$root/port/rust/target/$profile/opencode
