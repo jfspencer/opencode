@@ -89,9 +89,12 @@ impl Extension {
     }
 }
 
-/// Observers around calls to extension globals (and functions of global objects), with the arguments as they
-/// crossed.
-pub type ExtensionHook = Rc<dyn Fn(&str, &str, &[HostValue])>;
+/// Observes a call to an extension global (or a function of a global object) as it starts: `(id, extension, name,
+/// args)`, the arguments as they crossed.
+pub type ExtensionHook = Rc<dyn Fn(crate::tools::CallId, &str, &str, &[HostValue])>;
+
+/// Observes how that call ended: `(id, extension, name, status)`.
+pub type ExtensionEndHook = Rc<dyn Fn(crate::tools::CallId, &str, &str, crate::tools::CallStatus)>;
 
 const UNCROSSED: [&str; 5] = ["stack", "message", "constructor", "toString", "__proto__"];
 
@@ -317,7 +320,40 @@ pub fn from_host(ctx: &Ctx, value: &HostValue, label: &str, depth: usize, extens
 pub struct ExtensionContext {
     pub extension: String,
     pub start: Option<ExtensionHook>,
-    pub end: Option<Rc<dyn Fn(&str, &str, crate::tools::CallStatus)>>,
+    pub end: Option<ExtensionEndHook>,
+    pub ids: Rc<Cell<crate::tools::CallId>>,
+}
+
+/// Ends an entry point's call once: with the status it settles with, or `Interrupted` when dropped unsettled (the
+/// execution ended first).
+struct CallEnd {
+    hooks: Option<Rc<ExtensionContext>>,
+    id: crate::tools::CallId,
+    label: String,
+    done: bool,
+}
+
+impl CallEnd {
+    fn end(mut self, status: crate::tools::CallStatus) {
+        self.done = true;
+        self.fire(status);
+    }
+
+    fn fire(&self, status: crate::tools::CallStatus) {
+        if let Some(hooks) = &self.hooks
+            && let Some(end) = &hooks.end
+        {
+            end(self.id, &hooks.extension, &self.label, status);
+        }
+    }
+}
+
+impl Drop for CallEnd {
+    fn drop(&mut self) {
+        if !self.done {
+            self.fire(crate::tools::CallStatus::Interrupted);
+        }
+    }
 }
 
 fn thrown(ctx: &Ctx, reason: &HostValue, label: &str) -> Fail {
@@ -340,21 +376,18 @@ fn wrap(ctx: &Ctx, function: &HostFunction, label: &str, hooks: Option<Rc<Extens
             for (index, item) in values.iter().enumerate() {
                 args.push(to_host(ctx, item, &format!("Argument {} to {label}", index + 1), 0, &mut Vec::new())?);
             }
-            if let Some(hooks) = &hooks
-                && let Some(start) = &hooks.start
-            {
-                start(&hooks.extension, &label, &args);
-            }
-            let end = {
-                let (hooks, label) = (hooks.clone(), label.clone());
-                move |status| {
-                    if let Some(hooks) = &hooks
-                        && let Some(end) = &hooks.end
-                    {
-                        end(&hooks.extension, &label, status);
+            let id = match &hooks {
+                Some(hooks) => {
+                    let id = hooks.ids.get();
+                    hooks.ids.set(id + 1);
+                    if let Some(start) = &hooks.start {
+                        start(id, &hooks.extension, &label, &args);
                     }
+                    id
                 }
+                None => 0,
             };
+            let end = CallEnd { hooks: hooks.clone(), id, label: label.clone(), done: false };
             // An asynchronous global settles its promise in a later job even when the host answers at once.
             let returned = match (function.call)(args) {
                 HostReturn::Value(outcome) if function.asynchronous => HostReturn::Async(boxed(async move { outcome })),
@@ -362,18 +395,18 @@ fn wrap(ctx: &Ctx, function: &HostFunction, label: &str, hooks: Option<Rc<Extens
             };
             match returned {
                 HostReturn::Value(Ok(value)) => {
-                    end(crate::tools::CallStatus::Success);
+                    end.end(crate::tools::CallStatus::Success);
                     from_host(ctx, &value, &label, 0, None).map(NOut::Val)
                 }
                 HostReturn::Value(Err(reason)) => {
-                    end(crate::tools::CallStatus::Failure);
+                    end.end(crate::tools::CallStatus::Failure);
                     Err(thrown(ctx, &reason, &label))
                 }
                 HostReturn::Async(work) => {
                     let promise = ctx.runner.new_promise(ctx)?;
                     let resolving = ctx.runner.resolving(&promise, site);
                     let label = label.clone();
-                    let host_end = end.clone();
+                    let host_end = end;
                     // The host's outcome is carried as is and converted when it settles, in a job.
                     let outcome: Rc<RefCell<Option<Result<HostValue, HostValue>>>> = Rc::new(RefCell::new(None));
                     let written = outcome.clone();
@@ -381,7 +414,7 @@ fn wrap(ctx: &Ctx, function: &HostFunction, label: &str, hooks: Option<Rc<Extens
                         ctx,
                         boxed(async move {
                             let result = work.await;
-                            host_end(if result.is_ok() {
+                            host_end.end(if result.is_ok() {
                                 crate::tools::CallStatus::Success
                             } else {
                                 crate::tools::CallStatus::Failure
@@ -412,11 +445,17 @@ pub fn extension_globals(
     ctx: &Ctx,
     extensions: &[Extension],
     start: Option<ExtensionHook>,
-    end: Option<Rc<dyn Fn(&str, &str, crate::tools::CallStatus)>>,
+    end: Option<ExtensionEndHook>,
+    ids: Rc<Cell<crate::tools::CallId>>,
 ) -> Vec<(JsStr, Value)> {
     let mut out = Vec::new();
     for extension in extensions {
-        let hooks = Rc::new(ExtensionContext { extension: extension.name.clone(), start: start.clone(), end: end.clone() });
+        let hooks = Rc::new(ExtensionContext {
+            extension: extension.name.clone(),
+            start: start.clone(),
+            end: end.clone(),
+            ids: ids.clone(),
+        });
         for (name, value) in &extension.globals {
             let converted = match value {
                 HostValue::Function(function) => Value::Obj(wrap(ctx, function, name, Some(hooks.clone()))),

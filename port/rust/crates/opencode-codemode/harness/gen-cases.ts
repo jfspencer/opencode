@@ -207,6 +207,47 @@ if (kind === "extensions") {
   })
 }
 
+if (kind === "hooks") {
+  const tools = [
+    { path: "echo", input: { type: "object", properties: { x: {} } }, output: { type: "object" } },
+    { path: "slow", input: { type: "object", properties: { x: {} } }, output: { type: "object" }, timing: "yield" },
+    { path: "fail", behavior: { kind: "fail", message: "nope" }, timing: "yield" },
+    { path: "text", behavior: { kind: "value", value: 5 }, output: "nullOrString" },
+    { path: "files.read", input: { type: "object", properties: { path: { type: "string" } } }, output: { type: "object" } },
+  ]
+  const extensions = [
+    {
+      name: "web",
+      globals: {
+        fetch: { kind: "response", body: '{"a":1}' },
+        keep: { kind: "echo" },
+        later: { kind: "echo", async: true },
+        boom: { kind: "throw", message: "boom" },
+        boomLater: { kind: "throw", message: "boom later", async: true },
+        fs: { kind: "object", members: { readFile: { kind: "echo", async: true }, stat: { kind: "value", value: 1 } } },
+      },
+    },
+  ]
+  const programs: Record<string, string> = {
+    sequential: `await tools.echo({ x: 1 }); await tools.slow({ x: 2 }); return await tools.files.read({ path: "a" })`,
+    concurrent: `return await Promise.all([tools.slow({ x: 1 }), tools.echo({ x: 2 }), tools.slow({ x: 3 }), tools.echo()])`,
+    failures: `return await Promise.allSettled([tools.fail(), tools.text(), tools.echo({ x: 1 })])`,
+    interrupted: `tools.slow({ x: "never awaited" }); tools.echo({ x: 1 }); return 1`,
+    interruptedByError: `tools.slow({ x: 1 }); later(2); await tools.fail()`,
+    limit: `await tools.echo({ x: 1 }); await tools.echo({ x: 2 }); return await tools.echo({ x: 3 })`,
+    invalidInput: `${T}return [await tools.echo(1, 2).catch((e) => e.message), await tools.echo(() => 1).catch((e) => e.message)]`,
+    search: `return [await tools.search({ query: "read" }), await tools.echo({ x: 1 })]`,
+    extensionCalls: `${T}const res = await fetch("https://a.test/"); return [await res.json(), keep(1), await later(2), t(() => boom()), await boomLater().catch((e) => e.message), await fs.readFile("p"), fs.stat(), res.sync()]`,
+    extensionArgs: `${T}return [keep(1, 2, 3), t(() => keep(() => 1)), await later()]`,
+    extensionInterrupted: `later(1); fs.readFile("x"); return keep(0)`,
+    mixedOrder: `const a = later(1); const b = tools.slow({ x: 1 }); const c = fs.readFile(2); return [await c, await b, await a]`,
+    unknownTool: `${T}return [await tools.nope().catch((e) => e.message), await tools.echo({ x: 1 })]`,
+  }
+  for (const [name, code] of Object.entries(programs)) {
+    add(name, code, { tools, extensions, hooks: true, ...(name === "limit" ? { limits: { maxToolCalls: 2 } } : {}) })
+  }
+}
+
 if (kind === "matrix") {
   const values = [`undefined`, `null`, `true`, `false`, `0`, `-0`, `1`, `-1.5`, `NaN`, `Infinity`, `""`, `"0"`, `"1e3"`, `" 12 "`, `"abc"`, `[]`, `[1]`, `[1,2]`, `{}`, `{ valueOf() { return 3 } }`, `{ toString() { return "s" } }`, `new Date(0)`, `/x/g`, `Symbol.iterator`]
   const binary = ["+", "-", "*", "/", "%", "**", "==", "!=", "===", "!==", "<", "<=", ">", ">=", "&", "|", "^", "<<", ">>", ">>>"]

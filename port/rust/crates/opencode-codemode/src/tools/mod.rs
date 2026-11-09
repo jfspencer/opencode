@@ -7,7 +7,7 @@ use crate::interp::errors::{DiagnosticKind, Fail, ToolRuntimeError};
 use crate::interp::{Ctx, Fut, R, boxed};
 use crate::json::{Json, JsonObj};
 use crate::jsstr::JsStr;
-use std::cell::{OnceCell, RefCell};
+use std::cell::{Cell, OnceCell, RefCell};
 use std::collections::BTreeMap;
 use std::rc::Rc;
 
@@ -69,15 +69,23 @@ pub enum ToolOutcome {
 /// The host side of tool calls: run a call by its canonical path with its decoded input.
 pub type ToolHandler = Rc<dyn Fn(String, Option<Json>) -> Fut<ToolOutcome>>;
 
-/// Observers around every admitted call: `start` sees the decoded input, `end` how the call ended.
+/// Identifies one call within an execution, so `end` finds what `start` recorded (TS hands both hooks the same call
+/// object). Tool and extension calls share one sequence, in start order from 0.
+pub type CallId = u64;
+
+/// Observers around every admitted call (TS `tool.before`/`tool.after`, `extension.before`/`extension.after`):
+/// `start` sees the decoded input, `end` how the call ended. Every started call ends exactly once, with
+/// `Interrupted` when the execution ends first. They observe only; they cannot deny a call.
 #[derive(Clone, Default)]
 pub struct Hooks {
-    pub tool_start: Option<Rc<dyn Fn(&str, Option<&Json>)>>,
-    pub tool_end: Option<Rc<dyn Fn(&str, CallStatus)>>,
-    /// `(extension, name, args)` for a call to an extension global or a global object's function.
+    /// `(id, tool path, decoded input)`.
+    pub tool_start: Option<Rc<dyn Fn(CallId, &str, Option<&Json>)>>,
+    /// `(id, tool path, status)`.
+    pub tool_end: Option<Rc<dyn Fn(CallId, &str, CallStatus)>>,
+    /// `(id, extension, name, args)` for a call to an extension global or a global object's function.
     pub extension_start: Option<crate::extensions::ExtensionHook>,
-    /// `(extension, name, status)`.
-    pub extension_end: Option<Rc<dyn Fn(&str, &str, CallStatus)>>,
+    /// `(id, extension, name, status)`.
+    pub extension_end: Option<crate::extensions::ExtensionEndHook>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -327,11 +335,13 @@ pub struct ToolSession {
     max_calls: Option<u64>,
     handler: ToolHandler,
     hooks: Hooks,
+    ids: Rc<Cell<CallId>>,
     pub calls: Rc<RefCell<Vec<String>>>,
 }
 
 /// Runs `after` when dropped before completion: the call was interrupted.
 struct EndGuard {
+    id: CallId,
     name: String,
     hooks: Hooks,
     done: bool,
@@ -342,14 +352,21 @@ impl Drop for EndGuard {
         if !self.done
             && let Some(end) = &self.hooks.tool_end
         {
-            end(&self.name, CallStatus::Interrupted);
+            end(self.id, &self.name, CallStatus::Interrupted);
         }
     }
 }
 
 impl ToolSession {
-    pub fn new(prepared: Rc<Prepared>, max_calls: Option<u64>, handler: ToolHandler, hooks: Hooks) -> ToolSession {
-        ToolSession { prepared, max_calls, handler, hooks, calls: Default::default() }
+    /// `ids` numbers the execution's calls, shared with its extension globals.
+    pub fn new(prepared: Rc<Prepared>, max_calls: Option<u64>, handler: ToolHandler, hooks: Hooks, ids: Rc<Cell<CallId>>) -> ToolSession {
+        ToolSession { prepared, max_calls, handler, hooks, ids, calls: Default::default() }
+    }
+
+    fn next_id(&self) -> CallId {
+        let id = self.ids.get();
+        self.ids.set(id + 1);
+        id
     }
 
     fn record_call(&self, name: &str) -> R<()> {
@@ -449,15 +466,16 @@ impl ToolSession {
             })?,
         };
         self.record_call(name)?;
+        let id = self.next_id();
         if let Some(start) = &self.hooks.tool_start {
-            start(name, input.as_ref());
+            start(id, name, input.as_ref());
         }
-        let mut guard = EndGuard { name: name.to_string(), hooks: self.hooks.clone(), done: false };
+        let mut guard = EndGuard { id, name: name.to_string(), hooks: self.hooks.clone(), done: false };
         let outcome = (self.handler)(name.to_string(), input).await;
         guard.done = true;
         let end = |status| {
             if let Some(end) = &self.hooks.tool_end {
-                end(name, status);
+                end(id, name, status);
             }
         };
         let raw = match outcome {
@@ -501,12 +519,13 @@ impl ToolSession {
         let request = decode_search_input(input.as_ref())
             .map_err(|cause| runtime_error(DiagnosticKind::InvalidToolInput, format!("Invalid input for tool 'search': {cause}"), vec![]))?;
         self.record_call("search")?;
+        let id = self.next_id();
         if let Some(start) = &self.hooks.tool_start {
-            start("search", input.as_ref());
+            start(id, "search", input.as_ref());
         }
         let result = self.run_search(&request);
         if let Some(end) = &self.hooks.tool_end {
-            end("search", CallStatus::Success);
+            end(id, "search", CallStatus::Success);
         }
         Ok(result)
     }

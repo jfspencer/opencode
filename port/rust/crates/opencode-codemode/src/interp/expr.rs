@@ -1219,8 +1219,9 @@ fn not_a_function(callee: Option<&Expr>, loc: Option<Loc>) -> Fail {
 }
 
 // The call returns its promise at once. Arguments cross on the caller's stack, and a promise argument is awaited
-// first; the host call starts once they have crossed, so admission and hooks happen at the call site.
-fn create_tool_call_promise(ctx: &Ctx, path: Vec<JsStr>, args: Vec<Value>, site: Option<Loc>) -> R<Fut<R<Value>>> {
+// first; the host call starts once they have crossed, so admission and hooks happen at the call site. (TS also hands
+// the runner the call site to locate a host defect; a Rust tool handler has no defects, only `ToolOutcome`s.)
+fn create_tool_call_promise(ctx: &Ctx, path: Vec<JsStr>, args: Vec<Value>, _site: Option<Loc>) -> R<Fut<R<Value>>> {
     let runner = &ctx.runner;
     let promise = runner.new_promise(ctx)?;
     let resolving = runner.resolving(&promise, None);

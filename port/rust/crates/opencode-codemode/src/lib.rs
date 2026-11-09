@@ -13,9 +13,9 @@ pub mod parser;
 pub mod stdlib;
 pub mod tools;
 
-pub use extensions::{Extension, HostError, HostFunction, HostReturn, HostValue};
+pub use extensions::{Extension, ExtensionEndHook, ExtensionHook, HostError, HostFunction, HostReturn, HostValue};
 pub use api::{CodeResult, ExecuteOptions, Execution, Limits, Runtime};
 pub use interp::errors::{Diagnostic, DiagnosticKind};
 pub use json::{Json, JsonObj};
 pub use jsstr::JsStr;
-pub use tools::{CallStatus, Hooks, ToolDef, ToolHandler, ToolOutcome, ToolOutput};
+pub use tools::{CallId, CallStatus, Hooks, ToolDef, ToolHandler, ToolOutcome, ToolOutput};

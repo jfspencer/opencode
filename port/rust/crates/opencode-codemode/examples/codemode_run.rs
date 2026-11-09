@@ -8,7 +8,7 @@ use opencode_codemode::{
     ExecuteOptions, Execution, Extension, HostError, HostFunction, HostReturn, HostValue, Hooks, JsStr, Limits, Runtime,
     ToolDef, ToolOutcome, ToolOutput,
 };
-use std::cell::Cell;
+use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -60,16 +60,18 @@ fn behavior(spec: Option<&Json>) -> Behavior {
     }
 }
 
-/// Returns Pending once, then Ready: a host call that finishes after one scheduler turn.
-struct YieldOnce(bool);
+/// Returns Pending `n` times, then Ready: host work that finishes after `n` scheduler turns. A promise run-ts.ts's
+/// globals return settles in a microtask, before any `Effect.yieldNow` (a macrotask), so promises take one turn and
+/// "yield" tools two.
+struct Turns(u32);
 
-impl std::future::Future for YieldOnce {
+impl std::future::Future for Turns {
     type Output = ();
     fn poll(mut self: std::pin::Pin<&mut Self>, cx: &mut std::task::Context<'_>) -> std::task::Poll<()> {
-        if self.0 {
+        if self.0 == 0 {
             return std::task::Poll::Ready(());
         }
-        self.0 = true;
+        self.0 -= 1;
         cx.waker().wake_by_ref();
         std::task::Poll::Pending
     }
@@ -96,7 +98,7 @@ fn settle(asynchronous: bool, outcome: Result<HostValue, HostValue>) -> HostRetu
         return HostReturn::Value(outcome);
     }
     HostReturn::Async(Box::pin(async move {
-        YieldOnce(false).await;
+        Turns(1).await;
         outcome
     }))
 }
@@ -208,6 +210,41 @@ fn extensions(case: &JsonObj) -> Vec<Extension> {
         .collect()
 }
 
+/// run-ts.ts's recording hooks: each start as it happens, each end with the index of its start.
+fn recording_hooks(events: &Rc<RefCell<Vec<Json>>>) -> Hooks {
+    let started: Rc<RefCell<HashMap<u64, usize>>> = Default::default();
+    let begin = {
+        let (events, started) = (events.clone(), started.clone());
+        move |id: u64, event: Vec<Json>| {
+            started.borrow_mut().insert(id, events.borrow().len());
+            events.borrow_mut().push(Json::Arr(event));
+        }
+    };
+    let finish = {
+        let (events, started) = (events.clone(), started.clone());
+        move |kind: &str, id: u64, status: opencode_codemode::CallStatus| {
+            let index = started.borrow().get(&id).map(|i| *i as f64).unwrap_or(-1.0);
+            let status = match status {
+                opencode_codemode::CallStatus::Success => "success",
+                opencode_codemode::CallStatus::Failure => "failure",
+                opencode_codemode::CallStatus::Interrupted => "interrupted",
+            };
+            events.borrow_mut().push(Json::Arr(vec![Json::str(kind), Json::Num(index), Json::str(status)]));
+        }
+    };
+    let (begin2, finish2) = (begin.clone(), finish.clone());
+    Hooks {
+        tool_start: Some(Rc::new(move |id, name, input| {
+            begin(id, vec![Json::str("tool.before"), Json::str(name), input.cloned().unwrap_or(Json::Null)])
+        })),
+        tool_end: Some(Rc::new(move |id, _, status| finish("tool.after", id, status))),
+        extension_start: Some(Rc::new(move |id, extension, name, args| {
+            begin2(id, vec![Json::str("extension.before"), Json::str(extension), Json::str(name), Json::Num(args.len() as f64)])
+        })),
+        extension_end: Some(Rc::new(move |id, _, _, status| finish2("extension.after", id, status))),
+    }
+}
+
 async fn run_case(case: &JsonObj) -> Json {
     let mut tools = Vec::new();
     let mut specs: HashMap<String, Rc<ToolSpec>> = HashMap::new();
@@ -248,7 +285,7 @@ async fn run_case(case: &JsonObj) -> Json {
         Box::pin(async move {
             let Some(spec) = spec else { return ToolOutcome::Err(format!("no tool {name}")) };
             if spec.yields {
-                YieldOnce(false).await;
+                Turns(2).await;
             }
             match &spec.behavior {
                 Behavior::Echo => ToolOutcome::Ok(input),
@@ -279,13 +316,19 @@ async fn run_case(case: &JsonObj) -> Json {
         _ => Vec::new(),
     };
     let code = text(case.get("code"));
-    let options = ExecuteOptions { limits, bindings, handler, hooks: Hooks::default(), extensions: extensions(case) };
+    let events: Rc<RefCell<Vec<Json>>> = Default::default();
+    let recording = matches!(case.get("hooks"), Some(Json::Bool(true)));
+    let hooks = if recording { recording_hooks(&events) } else { Hooks::default() };
+    let options = ExecuteOptions { limits, bindings, handler, hooks, extensions: extensions(case) };
     match runtime.execute(&code, options).await {
         Execution::Done(result) => {
             let mut line = JsonObj::new();
             line.insert_str("name", case.get("name").cloned().unwrap_or(Json::Null));
             line.insert_str("result", result.to_json());
             line.insert_str("output", Json::Str(result.format_output()));
+            if recording {
+                line.insert_str("events", Json::Arr(events.borrow().clone()));
+            }
             Json::Obj(line)
         }
         Execution::Interrupted => {

@@ -79,6 +79,8 @@ type Case = {
   bindings?: Record<string, unknown>
   limits?: { timeoutMs?: number; maxToolCalls?: number; maxOutputBytes?: number }
   extensions?: Array<{ name: string; globals: Record<string, GlobalSpec> }>
+  /** Record the hooks' events: each `before` as it starts, each `after` with the index of its `before`. */
+  hooks?: boolean
 }
 
 const behave = (spec: ToolSpec) => {
@@ -143,12 +145,32 @@ if (!path) throw new Error("usage: bun harness/run-ts.ts corpus.jsonl")
 const lines = (await Bun.file(path).text()).split("\n").filter((line) => line.trim() !== "")
 for (const line of lines) {
   const item = JSON.parse(line) as Case
+  const events: Array<unknown> = []
+  const started = new Map<object, number>()
+  const begin = (call: object, event: Array<unknown>) =>
+    Effect.sync(() => {
+      started.set(call, events.length)
+      events.push(event)
+    })
+  const finish = (kind: string, call: object, result: { status: string }) =>
+    Effect.sync(() => {
+      events.push([kind, started.get(call) ?? -1, result.status])
+    })
+  const hooks = {
+    "tool.before": (call: { name: string; input: unknown }) =>
+      begin(call, ["tool.before", call.name, call.input === undefined ? null : call.input]),
+    "tool.after": (call: object, result: { status: string }) => finish("tool.after", call, result),
+    "extension.before": (call: { extension: string; name: string; args: ReadonlyArray<unknown> }) =>
+      begin(call, ["extension.before", call.extension, call.name, call.args.length]),
+    "extension.after": (call: object, result: { status: string }) => finish("extension.after", call, result),
+  }
   const result = await Effect.runPromise(
     CodeMode.execute({
       code: item.code,
       tools: buildTools(item.tools ?? []) as never,
       ...(item.bindings ? { bindings: item.bindings as never } : {}),
       ...(item.limits ? { limits: item.limits } : {}),
+      ...(item.hooks ? { hooks } : {}),
       ...(item.extensions
         ? {
             extensions: item.extensions.map((extension) =>
@@ -161,5 +183,6 @@ for (const line of lines) {
         : {}),
     } as never),
   )
-  process.stdout.write(JSON.stringify({ name: item.name, result, output: formatResult(result) }) + "\n")
+  const record = { name: item.name, result, output: formatResult(result), ...(item.hooks ? { events } : {}) }
+  process.stdout.write(JSON.stringify(record) + "\n")
 }

@@ -379,7 +379,14 @@ pub async fn execute(prepared: Rc<Prepared>, code: &str, options: ExecuteOptions
 }
 
 async fn run_program(prepared: Rc<Prepared>, program: Rc<crate::parser::ast::Program>, options: &ExecuteOptions) -> Option<CodeResult> {
-    let session = Rc::new(ToolSession::new(prepared, options.limits.max_tool_calls, options.handler.clone(), options.hooks.clone()));
+    let ids: Rc<std::cell::Cell<crate::tools::CallId>> = Default::default();
+    let session = Rc::new(ToolSession::new(
+        prepared,
+        options.limits.max_tool_calls,
+        options.handler.clone(),
+        options.hooks.clone(),
+        ids.clone(),
+    ));
     let calls = session.calls.clone();
     let logs: Rc<RefCell<Vec<JsStr>>> = Default::default();
     let bindings = options.bindings.clone();
@@ -390,7 +397,7 @@ async fn run_program(prepared: Rc<Prepared>, program: Rc<crate::parser::ast::Pro
             .iter()
             .map(|(name, value)| (JsStr::from(name.as_str()), crate::interp::data::from_json(ctx, value)))
             .collect();
-        globals.extend(crate::extensions::extension_globals(ctx, &extensions, hooks.extension_start, hooks.extension_end));
+        globals.extend(crate::extensions::extension_globals(ctx, &extensions, hooks.extension_start, hooks.extension_end, ids));
         globals
     });
     let main = {
