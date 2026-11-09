@@ -252,6 +252,16 @@ pub struct TerminalInfo {
     pub from_xtversion: bool,
 }
 
+/// [`Terminal::capability_snapshot`].
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct CapabilitySnapshot {
+    pub capabilities: Capabilities,
+    pub terminal: TerminalInfo,
+    pub multiplexer: Multiplexer,
+    pub osc52_support: Osc52Support,
+    pub kitty_keyboard_flags: u8,
+}
+
 /// The cursor as the renderer shows it (1-based position).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CursorPosition {
@@ -521,7 +531,7 @@ fn wezterm_build_at_least(version: &str, required: u32) -> bool {
     if !(1..=12).contains(&month) {
         return false;
     }
-    let leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    let leap = year.is_multiple_of(4) && (!year.is_multiple_of(100) || year.is_multiple_of(400));
     let days = [31, if leap { 29 } else { 28 }, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     if day < 1 || day > days[month as usize - 1] {
         return false;
@@ -597,6 +607,18 @@ impl Terminal {
 
     pub fn capabilities(&self) -> Capabilities {
         self.caps
+    }
+
+    /// What `NativeSession.getCapabilities()` reports: the capabilities with the terminal's identity, its
+    /// multiplexer, OSC 52 support and the kitty flags (the renderer compares these to see a change).
+    pub fn capability_snapshot(&self) -> CapabilitySnapshot {
+        CapabilitySnapshot {
+            capabilities: self.caps,
+            terminal: self.term_info.clone(),
+            multiplexer: self.multiplexer,
+            osc52_support: self.osc52_support,
+            kitty_keyboard_flags: self.kitty_keyboard_flags,
+        }
     }
 
     pub fn terminal_info(&self) -> &TerminalInfo {
@@ -778,9 +800,9 @@ impl Terminal {
         let version = self.term_info.version.clone();
         if name.eq_ignore_ascii_case("kitty") || name.eq_ignore_ascii_case("ghostty") {
             self.caps.kitty_graphics = true;
-        } else if name.eq_ignore_ascii_case("foot") && semantic_version_at_least(&version, 1, 2) {
-            self.caps.sixel = true;
-        } else if name.eq_ignore_ascii_case("wezterm") && wezterm_build_at_least(&version, 20200620) {
+        } else if (name.eq_ignore_ascii_case("foot") && semantic_version_at_least(&version, 1, 2))
+            || (name.eq_ignore_ascii_case("wezterm") && wezterm_build_at_least(&version, 20200620))
+        {
             self.caps.sixel = true;
         }
     }
@@ -828,17 +850,15 @@ impl Terminal {
         // The environment is always the forwarded one here (`adoptHostEnvironment`).
         let forwarded = true;
         self.apply_known_unicode_width_identity();
-        if let Some(term) = get("TERM") {
-            if find_ignore_case(term, "256color") {
+        if let Some(term) = get("TERM")
+            && find_ignore_case(term, "256color") {
                 self.caps.ansi256 = true;
             }
-        }
-        if let Some(colorterm) = get("COLORTERM") {
-            if colorterm == "truecolor" || colorterm == "24bit" {
+        if let Some(colorterm) = get("COLORTERM")
+            && (colorterm == "truecolor" || colorterm == "24bit") {
                 self.caps.rgb = true;
                 self.caps.ansi256 = true;
             }
-        }
         if self.remote_mode == RemoteMode::Auto && self.remote && forwarded {
             return;
         }
@@ -877,11 +897,10 @@ impl Terminal {
             self.apply_notification_heuristic(term);
             self.is_foot = self.is_foot || find_ignore_case(term, "foot");
         }
-        if let Some(features) = get("TERM_FEATURES") {
-            if term_features_has_code(features, "No") {
+        if let Some(features) = get("TERM_FEATURES")
+            && term_features_has_code(features, "No") {
                 self.set_notification_protocol(NotificationProtocol::Osc9, NotificationSource::Heuristic);
             }
-        }
         if let Some(value) = get("OPENTUI_GRAPHICS") {
             if value == "false" || value == "0" {
                 self.skip_graphics_query = true;
@@ -905,11 +924,10 @@ impl Terminal {
                     self.caps.explicit_cursor_positioning = true;
                 }
                 self.apply_notification_heuristic(program);
-                if !self.is_in_zellij() {
-                    if let Some(version) = get("TERM_PROGRAM_VERSION") {
+                if !self.is_in_zellij()
+                    && let Some(version) = get("TERM_PROGRAM_VERSION") {
                         self.term_info.version = version.chars().take(32).collect();
                     }
-                }
                 match program {
                     "vscode" => {
                         self.caps.kitty_keyboard = false;
@@ -936,11 +954,10 @@ impl Terminal {
         if let Some(protocol) = get("OPENTUI_NOTIFICATION_PROTOCOL") {
             self.apply_notification_protocol_override(protocol);
         }
-        if let Some(value) = get("OPENTUI_NOTIFICATIONS") {
-            if value == "0" || value.eq_ignore_ascii_case("false") || value.eq_ignore_ascii_case("off") {
+        if let Some(value) = get("OPENTUI_NOTIFICATIONS")
+            && (value == "0" || value.eq_ignore_ascii_case("false") || value.eq_ignore_ascii_case("off")) {
                 self.apply_notification_protocol_override("none");
             }
-        }
         self.enforce_notification_protocol_for_multiplexer();
         if !self.term_info.from_xtversion {
             if get("TERMUX_VERSION").is_some() {
@@ -977,13 +994,11 @@ impl Terminal {
         if !self.caps.hyperlinks && self.term_info.from_xtversion && is_hyperlink_term(&self.term_info.name) {
             self.caps.hyperlinks = true;
         }
-        if !self.caps.hyperlinks && !self.term_info.from_xtversion {
-            if let Some(term) = get("TERM") {
-                if is_hyperlink_term(term) && (!self.is_foot || self.multiplexer == Multiplexer::None) {
+        if !self.caps.hyperlinks && !self.term_info.from_xtversion
+            && let Some(term) = get("TERM")
+                && is_hyperlink_term(term) && (!self.is_foot || self.multiplexer == Multiplexer::None) {
                     self.caps.hyperlinks = true;
                 }
-            }
-        }
         if !self.caps.hyperlinks && !self.term_info.from_xtversion {
             let wsl = get("WSL_DISTRO_NAME").is_some() || get("WSL_INTEROP").is_some();
             if wsl && get("WT_SESSION").is_some() && get("TERM").is_some_and(|t| t.starts_with("xterm")) {
@@ -1304,7 +1319,7 @@ impl Terminal {
                 continue;
             }
             let value = &result[separator + 1..];
-            if value.is_empty() || value.len() % 2 != 0 {
+            if value.is_empty() || !value.len().is_multiple_of(2) {
                 continue;
             }
             if value.bytes().all(|b| b.is_ascii_hexdigit()) {
@@ -1388,11 +1403,10 @@ impl Terminal {
         } else {
             Multiplexer::None
         };
-        if !self.is_in_zellij() {
-            if let Some(protocol) = detect_notification_protocol(&self.term_info.name.clone()) {
+        if !self.is_in_zellij()
+            && let Some(protocol) = detect_notification_protocol(&self.term_info.name.clone()) {
                 self.set_notification_protocol(protocol, NotificationSource::Xtversion);
             }
-        }
         self.enforce_notification_protocol_for_multiplexer();
         self.apply_known_graphics_identity();
     }
@@ -2361,11 +2375,10 @@ pub fn is_capability_response(sequence: &str) -> bool {
         }
     }
     // XTVersion: ESC P > | ... ESC \
-    if let Some(start) = sequence.find("\x1bP>|") {
-        if sequence[start + 4..].contains("\x1b\\") {
+    if let Some(start) = sequence.find("\x1bP>|")
+        && sequence[start + 4..].contains("\x1b\\") {
             return true;
         }
-    }
     // XTGETTCAP Ms: ESC P (1+r4d73(=[^ESC]*)? | 0+r(4d73)?) ESC \  (case-insensitive)
     let lower = sequence.to_ascii_lowercase();
     let mut search = 0;
@@ -2389,11 +2402,10 @@ pub fn is_capability_response(sequence: &str) -> bool {
         search = start;
     }
     // Kitty graphics: ESC _ G ... ESC \
-    if let Some(start) = sequence.find("\x1b_G") {
-        if sequence[start + 3..].contains("\x1b\\") {
+    if let Some(start) = sequence.find("\x1b_G")
+        && sequence[start + 3..].contains("\x1b\\") {
             return true;
         }
-    }
     // OSC 99 notification query reply.
     let mut search = 0;
     while let Some(rel) = sequence[search..].find("\x1b]99;") {
@@ -2401,11 +2413,10 @@ pub fn is_capability_response(sequence: &str) -> bool {
         let body_end = sequence[start..].find(['\x07', '\x1b']).map(|i| start + i);
         if let Some(end) = body_end {
             let body = &sequence[start..end];
-            if let Some(id) = body.find("i=opentui-notifications") {
-                if body[id..].contains("p=?") && (sequence[end..].contains('\x07') || sequence[end..].contains("\x1b\\")) {
+            if let Some(id) = body.find("i=opentui-notifications")
+                && body[id..].contains("p=?") && (sequence[end..].contains('\x07') || sequence[end..].contains("\x1b\\")) {
                     return true;
                 }
-            }
         }
         search = start;
     }
@@ -2553,6 +2564,7 @@ pub struct TerminalColors {
 
 /// Palette detection in progress (`TerminalPalette.detect`).
 #[derive(Clone, Debug)]
+#[allow(clippy::large_enum_variant)]
 enum Detection {
     /// `detectOSCSupport`: one OSC 4 query, 300 ms.
     Probe { size: usize, deadline: u64, buffer: String },
@@ -2589,7 +2601,7 @@ pub struct Replies {
     resolution: Option<(u32, u32)>,
     focus: Option<bool>,
     restore_modes_on_next_focus: bool,
-    capabilities: Option<Capabilities>,
+    capabilities: Option<CapabilitySnapshot>,
     detection: Option<Detection>,
     detection_generation: u64,
     detection_queued: bool,
@@ -2718,14 +2730,14 @@ impl Replies {
     /// is accepted.
     pub fn before_setup(&mut self, renderer: &Renderer) {
         self.startup_pending = true;
-        self.capabilities = Some(renderer.terminal.capabilities());
+        self.capabilities = Some(renderer.terminal.capability_snapshot());
     }
 
     /// After setup's packets are written (`setupTerminal` resolved): the startup batch's backstop starts, the
     /// pixel size is queried and, on a 256-color terminal, the palette.
     pub fn after_setup(&mut self, session: &mut Session, renderer: &mut Renderer, now: u64, out: &mut Vec<u8>) {
         self.terminal_setup = true;
-        self.capabilities = Some(renderer.terminal.capabilities());
+        self.capabilities = Some(renderer.terminal.capability_snapshot());
         self.startup_until = Some(now + REPLY_BACKSTOP_MS);
         self.query_pixel_resolution(session, renderer, out);
         if self.should_sync_native_palette(renderer) {
@@ -2900,11 +2912,10 @@ impl Replies {
                 if !*palette_done {
                     palette_buffer.push_str(sequence);
                     for (n, index, hex) in osc_colors(palette_buffer) {
-                        if let (4, Some(index)) = (n, index) {
-                            if let Some(slot) = palette.get_mut(index as usize) {
+                        if let (4, Some(index)) = (n, index)
+                            && let Some(slot) = palette.get_mut(index as usize) {
                                 *slot = Some(hex);
                             }
-                        }
                     }
                     if palette_buffer.len() > 8192 {
                         let keep = palette_buffer.len() - 4096;
@@ -2993,8 +3004,8 @@ impl Replies {
                 return effects;
             }
         }
-        let caps = renderer.terminal.capabilities();
-        if self.capabilities != Some(caps) {
+        let caps = renderer.terminal.capability_snapshot();
+        if self.capabilities.as_ref() != Some(&caps) {
             self.capabilities = Some(caps);
             effects.capabilities_changed = true;
         }
