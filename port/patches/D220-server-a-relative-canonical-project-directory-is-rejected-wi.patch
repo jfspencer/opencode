@@ -1,0 +1,118 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: opencode-port <port@localhost>
+Date: Mon, 9 Nov 2026 00:24:48 -0700
+Subject: [PATCH] D220 server: a relative canonical project directory is
+ rejected with 400
+
+Upstream: PATCH /api/project/:id with {"canonical":"relative"} (or "") answers 500 with an empty body, for a known
+or an unknown project. AbsolutePath is an unchecked brand, so the path reaches the project table's absolute-path
+column, which throws before the update can find out that the project does not exist.
+Fixed: 400 InvalidRequestError, field canonical, message "canonical must be an absolute path" (the shape D201
+gives a relative session directory), checked before the project lookup as the payload schema would be.
+Scenarios: project-projects.test.ts "update project metadata" (new requests)
+Upstream tests: packages/server/test/project-update.test.ts (new)
+
+diff --git a/packages/protocol/src/groups/project.ts b/packages/protocol/src/groups/project.ts
+index 7609dba2d5..7b31ea07c2 100644
+--- a/packages/protocol/src/groups/project.ts
++++ b/packages/protocol/src/groups/project.ts
+@@ -1,7 +1,7 @@
+ import { Project } from "@opencode/schema/project"
+ import { Schema, SchemaGetter, Struct } from "effect"
+ import { HttpApiEndpoint, HttpApiGroup, OpenApi } from "effect/http-api"
+-import { ProjectNotFoundError } from "../errors.js"
++import { InvalidRequestError, ProjectNotFoundError } from "../errors.js"
+ 
+ const root = "/api/project"
+ const UpdatePayload = Schema.Struct(Struct.omit(Project.UpdateInput.fields, ["projectID"]))
+@@ -30,7 +30,7 @@ export const ProjectGroup = HttpApiGroup.make("server.project")
+       params: { projectID: Project.ID },
+       payload: UpdatePayload,
+       success: Project.Info,
+-      error: ProjectNotFoundError,
++      error: [InvalidRequestError, ProjectNotFoundError],
+     }).annotateMerge(
+       OpenApi.annotations({
+         identifier: "project.update",
+diff --git a/packages/server/src/handlers/project.ts b/packages/server/src/handlers/project.ts
+index 4e59fb15cd..99cb862fba 100644
+--- a/packages/server/src/handlers/project.ts
++++ b/packages/server/src/handlers/project.ts
+@@ -1,23 +1,29 @@
+ import { Project } from "@opencode/core/project"
+ import { Effect } from "effect"
+ import { HttpApiBuilder } from "effect/http-api"
++import path from "node:path"
+ import { Api } from "../api"
+-import { ProjectNotFoundError } from "@opencode/protocol/errors"
++import { InvalidRequestError, ProjectNotFoundError } from "@opencode/protocol/errors"
+ 
+ export const ProjectHandler = HttpApiBuilder.group(Api, "server.project", (handlers) =>
+   handlers
+     .handle("project.list", (ctx) => Project.Service.use((project) => project.list(ctx.query)))
+     .handle("project.update", (ctx) =>
+-      Project.Service.use((project) =>
+-        project.update({ ...ctx.payload, projectID: ctx.params.projectID }).pipe(
+-          Effect.mapError(
+-            () =>
+-              new ProjectNotFoundError({
+-                projectID: ctx.params.projectID,
+-                message: `Project not found: ${ctx.params.projectID}`,
+-              }),
++      Effect.gen(function* () {
++        // The canonical directory is a plain string on the wire; a relative one would only fail when it is stored.
++        if (ctx.payload.canonical !== undefined && !path.isAbsolute(ctx.payload.canonical))
++          return yield* new InvalidRequestError({ message: "canonical must be an absolute path", field: "canonical" })
++        return yield* Project.Service.use((project) =>
++          project.update({ ...ctx.payload, projectID: ctx.params.projectID }).pipe(
++            Effect.mapError(
++              () =>
++                new ProjectNotFoundError({
++                  projectID: ctx.params.projectID,
++                  message: `Project not found: ${ctx.params.projectID}`,
++                }),
++            ),
+           ),
+-        ),
+-      ),
++        )
++      }),
+     ),
+ )
+diff --git a/packages/server/test/project-update.test.ts b/packages/server/test/project-update.test.ts
+new file mode 100644
+index 0000000000..b2bc3256d7
+--- /dev/null
++++ b/packages/server/test/project-update.test.ts
+@@ -0,0 +1,31 @@
++import { expect } from "bun:test"
++import { Effect } from "effect"
++import { it } from "../../core/test/lib/effect"
++import { ServerFetch } from "../src/fetch"
++
++it.live("rejects a relative canonical directory instead of failing when it is stored", () =>
++  Effect.gen(function* () {
++    const handler = yield* ServerFetch.make({
++      app: { version: "test" },
++      database: { path: ":memory:" },
++      fs: { filewatcher: false },
++    })
++    const update = (projectID: string, body: unknown) =>
++      Effect.promise(async () => {
++        const response = await handler(
++          new Request(`http://opencode.local/api/project/${projectID}`, {
++            method: "PATCH",
++            headers: { "content-type": "application/json" },
++            body: JSON.stringify(body),
++          }),
++        )
++        return { status: response.status, body: await response.json() }
++      })
++    const relative = yield* update("global", { canonical: "relative/path" })
++    expect(relative.status).toBe(400)
++    expect(relative.body).toMatchObject({ _tag: "InvalidRequestError", field: "canonical" })
++    const unknown = yield* update("does-not-exist", { canonical: "/absolute" })
++    expect(unknown.status).toBe(404)
++    expect(unknown.body).toMatchObject({ _tag: "ProjectNotFoundError" })
++  }).pipe(Effect.scoped),
++)
