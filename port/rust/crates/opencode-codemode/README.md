@@ -165,7 +165,7 @@ The evaluator in `interp/`:
 
 - **Host stack limits are approximate.** Some programs overflow the stack in TS: deep recursion, expressions
   nested about 24,000 `+` or `.b` deep (7,250 for chained calls), the tree walks for `arguments` and loop closures
-  past about 15,000 levels, `scanTools` past about 9,100, and flattening more than about 12,000 nested arrays.
+  past about 15,000 levels, `scanTools` past about 7,250, and flattening more than about 12,000 nested arrays.
   Rust fails these the same way (with a RangeError the program can catch where TS's is catchable), but at
   thresholds calibrated from bun with deterministic budgets.
   TS's own thresholds move with JIT warm-up, by as much as 17,000 to 30,000 for `+`, so the corpus stays clear of

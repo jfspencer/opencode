@@ -46,6 +46,17 @@
 {"name":"scan/classField","code":"class A { tools = 1 }","scanOnly":true}
 {"name":"scan/classStaticVar","code":"tools.a(); x = class { static { var tools = 1 } }","scanOnly":true}
 {"name":"scan/staticBlockVar","code":"class A { static { var tools } } tools.a()","scanOnly":true}
+{"name":"scan/staticBlockInner","code":"x = class { static { var tools; tools.inner() } }; await tools.outer()","scanOnly":true}
+{"name":"scan/staticBlockLet","code":"class A { static { let tools; tools.x() } } tools.y()","scanOnly":true}
+{"name":"scan/staticBlockFunction","code":"class A { static { function tools() {} } } tools.a()","scanOnly":true}
+{"name":"scan/staticBlockNestedVar","code":"class A { static { if (x) { var tools } tools.a() } } tools.b()","scanOnly":true}
+{"name":"scan/paramDefaultVar","code":"const f = function (a = tools.danger({})) { var tools }; await f()","scanOnly":true}
+{"name":"scan/paramDefaultLet","code":"const f = (a = tools.early()) => { let tools; return tools.late() }","scanOnly":true}
+{"name":"scan/paramShadows","code":"const f = function (tools = 1) { return tools.none() }","scanOnly":true}
+{"name":"scan/paramDefaultNestedVar","code":"function f(a = tools.a()) { if (x) { var tools } tools.b() } tools.c()","scanOnly":true}
+{"name":"scan/methodParamDefault","code":"class A { m(a = tools.a()) { var tools; tools.b() } } ({ n(b = tools.c()) { const tools = 1 } })","scanOnly":true}
+{"name":"scan/bodyBlockLet","code":"function f() { { let tools } tools.a() }","scanOnly":true}
+{"name":"scan/caseOrder","code":"switch (x) { case tools.b(): tools.c(); case tools.d(): tools.e() }","scanOnly":true}
 {"name":"scan/memberProperty","code":"x.tools.a(); x?.tools","scanOnly":true}
 {"name":"scan/labels","code":"tools: { break tools } tools.a()","scanOnly":true}
 {"name":"scan/continueLabel","code":"tools: for (;;) { continue tools }","scanOnly":true}

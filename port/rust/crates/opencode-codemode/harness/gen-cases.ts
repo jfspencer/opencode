@@ -314,6 +314,19 @@ if (kind === "scan") {
     classField: `class A { tools = 1 }`,
     classStaticVar: `tools.a(); x = class { static { var tools = 1 } }`,
     staticBlockVar: `class A { static { var tools } } tools.a()`,
+    // D514-D516: a static block is a var scope, a function body's declarations stay out of its parameter defaults,
+    // and paths are in source order.
+    staticBlockInner: `x = class { static { var tools; tools.inner() } }; await tools.outer()`,
+    staticBlockLet: `class A { static { let tools; tools.x() } } tools.y()`,
+    staticBlockFunction: `class A { static { function tools() {} } } tools.a()`,
+    staticBlockNestedVar: `class A { static { if (x) { var tools } tools.a() } } tools.b()`,
+    paramDefaultVar: `const f = function (a = tools.danger({})) { var tools }; await f()`,
+    paramDefaultLet: `const f = (a = tools.early()) => { let tools; return tools.late() }`,
+    paramShadows: `const f = function (tools = 1) { return tools.none() }`,
+    paramDefaultNestedVar: `function f(a = tools.a()) { if (x) { var tools } tools.b() } tools.c()`,
+    methodParamDefault: `class A { m(a = tools.a()) { var tools; tools.b() } } ({ n(b = tools.c()) { const tools = 1 } })`,
+    bodyBlockLet: `function f() { { let tools } tools.a() }`,
+    caseOrder: `switch (x) { case tools.b(): tools.c(); case tools.d(): tools.e() }`,
     memberProperty: `x.tools.a(); x?.tools`,
     labels: `tools: { break tools } tools.a()`,
     continueLabel: `tools: for (;;) { continue tools }`,
@@ -342,7 +355,7 @@ if (kind === "scan") {
     duplicate: `tools.a(); tools.a(); tools["a"](); tools.b()`,
     callee: `(0, tools.a)()`,
     conditional: `(x ? tools.a : tools.b)()`,
-    // Depth: TS's recursive walks throw past about 9,100 levels; these stay well clear of the threshold.
+    // Depth: TS's recursive walks throw past about 7,250 levels (up to 11,500 warm); these stay clear of the band.
     deepMembersOk: `tools.a(); x${".b".repeat(6000)}`,
     deepMembers: `tools.a(); x${".b".repeat(20000)}`,
     deepInArrow: `tools.a(); (() => x${".b".repeat(20000)})`,
@@ -356,7 +369,8 @@ if (kind === "scan") {
 if (kind === "chains") {
   // Chains the parser builds in a loop (acorn takes any length) and the walks over them: short ones run, long ones
   // overflow TS's JS stack and fail with a RangeError the program catches. The lengths stay clear of the thresholds,
-  // which move with JIT warm-up (about 17,000 to 30,000 for `+` and `.b`, 15,000 for TS's tree walks).
+  // which move with JIT warm-up (about 17,000 to 30,000 for `+` and `.b`, 15,000 for TS's tree walks, 7,250 to
+  // 11,500 for scanTools, whose walk these programs also go through).
   for (const n of [3000, 45000]) {
     const plus = "1" + "+1".repeat(n)
     const member = "x" + ".b".repeat(n)
@@ -368,11 +382,11 @@ if (kind === "chains") {
       loopWalk: `${T}return t(() => { for (let i = 0; i < 1; i++) { console.log("body"); ${plus} } })`,
       forOfWalk: `${T}const x = {}; return t(() => { for (const v of [1]) { console.log("body"); ${member} } })`,
       notAFunction: `${T}const x = { b: {} }; return t(() => x${".b".repeat(Math.min(n, 4000))}.c())`,
-      callChain: `${T}const f = () => f; return t(() => typeof f${"()".repeat(Math.min(n, 3000) * (n > 3000 ? 3 : 1))})`,
+      callChain: `${T}const f = () => f; return t(() => typeof f${"()".repeat(Math.min(n, 3000) * (n > 3000 ? 5 : 1))})`,
       optional: `${T}const x = {}; return t(() => x${"?.b".repeat(n / 3)})`,
       assignTarget: `${T}const x = {}; return t(() => { ${member} = 1 })`,
       logical: `${T}return t(() => 1${"&&1".repeat(n / 3)})`,
-      tagged: `${T}const tag = () => tag; return t(() => typeof tag${"`x`".repeat(n / 5)})`,
+      tagged: `${T}const tag = () => tag; return t(() => typeof tag${"`x`".repeat(n > 3000 ? n / 3 : n / 5)})`,
       inCallback: `${T}return t(() => [1].map(() => ${plus}))`,
       comma: `return (${Array(n).fill("1").join(",")})`,
     }
