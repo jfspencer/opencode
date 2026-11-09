@@ -48,17 +48,7 @@ pub fn error_message(error: Option<&Json>) -> String {
 
 /// `local.agent.color(id)`: the visible agent's color, else the theme's categorical color of its index.
 pub fn agent_color(id: &str) -> RGBA {
-    let t = tui();
-    let theme = t.theme.get();
-    let agents: Vec<crate::data::AgentInfo> =
-        t.data.agents.get().unwrap_or_default().into_iter().filter(|a| a.mode != "subagent" && !a.hidden).collect();
-    let colors: Vec<RGBA> = theme.categorical.iter().map(|scale| rgba(scale[500])).collect();
-    let fallback = colors.first().copied().unwrap_or(RGBA::from_values(1.0, 1.0, 1.0, 1.0));
-    let Some(index) = agents.iter().position(|a| a.id == id) else { return fallback };
-    if let Some(color) = agents[index].color.as_deref() {
-        return RGBA::from_hex(color);
-    }
-    colors.get(index % colors.len().max(1)).copied().unwrap_or(fallback)
+    crate::local::local().color(id)
 }
 
 fn padded(left: f32) -> opencode_tui_core::tree::Element {

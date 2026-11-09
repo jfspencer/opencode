@@ -760,6 +760,11 @@ impl Element {
         self.with_base_mut(|b| b.selectable = selectable);
     }
 
+    /// `selectable`.
+    pub fn selectable(self) -> bool {
+        self.with_base(|b| b.selectable).unwrap_or(false)
+    }
+
     pub fn set_measure_func(self, measure: Option<layout::MeasureFn>) {
         // Text and editor views: the height cap only clamps their measurement (scene.zig).
         self.with_yoga(|y| y.set_measure_func(measure, true));
@@ -1604,6 +1609,12 @@ pub fn create_root_for_tests(width: u32, height: u32) -> Element {
 #[doc(hidden)]
 pub fn paint_for_tests(buffer: &mut OptimizedBuffer) {
     paint(buffer, 0.0);
+}
+
+/// Test support: the node's `handleKeyPress` (whether it handled the key).
+#[doc(hidden)]
+pub fn handle_key_press_for_tests(el: Element, key: &mut crate::input::KeyEvent) -> bool {
+    el.with_dyn_kind(|k| k.handles_keys() && k.handle_key_press(el, key)).unwrap_or(false)
 }
 
 /// Test support: one frame's layout without a renderer.

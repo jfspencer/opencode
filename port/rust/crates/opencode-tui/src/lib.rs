@@ -5,6 +5,8 @@
 //! - [`app`]: `run` and `<App>` (app.tsx); [`commands`]: App's command registry; [`ctx`]: what the providers give
 //!   components; [`home`], [`prompt`], [`local`], [`session`], [`data`]: the home route and what it reads;
 //!   [`keymap`], [`interactivity`]: keybinds; [`toast`]: toasts; [`util`]: locale, path and color helpers.
+//! - [`ui`]: the dialog framework; [`component`]: the dialogs and the command palette; [`themes`]: `useThemes()`;
+//!   [`model_preference`]: model.json.
 //! - [`theme`]: `@opencode/theme` and `packages/tui/src/theme`; [`config`]: `packages/tui/src/config` (cli.json,
 //!   `Config.resolve`, keybind definitions).
 //!
@@ -76,7 +78,19 @@
 //! run).title(..).group(..).bind(Bind::Off).palette(true).slash(..)`); its `run` returns false to let the key fall
 //! through. `bindings: vec!["id", ..]` applies the config keybinds of those ids. `keymap::dispatch(id, input)`,
 //! `keymap::use_commands()` (the palette's list), `keymap::use_shortcuts().get/all(id)` (hints, formatted as TS
-//! formats them). App's command registry is [`commands`].
+//! formats them). App's command registry is [`commands`]. A focused textarea's keys (cursor, selection, delete,
+//! undo, `input.submit`, `input.newline`, ...) are the keymap's `input.*` commands
+//! (`opencode_tui_core::edit_buffer_bindings`, `registerManagedTextareaLayer`), so a layer of a later-mounted
+//! component that binds the same key wins over them, as in TS. The textarea itself then only inserts printable
+//! keys; its edit methods are `el.textarea_action(TextareaAction::..)`, and its `traits` are
+//! `textarea_traits`/`set_textarea_traits`.
+//!
+//! **Dialogs** ([`ui::dialog`], `ui/dialog.tsx`): `ui::dialog::use_dialog()` gives `show(|| component(my_dialog))`,
+//! `replace(view, on_close, key, size)` and `clear()`; a dialog is built from `dialog_layout`/`dialog_header`/
+//! `dialog_footer`, a list is `ui::dialog_select::dialog_select(SelectProps::new(title, options))` (filtering,
+//! groups, actions with keys), a text field `ui::dialog_prompt::dialog_prompt`. Inside a dialog,
+//! `ui::theme::use_theme()` reads the dialog surface (`ThemeContextProvider`). The palette lists every reachable
+//! command with `palette(true)`; [`themes`] is `useThemes()`.
 //!
 //! **The theme** is `tui().theme` (a signal of [`ResolvedTheme`](theme::ResolvedTheme), which derefs to the token
 //! tree: `theme.text.muted`, `theme.background.raised.base`); `util::rgba(color)` converts a token to a renderable
@@ -109,19 +123,24 @@
 pub mod app;
 pub mod border;
 pub mod commands;
+pub mod component;
 pub mod config;
 pub mod config_context;
 pub mod ctx;
 pub mod data;
+pub mod fuzzysort;
 pub mod home;
 pub mod interactivity;
 pub mod keymap;
 pub mod local;
+pub mod model_preference;
 pub mod prompt;
 pub mod reconnecting;
 pub mod session;
 pub mod spinner;
 pub mod syntax;
 pub mod theme;
+pub mod themes;
 pub mod toast;
+pub mod ui;
 pub mod util;

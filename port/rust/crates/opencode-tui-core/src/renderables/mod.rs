@@ -2,6 +2,7 @@
 pub mod box_;
 pub mod code;
 pub mod diff;
+pub mod input;
 pub mod line_number;
 pub mod markdown;
 pub mod scrollbox;

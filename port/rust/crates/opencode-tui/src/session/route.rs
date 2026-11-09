@@ -1146,7 +1146,7 @@ pub fn session(props: SessionProps) -> View {
             let compact = {
                 let (st, sid, local) = (st.clone(), sid.clone(), local.clone());
                 Command::new("session.compact", move || {
-                    let model = untrack(|| local.selection()).map(|(provider, id, variant)| {
+                    let model = untrack(|| local.model_current().map(|m| (m.provider_id, m.model_id, local.variant_current()))).map(|(provider, id, variant)| {
                         let mut fields = vec![("providerID".to_string(), Json::String(provider)), ("id".to_string(), Json::String(id))];
                         if let Some(variant) = variant {
                             fields.push(("variant".to_string(), Json::String(variant)));

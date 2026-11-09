@@ -106,6 +106,8 @@ thread_local! {
     static CLOSED: Rc<Notify> = Rc::new(Notify::new());
     static FOCUSED: Cell<Option<Element>> = const { Cell::new(None) };
     static FOCUSED_LISTENERS: RefCell<(u64, Vec<(u64, Rc<dyn Fn()>)>)> = RefCell::new((0, Vec::new()));
+    static FOCUSED_EDITOR: Cell<Option<Element>> = const { Cell::new(None) };
+    static FOCUSED_EDITOR_LISTENERS: RefCell<(u64, Vec<(u64, EditorListener)>)> = RefCell::new((0, Vec::new()));
 }
 
 fn with<R>(f: impl FnOnce(&mut State) -> R) -> Option<R> {
@@ -630,6 +632,16 @@ pub async fn closed() {
 
 pub(crate) fn focus_changed(el: Option<Element>) {
     FOCUSED.with(|f| f.set(el));
+    // Editor observers release the previous editor before the focused-renderable listeners run.
+    let editor = el.filter(|el| el.is_textarea());
+    let previous = FOCUSED_EDITOR.with(|f| f.replace(editor));
+    if previous != editor {
+        let listeners: Vec<EditorListener> =
+            FOCUSED_EDITOR_LISTENERS.with(|l| l.borrow().1.iter().map(|(_, f)| f.clone()).collect());
+        for listener in listeners {
+            listener(editor, previous);
+        }
+    }
     let listeners: Vec<Rc<dyn Fn()>> = FOCUSED_LISTENERS.with(|l| l.borrow().1.iter().map(|(_, f)| f.clone()).collect());
     for listener in listeners {
         listener();
@@ -653,6 +665,28 @@ pub fn off_focused_renderable(token: u64) {
 
 pub fn current_focused_renderable() -> Option<Element> {
     tree::focused()
+}
+
+type EditorListener = Rc<dyn Fn(Option<Element>, Option<Element>)>;
+
+/// `currentFocusedEditor`: the focused renderable when it is an edit buffer (a textarea).
+pub fn current_focused_editor() -> Option<Element> {
+    current_focused_renderable().filter(|el| el.is_textarea())
+}
+
+/// `on(CliRenderEvents.FOCUSED_EDITOR, (current, previous) => ..)`: when the focused editor changes.
+pub fn on_focused_editor(listener: impl Fn(Option<Element>, Option<Element>) + 'static) -> u64 {
+    FOCUSED_EDITOR_LISTENERS.with(|l| {
+        let mut l = l.borrow_mut();
+        l.0 += 1;
+        let token = l.0;
+        l.1.push((token, Rc::new(listener)));
+        token
+    })
+}
+
+pub fn off_focused_editor(token: u64) {
+    FOCUSED_EDITOR_LISTENERS.with(|l| l.borrow_mut().1.retain(|(t, _)| *t != token));
 }
 
 // ---------------------------------------------------------------------------------------------------------------

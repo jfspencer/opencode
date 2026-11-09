@@ -2,7 +2,7 @@
 //! `createElement(tag)` does, with only an id; props are then set one by one (the typed setters on
 //! [`Element`]).
 use crate::color::text_attributes;
-use crate::renderables::{box_, code, diff, line_number, markdown, scrollbox, text, text_table, textarea};
+use crate::renderables::{box_, code, diff, input, line_number, markdown, scrollbox, text, text_table, textarea};
 use crate::tree::Element;
 
 /// `<box>`.
@@ -52,6 +52,11 @@ pub fn br() -> Element {
 /// `<a href>`: a span with a link.
 pub fn a(href: &str) -> Element {
     text::create_text_node(text::TextNodeKind { link: Some(href.to_string()), ..Default::default() }, "a")
+}
+
+/// `<input>`.
+pub fn input() -> Element {
+    input::create_input()
 }
 
 /// `<textarea>`.
