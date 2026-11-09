@@ -87,7 +87,13 @@ pub fn use_path_formatter() -> PathFormatter {
 impl PathFormatter {
     /// `path()`.
     pub fn path(&self) -> String {
-        self.t.data.directory.get().filter(|d| !d.is_empty()).unwrap_or_else(|| self.t.paths.cwd.clone())
+        use opencode_tui_sync::json::JsonExt;
+        self.t
+            .data
+            .location
+            .current()
+            .and_then(|l| l.str("directory").filter(|d| !d.is_empty()).map(str::to_string))
+            .unwrap_or_else(|| self.t.paths.cwd.clone())
     }
 
     /// `format(input)`.
