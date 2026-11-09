@@ -132,15 +132,23 @@ pub fn analyze_units(command: &[u16], shell: &[u16], cwd: &[u16], host: &dyn Hos
             continue;
         }
         let parts = if powershell { powershell_parts(item, &words) } else { bash_parts(item) };
-        let directory_words = if powershell { &words } else { &item.raw_words };
-        if let Some((offset, identity)) = unwrap_directory_command(directory_words, powershell) {
+        // By value: a quoted or escaped `cd` (`'cd' /tmp`, `c\d /tmp`) still changes the directory, which
+        // external_directory rules check. Written that way, the command also stays under shell authorization.
+        let directory_words =
+            if powershell { words.iter().map(|word| word.as_slice()).collect() } else { values(item, &item.raw_words) };
+        if let Some((offset, identity)) = unwrap_directory_command(&directory_words, powershell) {
             let resolved = directory_args(&parts[offset.min(parts.len())..], powershell, cwd, shell, host);
             output.directories.extend(resolved.directories);
-            if identity && resolved.complete {
+            let plain = powershell || item.raw_words.first() == item.words.first();
+            if identity && resolved.complete && plain {
                 continue;
             }
         }
-        let selected = if powershell { Some(prefix(&words)) } else { bash_prefix(&words) };
+        let selected = if powershell {
+            Some(prefix(&words, &words.iter().map(|word| word.as_slice()).collect::<Vec<_>>()))
+        } else {
+            bash_prefix(&words, &values(item, &words))
+        };
         // Command text is escaped, so only the added trailing `*` is a wildcard: `r? x` must not approve `rm`.
         let prefixed = selected.as_ref().map(|selected| {
             let mut pattern = wildcard::escape_units(&js::join(selected, &[b' ' as u16]));
@@ -188,6 +196,12 @@ pub fn analyze_units(command: &[u16], shell: &[u16], cwd: &[u16], host: &dyn Hos
         output.commands.push(Resource { resource: item.resource.clone(), save });
     }
     Ok(output)
+}
+
+/// Each of a Bash command's `words` (its raw words, or the first of them) as the scanner unquoted it:
+/// `words.map((raw, index) => item.words[index] ?? raw)`.
+fn values<'a>(item: &'a Command, words: &'a [JsString]) -> Vec<&'a [u16]> {
+    words.iter().enumerate().map(|(index, raw)| item.words.get(index).unwrap_or(raw).as_slice()).collect()
 }
 
 /// The error TS raises for a command the scanner cannot analyze.
@@ -285,16 +299,17 @@ fn bash_parts(item: &Command) -> Vec<Part> {
 }
 
 /// The offset of the directory command within the parts, and whether it is the whole command (TS returns `parts`
-/// itself then, and a slice of it after `builtin` / `command`).
-fn unwrap_directory_command(raw_words: &[JsString], powershell: bool) -> Option<(usize, bool)> {
-    let head = raw_words.first().map(|w| if powershell { js::to_lower(w) } else { w.clone() });
+/// itself then, and a slice of it after `builtin` / `command`). `words` are PowerShell's raw words, or the values
+/// of Bash's.
+fn unwrap_directory_command(words: &[&[u16]], powershell: bool) -> Option<(usize, bool)> {
+    let head = words.first().map(|w| if powershell { js::to_lower(w) } else { w.to_vec() });
     if head.is_some_and(|head| CWD.iter().any(|name| js::eq_ascii(&head, name))) {
         return Some((0, true));
     }
     if powershell {
         return None;
     }
-    let word = |index: usize| raw_words.get(index).map(|w| w.as_slice());
+    let word = |index: usize| words.get(index).copied();
     let mut index = 0;
     while let Some(wrapper) = word(index).filter(|w| js::eq_ascii(w, "builtin") || js::eq_ascii(w, "command")) {
         let command = js::eq_ascii(wrapper, "command");
@@ -475,22 +490,10 @@ fn directory_argument(
     expand_known_directory(&text, true, cwd, false, host)
 }
 
-/// `process.env[key] ?? ""` as TS stringifies it into a path. A key that is no environment variable but an
-/// `Object.prototype` member reads that member (a TS defect: `$env:toString` expands to the function's source).
+/// `environment(key) ?? ""`: an own key of the environment only, so `$env:toString` names no variable rather than
+/// an `Object.prototype` member.
 fn environment(key: &[u16], host: &dyn Host) -> JsString {
-    let key = js::text(key);
-    if let Some(value) = host.env(&key) {
-        return js::units(&value);
-    }
-    let native = |name: &str| format!("function {name}() {{ [native code] }}");
-    let inherited = match key.as_str() {
-        "__proto__" => Some("[object Object]".to_string()),
-        "constructor" => Some(native("Object")),
-        "toString" | "toLocaleString" | "valueOf" | "hasOwnProperty" | "propertyIsEnumerable" | "isPrototypeOf"
-        | "__defineGetter__" | "__defineSetter__" | "__lookupGetter__" | "__lookupSetter__" => Some(native(&key)),
-        _ => None,
-    };
-    inherited.map(|text| js::units(&text)).unwrap_or_default()
+    host.env(&js::text(key)).map(|value| js::units(&value)).unwrap_or_default()
 }
 
 /// `text.replace(/\$\{env:([^}]+)\}/gi, (_, key) => environment(key) ?? "")`
@@ -630,10 +633,11 @@ fn expand_known_directory(
     Some(resolved)
 }
 
-fn prefix(words: &[JsString]) -> Vec<JsString> {
+/// The command's words up to its arity, looked up by `values` (one per word): `prefix(words, values)`.
+fn prefix(words: &[JsString], values: &[&[u16]]) -> Vec<JsString> {
     let tokens = &words[..words.len().min(PREFIX_LENGTH)];
     for length in (1..=tokens.len()).rev() {
-        let key = js::join(&tokens[..length], &[b' ' as u16]);
+        let key = values[..length].join(&(b' ' as u16));
         // Own keys only: a command named like an Object.prototype member (`toString`) has no arity entry.
         if let Some(arity) = lookup(ARITY, &key) {
             return tokens[..arity.min(tokens.len())].to_vec();
@@ -643,21 +647,25 @@ fn prefix(words: &[JsString]) -> Vec<JsString> {
 }
 
 /// The prefix of a POSIX command that names what it runs, or None when that depends on the shell: a dynamic
-/// command name, `eval`, or options that hide where the wrapped command or the subcommand starts.
-fn bash_prefix(words: &[JsString]) -> Option<Vec<JsString>> {
+/// command name, `eval`, or options that hide where the wrapped command or the subcommand starts. Words are looked
+/// up by their values (one per word), so a quoted or escaped name (`'sudo'`, `\git`) is the command it names, while
+/// the prefix keeps the words as written.
+fn bash_prefix(words: &[JsString], values: &[&[u16]]) -> Option<Vec<JsString>> {
     // TS recurses through each wrapper; the loop keeps the wrapper words gathered so far.
     let mut gathered: Vec<JsString> = Vec::new();
-    let mut words = words;
+    let (mut words, mut values) = (words, values);
     loop {
         let head = words.first()?;
-        if js::eq_ascii(head, "eval") || !is_static_bash_word(head) {
+        if js::eq_ascii(values[0], "eval") || !is_static_bash_word(head) {
             return None;
         }
-        let name = path::basename(head);
+        let name = path::basename(values[0]);
         let Some(operands) = lookup(WRAPPERS, &name) else {
-            let selected = prefix(words);
+            // The arity table names commands, not paths: `/usr/bin/git status` is git's `status`.
+            let keys: Vec<&[u16]> = std::iter::once(name.as_slice()).chain(values[1..].iter().copied()).collect();
+            let selected = prefix(words, &keys);
             // An option where a subcommand belongs hides which subcommand runs: `git -C *` would approve every git command.
-            if selected.iter().skip(1).any(|word| starts_with_ascii(word, "-", 0)) {
+            if values[1..selected.len()].iter().any(|value| starts_with_ascii(value, "-", 0)) {
                 return None;
             }
             gathered.extend(selected);
@@ -665,12 +673,13 @@ fn bash_prefix(words: &[JsString]) -> Option<Vec<JsString>> {
         };
         // Wrappers like env and sudo take assignments before the command; they stay part of the prefix.
         let command = words.iter().enumerate().position(|(index, word)| index > 0 && !is_assignment(word))?;
-        if starts_with_ascii(&words[command], "-", 0) {
+        if starts_with_ascii(values[command], "-", 0) {
             return None;
         }
         let split = (command + operands).min(words.len());
         gathered.extend_from_slice(&words[..split]);
         words = &words[split..];
+        values = &values[split..];
     }
 }
 

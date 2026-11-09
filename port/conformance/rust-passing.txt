@@ -285,6 +285,7 @@ scenarios/codemode-tools.test.ts › codemode worktree tools outside a repositor
 scenarios/permissions.test.ts › always approve a shell command prefix
 scenarios/permissions.test.ts › always on a command with an environment assignment approves it under that assignment only
 scenarios/permissions.test.ts › always on a command with wildcard characters approves only that text
+scenarios/permissions.test.ts › always on a quoted or path-qualified command
 scenarios/permissions.test.ts › always on a wrapped command approves only the wrapped command
 scenarios/permissions.test.ts › always saves approvals and settles other pending requests they now allow
 scenarios/permissions.test.ts › approve a shell command once

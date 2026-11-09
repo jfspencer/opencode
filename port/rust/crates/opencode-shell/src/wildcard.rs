@@ -1,48 +1,62 @@
 //! `packages/core/src/util/wildcard.ts`: the permission pattern language.
 //!
-//! TS compiles a pattern to a regex: backslashes become `/` in both strings, `*` is `.*`, `?` is `.` (one UTF-16
-//! unit, dotAll), `[*]` and `[?]` are literal, everything else is literal, and a trailing ` *` also matches nothing
-//! (`( .*)?`, so `ls *` matches `ls`). Matching is case-sensitive (TS ignores case only on Windows, which the port does not target).
+//! TS compiles a pattern to a regex: backslashes become `/` in both strings, `*` is `.*`, `?` is `.`, `[*]` and
+//! `[?]` are literal, everything else is literal, and a trailing ` *` also matches nothing (`( .*)?`, so `ls *`
+//! matches `ls`). Matching is case-sensitive (TS ignores case only on Windows, which the port does not target).
+//!
+//! The regex is dotAll and in Unicode mode, which reads both strings as code points: `?` is one character, an
+//! astral one included, and a lone surrogate is a character of its own, never the half of a pair.
 
 use crate::js::{self, JsString};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Token {
-    Literal(u16),
+    Literal(u32),
     Any,
     Star,
 }
 
-fn normalize(text: &[u16]) -> JsString {
-    js::replace_unit(text, b'\\' as u16, &[b'/' as u16])
+/// The code points of `text` after `replaceAll("\\", "/")`.
+fn code_points(text: &[u16]) -> Vec<u32> {
+    let text = js::replace_unit(text, b'\\' as u16, &[b'/' as u16]);
+    let mut points = Vec::with_capacity(text.len());
+    let mut i = 0;
+    while let Some((point, length)) = js::code_point(&text, i) {
+        points.push(point);
+        i += length;
+    }
+    points
 }
 
 fn tokens(pattern: &[u16]) -> Vec<Token> {
-    let pattern = normalize(pattern);
+    let pattern = code_points(pattern);
+    let (star, any) = (u32::from(b'*'), u32::from(b'?'));
     let mut tokens = Vec::with_capacity(pattern.len());
     let mut i = 0;
     while i < pattern.len() {
         let c = pattern[i];
-        if c == b'[' as u16
-            && pattern.get(i + 2) == Some(&(b']' as u16))
-            && pattern.get(i + 1).is_some_and(|&m| m == b'*' as u16 || m == b'?' as u16)
+        if c == u32::from(b'[')
+            && pattern.get(i + 2) == Some(&u32::from(b']'))
+            && pattern.get(i + 1).is_some_and(|&m| m == star || m == any)
         {
             tokens.push(Token::Literal(pattern[i + 1]));
             i += 3;
             continue;
         }
-        tokens.push(match c {
-            0x2a => Token::Star,
-            0x3f => Token::Any,
-            _ => Token::Literal(c),
+        tokens.push(if c == star {
+            Token::Star
+        } else if c == any {
+            Token::Any
+        } else {
+            Token::Literal(c)
         });
         i += 1;
     }
     tokens
 }
 
-fn glob(input: &[u16], tokens: &[Token]) -> bool {
-    // The classic single-backtrack matcher: a star absorbs one more unit each time the rest fails.
+fn glob(input: &[u32], tokens: &[Token]) -> bool {
+    // The classic single-backtrack matcher: a star absorbs one more code point each time the rest fails.
     let (mut i, mut t) = (0, 0);
     let mut star: Option<(usize, usize)> = None;
     while i < input.len() {
@@ -78,14 +92,17 @@ fn glob(input: &[u16], tokens: &[Token]) -> bool {
 
 /// `Wildcard.match(input, pattern)` over UTF-16 units.
 pub fn matches_units(input: &[u16], pattern: &[u16]) -> bool {
-    let input = normalize(input);
+    let input = code_points(input);
     let tokens = tokens(pattern);
     if glob(&input, &tokens) {
         return true;
     }
     // `if (escaped.endsWith(" .*")) escaped = escaped.slice(0, -3) + "( .*)?"`
     let n = tokens.len();
-    n >= 2 && tokens[n - 1] == Token::Star && tokens[n - 2] == Token::Literal(b' ' as u16) && glob(&input, &tokens[..n - 2])
+    n >= 2
+        && tokens[n - 1] == Token::Star
+        && tokens[n - 2] == Token::Literal(u32::from(b' '))
+        && glob(&input, &tokens[..n - 2])
 }
 
 /// `Wildcard.match(input, pattern)`.
