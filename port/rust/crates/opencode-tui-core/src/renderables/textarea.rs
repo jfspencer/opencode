@@ -123,6 +123,21 @@ const DEFAULT_BINDINGS: &[(&str, bool, bool, bool, bool, &str)] = &[
     ("a", false, false, false, true, "select-all"),
 ];
 
+/// `defaultTextareaKeyBindings`, as bindings.
+pub fn default_key_bindings() -> Vec<KeyBinding> {
+    DEFAULT_BINDINGS
+        .iter()
+        .map(|(name, ctrl, shift, meta, super_, action)| KeyBinding {
+            name: name.to_string(),
+            ctrl: *ctrl,
+            shift: *shift,
+            meta: *meta,
+            super_: *super_,
+            action,
+        })
+        .collect()
+}
+
 /// `defaultKeyAliases` (keybinding.internal.ts).
 const KEY_ALIASES: &[(&str, &str)] = &[
     ("enter", "return"),
