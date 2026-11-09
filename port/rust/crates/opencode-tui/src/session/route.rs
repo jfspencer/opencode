@@ -631,6 +631,20 @@ pub fn session(props: SessionProps) -> View {
         let messages = messages.clone();
         create_memo(move || !messages().iter().any(|m| m.str("type") == Some("idle")))
     };
+    // `location`: the session's, else the current one; the location context follows it.
+    let current_location = data.location.clone();
+    let location = {
+        let current_location = current_location.clone();
+        create_memo(move || session.get().and_then(|s| s.get("location").cloned()).or_else(|| current_location.r#ref()))
+    };
+    {
+        let current_location = current_location.clone();
+        create_effect(move || {
+            let location = location.get();
+            untrack(|| current_location.set(location));
+        });
+    }
+    // TODO(port-tui): the epilogue context (`epilogue.session({ title, sessionID })`).
     let descendant_session_ids = {
         let (data, sid) = (data.clone(), sid.clone());
         create_memo(move || {
@@ -662,7 +676,7 @@ pub fn session(props: SessionProps) -> View {
         let (data, sid) = (data.clone(), sid.clone());
         create_memo_equals(
             move || {
-                let location = session.get().and_then(|s| s.get("location").cloned());
+                let location = location.get();
                 let global = data.store.session.form.list("global", location.as_ref()).map(|l| l.to_vec()).unwrap_or_default();
                 if is_child() {
                     return global;
@@ -763,7 +777,7 @@ pub fn session(props: SessionProps) -> View {
         let data = data.clone();
         create_memo_equals(
             move || {
-                let location = session.get().and_then(|s| s.get("location").cloned());
+                let location = location.get();
                 let list = data.store.location.model.list(location.as_ref()).or_else(|| data.store.location.model.list(None));
                 Rc::new(list.map(|l| match &*l {
                     Json::Array(items) => items.iter().cloned().map(Rc::new).collect(),
@@ -1696,7 +1710,7 @@ pub fn session_entry_view(entry: Rc<dyn Fn() -> Option<SessionEntry>>, images: O
             None => 0,
         })
     };
-    let (e1, e2, e3) = (entry.clone(), entry.clone(), entry.clone());
+    let (e1, e2, e3, e4) = (entry.clone(), entry.clone(), entry.clone(), entry.clone());
     switch(
         vec![
             when(move || kind.get() == 1, move || {
@@ -1738,7 +1752,12 @@ pub fn session_entry_view(entry: Rc<dyn Fn() -> Option<SessionEntry>>, images: O
                     None,
                 )
             }),
-            // TODO(port-tui): `<TurnTokenUsage>` (debug.turn_tokens).
+            when(move || kind.get() == 5, move || match e4() {
+                Some(SessionEntry::TurnUsage { message_ids, previous_cache }) => {
+                    super::extras::turn_token_usage(message_ids, previous_cache)
+                }
+                _ => View::Empty,
+            }),
         ],
         None,
     )
