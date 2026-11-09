@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Prepares a linked git worktree of this repo for port work: links the main checkout's TS reference
-# (port/.reference, port/conformance/ref) and its installed packages (port/conformance/node_modules,
+# (port/.reference, port/conformance/ref), its vendored sources (port/.vendor) and its installed packages (port/conformance/node_modules,
 # port/rust/gen/node_modules), so the conformance standard, gen-types.sh and the differential harnesses run there.
 # The reference is shared: build it (port/scripts/reference.sh) only from the main checkout.
 #
@@ -18,7 +18,9 @@ link "$main/port/.reference" "$root/port/.reference"
 link "$main/port/.reference" "$root/port/conformance/ref"
 link "$main/port/conformance/node_modules" "$root/port/conformance/node_modules"
 [ -d "$main/port/rust/gen/node_modules" ] && link "$main/port/rust/gen/node_modules" "$root/port/rust/gen/node_modules"
+[ -d "$main/port/.vendor" ] && link "$main/port/.vendor" "$root/port/.vendor"
 # A link to a directory does not match a `dir/` ignore pattern; keep it out of commits.
 exclude="$main/.git/info/exclude"
 grep -qxF "/port/.reference" "$exclude" || echo "/port/.reference" >>"$exclude"
+grep -qxF "/port/.vendor" "$exclude" || echo "/port/.vendor" >>"$exclude"
 echo "linked $root to the reference and packages of $main"

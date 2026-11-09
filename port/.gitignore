@@ -5,3 +5,4 @@ conformance/ref
 .worktrees/
 rust/target/
 rust/gen/node_modules/
+.vendor/
