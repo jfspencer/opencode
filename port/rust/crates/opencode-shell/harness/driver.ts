@@ -17,12 +17,17 @@ import os from "node:os"
 import path from "node:path"
 import {
   directoryCommand,
+  escapeTargeted,
+  labelTargeted,
+  large,
+  nested,
   pathText,
   pick,
   powerShellCommandLine,
   random,
   shellCommand,
   wildcardPair,
+  zshTargeted,
   type Random,
 } from "./generate"
 
@@ -159,6 +164,19 @@ function generated() {
     const command = powerShellCommandLine(rand)
     add({ fn: "scanPowerShell", input: command })
     add({ fn: "parse", command, shell: pick(rand, ["/usr/bin/pwsh", "pwsh", "C:/x/powershell"]), cwd: pick(rand, CWDS) })
+  }
+  for (let i = 0; i < casesPerFamily / 4; i++) {
+    addCommand(nested(rand, false), rand)
+    add({ fn: "scanPowerShell", input: nested(rand, true) })
+    for (const command of [zshTargeted(rand), escapeTargeted(rand)]) addCommand(command, rand)
+    const label = labelTargeted(rand)
+    add({ fn: "scanPowerShell", input: label })
+    add({ fn: "parse", command: label, shell: "/usr/bin/pwsh", cwd: "/workspace" })
+  }
+  for (let i = 0; i < Math.min(60, casesPerFamily / 50); i++) {
+    const text = large(rand)
+    add({ fn: "scan", input: text, dialect: pick(rand, DIALECTS) })
+    add({ fn: "scanPowerShell", input: text })
   }
   for (let i = 0; i < casesPerFamily; i++) {
     const powershell = rand() < 0.4

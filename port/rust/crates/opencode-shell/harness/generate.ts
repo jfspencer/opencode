@@ -276,6 +276,64 @@ export function directoryCommand(rand: Random, powershell: boolean): string {
   return chance(rand, 0.2) ? mutate(rand, joined) : joined
 }
 
+// Constructs a random grammar reaches too rarely: nesting around the 32-level limit, Zsh glob qualifiers and flag
+// groups, escapes that reach arithmetic sinks, PowerShell labels the label regex shortens, inputs at the size limit.
+const NESTERS = [
+  ["$(", ")"], ['"$(', ')"'], ["${x:-", "}"], ["$((", "))"], ["((", "))"], ["(", ")"], ["{ ", "; }"], ["<(", ")"],
+  ["if a; then ", "; fi"], ["arr=(", ")"], ["`", "`"], ["$[", "]"], ["[[ ( ", " ) ]]"], ["${x[", "]}"], ["case a in b) ", ";; esac"],
+  ["f() { ", "; }"], ["${ ", "; }"], ["x=$(", ")"], ["echo ${#", "}"], ["@(", ")"],
+] as const
+const PS_NESTERS = [["(", ")"], ["{ ", " }"], ["$(", ")"], ["@(", ")"], ["[", "]"], ["@{", "}"], ['"$(', ')"'], ["if (1) { ", " }"]] as const
+
+export function nested(rand: Random, powershell: boolean): string {
+  const depth = 26 + Math.floor(rand() * 12)
+  const nesters = powershell ? PS_NESTERS : NESTERS
+  const chosen = Array.from({ length: depth }, () => (rand() < 0.7 ? nesters[0] : pick(rand, nesters)))
+  const core = powershell ? pick(rand, ["Get-Item x", "1", "$x", "a"]) : pick(rand, ["echo hi", "1", "x", "a b"])
+  const text = chosen.map(([open]) => open).join("") + core + chosen.reverse().map(([, close]) => close).join("")
+  return rand() < 0.3 ? mutate(rand, text) : text
+}
+
+const QUALIFIER_TOKENS = ["/", "F", ".", "@", "=", "*", "r", "w", "x", "A", "s", "S", "t", "U", "^", "M", "T", "N", "D", "n", "-", ",", "om", "oL", "On", "Lk+3", "Lm-1", "L5", "a-2", "mh5", "cM1", "l3", "Y1", "[1]", "[-1,3]", "[1,]", "e:cmd:", "+x", ":", "q", "(", "oz", "m", "L", "[x]"]
+
+export function zshTargeted(rand: Random): string {
+  const word = pick(rand, ["*", "a", "x*", "*.txt", "dir/", "~/a", "$x", "a=", "b"])
+  const qualifier = Array.from({ length: Math.floor(rand() * 4) }, () => pick(rand, QUALIFIER_TOKENS)).join("")
+  const after = pick(rand, ["", " ", ";", " | cat", ")", "x", "\\\n ", "&", "<", "(", "\n"])
+  const flags = Array.from({ length: Math.floor(rand() * 4) }, () => pick(rand, ["P", "q", "q+", "e", "f", "s:a:", "j:,:", "s))", "s(x(", "@", "%", "z", "j", "s", "(", "jxPx", "s:P:"])).join("")
+  return pick(rand, [
+    `ls ${word}(${qualifier})${after}`,
+    `arr=(${word}(${qualifier})${after})`,
+    `echo \${(${flags})${pick(rand, ["x", "~x", "^x", "=x", "x[1]", "!x", "(x)"])}}`,
+    `echo $${pick(rand, ["^", "=", "~", "^~", "#", "##", "+", "\\\n", "^\\\n~"])}${pick(rand, ["x", "#", "1", "@", "{x}"])}${pick(rand, ["", "[1]", "[$i]", "[$(id)]", "\\\n["])}`,
+    `setopt ${pick(rand, ["globsubst", "KSH_GLOB", "no_aliases", "-m", "+o", "prompt_subst", "o"])}; x`,
+    `${pick(rand, ["set -o", "set +o", "set -k", "emulate", "unsetopt"])} ${pick(rand, ["kshglob", "nokshglob", "x", "keyword", "-m"])}`,
+  ])
+}
+
+export function escapeTargeted(rand: Random): string {
+  const value = pick(rand, ["'\\U41'", "'\\x5b'", "'\\101'", "'\\u005b'", '"\\U5b"', "'\\x'", "'\\8'", "$'\\x5b'", "'a[1]'", "'$(id)'", "'`x`'", "'{x}'"])
+  const name = pick(rand, ["x", "a", "PS4", "i"])
+  const sink = pick(rand, [`echo $((${name}))`, `echo \${arr[$${name}]}`, `printf -v ${name} '%s' y`, `eval "$${name}"`, `let ${name}`, `[[ $${name} -eq 1 ]]`, `declare -n r=${name}`, `read ${name}`, `echo \${!${name}}`, `test -v ${name}`, `echo ${name}`, `(( ${name} ))`])
+  const assign = pick(rand, [`${name}=${value}`, `export ${name}=${value}`, `declare ${name}=${value}`, `read ${name} <<< ${value}`, `for ${name} in ${value}; do :; done`, `${name}=(${value})`, `local ${name}=$(printf ${value})`])
+  return `${assign}${pick(rand, ["; ", "\n", " && "])}${sink}`
+}
+
+export function labelTargeted(rand: Random): string {
+  const keywords = ["while", "for", "foreach", "do", "switch", "WHILE", "For"]
+  const label = `:${pick(rand, ["a", "x_", "lbl"])}${rand() < 0.6 ? pick(rand, keywords) : ""}${pick(rand, ["", "1", "x"])}`
+  return `${label}${pick(rand, [" ", "", "\t", "  "])}${pick(rand, keywords)}${pick(rand, [" (1) { a }", "(1){a}", " ($x in $y) { b }", " { c } while (1)", "", ";x"])}`
+}
+
+/** Inputs near the 64 KiB limit and the work budget. */
+export function large(rand: Random): string {
+  const unit = pick(rand, ["echo a; ", "$(", "${x:-", "a[", "x\\\n", "'", "((", "{ ", "cat <<E\n", "\\", "$((", "`", "a ", "x=$(y) "])
+  const target = pick(rand, [65535, 65536, 65537, 40000, 20000])
+  let text = unit.repeat(Math.ceil(target / unit.length)).slice(0, target)
+  if (rand() < 0.5) text = text.slice(0, text.length - Math.floor(rand() * 4)) + pick(rand, ["", ")", "}", "\nE\n", "'"])
+  return text
+}
+
 /** Random pattern and input for Wildcard.match. */
 export function wildcardPair(rand: Random): [string, string] {
   const alphabet = ["a", "b", " ", "*", "?", "[*]", "[?]", "[", "]", "\\", "/", ".", "+", "(", ")", "$", "^", "|", "{", "}", "😀", "é", "\n", "-", "ab", " *"]
