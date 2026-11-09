@@ -587,6 +587,17 @@ scenarios/shell-tool.test.ts › the environment of shell commands
 scenarios/shell-tool.test.ts › timeouts
 scenarios/shell-tool.test.ts › working directories
 scenarios/shell-tool.test.ts › working directories outside the project ask for external directory access
+scenarios/tools-patch.test.ts › patch: a bom file
+scenarios/tools-patch.test.ts › patch: a missing file
+scenarios/tools-patch.test.ts › patch: add update delete and move
+scenarios/tools-patch.test.ts › patch: asks for the edit
+scenarios/tools-patch.test.ts › patch: bad envelope
+scenarios/tools-patch.test.ts › patch: delete then update
+scenarios/tools-patch.test.ts › patch: empty patch
+scenarios/tools-patch.test.ts › patch: empty text
+scenarios/tools-patch.test.ts › patch: lines that are not there
+scenarios/tools-patch.test.ts › patch: outside the project
+scenarios/tools-patch.test.ts › todowrite: update and clear
 scenarios/tools-question.test.ts › question answered with a custom answer
 scenarios/tools-question.test.ts › question denied by permission rules
 scenarios/tools-question.test.ts › question dismissed by the user
