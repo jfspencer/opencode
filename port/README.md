@@ -202,8 +202,10 @@ CRUD, projects, locations, the file system, version control, worktrees, config, 
 execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots and reverts, schedules,
 session transfer, webfetch, skills and instructions, shell, the file tools, and the CLI (`run`, `serve`, `service`,
 `session`, `api`, `auth`, `stats`, `acp` and the rest), and Code Mode. Stored credentials, media blobs, the PTY APIs
-and the TUI are in progress. Release builds peak at about 9 to 12 MiB per server process on the passing
-scenarios; the TS server peaks at about 312 MiB. Unported behavior is marked `TODO(port)` in the source; an
+and the TUI are in progress. Release builds peak (VmHWM) at a median of 19.6 MiB per server process
+over 600 passing scenarios (p90 21.3 MiB); an idle server holds about 2 MiB of anonymous memory, the rest being clean
+pages of the 20 MB executable. The TS server peaks at a median of about 312 MiB, and at 377 to 728 MiB on the five
+scenarios where Rust peaks highest (62 to 141 MiB: large attachments, Code Mode limits, the webfetch budget). Unported behavior is marked `TODO(port)` in the source; an
 endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
