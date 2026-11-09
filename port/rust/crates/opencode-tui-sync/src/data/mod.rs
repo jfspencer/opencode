@@ -8,8 +8,18 @@
 //! Methods TS writes as `async` return a [`Promise`]: the request starts when the method is called (as the TS
 //! promise's synchronous part runs), and the promise can be awaited any number of times.
 //!
-//! Divergences: TS `console.error`s a failed event-driven read when no `onError` is given; here it goes to the
-//! `log` sink (the TUI's console is not the terminal).
+//! Divergences:
+//! - TS `console.error`s a failed event-driven read when no `onError` is given; here it goes to the `log` sink (the
+//!   TUI's console is not the terminal).
+//! - Records are values here, while the TS store shares objects. Two of those sharings are observable in TS and not
+//!   reproduced (TODO(port), both unreachable with the server, which names `previous` and returns the canonical
+//!   location the client already uses):
+//!   - a `model-switched` row whose `previous` came from the session's own `model` (the event named none) keeps
+//!     following that model object, which later `session.model.selected` events merge into;
+//!   - a session created without a location holds the default location's object, so a server answer at another
+//!     directory (reconciled into it) or a `session.moved` (merged into it) moves the default location too.
+//! - A key of a record set to `undefined` keeps its place in a JS object (and JSON drops it); a JSON value cannot hold
+//!   it, so such a key comes back at the end when it is set again. Only key order inside records differs.
 
 mod api;
 mod events;

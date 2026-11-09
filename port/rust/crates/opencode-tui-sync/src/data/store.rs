@@ -147,33 +147,38 @@ pub fn merge(previous: &mut Json, value: &Object) -> bool {
 /// `reconcile(target)` applied over `previous` (Solid's `applyState` with `key: "id"`, without merge): the result
 /// holds `target`'s values, with the key order of the objects it reused. Returns whether the value changed.
 pub fn reconcile(previous: &mut Json, target: Json) -> bool {
+    reconcile_keyed(previous, target, "id")
+}
+
+/// `reconcile(target, { key })`: items of arrays are matched by `key` instead of `id`.
+pub fn reconcile_keyed(previous: &mut Json, target: Json, key: &str) -> bool {
     if *previous == target {
         return false;
     }
-    // At the root `applyState` reuses the previous value whatever its `id`.
-    apply(target, previous, true);
+    // At the root `applyState` reuses the previous value whatever its key.
+    apply(target, previous, true, key);
     true
 }
 
-fn apply_state(target: Json, previous: &mut Json) {
-    apply(target, previous, false)
+fn apply_state(target: Json, previous: &mut Json, key: &str) {
+    apply(target, previous, false, key)
 }
 
 fn wrappable(value: &Json) -> bool {
     matches!(value, Json::Object(_) | Json::Array(_))
 }
 
-fn id(value: &Json) -> Option<&Json> {
-    value.get("id")
+fn id<'a>(value: &'a Json, key: &str) -> Option<&'a Json> {
+    value.get(key)
 }
 
 /// The key `applyState` matches items by (`item[key]`), JS-truthy only where the TS tests truthiness.
-fn truthy_id(value: &Json) -> Option<&Json> {
-    id(value).filter(|id| crate::json::truthy(id))
+fn truthy_id<'a>(value: &'a Json, key: &str) -> Option<&'a Json> {
+    id(value, key).filter(|id| crate::json::truthy(id))
 }
 
 /// `applyState(target, parent, property)`: `previous` is `parent[property]`.
-fn apply(target: Json, previous: &mut Json, root: bool) {
+fn apply(target: Json, previous: &mut Json, root: bool, key: &str) {
     if target == *previous {
         return;
     }
@@ -181,45 +186,45 @@ fn apply(target: Json, previous: &mut Json, root: bool) {
     if !wrappable(&target)
         || !wrappable(previous)
         || target_array != matches!(previous, Json::Array(_))
-        || (!root && id(&target) != id(previous))
+        || (!root && id(&target, key) != id(previous, key))
     {
         *previous = target;
         return;
     }
     match (target, previous) {
-        (Json::Array(target), Json::Array(previous)) => apply_array(target, previous),
+        (Json::Array(target), Json::Array(previous)) => apply_array(target, previous, key),
         (Json::Object(target), previous @ Json::Object(_)) => {
             let keys: Vec<String> = target.keys().cloned().collect();
             let mut target = target;
-            for key in &keys {
-                let value = target.shift_remove(key).expect("key from target");
-                match previous.get_mut(key) {
-                    Some(slot) => apply_state(value, slot),
-                    None => previous.set(key, value),
+            for name in &keys {
+                let value = target.shift_remove(name).expect("key from target");
+                match previous.get_mut(name) {
+                    Some(slot) => apply_state(value, slot, key),
+                    None => previous.set(name, value),
                 }
             }
             if let Json::Object(object) = previous {
-                object.retain(|key, _| keys.contains(key));
+                object.retain(|name, _| keys.contains(name));
             }
         }
         _ => unreachable!("both arrays or both objects"),
     }
 }
 
-/// The array branch of `applyState` with `key: "id"` (no merge).
-fn apply_array(target: Vec<Json>, previous: &mut Vec<Json>) {
+/// The array branch of `applyState` (no merge).
+fn apply_array(target: Vec<Json>, previous: &mut Vec<Json>, key: &str) {
     if target.is_empty() || previous.is_empty() {
         let len = target.len();
         for (i, item) in target.into_iter().enumerate() {
             match previous.get_mut(i) {
-                Some(slot) => apply_state(item, slot),
+                Some(slot) => apply_state(item, slot, key),
                 None => previous.push(item),
             }
         }
         previous.truncate(len);
         return;
     }
-    let same = |a: &Json, b: &Json| a == b || matches!((truthy_id(a), truthy_id(b)), (Some(x), Some(y)) if x == y);
+    let same = |a: &Json, b: &Json| a == b || matches!((truthy_id(a, key), truthy_id(b, key)), (Some(x), Some(y)) if x == y);
     let mut start = 0;
     let common = previous.len().min(target.len());
     while start < common && same(&previous[start], &target[start]) {
@@ -237,7 +242,7 @@ fn apply_array(target: Vec<Json>, previous: &mut Vec<Json>) {
     // The matched prefix: applied in place.
     for (i, item) in target.iter_mut().enumerate().take(start) {
         let mut slot = previous[i].clone();
-        apply_state(item.take().expect("prefix item"), &mut slot);
+        apply_state(item.take().expect("prefix item"), &mut slot, key);
         result.push(slot);
     }
     if start as isize > new_end || start as isize > end {
@@ -247,37 +252,37 @@ fn apply_array(target: Vec<Json>, previous: &mut Vec<Json>) {
         let from = (new_end + 1).max(start as isize) as usize;
         for (j, item) in target.iter_mut().enumerate().skip(from) {
             let mut slot = temp[j].take().expect("suffix item");
-            apply_state(item.take().expect("suffix target"), &mut slot);
+            apply_state(item.take().expect("suffix target"), &mut slot, key);
             result.push(slot);
         }
         *previous = result;
         return;
     }
     // Match the middle by key: each previous item goes to the first unclaimed target position with its key.
-    let key_of = |item: &Json| -> Json { id(item).cloned().unwrap_or(Json::Null) };
-    let undefined_key = |item: &Json| id(item).is_none();
+    let key_of = |item: &Json| -> Json { id(item, key).cloned().unwrap_or(Json::Null) };
+    let undefined_key = |item: &Json| id(item, key).is_none();
     let mut next: Vec<isize> = vec![-1; (new_end + 1) as usize];
     let mut indices: Vec<(Json, bool, isize)> = Vec::new();
-    let lookup = |indices: &Vec<(Json, bool, isize)>, key: &Json, undefined: bool| {
-        indices.iter().position(|(k, u, _)| *u == undefined && (undefined || k == key))
+    let lookup = |indices: &Vec<(Json, bool, isize)>, wanted: &Json, undefined: bool| {
+        indices.iter().position(|(k, u, _)| *u == undefined && (undefined || k == wanted))
     };
     for j in (start..=new_end as usize).rev() {
         let item = target[j].as_ref().expect("middle target");
-        let (key, undefined) = (key_of(item), undefined_key(item));
-        match lookup(&indices, &key, undefined) {
+        let (value, undefined) = (key_of(item), undefined_key(item));
+        match lookup(&indices, &value, undefined) {
             Some(at) => {
                 next[j] = indices[at].2;
                 indices[at].2 = j as isize;
             }
             None => {
                 next[j] = -1;
-                indices.push((key, undefined, j as isize));
+                indices.push((value, undefined, j as isize));
             }
         }
     }
     for item in previous.iter().take(end as usize + 1).skip(start) {
-        let (key, undefined) = (key_of(item), undefined_key(item));
-        if let Some(at) = lookup(&indices, &key, undefined) {
+        let (value, undefined) = (key_of(item), undefined_key(item));
+        if let Some(at) = lookup(&indices, &value, undefined) {
             let j = indices[at].2;
             if j != -1 {
                 temp[j as usize] = Some(item.clone());
@@ -289,7 +294,7 @@ fn apply_array(target: Vec<Json>, previous: &mut Vec<Json>) {
         let item = item.take().expect("target item");
         match temp[j].take() {
             Some(mut slot) => {
-                apply_state(item, &mut slot);
+                apply_state(item, &mut slot, key);
                 result.push(slot);
             }
             None => result.push(item),
