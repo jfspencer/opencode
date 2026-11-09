@@ -1,0 +1,1865 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{\"elicitation\":{\"form\":{}}},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/new\",\"params\":{\"cwd\":\"<project>\",\"mcpServers\":[]}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Declined\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"action\":\"decline\"}}\n{\"jsonrpc\":\"2.0\",\"id\":4,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Cancelled\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{\"action\":\"cancel\"}}\n{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Failed\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"error\":{\"code\":-32603,\"message\":\"Internal error\"}}\n{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Malformed\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"result\":{\"action\":\"accept\",\"content\":{\"q0\":{\"nested\":true}}}}\n{\"jsonrpc\":\"2.0\",\"id\":7,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Empty\"}]}}\n{\"jsonrpc\":\"2.0\",\"id\":4,\"result\":null}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {
+                "configOptions": [
+                  {
+                    "category": "model",
+                    "currentValue": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+                    "id": "model",
+                    "name": "Model",
+                    "options": [
+                      {
+                        "name": "openrouter/DeepSeek V4.1 Flash 1017",
+                        "value": "openrouter/deepseek/deepseek-v4.1-flash-1017"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "thought_level",
+                    "currentValue": "default",
+                    "description": "Available effort levels for this model",
+                    "id": "effort",
+                    "name": "Effort",
+                    "options": [
+                      {
+                        "name": "None",
+                        "value": "none"
+                      },
+                      {
+                        "name": "Low",
+                        "value": "low"
+                      },
+                      {
+                        "name": "High",
+                        "value": "high"
+                      },
+                      {
+                        "name": "Max",
+                        "value": "max"
+                      },
+                      {
+                        "name": "Default",
+                        "value": "default"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "mode",
+                    "currentValue": "build",
+                    "id": "mode",
+                    "name": "Session Mode",
+                    "options": [
+                      {
+                        "description": "The default agent. Executes tools based on configured permissions.",
+                        "name": "Build",
+                        "value": "build"
+                      },
+                      {
+                        "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+                        "name": "Plan",
+                        "value": "plan"
+                      }
+                    ],
+                    "type": "select"
+                  }
+                ],
+                "sessionId": "<ses_1>"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 0,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Which color should the button be?",
+                      "oneOf": [
+                        {
+                          "const": "Blue",
+                          "description": "Calm",
+                          "title": "Blue"
+                        },
+                        {
+                          "const": "Red",
+                          "description": "Bold",
+                          "title": "Red"
+                        }
+                      ],
+                      "title": "Color",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Color (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "The user dismissed this question",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "The user dismissed this question",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 3,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "cancelled",
+                "usage": {
+                  "inputTokens": 100,
+                  "outputTokens": 10,
+                  "totalTokens": 110
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Which color should the button be?",
+                      "oneOf": [
+                        {
+                          "const": "Blue",
+                          "description": "Calm",
+                          "title": "Blue"
+                        },
+                        {
+                          "const": "Red",
+                          "description": "Bold",
+                          "title": "Red"
+                        }
+                      ],
+                      "title": "Color",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Color (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "The user dismissed this question",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "The user dismissed this question",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 4,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "cancelled",
+                "usage": {
+                  "inputTokens": 100,
+                  "outputTokens": 10,
+                  "totalTokens": 110
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Which color should the button be?",
+                      "oneOf": [
+                        {
+                          "const": "Blue",
+                          "description": "Calm",
+                          "title": "Blue"
+                        },
+                        {
+                          "const": "Red",
+                          "description": "Bold",
+                          "title": "Red"
+                        }
+                      ],
+                      "title": "Color",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Color (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "The user dismissed this question",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "The user dismissed this question",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 5,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "cancelled",
+                "usage": {
+                  "inputTokens": 100,
+                  "outputTokens": 10,
+                  "totalTokens": 110
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 3,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Which color should the button be?",
+                      "oneOf": [
+                        {
+                          "const": "Blue",
+                          "description": "Calm",
+                          "title": "Blue"
+                        },
+                        {
+                          "const": "Red",
+                          "description": "Bold",
+                          "title": "Red"
+                        }
+                      ],
+                      "title": "Color",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Color (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "The user dismissed this question",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "The user dismissed this question",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 6,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "cancelled",
+                "usage": {
+                  "inputTokens": 100,
+                  "outputTokens": 10,
+                  "totalTokens": 110
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "question",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "id": 4,
+              "jsonrpc": "2.0",
+              "method": "elicitation/create",
+              "params": {
+                "message": "Questions",
+                "mode": "form",
+                "requestedSchema": {
+                  "properties": {
+                    "q0": {
+                      "description": "Which color should the button be?",
+                      "oneOf": [
+                        {
+                          "const": "Blue",
+                          "description": "Calm",
+                          "title": "Blue"
+                        },
+                        {
+                          "const": "Red",
+                          "description": "Bold",
+                          "title": "Red"
+                        }
+                      ],
+                      "title": "Color",
+                      "type": "string"
+                    },
+                    "q0_custom": {
+                      "description": "Type your own answer",
+                      "title": "Color (other)",
+                      "type": "string"
+                    }
+                  },
+                  "required": [],
+                  "type": "object"
+                },
+                "sessionId": "<ses_1>",
+                "toolCallId": "call_conformance_0"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "The user dismissed this question",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "questions": [
+                      {
+                        "header": "Color",
+                        "options": [
+                          {
+                            "description": "Calm",
+                            "label": "Blue"
+                          },
+                          {
+                            "description": "Bold",
+                            "label": "Red"
+                          }
+                        ],
+                        "question": "Which color should the button be?"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "The user dismissed this question",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "question",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 7,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "cancelled",
+                "usage": {
+                  "inputTokens": 100,
+                  "outputTokens": 10,
+                  "totalTokens": 110
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Declined",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Use this tool when you need to ask the user questions during execution. This allows you to:\n1. Gather user preferences or requirements\n2. Clarify ambiguous instructions\n3. Get decisions on implementation choices as you work\n4. Offer choices to the user about what direction to take.\n\nUsage notes:\n- A \"Type your own answer\" option is added automatically; don't include a separate option for free form answers\n- Set `multiple: true` to allow selecting more than one option\n- If you recommend a specific option, make that the first option in the list and add \"(Recommended)\" at the end of the label",
+                "name": "question",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "questions": {
+                      "description": "Questions to ask",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "header": {
+                            "description": "Very short label (max 30 chars)",
+                            "type": "string"
+                          },
+                          "multiple": {
+                            "type": "boolean"
+                          },
+                          "options": {
+                            "description": "Available choices",
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "description": {
+                                  "description": "Explanation of choice",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "description": "Display text (1-5 words, concise)",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "description"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "question": {
+                            "description": "Complete question",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "header",
+                          "options"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "questions"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Declined",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Cancelled",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Use this tool when you need to ask the user questions during execution. This allows you to:\n1. Gather user preferences or requirements\n2. Clarify ambiguous instructions\n3. Get decisions on implementation choices as you work\n4. Offer choices to the user about what direction to take.\n\nUsage notes:\n- A \"Type your own answer\" option is added automatically; don't include a separate option for free form answers\n- Set `multiple: true` to allow selecting more than one option\n- If you recommend a specific option, make that the first option in the list and add \"(Recommended)\" at the end of the label",
+                "name": "question",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "questions": {
+                      "description": "Questions to ask",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "header": {
+                            "description": "Very short label (max 30 chars)",
+                            "type": "string"
+                          },
+                          "multiple": {
+                            "type": "boolean"
+                          },
+                          "options": {
+                            "description": "Available choices",
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "description": {
+                                  "description": "Explanation of choice",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "description": "Display text (1-5 words, concise)",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "description"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "question": {
+                            "description": "Complete question",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "header",
+                          "options"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "questions"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Declined",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Cancelled",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Failed",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Use this tool when you need to ask the user questions during execution. This allows you to:\n1. Gather user preferences or requirements\n2. Clarify ambiguous instructions\n3. Get decisions on implementation choices as you work\n4. Offer choices to the user about what direction to take.\n\nUsage notes:\n- A \"Type your own answer\" option is added automatically; don't include a separate option for free form answers\n- Set `multiple: true` to allow selecting more than one option\n- If you recommend a specific option, make that the first option in the list and add \"(Recommended)\" at the end of the label",
+                "name": "question",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "questions": {
+                      "description": "Questions to ask",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "header": {
+                            "description": "Very short label (max 30 chars)",
+                            "type": "string"
+                          },
+                          "multiple": {
+                            "type": "boolean"
+                          },
+                          "options": {
+                            "description": "Available choices",
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "description": {
+                                  "description": "Explanation of choice",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "description": "Display text (1-5 words, concise)",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "description"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "question": {
+                            "description": "Complete question",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "header",
+                          "options"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "questions"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Declined",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Cancelled",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Failed",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Malformed",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Use this tool when you need to ask the user questions during execution. This allows you to:\n1. Gather user preferences or requirements\n2. Clarify ambiguous instructions\n3. Get decisions on implementation choices as you work\n4. Offer choices to the user about what direction to take.\n\nUsage notes:\n- A \"Type your own answer\" option is added automatically; don't include a separate option for free form answers\n- Set `multiple: true` to allow selecting more than one option\n- If you recommend a specific option, make that the first option in the list and add \"(Recommended)\" at the end of the label",
+                "name": "question",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "questions": {
+                      "description": "Questions to ask",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "header": {
+                            "description": "Very short label (max 30 chars)",
+                            "type": "string"
+                          },
+                          "multiple": {
+                            "type": "boolean"
+                          },
+                          "options": {
+                            "description": "Available choices",
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "description": {
+                                  "description": "Explanation of choice",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "description": "Display text (1-5 words, concise)",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "description"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "question": {
+                            "description": "Complete question",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "header",
+                          "options"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "questions"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Declined",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Cancelled",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Failed",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Malformed",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"questions\":[{\"question\":\"Which color should the button be?\",\"header\":\"Color\",\"options\":[{\"label\":\"Blue\",\"description\":\"Calm\"},{\"label\":\"Red\",\"description\":\"Bold\"}]}]}",
+                    "name": "question"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"aborted\",\"message\":\"The user dismissed this question\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": "Empty",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Use this tool when you need to ask the user questions during execution. This allows you to:\n1. Gather user preferences or requirements\n2. Clarify ambiguous instructions\n3. Get decisions on implementation choices as you work\n4. Offer choices to the user about what direction to take.\n\nUsage notes:\n- A \"Type your own answer\" option is added automatically; don't include a separate option for free form answers\n- Set `multiple: true` to allow selecting more than one option\n- If you recommend a specific option, make that the first option in the list and add \"(Recommended)\" at the end of the label",
+                "name": "question",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "questions": {
+                      "description": "Questions to ask",
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "header": {
+                            "description": "Very short label (max 30 chars)",
+                            "type": "string"
+                          },
+                          "multiple": {
+                            "type": "boolean"
+                          },
+                          "options": {
+                            "description": "Available choices",
+                            "items": {
+                              "additionalProperties": false,
+                              "properties": {
+                                "description": {
+                                  "description": "Explanation of choice",
+                                  "type": "string"
+                                },
+                                "label": {
+                                  "description": "Display text (1-5 words, concise)",
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "label",
+                                "description"
+                              ],
+                              "type": "object"
+                            },
+                            "type": "array"
+                          },
+                          "question": {
+                            "description": "Complete question",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "question",
+                          "header",
+                          "options"
+                        ],
+                        "type": "object"
+                      },
+                      "minItems": 1,
+                      "type": "array"
+                    }
+                  },
+                  "required": [
+                    "questions"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nDeclined\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {}
+}

@@ -1,0 +1,1881 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/new\",\"params\":{\"cwd\":\"<project>\",\"mcpServers\":[]}}\n{\"jsonrpc\":\"2.0\",\"id\":3,\"method\":\"session/prompt\",\"params\":{\"sessionId\":\"<ses_1>\",\"prompt\":[{\"type\":\"text\",\"text\":\"Look around\"}]}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {
+                "configOptions": [
+                  {
+                    "category": "model",
+                    "currentValue": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+                    "id": "model",
+                    "name": "Model",
+                    "options": [
+                      {
+                        "name": "openrouter/DeepSeek V4.1 Flash 1017",
+                        "value": "openrouter/deepseek/deepseek-v4.1-flash-1017"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "thought_level",
+                    "currentValue": "default",
+                    "description": "Available effort levels for this model",
+                    "id": "effort",
+                    "name": "Effort",
+                    "options": [
+                      {
+                        "name": "None",
+                        "value": "none"
+                      },
+                      {
+                        "name": "Low",
+                        "value": "low"
+                      },
+                      {
+                        "name": "High",
+                        "value": "high"
+                      },
+                      {
+                        "name": "Max",
+                        "value": "max"
+                      },
+                      {
+                        "name": "Default",
+                        "value": "default"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "mode",
+                    "currentValue": "build",
+                    "id": "mode",
+                    "name": "Session Mode",
+                    "options": [
+                      {
+                        "description": "The default agent. Executes tools based on configured permissions.",
+                        "name": "Build",
+                        "value": "build"
+                      },
+                      {
+                        "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+                        "name": "Plan",
+                        "value": "plan"
+                      }
+                    ],
+                    "type": "select"
+                  }
+                ],
+                "sessionId": "<ses_1>"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "search",
+                  "locations": [],
+                  "name": "glob",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "glob",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "search",
+                  "locations": [
+                    {
+                      "path": "<project>/src"
+                    }
+                  ],
+                  "rawInput": {
+                    "path": "src",
+                    "pattern": "**/*.ts"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "glob",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "<project>/src/a.ts",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/src"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "count": 1,
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "search",
+                  "locations": [],
+                  "name": "grep",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "grep",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "search",
+                  "locations": [
+                    {
+                      "path": "<project>/src"
+                    }
+                  ],
+                  "rawInput": {
+                    "path": "src",
+                    "pattern": "const"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "grep",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Found 1 matches\n<project>/src/a.ts:\n  Line 1: export const a = 1",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/src"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "matches": 1,
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "read",
+                  "locations": [],
+                  "name": "read",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "read",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "read",
+                  "locations": [
+                    {
+                      "path": "<project>/src/a.ts"
+                    }
+                  ],
+                  "rawInput": {
+                    "limit": 1,
+                    "offset": 1,
+                    "path": "src/a.ts"
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "read",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "Read file src/a.ts, lines 1-1\n1: export const a = 1",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "locations": [
+                    {
+                      "path": "<project>/src/a.ts"
+                    }
+                  ],
+                  "rawOutput": {
+                    "metadata": {
+                      "truncated": false
+                    }
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "completed",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "todowrite",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "todowrite",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "todos": [
+                      {
+                        "content": "Check a.ts",
+                        "priority": "high",
+                        "status": "completed"
+                      }
+                    ]
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "todowrite",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "No tool named \"todowrite\" is currently available. Please use a tool from the available tool list.",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "todos": [
+                      {
+                        "content": "Check a.ts",
+                        "priority": "high",
+                        "status": "completed"
+                      }
+                    ]
+                  },
+                  "rawOutput": {
+                    "error": "No tool named \"todowrite\" is currently available. Please use a tool from the available tool list.",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "todowrite",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "name": "unknown_tool",
+                  "rawInput": {},
+                  "sessionUpdate": "tool_call",
+                  "status": "pending",
+                  "title": "unknown_tool",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "anything": true
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "in_progress",
+                  "title": "unknown_tool",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": [
+                    {
+                      "content": {
+                        "text": "No tool named \"unknown_tool\" is currently available. Please use a tool from the available tool list.",
+                        "type": "text"
+                      },
+                      "type": "content"
+                    }
+                  ],
+                  "kind": "other",
+                  "locations": [],
+                  "rawInput": {
+                    "anything": true
+                  },
+                  "rawOutput": {
+                    "error": "No tool named \"unknown_tool\" is currently available. Please use a tool from the available tool list.",
+                    "metadata": {}
+                  },
+                  "sessionUpdate": "tool_call_update",
+                  "status": "failed",
+                  "title": "unknown_tool",
+                  "toolCallId": "call_conformance_0"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "content": {
+                    "text": "Looked around.",
+                    "type": "text"
+                  },
+                  "messageId": "<msg_1>",
+                  "sessionUpdate": "agent_message_chunk"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "cost": {
+                    "amount": 0,
+                    "currency": "USD"
+                  },
+                  "sessionUpdate": "usage_update",
+                  "size": 1048576,
+                  "used": 110
+                }
+              }
+            },
+            {
+              "id": 3,
+              "jsonrpc": "2.0",
+              "result": {
+                "_meta": {},
+                "stopReason": "end_turn",
+                "usage": {
+                  "inputTokens": 600,
+                  "outputTokens": 60,
+                  "totalTokens": 660
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {
+    "chat:<ses_1>": [
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"**/*.ts\",\"path\":\"src\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<project>/src/a.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"**/*.ts\",\"path\":\"src\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<project>/src/a.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"const\",\"path\":\"src\"}",
+                    "name": "grep"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Found 1 matches\n<project>/src/a.ts:\n  Line 1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"**/*.ts\",\"path\":\"src\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<project>/src/a.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"const\",\"path\":\"src\"}",
+                    "name": "grep"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Found 1 matches\n<project>/src/a.ts:\n  Line 1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/a.ts\",\"offset\":1,\"limit\":1}",
+                    "name": "read"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Read file src/a.ts, lines 1-1\n1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"**/*.ts\",\"path\":\"src\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<project>/src/a.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"const\",\"path\":\"src\"}",
+                    "name": "grep"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Found 1 matches\n<project>/src/a.ts:\n  Line 1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/a.ts\",\"offset\":1,\"limit\":1}",
+                    "name": "read"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Read file src/a.ts, lines 1-1\n1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"todos\":[{\"content\":\"Check a.ts\",\"status\":\"completed\",\"priority\":\"high\"}]}",
+                    "name": "todowrite"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"No tool named \\\"todowrite\\\" is currently available. Please use a tool from the available tool list.\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      },
+      {
+        "body": {
+          "max_completion_tokens": 256000,
+          "messages": [
+            {
+              "content": "You are an AI agent running in OpenCode, a coding agent harness. Help the user accomplish their goals using the tools you have available.\n\n# Harness\n- Responses are rendered as GitHub-flavored Markdown.\n- `<system-reminder>` blocks are harness instructions, not user-authored content. Read and follow them.\n- Prefer parallelizing independent tool calls.\n\n\n# Communication\n- Use clear file paths when referring to files.\n- Keep responses clear and concise, and avoid unnecessary technical jargon.\n\n# Working in codebases\n- Keep changes consistent with the structure, naming, style, and patterns of the surrounding code.\n- Treat unfamiliar files or changes as potential user work and investigate before deleting or overwriting them.\n\n# Your Model\n- Name: DeepSeek V4.1 Flash 1017\n- Provider ID: openrouter\n- Model ID: deepseek/deepseek-v4.1-flash-1017\nToday's date: <date>\n\nHere is some useful information about the environment you are running in:\n<env>\n  Working directory: <project>\n  Workspace root folder: <project>\n  Is directory a git repo: no\n  Platform: linux\n  Prefer <sandbox>/tmp/opencode over generic system temporary directories such as /tmp; it is pre-created and approved for external access.\n</env>\nWhen you create a worktree outside the current working directory and intend to use it as your primary working directory, consider using `execute` to call `tools.opencode.session_move` and make the worktree the session's working directory.",
+              "role": "system"
+            },
+            {
+              "content": "Look around",
+              "role": "user"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"**/*.ts\",\"path\":\"src\"}",
+                    "name": "glob"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "<project>/src/a.ts",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"pattern\":\"const\",\"path\":\"src\"}",
+                    "name": "grep"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Found 1 matches\n<project>/src/a.ts:\n  Line 1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"path\":\"src/a.ts\",\"offset\":1,\"limit\":1}",
+                    "name": "read"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "Read file src/a.ts, lines 1-1\n1: export const a = 1",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"todos\":[{\"content\":\"Check a.ts\",\"status\":\"completed\",\"priority\":\"high\"}]}",
+                    "name": "todowrite"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"No tool named \\\"todowrite\\\" is currently available. Please use a tool from the available tool list.\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            },
+            {
+              "content": null,
+              "role": "assistant",
+              "tool_calls": [
+                {
+                  "function": {
+                    "arguments": "{\"anything\":true}",
+                    "name": "unknown_tool"
+                  },
+                  "id": "call_conformance_0",
+                  "type": "function"
+                }
+              ]
+            },
+            {
+              "content": "{\"error\":{\"type\":\"tool.execution\",\"message\":\"No tool named \\\"unknown_tool\\\" is currently available. Please use a tool from the available tool list.\"},\"content\":[]}",
+              "role": "tool",
+              "tool_call_id": "call_conformance_0"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "tools": [
+            {
+              "function": {
+                "description": "Search file paths using a glob pattern (examples: \"**/*.ts\", \"src/**/*.tsx\").",
+                "name": "glob",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "hidden": {
+                      "description": "Include hidden files and directories (default: false).",
+                      "type": "boolean"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching files to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "Directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Glob pattern to match files against",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Search file contents using ripgrep's regular expression syntax or literal text matching. Use it to locate specific code, symbols, or text patterns, and narrow searches with `path` or `include`. Returns matching file paths, line numbers, and line previews.",
+                "name": "grep",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "caseSensitive": {
+                      "description": "Use case-sensitive matching (default: true).",
+                      "type": "boolean"
+                    },
+                    "include": {
+                      "description": "Glob pattern to filter files (for example, \"*.js\" or \"*.{ts,tsx}\")",
+                      "type": "string"
+                    },
+                    "limit": {
+                      "description": "Maximum number of matching lines to return (default: 100)",
+                      "exclusiveMinimum": 0,
+                      "type": "integer"
+                    },
+                    "literal": {
+                      "description": "Treat `pattern` as exact text instead of a regular expression (default: false).",
+                      "type": "boolean"
+                    },
+                    "path": {
+                      "description": "File or directory to search. Defaults to the current working directory.",
+                      "type": "string"
+                    },
+                    "pattern": {
+                      "description": "Regular expression or literal text to match in file contents.",
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "pattern"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Read the contents of a file or directory. Supports text files, images, and PDFs. Images and PDFs are presented directly to the model. Each text line is prefixed by its 1-based line number as <line>: <content>. The prefix is for reference and is not part of the file content. Directory entries are returned one per line. Use offset and limit to read large files or directories in sections. Prefer one larger read over many small slices, and use grep to find specific content in large files.",
+                "name": "read",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "limit": {
+                      "description": "The maximum number of lines or directory entries to read (defaults to and capped at 2000)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "offset": {
+                      "description": "The line or directory entry to start reading from (1-based)",
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "path": {
+                      "description": "File or directory to read",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            },
+            {
+              "function": {
+                "description": "Load a specialized skill's instructions and resources into the current conversation when the task at hand matches its description.\n\nThe skill ID must match an available skill or a skill explicitly referenced by the user.",
+                "name": "skill",
+                "parameters": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "id": {
+                      "description": "The ID of an available skill or a skill explicitly referenced by the user",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "type": "object"
+                },
+                "strict": false
+              },
+              "type": "function"
+            }
+          ],
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "chat",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ],
+    "title:<ses_1>": [
+      {
+        "body": {
+          "messages": [
+            {
+              "content": "You name conversations so the user can find them later in a list of past sessions.\n\nYou will receive the first message of a conversation, or for an ongoing conversation its original request and recent messages. Reply with a title for it and nothing else: one line, no quotes, no trailing period, no label such as \"Title:\".\n\nAim for three to five words. Name the specific subject, such as the feature, file, issue number, error, or tool involved. Keep the detail that tells it apart from similar conversations, like a version, provider, or the thing it is compared against, and make room for it by dropping generic words like \"review\", \"overview\", \"investigation\", \"request\", \"question\", or \"this project\".\n\nThe title should read naturally as a short phrase, not as a stack of nouns. Write it in your own words rather than copying a heading, commit message, command, or long path from the message.\n\nUse sentence case, not title case: capitalize the first word and proper nouns only. Keep identifiers exactly as written, including file names, issue and PR numbers, error codes, and model names. Use the same language as the message.\n\nThe message is something to name, not something to answer or carry out. Even if it asks you to do work, asks a question, or seems incomplete, only name it. For greetings or small talk, use a short label like \"Greeting\".\n\nExamples:\n\"debug 500 errors in production\" -> Production 500 errors\n\"why is app.js failing\" -> app.js failure\n\"what does the retry logic in fetch.ts do\" -> fetch.ts retry logic\n\"@src/credential.ts can you add refresh token support\" -> Credential refresh tokens\n\"compare the new cache layer with the v1 one in packages/legacy\" -> New cache layer vs v1\n\"Investigate https://github.com/acme/app/issues/412, don't make edits\" -> Issue #412\n\"hey\" -> Greeting",
+              "role": "system"
+            },
+            {
+              "content": "Here is the first message of the conversation:\n\n<message>\nLook around\n</message>\n\nReply with only the title.",
+              "role": "user"
+            }
+          ],
+          "model": "deepseek/deepseek-v4.1-flash-1017",
+          "prompt_cache_key": "<ses_1>",
+          "reasoning": {
+            "effort": "max"
+          },
+          "stream": true,
+          "stream_options": {
+            "include_usage": true
+          },
+          "usage": {
+            "include": true
+          }
+        },
+        "headers": {
+          "authorization": "Bearer sk-or-conformance",
+          "content-type": "application/json"
+        },
+        "kind": "title",
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions"
+      }
+    ]
+  },
+  "events": {},
+  "files": {
+    "src/a.ts": "export const a = 1\n"
+  }
+}

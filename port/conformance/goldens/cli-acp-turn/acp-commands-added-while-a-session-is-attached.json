@@ -1,0 +1,196 @@
+{
+  "transcript": [
+    {
+      "kind": "note",
+      "label": "cli",
+      "value": {
+        "argv": [
+          "acp"
+        ],
+        "exit": 0,
+        "stderr": "",
+        "stdin": "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{\"protocolVersion\":1,\"clientCapabilities\":{},\"clientInfo\":{\"name\":\"conformance\",\"version\":\"1.0.0\"}}}\n{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"session/new\",\"params\":{\"cwd\":\"<project>\",\"mcpServers\":[]}}\n",
+        "stdout": {
+          "ndjson": [
+            {
+              "id": 1,
+              "jsonrpc": "2.0",
+              "result": {
+                "agentCapabilities": {
+                  "_meta": {
+                    "opencode/child-session-updates": true
+                  },
+                  "loadSession": true,
+                  "mcpCapabilities": {
+                    "http": true,
+                    "sse": false
+                  },
+                  "promptCapabilities": {
+                    "embeddedContext": true,
+                    "image": true
+                  },
+                  "sessionCapabilities": {
+                    "additionalDirectories": {},
+                    "close": {},
+                    "delete": {},
+                    "fork": {},
+                    "list": {},
+                    "resume": {}
+                  }
+                },
+                "agentInfo": {
+                  "name": "OpenCode",
+                  "version": "conformance"
+                },
+                "authMethods": [
+                  {
+                    "description": "Run `opencode auth login` in the terminal",
+                    "id": "opencode-login",
+                    "name": "Login with opencode"
+                  }
+                ],
+                "protocolVersion": 1
+              }
+            },
+            {
+              "id": 2,
+              "jsonrpc": "2.0",
+              "result": {
+                "configOptions": [
+                  {
+                    "category": "model",
+                    "currentValue": "openrouter/deepseek/deepseek-v4.1-flash-1017",
+                    "id": "model",
+                    "name": "Model",
+                    "options": [
+                      {
+                        "name": "openrouter/DeepSeek V4.1 Flash 1017",
+                        "value": "openrouter/deepseek/deepseek-v4.1-flash-1017"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "thought_level",
+                    "currentValue": "default",
+                    "description": "Available effort levels for this model",
+                    "id": "effort",
+                    "name": "Effort",
+                    "options": [
+                      {
+                        "name": "None",
+                        "value": "none"
+                      },
+                      {
+                        "name": "Low",
+                        "value": "low"
+                      },
+                      {
+                        "name": "High",
+                        "value": "high"
+                      },
+                      {
+                        "name": "Max",
+                        "value": "max"
+                      },
+                      {
+                        "name": "Default",
+                        "value": "default"
+                      }
+                    ],
+                    "type": "select"
+                  },
+                  {
+                    "category": "mode",
+                    "currentValue": "build",
+                    "id": "mode",
+                    "name": "Session Mode",
+                    "options": [
+                      {
+                        "description": "The default agent. Executes tools based on configured permissions.",
+                        "name": "Build",
+                        "value": "build"
+                      },
+                      {
+                        "description": "Read-only agent for exploring the codebase and planning work before implementation.",
+                        "name": "Plan",
+                        "value": "plan"
+                      }
+                    ],
+                    "type": "select"
+                  }
+                ],
+                "sessionId": "<ses_1>"
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            },
+            {
+              "jsonrpc": "2.0",
+              "method": "session/update",
+              "params": {
+                "sessionId": "<ses_1>",
+                "update": {
+                  "availableCommands": [
+                    {
+                      "description": "guided AGENTS.md setup",
+                      "name": "init"
+                    },
+                    {
+                      "description": "review changes [commit|branch|pr], defaults to uncommitted",
+                      "name": "review"
+                    },
+                    {
+                      "description": "keep working until an objective is met [pause|resume|clear]",
+                      "name": "goal"
+                    },
+                    {
+                      "description": "Added later",
+                      "name": "later"
+                    },
+                    {
+                      "description": "Compact the session",
+                      "name": "compact"
+                    }
+                  ],
+                  "sessionUpdate": "available_commands_update"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "provider": {},
+  "events": {},
+  "files": {
+    ".opencode/commands/later.md": "---\ndescription: Added later\n---\nDo it later.\n"
+  }
+}

@@ -42,6 +42,8 @@
 // - dates printed with the platform's locale formatting (`toLocaleString`) are `<locale-time>`;
 // - in plain-text output, integers that are epoch milliseconds between 2020 and 2040 are `<time>` (the same rule
 //   lib/normalize.ts applies to JSON numbers);
+// - ISO timestamps (`YYYY-MM-DDTHH:MM:SS(.sss)Z`) are `<iso-time>`, as lib/normalize.ts writes them, before the
+//   date rule below could split one into `<today>T<time>`;
 // - today's date (`YYYY-MM-DD`, UTC) is `<today>` and the current year in `stats`' "YYYY so far" is `<year>`;
 //   `stats`' activity calendar is reduced to its count of active days, and its tool latencies (`durationP50`,
 //   the p50 column) are `<duration>` (see `stats()` below);
@@ -215,6 +217,7 @@ function register(name: string, options: CliOptions, body: (ctx: CliCtx) => Prom
       // Whole tokens only: a 13-digit run inside a hex ID is not a timestamp.
       out = out.replace(/(?<![0-9A-Za-z])\d{13}(?![0-9A-Za-z])/g, (raw) => (Number(raw) > 1.58e12 && Number(raw) < 2.21e12 ? "<time>" : raw))
       out = out.replace(/(?<![A-Za-z0-9_-])[A-Za-z0-9_-]{43}(?![A-Za-z0-9_-])/g, (raw) => (isCursor(raw) ? raw : "<random-secret>"))
+      out = out.replace(/\b\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z\b/g, "<iso-time>")
       const now = new Date()
       out = out.split(now.toISOString().slice(0, 10)).join("<today>")
       out = out.split(`${now.getUTCFullYear()} so far`).join("<year> so far")
