@@ -72,7 +72,6 @@ impl Executions {
     }
 
     /// `SessionExecution.isActive` (revert staging refuses a busy session).
-    #[allow(dead_code)]
     pub fn is_active(&self, session: &str) -> bool {
         self.map.lock().unwrap().contains_key(session)
     }
