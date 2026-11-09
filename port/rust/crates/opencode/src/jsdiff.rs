@@ -252,11 +252,21 @@ pub fn hunks(old: &str, new: &str, context: usize) -> Vec<Hunk> {
 
 /// `createPatch(file, old, new, oldHeader, newHeader, { context })` (`formatPatch` with every header).
 pub fn create_patch(file: &str, old: &str, new: &str, old_header: &str, new_header: &str, context: usize) -> String {
+    format_patch(file, old, new, Some((old_header, new_header)), context)
+}
+
+/// `createTwoFilesPatch(file, file, old, new)`: without file headers, so no tab follows the names.
+pub fn create_patch_without_headers(file: &str, old: &str, new: &str, context: usize) -> String {
+    format_patch(file, old, new, None, context)
+}
+
+fn format_patch(file: &str, old: &str, new: &str, headers: Option<(&str, &str)>, context: usize) -> String {
+    let header = |header: Option<&str>| header.map(|h| format!("\t{h}")).unwrap_or_default();
     let mut out = vec![
         format!("Index: {file}"),
         "===================================================================".to_owned(),
-        format!("--- {file}\t{old_header}"),
-        format!("+++ {file}\t{new_header}"),
+        format!("--- {file}{}", header(headers.map(|h| h.0))),
+        format!("+++ {file}{}", header(headers.map(|h| h.1))),
     ];
     for hunk in hunks(old, new, context) {
         let old_start = if hunk.old_lines == 0 { hunk.old_start - 1 } else { hunk.old_start };

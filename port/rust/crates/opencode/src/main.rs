@@ -9,6 +9,7 @@ mod db;
 mod file_access;
 mod form;
 mod flag;
+mod formatter;
 mod fs;
 mod fuzzysort;
 mod generate;

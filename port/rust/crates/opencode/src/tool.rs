@@ -19,13 +19,24 @@
 //! successful result with [`output::truncate`].
 
 pub mod arguments;
+pub mod edit;
+pub mod file_diff;
+pub mod file_input;
+pub mod file_media;
+pub mod file_read;
+pub mod file_search;
+pub mod file_write;
+pub mod glob;
+pub mod grep;
 pub mod output;
 pub mod shell;
 mod question;
+pub mod read;
 pub mod schedule;
 pub mod skill;
 pub mod subagent;
 pub mod webfetch;
+pub mod write;
 
 use std::future::Future;
 use std::pin::Pin;
@@ -206,11 +217,16 @@ fn builtin() -> Vec<Arc<dyn Tool>> {
         .map(|(name, text)| {
             let definition = definition(name, text);
             match *name {
+                "edit" => Arc::new(edit::Edit { definition }) as Arc<dyn Tool>,
+                "glob" => Arc::new(glob::Glob { definition }),
+                "grep" => Arc::new(grep::Grep { definition }),
+                "question" => Arc::new(question::Question { definition }),
+                "read" => Arc::new(read::Read { definition }),
                 "shell" => shell::tool(definition),
-                "question" => Arc::new(question::Question { definition }) as Arc<dyn Tool>,
-                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "skill" => Arc::new(skill::Skill { definition }),
+                subagent::NAME => Arc::new(subagent::Subagent::new(definition)),
                 "webfetch" => Arc::new(webfetch::WebFetch { definition }),
+                "write" => Arc::new(write::Write { definition }),
                 _ => Arc::new(Unported { definition }),
             }
         })
@@ -262,7 +278,8 @@ impl Snapshot {
     /// Runs a call against the tools this snapshot advertised.
     pub async fn execute(&self, name: &str, context: Context, input: Json) -> Result<Output, Failure> {
         match self.tools.iter().find(|tool| tool.definition().name == name) {
-            Some(tool) => tool.execute(context, input).await,
+            // `normalizeImages` of the result's content (after the tool's own `execute.after` hooks).
+            Some(tool) => tool.execute(context, input).await.map(|output| Output { content: file_media::normalize_content(output.content), ..output }),
             None => Err(Failure::Error(ToolError::new(format!(
                 "No tool named \"{name}\" is currently available. Please use a tool from the available tool list."
             )))),
@@ -287,15 +304,40 @@ impl Registry {
         if code_mode {
             direct.extend(execute);
         }
-        Snapshot { tools: direct, code_mode_catalog: code_mode.then(code_mode_catalog) }
+        Snapshot { tools: direct, code_mode_catalog: code_mode.then(|| code_mode_catalog(rules)) }
+    }
+}
+
+/// The permission action of a stand-in catalog entry (`options.permission ?? name`, the name namespaced).
+fn catalog_permission(path: &str) -> String {
+    match path {
+        "opencode.worktree_remove" => "edit".to_owned(),
+        _ => path.replace('.', "_"),
     }
 }
 
 /// STAND-IN: the reference configuration's Code Mode catalog (the `opencode.*` tools of
 /// packages/core/src/tool/plugin/opencode.ts, summarized by `CodeModeCatalog.summarize`).
-fn code_mode_catalog() -> Json {
+/// Its tools whose action the ruleset wholly denies are left out, as `Tool.snapshot` leaves them out of the inventory.
+fn code_mode_catalog(rules: &[Json]) -> Json {
     static CATALOG: OnceLock<Json> = OnceLock::new();
-    CATALOG.get_or_init(|| json::parse(include_str!("tool/codemode-catalog.json")).expect("catalog is JSON")).clone()
+    let mut catalog =
+        CATALOG.get_or_init(|| json::parse(include_str!("tool/codemode-catalog.json")).expect("catalog is JSON")).clone();
+    let mut total = 0;
+    if let Some(Json::Array(namespaces)) = json::get_mut(&mut catalog, "namespaces") {
+        for namespace in namespaces.iter_mut() {
+            if let Some(Json::Array(entries)) = json::get_mut(namespace, "entries") {
+                entries.retain(|entry| !wholly_disabled(&catalog_permission(json::get_str(entry, "path").unwrap_or_default()), rules));
+                let count = entries.len();
+                total += count;
+                json::set(namespace, "count", Json::Number(count as f64));
+            }
+        }
+        namespaces.retain(|namespace| json::get_num(namespace, "count").is_some_and(|count| count > 0.0));
+    }
+    json::set(&mut catalog, "total", Json::Number(total as f64));
+    json::set(&mut catalog, "shown", Json::Number(total as f64));
+    catalog
 }
 
 #[cfg(test)]
