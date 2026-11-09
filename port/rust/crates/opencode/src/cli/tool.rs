@@ -38,7 +38,7 @@ pub fn output_text(name: &str, content: Option<&Json>) -> String {
 }
 
 /// Read's model content may be a JSON page envelope; its human-facing text.
-fn read_display_text(text: &str) -> Option<String> {
+pub fn read_display_text(text: &str) -> Option<String> {
     if !text.starts_with('{') {
         return None;
     }

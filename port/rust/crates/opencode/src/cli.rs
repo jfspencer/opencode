@@ -10,6 +10,7 @@
 //! default command), `--wizard`; see each handler's TODO(port).
 
 mod auth;
+mod acp;
 mod client;
 mod commands;
 mod connection;
@@ -188,6 +189,7 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["session", "import"] => commands::session_import(globals, input).await,
         ["api"] => commands::api(globals, input).await,
         ["auth", name] => auth::command(name, globals, input).await,
+        ["acp"] => acp::command(globals, input).await,
         // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
         // uninstall, pair, debug heap-dump).
         _ => unavailable(path),

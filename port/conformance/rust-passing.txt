@@ -160,6 +160,8 @@ scenarios/agent-loop.test.ts › unknown finish reason
 scenarios/agent-loop.test.ts › usage accounting across turns
 scenarios/agent-loop.test.ts › usage frame without token counts
 scenarios/agent-loop.test.ts › usage with cache writes and reported cost
+scenarios/cli-acp.test.ts › acp --login without a terminal
+scenarios/cli-acp.test.ts › acp rejects unknown methods and sessions
 scenarios/cli-api.test.ts › api by method and path
 scenarios/cli-api.test.ts › api by operation ID
 scenarios/cli-api.test.ts › api errors
