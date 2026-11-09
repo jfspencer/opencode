@@ -91,6 +91,11 @@ pub fn local() -> Local {
 }
 
 impl Local {
+    /// `local.model.current()` with `local.model.variant.current()`: (providerID, modelID, variant).
+    pub fn selection(&self) -> Option<(String, String, Option<String>)> {
+        self.selection.get()
+    }
+
     /// `Locale.titlecase(agent.id)`.
     pub fn agent_label(&self) -> Option<String> {
         self.agent.get().map(|a| titlecase(&a.id))

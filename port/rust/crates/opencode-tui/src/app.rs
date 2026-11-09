@@ -129,6 +129,16 @@ fn app_view() -> View {
     let theme = t.theme;
     let route = t.route;
     crate::commands::install(&t);
+    // `onMount`: `--session <id>` (without --fork) opens the session.
+    // TODO(port-tui): the route's startup prompt, --continue and --fork.
+    {
+        let args = t.args.clone();
+        on_mount(move || {
+            if let (Some(session_id), false) = (args.session_id.clone(), args.fork) {
+                route.set(Route::Session { session_id });
+            }
+        });
+    }
     let root = opencode_tui_core::elements::box_();
     bind(move || dimensions.get(), move |(w, h)| {
         root.set_width(Some(Value::Point(w as f32)));
@@ -157,12 +167,24 @@ fn app_view() -> View {
         switch(
             vec![
                 when(move || route.with(|r| *r == Route::Home), || component(crate::home::home)),
-                when(move || route.with(|r| matches!(r, Route::Session { .. })), || View::Empty),
+                when(move || route.with(|r| matches!(r, Route::Session { .. })), move || {
+                    // --continue starts on a "dummy" placeholder until the latest session is known.
+                    // TODO(port-tui): the tabs slice: `<SessionFrame sessionID verticalTabsWidth>` around the route.
+                    show_keyed(
+                        move || route.with(|r| match r {
+                            Route::Session { session_id } if session_id != "dummy" => Some(session_id.clone()),
+                            _ => None,
+                        }),
+                        |_| component(crate::session::route::session_route),
+                        None,
+                    )
+                }),
             ],
             None,
         ),
         At::Only,
     );
+    insert(root, component(crate::reconnecting::reconnecting_overlay), At::End);
     insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
 }
