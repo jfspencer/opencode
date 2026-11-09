@@ -353,6 +353,11 @@ scenarios/project-config.test.ts › project config files layer in priority orde
 scenarios/project-forms.test.ts › answer with an invalid pattern
 scenarios/project-forms.test.ts › create, list, answer and cancel forms
 scenarios/project-forms.test.ts › invalid form definitions
+scenarios/project-frontmatter.test.ts › a legacy agent JSON.stringify cannot write fails the agent plugin
+scenarios/project-frontmatter.test.ts › an excerpt separator without a string form skips the file
+scenarios/project-frontmatter.test.ts › engines named after Object.prototype members
+scenarios/project-frontmatter.test.ts › nesting as deep as the JS stack allows
+scenarios/project-frontmatter.test.ts › values JSON cannot say
 scenarios/project-fs.test.ts › conditional reads
 scenarios/project-fs.test.ts › find files and directories
 scenarios/project-fs.test.ts › find from the home directory

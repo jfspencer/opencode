@@ -54,6 +54,10 @@ pub mod agents;
 pub mod commands;
 pub mod config;
 pub mod config_watch;
+#[cfg(test)]
+mod frontmatter_check;
+pub mod frontmatter_js;
+pub mod jsvalue;
 pub mod jsonc;
 pub mod markdown;
 pub mod providers;
@@ -82,6 +86,8 @@ pub struct Inventory {
     pub entries: Vec<Entry>,
     /// Agents in list order: the selected default first, then the rest in registration order.
     pub agents: Vec<t::AgentInfo>,
+    /// Why the config agent plugin failed to load (TS lists it failed), if it did.
+    pub agent_failure: Option<agents::Failure>,
     /// Whether the first of [`Inventory::agents`] is a selected default (some agent is selectable).
     selected: bool,
     pub catalog: providers::Catalog,
@@ -121,6 +127,7 @@ impl Inventory {
             sources,
             agents: registry.list(),
             selected,
+            agent_failure: registry.failure.clone(),
             catalog,
             commands,
             skills,
