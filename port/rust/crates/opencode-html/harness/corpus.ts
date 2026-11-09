@@ -39,6 +39,8 @@ const TAGS = [
   "mi", "mtext", "annotation-xml", "x-custom", "product-name", "font", "wbr", "rt", "rp", "ruby", "sup", "kbd",
   "var", "q", "u", "mark", "small", "label", "area", "base", "col", "source", "track", "param", "keygen", "frame",
   "isindex", "command", "basefont", "scripts", "styles", "titles", "sc", "st", "t", "x",
+  // names that lower-case into (or out of) the ones above
+  "lin\u212ak", "STR\u0130KE", "d\u0130v", "\u017ftrong", "Scr\u0131pt", "SVG", "MaTh", "TITLE", "Code", "PRE",
 ] as const
 // Tags the converter treats specially, weighted up.
 const HOT = ["p", "a", "code", "pre", "b", "em", "li", "ul", "ol", "table", "tr", "td", "th", "blockquote", "br", "div", "img", "details", "summary", "dt", "dd", "h2", "caption", "del", "span", "script"] as const
@@ -126,6 +128,7 @@ const ODDITIES = [
   "<head><title>t</title></head>", "<body>", "</body>", "<html>", "\u0000", "<p\u0000>", "<a\thref=x\n>",
   "<a href=\"x\"title=\"y\">t</a>", "<a href='a'href='b'>", "<p hidden>h</p>", "<div aria-hidden=TRUE>h</div>",
   "<details><summary>s</summary>body</details>", "<details open>open</details>", "<ol start=\"5\"><li>", "<li value=\"9\">",
+  "<a\u00a0href=x>nbsp</a>", "<p\u3000class=x>", "<DETAILS OPEN>", "<img ALT=\"A\" SRC=x>", "<td COLSPAN=2>",
 ]
 
 /** Random tag soup of about `size` tokens. */

@@ -1029,9 +1029,7 @@ impl<'a, H: Handler> Parser<'a, H> {
             if self.current_sequence == Sequence::CdataEnd {
                 self.cb_unheard_slice(self.section_start, end_index);
             }
-        } else if self.state == State::InNumericEntity && self.allow_legacy_entity() {
-            self.emit_numeric_entity(false);
-        } else if self.state == State::InHexEntity && self.allow_legacy_entity() {
+        } else if matches!(self.state, State::InNumericEntity | State::InHexEntity) && self.allow_legacy_entity() {
             self.emit_numeric_entity(false);
         } else if matches!(
             self.state,

@@ -115,13 +115,20 @@ struct Frame {
     details: Option<usize>,
 }
 
+/// A slice of the output buffer (positions fit in 32 bits: the buffer stays within the 5 MiB budget).
 #[derive(Clone, Copy)]
 struct Chunk {
-    start: usize,
-    end: usize,
+    start: u32,
+    end: u32,
     /// Spaces `flushSpace` put in front.
-    lead: usize,
+    lead: u32,
     raw: bool,
+}
+
+impl Chunk {
+    fn range(self) -> std::ops::Range<usize> {
+        self.start as usize..self.end as usize
+    }
 }
 
 /// The `output` array.
@@ -137,16 +144,16 @@ impl Output {
     }
 
     fn push(&mut self, value: &[u8]) {
-        let start = self.buf.len();
+        let start = self.buf.len() as u32;
         self.buf.extend_from_slice(value);
-        self.chunks.push(Chunk { start, end: self.buf.len(), lead: 0, raw: false });
+        self.chunks.push(Chunk { start, end: self.buf.len() as u32, lead: 0, raw: false });
     }
 
     fn write_chunk(&self, chunk: Chunk, out: &mut JsString) {
         if chunk.lead > 0 {
-            out.extend(std::iter::repeat_n(b' ', chunk.lead));
+            out.extend(std::iter::repeat_n(b' ', chunk.lead as usize));
         }
-        js::push(out, &self.buf[chunk.start..chunk.end]);
+        js::push(out, &self.buf[chunk.range()]);
     }
 
     /// `output.splice(start)`, joined.
@@ -158,7 +165,7 @@ impl Output {
         for &chunk in &self.chunks[start..] {
             self.write_chunk(chunk, &mut value);
         }
-        self.buf.truncate(self.chunks[start].start);
+        self.buf.truncate(self.chunks[start].start as usize);
         self.chunks.truncate(start);
         value
     }
@@ -1221,7 +1228,7 @@ impl Markdown {
                     normalize_text(&pending, &mut normalized);
                     pending.clear();
                 }
-                js::push(&mut normalized, &self.output.buf[chunk.start..chunk.end]);
+                js::push(&mut normalized, &self.output.buf[chunk.range()]);
                 continue;
             }
             self.output.write_chunk(chunk, &mut pending);

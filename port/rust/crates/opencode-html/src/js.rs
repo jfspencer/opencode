@@ -266,7 +266,7 @@ pub(crate) fn number_to_string(n: f64) -> String {
             out.push_str(&digits[1..]);
         }
         out.push('e');
-        out.push(if n - 1 >= 0 { '+' } else { '-' });
+        out.push(if n > 0 { '+' } else { '-' });
         out.push_str(&(n - 1).abs().to_string());
     }
     out

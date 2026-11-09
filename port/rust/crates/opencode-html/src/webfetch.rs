@@ -48,6 +48,18 @@ impl Format {
     }
 }
 
+/// webfetch.ts `redirectStatuses`: a response with one of these and a `location` header is followed (the tool
+/// follows redirects itself, checking each target against the permission rules).
+pub fn is_redirect_status(status: u16) -> bool {
+    matches!(status, 301 | 302 | 303 | 307 | 308)
+}
+
+/// webfetch.ts `isCloudflareChallenge`: a 403 whose `cf-mitigated` header is `challenge` is retried once with
+/// [`CHALLENGE_RETRY_USER_AGENT`].
+pub fn is_cloudflare_challenge(status: u16, cf_mitigated: Option<&str>) -> bool {
+    status == 403 && cf_mitigated == Some("challenge")
+}
+
 /// webfetch.ts `acceptHeader(format)`.
 pub fn accept_header(format: Format) -> &'static str {
     match format {
