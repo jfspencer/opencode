@@ -164,9 +164,11 @@ async fn run_case(case: &JsonObj) -> Json {
 fn main() {
     let path = std::env::args().nth(1).expect("usage: codemode_run corpus.jsonl");
     let source = std::fs::read_to_string(&path).expect("readable corpus");
-    // Run on a big stack so deep recursion stays in Rust's stack, as the interpreter's activations do in TS.
+    // CODEMODE_STACK sets the thread's stack (bytes); the default is a tokio worker's 2 MiB, which the interpreter
+    // must survive on any program.
+    let stack = std::env::var("CODEMODE_STACK").ok().and_then(|s| s.parse().ok()).unwrap_or(2 * 1024 * 1024);
     let child = std::thread::Builder::new()
-        .stack_size(256 * 1024 * 1024)
+        .stack_size(stack)
         .spawn(move || {
             let runtime = tokio::runtime::Builder::new_current_thread().enable_all().build().unwrap();
             let mut out = std::io::BufWriter::new(std::io::stdout());

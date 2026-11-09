@@ -359,10 +359,16 @@ pub async fn execute(prepared: Rc<Prepared>, code: &str, options: ExecuteOptions
     }
     let result = match parse_program(code) {
         Err(diagnostic) => CodeResult::failure(diagnostic),
-        Ok(program) => match run_program(prepared, Rc::new(program), &options).await {
-            None => return Execution::Interrupted,
-            Some(result) => result,
-        },
+        Ok(program) => {
+            let program = Rc::new(program);
+            let outcome = run_program(prepared, program.clone(), &options).await;
+            // A tree as deep as the parser allows is freed recursively: give that the parser's stack too.
+            stacker::grow(4 * PARSER_STACK, move || drop(program));
+            match outcome {
+                None => return Execution::Interrupted,
+                Some(result) => result,
+            }
+        }
     };
     Execution::Done(match options.limits.max_output_bytes {
         None => result,
