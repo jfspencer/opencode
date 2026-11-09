@@ -39,6 +39,8 @@ pub(crate) struct EditorViewCore {
     pub placeholder: Option<TextBufferCore>,
     placeholder_mem_id: Option<u8>,
     pub placeholder_active: bool,
+    /// The controller `extmarks` created for this view, kept after its `destroy` (TS keeps the destroyed one).
+    pub extmarks: Option<crate::extmarks::SharedExtmarks>,
 }
 
 /// The view's buffer: the placeholder while it shows.
@@ -96,6 +98,7 @@ impl EditorViewCore {
             placeholder: None,
             placeholder_mem_id: None,
             placeholder_active: false,
+            extmarks: None,
         }
     }
 

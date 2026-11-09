@@ -448,3 +448,87 @@ export function editCase(r: Rng): Case {
   ops.push(["vDraw", r.range(1, 40), r.range(1, 12), 0, 0])
   return { k: "edit", m, w, h, ops }
 }
+
+/** A random program over an edit buffer with extmarks (the controller wraps the editing methods). */
+export function extmarkCase(r: Rng): Case {
+  const ops: Op[] = []
+  const m = r.pick(METHODS)
+  for (const name of ["keyword", "string"]) ops.push(["registerStyle", name, { fg: r.pick(COLORS) }])
+  ops.push(["eSyntaxStyle", true])
+  if (r.chance(0.5)) ops.push(["vWrapMode", r.pick(["none", "char", "word"])])
+  ops.push(["eSetText", text(r)])
+  if (r.chance(0.3)) ops.push(["eEvents"])
+  ops.push(["xRegisterType", r.pick(["prompt-part", "paste"])])
+  const create = (): Op => {
+    const start = r.int(40)
+    const o: any = { start, end: start + r.range(0, 10), virtual: r.chance(0.6) }
+    if (r.chance(0.6)) o.styleId = r.range(1, 2)
+    if (r.chance(0.4)) o.priority = r.chance(0.05) ? 300 : r.int(3)
+    if (r.chance(0.7)) o.typeId = r.range(0, 2)
+    if (r.chance(0.3)) o.meta = r.int(1000)
+    if (r.chance(0.2)) o.data = r.int(1000)
+    return ["xCreate", o]
+  }
+  for (let i = r.range(1, 5); i > 0; i--) ops.push(create())
+  const opCount = r.range(5, 50)
+  for (let i = 0; i < opCount; i++) {
+    const roll = r.int(100)
+    if (roll < 12) ops.push(["eInsert", r.chance(0.2) ? text(r) : piece(r)])
+    else if (roll < 22) ops.push([r.pick(["eBackspace", "eDelChar"])])
+    else if (roll < 34) ops.push([r.pick(["eLeft", "eRight", "eLeft", "eRight", "vUp", "vDown"])])
+    else if (roll < 37) ops.push(["eCursorOffset", r.int(50)])
+    else if (roll < 39) ops.push(["eDelRange", r.int(4), r.int(20), r.int(4), r.int(20)])
+    else if (roll < 40) ops.push([r.pick(["eDelLine", "eNewLine"])])
+    else if (roll < 43) ops.push(["vSel", r.int(50), r.int(50)])
+    else if (roll < 45) ops.push([r.pick(["vReplaceSel", "vDelSel"]), piece(r)])
+    else if (roll < 46) ops.push(["vRSel"])
+    else if (roll < 52) ops.push([r.pick(["eUndo", "eUndo", "eRedo"])])
+    else if (roll < 53) ops.push([r.pick(["eSetText", "eReplaceText", "eClear"]), text(r)])
+    else if (roll < 60) ops.push(create())
+    else if (roll < 62) ops.push(["xDelete", r.range(1, 8)])
+    else if (roll < 63) ops.push([r.pick(["xClear", "xDestroy"])])
+    else if (roll < 70) ops.push(["eEvents"])
+    else if (roll < 73) ops.push(["vDraw", r.range(1, 30), r.range(1, 8), 0, 0])
+    else if (roll < 76) ops.push(["eHl", r.int(3)])
+    else if (roll < 80) ops.push([r.pick(["xAll", "xVirtual"])])
+    else if (roll < 82) ops.push(["xAtOffset", r.int(40)])
+    else if (roll < 84) ops.push(["xForType", r.int(3)])
+    else if (roll < 86) ops.push(["xGet", r.range(1, 8)])
+    else if (roll < 87) ops.push([r.pick(["xTypeId", "xRegisterType"]), r.pick(["prompt-part", "paste", "x"])])
+    else if (roll < 88) ops.push(["xTypeName", r.range(0, 3)])
+    else if (roll < 90) ops.push([r.pick(["xMeta", "xData"]), r.range(1, 8)])
+    else if (roll < 91) ops.push(["xAdjustDel", r.int(40), r.int(8), r.chance(0.7)])
+    else if (r.chance(0.05)) ops.push(["vNewView", r.range(5, 30), r.range(1, 8)])
+    else ops.push([r.pick(["eInfo", "eText", "vVisual"])])
+  }
+  ops.push(["eEvents"], ["xAll"], ["eHl", 0], ["eHl", 1], ["eText"], ["eInfo"], ["vDraw", 30, 6, 0, 0])
+  return { k: "edit", m, w: r.range(5, 30), h: r.range(1, 8), ops }
+}
+
+/** Hand-picked extmark programs: virtual ranges walked over and deleted around, over wide and joining text. */
+export function extmarkEdgeCases(): Case[] {
+  const cases: Case[] = []
+  const texts = ["abc def ghi", "a你好b\ncd🇺🇸e\n\tf", "x👩‍👩‍👧ýz\nline two", "ab\n\ncd\n"]
+  for (const m of METHODS) {
+    for (const t of texts) {
+      for (const [start, end] of [[1, 3], [0, 2], [2, 6], [3, 4], [4, 4], [5, 9]]) {
+        const ops: Op[] = [["registerStyle", "keyword", { fg: COLORS[0] }], ["eSyntaxStyle", true], ["eSetText", t]]
+        ops.push(["xCreate", { start, end, virtual: true, styleId: 1, meta: 7 }], ["xCreate", { start: end + 1, end: end + 3, styleId: 1, priority: 2 }])
+        ops.push(["eCursorOffset", 0], ["eHl", 0], ["eHl", 1])
+        for (let i = 0; i < 14; i++) ops.push(["eRight"], ["eInfo"])
+        for (let i = 0; i < 14; i++) ops.push(["eLeft"], ["eInfo"])
+        for (let i = 0; i < 4; i++) ops.push(["vDown"], ["eInfo"], ["vUp"], ["eInfo"], ["eRight"])
+        for (let offset = 0; offset < 12; offset++) ops.push(["eCursorOffset", offset], ["eInfo"])
+        ops.push(["eCursorOffset", end], ["eBackspace"], ["eText"], ["xAll"], ["eHl", 0], ["eUndo"], ["xAll"], ["xMeta", 1], ["eRedo"], ["xAll"])
+        ops.push(["eCursorOffset", start], ["eDelChar"], ["eText"], ["xAll"], ["eUndo"], ["eUndo"], ["xAll"], ["eText"], ["xMeta", 1])
+        ops.push(["eCursorOffset", start + 1], ["eInsert", "Q\n"], ["xAll"], ["eHl", 0], ["eHl", 1], ["eNewLine"], ["xAll"], ["eDelLine"], ["xAll"])
+        ops.push(["vSel", start, end + 2], ["vReplaceSel", "zz"], ["xAll"], ["eText"], ["eUndo"], ["xAll"], ["eUndo"], ["xAll"], ["eRedo"], ["xAll"])
+        ops.push(["vSel", 0, 3], ["vDelSel"], ["xAll"], ["eSetText", t], ["xAll"], ["xCreate", { start: 1, end: 2, priority: 300, styleId: 1 }])
+        ops.push(["xAll"], ["xAdjustDel", 0, 1, true], ["eHl", 0], ["xDestroy"], ["xCreate", { start: 0, end: 1 }], ["xAdjustDel", 0, 1, true])
+        ops.push(["eHl", 0], ["eRight"], ["eInfo"], ["eEvents"], ["vDraw", 12, 4, 0, 0])
+        cases.push({ k: "edit", m, w: 7, h: 4, ops })
+      }
+    }
+  }
+  return cases
+}

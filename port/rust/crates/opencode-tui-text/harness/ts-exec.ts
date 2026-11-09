@@ -26,6 +26,7 @@ const color = (c: number[] | null | undefined) => (c ? RGBA.fromInts(c[0], c[1],
 
 function fail(error: unknown) {
   if (error instanceof NativeError) return { err: NativeStatus[(error as any).status] }
+  if ((error as Error).message === "ExtmarksController is destroyed") return { err: "Destroyed" }
   return { err: `js:${(error as Error).message}` }
 }
 
@@ -166,6 +167,7 @@ const hl = (h: number[]) => ({ start: h[0], end: h[1], styleId: h[2], priority: 
 let context: any
 type EditState = { eb: any; view: any; style: any; method: string; events: string[] }
 
+const mark = (e: any) => [e.id, e.start, e.end, e.virtual, e.styleId ?? null, e.priority ?? null, e.typeId]
 const visual = (v: any) => [v.visualRow, v.visualCol, v.logicalRow, v.logicalCol, v.offset]
 const logical = (c: any) => (c ? [c.row, c.col, c.offset] : null)
 
@@ -350,6 +352,49 @@ async function editOp(s: EditState, op: Op): Promise<unknown> {
     }
     case "vDraw":
       return draw(s.method, (buffer) => buffer.drawEditorView(view, a[2], a[3]), a[0], a[1])
+    case "xCreate": {
+      const o = a[0]
+      return view.extmarks.create({
+        start: o.start,
+        end: o.end,
+        virtual: o.virtual,
+        styleId: o.styleId,
+        priority: o.priority,
+        typeId: o.typeId,
+        data: o.data,
+        metadata: o.meta,
+      })
+    }
+    case "xMeta":
+      return view.extmarks.getMetadataFor(a[0]) ?? null
+    case "xData":
+      return view.extmarks.get(a[0])?.data ?? null
+    case "xAdjustDel":
+      return view.extmarks.adjustExtmarksAfterDeletion(a[0], a[1], a[2]), null
+    case "xDelete":
+      return view.extmarks.delete(a[0])
+    case "xGet": {
+      const e = view.extmarks.get(a[0])
+      return e ? mark(e) : null
+    }
+    case "xAll":
+      return view.extmarks.getAll().map(mark)
+    case "xVirtual":
+      return view.extmarks.getVirtual().map(mark)
+    case "xAtOffset":
+      return view.extmarks.getAtOffset(a[0]).map(mark)
+    case "xForType":
+      return view.extmarks.getAllForTypeId(a[0]).map(mark)
+    case "xClear":
+      return view.extmarks.clear(), null
+    case "xRegisterType":
+      return view.extmarks.registerType(a[0])
+    case "xTypeId":
+      return view.extmarks.getTypeId(a[0])
+    case "xTypeName":
+      return view.extmarks.getTypeName(a[0])
+    case "xDestroy":
+      return view.extmarks.destroy(), null
     case "vNewView":
       s.view.destroy()
       s.view = EditorView.create(eb, a[0], a[1])
