@@ -593,3 +593,27 @@ pub fn render(code: impl FnOnce() -> View, root: Element) -> crate::reactive::Di
         dispose
     })
 }
+
+/// `<Portal mount>{children}</Portal>` (`@opentui/solid`'s `elements/extras.ts`): the children, created once, go
+/// into a new `<box>` added to `mount` (the renderer's root by default) and removed when the owner is disposed;
+/// the portal itself renders nothing where it stands.
+pub fn portal(mount: Option<Element>, children: impl Fn() -> View + 'static) -> View {
+    let children = Rc::new(children);
+    let content: Rc<RefCell<Option<View>>> = Rc::new(RefCell::new(None));
+    create_render_effect(move || {
+        let Some(el) = mount.or_else(crate::tree::root) else { return };
+        let view = {
+            let mut slot = content.borrow_mut();
+            if slot.is_none() {
+                let children = children.clone();
+                *slot = Some(untrack(move || children()));
+            }
+            slot.clone().unwrap_or_default()
+        };
+        let container = crate::elements::box_();
+        insert(container, view, At::Only);
+        el.add(container, None);
+        crate::reactive::on_cleanup(move || remove_node(el, container));
+    });
+    View::Empty
+}
