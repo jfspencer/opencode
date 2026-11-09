@@ -125,6 +125,8 @@ scenario("find from the home directory", {}, async (ctx) => {
     // The query is unique to this scenario's files: HOME is shared by every scenario in the process.
     await ctx.http("GET", "/api/fs/find?query=zqxjhomeprobe", undefined, at(home))
     await ctx.http("GET", "/api/location", undefined, at(home))
+    // The home location boots too; wait for the last of its boot events, which can outlast the recording.
+    await ctx.until((event) => event?.type === "plugin.updated" && event?.location?.directory === home)
   } finally {
     rmSync(path.join(home, "zqxj-home-probe"), { recursive: true, force: true })
   }
