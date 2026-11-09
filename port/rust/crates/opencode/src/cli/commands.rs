@@ -146,6 +146,47 @@ fn redact(value: &Json, headers: bool) -> Json {
     }
 }
 
+/// `debug heap-dump`: only an already-running server (an explicit `--server`, or the service).
+pub async fn heap_dump(globals: &Globals, input: &Input) -> Result {
+    let directory = input.str("directory").map(|d| if d.starts_with('/') { d.to_owned() } else { crate::project::absolutize(d) });
+    report(
+        async {
+            let endpoint = match &globals.server {
+                Some(_) => connection::resolve(globals, Args::default()).await?.endpoint,
+                None => {
+                    let file = super::service::migrate_registrations();
+                    super::service::discover(&file, None).await.ok_or_else(|| {
+                        Fail::error("No background server is running. Pass --server <url> to capture a server started another way.")
+                    })?
+                }
+            };
+            let client = Client::new(&endpoint);
+            let mut query = Obj::new();
+            query.opt_str("directory", directory.as_deref());
+            let snapshot = match client.call("debug.heapDump", &[], Some(query.done()), None).await {
+                Ok(snapshot) => snapshot,
+                Err(super::client::ClientError::UnexpectedStatus(404)) => {
+                    return Err(Fail::error(format!(
+                        "The server at {} does not support heap dumps. Update and restart it first.",
+                        endpoint.url
+                    )));
+                }
+                Err(error) => return Err(error.into()),
+            };
+            let path = json::get_str(&snapshot, "path").unwrap_or("").to_owned();
+            if let Some(directory) = &directory {
+                let name = path.rsplit('/').next().unwrap_or("");
+                if format!("{}/{name}", directory.trim_end_matches('/')) != path {
+                    stderr("The server ignored --directory. Update and restart it to choose where snapshots go.\n");
+                }
+            }
+            stdout(&format!("{path}\n"));
+            Ok(0)
+        }
+        .await,
+    )
+}
+
 pub async fn config(globals: &Globals) -> Result {
     with_server(globals, Args::default(), |client| async move {
         let entries = client.call("config.get", &[], Some(location(&cwd())), None).await?;

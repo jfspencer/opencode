@@ -7,7 +7,7 @@
 //! SIGINT 130, SIGTERM 143, otherwise what the handler sets.
 //!
 //! Not ported (they answer an error): `mini`, `mcp`, `plugin`, `upgrade`, `uninstall`, `pair`, the TUI (the
-//! default command), `--wizard`; see each handler's TODO(port).
+//! default command), `--wizard`; see `dispatch`.
 
 mod auth;
 mod acp;
@@ -183,6 +183,7 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["debug", "paths"] => commands::paths(input),
         ["debug", "agents"] => commands::agents(globals).await,
         ["debug", "config"] => commands::config(globals).await,
+        ["debug", "heap-dump"] => commands::heap_dump(globals, input).await,
         ["session", "list"] => commands::session_list(globals, input).await,
         ["session", "delete"] => commands::session_delete(globals, input).await,
         ["session", "export"] => commands::session_export(globals, input).await,
@@ -191,7 +192,7 @@ async fn dispatch(path: &[&'static str], input: &Input, globals: &Globals) -> ou
         ["auth", name] => auth::command(name, globals, input).await,
         ["acp"] => acp::command(globals, input).await,
         // TODO(port): dropped (mini, mcp, plugin, the v1 migration) or not meaningful for this build (upgrade,
-        // uninstall, pair, debug heap-dump).
+        // uninstall, pair).
         _ => unavailable(path),
     }
 }
