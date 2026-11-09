@@ -4,9 +4,8 @@
 //!
 //! The store's `answers`, `custom`, `externalReady`, `selected`, `editing`, `error` and `tab` are one signal each.
 //!
-//! TODO(port-tui): the dialogs slice's dialog stack (`dialog.stack.length === 0` holds here), the clipboard
-//! (`prompt.paste` and `c` copy do nothing yet) and the prompt slice's Textarea methods (`gotoLineEnd`,
-//! `insertText`, `scrollY`, `visualCursor`): until they land [`ta`] approximates them on the textarea's text.
+//! TODO(port-tui): the dialogs slice's dialog stack (`dialog.stack.length === 0` holds here) and the clipboard
+//! (`prompt.paste` and `c` copy do nothing yet).
 pub mod util;
 
 use std::cell::RefCell;
@@ -35,6 +34,7 @@ pub const FORM_MODE: &str = "form";
 
 /// The textarea methods the form uses.
 mod ta {
+    use opencode_tui_core::renderables::textarea::TextareaAction;
     use opencode_tui_core::tree::Element;
 
     pub fn plain_text(el: Element) -> String {
@@ -43,16 +43,17 @@ mod ta {
     pub fn set_text(el: Element, text: &str) {
         el.set_textarea_text(text);
     }
-    /// TODO(port-tui): `gotoLineEnd()` (the prompt slice's Textarea).
-    pub fn goto_line_end(_el: Element) {}
-    /// TODO(port-tui): `insertText(text)` at the cursor; appended until the Textarea lands.
-    pub fn insert_text(el: Element, text: &str) {
-        let current = el.textarea_text();
-        el.set_textarea_text(&(current + text));
+    /// `gotoLineEnd()`.
+    pub fn goto_line_end(el: Element) {
+        el.textarea_action(TextareaAction::LineEnd);
     }
-    /// TODO(port-tui): `scrollY + visualCursor.visualRow`.
-    pub fn cursor_row(_el: Element) -> u32 {
-        0
+    /// `insertText(text)` at the cursor.
+    pub fn insert_text(el: Element, text: &str) {
+        el.textarea_insert_text(text);
+    }
+    /// `scrollY + visualCursor.visualRow`.
+    pub fn cursor_row(el: Element) -> u32 {
+        el.editor_view().map(|view| view.get_viewport().y + view.get_visual_cursor().visual_row).unwrap_or(0)
     }
 }
 
