@@ -103,6 +103,8 @@ function lenient(value: unknown, key = ""): unknown {
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
+      // Padding after the project path varies with the sandbox's absolute length; the columns are layout.
+      .replace(/<project>[ \t]+/g, "<project> ")
       .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
       .replaceAll(TMP_PARENT, "/tmp")
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
