@@ -951,8 +951,19 @@ scenarios/tools.test.ts › shell command
 scenarios/tools.test.ts › two tool calls in one step
 scenarios/tools.test.ts › unknown tool
 scenarios/tools.test.ts › write a new file
+tui/home.test.ts › home screen, then a prompt and its reply
+tui/nav-agent.test.ts › agents: agent picker
+tui/nav-agent.test.ts › agents: custom agents join the cycle
+tui/nav-agent.test.ts › agents: model per agent
+tui/nav-agent.test.ts › agents: reverse cycle with a configured key
+tui/nav-agent.test.ts › agents: shift+tab cycles build and plan
+tui/nav-agent.test.ts › agents: the prompt is sent with the selected agent
+tui/nav-args-prompt.test.ts › args: --prompt is submitted on start
 tui/nav-args.test.ts › args: --continue without any session
+tui/nav-args.test.ts › args: the first new session takes the given ID
+tui/nav-dialogs.test.ts › dialogs: dialogs adapt to small terminals
 tui/nav-dialogs.test.ts › dialogs: escape closes a dialog opened from another
+tui/nav-dialogs.test.ts › dialogs: open menu project worktrees
 tui/nav-dialogs.test.ts › dialogs: reload configuration
 tui/nav-dialogs.test.ts › dialogs: status
 tui/nav-exit.test.ts › exit: /exit
@@ -961,10 +972,14 @@ tui/nav-exit.test.ts › exit: ctrl+c in a dialog closes the dialog
 tui/nav-exit.test.ts › exit: ctrl+c on an empty prompt
 tui/nav-exit.test.ts › exit: ctrl+c with text clears instead, ctrl+d deletes
 tui/nav-exit.test.ts › exit: ctrl+d on an empty prompt
+tui/nav-exit.test.ts › exit: from a session
 tui/nav-exit.test.ts › exit: leader q
 tui/nav-exit.test.ts › exit: typing ":q" and enter
 tui/nav-exit.test.ts › exit: typing "exit" and enter
 tui/nav-exit.test.ts › exit: typing "quit" and enter
+tui/nav-history.test.ts › history: a draft is kept while browsing
+tui/nav-history.test.ts › history: multi-line entries
+tui/nav-history.test.ts › history: up and down recall earlier prompts
 tui/nav-home.test.ts › home screen at 160x50
 tui/nav-home.test.ts › home screen at 70x11
 tui/nav-home.test.ts › home screen at 80x24
@@ -974,23 +989,42 @@ tui/nav-home.test.ts › narrow home screen at 30x16
 tui/nav-home.test.ts › narrow home screen at 43x20
 tui/nav-home.test.ts › narrow home screen at 60x20
 tui/nav-home.test.ts › typed prompt text survives a resize
+tui/nav-keybinds.test.ts › keybinds: a custom leader key
 tui/nav-keybinds.test.ts › keybinds: a remapped command palette key
+tui/nav-keybinds.test.ts › keybinds: bindings for commands without a default key
+tui/nav-keybinds.test.ts › keybinds: disabled and multiple bindings
 tui/nav-keybinds.test.ts › keybinds: shortcuts shown in the palette follow the configuration
 tui/nav-keybinds.test.ts › keybinds: the leader times out
 tui/nav-mention.test.ts › mentions: @ lists skills and subagents, then files once there is a query
 tui/nav-mention.test.ts › mentions: a line range
 tui/nav-mention.test.ts › mentions: an @ in the middle of a word is not a mention
 tui/nav-mention.test.ts › mentions: deleting a mention removes it whole
+tui/nav-mention.test.ts › mentions: pick a file with enter and submit
 tui/nav-mention.test.ts › mentions: subagents
 tui/nav-mention.test.ts › mentions: tab completes a directory
+tui/nav-model.test.ts › model picker: a model with variants opens the variant picker
+tui/nav-model.test.ts › model picker: cycle favorite models
+tui/nav-model.test.ts › model picker: cycle recent models with f2
+tui/nav-model.test.ts › model picker: favorites
+tui/nav-model.test.ts › model picker: list, filter and pick a model without variants
+tui/nav-model.test.ts › model picker: no match and escape
+tui/nav-model.test.ts › variants: /variants picks a variant
+tui/nav-model.test.ts › variants: a model without variants
+tui/nav-model.test.ts › variants: ctrl+t cycles through the variants
+tui/nav-newdesigns.test.ts › new designs: agents, sessions and help
+tui/nav-newdesigns.test.ts › new designs: home and palette
+tui/nav-newdesigns.test.ts › new designs: model picker and variants
 tui/nav-palette.test.ts › command palette: ctrl+p again while open
 tui/nav-palette.test.ts › command palette: open a setting
 tui/nav-palette.test.ts › command palette: run help
 tui/nav-palette.test.ts › command palette: run switch theme
+tui/nav-palette.test.ts › command palette: run the first match
 tui/nav-palette.test.ts › command palette: the selected command runs on enter
+tui/nav-paste.test.ts › paste: a file path attaches the file
 tui/nav-paste.test.ts › paste: a path that doesn't exist is text
 tui/nav-paste.test.ts › paste: control characters and escape sequences are dropped
 tui/nav-paste.test.ts › paste: full mode inserts large text
+tui/nav-paste.test.ts › paste: large text becomes a placeholder
 tui/nav-paste.test.ts › paste: pasting the same text again expands the placeholder
 tui/nav-paste.test.ts › paste: several file paths at once
 tui/nav-paste.test.ts › paste: short text is inserted as typed
@@ -1005,13 +1039,138 @@ tui/nav-prompt.test.ts › prompt: moving between lines
 tui/nav-prompt.test.ts › prompt: multi-line input
 tui/nav-prompt.test.ts › prompt: selection is replaced by typing
 tui/nav-prompt.test.ts › prompt: unicode and wide characters
+tui/nav-sessions.test.ts › sessions: /clear closes the tab and starts over
+tui/nav-sessions.test.ts › sessions: /sessions and its aliases
+tui/nav-sessions.test.ts › sessions: all projects toggle
+tui/nav-sessions.test.ts › sessions: delete from the list needs a confirmation
+tui/nav-sessions.test.ts › sessions: deleting the open session returns home (tabs auto)
+tui/nav-sessions.test.ts › sessions: deleting the open session returns home (tabs off)
+tui/nav-sessions.test.ts › sessions: empty session list
+tui/nav-sessions.test.ts › sessions: list, filter and open a session
+tui/nav-sessions.test.ts › sessions: new session from a session
+tui/nav-sessions.test.ts › sessions: pinning and quick switch without tabs
+tui/nav-sessions.test.ts › sessions: rename from the list
+tui/nav-sessions.test.ts › sessions: rename the open session with ctrl+r
+tui/nav-sessions.test.ts › sessions: rename with an empty title is ignored, escape cancels
+tui/nav-sessions.test.ts › sessions: search that matches nothing
+tui/nav-sessions.test.ts › sessions: switch between sessions
+tui/nav-settings.test.ts › settings: browse every setting
+tui/nav-settings.test.ts › settings: search by keyword
+tui/nav-settings.test.ts › settings: toggle commands
+tui/nav-settings.test.ts › settings: values from the TUI config
 tui/nav-shell.test.ts › shell: ! enters shell mode, backspace leaves it
 tui/nav-shell.test.ts › shell: ! in the middle of a prompt is text
 tui/nav-shell.test.ts › shell: ! typed in one burst after text is text
+tui/nav-shell.test.ts › shell: a failing command
 tui/nav-shell.test.ts › shell: backspace typed in one burst after a command deletes text
+tui/nav-shell.test.ts › shell: run a command
 tui/nav-slash.test.ts › slash: /cd argument completion and errors
+tui/nav-slash.test.ts › slash: a custom command with arguments
+tui/nav-slash.test.ts › slash: a custom command with its own agent
+tui/nav-slash.test.ts › slash: an unknown command is sent as a prompt
+tui/nav-slash.test.ts › slash: built-in commands run on enter
+tui/nav-slash.test.ts › slash: commands in a session
 tui/nav-slash.test.ts › slash: filtering
 tui/nav-slash.test.ts › slash: tab completes the selected command
+tui/nav-tabs.test.ts › tabs: a new session tab
+tui/nav-tabs.test.ts › tabs: close and reopen
+tui/nav-tabs.test.ts › tabs: global scope
+tui/nav-tabs.test.ts › tabs: history back and forward
+tui/nav-tabs.test.ts › tabs: many tabs overflow the strip
+tui/nav-tabs.test.ts › tabs: next and previous
+tui/nav-tabs.test.ts › tabs: numbered indicators
+tui/nav-tabs.test.ts › tabs: opening sessions adds tabs
+tui/nav-tabs.test.ts › tabs: select by number
+tui/nav-tabs.test.ts › tabs: vertical layout
+tui/nav-theme.test.ts › themes: /themes slash command
+tui/nav-theme.test.ts › themes: browse, filter and pick a theme
+tui/nav-theme.test.ts › themes: configured theme and light mode
+tui/nav-theme.test.ts › themes: system theme
+tui/nav-theme.test.ts › themes: theme mode lock and dark/light switch commands
+tui/nav-toasts.test.ts › toasts: deleting a session that was deleted meanwhile
 tui/nav-toasts.test.ts › toasts: info toast comes and goes
 tui/nav-toasts.test.ts › toasts: no model to send the prompt to
+tui/nav-toasts.test.ts › toasts: renaming a session that was deleted meanwhile
 tui/nav-toasts.test.ts › toasts: some prompts cannot be queued
+tui/session-actions.test.ts › compact the session
+tui/session-actions.test.ts › compaction summary that ignores the template
+tui/session-actions.test.ts › compaction that fails
+tui/session-actions.test.ts › prompts queued and steered while a step runs
+tui/session-actions.test.ts › shell mode runs a command in the session
+tui/session-actions.test.ts › switching agent shows in the transcript
+tui/session-errors.test.ts › a single escape only arms the interrupt
+tui/session-errors.test.ts › interrupt a running step with escape twice
+tui/session-errors.test.ts › rate limited, retried, then answered
+tui/session-errors.test.ts › stream truncated after text, then continued
+tui/session-extra.test.ts › a long form review scrolled with keys
+tui/session-extra.test.ts › a very small terminal
+tui/session-extra.test.ts › an edit permission on a wide terminal shows a split diff
+tui/session-extra.test.ts › an edit with several hunks
+tui/session-extra.test.ts › nested instructions at high verbosity
+tui/session-extra.test.ts › nested instructions loaded by a read
+tui/session-extra.test.ts › pasting a custom answer into a question
+tui/session-forms.test.ts › api form dismissed with escape
+tui/session-forms.test.ts › api form with conditional fields and a required multiselect
+tui/session-forms.test.ts › api form with typed fields answered in the TUI
+tui/session-forms.test.ts › question dismissed with escape
+tui/session-forms.test.ts › question on a narrow terminal
+tui/session-forms.test.ts › several questions navigated with tab and arrows
+tui/session-forms.test.ts › several questions with a multiselect, reviewed and submitted
+tui/session-forms.test.ts › single question answered by moving and selecting
+tui/session-forms.test.ts › single question answered by number key
+tui/session-forms.test.ts › single question answered with a custom answer
+tui/session-goal.test.ts › a goal met after one round
+tui/session-goal.test.ts › a goal paused when its reviewer gives no verdict
+tui/session-permission.test.ts › edit permission in fullscreen
+tui/session-permission.test.ts › edit permission shows the diff
+tui/session-permission.test.ts › glob, grep and webfetch permissions
+tui/session-permission.test.ts › permission prompt on a narrow terminal
+tui/session-permission.test.ts › permissions accepted automatically
+tui/session-permission.test.ts › shell permission allowed always skips the next request
+tui/session-permission.test.ts › shell permission allowed once
+tui/session-permission.test.ts › shell permission rejected by selecting reject
+tui/session-permission.test.ts › shell permission rejected with escape
+tui/session-permission.test.ts › write permission for a new file
+tui/session-running.test.ts › tool calls shown while the step is still streaming
+tui/session-subagent.test.ts › background subagent reports back when it finishes
+tui/session-subagent.test.ts › foreground subagent in the parent transcript
+tui/session-subagent.test.ts › subagent with an explicit model and a continuation
+tui/session-subagent.test.ts › subagent with an unknown agent fails
+tui/session-tabs.test.ts › a background tab finishing shows as unread
+tui/session-tabs.test.ts › sidebar as an overlay on a medium terminal
+tui/session-tabs.test.ts › sidebar on a wide terminal, hidden and shown again
+tui/session-tabs.test.ts › tabs turned off
+tui/session-tabs.test.ts › two sessions in tabs, switched, closed and reopened
+tui/session-tabs.test.ts › vertical tabs with numbers
+tui/session-tools.test.ts › edit a file shows a split diff on a wide terminal
+tui/session-tools.test.ts › edit a file shows a unified diff
+tui/session-tools.test.ts › edit replacing every occurrence with unwrapped long lines
+tui/session-tools.test.ts › edit with a forced split view on a narrow terminal
+tui/session-tools.test.ts › execute with nested tool calls
+tui/session-tools.test.ts › overwrite a file in a nested directory
+tui/session-tools.test.ts › read, glob and grep are grouped
+tui/session-tools.test.ts › read, glob and grep expanded at high verbosity
+tui/session-tools.test.ts › read, glob and grep without grouping
+tui/session-tools.test.ts › shell command that fails
+tui/session-tools.test.ts › shell command that times out
+tui/session-tools.test.ts › shell command with long lines of output
+tui/session-tools.test.ts › shell command with long output is collapsed
+tui/session-tools.test.ts › shell command with output
+tui/session-tools.test.ts › shell command without output
+tui/session-tools.test.ts › skill tool
+tui/session-tools.test.ts › tool errors
+tui/session-tools.test.ts › tools summarized at low verbosity
+tui/session-tools.test.ts › webfetch answered by a responder
+tui/session-tools.test.ts › write a new file
+tui/session-transcript.test.ts › headings, lists, quotes, tables and code
+tui/session-transcript.test.ts › long lines wrap on a narrow terminal
+tui/session-transcript.test.ts › long transcript scrolled with page keys
+tui/session-transcript.test.ts › markdown rendered
+tui/session-transcript.test.ts › markdown shown as source
+tui/session-transcript.test.ts › partial markdown while streaming
+tui/session-transcript.test.ts › reasoning across several steps is grouped
+tui/session-transcript.test.ts › reasoning is collapsed to its title by default
+tui/session-transcript.test.ts › reasoning shown in full, then collapsed with a key
+tui/session-transcript.test.ts › resizing reflows the transcript
+tui/session-transcript.test.ts › scrolling by lines and half pages with the scrollbar
+tui/session-transcript.test.ts › wide terminal shows the sidebar
