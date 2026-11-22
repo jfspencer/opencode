@@ -16,6 +16,10 @@ const ROOT = path.join(import.meta.dir, "..", "goldens")
 export const BLOBS = path.join(ROOT, "_blobs")
 const BLOB_MIN = 4096
 const BLOB_REF = "<blob>"
+// The sandbox lives under the platform temp directory, which is `/tmp` on the Linux that recorded the goldens and
+// `/private/var/folders/.../T` on macOS. Only the parent path differs: root and project names are normalized.
+const TMP_PARENT = process.env.CONFORMANCE_ROOT ? path.dirname(process.env.CONFORMANCE_ROOT) : "/tmp"
+const TMP_PARENT_ENCODED = TMP_PARENT ? encodeURIComponent(TMP_PARENT) : ""
 
 export function slug(text: string) {
   return text
@@ -99,6 +103,8 @@ function lenient(value: unknown, key = ""): unknown {
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
+      .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
+      .replaceAll(TMP_PARENT, "/tmp")
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
   if (Array.isArray(value)) return value.map((item) => lenient(item, key))
   if (value && typeof value === "object")
