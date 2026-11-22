@@ -115,6 +115,8 @@ pub async fn run(input: TuiInput) -> i32 {
         provide_context(context(), t.clone());
         crate::themes::install(registry, mode, t.config_context.clone(), t.theme);
         crate::keymap::install(&t);
+        // SessionTabsProvider: around App, as in app.tsx.
+        let _tabs = crate::tabs::install();
         crate::local::install();
         // DialogProvider: its layer after its children.
         let dialog = crate::ui::dialog::provide();
@@ -199,11 +201,53 @@ fn app_view() -> View {
     main.set_min_height(Some(Value::Point(0.0)));
     main.set_flex_direction(FlexDirection::Row);
     main.set_position_type(false);
+    let tabs = crate::tabs::tabs();
+    let config = t.config_context.clone();
+    let vertical: Rc<dyn Fn() -> bool> = {
+        let config = config.clone();
+        let tabs = tabs.clone();
+        Rc::new(move || {
+            config.data().tabs.layout == "vertical" && dimensions.get().0 >= 42 + 64 && !tabs.list().is_empty() && tabs.enabled()
+        })
+    };
+    let visible: Rc<dyn Fn() -> bool> = {
+        let tabs = tabs.clone();
+        Rc::new(move || tabs.enabled() && !tabs.list().is_empty())
+    };
+    insert(
+        main,
+        show(
+            {
+                let vertical = vertical.clone();
+                move || vertical()
+            },
+            move || component(|| crate::component::session_tabs::session_tabs(crate::component::session_tabs::SessionTabsProps {
+                orientation: Some("vertical".into()),
+                width: Some(42),
+                ..crate::component::session_tabs::SessionTabsProps::default()
+            })),
+            None,
+        ),
+        At::End,
+    );
     let column = opencode_tui_core::elements::box_();
     insert_node(main, column, None);
     column.set_flex_grow(Some(1.0));
     column.set_min_width(Some(Value::Point(0.0)));
     column.set_flex_direction(FlexDirection::Column);
+    insert(
+        column,
+        show(
+            {
+                let vertical = vertical.clone();
+                let visible = visible.clone();
+                move || visible() && !vertical()
+            },
+            move || component(|| crate::component::session_tabs::session_tabs(crate::component::session_tabs::SessionTabsProps::default())),
+            None,
+        ),
+        At::End,
+    );
     let routes = opencode_tui_core::elements::box_();
     insert_node(column, routes, None);
     routes.set_flex_grow(Some(1.0));
@@ -214,17 +258,29 @@ fn app_view() -> View {
         switch(
             vec![
                 when(move || route.with(|r| *r == Route::Home), || component(crate::home::home)),
-                when(move || route.with(|r| matches!(r, Route::Session { .. })), move || {
-                    // --continue starts on a "dummy" placeholder until the latest session is known.
-                    // TODO(port-tui): the tabs slice: `<SessionFrame sessionID verticalTabsWidth>` around the route.
-                    show_keyed(
-                        move || route.with(|r| match r {
-                            Route::Session { session_id } if session_id != "dummy" => Some(session_id.clone()),
-                            _ => None,
-                        }),
-                        |_| component(crate::session::route::session_route),
-                        None,
-                    )
+                when(move || route.with(|r| matches!(r, Route::Session { .. })), {
+                    let vertical = vertical.clone();
+                    move || {
+                        // --continue starts on a "dummy" placeholder until the latest session is known.
+                        let vertical = vertical.clone();
+                        show_keyed(
+                            move || route.with(|r| match r {
+                                Route::Session { session_id } if session_id != "dummy" => Some(session_id.clone()),
+                                _ => None,
+                            }),
+                            move |session_id| {
+                                let vertical_for_width = vertical.clone();
+                                component(move || {
+                                    let vertical = vertical_for_width.clone();
+                                    crate::component::session_frame::session_frame(
+                                        session_id.clone(),
+                                        Rc::new(move || if vertical() { 42 } else { 0 }),
+                                    )
+                                })
+                            },
+                            None,
+                        )
+                    }
                 }),
             ],
             None,

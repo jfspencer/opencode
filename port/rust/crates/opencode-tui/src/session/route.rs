@@ -110,9 +110,7 @@ struct State {
     away_timer: Cell<Option<u64>>,
     prepend_history: RefCell<Option<super::history::HistoryPrepend>>,
     anchors: TimelineAnchors,
-    /// TODO(port-tui): session tabs: the saved anchor and group disclosure live in the tab state.
-    scroll_anchor: RefCell<Option<(super::anchors::AnchorTarget, f64)>>,
-    group_expanded: Signal<HashMap<String, bool>>,
+    tabs: crate::tabs::SessionTabs,
 }
 
 impl State {
@@ -293,7 +291,7 @@ impl State {
             return;
         }
         if !self.is_away_from_bottom() {
-            *self.scroll_anchor.borrow_mut() = None;
+            self.tabs.set_scroll_anchor(&self.session_id, None);
             return;
         }
         let Some(scroll) = self.scroll() else { return };
@@ -319,12 +317,16 @@ impl State {
                 anchor = Some(item);
             }
         }
-        *self.scroll_anchor.borrow_mut() = anchor.or(first);
+        self.tabs.set_scroll_anchor(
+            &self.session_id,
+            anchor.or(first).map(|(target, screen_y)| crate::tabs::ScrollAnchor { target, screen_y }),
+        );
     }
 
     fn restore_scroll_position(self: &Rc<Self>) {
         let Some(scroll) = self.scroll() else { return };
-        let anchor = self.scroll_anchor.borrow().clone();
+        let saved = self.tabs.scroll_anchor(&self.session_id);
+        let anchor = saved.as_ref().map(|anchor| (anchor.target.clone(), anchor.screen_y));
         let index = anchor.as_ref().and_then(|(target, _)| {
             self.rows.with_untracked(|rows| {
                 rows.iter().position(|row| match row {
@@ -348,7 +350,7 @@ impl State {
             let me = this.clone();
             this.after_layout(move || {
                 let Some(boundary) = me.anchors.get(&target) else {
-                    *me.scroll_anchor.borrow_mut() = None;
+                    me.tabs.set_scroll_anchor(&me.session_id, None);
                     scroll.set_sticky_scroll(true);
                     scroll.scroll_to(scroll.scroll_height());
                     me.away_from_bottom.set(false);
@@ -441,7 +443,7 @@ impl State {
             renderer::clear_timeout(timer);
         }
         self.away_from_bottom.set(false);
-        *self.scroll_anchor.borrow_mut() = None;
+        self.tabs.set_scroll_anchor(&self.session_id, None);
         self.hidden_rows.set(None);
         self.visible_rows_end.set(None);
         let this = self.clone();
@@ -760,13 +762,17 @@ pub fn session(props: SessionProps) -> View {
         create_memo(move || Verbosity::parse(config().session.verbosity.as_deref()))
     };
     let _ = DEFAULT_VERBOSITY;
-    let group_expanded_map: Signal<HashMap<String, bool>> = create_signal_with(HashMap::new(), None).0;
+    let tabs = crate::tabs::tabs();
     // High opens exploration and instruction summaries by default; everything else starts collapsed.
-    let group_expanded: Rc<dyn Fn(&str, GroupKind) -> bool> = Rc::new(move |id: &str, kind: GroupKind| {
-        group_expanded_map
-            .with(|m| m.get(id).copied())
-            .unwrap_or_else(|| verbosity.get() == Verbosity::High && matches!(kind, GroupKind::Exploration | GroupKind::Instructions))
-    });
+    let group_expanded: Rc<dyn Fn(&str, GroupKind) -> bool> = {
+        let tabs = tabs.clone();
+        let sid = sid.clone();
+        Rc::new(move |id: &str, kind: GroupKind| {
+            tabs.group_expanded(&sid, id).unwrap_or_else(|| {
+                verbosity.get() == Verbosity::High && matches!(kind, GroupKind::Exploration | GroupKind::Instructions)
+            })
+        })
+    };
     let grouped_kind = move |kind: GroupKind| match kind {
         GroupKind::Reasoning => thinking_mode.get() == ThinkingMode::Hide,
         GroupKind::Exploration => group_exploration.get(),
@@ -876,8 +882,7 @@ pub fn session(props: SessionProps) -> View {
         away_timer: Cell::new(None),
         prepend_history: RefCell::new(None),
         anchors: anchors.clone(),
-        scroll_anchor: RefCell::new(None),
-        group_expanded: group_expanded_map,
+        tabs: tabs.clone(),
     });
     *state_cell.borrow_mut() = Some(state.clone());
     {
@@ -1505,9 +1510,7 @@ pub fn session(props: SessionProps) -> View {
                     }
                 }
                 let id = id.to_string();
-                st.group_expanded.update(|m| {
-                    m.insert(id, expanded);
-                });
+                st.tabs.set_group_expanded(&st.session_id, &id, expanded);
                 let me = st.clone();
                 st.after_layout(move || me.save_scroll_anchor(false));
             })

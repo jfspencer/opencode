@@ -5,3 +5,5 @@ pub mod dialog_config;
 pub mod dialog_session_rename;
 pub mod dialog_status;
 pub mod dialog_theme_list;
+pub mod session_frame;
+pub mod session_tabs;

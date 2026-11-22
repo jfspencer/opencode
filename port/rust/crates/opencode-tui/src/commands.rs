@@ -147,11 +147,20 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         app("session.list", "Switch session", "Session", stand_in)
             .suggested(!data.store.session.list().is_empty())
             .slash("sessions", &["resume", "continue"]),
-        // TODO(port-tui): the session slice (route to home in the new session's location).
+        // TODO(port-tui): the home route's `location` (`newSessionLocation`).
         app("session.new", "New session", "Session", {
             let dialog = dialog.clone();
+            let local = local.clone();
             move || {
+                let model = local.model_current();
+                let agent = local.agent_current();
                 route.set(Route::Home);
+                if let Some(agent) = agent {
+                    local.agent_set(&agent.id);
+                }
+                if let Some(model) = model {
+                    local.model_set(&model, true);
+                }
                 dialog.clear();
             }
         })
@@ -159,8 +168,19 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         .slash("new", &[]),
         app("session.clear", "Clear session", "Session", {
             let dialog = dialog.clone();
+            let local = local.clone();
+            let tabs = crate::tabs::tabs();
             move || {
+                let model = local.model_current();
+                let agent = local.agent_current();
+                tabs.close(None);
                 route.set(Route::Home);
+                if let Some(agent) = agent {
+                    local.agent_set(&agent.id);
+                }
+                if let Some(model) = model {
+                    local.model_set(&model, true);
+                }
                 dialog.clear();
             }
         })
@@ -178,6 +198,7 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
             .enabled_fn(move || !tabs_enabled),
         );
     }
+    let tabs = crate::tabs::tabs();
     for (id, title) in [
         ("session.tab.next", "Next tab"),
         ("session.tab.previous", "Previous tab"),
@@ -186,13 +207,29 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         ("session.tab.next_unread", "Next unread tab"),
         ("session.tab.previous_unread", "Previous unread tab"),
     ] {
-        commands.push(app(id, title, "Session", stand_in).palette(false).enabled_fn(move || tabs_enabled));
+        let tabs = tabs.clone();
+        let run: Rc<dyn Fn()> = match id {
+            "session.tab.next" => Rc::new(move || tabs.cycle(1)),
+            "session.tab.previous" => Rc::new(move || tabs.cycle(-1)),
+            "session.tab.history.back" => Rc::new(move || tabs.history(-1)),
+            "session.tab.history.forward" => Rc::new(move || tabs.history(1)),
+            "session.tab.next_unread" => Rc::new(move || tabs.cycle_unread(1)),
+            _ => Rc::new(move || tabs.cycle_unread(-1)),
+        };
+        commands.push(app(id, title, "Session", move || run()).palette(false).enabled_fn(move || tabs_enabled));
     }
-    commands.push(app("session.tab.close", "Close tab", "Session", stand_in).enabled_fn(move || tabs_enabled));
-    commands.push(app("session.tab.reopen", "Reopen closed tab", "Session", stand_in).enabled_fn(move || tabs_enabled));
+    {
+        let tabs = tabs.clone();
+        commands.push(app("session.tab.close", "Close tab", "Session", move || tabs.close(None)).enabled_fn(move || tabs_enabled));
+    }
+    {
+        let tabs = tabs.clone();
+        commands.push(app("session.tab.reopen", "Reopen closed tab", "Session", move || tabs.reopen(None)).enabled_fn(move || tabs_enabled));
+    }
     for i in 1..=10 {
+        let tabs = tabs.clone();
         commands.push(
-            app(&format!("session.tab.select.{i}"), &format!("Switch to tab {i}"), "Session", stand_in)
+            app(&format!("session.tab.select.{i}"), &format!("Switch to tab {i}"), "Session", move || tabs.select_index(i - 1))
                 .palette(false)
                 .enabled_fn(move || tabs_enabled),
         );
