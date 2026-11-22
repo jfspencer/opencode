@@ -99,6 +99,38 @@ fn open(dialog: &DialogContext, view: fn() -> View) -> impl Fn() + 'static {
 /// A command whose behaviour is not ported yet.
 fn stand_in() {}
 
+/// `session.new` / `session.clear`: home in the location a new session starts in, keeping the current agent and
+/// model. TS hands the home route a location; this port's home route reads [`Tui::data`]'s directory.
+fn new_session_home(t: &Tui, local: &crate::local::Local) {
+    let route = t.route.get_untracked();
+    let current = match &route {
+        Route::Session { session_id } => t
+            .data
+            .store
+            .session
+            .get(session_id)
+            .and_then(|session| crate::data::get(&session, "location").and_then(|l| crate::data::get_str(l, "directory")).map(str::to_string)),
+        Route::Home => None,
+    };
+    let default_location = t.data.store.location.default();
+    let default = crate::data::get_str(&default_location, "directory").unwrap_or_default().to_string();
+    let target = if t.config.session.new_location == "inherit" { current.unwrap_or(default) } else { default };
+    t.route.set(Route::Home);
+    if t.data.directory.get_untracked().as_deref() != Some(target.as_str()) {
+        t.data.directory.set(Some(target));
+    }
+    let agent = local.agent_current();
+    let model = local.model_current();
+    opencode_tui_core::reactive::batch(|| {
+        if let Some(agent) = agent {
+            local.agent_set(&agent.id);
+        }
+        if let Some(model) = model {
+            local.model_set(&model, true);
+        }
+    });
+}
+
 /// `hasConnectedProvider(data.location.integration.list() ?? [])`.
 fn connected(t: &Tui) -> bool {
     let Some(directory) = t.data.directory.get() else { return false };
@@ -143,15 +175,15 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
     let mut commands = vec![
         app(COMMAND_PALETTE_COMMAND, "Show command palette", "System", open(dialog, crate::component::command_palette::command_palette))
             .palette(false),
-        // TODO(port-tui): DialogSessionList.
-        app("session.list", "Switch session", "Session", stand_in)
+        app("session.list", "Switch session", "Session", open(dialog, crate::component::dialog_session_list::dialog_session_list))
             .suggested(!data.store.session.list().is_empty())
             .slash("sessions", &["resume", "continue"]),
-        // TODO(port-tui): the session slice (route to home in the new session's location).
         app("session.new", "New session", "Session", {
             let dialog = dialog.clone();
+            let local = local.clone();
+            let t = t.clone();
             move || {
-                route.set(Route::Home);
+                new_session_home(&t, &local);
                 dialog.clear();
             }
         })
@@ -159,14 +191,30 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         .slash("new", &[]),
         app("session.clear", "Clear session", "Session", {
             let dialog = dialog.clone();
+            let local = local.clone();
+            let t = t.clone();
             move || {
-                route.set(Route::Home);
+                // TODO(port-tui): the tabs slice closes the open tab here (`sessionTabs.close()`).
+                new_session_home(&t, &local);
                 dialog.clear();
             }
         })
         .slash("clear", &[]),
-        // TODO(port-tui): DialogOpen.
-        app("open.menu", "Open session or project", "Session", stand_in).slash("open", &["projects", "project"]),
+        app("open.menu", "Open session or project", "Session", {
+            let dialog = dialog.clone();
+            move || {
+                if dialog.key() == Some(crate::component::dialog_open::DIALOG_OPEN_KEY) {
+                    return;
+                }
+                dialog.replace(
+                    move || component(crate::component::dialog_open::dialog_open),
+                    None,
+                    Some(crate::component::dialog_open::DIALOG_OPEN_KEY),
+                    Some(crate::ui::dialog::DialogSize::Large),
+                );
+            }
+        })
+        .slash("open", &["projects", "project"]),
     ];
     for i in 1..=9 {
         let quick = local.clone();

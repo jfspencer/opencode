@@ -298,7 +298,7 @@ pub struct SelectProps<T: 'static> {
     pub title_view: Option<Rc<dyn Fn() -> View>>,
     pub description: Option<Rc<dyn Fn() -> Option<String>>>,
     pub footer_gap: Option<f32>,
-    pub placeholder: Option<String>,
+    pub placeholder: Option<Rc<dyn Fn() -> String>>,
     pub footer: Option<Rc<dyn Fn() -> View>>,
     pub empty_view: Option<Rc<dyn Fn() -> View>>,
     pub no_match_view: Option<Rc<dyn Fn() -> View>>,
@@ -315,17 +315,17 @@ pub struct SelectProps<T: 'static> {
     /// `renderFilter`: false hides the search input.
     pub render_filter: bool,
     pub locked: Option<Rc<dyn Fn() -> bool>>,
-    pub preserve_selection: bool,
+    pub preserve_selection: Rc<dyn Fn() -> bool>,
     pub actions: Option<Rc<dyn Fn() -> Vec<SelectAction<T>>>>,
-    pub footer_hints: Vec<FooterHint>,
-    pub bindings: Vec<Command>,
+    pub footer_hints: Rc<dyn Fn() -> Vec<FooterHint>>,
+    pub bindings: Rc<dyn Fn() -> Vec<Command>>,
     pub current: Option<Rc<dyn Fn() -> Option<T>>>,
     pub focus_target: Option<Rc<dyn Fn() -> Option<T>>>,
-    /// `focusCurrent`: `Some(false)` keeps the selection off the current value.
-    pub focus_current: Option<bool>,
+    /// `focusCurrent !== false`: whether the selection follows the current value.
+    pub focus_current: Rc<dyn Fn() -> bool>,
     pub section_navigation: bool,
     pub search_in_title: bool,
-    pub title_placeholder: Option<String>,
+    pub title_placeholder: Option<Rc<dyn Fn() -> String>>,
 }
 
 impl<T: 'static> SelectProps<T> {
@@ -352,13 +352,13 @@ impl<T: 'static> SelectProps<T> {
             search: None,
             render_filter: true,
             locked: None,
-            preserve_selection: false,
+            preserve_selection: Rc::new(|| false),
             actions: None,
-            footer_hints: Vec::new(),
-            bindings: Vec::new(),
+            footer_hints: Rc::new(Vec::new),
+            bindings: Rc::new(Vec::new),
             current: None,
             focus_target: None,
-            focus_current: None,
+            focus_current: Rc::new(|| true),
             section_navigation: false,
             search_in_title: false,
             title_placeholder: None,
@@ -392,7 +392,6 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         Rc::new(move || props.focus_target.as_ref().and_then(|c| c()))
     };
     let has_search = props.search.is_some();
-    let focus_current_off = props.focus_current == Some(false);
 
     let (selected_index, _) = create_signal(0usize);
     let (filter, _) = create_signal(String::new());
@@ -614,12 +613,12 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                 (value, flat)
             },
             move |(value, _), _| {
-                if has_search || focus_current_off {
+                if has_search || !(props.focus_current)() {
                     return;
                 }
                 if target_defined
                     && focus_target().is_some()
-                    && (props.preserve_selection || filter.with_untracked(|f| !f.is_empty()))
+                    && ((props.preserve_selection)() || filter.with_untracked(|f| !f.is_empty()))
                 {
                     return;
                 }
@@ -651,7 +650,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                     return;
                 }
                 let anchor = focus_target().or_else(|| current());
-                if !props.preserve_selection && (anchor.is_none() || focus_current_off) {
+                if !(props.preserve_selection)() && (anchor.is_none() || !(props.focus_current)()) {
                     let count = flat.with_untracked(Vec::len);
                     if count == 0 {
                         return;
@@ -670,7 +669,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                 }
                 let previous = selection.borrow().clone();
                 let Some((previous_value, previous_category)) = previous else {
-                    if !focus_current_off {
+                    if (props.focus_current)() {
                         if let Some(anchor) = &anchor {
                             let index = flat.with_untracked(|f| f.iter().position(|o| o.value == *anchor));
                             if let Some(index) = index {
@@ -694,8 +693,8 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                     if !moved {
                         return;
                     }
-                    if !props.preserve_selection
-                        && (anchor.is_none() || focus_current_off || filter.with_untracked(|f| !f.is_empty()))
+                    if !(props.preserve_selection)()
+                        && (anchor.is_none() || !(props.focus_current)() || filter.with_untracked(|f| !f.is_empty()))
                     {
                         return;
                     }
@@ -720,9 +719,10 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let scroll_after_layout = scroll_after_layout.clone();
         let focus_target = focus_target.clone();
         let current = current.clone();
+        let props = props.clone();
         create_effect(on(
             move || {
-                let anchor = if focus_current_off { None } else { focus_target().or_else(|| current()) };
+                let anchor = if !(props.focus_current)() { None } else { focus_target().or_else(|| current()) };
                 (flat.get(), filter.get(), anchor)
             },
             move |(options, query, anchor), previous: Option<&(Vec<SelectOption<T>>, String, Option<T>)>| {
@@ -766,6 +766,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let scroll_after_layout = scroll_after_layout.clone();
         let focus_target = focus_target.clone();
         let current = current.clone();
+        let props = props.clone();
         create_effect(on(
             move || (filter.get(), focus_target().or_else(|| current())),
             move |(query, anchor), _| {
@@ -780,7 +781,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                     return;
                 }
                 let Some(anchor) = anchor.clone() else { return };
-                if focus_current_off {
+                if !(props.focus_current)() {
                     return;
                 }
                 let Some(index) = flat.with_untracked(|f| f.iter().position(|o| o.value == anchor)) else { return };
@@ -916,7 +917,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                 }
                 commands.push(command);
             }
-            commands.extend(props.bindings.iter().cloned());
+            commands.extend((props.bindings)());
             if let Some(on_cancel) = props.on_cancel.clone() {
                 // TODO(port-tui): `renderer.getSelection()` clears a selection first.
                 commands.push(
@@ -1009,7 +1010,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                     ))
                 })
                 .collect();
-            for hint in &props.footer_hints {
+            for hint in (props.footer_hints)().iter() {
                 out.push((
                     hint.side,
                     hint.group.unwrap_or(Group::Secondary),
@@ -1092,8 +1093,8 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                 let search_in_title = search_in_title.clone();
                 bind(
                     move || {
-                        (if search_in_title() { props.title_placeholder.clone() } else { None })
-                            .or_else(|| props.placeholder.clone())
+                        (if search_in_title() { props.title_placeholder.as_ref().map(|f| f()) } else { None })
+                            .or_else(|| props.placeholder.as_ref().map(|f| f()))
                             .unwrap_or_else(|| "Search".to_string())
                     },
                     move |p| el.set_placeholder(&p),

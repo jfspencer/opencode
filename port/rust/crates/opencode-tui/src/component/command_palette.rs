@@ -82,7 +82,7 @@ pub fn command_palette() -> View {
     let mut props = SelectProps::new("Commands", list);
     props.on_ref = Some(Rc::new(move |r| *select.borrow_mut() = Some(r)));
     props.search_in_title = true;
-    props.title_placeholder = Some("Search commands".into());
+    props.title_placeholder = Some(std::rc::Rc::new(|| "Search commands".to_string()));
     props.flat = true;
     props.filter_threshold = Some(0.7);
     dialog_select(props)

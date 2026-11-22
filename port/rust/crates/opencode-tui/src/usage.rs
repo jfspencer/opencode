@@ -241,7 +241,7 @@ pub fn dialog_usage() -> View {
                         let text = parts.join(" · ");
                         (!text.is_empty()).then_some(text)
                     }));
-                    props.placeholder = Some("Search models".into());
+                    props.placeholder = Some(std::rc::Rc::new(|| "Search models".to_string()));
                     props.on_move = Some(Rc::new(move |option: &SelectOption<String>| set_active.set(Some(option.value.clone()))));
                     props.empty_view = Some(Rc::new(move || {
                         let el = box_();

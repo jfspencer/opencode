@@ -98,6 +98,7 @@ pub async fn run(input: TuiInput) -> i32 {
         let dimensions = create_signal((renderer::width(), renderer::height())).0;
         renderer::on_resize(move |w, h| dimensions.set((w, h)));
         let initial_route = crate::startup::initial_route(&args);
+        let all_projects_initial = resolved.tabs.scope != "cwd";
         let t = Tui {
             app,
             args,
@@ -111,6 +112,9 @@ pub async fn run(input: TuiInput) -> i32 {
             prompt: Rc::new(RefCell::new(None)),
             exit: Rc::new(|| renderer::destroy()),
             toast: crate::toast::Toasts::new(),
+            open_sessions: create_signal(Vec::new()).0,
+            // `initial: { allProjects: config.tabs?.scope !== "cwd" }`.
+            session_list_all_projects: create_signal(all_projects_initial).0,
         };
         provide_context(context(), t.clone());
         crate::themes::install(registry, mode, t.config_context.clone(), t.theme);
@@ -154,6 +158,72 @@ fn app_view() -> View {
         on_cleanup(off);
     }
     crate::startup::install(&t);
+    // App's session events: the open dialog keeps showing what it last loaded, and an open session deleted by
+    // another client leaves the session route.
+    {
+        let route = t.route;
+        let data = t.data.clone();
+        let open_sessions = t.open_sessions;
+        let toast = t.toast.clone();
+        let tabs_enabled = t.config.tabs.enabled;
+        let active: Rc<RefCell<Option<(String, Option<String>)>>> = Rc::new(RefCell::new(None));
+        {
+            let data = data.clone();
+            let last = active.clone();
+            create_effect(move || {
+                if let Route::Session { session_id } = route.get() {
+                    if let Some(session) = data.store.session.get(&session_id) {
+                        *last.borrow_mut() = Some((
+                            session_id,
+                            crate::data::get_str(&session, "title").map(str::to_string),
+                        ));
+                    }
+                }
+            });
+        }
+        let listener = data.store.listen(move |event| match event.r#type() {
+            "session.moved" => {
+                let Some(id) = crate::data::get_str(event.data(), "sessionID").map(str::to_string) else { return };
+                open_sessions.update(|sessions| {
+                    for session in sessions.iter_mut() {
+                        if crate::data::get_str(session, "id") == Some(id.as_str()) {
+                            *session = crate::component::dialog_open::move_open_session(session, event);
+                        }
+                    }
+                });
+            }
+            "session.deleted" => {
+                let Some(id) = crate::data::get_str(event.data(), "sessionID").map(str::to_string) else { return };
+                open_sessions.update(|sessions| {
+                    sessions.retain(|session| crate::data::get_str(session, "id") != Some(id.as_str()));
+                });
+                if let Route::Session { session_id } = route.get_untracked() {
+                    if session_id != id {
+                        return;
+                    }
+                    // TODO(port-tui): the tabs slice closes the deleted tab first; with tabs enabled that handler
+                    // navigates home, so App's own handler sees the home route and shows no toast.
+                    let title = active
+                        .borrow()
+                        .as_ref()
+                        .filter(|(active_id, _)| active_id == &id)
+                        .and_then(|(_, title)| title.clone());
+                    route.set(Route::Home);
+                    if !tabs_enabled {
+                        toast.show(crate::toast::ToastInput::new(
+                            crate::toast::Variant::Info,
+                            match title {
+                                Some(title) => format!("Session \"{title}\" was deleted"),
+                                None => "The current session was deleted".to_string(),
+                            },
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        });
+        on_cleanup(move || listener.call());
+    }
     let root = opencode_tui_core::elements::box_();
     {
         let toast = t.toast.clone();

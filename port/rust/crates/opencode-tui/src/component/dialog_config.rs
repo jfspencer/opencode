@@ -517,14 +517,15 @@ pub fn dialog_config(current: Option<String>) -> View {
     });
     let mut props = SelectProps::new("Settings", move || options.get());
     props.search_in_title = true;
-    props.title_placeholder = Some("Search settings".into());
+    props.title_placeholder = Some(std::rc::Rc::new(|| "Search settings".to_string()));
     // Under new designs the opening setting is focused without the current-item marker; changing a value keeps the
     // selection where it is.
     let designs = new_designs.clone();
     props.current = Some(Rc::new(move || (!designs()).then_some(current)));
     let designs = new_designs.clone();
     props.focus_target = Some(Rc::new(move || designs().then_some(current)));
-    props.preserve_selection = new_designs();
+    let preserve = new_designs.clone();
+    props.preserve_selection = std::rc::Rc::new(move || preserve());
     props.filter_threshold = Some(0.7);
     props.on_move = Some(Rc::new(move |option: &SelectOption<usize>| set_selected.set(option.value)));
     {
@@ -540,23 +541,27 @@ pub fn dialog_config(current: Option<String>) -> View {
         }));
     }
     if !new_designs() {
-        props.footer_hints = vec![FooterHint { title: "change".into(), label: "←/→".into(), side: None, group: None }];
+        props.footer_hints = std::rc::Rc::new(|| vec![FooterHint { title: "change".into(), label: "←/→".into(), side: None, group: None }]);
     }
     let previous = change.clone();
     let next = change.clone();
-    props.bindings = vec![
-        Command::inline("left", move || {
-            previous(-1, None);
-            true
-        })
-        .title("Previous value")
-        .group("Settings"),
-        Command::inline("right", move || {
-            next(1, None);
-            true
-        })
-        .title("Next value")
-        .group("Settings"),
-    ];
+    props.bindings = std::rc::Rc::new(move || {
+        let previous = previous.clone();
+        let next = next.clone();
+        vec![
+            Command::inline("left", move || {
+                previous(-1, None);
+                true
+            })
+            .title("Previous value")
+            .group("Settings"),
+            Command::inline("right", move || {
+                next(1, None);
+                true
+            })
+            .title("Next value")
+            .group("Settings"),
+        ]
+    });
     dialog_select(props)
 }
