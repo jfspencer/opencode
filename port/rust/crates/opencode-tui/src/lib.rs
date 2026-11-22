@@ -157,6 +157,8 @@ pub mod spinner;
 pub mod startup;
 pub mod subagents;
 pub mod syntax;
+pub mod tabs;
+pub mod tabs_model;
 pub mod theme;
 pub mod themes;
 pub mod toast;
