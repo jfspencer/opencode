@@ -90,7 +90,15 @@ function store(value: unknown) {
 
 // Equality rules added after goldens were recorded apply to both sides at compare time.
 function lenient(value: unknown, key = ""): unknown {
-  if (typeof value === "string") return value.replace(DATE, "<date>")
+  if (typeof value === "string")
+    return value
+      .replace(DATE, "<date>")
+      // Goldens are recorded on Linux; these facts legitimately differ on macOS and are not behavior under test.
+      .replace(/\bPlatform: (?:linux|macos|darwin|win32)\b/g, "Platform: <platform>")
+      .replace(/\bCommands run on (?:Linux|macOS|Windows) using bash\b/g, "Commands run on <platform> using bash")
+      // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
+      // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
+      .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
   if (Array.isArray(value)) return value.map((item) => lenient(item, key))
   if (value && typeof value === "object")
