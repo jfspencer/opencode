@@ -30,6 +30,7 @@
 //
 // Records nothing itself. When CONFORMANCE_MEMORY_LOG names a file, the peak resident memory of every server
 // process (and every TUI process, lib/tui.ts) is appended to it as one JSON line per scenario.
+import { execFileSync } from "node:child_process"
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fakeNetwork } from "./network"
@@ -239,15 +240,25 @@ export function status(pid: number) {
 /** Every live descendant of a process (tools may start their own process groups). */
 function descendants(pid: number) {
   const children = new Map<number, number[]>()
-  for (const entry of readdirSync("/proc")) {
-    if (!/^\d+$/.test(entry)) continue
-    try {
-      const stat = readFileSync(`/proc/${entry}/stat`, "utf8")
-      const parent = Number(stat.slice(stat.lastIndexOf(")") + 2).split(" ")[1])
-      const list = children.get(parent) ?? []
-      list.push(Number(entry))
-      children.set(parent, list)
-    } catch {}
+  const add = (child: number, parent: number) => {
+    const list = children.get(parent) ?? []
+    list.push(child)
+    children.set(parent, list)
+  }
+  if (existsSync("/proc")) {
+    for (const entry of readdirSync("/proc")) {
+      if (!/^\d+$/.test(entry)) continue
+      try {
+        const stat = readFileSync(`/proc/${entry}/stat`, "utf8")
+        add(Number(entry), Number(stat.slice(stat.lastIndexOf(")") + 2).split(" ")[1]))
+      } catch {}
+    }
+  } else {
+    // macOS has no /proc: `ps` lists the same pid/parent pairs.
+    for (const line of execFileSync("ps", ["-Ao", "pid=,ppid="], { encoding: "utf8" }).split("\n")) {
+      const [child, parent] = line.trim().split(/\s+/).map(Number)
+      if (Number.isInteger(child) && Number.isInteger(parent)) add(child, parent)
+    }
   }
   const out: number[] = []
   const walk = (current: number) => {

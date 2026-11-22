@@ -23,7 +23,12 @@ grep -v '^#' "$crate/grammars/SOURCES.txt" | while read -r _ _ _ _ _ _ _ wasm; d
   file="$work/wasm/${wasm##*/}"
   [ -s "$file" ] || curl -sSfL --retry 3 -o "$file" "$wasm"
 done
-(cd "$work/wasm" && sha256sum --quiet -c "$crate/harness/wasm.sha256")
+if command -v sha256sum >/dev/null 2>&1; then
+  (cd "$work/wasm" && sha256sum --quiet -c "$crate/harness/wasm.sha256")
+else
+  # macOS ships shasum (Perl) rather than coreutils' sha256sum.
+  (cd "$work/wasm" && shasum -a 256 -c "$crate/harness/wasm.sha256")
+fi
 
 (cd "$crate" && bun harness/gen-wctype.ts check)
 cargo test -q --manifest-path "$manifest" -p opencode-tui-markup >"$work/unit-tests.log" 2>&1 || {

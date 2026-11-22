@@ -22,7 +22,7 @@ import { homedir, hostname, release } from "node:os"
 import path from "node:path"
 import { Context, Effect, Layer } from "effect"
 import { HttpEffect, HttpMiddleware, HttpRouter, HttpServer } from "effect/http"
-import { Schedule } from "@opencode/core/schedule"
+import { Automation } from "@opencode/core/automation"
 import { SessionRestart } from "@opencode/core/session/execution/restart"
 import { isAllowedCorsOrigin } from "../ref/packages/server/src/cors"
 import { RequestSite } from "../ref/packages/server/src/request-site"
@@ -575,7 +575,7 @@ const boot = Effect.fn("Conformance.boot")(function* (options: ServerOptions) {
     createRoutes(options, () => [IN_PROCESS], []).pipe(Layer.provide(HttpServer.layerServices)),
   ).pipe(withoutParentSpan)
   yield* Effect.forkDetach(Context.get(context, SessionRestart.Service).resumeSuspendedSessions)
-  yield* Context.get(context, Schedule.Service).run.pipe(Effect.forkScoped)
+  yield* Context.get(context, Automation.Service).run.pipe(Effect.forkScoped)
   return Context.get(context, HttpRouter.HttpRouter)
     .asHttpEffect()
     .pipe(

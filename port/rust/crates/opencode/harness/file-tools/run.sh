@@ -14,7 +14,8 @@ trap 'rm -rf "$work"' EXIT
 cp "$here/editcases.ts" "$here/diffcases.ts" "$work/"
 # The pure functions of edit.ts, from `crlf` to the last helper before the plugin.
 { awk '/^const crlf = /{p=1} /^\/\*\* Deferred edit behavior/{p=0} p' "$core/src/tool/plugin/edit.ts"; echo "export { findOccurrences, matchView, missHint }"; } >"$work/edit-core-mod.ts"
-sed -i "s#\.\./\.\./\.\./\.\./\.\./\.reference/packages/core#$core#" "$work/diffcases.ts"
+sed "s#\.\./\.\./\.\./\.\./\.\./\.reference/packages/core#$core#" "$work/diffcases.ts" >"$work/diffcases.ts.tmp"
+mv "$work/diffcases.ts.tmp" "$work/diffcases.ts"
 bun "$work/editcases.ts" "${2:-1}" "${1:-10000}" >"$work/edit.json"
 bun "$work/diffcases.ts" "${2:-1}" "${1:-10000}" >"$work/diff.json"
 (cd "$core" && bun "$here/readcases.ts" "${2:-1}" "${3:-200}" "$core") >"$work/read.json"

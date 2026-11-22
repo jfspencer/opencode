@@ -18,6 +18,13 @@ rust=$(cd "$here/../../../.." && pwd)
 work="$rust/target/collate"
 mkdir -p "$work"
 (cd "$rust/gen" && bun src/collation.ts --check --dump "$work/dump.txt")
-cc -O2 -o "$work/icu-dump" "$rust/gen/src/collation-dump.c" -licui18n -licuuc -licudata
+# macOS has ICU in the system, but not its headers or libicui18n; Homebrew's icu4c supplies them through
+# pkg-config. Linux keeps the plain link line it has always used.
+icu=
+if [ "$(uname -s)" = Darwin ] && command -v pkg-config >/dev/null 2>&1; then
+  icu=$(pkg-config --cflags --libs icu-i18n 2>/dev/null || true)
+fi
+# shellcheck disable=SC2086
+cc -O2 -o "$work/icu-dump" "$rust/gen/src/collation-dump.c" $icu -licui18n -licuuc -licudata
 rustc --edition 2024 -O -o "$work/driver" "$here/driver.rs"
 exec bun "$here/check.ts" --driver "$work/driver" --icu "$work/icu-dump" --dump "$work/dump.txt" --work "$work" "$@"

@@ -8,12 +8,16 @@
 #   default: port/.reference (upstream + deviation patches, built by port/scripts/reference.sh build)
 #   the repo root: plain upstream, without the deviation patches (after `bun install` at the repo root)
 # port/conformance/ref and port/conformance/node_modules are gitignored.
+#
+# The canonical implementation is `(cd port/rust && cargo xtask link-deps [reference-root])`. This script is
+# kept as the shell fallback while the reference is being repaired; it no longer uses GNU `realpath --relative-to`.
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
-target=$(realpath "${1:-$root/port/.reference}")
+target=$(cd "${1:-$root/port/.reference}" 2>/dev/null && pwd -P) || { echo "${1:-$root/port/.reference} is not a directory" >&2; exit 1; }
 [ -d "$target/packages/server/node_modules" ] || { echo "$target has no installed packages/server" >&2; exit 1; }
 conf="$root/port/conformance"
-ln -sfn "$(realpath --relative-to="$conf" "$target")" "$conf/ref"
+relative=$(python3 -I -c 'import os, sys; print(os.path.relpath(sys.argv[2], sys.argv[1]))' "$conf" "$target")
+ln -sfn "$relative" "$conf/ref"
 nm="$conf/node_modules"
 rm -rf "$nm"
 mkdir -p "$nm/@opencode"

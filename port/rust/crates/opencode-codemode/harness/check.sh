@@ -24,7 +24,7 @@ trap 'rm -rf "$out"' EXIT
 (cd "$workspace" && cargo build --offline --release --example codemode_run -q)
 runner="$workspace/target/release/examples/codemode_run"
 status=0
-for name in "${names[@]}"; do
+for name in ${names[@]+"${names[@]}"}; do
   corpus="$here/corpus/$name.jsonl"
   bun "$here/run-ts.ts" "$corpus" > "$out/$name.ts.jsonl"
   "$runner" "$corpus" > "$out/$name.rust.jsonl"

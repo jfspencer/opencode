@@ -1,18 +1,12 @@
 #!/usr/bin/env bash
-# Run every conformance scenario (server + TUI) with coverage, split across parallel shards.
-# usage: port/coverage/oracle-sharded.sh [label=oracle] [shards=8]
-# Prints the union label to pass to report.py / uncovered.py (e.g. oracle0+oracle1+...).
-set -uo pipefail
+# Deprecated wrapper: the implementation lives in `port/rust/crates/xtask`. Canonical command:
+#   (cd port/rust && cargo xtask oracle-sharded ...)
+# Kept so existing docs and CI keep working. It execs the built binary; when the binary is missing it builds
+# once through `cargo run` (never on every invocation).
+set -euo pipefail
 root=$(git rev-parse --show-toplevel)
-base=${1:-oracle}
-shards=${2:-8}
-cd "$root/port/conformance"
-files=$( (ls scenarios/*.test.ts; ls tui/*.test.ts) )
-pids=()
-for k in $(seq 0 $((shards - 1))); do
-  mine=$(echo "$files" | awk -v n="$shards" -v k="$k" 'NR % n == k' | tr '\n' ' ')
-  LABEL="$base$k" "$root/port/coverage/oracle.sh" $mine &
-  pids+=($!)
-done
-wait "${pids[@]}"
-echo "union label: $(seq 0 $((shards - 1)) | sed "s/^/$base/" | paste -sd+)"
+bin=$root/port/rust/target/debug/xtask
+if [ -x "$bin" ]; then
+  exec "$bin" oracle-sharded "$@"
+fi
+exec cargo run --quiet --manifest-path "$root/port/rust/Cargo.toml" -p xtask -- oracle-sharded "$@"

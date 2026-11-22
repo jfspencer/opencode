@@ -10,6 +10,9 @@
 #   way (`tui/home.test.ts › ...`); in-process-only TUI scenarios are skipped, as the harness skips them.
 # The binary is built with the oracle's build identity (OPENCODE_VERSION/OPENCODE_CHANNEL=conformance, see
 # port/conformance/lib/server.ts). CONFORMANCE_MEMORY_LOG and CONFORMANCE_ACTUAL pass through to the run.
+# Prefer `(cd port/rust && cargo xtask rust-conformance ...)`: it performs the vendor/pty/build preflight in
+# Rust and sets OPENCODE_XTASK_SKIP_BUILD=1 before running this script's sharded bun runner. Running this
+# script directly still builds for itself.
 set -uo pipefail
 # comm and sort must agree with Python's code-point order.
 export LC_ALL=C
@@ -31,16 +34,20 @@ if [[ "${1:-}" =~ ^[0-9]+$ ]]; then shards=$1; shift; fi
 
 flags=()
 [ "$profile" = release ] && flags=(--release)
-# The TUI crates build from fetched sources (gitignored port/.vendor): OpenTUI's (Yoga) and the tree-sitter grammars.
-[ -d "$root/port/.vendor/opentui/packages/native/zig-deps/yoga" ] || "$root/port/scripts/vendor-opentui.sh" || exit 1
-[ -d "$root/port/.vendor/tree-sitter" ] || "$root/port/scripts/vendor-grammars.sh" || exit 1
-# The executable embeds the opencode-pty daemon the reference runs (its npm build, see port/scripts/opencode-pty.sh), as
-# an installed build does: services that CLI scenarios start have no OPENCODE_PTY_BIN, as for users.
-if pty=$("$root/port/scripts/opencode-pty.sh" 2>/dev/null); then
-  export OPENCODE_PTY_EMBED=$pty OPENCODE_PTY_EMBED_VERSION=$(basename "$(dirname "$pty")")
+# `cargo xtask rust-conformance` owns the preflight and build now and sets this, leaving the sharded bun runner here
+# until the TUI/reference work settles. Run this script directly and it still builds for itself.
+if [ "${OPENCODE_XTASK_SKIP_BUILD:-}" != 1 ]; then
+  # The TUI crates build from fetched sources (gitignored port/.vendor): OpenTUI's (Yoga) and the tree-sitter grammars.
+  [ -d "$root/port/.vendor/opentui/packages/native/zig-deps/yoga" ] || "$root/port/scripts/vendor-opentui.sh" || exit 1
+  [ -d "$root/port/.vendor/tree-sitter" ] || "$root/port/scripts/vendor-grammars.sh" || exit 1
+  # The executable embeds the opencode-pty daemon the reference runs (its npm build, see port/scripts/opencode-pty.sh), as
+  # an installed build does: services that CLI scenarios start have no OPENCODE_PTY_BIN, as for users.
+  if pty=$("$root/port/scripts/opencode-pty.sh" 2>/dev/null); then
+    export OPENCODE_PTY_EMBED=$pty OPENCODE_PTY_EMBED_VERSION=$(basename "$(dirname "$pty")")
+  fi
+  (cd "$root/port/rust" && OPENCODE_VERSION=conformance OPENCODE_CHANNEL=conformance cargo build --quiet ${flags[@]+"${flags[@]}"} -p opencode) ||
+    exit 1
 fi
-(cd "$root/port/rust" && OPENCODE_VERSION=conformance OPENCODE_CHANNEL=conformance cargo build --quiet "${flags[@]}" -p opencode) ||
-  exit 1
 binary=$root/port/rust/target/$profile/opencode
 
 files=()
@@ -77,7 +84,7 @@ for k in $(seq 0 $((shards - 1))); do
   ) &
   pids+=($!)
 done
-wait "${pids[@]}"
+wait ${pids[@]+"${pids[@]}"}
 
 # "<file> › <scenario>" (file relative to port/conformance) for each result of a kind, from the JUnit reports.
 results() { # pass|fail|skip
@@ -106,7 +113,7 @@ skip=$(results skip | wc -l)
 echo "rust: $pass pass, $fail fail, $skip skip (logs: $log)"
 
 # Only the files that ran are compared.
-ran=$(printf '%s\n' "${files[@]}" | sort -u)
+ran=$(printf '%s\n' ${files[@]+"${files[@]}"} | sort -u)
 touch "$ledger"
 expected=$(grep -F -f <(printf '%s ›\n' $ran) "$ledger" | sort -u)
 regressed=$(comm -23 <(printf '%s\n' "$expected" | sed '/^$/d') "$log/pass.txt")

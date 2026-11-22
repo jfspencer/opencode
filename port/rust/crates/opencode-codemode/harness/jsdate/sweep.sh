@@ -14,6 +14,7 @@ zones=$(grep -o 'zone("[^"]*", "[^"]*"' "$crate/src/jsdate/zone_names.rs" | sed 
 for zone in $zones; do
   summary=$(TZ="$zone" bun "$here/oracle.ts" "$scale" 2>/dev/null | TZ="$zone" "$checker" 0 | sed -nE \
     -e '/^jsdate_check/!s/^ *(.*): +[0-9]+ checked, +([1-9][0-9]*) different$/\1=\2/p' \
-    -e 's/^jsdate_check [^:]*: ([0-9]+) checked, ([0-9]+) different$/total \1 checked, \2 different/p' | tac | paste -sd' ')
+    -e 's/^jsdate_check [^:]*: ([0-9]+) checked, ([0-9]+) different$/total \1 checked, \2 different/p' |
+    awk '{ lines[NR] = $0 } END { for (i = NR; i > 0; i--) printf "%s%s", lines[i], (i > 1 ? " " : "\n") }')
   echo "$zone: $summary"
 done

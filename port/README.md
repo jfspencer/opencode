@@ -35,6 +35,40 @@ upstream range to run through the conformance loop.
 | `rust/` | The Rust implementation: a Cargo workspace (`crates/*`) and the generator of its wire types and database bootstrap (`gen/`). See [Rust wire types](#rust-wire-types) and [Rust server](#rust-server). |
 | `scripts/` | Upstream sync, ownership check, building the reference, dependency linking, generating the wire types, running the standard against the Rust build. |
 
+## Development tooling (xtask)
+
+The setup, vendor and suite-driver tooling is compiled Rust, so macOS and Linux run the same code without
+GNU `realpath`, `timeout`, `stat`, `sed -i`, `tac` or a host `tar`. Run it from `port/rust`:
+
+```sh
+cd port/rust
+cargo build -p xtask                 # once; the alias is in port/rust/.cargo/config.toml
+cargo xtask check-upstream-clean
+cargo xtask vendor-grammars /tmp/grammars
+cargo xtask link-deps
+cargo xtask --help
+```
+
+The old `port/scripts/*.sh` and `port/coverage/*.sh` paths are thin wrappers: they exec
+`port/rust/target/debug/xtask` when it exists, and otherwise build once through
+`cargo run --quiet -p xtask -- <command>`. `port/scripts/reference.sh` is deliberately still shell while the
+reference is being repaired, and `cargo xtask rust-conformance` performs the vendor/pty/build preflight and
+then delegates the sharded bun runner to `port/scripts/rust-conformance.sh` (which still runs directly too).
+`port/scripts/link-deps.sh` is kept as the shell fallback for the same reason, but no longer uses
+`realpath --relative-to`. The crate's README lists every command and the harness scripts still to port.
+
+### macOS
+
+The port targets macOS and Linux. The workflow above is the macOS workflow: no GNU coreutils, `timeout`,
+`tac` or `realpath --relative-to` are needed. `cargo xtask check-macos` runs `cargo check` for
+`aarch64-apple-darwin` and `x86_64-apple-darwin` with the host SDK; install both with
+`rustup target add aarch64-apple-darwin x86_64-apple-darwin` first. From Linux the same command uses the
+stub C compiler and only checks, so a macOS build still needs Xcode Command Line Tools. The prebuilt
+`opencode-pty` for `darwin-arm64` comes from the reference's `@opencode/pty`; `cargo xtask opencode-pty`
+verifies its version and protocol before use. Conformance goldens are recorded from the TS reference on
+Linux, so a scenario whose timing depends on the watcher (FSEvents rather than inotify) should be run on
+macOS before it is trusted there; the rest of the standard is platform-independent.
+
 ## Working with upstream's TS packages from port/
 
 `port/` is deliberately not a member of upstream's bun workspace, because joining it would mean editing the
@@ -190,7 +224,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `session/compaction.rs` | `core/src/session/compaction.ts` and the compaction parts of `runner/llm.ts`, `runner/step.ts`, `history.ts`, `recent-text.ts`, `config/plugin/compaction.ts`: automatic compaction before a step past the threshold, overflow recovery when the provider rejects a step as too long before any output, manual compaction at a step boundary, background summaries; the summary request is the step's own request plus the summary prompt (reusing the prompt cache), resent without its kept tail or as a shortened transcript when too long; the history later requests see starts at the latest completed compaction |
 | `tool/webfetch.rs`, `tool/skill.rs`, `tool/arguments.rs`, `url.rs` | `tool/plugin/webfetch.ts`, `tool/http-body.ts` (on `opencode-html`), `tool/plugin/skill.ts`, `tool/runtime.ts`'s input issues, the WHATWG `URL` subset the tools need: URL and credential checks, a permission check per redirect, the Cloudflare retry and the timeout, through the proxy-aware client |
 | `instruction_discovery.rs`, `jsdiff.rs`, `session/instructions.rs` | `instruction-discovery.ts`, `config/plugin/instruction.ts`, `session/instructions.ts`, `reference/instructions.ts`, jsdiff 8.0.4: the AGENTS.md walk (global, project up to the root or home), configured paths, globs and URLs (with diffs for edits), reference guidance, unavailable sources blocking the first admission, nested AGENTS.md after reads |
-| `inventory/skills.rs`, `watch.rs` | `config/plugin/skill.ts`, `skill/discovery.ts`, `filesystem/watcher.ts`: URL skill indexes pulled into the cache; one inotify instance per process (Linux; macOS watches are a TODO) watching skill sources and instruction files, rescanned 100 ms after a burst of changes |
+| `inventory/skills.rs`, `watch.rs` | `config/plugin/skill.ts`, `skill/discovery.ts`, `filesystem/watcher.ts`: URL skill indexes pulled into the cache; one inotify instance per process on Linux, one FSEvents stream per watch on macOS, watching skill sources and instruction files and rescanning 100 ms after a burst of changes |
 | `schedule.rs`, `schedule/`, `zone.rs`, `flag.rs`, `tool/schedule.rs` | `core/src/schedule.ts`, `schedule/check.ts`, `flag.ts`, `tool/plugin/schedule.ts`, Effect's `Cron` and `DateTime` zones: schedules (`in`, `at`, `every`, `cron`; `if`/`until` shell checks under `Permission.Unattended`) and the leader-leased firing loop, zones from the system tzdata, feature flags; code checks and the schedule tools' execution are TODO |
 | `session/transfer.rs`, `session/stats.rs`, `session/blob.rs` | `session/transfer.ts`, `Session.fork`, `session-legacy.ts`, `session/stats.ts`, `session/blob.ts`: export (sanitized), import, fork, statistics, media blobs on read, import and fork |
 | `shell.rs`, `shell/`, `file_access.rs`, `tool/shell.rs`, `session/shell.rs` | `core/src/shell.ts`, `shell/select.ts`, `file-access.ts`, `tool/plugin/shell.ts`, `session/shell.ts`, `session/environment.ts`, `server/src/handlers/shell.ts`: a location's shell commands (each leads its own process group; stdout and stderr stream from two pipes into `<data>/shell/<project>/<id>.out` with byte and newline counts; timeouts send SIGTERM, then SIGKILL; 25 exited commands kept; an hourly 7-day sweep), shell selection, the shell tool (workdir resolution, `opencode-shell` analysis, `external_directory` and `shell` permissions, a job that blocks, is backgrounded or notifies the session), users' `!commands`, and the session environment |
@@ -203,7 +237,7 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `generate.rs`, `generate/media.rs`, `session/goal.rs`, `session/title.rs`, `tool/output.rs` | `core/src/generate.ts` and `@opencode/ai`'s OpenRouter media routes (`OpenAIImages` with references, System One decisions: downloads typed from their bytes, retries of what the provider never ran); `plugin/goal.ts` (the `/goal` command, the idle hook's reviewer rounds with stall detection, pauses on failure, interrupt, restart and the 30-minute wait, `kv` storage, the `opencode.goal` RPC and its `changed` events, the context reminder); `selectTitle` (the provider's small model, the primary model's lower variant); `tool-output.ts` (`tool_output` limits, the 7-day sweep at boot and hourly). `llm/openrouter.rs` also places `cache_control` breakpoints for Anthropic and Qwen upstreams (the `cache.ttl` on them, or as `prompt_cache_options` / `prompt_cache_retention`) |
 | `integration.rs`, `integration/{poe,wellknown,page}.rs`, `handlers/inventory.rs` (integrations), `cli/auth.rs`, `cli/prompt.rs` | `core/src/integration.ts`, `wellknown.ts`, `wellknown/plugin.ts`, `oauth/page.ts`, `plugin/provider/poe.ts`, `server/src/handlers/integration.ts`, `cli/src/commands/handlers/auth/*`, `cli/src/ui/prompt.ts`, `ui/integration-picker.ts`, @clack/prompts and @clack/core 1.0.0-alpha.1: integration logins. Each location keeps its OAuth and command login attempts (10 minutes to live, 1 minute of retention after settling, a 30 s scrub; cancelling releases the callback server or kills the command). Poe's browser login is the one OAuth implementation the reference exposes (PKCE, a loopback callback, TS's branded pages, the token exchange); OpenRouter's integration has only its API key method. A command login turns the command's stderr into the status message and its stdout into the key. External methods store a credential reference; well-known sources (origins and manifests in `kv`) are integrations named after their host with a `login` command method. A change in which integrations hold credentials reloads every location's providers. The CLI reproduces clack's prompts on a terminal (raw-mode keys decoded as readline does, clack's diff redraw, wrap-ansi wrapping): the integration, method and account pickers, form fields (interactive or `--answer`), and key, external, command and OAuth logins |
 | `cli/acp.rs`, `cli/acp/` | `opencode acp`: the Agent Client Protocol over stdio against a private server, framed as the SDK's ndJsonStream frames it. Sessions (new, load with its history replayed, resume, fork, list, close, delete, additional directories); prompts (text, resources, links, images, slash commands, compaction); the turn's events folded into `session/update`s (tool calls, completed-edit diffs, retries, compactions, child sessions as `opencode/session/child_update` or projected, usage); permission requests (`session/request_permission`, with diff previews) and forms (`elicitation/create`) asked of the client and withdrawn on cancel; config options that follow the catalog and the server's selections. Not ported: MCP server registration (out of scope) and the SDK's schema validation of request parameters (`TODO(port)`) |
-| `location_activity.rs`, `location_watch.rs`, `watch.rs`, `watch/fsevents.rs`, `repository_cache.rs` | `location-activity.ts`, `filesystem/location-watcher*.ts`, `file-watch.ts`, `watcher.ts`, `repository-cache.ts` and reference.ts's refresh: idle locations unload at the minute sweep after `experimental.location_idle_timeout` (default an hour) unless a session executes there, background work runs or a terminal socket holds them; the repository's HEAD (git) or `branch` (hg) is watched unless `watcher.ignore` names it, its changes announce `filesystem.changed` and re-read the branch; watched files announce `change`/`unlink`; watches use inotify on Linux and FSEvents on macOS (`scripts/check-macos.sh` checks both Apple targets; never run on a Mac); Git references are cloned into `<data>/opencode/repos` and fetched or reset at most daily. Also the project archive sweep, the git discovery cache, the legacy `auth.json` import at bootstrap, the downloaded ripgrep (15.1.0, pinned SHA-256), up to four schedules per tick, and each step waiting out an inventory reload in progress. Not ported yet: the config that well-known sources deliver (`TODO(port)` in `inventory/config.rs`) |
+| `location_activity.rs`, `location_watch.rs`, `watch.rs`, `watch/fsevents.rs`, `repository_cache.rs` | `location-activity.ts`, `filesystem/location-watcher*.ts`, `file-watch.ts`, `watcher.ts`, `repository-cache.ts` and reference.ts's refresh: idle locations unload at the minute sweep after `experimental.location_idle_timeout` (default an hour) unless a session executes there, background work runs or a terminal socket holds them; the repository's HEAD (git) or `branch` (hg) is watched unless `watcher.ignore` names it, its changes announce `filesystem.changed` and re-read the branch; watched files announce `change`/`unlink`; watches use inotify on Linux and FSEvents on macOS (`cargo xtask check-macos` checks both Apple targets, natively on macOS and with a stub C compiler from Linux; a real macOS build still needs the SDK); Git references are cloned into `<data>/opencode/repos` and fetched or reset at most daily. Also the project archive sweep, the git discovery cache, the legacy `auth.json` import at bootstrap, the downloaded ripgrep (15.1.0, pinned SHA-256), up to four schedules per tick, and each step waiting out an inventory reload in progress. Not ported yet: the config that well-known sources deliver (`TODO(port)` in `inventory/config.rs`) |
 
 Status (2026-11-09): every server scenario of the standard passes (953 run, 3 skipped by the standard), including the
 70 CLI scenarios: session CRUD, projects, locations, the file system, version control, worktrees, config, agents,
@@ -242,20 +276,24 @@ embedded checksum each time); `OPENCODE_PTY_BIN` overrides it, and a build witho
 from `PATH`. The Rust executable does the same (`persistent_pty/binary.rs`): it embeds the daemon when built with
 `OPENCODE_PTY_EMBED=<daemon>` (and `OPENCODE_PTY_EMBED_VERSION`; `build.rs`), and otherwise starts `OPENCODE_PTY_BIN`
 or `opencode-pty` from `PATH`. The daemon must be the version the reference's core pins (`@opencode/pty` in
-`packages/core/package.json`, 0.4.0: protocol 7), not `packages/process-daemon`'s current source, which may be ahead.
+`packages/core/package.json`), not `packages/process-daemon`'s current source, which may be ahead. The script
+reads that pin and the Rust server's `persistent_pty/daemon.rs` protocol and refuses a mismatch.
 
-`port/scripts/opencode-pty.sh` provides it: by default the reference's prebuilt daemon, the npm build `bun install`
-fetched (built by upstream's `release-process-daemon.yml` with Zig 0.16 for libghostty-vt); with `--source`, a cargo
-build of `packages/process-daemon` at its release tag (`process-daemon-v<version>`), which needs Zig 0.16 on `PATH`
-and the network (Ghostty's pinned source, the crates, the pinned Rust toolchain). It checks the daemon's version and
-protocol, prints its path (`rust/target/opencode-pty/<version>/opencode-pty`), and with `--install` builds the release
-executable with it embedded. `rust-conformance.sh` embeds it too, so the services that CLI scenarios start find the
-daemon as a user's do (server scenarios set `OPENCODE_PTY_BIN`, lib/preload.ts).
+`cargo xtask opencode-pty` (also `port/scripts/opencode-pty.sh`) provides it: by default the reference's prebuilt daemon,
+the npm build `bun install` fetched (built by upstream's `release-process-daemon.yml` with Zig 0.16 for libghostty-vt);
+with `--source`, a cargo build of `packages/process-daemon` at its release tag (`process-daemon-v<version>`), which
+needs Zig 0.16 on `PATH` and the network (Ghostty's pinned source, the crates, the pinned Rust toolchain). It checks
+the daemon's version and protocol, prints its path (`rust/target/opencode-pty/<version>/opencode-pty`), and with
+`--install` builds the release executable with it embedded. `cargo xtask rust-conformance` embeds it too, so the
+services that CLI scenarios start find the daemon as a user's do (server scenarios set `OPENCODE_PTY_BIN`,
+lib/preload.ts). If the reference moves to a new daemon protocol, both `persistent_pty/daemon.rs` and this pin
+must be updated together; until then the command reports the mismatch and exits 1.
 
 ```sh
-port/scripts/opencode-pty.sh --install                 # rust/target/release/opencode with the daemon inside
-OPENCODE_PTY_EMBED=$(port/scripts/opencode-pty.sh --source) OPENCODE_PTY_EMBED_VERSION=0.4.0 \
-  cargo build --release -p opencode                    # (in port/rust) the same, from source
+(cd port/rust && cargo xtask opencode-pty --install)   # rust/target/release/opencode with the daemon inside
+version=$(port/scripts/opencode-pty.sh | sed 's#.*/opencode-pty/\([^/]*\)/.*#\1#')
+(cd port/rust && OPENCODE_PTY_EMBED=$(cargo xtask opencode-pty --source) OPENCODE_PTY_EMBED_VERSION="$version" \
+  cargo build --release -p opencode)                   # the same, from source
 ```
 
 ### Support crates

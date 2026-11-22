@@ -41,7 +41,7 @@ rewrites goldens recorded by older harness versions.
 | `lib/cli.ts` | `scenarios/cli-*.test.ts` | the CLI as a real process: argv, stdin, stdout/stderr, exit code |
 
 The server-side reference is booted the way `opencode serve` boots it (`packages/server/src/process.ts`):
-application routes, resumption of interrupted sessions, the schedule runner, and the real server's Linux
+application routes, resumption of interrupted sessions, the schedule runner, and the real server's
 defaults (file watcher on; per scenario: `server: { filewatcher, fff }`), except that fff search is off: the
 port omits fff, so file search is ripgrep + fuzzysort ranking, as with `OPENCODE_DISABLE_FFF=1`. Only the listening
 socket is replaced by an in-process handler, so `bun test --coverage` can measure the TS reference.

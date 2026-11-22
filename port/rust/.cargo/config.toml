@@ -1,0 +1,3 @@
+# `cargo xtask <command>` from port/rust runs the development tooling crate.
+[alias]
+xtask = "run --quiet --package xtask --"

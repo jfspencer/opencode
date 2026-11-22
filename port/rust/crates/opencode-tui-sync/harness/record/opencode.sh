@@ -9,7 +9,7 @@ port=$(cd "$here/../../../../.." && pwd)
 if [ "${1:-}" = "serve" ]; then
   exec "$SYNC_RECORD_SERVER" "$@"
 fi
-reference=$(realpath "$port/conformance/ref")
+reference=$(cd "$port/conformance/ref" && pwd -P)
 preload=$(cd "$reference/packages/cli" && bun -e 'console.log(Bun.resolveSync("@opentui/solid/preload", process.cwd()))')
 # The recorder instruments a .tsx module (without JSX) before the Solid plugin would claim it.
 export BUN_OPTIONS="--preload $here/recorder.ts --preload $preload --define OPENCODE_VERSION='\"conformance\"' --define OPENCODE_CHANNEL='\"conformance\"' --define OPENCODE_ARTIFACT='\"cli\"'"
