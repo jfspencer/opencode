@@ -476,7 +476,7 @@ fn dialog_connected_models(
         move || options.get()
     });
     props.search_in_title = true;
-    props.title_placeholder = Some("Search models".to_string());
+    props.title_placeholder = Some(std::rc::Rc::new(|| "Search models".to_string()));
     props.flat = true;
     props.skip_filter = true;
     props.current = Some(current);

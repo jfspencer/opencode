@@ -9,6 +9,7 @@ use std::rc::Rc;
 
 use opencode_tui_core::reactive::{Context, Signal, create_context, create_signal_with, use_context};
 use opencode_tui_core::tree::Element;
+use opencode_protocol::Json;
 
 use crate::data::Data;
 use crate::theme::ResolvedTheme;
@@ -69,6 +70,10 @@ pub struct Tui {
     pub exit: Rc<dyn Fn()>,
     /// `useToast()`.
     pub toast: crate::toast::Toasts,
+    /// `openSessions` in App: the last sessions the open dialog loaded, shown while it refreshes.
+    pub open_sessions: Signal<Vec<Json>>,
+    /// `useStorage().store("session-list").allProjects`.
+    pub session_list_all_projects: Signal<bool>,
 }
 
 thread_local! {

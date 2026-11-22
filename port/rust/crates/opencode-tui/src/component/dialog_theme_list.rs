@@ -36,7 +36,7 @@ pub fn dialog_theme_list(on_close: Option<Rc<dyn Fn()>>) -> View {
     }
     let mut props = SelectProps::new("Themes", move || options.clone());
     props.search_in_title = true;
-    props.title_placeholder = Some("Search themes".into());
+    props.title_placeholder = Some(std::rc::Rc::new(|| "Search themes".to_string()));
     {
         let initial = initial.clone();
         props.current = Some(Rc::new(move || Some(initial.clone())));

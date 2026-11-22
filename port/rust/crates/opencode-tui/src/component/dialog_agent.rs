@@ -37,7 +37,7 @@ pub fn dialog_agent() -> View {
         move || options.get()
     });
     props.search_in_title = true;
-    props.title_placeholder = Some("Search agents".to_string());
+    props.title_placeholder = Some(std::rc::Rc::new(|| "Search agents".to_string()));
     props.current = Some(current);
     props.on_select = Some(Rc::new(move |option: &SelectOption<String>| {
         local.agent_set(&option.value);

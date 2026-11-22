@@ -167,6 +167,8 @@ pub(crate) struct LocalTime {
     pub year: i64,
     pub month: u32,
     pub day: u32,
+    /// 0 is Sunday (`Date.getDay()`).
+    pub weekday: u32,
     pub hours: u32,
     pub minutes: u32,
     pub seconds: u32,
@@ -190,13 +192,56 @@ pub(crate) fn local_time(at_ms: f64) -> Option<LocalTime> {
         year: tm.tm_year as i64 + 1900,
         month: tm.tm_mon as u32,
         day: tm.tm_mday as u32,
+        weekday: tm.tm_wday as u32,
         hours: tm.tm_hour as u32,
         minutes: tm.tm_min as u32,
         seconds: tm.tm_sec as u32,
     })
 }
 
+const WEEKDAYS: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+impl LocalTime {
+    /// `date.toDateString()` ("Sun Nov 22 2026").
+    pub(crate) fn to_date_string(&self) -> String {
+        format!(
+            "{} {} {:02} {}",
+            WEEKDAYS[self.weekday as usize % 7],
+            MONTHS[self.month as usize % 12],
+            self.day,
+            self.year
+        )
+    }
+}
+
 const MONTHS: [&str; 12] = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/// `new Date(at).toISOString()`.
+pub(crate) fn iso_string(at_ms: f64) -> Option<String> {
+    if !at_ms.is_finite() || at_ms.abs() > 8.64e15 {
+        return None;
+    }
+    let seconds = (at_ms / 1000.0).floor() as libc::time_t;
+    // SAFETY: as in `local_time`.
+    let tm = unsafe {
+        let mut tm: libc::tm = std::mem::zeroed();
+        if libc::gmtime_r(&seconds, &mut tm).is_null() {
+            return None;
+        }
+        tm
+    };
+    let millis = at_ms.rem_euclid(1000.0).floor() as u32;
+    Some(format!(
+        "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}.{:03}Z",
+        tm.tm_year as i64 + 1900,
+        tm.tm_mon + 1,
+        tm.tm_mday,
+        tm.tm_hour,
+        tm.tm_min,
+        tm.tm_sec,
+        millis
+    ))
+}
 
 /// `Date.now()`.
 pub(crate) fn now_ms() -> f64 {

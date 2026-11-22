@@ -88,7 +88,7 @@ impl Pending {
                         .collect()
                 });
                 props.search_in_title = true;
-                props.title_placeholder = Some("Search queued prompts".into());
+                props.title_placeholder = Some(std::rc::Rc::new(|| "Search queued prompts".to_string()));
                 let (select_this, select_dialog) = (this.clone(), inner.clone());
                 props.on_select = Some(Rc::new(move |option: &SelectOption<String>| {
                     let steered = select_this.mutate(PendingAction::Steer, &option.value);
@@ -117,8 +117,9 @@ impl Pending {
                         SelectAction::new("queued_prompt.undo", "undo", |_: &SelectOption<String>| {}),
                     ]
                 }));
-                props.footer_hints =
-                    vec![FooterHint { title: "steer".into(), label: "enter".into(), side: None, group: Some(Group::Primary) }];
+                props.footer_hints = std::rc::Rc::new(|| {
+                    vec![FooterHint { title: "steer".into(), label: "enter".into(), side: None, group: Some(Group::Primary) }]
+                });
                 dialog_select(props)
             },
             None,
