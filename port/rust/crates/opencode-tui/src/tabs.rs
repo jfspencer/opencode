@@ -6,7 +6,8 @@
 //! [`tabs`] returns it. The store (`useStorage().store("tabs")`) is the same JSON file under
 //! `<state>/<channel>/tui/tabs.json`; mutations apply in memory and are written atomically.
 //!
-//! TODO(port-tui): `createSessionRetention` (cache eviction) and `createProgramStatus` (OSC 7501 records).
+//! TODO(port-tui): the storage file lock and on-disk draft (`Flock.withLock`, so a second TUI sharing the file sees
+//! the same mutations), `createSessionRetention` (cache eviction) and `createProgramStatus` (OSC 7501 records).
 use std::cell::{Cell, RefCell};
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::path::PathBuf;
@@ -745,7 +746,7 @@ pub fn install() -> SessionTabs {
                         if this.0.view_retry_timer.get().is_some() {
                             return;
                         }
-                        let delay = (250u64 << this.0.view_retry_attempt.get()).min(5_000);
+                        let delay = (250u64 << this.0.view_retry_attempt.get().min(5)).min(5_000);
                         this.0.view_retry_attempt.set(this.0.view_retry_attempt.get() + 1);
                         let retry = this.0.view_retry;
                         let this2 = this.clone();

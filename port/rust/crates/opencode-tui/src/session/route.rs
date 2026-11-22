@@ -3,10 +3,9 @@
 //! keybindings, and the composer area (prompt, permission and form prompts).
 //!
 //! TODO(port-tui): of Session's providers and features, not here yet: the epilogue (`epilogue.session`), the
-//! location's recovery (`currentLocation.error`, `<SessionLocationMissing>`), session tabs (scroll anchors and group
-//! disclosure are kept per route instance), the composer (subagents and terminals), the go-upsell offer on
-//! free-limit failures, undoing queued prompts, and the dialogs the commands open (timeline, fork, export) and the
-//! clipboard.
+//! location's recovery (`currentLocation.error`, `<SessionLocationMissing>`), the composer (subagents and terminals),
+//! the go-upsell offer on free-limit failures, undoing queued prompts, and the dialogs the commands open (timeline,
+//! fork, export) and the clipboard.
 use std::cell::{Cell, RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;

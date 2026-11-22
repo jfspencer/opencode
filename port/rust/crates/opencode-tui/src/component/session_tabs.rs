@@ -4,7 +4,9 @@
 //!
 //! Animations are timing, so the motion values collapse to their targets: `animations: false` makes every
 //! `createAnimatable` jump. The tab pulse renderables paint background cells only, so they are not ported here
-//! (`TabPulse`'s text cells are the same); the strip's backgrounds and text colors are.
+//! (`TabPulse`'s text cells are the same); the strip's backgrounds and text colors are. The hover marquee's
+//! scrolling text and the title shimmer's colour ramp are animation/hover paint, not ported; hover still narrows
+//! the title for the close mark, as in TS.
 use std::rc::Rc;
 
 use opencode_tui_core::color::text_attributes;

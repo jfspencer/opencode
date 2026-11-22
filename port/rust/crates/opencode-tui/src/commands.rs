@@ -159,7 +159,7 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
                     local.agent_set(&agent.id);
                 }
                 if let Some(model) = model {
-                    local.model_set(&model, true);
+                    local.model_set(&model, false);
                 }
                 dialog.clear();
             }
@@ -179,7 +179,7 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
                     local.agent_set(&agent.id);
                 }
                 if let Some(model) = model {
-                    local.model_set(&model, true);
+                    local.model_set(&model, false);
                 }
                 dialog.clear();
             }

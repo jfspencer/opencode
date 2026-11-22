@@ -405,4 +405,30 @@ mod tests {
         assert_eq!(target.as_deref(), Some("b"));
         assert_eq!(after.index, 1);
     }
+
+    #[test]
+    fn an_overflowing_strip_keeps_the_active_tab_and_reserves_marker_cells() {
+        let list = tabs(&["a", "b", "c", "d", "e", "f", "g", "h"]);
+        let layout = adaptive_session_tab_layout(&list, Some("e"), 40, 0);
+        assert!(layout.before > 0, "tabs before the window: {layout:?}");
+        assert!(layout.after > 0, "tabs after the window: {layout:?}");
+        assert!(layout.tabs.iter().any(|tab| tab.session_id == "e"));
+        let markers = session_tab_overflow_width(layout.before) + session_tab_overflow_width(layout.after);
+        assert_eq!(layout.widths.iter().sum::<i64>(), layout.total);
+        assert_eq!(layout.total + markers, 40);
+        assert!(layout.total <= 40);
+    }
+
+    #[test]
+    fn cycling_wraps_in_both_directions() {
+        let list = tabs(&["a", "b", "c"]);
+        assert_eq!(cycle_session_tab(&list, Some("c"), 1, |_| true).map(|tab| tab.session_id), Some("a".into()));
+        assert_eq!(cycle_session_tab(&list, Some("a"), -1, |_| true).map(|tab| tab.session_id), Some("c".into()));
+        assert_eq!(cycle_session_tab(&list, None, 1, |_| true).map(|tab| tab.session_id), Some("a".into()));
+        assert_eq!(cycle_session_tab(&list, None, -1, |_| true).map(|tab| tab.session_id), Some("c".into()));
+        assert_eq!(
+            cycle_session_tab(&list, Some("a"), 1, |tab| tab.session_id == "c").map(|tab| tab.session_id),
+            Some("c".into())
+        );
+    }
 }

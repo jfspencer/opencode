@@ -14,7 +14,7 @@ use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderables::scrollbox::ScrollBarOptions;
 use opencode_tui_core::renderables::text::WrapMode;
 use opencode_tui_core::solid::*;
-use opencode_tui_core::tree::{Align, Edge, FlexDirection, MouseEventType};
+use opencode_tui_core::tree::{Align, Edge, FlexDirection};
 use opencode_tui_sync::json::JsonExt;
 
 use crate::ctx::tui;
@@ -36,7 +36,6 @@ enum RightPane {
 pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32>) -> View {
     let t = tui();
     let dimensions = t.dimensions;
-    let theme = t.theme;
     let config = t.config_context.clone();
     let dialog = crate::ui::dialog::use_dialog();
     let sidebar_open = create_signal(false).0;
@@ -175,7 +174,8 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         show(
             {
                 let right_pane = right_pane.clone();
-                move || right_pane() == RightPane::Sidebar
+                let wide = wide.clone();
+                move || right_pane() == RightPane::Sidebar && wide()
             },
             {
                 let session_id = session_id.clone();
@@ -225,8 +225,6 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         ),
         At::End,
     );
-    let _ = theme;
-    let _ = MouseEventType::Down;
     View::Node(outer)
 }
 
@@ -327,7 +325,6 @@ fn sidebar(session_id: String) -> View {
         },
         move |value| path.set_content(value.as_deref().unwrap_or("")),
     );
-    let _ = session;
     View::Node(root)
 }
 
@@ -383,7 +380,6 @@ fn sidebar_context(session_id: String) -> View {
                                 let state = state.clone();
                                 move || {
                                     let tokens = text();
-                                    insert_node(el, tokens, None);
                                     bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| tokens.set_fg(Some(c)));
                                     let state_tokens = state.clone();
                                     bind(
@@ -391,7 +387,6 @@ fn sidebar_context(session_id: String) -> View {
                                         move |value| tokens.set_content(&value),
                                     );
                                     let percent = text();
-                                    insert_node(el, percent, None);
                                     bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| percent.set_fg(Some(c)));
                                     bind(
                                         {
@@ -407,11 +402,20 @@ fn sidebar_context(session_id: String) -> View {
                         ),
                         At::End,
                     );
-                    let spent = text();
-                    insert_node(el, spent, None);
-                    bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| spent.set_fg(Some(c)));
-                    bind(move || if cost.get() > 0.0 { format!("{:.2} spent", cost.get()) } else { String::new() }, move |value| spent.set_content(&value));
-                    insert(el, View::Node(spent), At::End);
+                    insert(
+                        el,
+                        show(
+                            move || cost.get() > 0.0,
+                            move || {
+                                let spent = text();
+                                bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| spent.set_fg(Some(c)));
+                                bind(move || format!("{:.2} spent", cost.get()), move |value| spent.set_content(&value));
+                                View::Node(spent)
+                            },
+                            None,
+                        ),
+                        At::End,
+                    );
                     View::Node(el)
                 }
             },

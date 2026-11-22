@@ -1,8 +1,8 @@
 //! `run(input)` and `<App>` (`packages/tui/src/app.tsx`): the config, the client and the location, the renderer
 //! with the TUI's options, the theme mode, the providers, the routes, and the exit.
 //!
-//! TODO(port-tui): of App's commands, keybinds, toasts, dialogs, session tabs, panels, plugins, the update
-//! notification, the attention and terminal-title effects, only what the home screen shows is here so far.
+//! TODO(port-tui): of App's commands, keybinds, toasts, dialogs, panels, plugins, the update notification, the
+//! attention and terminal-title effects, only what the home screen and the session tabs show is here so far.
 use std::cell::RefCell;
 use std::path::PathBuf;
 use std::rc::Rc;
