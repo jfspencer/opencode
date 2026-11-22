@@ -1,4 +1,4 @@
-//! The `opencode-pty` daemon's client (packages/core/src/persistent-pty/daemon.ts), protocol 7: four-byte big-endian
+//! The `opencode-pty` daemon's client (packages/core/src/persistent-pty/daemon.ts), protocol 9: four-byte big-endian
 //! length frames of JSON (`{token, request}`) over a Unix socket, the daemon's raw output frames tagged `0x00`.
 //!
 //! The server owns one daemon, in the runtime directory `<root>/<id>` (a fresh UUID per server), started detached on
@@ -22,7 +22,7 @@ use tokio::sync::mpsc;
 
 use crate::json::{self, Obj};
 
-const PROTOCOL_VERSION: f64 = 7.0;
+const PROTOCOL_VERSION: f64 = 9.0;
 const MAX_FRAME_BYTES: usize = 8 * 1024 * 1024;
 const TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -317,7 +317,7 @@ impl Transport {
         if protocol != PROTOCOL_VERSION {
             return Err(error(
                 Kind::Protocol,
-                format!("opencode-pty protocol mismatch: daemon={}, client=7", crate::json::text(&Json::Number(protocol))),
+                format!("opencode-pty protocol mismatch: daemon={}, client=9", crate::json::text(&Json::Number(protocol))),
             ));
         }
         let mut registration = Registration { instance_id, pid, socket, token, features: vec![] };
