@@ -354,21 +354,168 @@ pub fn oracle_sharded(ctx: &Ctx, args: &[String]) -> Result<()> {
 }
 
 pub fn rust_conformance(ctx: &Ctx, args: &[String]) -> Result<()> {
-    if args
-        .iter()
-        .any(|argument| argument == "--help" || argument == "-h")
-    {
-        println!("usage: rust-conformance [--update] [--release] [shards] [scenario files...]");
-        return Ok(());
-    }
+    let mut update = false;
     let mut release = false;
-    for argument in args {
-        match argument.as_str() {
-            "--update" => {}
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--update" => update = true,
             "--release" => release = true,
             _ => break,
         }
+        index += 1;
     }
+    let mut shards = 6usize;
+    if let Some(value) = args
+        .get(index)
+        .and_then(|value| value.parse::<usize>().ok())
+    {
+        shards = value;
+        index += 1;
+    }
+    let here = ctx.path("port/conformance");
+    let mut files = Vec::new();
+    for file in &args[index..] {
+        if file.trim_end_matches('/') == "tui" {
+            for name in test_files(&here.join("tui"))? {
+                files.push(format!("tui/{name}"));
+            }
+        } else {
+            files.push(file.clone());
+        }
+    }
+    if files.is_empty() {
+        for name in test_files(&here.join("scenarios"))? {
+            files.push(format!("scenarios/{name}"));
+        }
+    }
+
+    let binary = build_conformance(ctx, release)?;
+    let log = ctx.path("port/rust/target/conformance-logs");
+    process::remove_path(&log)?;
+    fs::create_dir_all(&log)?;
+
+    let mut children = Vec::new();
+    if shards > 0 {
+        for shard_index in 0..shards {
+            let mut server = Vec::new();
+            let mut tui = Vec::new();
+            for (position, file) in files.iter().enumerate() {
+                if position % shards != shard_index {
+                    continue;
+                }
+                match file.strip_prefix("tui/") {
+                    Some(name) => tui.push(format!("./{name}")),
+                    None => server.push(file.clone()),
+                }
+            }
+            if !server.is_empty() {
+                children.push(spawn_conformance(
+                    &here,
+                    &server,
+                    shard_index,
+                    false,
+                    &log,
+                    &binary,
+                )?);
+            }
+            if !tui.is_empty() {
+                children.push(spawn_conformance(
+                    &here.join("tui"),
+                    &tui,
+                    shard_index,
+                    true,
+                    &log,
+                    &binary,
+                )?);
+            }
+        }
+    }
+    for mut child in children {
+        let _ = child.wait()?;
+    }
+
+    let (pass, fail, skip) = conformance_results(&log, &here);
+    write_lines(&log.join("pass.txt"), &pass)?;
+    write_lines(&log.join("fail.txt"), &fail)?;
+    println!(
+        "rust: {} pass, {} fail, {} skip (logs: {})",
+        process::wc_count(pass.len()),
+        process::wc_count(fail.len()),
+        process::wc_count(skip.len()),
+        log.display()
+    );
+
+    let ledger_path = here.join("rust-passing.txt");
+    if !ledger_path.is_file() {
+        fs::write(&ledger_path, "")?;
+    }
+    let ledger = process::read(&ledger_path)?;
+    let ran: BTreeSet<&str> = files.iter().map(String::as_str).collect();
+    let expected: BTreeSet<String> = ledger
+        .lines()
+        .filter(|line| {
+            line.split_once(" \u{203a} ")
+                .is_some_and(|(file, _)| ran.contains(file))
+        })
+        .map(str::to_owned)
+        .collect();
+
+    let regressed: Vec<&String> = expected.difference(&pass).collect();
+    let added: Vec<&String> = pass.difference(&expected).collect();
+    if !added.is_empty() {
+        println!(
+            "passing, not in the ledger yet ({}):",
+            process::wc_count(added.len())
+        );
+        for line in added.iter().take(50) {
+            println!("  {line}");
+        }
+    }
+    if update {
+        let mut merged: BTreeSet<String> = ledger
+            .lines()
+            .filter(|line| !line.is_empty())
+            .map(str::to_owned)
+            .collect();
+        merged.extend(pass.iter().cloned());
+        let mut text = String::new();
+        for line in &merged {
+            text.push_str(line);
+            text.push('\n');
+        }
+        process::write(&ledger_path, text)?;
+        println!(
+            "ledger updated: {} scenarios",
+            process::wc_count(merged.len())
+        );
+    }
+    write_lines(&log.join("skip.txt"), &skip)?;
+
+    let mut finished = pass.clone();
+    finished.extend(fail.iter().cloned());
+    finished.extend(skip.iter().cloned());
+    let stale: Vec<&String> = expected.difference(&finished).collect();
+    if !stale.is_empty() {
+        println!("in the ledger but not run (renamed or removed? edit the ledger by hand):");
+        for line in &stale {
+            println!("  {line}");
+        }
+    }
+    if !regressed.is_empty() {
+        println!(
+            "REGRESSED: in the ledger but failing ({}):",
+            process::wc_count(regressed.len())
+        );
+        for line in &regressed {
+            println!("  {line}");
+        }
+        return Err(Error::silent(1));
+    }
+    Ok(())
+}
+
+fn build_conformance(ctx: &Ctx, release: bool) -> Result<PathBuf> {
     let rust = ctx.path("port/rust");
     if !ctx
         .path("port/.vendor/opentui/packages/native/zig-deps/yoga")
@@ -383,8 +530,7 @@ pub fn rust_conformance(ctx: &Ctx, args: &[String]) -> Result<()> {
     let mut build = Command::new("cargo");
     build
         .current_dir(&rust)
-        .args(["build", "--quiet"])
-        .args(["-p", "opencode"])
+        .args(["build", "--quiet", "-p", "opencode"])
         .env("OPENCODE_VERSION", "conformance")
         .env("OPENCODE_CHANNEL", "conformance");
     if release {
@@ -397,17 +543,91 @@ pub fn rust_conformance(ctx: &Ctx, args: &[String]) -> Result<()> {
         }
     }
     process::check(build, "cargo build -p opencode")?;
-
-    use std::os::unix::process::CommandExt;
-    let script = ctx.path("port/scripts/rust-conformance.sh");
-    let error = Command::new("bash")
-        .arg(&script)
-        .args(args)
-        .env("OPENCODE_XTASK_SKIP_BUILD", "1")
-        .exec();
-    Err(Error::new(format!("exec {}: {error}", script.display())))
+    let profile = if release { "release" } else { "debug" };
+    Ok(ctx.path(format!("port/rust/target/{profile}/opencode")))
 }
 
+fn spawn_conformance(
+    directory: &Path,
+    files: &[String],
+    shard: usize,
+    tui: bool,
+    log: &Path,
+    binary: &Path,
+) -> Result<Child> {
+    let stem = if tui {
+        format!("shard-{shard}-tui")
+    } else {
+        format!("shard-{shard}")
+    };
+    let xml = log.join(format!("{stem}.xml"));
+    let output = File::create(log.join(format!("{stem}.log")))?;
+    let mut command = Command::new("bun");
+    command
+        .current_dir(directory)
+        .args(["test", "--reporter=junit"])
+        .arg(format!("--reporter-outfile={}", xml.display()))
+        .args(files)
+        .env("CONFORMANCE_IMPL", binary)
+        .env("CONFORMANCE_STRICT", "1");
+    command
+        .stdout(Stdio::from(output.try_clone()?))
+        .stderr(Stdio::from(output));
+    Ok(command.spawn()?)
+}
+
+fn conformance_results(
+    log: &Path,
+    conformance: &Path,
+) -> (BTreeSet<String>, BTreeSet<String>, BTreeSet<String>) {
+    let mut pass = BTreeSet::new();
+    let mut fail = BTreeSet::new();
+    let mut skip = BTreeSet::new();
+    let mut reports = Vec::new();
+    if let Ok(entries) = fs::read_dir(log) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if name.starts_with("shard-") && name.ends_with(".xml") {
+                reports.push(entry.path());
+            }
+        }
+    }
+    reports.sort();
+    for report in reports {
+        let Ok(cases) = crate::junit::parse(&report, conformance) else {
+            continue;
+        };
+        for case in cases {
+            let line = format!("{} \u{203a} {}", case.file, case.name);
+            match case.kind {
+                crate::junit::Kind::Pass => {
+                    pass.insert(line);
+                }
+                crate::junit::Kind::Fail => {
+                    fail.insert(line);
+                }
+                crate::junit::Kind::Skip => {
+                    skip.insert(line);
+                }
+            }
+        }
+    }
+    (pass, fail, skip)
+}
+
+fn write_lines(path: &Path, lines: &BTreeSet<String>) -> Result<()> {
+    if lines.is_empty() {
+        fs::write(path, "")?;
+        return Ok(());
+    }
+    let mut text = String::new();
+    for line in lines {
+        text.push_str(line);
+        text.push('\n');
+    }
+    fs::write(path, text)?;
+    Ok(())
+}
 fn load_lists(ctx: &Ctx) -> Result<Value> {
     let out = ctx.path("port/coverage/out");
     let path = out.join("lists.json");

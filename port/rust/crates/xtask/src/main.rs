@@ -5,7 +5,9 @@
 //! replace; the logic lives in Rust so macOS and Linux do not need GNU coreutils.
 
 mod archive;
+mod junit;
 mod process;
+mod reference;
 mod scripts;
 mod suites;
 mod vendor;
@@ -28,6 +30,7 @@ Setup and vendor:
   opencode-pty [--source] [--install]  provide the persistent-terminal daemon
   check-macos                          cargo check both Apple targets
   sync-upstream                        merge upstream/dev (never pushes)
+  reference <build|save|amend|export|status>  maintain the TS reference worktree
 
 Suites and coverage:
   upstream-tests <label> [tree]        run upstream's in-scope tests
@@ -36,11 +39,11 @@ Suites and coverage:
   oracle [files...]                    run conformance scenarios with coverage
   oracle-sharded [label] [shards]
   coverage-run <label> <category,...>  run upstream files with coverage
-  rust-conformance [options] [files]   preflight/build, then the sharded runner
+  rust-conformance [options] [files]   full sharded runner, JUnit parsing and ledger update
 
-The commands still invoke bun, cargo, git and curl. `reference` is deliberately still the shell script
-while the reference is being repaired, and the differential harness scripts under port/rust/crates/*/harness
-remain shell for now.
+The commands still invoke bun, cargo, git and curl. The reference and rust-conformance implementations are
+complete; their port/scripts wrappers are not switched yet. The differential harness scripts under
+port/rust/crates/*/harness remain shell for now.
 ";
 
 fn main() -> ExitCode {
@@ -87,9 +90,7 @@ fn run(arguments: &[String]) -> Result<()> {
         "oracle-sharded" => suites::oracle_sharded(&ctx, args),
         "coverage-run" => suites::coverage_run(&ctx, args),
         "rust-conformance" => suites::rust_conformance(&ctx, args),
-        "reference" => Err(Error::new(
-            "reference is not ported yet: port/scripts/reference.sh is in active use while the reference is repaired",
-        )),
+        "reference" => reference::run(&ctx, args),
         other => Err(Error::usage(format!("unknown command {other}\n\n{USAGE}"))),
     }
 }

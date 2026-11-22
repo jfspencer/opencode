@@ -8,6 +8,8 @@ cd port/rust
 cargo build -p xtask          # once; the `xtask` alias is in port/rust/.cargo/config.toml
 cargo xtask check-upstream-clean
 cargo xtask vendor-grammars /tmp/grammars
+cargo xtask reference status
+cargo xtask rust-conformance scenarios/session-api-crud.test.ts
 cargo xtask --help
 ```
 
@@ -16,10 +18,10 @@ Cargo discovers aliases from the current directory upward, so from the repositor
 an upstream-owned file.
 
 The old `port/scripts/*.sh` paths remain as thin `exec` wrappers. They run `port/rust/target/debug/xtask`
-when it exists, otherwise they fall back to one `cargo run --quiet -p xtask -- <command>`. `reference.sh`,
-`link-deps.sh` and `rust-conformance.sh` are deliberately still shell: the reference and TUI work is active,
-and `rust-conformance` delegates its sharded bun runner to the existing script after this command performs the
-preflight and build.
+when it exists, otherwise they fall back to one `cargo run --quiet -p xtask -- <command>`. `link-deps.sh` is
+still the shell fallback while the reference is being repaired, and the `reference.sh` / `rust-conformance.sh`
+wrappers are not switched yet: both commands are complete in xtask, so each wrapper can become the same
+three-line `exec` wrapper used by the other scripts.
 
 ## Ported commands
 
@@ -39,21 +41,34 @@ preflight and build.
 | `oracle` | `[files...]`; `tui/<file>` for TUI | `LABEL` | 0 unless bun cannot start | `port/coverage/out/<label>-*` |
 | `oracle-sharded` | `[label=oracle] [shards=8]` | as `oracle` per shard | 0 unless bun cannot start | sharded coverage output |
 | `coverage-run` | `<label> <category,...>` | none | 0 unless the tooling fails | `port/coverage/out/<label>-*` |
-| `rust-conformance` | `[--update] [--release] [shards] [files...]` | `OPENCODE_VERSION`, `OPENCODE_CHANNEL`, pty embed | 0/1 | vendored sources, `port/rust/target/debug|release/opencode`, then the existing sharded runner |
-| `reference` | not ported | — | 2 | prints a pointer to `port/scripts/reference.sh` |
+| `rust-conformance` | `[--update] [--release] [shards] [files...]` | `OPENCODE_VERSION`, `OPENCODE_CHANNEL`, pty embed | 0/1 | vendored sources, `port/rust/target/debug|release/opencode`, per-shard JUnit logs, ledger update |
+| `reference` | `build`, `save "D123 ..." [body]`, `amend D123`, `export`, `status` | `REFERENCE`; pinned git identity | 0/1 | creates/updates `port/.reference`, `port/patches/`, `bun install`, link-deps |
 
 `gen-types generate` and `gen-types check` are the only modes; an unknown mode is a usage error.
 
+## Wrappers not switched
+
+`port/scripts/reference.sh`, `port/scripts/rust-conformance.sh` and `port/scripts/link-deps.sh` still contain
+their shell implementations. The first two are fully ported; when the active reference/TUI work settles they
+should become the same wrapper as the other scripts:
+
+```sh
+root=$(git rev-parse --show-toplevel)
+bin=$root/port/rust/target/debug/xtask
+if [ -x "$bin" ]; then exec "$bin" reference "$@"; fi
+exec cargo run --quiet --manifest-path "$root/port/rust/Cargo.toml" -p xtask -- reference "$@"
+```
+
+(`reference`, `rust-conformance`, and `link-deps` respectively.) Until then, `cargo xtask reference` and
+`cargo xtask rust-conformance` are the complete implementations and produce the same reports as the scripts.
+
 ## Scripts still to port
 
-These remain shell because they either drive an active external workflow or are thin bun/cargo harnesses.
-Their arguments and side effects are unchanged; the macOS portability fixes already applied are listed in the
-main report.
+These remain shell because they are thin bun/cargo differential harnesses. Their arguments and side effects
+are unchanged; the macOS portability fixes already applied are listed in the main report.
 
 | Script | Arguments | Environment | Exit | Side effects |
 |---|---|---|---|---|
-| `port/scripts/reference.sh` | `build`, `save "D123 ..." [body]`, `amend D123`, `export`, `status` | `REFERENCE`; git identity is pinned | 0/1 | creates/updates `port/.reference`, `port/patches/`, `bun install` |
-| `port/scripts/rust-conformance.sh` | `--update`, `--release`, `[shards]`, `[files...]` | conformance env vars, pty embed | 0/1 | builds the binary, writes logs and the ledger; `cargo xtask rust-conformance` sets `OPENCODE_XTASK_SKIP_BUILD=1` after its own preflight |
 | `port/scripts/link-deps.sh` | `[reference-root]` | none | 0/1 | same as `cargo xtask link-deps`; kept while the reference is repaired |
 | `port/rust/crates/opencode-codemode/harness/check.sh` | `[corpus...] [--show N]` | `TZ=UTC` | 0/1 | `target/release/examples`, temp JSONL |
 | `.../codemode/harness/jsdate/check.sh` | `[scale] [zone...]` | `SEED`, `TZ` | 0/1/2 | `target/release/examples` |

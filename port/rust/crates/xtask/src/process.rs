@@ -305,6 +305,16 @@ pub fn download(url: &str, destination: impl AsRef<Path>) -> Result<()> {
     Ok(())
 }
 
+/// The text `wc -l` prints for a count. BSD `wc` pads to eight columns; GNU `wc` does not. Shell output
+/// that goes through `wc -l` keeps the host's spelling, including its leading spaces.
+pub fn wc_count(count: usize) -> String {
+    if cfg!(target_os = "macos") {
+        format!("{count:>8}")
+    } else {
+        count.to_string()
+    }
+}
+
 pub fn which(program: &str) -> Option<PathBuf> {
     let path = std::env::var_os("PATH")?;
     for directory in std::env::split_paths(&path) {

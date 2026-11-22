@@ -168,7 +168,7 @@ pub fn link_deps(ctx: &Ctx, target: Option<PathBuf>) -> Result<()> {
         for entry in entries.flatten() {
             let name = entry.file_name().to_string_lossy().into_owned();
             if name.starts_with('@') {
-                if name == "@opencode" || !entry.path().is_dir() {
+                if !entry.path().is_dir() {
                     continue;
                 }
                 if let Ok(scoped) = fs::read_dir(entry.path()) {
@@ -190,8 +190,10 @@ pub fn link_deps(ctx: &Ctx, target: Option<PathBuf>) -> Result<()> {
         .map(|entries| entries.count())
         .unwrap_or(0);
     println!(
-        "conformance reference: {} ({opencode} @opencode packages, {opentui} @opentui)",
-        target.display()
+        "conformance reference: {} ({} @opencode packages, {} @opentui)",
+        target.display(),
+        process::wc_count(opencode),
+        process::wc_count(opentui)
     );
     Ok(())
 }
@@ -200,7 +202,6 @@ fn link_tui_dependency(node_modules: &Path, name: &str) -> Result<()> {
     if name == ".bin"
         || name.starts_with(".bin/")
         || name == "@opencode"
-        || name.starts_with("@opencode/")
         || name == "effect"
         || (!name.contains('/') && name.starts_with('@'))
     {

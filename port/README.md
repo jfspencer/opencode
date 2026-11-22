@@ -46,16 +46,24 @@ cargo build -p xtask                 # once; the alias is in port/rust/.cargo/co
 cargo xtask check-upstream-clean
 cargo xtask vendor-grammars /tmp/grammars
 cargo xtask link-deps
+cargo xtask reference status
+cargo xtask rust-conformance scenarios/session-api-crud.test.ts
 cargo xtask --help
 ```
 
-The old `port/scripts/*.sh` and `port/coverage/*.sh` paths are thin wrappers: they exec
+`cargo xtask reference` implements `build`, `save`, `amend`, `export` and `status` with the same sparse
+worktree, `port-base`/`port-exported`, patch-order, `bun install` and link-deps behaviour as the shell script.
+`cargo xtask rust-conformance` is the full sharded runner: it expands `tui`, runs the vendor/pty/build
+preflight, starts one JUnit reporter per shard, parses the reports, and prints the pass/fail/skip summary plus
+the added, stale and regressed ledger entries with `--update` support.
+
+The other `port/scripts/*.sh` and `port/coverage/*.sh` paths are thin wrappers: they exec
 `port/rust/target/debug/xtask` when it exists, and otherwise build once through
-`cargo run --quiet -p xtask -- <command>`. `port/scripts/reference.sh` is deliberately still shell while the
-reference is being repaired, and `cargo xtask rust-conformance` performs the vendor/pty/build preflight and
-then delegates the sharded bun runner to `port/scripts/rust-conformance.sh` (which still runs directly too).
-`port/scripts/link-deps.sh` is kept as the shell fallback for the same reason, but no longer uses
-`realpath --relative-to`. The crate's README lists every command and the harness scripts still to port.
+`cargo run --quiet -p xtask -- <command>`. `port/scripts/reference.sh`, `rust-conformance.sh` and
+`link-deps.sh` still contain their shell implementations while the reference/TUI work is active; the first two
+are fully ported and only need to become the same wrapper. `link-deps.sh` remains the shell fallback and no
+longer uses `realpath --relative-to`. The crate's README lists every command and the harness scripts still to
+port.
 
 ### macOS
 
