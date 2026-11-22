@@ -2,7 +2,7 @@
 // environment once, at import time, so isolation has to happen here: the oracle must never read the user's
 // real config or write into their real data directories.
 import { afterAll } from "bun:test"
-import { mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
+import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -11,6 +11,7 @@ for (const key of Object.keys(process.env)) {
     delete process.env[key]
 }
 
+const realHome = process.env.HOME
 const root = realpathSync(mkdtempSync(path.join(tmpdir(), "oc-conformance-")))
 const dir = (name: string) => {
   const target = path.join(root, name)
@@ -29,6 +30,13 @@ if (!process.env.CONFORMANCE_KEEP_SANDBOX)
       rmSync(root, { recursive: true, force: true })
     } catch {}
   })
+// File search needs ripgrep. CI has it on PATH; a macOS development machine may only have the copy opencode
+// already cached under the real home. The pinned 15.1.0 binary is the same one a download would install, and the
+// fake network cannot reach GitHub, so expose the host's copy when PATH has none.
+if (!Bun.which("rg") && realHome) {
+  const cached = path.join(realHome, ".cache/opencode/bin/rg")
+  if (existsSync(cached)) process.env.PATH = `${path.dirname(cached)}:${process.env.PATH}`
+}
 process.env.HOME = dir("home")
 process.env.OPENCODE_TEST_HOME = process.env.HOME
 process.env.XDG_CONFIG_HOME = dir("config")
