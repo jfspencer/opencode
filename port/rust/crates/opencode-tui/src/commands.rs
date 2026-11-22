@@ -150,8 +150,18 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         // TODO(port-tui): the session slice (route to home in the new session's location).
         app("session.new", "New session", "Session", {
             let dialog = dialog.clone();
+            let local = local.clone();
             move || {
+                // The new session starts from the selection the open session had.
+                let model = local.model_current();
+                let agent = local.agent_current();
                 route.set(Route::Home);
+                if let Some(agent) = agent {
+                    local.agent_set(&agent.id);
+                }
+                if let Some(model) = model {
+                    local.model_set(&model, false);
+                }
                 dialog.clear();
             }
         })
@@ -199,8 +209,11 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
     }
     let variants = local.variant_list();
     commands.extend([
-        // TODO(port-tui): DialogModel.
-        app("model.list", "Switch model", "Agent", stand_in).suggested(true).slash("models", &[]),
+        app("model.list", "Switch model", "Agent", open(dialog, || {
+            crate::component::dialog_model::dialog_model(crate::component::dialog_model::DialogModelProps::default())
+        }))
+        .suggested(true)
+        .slash("models", &[]),
         app("model.cycle_recent", "Model cycle", "Agent", {
             let local = local.clone();
             move || local.cycle(1)
@@ -221,8 +234,8 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
             move || local.cycle_favorite(-1)
         })
         .palette(false),
-        // TODO(port-tui): DialogAgent.
-        app("agent.list", "Switch agent", "Agent", stand_in).slash("agents", &[]),
+        app("agent.list", "Switch agent", "Agent", open(dialog, crate::component::dialog_agent::dialog_agent))
+            .slash("agents", &[]),
         app("usage.show", "View usage", "Agent", open(dialog, crate::usage::dialog_usage)).slash("usage", &[]),
         // TODO(port-tui): DialogMcp.
         app("mcp.list", "MCP servers", "Agent", stand_in).slash("mcps", &[]),
@@ -235,17 +248,19 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
             let local = local.clone();
             move || local.variant_cycle()
         }),
-        // TODO(port-tui): DialogVariant.
         app("variant.list", "Switch model variant", "Agent", {
             let toast = t.toast.clone();
             let local = local.clone();
+            let dialog = dialog.clone();
             move || {
                 if local.variant_list().is_empty() {
                     toast.show(
                         crate::toast::ToastInput::new(crate::toast::Variant::Info, "The current model does not support any variants.")
                             .title("No variants available"),
                     );
+                    return;
                 }
+                dialog.replace(|| component(crate::component::dialog_variant::dialog_variant), None, None, None);
             }
         })
         .palette(!variants.is_empty())
