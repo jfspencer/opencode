@@ -15,7 +15,7 @@ import { AbsolutePath } from "@opencode/core/schema"
 import { location } from "./fixture/location"
 import { it } from "./lib/effect"
 
-const cacheKey = "models-dev:v2:catalog"
+const cacheKey = "models-dev:v3:catalog"
 const metaKey = `${cacheKey}:meta`
 
 test("normalizes permissive interleaved values to compatibility", () => {
@@ -278,12 +278,23 @@ describe("ModelsDev Service", () => {
                 responses: {
                   base_url: "https://api.acme.test/v1",
                   sdk: { aisdk: "@ai-sdk/openai", opencodeai: "@opencode/ai/providers/openai/responses" },
+                  capabilities: { tools: { freeform: ["text", "future-grammar", "lark"] } },
                 },
-                "chat-completions": { base_url: "https://other.acme.test/v1", sdk: { aisdk: "@ai-sdk/openai" } },
+                "chat-completions": {
+                  base_url: "https://other.acme.test/v1",
+                  sdk: { aisdk: "@ai-sdk/openai" },
+                  capabilities: { tools: { freeform: ["regex"] } },
+                },
               },
             }),
             "acme-fallback": sourceModel("acme-fallback", {
-              api: { messages: { base_url: "https://claude.acme.test/v1", sdk: { aisdk: "@ai-sdk/anthropic" } } },
+              api: {
+                messages: {
+                  base_url: "https://claude.acme.test/v1",
+                  sdk: { aisdk: "@ai-sdk/anthropic" },
+                  capabilities: { tools: { freeform: ["future-grammar"] } },
+                },
+              },
             }),
           },
         },
@@ -316,8 +327,11 @@ describe("ModelsDev Service", () => {
       const acmeModel = (id: string) => acme?.models.find((model) => model.id === id)
       expect(acmeModel("acme-responses")?.package).toBe("@opencode/ai/providers/openai/responses")
       expect(acmeModel("acme-responses")?.settings).toBeUndefined()
+      expect(acmeModel("acme-responses")?.capabilities.freeform).toEqual(["text", "lark"])
+      expect(acmeModel("acme-1")?.capabilities.freeform).toBeUndefined()
       // Without an opencode package, the AI SDK package maps to the native one as before.
       expect(acmeModel("acme-fallback")?.package).toBe("@opencode/ai/providers/anthropic")
+      expect(acmeModel("acme-fallback")?.capabilities.freeform).toEqual([])
       expect(acmeModel("acme-fallback")?.settings).toEqual({ baseURL: "https://claude.acme.test/v1" })
 
       const azureModel = (id: string) => azure?.models.find((model) => model.id === id)
@@ -439,6 +453,31 @@ describe("ModelsDev Service", () => {
     }),
   )
 
+  it.effect("attaches the OpenAI subscription lists to openai instead of adding them as providers", () =>
+    Effect.gen(function* () {
+      const list = (id: string, models: Record<string, unknown>) => ({
+        id,
+        name: id,
+        env: ["CHATGPT_ACCESS_TOKEN"],
+        models,
+      })
+      const snapshots = yield* ModelsDev.decodeSnapshot(
+        JSON.stringify({
+          openai: { id: "openai", name: "OpenAI", env: ["OPENAI_API_KEY"], models: { "gpt-6": sourceModel("gpt-6") } },
+          "openai-codex": list("openai-codex", {
+            "gpt-6": sourceModel("gpt-6", { experimental: { modes: { fast: {} } } }),
+          }),
+          "openai-chatgpt": list("openai-chatgpt", { "gpt-5.5": sourceModel("gpt-5.5") }),
+        }),
+      )
+      expect(snapshots.map((item) => item.info.id)).toEqual([Provider.ID.openai])
+      expect(snapshots[0]?.subscriptions).toEqual({
+        "openai-codex": ["gpt-6", "gpt-6-fast"],
+        "openai-chatgpt": ["gpt-5.5"],
+      })
+    }),
+  )
+
   it.effect("skips APIs whose opencode entrypoint this build doesn't have", () =>
     Effect.gen(function* () {
       const unknown = (path: string) => ({
@@ -534,6 +573,35 @@ describe("ModelsDev Service", () => {
         [Model.ID.make("image"), "image", "@opencode/ai/providers/openai-compatible/images"],
         [Model.ID.make("decision"), "decision", "@opencode/ai/providers/openrouter/decisions"],
       ])
+    }),
+  )
+
+  it.effect("keeps realtime models that answer in speech and call tools as voice models, not chat models", () =>
+    Effect.gen(function* () {
+      const realtime = (id: string, input: Record<string, unknown> = {}) =>
+        sourceModel(id, {
+          type: "realtime",
+          release_date: "2026-09-10",
+          modalities: { input: ["audio/pcm"], output: ["text", "audio/pcm"] },
+          api: { live: { base_url: "https://api.acme.test/v1", sdk: { opencodeai: "none" } } },
+          ...input,
+        })
+      const [acme] = yield* ModelsDev.decodeSnapshot(
+        JSON.stringify({
+          acme: {
+            ...fixture.acme,
+            models: {
+              chat: sourceModel("chat"),
+              voice: realtime("voice", { name: "Voice 1" }),
+              translate: realtime("translate", { capabilities: { tools: { supported: false } } }),
+              streaming: realtime("streaming", { modalities: { input: ["audio/pcm"], output: ["text"] } }),
+              retired: realtime("retired", { status: "deprecated" }),
+            },
+          },
+        }),
+      )
+      expect(acme?.models.map((item) => item.id)).toEqual([Model.ID.make("chat")])
+      expect(acme?.voices).toEqual([{ id: "voice", name: "Voice 1", api: "live", releaseDate: "2026-09-10" }])
     }),
   )
 
@@ -707,7 +775,7 @@ describe("ModelsDev Service", () => {
       )
       const [beta] = yield* ModelsDev.Service.use((service) => service.get()).pipe(Effect.provide(layer))
       expect(urls).toEqual([
-        "https://mirror.example/experimental/v2.0/api.json?type=chat,decision,image",
+        "https://mirror.example/experimental/v2.0/api.json?type=chat,decision,image,video,realtime&include=openai-codex,openai-chatgpt",
         "https://mirror.example/api.json",
       ])
       expect(beta?.models.map((model) => model.id)).toEqual([Model.ID.make("beta-1")])
@@ -788,7 +856,7 @@ describe("ModelsDev Service", () => {
         Effect.provide(buildLayer(state, cache, { url: "", fetch: true, snapshot: false })),
       )
       expect((yield* Ref.get(state)).calls[0]?.url).toBe(
-        "https://models.opencode.ai/experimental/v2.0/api.json?type=chat,decision,image",
+        "https://models.opencode.ai/experimental/v2.0/api.json?type=chat,decision,image,video,realtime&include=openai-codex,openai-chatgpt",
       )
     }),
   )
@@ -1061,6 +1129,24 @@ describe("ModelsDev Service", () => {
       if (unrequested304?.status._tag === "Ended") {
         expect(Exit.isFailure(unrequested304.status.exit)).toBe(true)
       }
+    }),
+  )
+
+  it.live("frees and ignores catalogs cached under earlier keys", () =>
+    Effect.gen(function* () {
+      const cache = makeCache()
+      for (const old of ["models-dev:catalog", "models-dev:v2:catalog"]) {
+        cache.values.set(old, { updatedAt: Date.now(), digest: "old", body: "{}" })
+        cache.values.set(`${old}:meta`, { updatedAt: Date.now(), digest: "old" })
+      }
+      const state = yield* Ref.make(initialState)
+      const snapshots = yield* provided(
+        state,
+        cache,
+        Effect.flatMap(ModelsDev.Service, (svc) => svc.get()),
+      )
+      expect(snapshots.length).toBeGreaterThan(0)
+      expect([...cache.values.keys()]).toEqual([])
     }),
   )
 
