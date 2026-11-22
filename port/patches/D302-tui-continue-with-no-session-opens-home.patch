@@ -1,18 +1,14 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:39:08 -0700
+Date: Sun, 22 Nov 2026 15:07:03 -0700
 Subject: [PATCH] D302 tui: --continue with no session opens home
 
-Upstream: `--continue` starts on a placeholder session route ("dummy") until the latest session is known. With no session to continue the route is never left: the TUI loads the placeholder as a session, which fails server-side validation, so it shows a raw validation-error toast (`Expected a string starting with "ses"`, whichever invalid request fails first) before falling back to home. With sessions, the placeholder's failing requests race the real navigation.
-Fixed: the placeholder is never loaded as a session (no requests for it); with nothing to continue, or when listing/forking fails, the TUI goes home (the failure still toasts).
-Scenarios: tui/nav-args.test.ts "args: --continue without any session", "args: --continue opens the latest session" (new)
-Upstream tests: test/app-lifecycle.test.tsx: the sessions it opens are no longer named "dummy", the placeholder's reserved ID
 
 diff --git a/packages/tui/src/app.tsx b/packages/tui/src/app.tsx
-index 032655c271..387510a7b4 100644
+index 00832545e7..4f623b03a7 100644
 --- a/packages/tui/src/app.tsx
 +++ b/packages/tui/src/app.tsx
-@@ -700,17 +700,17 @@ function App() {
+@@ -717,17 +717,17 @@ function App() {
        })
        .then((response) => {
          const match = response.data[0]?.id
@@ -38,7 +34,7 @@ index 032655c271..387510a7b4 100644
    })
  
    // Handle --session with --fork once.
-@@ -1444,7 +1444,15 @@ function App() {
+@@ -1461,7 +1461,15 @@ function App() {
                    <Home />
                  </Match>
                  <Match when={route.data.type === "session"}>
@@ -56,7 +52,7 @@ index 032655c271..387510a7b4 100644
                        <SessionFrame
                          sessionID={sessionID}
 diff --git a/packages/tui/test/app-lifecycle.test.tsx b/packages/tui/test/app-lifecycle.test.tsx
-index ae6f6415b5..f2e586ad03 100644
+index e0d3ba87e9..5d55e21326 100644
 --- a/packages/tui/test/app-lifecycle.test.tsx
 +++ b/packages/tui/test/app-lifecycle.test.tsx
 @@ -312,7 +312,7 @@ test("session lifecycle updates the terminal title and prints the epilogue after
@@ -163,7 +159,7 @@ index ae6f6415b5..f2e586ad03 100644
      })
      await Promise.race([
        renameSyncRequested.promise,
-@@ -853,7 +853,7 @@ test("session startup prompt is submitted exactly once", async () => {
+@@ -968,7 +968,7 @@ test("session startup prompt is submitted exactly once", async () => {
    const cwd = process.cwd()
    const location = { directory: cwd, project: { id: "project", directory: cwd } }
    const session = {
@@ -172,7 +168,7 @@ index ae6f6415b5..f2e586ad03 100644
      title: "Demo session",
      projectID: "project",
      location: { directory: cwd },
-@@ -868,10 +868,10 @@ test("session startup prompt is submitted exactly once", async () => {
+@@ -983,10 +983,10 @@ test("session startup prompt is submitted exactly once", async () => {
    const calls = createFetch(async (url, request) => {
      if (url.pathname === "/api/location") return json(location)
      if (url.pathname === "/api/session") return json({ data: [session], cursor: {} })
@@ -187,7 +183,7 @@ index ae6f6415b5..f2e586ad03 100644
      if (url.pathname === "/api/agent")
        return json({
          location,
-@@ -882,7 +882,7 @@ test("session startup prompt is submitted exactly once", async () => {
+@@ -997,7 +997,7 @@ test("session startup prompt is submitted exactly once", async () => {
          location,
          data: [{ id: "model", providerID: "provider", name: "Model", variants: [] }],
        })
@@ -196,7 +192,7 @@ index ae6f6415b5..f2e586ad03 100644
        bodies.push(await request.json())
        promptSubmitted.resolve()
        return json({ data: {} })
-@@ -899,7 +899,7 @@ test("session startup prompt is submitted exactly once", async () => {
+@@ -1014,7 +1014,7 @@ test("session startup prompt is submitted exactly once", async () => {
          config: { get: async () => ({}), update: async () => ({}) },
          packages: { prepare: async () => ({ directory: "" }) },
          terminalHandoff: async () => ({ renderer: setup.renderer, mode: "dark", complete: () => {} }),
@@ -205,7 +201,7 @@ index ae6f6415b5..f2e586ad03 100644
          log: () => {},
        }).pipe(Effect.provide(Global.layerWith({ state: state.path })), Effect.provide(FileSystem.layerNoop({}))),
      )
-@@ -1204,7 +1204,7 @@ test("new session inherits the active session model", async () => {
+@@ -1319,7 +1319,7 @@ test("new session inherits the active session model", async () => {
    const cwd = process.cwd()
    const location = { directory: cwd, project: { id: "project", directory: cwd } }
    const session = {
@@ -214,7 +210,7 @@ index ae6f6415b5..f2e586ad03 100644
      title: "Demo session",
      projectID: "project",
      location: { directory: cwd },
-@@ -1217,15 +1217,15 @@ test("new session inherits the active session model", async () => {
+@@ -1332,15 +1332,15 @@ test("new session inherits the active session model", async () => {
    await using setup = await createAppFixture({
      width: 80,
      height: 24,
@@ -235,7 +231,7 @@ index ae6f6415b5..f2e586ad03 100644
        if (url.pathname === "/api/agent")
          return json({ location, data: [{ id: "build", mode: "primary", hidden: false, permissions: [] }] })
        if (url.pathname === "/api/provider") return json({ location, data: [{ id: "provider", name: "Provider" }] })
-@@ -1396,7 +1396,7 @@ test.skipIf(process.platform === "win32").each(["manual", "select"] as const)(
+@@ -1511,7 +1511,7 @@ test.skipIf(process.platform === "win32").each(["manual", "select"] as const)(
      setup.renderer.start()
      const ready = Promise.withResolvers<void>()
      const session = {
@@ -244,7 +240,7 @@ index ae6f6415b5..f2e586ad03 100644
        title: "Selection fixture",
        projectID: "project",
        location: { directory },
-@@ -1420,11 +1420,11 @@ test.skipIf(process.platform === "win32").each(["manual", "select"] as const)(
+@@ -1535,11 +1535,11 @@ test.skipIf(process.platform === "win32").each(["manual", "select"] as const)(
      const input: string[] = []
      const calls = createFetch((url, request) => {
        if (url.pathname === "/api/session") return json({ data: [session], cursor: {} })

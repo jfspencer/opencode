@@ -1,16 +1,11 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:05:53 -0700
+Date: Sun, 22 Nov 2026 15:01:13 -0700
 Subject: [PATCH] D210 core: session import keeps the staged revert
 
-Upstream: POST /api/experimental/session/import accepts info.revert (export includes it, and a sanitized export
-redacts its files and patches) but never stores it, so an imported session loses its staged revert.
-Fixed: the import stores info.revert with the rest of the session's state.
-Scenarios: session-api-transfer.test.ts "import a transcript with every message type"
-Upstream tests: packages/server/test/session-import.test.ts adds a test
 
 diff --git a/packages/core/src/session/transfer.ts b/packages/core/src/session/transfer.ts
-index f590d46081..1b37883861 100644
+index 47e3c5000c..1bd839bca3 100644
 --- a/packages/core/src/session/transfer.ts
 +++ b/packages/core/src/session/transfer.ts
 @@ -192,6 +192,7 @@ const layer = Layer.effect(

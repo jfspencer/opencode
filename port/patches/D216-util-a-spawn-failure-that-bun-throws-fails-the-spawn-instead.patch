@@ -1,18 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:49:31 -0700
+Date: Sun, 22 Nov 2026 15:02:41 -0700
 Subject: [PATCH] D216 util: a spawn failure that Bun throws fails the spawn
  instead of hanging
 
-Upstream: Bun's child_process.spawn throws some failures synchronously instead of emitting "error" (E2BIG for an
-argument over the system limit, such as a shell command longer than 128 KiB on Linux). The cross-spawn spawner
-launches inside an Effect.callback, so the throw becomes a defect; Shell.create only settles its startup on a typed
-failure, so POST /api/shell never answers, and a shell tool call with such a command hangs its session.
-Fixed: a synchronous spawn throw fails the spawn with the same PlatformError as an emitted error (Redacted arguments
-stay redacted).
-Scenarios: shell-api.test.ts "shell routes for unknown commands" (new requests; the oversized command answered
-500 before D217, and never before this patch)
-Upstream tests: packages/core/test/effect/cross-spawn-spawner.test.ts adds a test
 
 diff --git a/packages/core/test/effect/cross-spawn-spawner.test.ts b/packages/core/test/effect/cross-spawn-spawner.test.ts
 index 08abaff602..021e18a4b1 100644
@@ -43,7 +34,7 @@ index 08abaff602..021e18a4b1 100644
        "rejects NUL characters without exposing Redacted values",
        Effect.gen(function* () {
 diff --git a/packages/util/src/cross-spawn-spawner.ts b/packages/util/src/cross-spawn-spawner.ts
-index 5e67a4acaa..8e40834417 100644
+index 723d246000..2bfbe0cd98 100644
 --- a/packages/util/src/cross-spawn-spawner.ts
 +++ b/packages/util/src/cross-spawn-spawner.ts
 @@ -386,11 +386,7 @@ const makeCrossSpawnSpawner = Effect.gen(function* () {

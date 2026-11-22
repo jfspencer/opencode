@@ -1,23 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:43:59 -0700
+Date: Sun, 22 Nov 2026 14:58:58 -0700
 Subject: [PATCH] D201 server: relative session directories are rejected with
  400
 
-Upstream: POST /api/session and POST /api/experimental/session/import with a relative location.directory, and
-GET /api/session?directory=relative, answer 500 with an empty body. AbsolutePath is an unchecked brand, so the
-path reaches the database column, which throws "Path is not absolute".
-Fixed: they answer 400 InvalidRequestError (field location.directory or directory, message "<field> must be an
-absolute path", the shape /api/debug/heap-dump already uses for a relative directory).
-Scenarios: session-api-crud.test.ts "create a session with invalid payloads", "list sessions with invalid
-queries"; session-api-transfer.test.ts "import without a location and as a child" (new request)
-Upstream tests: packages/server/test/session-create.test.ts adds a test
 
 diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
-index 2816f25bf1..1bd0c70d34 100644
+index a9b95a1ec5..74b1b2efb7 100644
 --- a/packages/protocol/src/groups/session.ts
 +++ b/packages/protocol/src/groups/session.ts
-@@ -174,7 +174,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+@@ -179,7 +179,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
            permissions: Permission.Ruleset.pipe(Schema.optional),
          }),
          success: Schema.Struct({ data: PublicSessionInfo }),
@@ -26,7 +18,7 @@ index 2816f25bf1..1bd0c70d34 100644
        }).annotateMerge(
          OpenApi.annotations({
            identifier: "session.create",
-@@ -192,7 +192,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+@@ -197,7 +197,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
            location: Location.PublicRef.pipe(Schema.optional),
          }),
          success: Schema.Struct({ data: PublicSessionInfo }),
@@ -36,7 +28,7 @@ index 2816f25bf1..1bd0c70d34 100644
          OpenApi.annotations({
            identifier: "experimental.session.import",
 diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
-index 2b7f8b9903..be1ddac55d 100644
+index 6092f5f19e..7552634961 100644
 --- a/packages/server/src/handlers/session.ts
 +++ b/packages/server/src/handlers/session.ts
 @@ -6,6 +6,7 @@ import { SessionTransfer } from "@opencode/core/session/transfer"

@@ -13,7 +13,7 @@ Scenarios: session-api-inputs.test.ts "attachments the model cannot read"
 Upstream tests: test/session-runner-message.test.ts (new test)
 
 diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
-index db80374b4c..d0313f1652 100644
+index 32d101425d..271adf39dd 100644
 --- a/packages/core/src/session/runner/to-llm-message.ts
 +++ b/packages/core/src/session/runner/to-llm-message.ts
 @@ -63,7 +63,14 @@ const directoryAttachment = (file: FileAttachment): TextPart => ({
@@ -33,10 +33,10 @@ index db80374b4c..d0313f1652 100644
      return [...(location === undefined ? [] : [Message.text(`\n\nAttached file: ${location}`)]), media(file)]
    }
 diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
-index 832d6be75d..5b03b90b75 100644
+index e9b263eea5..00f158f12a 100644
 --- a/packages/core/test/session-runner-message.test.ts
 +++ b/packages/core/test/session-runner-message.test.ts
-@@ -524,6 +524,35 @@ Earlier work
+@@ -525,6 +525,35 @@ Earlier work
      ])
    })
  

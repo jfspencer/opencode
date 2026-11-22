@@ -1,24 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 03:17:54 -0700
+Date: Sun, 22 Nov 2026 15:05:23 -0700
 Subject: [PATCH] D222 server: a NUL in a session environment is rejected with
  400
 
-Upstream: PUT /api/session/:id/environment accepts a variable whose name or value contains a NUL. No process can
-start with such an environment, so every shell command of the session then fails: POST /api/session/:id/shell
-{"command":"true"} answers 400 invalid_command "The command contains a NUL character" on field `command` (D218's
-mapping of the spawn's BadArgument), blaming a command that has none; the shell tool fails the same way.
-Fixed: the PUT answers 400 InvalidRequestError, kind invalid_environment, field variables, "Environment variable
-"X" contains a NUL character", and keeps the environment it had.
-Found by the Rust shell slice.
-Scenarios: session-api-control.test.ts "run user shell commands in a session" (new request)
-Upstream tests: packages/server/test/session-environment.test.ts (new)
 
 diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
-index 0dfa0717d7..778f1f9f77 100644
+index dc2cfa82fb..363a4cb7fe 100644
 --- a/packages/protocol/src/groups/session.ts
 +++ b/packages/protocol/src/groups/session.ts
-@@ -807,7 +807,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+@@ -814,7 +814,7 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
          params: { sessionID: Session.ID },
          payload: Schema.Struct({ variables: Schema.Record(Schema.String, Schema.String) }),
          success: HttpApiSchema.NoContent,
@@ -28,7 +19,7 @@ index 0dfa0717d7..778f1f9f77 100644
          OpenApi.annotations({
            identifier: "session.environment",
 diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
-index 21d8713d57..e12f49b331 100644
+index 973c3135c9..9af898e798 100644
 --- a/packages/server/src/handlers/session.ts
 +++ b/packages/server/src/handlers/session.ts
 @@ -234,6 +234,16 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl

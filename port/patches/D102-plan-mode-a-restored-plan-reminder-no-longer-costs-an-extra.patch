@@ -10,7 +10,7 @@ Scenarios: agent-loop-agents.test.ts "plan reminder after compaction" (new)
 Upstream tests: test/plugin/plan.test.ts (asserted the hook persisted the reminder; reminder texts now taken from the agent-switch path)
 
 diff --git a/packages/core/src/plugin/plan.ts b/packages/core/src/plugin/plan.ts
-index 63939deffa..57808724d7 100644
+index f25480daeb..5676d16784 100644
 --- a/packages/core/src/plugin/plan.ts
 +++ b/packages/core/src/plugin/plan.ts
 @@ -54,6 +54,8 @@ export const Plugin = define({
@@ -38,10 +38,10 @@ index 63939deffa..57808724d7 100644
  
      yield* ctx.event.subscribe({ types: ["session.created", "session.agent.selected"] }).pipe(
 diff --git a/packages/core/test/plugin/plan.test.ts b/packages/core/test/plugin/plan.test.ts
-index bb1244c4b1..aa4746a6d9 100644
+index 78c5c0bbd1..d7dd841909 100644
 --- a/packages/core/test/plugin/plan.test.ts
 +++ b/packages/core/test/plugin/plan.test.ts
-@@ -147,11 +147,9 @@ const settle = (persisted: ReadonlyArray<string>, expected: number, remaining =
+@@ -145,11 +145,9 @@ const settle = (persisted: ReadonlyArray<string>, expected: number, remaining =
  
  /** The exact reminder texts, derived from plugin behavior rather than duplicated here. */
  const reminders = Effect.gen(function* () {
@@ -56,7 +56,7 @@ index bb1244c4b1..aa4746a6d9 100644
  })
  
  describe("plan plugin reminders", () => {
-@@ -167,7 +165,7 @@ describe("plan plugin reminders", () => {
+@@ -165,7 +163,7 @@ describe("plan plugin reminders", () => {
      }),
    )
  
@@ -65,7 +65,7 @@ index bb1244c4b1..aa4746a6d9 100644
      Effect.gen(function* () {
        const { persisted, contextHook } = yield* run()
        const messages = [Message.user("what agent are you?")]
-@@ -176,7 +174,7 @@ describe("plan plugin reminders", () => {
+@@ -174,7 +172,7 @@ describe("plan plugin reminders", () => {
        // Inserted before the user's prompt, matching where agent-switch reminders land.
        const first = messages[0]?.content[0]
        expect(first?.type === "text" && first.text).toContain("You are in Plan mode")
@@ -74,7 +74,7 @@ index bb1244c4b1..aa4746a6d9 100644
      }),
    )
  
-@@ -200,7 +198,7 @@ describe("plan plugin reminders", () => {
+@@ -198,7 +196,7 @@ describe("plan plugin reminders", () => {
        expect(messages).toHaveLength(3)
        const middle = messages[1]?.content[0]
        expect(middle?.type === "text" && middle.text).toContain("NO LONGER in Plan mode")
@@ -83,7 +83,7 @@ index bb1244c4b1..aa4746a6d9 100644
      }),
    )
  
-@@ -233,7 +231,7 @@ describe("plan plugin reminders", () => {
+@@ -231,7 +229,7 @@ describe("plan plugin reminders", () => {
        const messages = [Message.user(`<conversation-checkpoint>\n${enter}\n</conversation-checkpoint>`)]
        yield* contextHook(request(plan, messages))
        expect(messages).toHaveLength(2)

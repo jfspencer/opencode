@@ -1,26 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 02:54:54 -0700
+Date: Sun, 22 Nov 2026 14:57:04 -0700
 Subject: [PATCH] D116 permissions: a quoted, escaped or path-qualified command
  name is saved like the plain name
 
-Upstream: the saved prefix for "always" looks wrappers and the arity table up by the word as written. Bash's
-`'sudo' ls` (or `\sudo ls`) is not recognized as sudo and saves `'sudo' *`, which then approves `'sudo' rm -rf /`;
-`'git' status` saves `'git' *`, which approves `'git' push --force`; `/usr/bin/git status` saves `/usr/bin/git *`.
-The subcommand rule (D106) is bypassed the same way: `git '-C' x status` saved `git '-C' *`.
-Fixed: wrappers, `eval`, options and arity keys are read from the words' values (the scanner's unquoted words), and
-the arity table is keyed by the command's basename, as the wrapper table already was. The saved prefix keeps the
-words as written: `'sudo' ls *`, `'git' status *`, `/usr/bin/git status *`, and `git '-C' x status` exactly.
-Found by the Rust opencode-shell crate's differential harness.
-Scenarios: permissions.test.ts "always on a quoted or path-qualified command" (new)
-Upstream tests: packages/core/test/shell-parse-compatibility.test.ts: two cases asserted the broad prefix
-(`g""it *`, `npm "run" *`); updated, and quoted, escaped and path-qualified cases added
 
 diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
-index d3d328264a..0247ff09f1 100644
+index bc7c8b03c7..51f17abd24 100644
 --- a/packages/core/src/shell/parse.ts
 +++ b/packages/core/src/shell/parse.ts
-@@ -243,7 +243,12 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+@@ -257,7 +257,12 @@ export function scan(
          output.directories.push(...resolved.directories)
          if (directoryCommand === parts && resolved.complete) continue
        }
@@ -34,7 +23,7 @@ index d3d328264a..0247ff09f1 100644
        // Command text is escaped, so only the added trailing `*` is a wildcard: `r? x` must not approve `rm`.
        const prefixed = selected && `${Wildcard.escape(selected.join(" "))} *`
        // A command that only the shell can identify is saved exactly as approved. So is one whose resource starts with
-@@ -627,10 +632,10 @@ function environment(key: string) {
+@@ -663,10 +668,10 @@ function environment(key: string) {
    return name ? process.env[name] : undefined
  }
  
@@ -47,7 +36,7 @@ index d3d328264a..0247ff09f1 100644
      // Own keys only: a command named like an Object.prototype member (`toString`) has no arity entry.
      if (Object.hasOwn(ARITY, key)) return tokens.slice(0, ARITY[key])
    }
-@@ -639,21 +644,24 @@ function prefix(words: string[]) {
+@@ -675,21 +680,24 @@ function prefix(words: string[]) {
  
  /**
   * The prefix of a POSIX command that names what it runs, or undefined when that depends on the shell: a dynamic

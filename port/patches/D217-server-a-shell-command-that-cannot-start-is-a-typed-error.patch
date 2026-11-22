@@ -1,25 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:51:14 -0700
+Date: Sun, 22 Nov 2026 15:03:51 -0700
 Subject: [PATCH] D217 server: a shell command that cannot start is a typed
  error
 
-Upstream: POST /api/shell turns every start failure into a defect, so a command the system refuses to start answers
-500 with an empty body.
-Fixed: failures caused by the request answer 400 InvalidRequestError in the D204 shape: a NUL character in the
-command (kind invalid_command, field command), a command longer than the system can pass to the shell (E2BIG; kind
-invalid_command), and a working directory the server may not enter (EACCES; kind invalid_cwd, "cwd is not
-accessible: <cwd>"). Any other start failure is logged and answers 500 UnknownError with a log reference, like the
-other host failures. A missing configured shell is not reachable: shell selection falls back to the default shell.
-Scenarios: shell-api.test.ts "shell routes for unknown commands" (the three requests added by D216; the
-permission case needs a non-root server)
-Upstream tests: packages/server/test/shell.test.ts adds a test; client and openapi.json regenerated
 
 diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
-index b878c5b495..3dbafc1fdd 100644
+index d3cfc65c94..f2234a2bdd 100644
 --- a/packages/client/src/promise/generated/client.ts
 +++ b/packages/client/src/promise/generated/client.ts
-@@ -2403,7 +2403,7 @@ export function make(options: ClientOptions) {
+@@ -2511,7 +2511,7 @@ export function make(options: ClientOptions) {
                metadata: input["metadata"],
              },
              successStatus: 200,
@@ -29,10 +19,10 @@ index b878c5b495..3dbafc1fdd 100644
            },
            requestOptions,
 diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
-index efc225c138..b9669d5796 100644
+index d010188b74..2f551f6d44 100644
 --- a/packages/protocol/openapi.json
 +++ b/packages/protocol/openapi.json
-@@ -13720,6 +13720,16 @@
+@@ -14277,6 +14277,16 @@
                  }
                }
              }
@@ -72,7 +62,7 @@ index 7ecd6aae18..6868d432bb 100644
        .annotateMerge(locationQueryOpenApi)
        .annotateMerge(
 diff --git a/packages/server/src/handlers/shell.ts b/packages/server/src/handlers/shell.ts
-index 2954ddcd0e..c01c18083b 100644
+index 2954ddcd0e..b4db536983 100644
 --- a/packages/server/src/handlers/shell.ts
 +++ b/packages/server/src/handlers/shell.ts
 @@ -1,9 +1,10 @@
@@ -101,7 +91,7 @@ index 2954ddcd0e..c01c18083b 100644
          }),
        )
        .handle(
-@@ -80,3 +85,29 @@ export const ShellHandler = HttpApiBuilder.group(Api, "server.shell", (handlers)
+@@ -80,3 +85,32 @@ export const ShellHandler = HttpApiBuilder.group(Api, "server.shell", (handlers)
        )
    }),
  )
@@ -109,19 +99,22 @@ index 2954ddcd0e..c01c18083b 100644
 +/** The system rejects some commands before they start; those are the caller's to fix, anything else is host state. */
 +const startFailure = Effect.fnUntraced(function* (error: AppProcess.AppProcessError, cwd: string) {
 +  const reason = PlatformError.isPlatformError(error.cause) ? error.cause.reason : undefined
-+  if (reason?._tag === "BadArgument")
++  // The persistent daemon rejects the same inputs with its own message instead of a PlatformError.
++  const detail = error.cause instanceof Error ? error.cause.message : ""
++  const code = (reason?.cause as NodeJS.ErrnoException | undefined)?.code
++  if (reason?._tag === "BadArgument" || /nul byte/i.test(detail))
 +    return yield* new InvalidRequestError({
 +      message: "The command contains a NUL character",
 +      kind: "invalid_command",
 +      field: "command",
 +    })
-+  if (reason?._tag === "PermissionDenied")
++  if (reason?._tag === "PermissionDenied" || /permission denied|os error 13/i.test(detail))
 +    return yield* new InvalidRequestError({
 +      message: `cwd is not accessible: ${cwd}`,
 +      kind: "invalid_cwd",
 +      field: "cwd",
 +    })
-+  if ((reason?.cause as NodeJS.ErrnoException | undefined)?.code === "E2BIG")
++  if (code === "E2BIG" || /argument list too long|os error 7/i.test(detail))
 +    return yield* new InvalidRequestError({
 +      message: "The command is too long to run",
 +      kind: "invalid_command",
@@ -132,7 +125,7 @@ index 2954ddcd0e..c01c18083b 100644
 +  return yield* new UnknownError({ message: "Unexpected server error. Check server logs for details.", ref })
 +})
 diff --git a/packages/server/test/shell.test.ts b/packages/server/test/shell.test.ts
-index 4dfc0d575e..58bf0f7978 100644
+index e377c6b76a..8e9116a967 100644
 --- a/packages/server/test/shell.test.ts
 +++ b/packages/server/test/shell.test.ts
 @@ -1,3 +1,4 @@
@@ -140,7 +133,7 @@ index 4dfc0d575e..58bf0f7978 100644
  import path from "node:path"
  import { expect } from "bun:test"
  import { Effect } from "effect"
-@@ -68,3 +69,50 @@ it.live("reads an empty page when the limit is zero", () =>
+@@ -34,3 +35,50 @@ it.live("rejects a working directory that is not a directory", () =>
      })
    }).pipe(Effect.scoped),
  )

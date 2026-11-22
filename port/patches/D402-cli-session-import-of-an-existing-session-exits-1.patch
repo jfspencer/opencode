@@ -1,12 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:33:53 -0700
+Date: Sun, 22 Nov 2026 15:08:19 -0700
 Subject: [PATCH] D402 cli: session import of an existing session exits 1
 
-Upstream: `opencode session import` of a session that already exists (the server answers 409) prints "Session already exists" on stderr, imports nothing and exits 0, so scripts cannot tell it from a successful import; every other failed import exits 1.
-Fixed: it prints the same message and exits 1.
-Scenarios: cli-session.test.ts "session import"
-Upstream tests: test/import-export.test.ts "import reports an existing session without a stack trace" updated (asserted exit code 0)
 
 diff --git a/packages/cli/src/commands/handlers/session/import.ts b/packages/cli/src/commands/handlers/session/import.ts
 index 94ef51c771..a4219ca638 100644

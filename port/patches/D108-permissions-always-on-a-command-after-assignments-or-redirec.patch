@@ -13,10 +13,10 @@ Scenarios: permissions.test.ts "always on a command with an environment assignme
 Upstream tests: test/shell-parse-parity.test.ts (no longer skips assignment-led resources), test/shell-parse-compatibility.test.ts and test/shell-scan/redirect.test.ts (asserted saves that do not match their resource), test/shell-parse.test.ts (new test)
 
 diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
-index 54acedc788..562258a4a2 100644
+index e32fbf643d..9d04385dc4 100644
 --- a/packages/core/src/shell/parse.ts
 +++ b/packages/core/src/shell/parse.ts
-@@ -244,8 +244,12 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+@@ -258,8 +258,12 @@ export function scan(
          if (directoryCommand === parts && resolved.complete) continue
        }
        const selected = powershell ? prefix(words) : bashPrefix(words)

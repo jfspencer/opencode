@@ -1,18 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:41:36 -0700
+Date: Sun, 22 Nov 2026 15:02:01 -0700
 Subject: [PATCH] D214 server: stats ranges are valid dates and cost only their
  history
 
-Upstream: GET /api/experimental/session/stats accepts any finite from and to. A time outside what a date can
-represent fails with 500 (from=-1e300: invalid array length; to=1e300: invalid date), and the aggregation runs one
-query (two with tools) per 31-day window of the requested range, so a range of a few thousand years makes millions
-of queries.
-Fixed: from and to must be epoch milliseconds a date can represent (+/-8.64e15), otherwise 400 InvalidRequestError
-(kind Query) like D202; and the windows cover only the recorded history inside the range, so a wide range costs no
-more than the history in it. Results for valid ranges are unchanged.
-Scenarios: session-api-transfer.test.ts "session statistics over imported history" (three new requests)
-Upstream tests: packages/core/test/session-stats.test.ts asserts the widest range matches a covering range
 
 diff --git a/packages/core/src/session/stats.ts b/packages/core/src/session/stats.ts
 index 24a8e518e4..d2356c80a9 100644
@@ -65,10 +56,10 @@ index 7f1f620d5a..e0be085ca0 100644
        expect(DateTime.toEpochMillis(project.range.from)).toBe(Date.UTC(2025, 11, 30, 10))
  
 diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
-index d24747f176..61dedd7bab 100644
+index 5018e8bf5e..33c7acc10d 100644
 --- a/packages/protocol/src/groups/session.ts
 +++ b/packages/protocol/src/groups/session.ts
-@@ -110,6 +110,9 @@ const BooleanFromString = Schema.Literals(["true", "false"]).pipe(
+@@ -112,6 +112,9 @@ const BooleanFromString = Schema.Literals(["true", "false"]).pipe(
  export const SessionsCursor = Session.ListCursor
  export type SessionsCursor = Session.ListCursor
  
@@ -78,7 +69,7 @@ index d24747f176..61dedd7bab 100644
  export const SessionsQuery = Schema.Struct({
    limit: Schema.NumberFromString.pipe(Schema.decodeTo(PositiveInt), Schema.optional).annotate({
      description: "Maximum number of sessions to return. Defaults to the newest 50 sessions.",
-@@ -146,8 +149,8 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+@@ -148,8 +151,8 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
      .add(
        HttpApiEndpoint.get("session.stats", "/api/experimental/session/stats", {
          query: Schema.Struct({

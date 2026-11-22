@@ -13,10 +13,10 @@ Scenarios: session-api-inputs.test.ts "attachments the model cannot read", "prom
 Upstream tests: test/session-model-request.test.ts and test/session-runner-message.test.ts (asserted the unseparated text), test/session-compaction.test.ts (token estimates grow by one per replaced attachment)
 
 diff --git a/packages/core/src/session/model-request.ts b/packages/core/src/session/model-request.ts
-index b218f6f47d..5fc93d8032 100644
+index 61941c7736..3bb01cfdbd 100644
 --- a/packages/core/src/session/model-request.ts
 +++ b/packages/core/src/session/model-request.ts
-@@ -167,9 +167,10 @@ const replaceMedia = (
+@@ -174,9 +174,10 @@ const replaceMedia = (
    messages: LLMRequest["messages"],
    replace: (media: { mime: string; name: string | undefined; bytes: () => number }) => string | undefined,
  ) => {
@@ -29,7 +29,7 @@ index b218f6f47d..5fc93d8032 100644
    const toolResult = (part: ToolResultPart) => {
      if (part.result.type !== "content") return part
 diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
-index 47c6fc4a14..db80374b4c 100644
+index b45fb8e71b..32d101425d 100644
 --- a/packages/core/src/session/runner/to-llm-message.ts
 +++ b/packages/core/src/session/runner/to-llm-message.ts
 @@ -65,7 +65,7 @@ const attachmentContent = (file: FileAttachment): Array<TextPart | MediaPart> =>
@@ -42,7 +42,7 @@ index 47c6fc4a14..db80374b4c 100644
    return []
  }
 diff --git a/packages/core/test/session-compaction.test.ts b/packages/core/test/session-compaction.test.ts
-index 14b1ab94a8..c19a7f6861 100644
+index 400768df67..0e6ea894cd 100644
 --- a/packages/core/test/session-compaction.test.ts
 +++ b/packages/core/test/session-compaction.test.ts
 @@ -516,9 +516,9 @@ it.effect("auto compaction estimates current content against the buffered prompt
@@ -83,10 +83,10 @@ index a39ed2a1c9..00c104140c 100644
      expect(result[1]?.content[0]).toMatchObject({
        type: "tool-result",
 diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
-index ffab21983e..832d6be75d 100644
+index acf4cf5a2a..e9b263eea5 100644
 --- a/packages/core/test/session-runner-message.test.ts
 +++ b/packages/core/test/session-runner-message.test.ts
-@@ -549,7 +549,7 @@ Earlier work
+@@ -550,7 +550,7 @@ Earlier work
  
      expect(messages[0]?.content).toEqual([
        { type: "text", text: "Inspect this image" },

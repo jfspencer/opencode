@@ -1,30 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:15:16 -0700
+Date: Sun, 22 Nov 2026 15:01:51 -0700
 Subject: [PATCH] D213 core: declining a tool call ends the turn as a user
  interrupt
 
-Upstream: rejecting a permission without a message (or dismissing a question) stops the turn by interrupting the
-execution from inside it. The execution layer only knows reasons passed to its own interrupt call, so it records
-this as session.execution.interrupted with reason "shutdown": the session gets no idle marker or outcome (it looks
-busy), its background jobs keep running, and the execution claim is kept, so the next server start resumes the turn
-the user declined. Upstream's spec (specs/v2/session.md) says user interruption releases the claim; only shutdown
-keeps it.
-Fixed: an execution that interrupted itself is classified as a user interrupt (reason "user": claim released, jobs
-cancelled, idle outcome "interrupted"); interruption from outside without a reason (teardown) stays "shutdown".
-Scenarios: agent-loop-interrupt.test.ts "decline a permission"; permissions.test.ts "decline a shell command
-without feedback"; session-api-failures.test.ts "tool failures and permission rejections"; tools-read.test.ts
-"read denied by permission rules", "read outside the project"; tools-question.test.ts "question dismissed by the
-user"; tools-skill.test.ts "skill denied and asked by permission rules"; tui/session-permission.test.ts (4),
-tui/session-forms.test.ts (2), tui/session-extra.test.ts "clearing and cancelling a rejection reason" (the TUI now
-marks the idle session viewed)
-Upstream tests: packages/core/test/session-execution.test.ts adds a test
 
 diff --git a/packages/core/src/session/execution.ts b/packages/core/src/session/execution.ts
-index ce11a7a0f9..6985befddd 100644
+index 5e99b7ee54..59c5b44c87 100644
 --- a/packages/core/src/session/execution.ts
 +++ b/packages/core/src/session/execution.ts
-@@ -50,6 +50,14 @@ export function terminal(exit: Exit.Exit<void, SessionRunner.RunError>, reason?:
+@@ -53,6 +53,14 @@ export function terminal(exit: Exit.Exit<void, SessionRunner.RunError>, reason?:
    return { type: "failed" as const, error: toSessionError(Cause.squash(exit.cause)) }
  }
  
@@ -39,8 +24,8 @@ index ce11a7a0f9..6985befddd 100644
  /** Process-local execution: drains run in this process using the selected instance. */
  export const layer = Layer.effect(
    Service,
-@@ -113,12 +121,15 @@ export const layer = Layer.effect(
-           bus.publish(SessionEvent.Execution.Started, { sessionID }, claimOnCommit(sessionID)),
+@@ -152,12 +160,15 @@ export const layer = Layer.effect(
+           }),
          ),
        drain: (sessionID, force, promotable) => drain(sessionID, force, undefined, promotable),
 -      // One terminal observation per busy period, covering every coalesced drain.
@@ -54,14 +39,14 @@ index ce11a7a0f9..6985befddd 100644
 -            const outcome = terminal(exit, reason)
 +            const self = yield* Effect.fiberId
 +            const outcome = terminal(exit, reason ?? (interruptedBy(exit, self) ? "user" : undefined))
-             if (outcome.type === "succeeded") {
-               yield* bus.publish(SessionEvent.Execution.Succeeded, { sessionID }, releaseOnCommit(sessionID))
-               return
+             if (outcome.type === "interrupted" && outcome.reason === "shutdown") {
+               subagentReport.clear(sessionID)
+               // Shutdown keeps the claim and the running Job row for restart continuity.
 diff --git a/packages/core/test/session-execution.test.ts b/packages/core/test/session-execution.test.ts
-index edc90d4495..b49b1638da 100644
+index 2092a3179f..5289b0a3d1 100644
 --- a/packages/core/test/session-execution.test.ts
 +++ b/packages/core/test/session-execution.test.ts
-@@ -142,6 +142,26 @@ describe("SessionExecution lifecycle", () => {
+@@ -218,6 +218,26 @@ describe("SessionExecution lifecycle", () => {
      }),
    )
  

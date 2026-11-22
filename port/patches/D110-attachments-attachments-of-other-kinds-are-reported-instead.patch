@@ -13,10 +13,10 @@ Scenarios: session-api-inputs.test.ts "attachments the model cannot read" (a HEI
 Upstream tests: test/session-runner-message.test.ts and test/session-model-request.test.ts (new tests)
 
 diff --git a/packages/core/src/session/model-request.ts b/packages/core/src/session/model-request.ts
-index 5fc93d8032..56347b44da 100644
+index 3bb01cfdbd..64935ead04 100644
 --- a/packages/core/src/session/model-request.ts
 +++ b/packages/core/src/session/model-request.ts
-@@ -134,7 +134,9 @@ const mimeToModality = (mime: string) => {
+@@ -141,7 +141,9 @@ const mimeToModality = (mime: string) => {
    if (mime === "application/pdf") return "pdf"
  }
  
@@ -27,7 +27,7 @@ index 5fc93d8032..56347b44da 100644
  const XAI_IMAGE_MIMES = new Set(["image/png", "image/jpeg", "image/webp"])
  
  const unsupportedMedia = (
-@@ -144,14 +146,16 @@ const unsupportedMedia = (
+@@ -151,14 +153,16 @@ const unsupportedMedia = (
    provider: string | undefined,
  ) => {
    const modality = mimeToModality(mime)
@@ -52,7 +52,7 @@ index 5fc93d8032..56347b44da 100644
  
  // The inline budget counts base64 characters, which are ASCII, so a string's length is its size without scanning it.
 diff --git a/packages/core/src/session/runner/to-llm-message.ts b/packages/core/src/session/runner/to-llm-message.ts
-index d0313f1652..2ab92babde 100644
+index 271adf39dd..19fa0cc96e 100644
 --- a/packages/core/src/session/runner/to-llm-message.ts
 +++ b/packages/core/src/session/runner/to-llm-message.ts
 @@ -63,18 +63,10 @@ const directoryAttachment = (file: FileAttachment): TextPart => ({
@@ -111,10 +111,10 @@ index 00c104140c..542da972cb 100644
      const message = Message.user({ type: "media", media: Media.base64("aGVsbG8=", "image/png") })
      expect(unsupportedParts([message], capabilities(["text", "image"]))[0]?.content).toEqual(message.content)
 diff --git a/packages/core/test/session-runner-message.test.ts b/packages/core/test/session-runner-message.test.ts
-index 5b03b90b75..46f64b857f 100644
+index 00f158f12a..874b10443d 100644
 --- a/packages/core/test/session-runner-message.test.ts
 +++ b/packages/core/test/session-runner-message.test.ts
-@@ -553,6 +553,30 @@ Earlier work
+@@ -554,6 +554,30 @@ Earlier work
      ])
    })
  

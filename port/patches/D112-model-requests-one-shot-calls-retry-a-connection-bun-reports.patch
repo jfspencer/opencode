@@ -1,13 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 20:32:27 -0700
+Date: Sun, 22 Nov 2026 14:56:13 -0700
 Subject: [PATCH] D112 model requests: one-shot calls retry a connection Bun
  reports as refused
 
-Upstream: one-shot generations (stateless text, images, decisions) retry only failures the provider never received, recognized by the transport codes ECONNREFUSED, ENOTFOUND and EAI_AGAIN. Bun's fetch reports a refused connection as ConnectionRefused ("Unable to connect. Is the computer able to access the url?"), so under Bun a refused connection failed the call at once with a 502 ProviderRequestError instead of retrying. The same file's network-error list already names ConnectionRefused as Bun's code.
-Fixed: ConnectionRefused counts as not sent, like ECONNREFUSED.
-Scenarios: agent-loop-transport.test.ts "one-shot generation retries a refused connection" (now throws the error Bun's fetch throws; it ran with Node's error shape before)
-Upstream tests: test/generate.test.ts ("retries a stateless call the provider never received" runs for both error shapes)
 
 diff --git a/packages/core/src/model-retry.ts b/packages/core/src/model-retry.ts
 index 9ec5dbd1d4..efe3ebb391 100644
@@ -24,7 +20,7 @@ index 9ec5dbd1d4..efe3ebb391 100644
  const notRun = (error: AIError) => {
    const override = error.reason.http?.headers["x-should-retry"]
 diff --git a/packages/core/test/generate.test.ts b/packages/core/test/generate.test.ts
-index 77a3faa901..43afb810cc 100644
+index adbe8a5d38..454b695ddc 100644
 --- a/packages/core/test/generate.test.ts
 +++ b/packages/core/test/generate.test.ts
 @@ -101,34 +101,35 @@ it.effect("loads dynamic AI SDK models", () =>

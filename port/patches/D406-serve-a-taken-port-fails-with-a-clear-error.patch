@@ -1,18 +1,14 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:48:17 -0700
+Date: Sun, 22 Nov 2026 15:08:20 -0700
 Subject: [PATCH] D406 serve: a taken port fails with a clear error
 
-Upstream: `opencode serve --port <port>` on a port another process holds fails with the HTTP platform's message-less `ServeError` wrapping Bun's own bind error, printed as `ServeError:  { [cause]: Error: Failed to start server. Is port <port> in use? }`; only the managed service (`serve --service`) has a readable message for this.
-Fixed: it fails with `Error: Port <port> on <hostname> is already in use. Choose another port with --port.`, exit 1.
-Scenarios: cli-serve.test.ts "serve argument errors"
-Upstream tests: none changed
 
 diff --git a/packages/cli/src/server-process.ts b/packages/cli/src/server-process.ts
-index 2f64e3ec7b..33cbeb4a79 100644
+index 1c40512d27..a41707bf0e 100644
 --- a/packages/cli/src/server-process.ts
 +++ b/packages/cli/src/server-process.ts
-@@ -163,7 +163,11 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
+@@ -169,7 +169,11 @@ const processEffect = Effect.fnUntraced(function* (options: Options) {
        )
        const server = yield* launch.pipe(
          Effect.catch((error) => {

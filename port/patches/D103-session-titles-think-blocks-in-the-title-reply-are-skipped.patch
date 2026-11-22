@@ -13,10 +13,10 @@ Scenarios: agent-loop-agents.test.ts "title skips think blocks written into the 
 Upstream tests: test/session-title.test.ts (new test)
 
 diff --git a/packages/core/src/session/title.ts b/packages/core/src/session/title.ts
-index c5534dd8b6..12e9b5d157 100644
+index d69dc95ffa..fc27219bab 100644
 --- a/packages/core/src/session/title.ts
 +++ b/packages/core/src/session/title.ts
-@@ -106,6 +106,8 @@ export const layer = Layer.effect(
+@@ -108,6 +108,8 @@ export const layer = Layer.effect(
          .filter((chunk) => !commentary.has(chunk.id))
          .map((chunk) => chunk.text)
          .join("")
@@ -26,7 +26,7 @@ index c5534dd8b6..12e9b5d157 100644
          .map((line) => line.trim())
          .find((line) => line.length > 0)
 diff --git a/packages/core/test/session-title.test.ts b/packages/core/test/session-title.test.ts
-index 5143eb718c..ee3211315f 100644
+index 24380c5718..034366b74c 100644
 --- a/packages/core/test/session-title.test.ts
 +++ b/packages/core/test/session-title.test.ts
 @@ -281,6 +281,27 @@ for (const timing of ["start", "end"] as const)

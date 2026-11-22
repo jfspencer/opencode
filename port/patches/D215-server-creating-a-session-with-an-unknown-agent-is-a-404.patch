@@ -1,24 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:43:11 -0700
+Date: Sun, 22 Nov 2026 15:02:27 -0700
 Subject: [PATCH] D215 server: creating a session with an unknown agent is a
  404
 
-Upstream: POST /api/session records any agent ID it is given; a session created with an agent that does not
-exist only fails when it first prompts ("Agent not found").
-Fixed: like D206, an agent given on create is checked in the session's location (the parent's for a child) once
-its plugins have loaded, and an unknown one answers 404 AgentNotFoundError ("Agent not found: <id>"); nothing is
-created. The route declares the location errors this can return (404 LocationNotFoundError, 503 when plugins do not
-finish loading). The agent check is shared with the switch route.
-Scenarios: session-api-crud.test.ts "create a session with invalid payloads" (new request); session-api-control.test.ts
-"a session on an unknown agent fails its turn" (creating it is now a 404, so the session comes from an import)
-Upstream tests: packages/server/test/session-create.test.ts adds a test; client and openapi.json regenerated
 
 diff --git a/packages/client/src/promise/generated/client.ts b/packages/client/src/promise/generated/client.ts
-index aaad327362..b878c5b495 100644
+index f5f4e9d938..d3cfc65c94 100644
 --- a/packages/client/src/promise/generated/client.ts
 +++ b/packages/client/src/promise/generated/client.ts
-@@ -638,7 +638,7 @@ export function make(options: ClientOptions) {
+@@ -651,7 +651,7 @@ export function make(options: ClientOptions) {
                permissions: input?.["permissions"],
              },
              successStatus: 200,
@@ -28,10 +19,10 @@ index aaad327362..b878c5b495 100644
            },
            requestOptions,
 diff --git a/packages/protocol/openapi.json b/packages/protocol/openapi.json
-index 60d85f2664..efc225c138 100644
+index 2587c145c9..d010188b74 100644
 --- a/packages/protocol/openapi.json
 +++ b/packages/protocol/openapi.json
-@@ -1049,11 +1049,31 @@
+@@ -1039,11 +1039,31 @@
              }
            },
            "404": {
@@ -66,10 +57,10 @@ index 60d85f2664..efc225c138 100644
                }
              }
 diff --git a/packages/protocol/src/groups/session.ts b/packages/protocol/src/groups/session.ts
-index 61dedd7bab..c90f1713cf 100644
+index 33c7acc10d..163d7ed69a 100644
 --- a/packages/protocol/src/groups/session.ts
 +++ b/packages/protocol/src/groups/session.ts
-@@ -178,7 +178,13 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
+@@ -183,7 +183,13 @@ export const makeSessionGroup = <I extends HttpApiMiddleware.AnyId, S, FormI ext
            permissions: Permission.Ruleset.pipe(Schema.optional),
          }),
          success: Schema.Struct({ data: PublicSessionInfo }),
@@ -85,7 +76,7 @@ index 61dedd7bab..c90f1713cf 100644
          OpenApi.annotations({
            identifier: "session.create",
 diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
-index a91f7ba246..edef381981 100644
+index eca4f0d633..9206fa629b 100644
 --- a/packages/server/src/handlers/session.ts
 +++ b/packages/server/src/handlers/session.ts
 @@ -1,5 +1,7 @@
@@ -96,6 +87,15 @@ index a91f7ba246..edef381981 100644
  import { Session } from "@opencode/core/session"
  import { SessionStats } from "@opencode/core/session/stats"
  import { SessionTitle } from "@opencode/core/session/title"
+@@ -30,7 +32,7 @@ import {
+   SkillNotFoundError,
+ } from "@opencode/protocol/errors"
+ import { AbsolutePath } from "@opencode/core/schema"
+-import { locationErrors } from "../location"
++import { awaitPlugins, locationErrors } from "../location"
+ import { failedMessageDecode, failedSnapshot, missingMessage, missingSession } from "./session-error"
+ 
+ function missingForm(id: Form.ID) {
 @@ -48,8 +50,18 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
      const transfer = yield* SessionTransfer.Service
      const instructions = yield* InstructionEntry.Service
@@ -129,13 +129,12 @@ index a91f7ba246..edef381981 100644
            return {
              data: yield* session
                .create({
-@@ -238,17 +257,7 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
+@@ -238,16 +257,7 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl
        .handle(
          "session.switchAgent",
          Effect.fn(function* (ctx) {
 -          const info = yield* requireSession(ctx.params.sessionID)
--          const agent = yield* awaitPlugins.pipe(
--            Effect.andThen(Agent.Service.use((agents) => agents.get(ctx.payload.agent))),
+-          const agent = yield* Agent.Service.use((agents) => agents.get(ctx.payload.agent)).pipe(
 -            instances.provide(info),
 -            locationErrors,
 -          )

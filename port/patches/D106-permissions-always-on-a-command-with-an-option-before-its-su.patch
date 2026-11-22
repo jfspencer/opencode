@@ -13,10 +13,10 @@ Scenarios: shell-classify.test.ts "command prefixes" (recorded save patterns)
 Upstream tests: test/permission.test.ts "numeric AWS option prefix" (snapshotted `aws --cli-read-timeout 60 *` allowing `aws … ec2 describe-instances`), test/shell-parse.test.ts (new test)
 
 diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
-index 9381b9e9bc..3ef1a5c307 100644
+index 8ac589a108..e035687ceb 100644
 --- a/packages/core/src/shell/parse.ts
 +++ b/packages/core/src/shell/parse.ts
-@@ -633,14 +633,18 @@ function prefix(words: string[]) {
+@@ -669,14 +669,18 @@ function prefix(words: string[]) {
  
  /**
   * The prefix of a POSIX command that names what it runs, or undefined when that depends on the shell: a dynamic
@@ -38,10 +38,10 @@ index 9381b9e9bc..3ef1a5c307 100644
    const command = words.findIndex((word, index) => index > 0 && !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word))
    if (command === -1 || words[command].startsWith("-")) return
 diff --git a/packages/core/test/permission.test.ts b/packages/core/test/permission.test.ts
-index 8d42e5b54a..2c7feb7bd8 100644
+index e7ffa0f489..d88db3c07a 100644
 --- a/packages/core/test/permission.test.ts
 +++ b/packages/core/test/permission.test.ts
-@@ -722,13 +722,13 @@ describe("shell scanner permission impact", () => {
+@@ -882,13 +882,13 @@ describe("shell scanner permission impact", () => {
        name: "numeric AWS option prefix",
        shell: "bash",
        command: "aws --cli-read-timeout 60 s3 ls",

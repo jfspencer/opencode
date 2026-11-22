@@ -1,26 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 02:57:17 -0700
+Date: Sun, 22 Nov 2026 14:57:17 -0700
 Subject: [PATCH] D117 permissions: a quoted or escaped cd still reports the
  directory it moves to
 
-Upstream: the shell tool reports the directories a command moves to (cd, pushd...), and each is checked against
-external_directory rules. It recognizes them by the word as written, so Bash `'cd' /outside && touch x` (also
-`c\d /outside`, `c''d`, or a quoted `command`/`builtin` wrapper) reports no directory: with external_directory set
-to ask or deny and the shell command allowed, the directory check is bypassed. Upstream asserted that such a
-"source-shaped" head stays under shell authorization; it did not check its directory.
-Fixed: directory commands are recognized by the words' values, so the directory is reported and checked; a cd
-written quoted or escaped also stays a shell command, as upstream intended.
-Found by the Rust opencode-shell crate's differential harness.
-Scenarios: permissions.test.ts "always on a quoted or path-qualified command" (new; it also runs a quoted cd)
-Upstream tests: packages/core/test/shell-parse.test.ts "keeps source-shaped command heads under shell
-authorization" now expects the directories; packages/core/test/shell-parse-compatibility.test.ts adds a case
 
 diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
-index 0247ff09f1..437a5ec783 100644
+index 51f17abd24..acd89934b9 100644
 --- a/packages/core/src/shell/parse.ts
 +++ b/packages/core/src/shell/parse.ts
-@@ -237,11 +237,18 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+@@ -251,11 +251,18 @@ export function scan(
                unquotedTilde: raw.startsWith("~"),
              }
            })
@@ -33,7 +22,7 @@ index 0247ff09f1..437a5ec783 100644
 +        powershell,
 +      )
        if (directoryCommand) {
-         const resolved = directoryArgs(directoryCommand, powershell, cwd, shell)
+         const resolved = directoryArgs(directoryCommand, powershell, cwd, shell, home)
          output.directories.push(...resolved.directories)
 -        if (directoryCommand === parts && resolved.complete) continue
 +        const plain = powershell || item.rawWords[0] === item.words[0]
@@ -41,7 +30,7 @@ index 0247ff09f1..437a5ec783 100644
        }
        const selected = powershell
          ? prefix(words)
-@@ -280,22 +287,22 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+@@ -294,22 +301,22 @@ export function scan(
    })
  }
  

@@ -1,20 +1,12 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:45:51 -0700
+Date: Sun, 22 Nov 2026 14:59:11 -0700
 Subject: [PATCH] D203 server: importing existing message IDs conflicts with
  409
 
-Upstream: importing a transcript under a new session ID whose message IDs already exist (re-importing an export
-under another ID) answers 500 with an empty body: the message insert hits the primary key and dies. Only a
-reused session ID was mapped to 409.
-Fixed: the import checks the transcript's message IDs before writing and fails with
-SessionTransfer.MessageConflictError, answered as 409 ConflictError ("Message already exists: <id>", resource
-<id>); nothing is created.
-Scenarios: session-api-transfer.test.ts "export a live session and import it elsewhere"
-Upstream tests: packages/server/test/session-import.test.ts adds a test
 
 diff --git a/packages/core/src/session/transfer.ts b/packages/core/src/session/transfer.ts
-index 94795cd40d..f590d46081 100644
+index e944238a35..47e3c5000c 100644
 --- a/packages/core/src/session/transfer.ts
 +++ b/packages/core/src/session/transfer.ts
 @@ -3,7 +3,7 @@ export * as SessionTransfer from "./transfer.js"
@@ -75,7 +67,7 @@ index 94795cd40d..f590d46081 100644
            const { id: _, type, ...data } = encoded
            return {
 diff --git a/packages/server/src/handlers/session.ts b/packages/server/src/handlers/session.ts
-index be1ddac55d..075a640fb3 100644
+index 7552634961..de9cd43a88 100644
 --- a/packages/server/src/handlers/session.ts
 +++ b/packages/server/src/handlers/session.ts
 @@ -149,6 +149,14 @@ export const SessionHandler = HttpApiBuilder.group(Api, "server.session", (handl

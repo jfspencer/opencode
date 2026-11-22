@@ -1,93 +1,38 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:54:31 -0700
+Date: Sun, 22 Nov 2026 15:18:31 -0700
 Subject: [PATCH] D501 code mode: a tool path read twice is the same reference
 
-Upstream: every read of a tool path (tools.ns, tools.ns.tool) made a new reference object, so a reference compared unequal to itself: tools.opencode.models === tools.opencode.models was false, and so were ==, Object.is, switch cases, includes/indexOf, and Map/Set keys, although upstream's own tests and interpreter-support.md say tool references compare by identity.
-Fixed: a reference keeps the references below it, so a path read twice is the same value (both engines; the VM saves them in its snapshots).
-Scenarios: codemode-tools.test.ts "codemode tool references and failures" (identity)
-Upstream tests: test/tool-paths.test.ts adds "a path read twice is the same reference"
 
-diff --git a/packages/codemode/src/interpreter/interpreter.ts b/packages/codemode/src/interpreter/interpreter.ts
-index 455f41e07a..fdbf5433a2 100644
---- a/packages/codemode/src/interpreter/interpreter.ts
-+++ b/packages/codemode/src/interpreter/interpreter.ts
-@@ -2388,7 +2388,7 @@ class Frame<R> {
-       if (typeof key !== "string") {
-         throw typeError("Tool paths must use string property names.", propertyNode)
-       }
--      return new ToolReference([...objectValue.path, key])
-+      return objectValue.child(key)
-     }
- 
-     if (objectValue instanceof Obj) return { target: objectValue, key, receiver: objectValue }
-diff --git a/packages/codemode/src/tool-runtime.ts b/packages/codemode/src/tool-runtime.ts
-index 8660d4fd63..23d6d7bd6a 100644
---- a/packages/codemode/src/tool-runtime.ts
-+++ b/packages/codemode/src/tool-runtime.ts
-@@ -116,7 +116,18 @@ export const toolExpression = (path: string) =>
-     .join("")
- 
- export class ToolReference {
-+  /** The references below this one, made once each, so reading a path twice gives the same value, as in JS. */
-+  readonly children = new Map<string, ToolReference>()
-+
-   constructor(readonly path: ReadonlyArray<string>) {}
-+
-+  child(key: string): ToolReference {
-+    const known = this.children.get(key)
-+    if (known !== undefined) return known
-+    const made = new ToolReference([...this.path, key])
-+    this.children.set(key, made)
-+    return made
-+  }
- }
- 
- // Dots in tool names are namespace separators; the last tool for a canonical path wins.
-diff --git a/packages/codemode/src/vm/runtime/operations.ts b/packages/codemode/src/vm/runtime/operations.ts
-index 01cf75ca03..f9e9abea9b 100644
---- a/packages/codemode/src/vm/runtime/operations.ts
-+++ b/packages/codemode/src/vm/runtime/operations.ts
-@@ -261,7 +261,7 @@ export const resolveProperty = (
-     if (typeof key !== "string") {
-       throw typeError("Tool paths must use string property names.", propertyNode)
-     }
--    return new ToolReference([...objectValue.path, key])
-+    return objectValue.child(key)
-   }
- 
-   if (objectValue instanceof Obj) return { target: objectValue, key, receiver: objectValue }
-diff --git a/packages/codemode/src/vm/snapshot/codec.ts b/packages/codemode/src/vm/snapshot/codec.ts
-index d7f0058c80..3aece20043 100644
---- a/packages/codemode/src/vm/snapshot/codec.ts
-+++ b/packages/codemode/src/vm/snapshot/codec.ts
-@@ -228,7 +228,7 @@ const builtinSpecs = (): ReadonlyArray<ClassSpec> => [
-   { name: "PendingThrow", ctor: PendingThrow, fields: ["type", "message", "kind", "suggestions", "node", "value"] },
-   { name: "Convert", ctor: Convert, fields: ["hints", "values", "ordinal", "coerce"] },
-   { name: "Invoke", ctor: Invoke, fields: ["callable", "thisValue", "args", "site"] },
--  { name: "ToolReference", ctor: ToolReference, fields: ["path"] },
-+  { name: "ToolReference", ctor: ToolReference, fields: ["path", "children"] },
-   { name: "Lost", ctor: Lost, fields: ["description"] },
-   {
-     name: "Interpreter",
-diff --git a/packages/codemode/src/vm/vm.ts b/packages/codemode/src/vm/vm.ts
-index f274c2966c..064832c30a 100644
---- a/packages/codemode/src/vm/vm.ts
-+++ b/packages/codemode/src/vm/vm.ts
-@@ -2007,7 +2007,7 @@ export class Vm {
-       const v = key === "length" ? o.length : this.readObjProp(this.ctx.builtins.String, key, frame.code, pc)
-       return writeRead(regs, sp - 1, mode, o, v)
-     }
--    if (o instanceof ToolReference) return writeRead(regs, sp - 1, mode, undefined, new ToolReference([...o.path, key]))
-+    if (o instanceof ToolReference) return writeRead(regs, sp - 1, mode, undefined, o.child(key))
-     const site = frame.code.siteAt(pc)!
-     if (mode === 2) {
-       regs[sp - 1] = destructuredProperty(this.ctx.builtins, o, key, site)
+diff --git a/bun.lock b/bun.lock
+index 26a0a31092..dc94393307 100644
+--- a/bun.lock
++++ b/bun.lock
+@@ -1032,6 +1032,7 @@
+     "@silvia-odwyer/photon-node@0.3.4": "patches/@silvia-odwyer%2Fphoton-node@0.3.4.patch",
+     "@pierre/trees@1.0.0-beta.6": "patches/@pierre%2Ftrees@1.0.0-beta.6.patch",
+     "vite@8.2.4": "patches/vite@8.2.4.patch",
++    "psychoscript@0.2.1": "patches/psychoscript@0.2.1.patch",
+     "@ff-labs/fff-bun@0.10.5": "patches/@ff-labs%2Ffff-bun@0.10.5.patch",
+     "app-builder-lib@26.15.7": "patches/app-builder-lib@26.15.7.patch",
+     "@corvu/drawer@0.2.4": "patches/@corvu%2Fdrawer@0.2.4.patch",
+diff --git a/package.json b/package.json
+index 377b0908dc..d5bcbc6094 100644
+--- a/package.json
++++ b/package.json
+@@ -157,6 +157,7 @@
+   },
+   "patchedDependencies": {
+     "@ai-sdk/openai-compatible@2.0.41": "patches/@ai-sdk%2Fopenai-compatible@2.0.41.patch",
++    "psychoscript@0.2.1": "patches/psychoscript@0.2.1.patch",
+     "htmlparser2@8.0.2": "patches/htmlparser2@8.0.2.patch",
+     "@dnd-kit/dom@0.5.0": "patches/@dnd-kit%2Fdom@0.5.0.patch",
+     "@npmcli/agent@4.0.2": "patches/@npmcli%2Fagent@4.0.2.patch",
 diff --git a/packages/codemode/test/tool-paths.test.ts b/packages/codemode/test/tool-paths.test.ts
-index 76c4a875c4..9c5595230b 100644
+index d827a7a5d9..66b37a721a 100644
 --- a/packages/codemode/test/tool-paths.test.ts
 +++ b/packages/codemode/test/tool-paths.test.ts
-@@ -426,4 +426,16 @@ describe("tool references under ==", () => {
+@@ -480,6 +480,18 @@ describe("tool references under ==", () => {
        ),
      ).toEqual([false, false, false, 0])
    })
@@ -104,3 +49,592 @@ index 76c4a875c4..9c5595230b 100644
 +    ).toEqual([true, true, true, 1, true, 1])
 +  })
  })
+ 
+ describe("unknown tool calls reject their promise", () => {
+diff --git a/patches/psychoscript@0.2.1.patch b/patches/psychoscript@0.2.1.patch
+new file mode 100644
+index 0000000000..8fd285ab52
+--- /dev/null
++++ b/patches/psychoscript@0.2.1.patch
+@@ -0,0 +1,581 @@
++diff --git a/dist/effect/host-function.d.ts b/dist/effect/host-function.d.ts
++--- a/dist/effect/host-function.d.ts
+++++ b/dist/effect/host-function.d.ts
++@@ -53,6 +53,7 @@
++ export declare const namespace: <R = never>(options: {
++     readonly keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>;
++     readonly resolve: (path: ReadonlyArray<string>) => Fn<R> | DurableFn<R> | HostFailure;
+++    readonly callable?: (path: ReadonlyArray<string>) => boolean;
++ }) => Namespace<R>;
++ /** A failure with its own diagnostic `kind` and `suggestions`, to throw or fail with from a host function. */
++ export declare const fail: (kind: string, message: string, suggestions?: ReadonlyArray<string>) => HostFailure;
++diff --git a/dist/effect/host-function.js b/dist/effect/host-function.js
++--- a/dist/effect/host-function.js
+++++ b/dist/effect/host-function.js
++@@ -20,7 +20,7 @@
++  * path, for `Object.keys` and `for...in`; `resolve(path)` gives the function a call reaches, or a failure (see
++  * `missing`) the call throws. Any path can be read, so `ns.a.b` is a path whether or not anything is there.
++  */
++-export const namespace = (options) => new Namespace(options.keys, options.resolve);
+++export const namespace = (options) => new Namespace(options.keys, options.resolve, options.callable);
++ /** A failure with its own diagnostic `kind` and `suggestions`, to throw or fail with from a host function. */
++ export const fail = (kind, message, suggestions) => new HostFailure(kind, message, suggestions);
++ /** What `resolve` gives for a path with no function: calling it throws this failure. */
++diff --git a/dist/host-function.d.ts b/dist/host-function.d.ts
++--- a/dist/host-function.d.ts
+++++ b/dist/host-function.d.ts
++@@ -57,6 +57,7 @@
++ export declare const namespace: (options: {
++     readonly keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>;
++     readonly resolve: (path: ReadonlyArray<string>) => Fn | DurableFn | HostFailure;
+++    readonly callable?: (path: ReadonlyArray<string>) => boolean;
++ }) => Namespace;
++ /** A failure with its own diagnostic `kind` and `suggestions`, to throw from a host function. */
++ export declare const fail: (kind: string, message: string, suggestions?: ReadonlyArray<string>) => HostFailure;
++diff --git a/dist/host-function.js b/dist/host-function.js
++--- a/dist/host-function.js
+++++ b/dist/host-function.js
++@@ -16,7 +16,7 @@
++  * path, for `Object.keys` and `for...in`; `resolve(path)` gives the function a call reaches, or a failure (see
++  * `missing`) the call throws. Any path can be read, so `ns.a.b` is a path whether or not anything is there.
++  */
++-export const namespace = (options) => new Namespace(options.keys, options.resolve);
+++export const namespace = (options) => new Namespace(options.keys, options.resolve, options.callable);
++ /** A failure with its own diagnostic `kind` and `suggestions`, to throw from a host function. */
++ export const fail = (kind, message, suggestions) => new HostFailure(kind, message, suggestions);
++ /** What `resolve` gives for a path with no function: calling it throws this failure. */
++diff --git a/dist/prelude/internal.js b/dist/prelude/internal.js
++--- a/dist/prelude/internal.js
+++++ b/dist/prelude/internal.js
++@@ -332,7 +332,11 @@
++             return 1;
++         return conv.hint === "default" ? 2 : 3;
++     });
++-    add("$ApplyBinary", ([op, lhs, rhs]) => applyBinaryOperator(op, lhs, rhs, currentSite()));
+++    add("$ApplyBinary", ([op, lhs, rhs]) => {
+++        if (op === "in" && rhs instanceof HostNamespace)
+++            return ctx.namespaceKeys(rhs).includes(propertyKey(lhs));
+++        return applyBinaryOperator(op, lhs, rhs, currentSite());
+++    });
++     // Convert helpers
++     add("$ConvValues", ([req]) => new Arr(builtins.Array, [...req.values]));
++     add("$ConvFlag", ([req, which]) => {
++@@ -380,7 +384,7 @@
++     });
++     // JSON walk helpers
++     add("$JsonClassify", ([val, boundary, ancestors]) => {
++-        if (val === undefined || typeofValue(val) === "function")
+++        if (val === undefined || typeof val === "symbol" || typeofValue(val) === "function")
++             return 0;
++         if (typeof val === "number")
++             return Number.isFinite(val) ? 1 : 2;
++@@ -523,7 +527,7 @@
++     const visit = (cur, depth) => {
++         if (depth > MAX_VALUE_DEPTH)
++             throw rangeError(`Value exceeds the maximum depth of ${MAX_VALUE_DEPTH}.`);
++-        if (cur === undefined || typeofValue(cur) === "function")
+++        if (cur === undefined || typeof cur === "symbol" || typeofValue(cur) === "function")
++             return { ok: true, json: undefined };
++         if (typeof cur === "number")
++             return { ok: true, json: Number.isFinite(cur) ? cur : null };
++diff --git a/dist/runtime/contract.d.ts b/dist/runtime/contract.d.ts
++--- a/dist/runtime/contract.d.ts
+++++ b/dist/runtime/contract.d.ts
++@@ -90,6 +90,8 @@
++ export declare class Namespace<R = never> {
++     readonly keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>;
++     readonly resolve: (path: ReadonlyArray<string>) => Fn<R> | DurableFn<R> | HostFailure;
+++    /** Whether `typeof` the path is "function"; by default every path below the root is. */
+++    readonly callable?: (path: ReadonlyArray<string>) => boolean;
++     readonly requirements?: (_: never) => R;
++-    constructor(keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>, resolve: (path: ReadonlyArray<string>) => Fn<R> | DurableFn<R> | HostFailure);
+++    constructor(keys: (path: ReadonlyArray<string>) => ReadonlyArray<string>, resolve: (path: ReadonlyArray<string>) => Fn<R> | DurableFn<R> | HostFailure, callable?: (path: ReadonlyArray<string>) => boolean);
++ }
++diff --git a/dist/runtime/contract.js b/dist/runtime/contract.js
++--- a/dist/runtime/contract.js
+++++ b/dist/runtime/contract.js
++@@ -64,8 +64,10 @@
++ export class Namespace {
++     keys;
++     resolve;
++-    constructor(keys, resolve) {
+++    callable;
+++    constructor(keys, resolve, callable) {
++         this.keys = keys;
++         this.resolve = resolve;
+++        this.callable = callable;
++     }
++ }
++diff --git a/dist/runtime/errors.js b/dist/runtime/errors.js
++--- a/dist/runtime/errors.js
+++++ b/dist/runtime/errors.js
++@@ -30,7 +30,7 @@
++         const location = error.node?.loc ? sourceLocation(error.node) : undefined;
++         return {
++             kind: error.kind,
++-            message: `${error.type}: ${error.message}${formatLocation(location)}`,
+++            message: `${error.name ?? error.type}: ${error.message}${formatLocation(location)}`,
++             ...(location ? { location } : {}),
++             ...(error.suggestions ? { suggestions: error.suggestions } : {}),
++         };
++@@ -104,6 +104,8 @@
++         if (thrown.value === undefined) {
++             const node = thrown.node;
++             thrown.value = createErrorValue(builtins[thrown.type], thrown.message, node?.loc && !inPrelude(node) ? stackFrame(node) : "");
+++            if (thrown.name !== undefined)
+++                define(thrown.value, "name", thrown.name, hidden);
++             thrown.value.failure = thrown;
++         }
++         return thrown.value;
++diff --git a/dist/runtime/extensions.js b/dist/runtime/extensions.js
++--- a/dist/runtime/extensions.js
+++++ b/dist/runtime/extensions.js
++@@ -275,6 +275,7 @@
++     const namespace = (value, label, global) => {
++         ctx.hostNamespaces.set(label, {
++             keys: (path) => value.keys(path),
+++            callable: value.callable === undefined ? undefined : (path) => value.callable(path),
++             call: (path, values, site) => {
++                 const found = value.resolve(path);
++                 if (found instanceof HostFailure)
++diff --git a/dist/runtime/interpreter.js b/dist/runtime/interpreter.js
++--- a/dist/runtime/interpreter.js
+++++ b/dist/runtime/interpreter.js
++@@ -97,6 +97,11 @@
++     callNamespace(value, args, site) {
++         return this.namespaceHandler(value).call(value.path, args, site);
++     }
+++    /** Whether typeof the namespace path is "function": a tool, or a namespace that has one of its own. */
+++    namespaceCallable(value) {
+++        const handler = this.namespaceHandler(value);
+++        return handler.callable === undefined ? value.path.length > 0 : handler.callable(value.path);
+++    }
++     namespaceHandler(value) {
++         const handler = this.hostNamespaces.get(value.root);
++         if (handler === undefined)
++diff --git a/dist/runtime/intrinsic-names.js b/dist/runtime/intrinsic-names.js
++--- a/dist/runtime/intrinsic-names.js
+++++ b/dist/runtime/intrinsic-names.js
++@@ -1,5 +1,5 @@
++ import { AsyncIteratorSymbol, IteratorSymbol } from "./model.js";
++-import { accessorFunction, Arr, Fn, Native, Obj } from "./objects.js";
+++import { accessorFunction, Arr, Fn, NamespaceObj, Native, Obj } from "./objects.js";
++ /**
++  * Deterministic names for one runtime's intrinsic objects, so saved state can refer to a built-in by name instead of
++  * copying it, and whether each one changed since the runtime was made.
++@@ -101,7 +101,7 @@
++     if (value.intrinsic <= 0)
++         return false;
++     const ctor = value.constructor;
++-    return ctor === Obj || ctor === Arr || ctor === Native || ctor === Fn;
+++    return ctor === Obj || ctor === NamespaceObj || ctor === Arr || ctor === Native || ctor === Fn;
++ };
++ /** The static names, in walk order, once a runtime has been made in this process. */
++ export const staticNames = () => {
++diff --git a/dist/runtime/model.js b/dist/runtime/model.js
++--- a/dist/runtime/model.js
+++++ b/dist/runtime/model.js
++@@ -1,5 +1,5 @@
++-export const AsyncIteratorSymbol = Symbol("psychoscript.async-iterator");
++-export const IteratorSymbol = Symbol("psychoscript.iterator");
+++export const AsyncIteratorSymbol = Symbol("Symbol.asyncIterator");
+++export const IteratorSymbol = Symbol("Symbol.iterator");
++ export class Throw {
++     value;
++     constructor(value) {
++@@ -17,6 +17,8 @@
++     suggestions;
++     node;
++     value;
+++    /** The name a DOMException has (`InvalidCharacterError`): code mode has no DOMException, so it is an `Error`. */
+++    name;
++     constructor(
++     /** The JS error class a program sees when it catches this failure. */
++     type, message, node, kind = "ExecutionFailure", suggestions) {
++@@ -55,6 +57,12 @@
++ export const lostError = (description, node) => new PendingThrow("TypeError", `${description} came from the host and was lost when the run was suspended; get it again after resuming.`, node);
++ const failure = (type, kind) => (message, node) => new PendingThrow(type, message, node, kind);
++ export const typeError = failure("TypeError");
+++/** A DOMException such as `InvalidCharacterError`: an `Error` with that name, since code mode has no DOMException. */
+++export const domException = (name, message, node) => {
+++    const failure = new PendingThrow("Error", message, node);
+++    failure.name = name;
+++    return failure;
+++};
++ export const invalidData = failure("TypeError", "InvalidDataValue");
++ export const rangeError = failure("RangeError");
++ export const referenceError = failure("ReferenceError");
++diff --git a/dist/runtime/objects.js b/dist/runtime/objects.js
++--- a/dist/runtime/objects.js
+++++ b/dist/runtime/objects.js
++@@ -328,6 +328,16 @@
++         this.errorBase = errorBase;
++     }
++ }
+++/** A built-in namespace object (`Math`, `JSON`, `console`): plain data that `Object.prototype.toString` names. */
+++export class NamespaceObj extends Obj {
+++    constructor(proto, tag) {
+++        super(proto);
+++        this.tag = tag;
+++    }
+++    get describe() {
+++        return "a data object";
+++    }
+++}
++ /** The strict `arguments` object: an ordinary object with indexed own properties and a hidden `length`. */
++ export class Arguments extends Obj {
++     tag = "Arguments";
++@@ -436,7 +446,7 @@
++ }
++ export class GeneratorObj extends Opaque {
++     asynchronous;
++-    tag = "Generator";
+++    tag;
++     state = "suspendedStart";
++     /** The suspended body's frame, kept while it waits for the next request, which puts it back on the job stack. */
++     frame = undefined;
++@@ -445,6 +455,7 @@
++     constructor(proto, asynchronous) {
++         super(proto);
++         this.asynchronous = asynchronous;
+++        this.tag = asynchronous ? "AsyncGenerator" : "Generator";
++     }
++     get describe() {
++         return "a generator";
++@@ -724,9 +735,19 @@
++ export class HostNamespace {
++     root;
++     path;
+++    /** References below this one, made once each, so reading a path twice gives the same value. */
+++    children = new Map();
++     constructor(root, path) {
++         this.root = root;
++         this.path = path;
+++    }
+++    child(key) {
+++        const known = this.children.get(key);
+++        if (known !== undefined)
+++            return known;
+++        const made = new HostNamespace(this.root, [...this.path, key]);
+++        this.children.set(key, made);
+++        return made;
++     }
++ }
++ /** ToString without consulting program-defined methods. */
++diff --git a/dist/runtime/operations.js b/dist/runtime/operations.js
++--- a/dist/runtime/operations.js
+++++ b/dist/runtime/operations.js
++@@ -243,7 +243,7 @@
++         if (typeof key !== "string") {
++             throw typeError(`${objectValue.root} paths must use string property names.`, propertyNode);
++         }
++-        return new HostNamespace(objectValue.root, [...objectValue.path, key]);
+++        return objectValue.child(key);
++     }
++     if (objectValue instanceof Obj)
++         return { target: objectValue, key, receiver: objectValue };
++diff --git a/dist/runtime/promises.js b/dist/runtime/promises.js
++--- a/dist/runtime/promises.js
+++++ b/dist/runtime/promises.js
++@@ -82,10 +82,13 @@
++         return record(ctx.builtins.Object, { promise: made.promise, resolve: functions.resolve, reject: functions.reject });
++     }
++     if (name === "try") {
+++        const made = capability(ctx, site);
+++        // Calling something that is not a function fails like the callback throwing: the promise rejects.
++         if (typeofValue(args[0]) !== "function") {
++-            throw typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`);
+++            made.reject(typeError(`Promise.try expects a function, received ${describeValue(args[0])}.`));
+++            return made.promise;
++         }
++-        return new Push("Promise.try", [capability(ctx, site), args[0], args.slice(1)]);
+++        return new Push("Promise.try", [made, args[0], args.slice(1)]);
++     }
++     return new Push("Promise combinator", [capability(ctx, site), name, args[0]]);
++ };
++diff --git a/dist/snapshot/codec.js b/dist/snapshot/codec.js
++--- a/dist/snapshot/codec.js
+++++ b/dist/snapshot/codec.js
++@@ -1,6 +1,6 @@
++ import { Interpreter } from "../runtime/interpreter.js";
++ import { AsyncIteratorSymbol, HostFailure, IteratorSymbol, Lost, lostError, PendingThrow, Throw, } from "../runtime/model.js";
++-import { accessorFunction, accessorHalf, Arguments, Arr, BoundFn, Callable, isProgramAccessor, Bytes, changed, DateObj, ErrorObj, StackSlot, GeneratorObj, HeadersObj, HostNamespace, IteratorObj, MapObj, Native, Obj, Position, PromiseObj, RegExpObj, Resolver, SetObj, URLObj, URLSearchParamsObj, WeakMapObj, WeakSetObj, Protector, } from "../runtime/objects.js";
+++import { accessorFunction, accessorHalf, Arguments, Arr, BoundFn, Callable, isProgramAccessor, Bytes, changed, DateObj, ErrorObj, StackSlot, GeneratorObj, HeadersObj, HostNamespace, IteratorObj, MapObj, NamespaceObj, Native, Obj, Position, PromiseObj, RegExpObj, Resolver, SetObj, URLObj, URLSearchParamsObj, WeakMapObj, WeakSetObj, Protector, } from "../runtime/objects.js";
++ import { Convert, Interruption, Invoke, Prefetch } from "../runtime/signals.js";
++ import { deleted, OrderedTable } from "../runtime/table.js";
++ import { AsyncFromSyncIterator } from "../generators.js";
++@@ -24,6 +24,7 @@
++ // Built on first use: the VM's modules and this one import each other, so the classes aren't there at load time.
++ const builtinSpecs = () => [
++     { name: "Obj", ctor: Obj, fields: [], obj: true, constants: { tag: "Object" } },
+++    { name: "NamespaceObj", ctor: NamespaceObj, fields: ["tag"], obj: true },
++     { name: "Arr", ctor: Arr, fields: ["items", "elements"], obj: true, constants: { tag: "Array" } },
++     { name: "ErrorObj", ctor: ErrorObj, fields: ["failure"], obj: true, constants: { tag: "Error" } },
++     { name: "Arguments", ctor: Arguments, fields: [], obj: true, constants: { tag: "Arguments" } },
++@@ -55,7 +56,10 @@
++         ctor: GeneratorObj,
++         fields: ["state", "frame", "queue", "asynchronous"],
++         obj: true,
++-        constants: { tag: "Generator" },
+++        // The tag follows from `asynchronous`.
+++        reset: (generator) => {
+++            generator.tag = generator.asynchronous ? "AsyncGenerator" : "Generator";
+++        },
++     },
++     { name: "IteratorObj", ctor: IteratorObj, fields: ["cursor"], obj: true, constants: { tag: "Iterator" } },
++     { name: "DateObj", ctor: DateObj, fields: ["time"], obj: true, constants: { tag: "Date" } },
++@@ -139,11 +143,15 @@
++     },
++     { name: "Resolving", ctor: Resolving, fields: ["done", "scheduler", "promise", "site"] },
++     { name: "Throw", ctor: Throw, fields: ["value"] },
++-    { name: "PendingThrow", ctor: PendingThrow, fields: ["type", "message", "kind", "suggestions", "node", "value"] },
+++    {
+++        name: "PendingThrow",
+++        ctor: PendingThrow,
+++        fields: ["type", "message", "kind", "suggestions", "node", "value", "name"],
+++    },
++     { name: "Convert", ctor: Convert, fields: ["hints", "values", "ordinal", "coerce"] },
++     { name: "Prefetch", ctor: Prefetch, fields: ["reads"] },
++     { name: "Invoke", ctor: Invoke, fields: ["callable", "thisValue", "args", "site"] },
++-    { name: "HostNamespace", ctor: HostNamespace, fields: ["root", "path"] },
+++    { name: "HostNamespace", ctor: HostNamespace, fields: ["root", "path", "children"] },
++     { name: "Lost", ctor: Lost, fields: ["description"] },
++     { name: "Protector", ctor: Protector, anchor: "protector", fields: ["intact"] },
++     {
++diff --git a/dist/stdlib/console.js b/dist/stdlib/console.js
++--- a/dist/stdlib/console.js
+++++ b/dist/stdlib/console.js
++@@ -1,11 +1,11 @@
++ import { methods } from "../runtime/native.js";
++-import { accessorLabel, get, Arr, HostNamespace, isProgramAccessor, lookup, Obj, shownEntries, } from "../runtime/objects.js";
+++import { accessorLabel, coerceToString, get, Arr, HostNamespace, isProgramAccessor, lookup, NamespaceObj, Obj, shownEntries, } from "../runtime/objects.js";
++ import { containsOpaqueReference } from "../runtime/references.js";
++ const consoleMethods = ["log", "info", "debug", "warn", "error", "dir", "table"];
++ /** Captured console: every method appends one formatted line to `logs`. */
++ export const consoleGlobal = (ctx) => {
++     const builtins = ctx.builtins;
++-    const console = new Obj(builtins.Object);
+++    const console = new NamespaceObj(builtins.Object, "console");
++     methods(builtins, console, consoleMethods.map((name) => [
++         name,
++         0,
++@@ -23,7 +23,31 @@
++     if (name === "table")
++         return formatConsoleTable(args[0], args[1]);
++     const prefix = name === "warn" ? "[warn] " : name === "error" ? "[error] " : name === "debug" ? "[debug] " : "";
++-    return `${prefix}${args.map((arg) => formatValue(arg)).join(" ")}`;
+++    return `${prefix}${formatArguments(args).join(" ")}`;
+++};
+++// A first string argument with more after it takes them in its format specifiers, as the console does in JS: %s, %o,
+++// and %O show the value, %d and %i parse an integer, %f a float, %c takes a style and shows nothing, and %% is a %.
+++// A specifier left without an argument stays as written; arguments left over follow, separated by spaces.
+++const formatArguments = (args) => {
+++    const first = args[0];
+++    if (typeof first !== "string" || args.length < 2)
+++        return args.map((arg) => formatValue(arg));
+++    let next = 1;
+++    const text = first.replace(/%([sdifoOc%])/g, (specifier, kind) => {
+++        if (kind === "%")
+++            return "%";
+++        if (next >= args.length)
+++            return specifier;
+++        const arg = args[next++];
+++        if (kind === "c")
+++            return "";
+++        if (kind === "d" || kind === "i")
+++            return formatValue(typeof arg === "symbol" ? NaN : parseInt(coerceToString(arg), 10));
+++        if (kind === "f")
+++            return formatValue(typeof arg === "symbol" ? NaN : parseFloat(coerceToString(arg)));
+++        return formatValue(arg);
+++    });
+++    return [text, ...args.slice(next).map((arg) => formatValue(arg))];
++ };
++ /** One value as `console.log` shows it. */
++ export const formatValue = (value) => {
++diff --git a/dist/stdlib/json.js b/dist/stdlib/json.js
++--- a/dist/stdlib/json.js
+++++ b/dist/stdlib/json.js
++@@ -1,20 +1,21 @@
++ import { methods } from "../runtime/native.js";
++-import { requireCallback } from "../runtime/callback.js";
+++import { requireCallback, withPrimitives } from "../runtime/callback.js";
++ import { syntaxError } from "../runtime/model.js";
++ import { typeofValue } from "../runtime/references.js";
++ import { fromJson } from "../data.js";
++-import { Arr, Obj, coerceToString, record } from "../runtime/objects.js";
+++import { Arr, NamespaceObj, coerceToString, record } from "../runtime/objects.js";
++ import { Invoke, Push } from "../runtime/signals.js";
++ export const jsonGlobal = (ctx) => {
++-    const json = new Obj(ctx.builtins.Object);
+++    const json = new NamespaceObj(ctx.builtins.Object, "JSON");
++     methods(ctx.builtins, json, [
++         ["parse", 2, (_, args) => parse(ctx, args)],
++         ["stringify", 3, (_, args) => stringify(args)],
++     ]);
++     return json;
++ };
++-const parse = (ctx, args) => {
++-    const text = coerceToString(args[0]);
+++// ToString on the text runs a program object's own toString, as in JS.
+++const parse = (ctx, args) => withPrimitives("string", [args[0]], ([text]) => parseText(ctx, coerceToString(text), args[1]));
+++const parseText = (ctx, text, reviver) => {
++     const parsed = (() => {
++         try {
++             return fromJson(ctx, JSON.parse(text));
++@@ -23,10 +24,9 @@
++             throw syntaxError(`JSON.parse received invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
++         }
++     })();
++-    if (typeofValue(args[1]) !== "function")
+++    if (typeofValue(reviver) !== "function")
++         return parsed;
++-    const reviver = requireCallback(args[1], "JSON.parse");
++-    return new Invoke(ctx.prelude.fn("revive"), undefined, [record(ctx.builtins.Object, { "": parsed }), "", reviver], undefined);
+++    return new Invoke(ctx.prelude.fn("revive"), undefined, [record(ctx.builtins.Object, { "": parsed }), "", requireCallback(reviver, "JSON.parse")], undefined);
++ };
++ const stringify = (args) => {
++     const space = args[2];
++diff --git a/dist/stdlib/math.js b/dist/stdlib/math.js
++--- a/dist/stdlib/math.js
+++++ b/dist/stdlib/math.js
++@@ -1,9 +1,9 @@
++ import { constants, methods } from "../runtime/native.js";
++-import { Obj, coerceToNumber } from "../runtime/objects.js";
+++import { NamespaceObj, coerceToNumber } from "../runtime/objects.js";
++ import { withPrimitives } from "../runtime/callback.js";
++ export const mathGlobal = (ctx) => {
++     const builtins = ctx.builtins;
++-    const math = new Obj(builtins.Object);
+++    const math = new NamespaceObj(builtins.Object, "Math");
++     // Convert only the arguments a method consumes; like JS, extras are ignored
++     // (so built-ins work as callbacks receiving (element, index, array)).
++     const unary = (name, op) => [
++diff --git a/dist/stdlib/number.js b/dist/stdlib/number.js
++--- a/dist/stdlib/number.js
+++++ b/dist/stdlib/number.js
++@@ -1,8 +1,8 @@
++ import { constructor, constants, methods } from "../runtime/native.js";
++-import { coerceToNumber } from "../runtime/objects.js";
+++import { coerceToNumber, define, hidden } from "../runtime/objects.js";
++ import { typeError } from "../runtime/model.js";
++ import { withPrimitives } from "../runtime/callback.js";
++-import { coerce } from "./value.js";
+++import { coerce, coercion } from "./value.js";
++ export const numberGlobal = (ctx) => {
++     const builtins = ctx.builtins;
++     const number = constructor(builtins, builtins.Number, {
++@@ -25,9 +25,10 @@
++         ["isFinite", 1, (_, args) => Number.isFinite(args[0])],
++         ["isNaN", 1, (_, args) => Number.isNaN(args[0])],
++         ["isSafeInteger", 1, (_, args) => Number.isSafeInteger(args[0])],
++-        ["parseInt", 2, (_, args) => coerce(ctx, "parseInt", args)],
++-        ["parseFloat", 1, (_, args) => coerce(ctx, "parseFloat", args)],
++     ]);
+++    // The global functions, so `Number.parseInt === parseInt` as in JS.
+++    define(number, "parseInt", coercion(ctx, "parseInt", 2), hidden);
+++    define(number, "parseFloat", coercion(ctx, "parseFloat"), hidden);
++     const self = (thisValue, name) => {
++         if (typeof thisValue === "number")
++             return thisValue;
++diff --git a/dist/stdlib/string.js b/dist/stdlib/string.js
++--- a/dist/stdlib/string.js
+++++ b/dist/stdlib/string.js
++@@ -86,12 +86,19 @@
++             (_, args) => withReads(() => {
++                 const template = args[0];
++                 const raw = template instanceof Obj ? get(template, "raw") : undefined;
++-                if (!(raw instanceof Obj))
+++                if (raw === null || raw === undefined) {
++                     throw typeError("String.raw expects a template object with a raw array.");
++-                const count = Math.max(0, coerceToInteger(get(raw, "length")));
+++                }
+++                // `raw` is read as an object, as in JS: a string's characters are its literals; other primitives have none.
+++                const count = typeof raw === "string"
+++                    ? raw.length
+++                    : raw instanceof Obj
+++                        ? Math.max(0, coerceToInteger(get(raw, "length")))
+++                        : 0;
++                 checkArrayLength(count);
+++                const literal = (index) => (typeof raw === "string" ? raw[index] : get(raw, index));
++                 // Each literal is followed by its substitution, except the last literal, or when substitutions run out.
++-                const parts = Array.from({ length: count }, (_, index) => index + 1 < count && index + 1 < args.length ? [get(raw, index), args[index + 1]] : [get(raw, index)]).flat();
+++                const parts = Array.from({ length: count }, (_, index) => index + 1 < count && index + 1 < args.length ? [literal(index), args[index + 1]] : [literal(index)]).flat();
++                 return withPrimitives("string", parts, (strings) => {
++                     const output = strings.map(coerceToString).join("");
++                     checkStringLength(output.length);
++diff --git a/dist/stdlib/value.js b/dist/stdlib/value.js
++--- a/dist/stdlib/value.js
+++++ b/dist/stdlib/value.js
++@@ -28,5 +28,19 @@
++         return coerceToString(value);
++     });
++ };
+++// One function per runtime and name, so `Number.parseInt === parseInt` as in JS.
+++const coercions = new WeakMap();
++ /** A global coercion function such as `Number` or `parseInt`. */
++-export const coercion = (ctx, name, length = 1) => fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args));
+++export const coercion = (ctx, name, length = 1) => {
+++    let made = coercions.get(ctx);
+++    if (made === undefined) {
+++        made = new Map();
+++        coercions.set(ctx, made);
+++    }
+++    const known = made.get(name);
+++    if (known !== undefined)
+++        return known;
+++    const created = fn(ctx.builtins, name, length, (_, args) => coerce(ctx, name, args));
+++    made.set(name, created);
+++    return created;
+++};
++diff --git a/dist/stdlib/web.js b/dist/stdlib/web.js
++--- a/dist/stdlib/web.js
+++++ b/dist/stdlib/web.js
++@@ -1,6 +1,6 @@
++ import { fn, methods } from "../runtime/native.js";
++ import { withReads } from "../runtime/callback.js";
++-import { typeError } from "../runtime/model.js";
+++import { domException, typeError } from "../runtime/model.js";
++ import { define, entries, get, getOwn, hasOwn, hidden, isRuntimeReference, Arr, Bytes, DateObj, ErrorObj, HostNamespace, MapObj, Obj, RegExpObj, SetObj, WeakMapObj, WeakSetObj, coerceToString, } from "../runtime/objects.js";
++ import { createErrorValue, isErrorType } from "../runtime/intrinsics.js";
++ import { describeValue } from "../runtime/references.js";
++@@ -14,7 +14,7 @@
++         return name === "atob" ? atob(input) : btoa(input);
++     }
++     catch {
++-        throw typeError("The string contains invalid characters.");
+++        throw domException("InvalidCharacterError", "The string contains invalid characters.");
++     }
++ });
++ // HTML structured clone over psychoscript's data kinds. Shared references survive through the memo; prototypes and
++diff --git a/dist/vm.js b/dist/vm.js
++--- a/dist/vm.js
+++++ b/dist/vm.js
++@@ -2321,7 +2321,7 @@
++             return writeRead(regs, sp - 1, mode, o, v);
++         }
++         if (o instanceof HostNamespace) {
++-            return writeRead(regs, sp - 1, mode, undefined, new HostNamespace(o.root, [...o.path, key]));
+++            return writeRead(regs, sp - 1, mode, undefined, o.child(key));
++         }
++         return this.readMember(frame, sp - 1, mode, o, key, frame.code.siteAt(pc), pc);
++     }
++@@ -2476,6 +2476,10 @@
++         requirePromiseProperty(writableReference(ref, memberNode), memberNode);
++     }
++     execBinarySlow(frame, op, a, b, pc, sp) {
+++        if (op === "in" && b instanceof HostNamespace) {
+++            frame.regs[sp - 1] = this.ctx.namespaceKeys(b).includes(propertyKey(a));
+++            return false;
+++        }
++         const fcode = frame.code;
++         const site = fcode.siteAt(pc) ?? frame.origin;
++         if (a instanceof Obj || b instanceof Obj) {
++@@ -2491,7 +2495,7 @@
++     }
++     execUnarySlow(frame, sub, v, pc, sp) {
++         if (sub === 3) {
++-            frame.regs[sp - 1] = typeofValue(v);
+++            frame.regs[sp - 1] = v instanceof HostNamespace ? (this.ctx.namespaceCallable(v) ? "function" : "object") : typeofValue(v);
++             return false;
++         }
++         if (sub === 4) {

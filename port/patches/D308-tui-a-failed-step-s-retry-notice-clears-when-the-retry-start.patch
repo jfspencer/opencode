@@ -1,22 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:05:52 -0700
+Date: Sun, 22 Nov 2026 15:07:43 -0700
 Subject: [PATCH] D308 tui: a failed step's retry notice clears when the retry
  starts
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
-Upstream: a step that fails after streaming output is completed before its retry is scheduled, and the retry continues in a new assistant message. The projections (server and the TUI's live data) clear a pending retry only on the in-progress assistant, so the failed message keeps `retry` for good: `GET /api/session/:id/message` returns it after the session succeeded, and the TUI shows "⚠ Retry due · attempt 2 · <error>" above the continued answer. Upstream's own test ("clears it at the next step or execution terminal") skips the step failure.
-Fixed: the failed step stays current while its retry is pending, so the next step (or the execution's end) clears it; the message keeps its error, which the TUI then shows like any failed step's.
-Scenarios: tui/session-errors.test.ts "rate limited, retried, then answered", "stream truncated after text, then continued"; agent-loop.test.ts "unknown finish reason", "finish reason error after output continues"; agent-loop-errors.test.ts "stream truncated after text, then continued", "stream truncated during a tool call, then continued", "error frame after output, then continued"; agent-loop-transport.test.ts "connection dropped after output, then continued", "response stalls after output past the chunk timeout, then continued"
-Upstream tests: core test/session-projector.test.ts and client test/solid-data.test.ts: a test each for a failed step's retry clearing when its continuation starts
 
 diff --git a/packages/client/src/solid/data.ts b/packages/client/src/solid/data.ts
-index d128dac68e..1f6589ee61 100644
+index 320e76cb45..726143372f 100644
 --- a/packages/client/src/solid/data.ts
 +++ b/packages/client/src/solid/data.ts
-@@ -536,8 +536,11 @@ export function createData(config: CreateDataInput) {
+@@ -612,8 +612,11 @@ export function createData(config: CreateDataInput) {
          if (reasoning) fn(reasoning)
        })
      },
@@ -29,7 +22,7 @@ index d128dac68e..1f6589ee61 100644
        return item?.type === "assistant" ? item : undefined
      },
      shell(messages: SessionMessageInfo[], shellID: string) {
-@@ -990,7 +993,7 @@ export function createData(config: CreateDataInput) {
+@@ -1096,7 +1099,7 @@ export function createData(config: CreateDataInput) {
            const currentAssistant = message.activeAssistant(draft)
            if (currentAssistant) {
              currentAssistant.retry = undefined
@@ -39,7 +32,7 @@ index d128dac68e..1f6589ee61 100644
            message.append(draft, index, {
              id: event.data.assistantMessageID,
 diff --git a/packages/client/test/solid-data.test.ts b/packages/client/test/solid-data.test.ts
-index 69dea99a24..d92d27740f 100644
+index b040e634d5..89b6a8ab49 100644
 --- a/packages/client/test/solid-data.test.ts
 +++ b/packages/client/test/solid-data.test.ts
 @@ -239,6 +239,75 @@ test("reconciles a stale running tool when execution settles", async () => {
@@ -119,10 +112,10 @@ index 69dea99a24..d92d27740f 100644
    const listeners = new Set<Parameters<CreateDataInput["event"]["listen"]>[0]>()
    const screenshot = `data:image/png;base64,${"A".repeat(4096)}`
 diff --git a/packages/core/src/session/message-updater.ts b/packages/core/src/session/message-updater.ts
-index 6297fe679e..f12a882068 100644
+index 1e89db3af8..1c657d3d18 100644
 --- a/packages/core/src/session/message-updater.ts
 +++ b/packages/core/src/session/message-updater.ts
-@@ -243,7 +243,7 @@ export function update(adapter: Adapter, event: SessionEvent.DurableEvent) {
+@@ -244,7 +244,7 @@ export function update(adapter: Adapter, event: SessionEvent.DurableEvent) {
              yield* adapter.updateAssistant(
                produce(currentAssistant, (draft) => {
                  draft.retry = undefined
@@ -132,10 +125,10 @@ index 6297fe679e..f12a882068 100644
              )
            }
 diff --git a/packages/core/src/session/projector.ts b/packages/core/src/session/projector.ts
-index 35f038b00a..be5c1ff8ec 100644
+index aab12ee03c..01bce5e034 100644
 --- a/packages/core/src/session/projector.ts
 +++ b/packages/core/src/session/projector.ts
-@@ -445,7 +445,8 @@ function assistantReads(
+@@ -448,7 +448,8 @@ function assistantReads(
    return {
      getCurrentAssistant() {
        return Effect.gen(function* () {
@@ -145,7 +138,7 @@ index 35f038b00a..be5c1ff8ec 100644
          const row = yield* db
            .select()
            .from(SessionMessageTable)
-@@ -456,9 +457,10 @@ function assistantReads(
+@@ -459,9 +460,10 @@ function assistantReads(
            .limit(1)
            .get()
            .pipe(Effect.orDie)
@@ -159,10 +152,10 @@ index 35f038b00a..be5c1ff8ec 100644
      },
      getAssistant(messageID) {
 diff --git a/packages/core/test/session-projector.test.ts b/packages/core/test/session-projector.test.ts
-index a818c954f5..54d327893e 100644
+index 39ddc18e4a..00f8b3d46e 100644
 --- a/packages/core/test/session-projector.test.ts
 +++ b/packages/core/test/session-projector.test.ts
-@@ -595,6 +595,50 @@ describe("SessionProjector", () => {
+@@ -596,6 +596,50 @@ describe("SessionProjector", () => {
      }),
    )
  

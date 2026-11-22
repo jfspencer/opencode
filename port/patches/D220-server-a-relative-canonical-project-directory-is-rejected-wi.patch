@@ -1,16 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 00:24:48 -0700
+Date: Sun, 22 Nov 2026 15:04:51 -0700
 Subject: [PATCH] D220 server: a relative canonical project directory is
  rejected with 400
 
-Upstream: PATCH /api/project/:id with {"canonical":"relative"} (or "") answers 500 with an empty body, for a known
-or an unknown project. AbsolutePath is an unchecked brand, so the path reaches the project table's absolute-path
-column, which throws before the update can find out that the project does not exist.
-Fixed: 400 InvalidRequestError, field canonical, message "canonical must be an absolute path" (the shape D201
-gives a relative session directory), checked before the project lookup as the payload schema would be.
-Scenarios: project-projects.test.ts "update project metadata" (new requests)
-Upstream tests: packages/server/test/project-update.test.ts (new)
 
 diff --git a/packages/protocol/src/groups/project.ts b/packages/protocol/src/groups/project.ts
 index 7609dba2d5..7b31ea07c2 100644

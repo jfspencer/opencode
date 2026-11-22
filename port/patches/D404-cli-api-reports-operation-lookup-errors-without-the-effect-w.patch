@@ -1,13 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:44:28 -0700
+Date: Sun, 22 Nov 2026 15:08:20 -0700
 Subject: [PATCH] D404 cli: api reports operation lookup errors without the
  Effect wrapper
 
-Upstream: `opencode api <operationId>` resolves the operation inside `Effect.tryPromise` without a `catch`, so an unknown operation or a missing path parameter fails as `UnknownError: An error occurred in Effect.tryPromise` with the real error only in a printed `[cause]` chain.
-Fixed: the lookup fails with its own error, printed as one line like the command's other argument errors (`Error: Operation not found: <id>`, `Error: Missing path parameter: <name>`), exit 1.
-Scenarios: cli-api.test.ts "api by operation ID"
-Upstream tests: none changed (src/commands/handlers/api.test.ts passes)
 
 diff --git a/packages/cli/src/commands/handlers/api.ts b/packages/cli/src/commands/handlers/api.ts
 index f24157ec77..f8f15fd2c8 100644

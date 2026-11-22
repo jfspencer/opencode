@@ -1,23 +1,15 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 03:02:39 -0700
+Date: Sun, 22 Nov 2026 15:22:24 -0700
 Subject: [PATCH] D516 code mode: scanned tool paths are in first-seen order,
  as documented
 
-Upstream: scanTools documents its result as the tool paths "in first-seen order", but it walks each syntax node's
-children in the order of their object keys, and acorn sets some keys out of source order: `switch (tools.a()) {
-case tools.b(): tools.c() }` lists `["a","c","b"]` (a case's `consequent` is created before its `test`).
-Fixed: children are visited in source order.
-Found by the Rust opencode-codemode crate.
-Scenarios: none (the order shows only in a schedule check's permission requests, which no scenario reaches
-with several tools); the crate's harness and the upstream test pin it
-Upstream tests: packages/codemode/test/scan.test.ts adds a test
 
-diff --git a/packages/codemode/src/scan.ts b/packages/codemode/src/scan.ts
-index d4fe5f7d20..905bc78ac6 100644
---- a/packages/codemode/src/scan.ts
-+++ b/packages/codemode/src/scan.ts
-@@ -243,21 +243,14 @@ function visitChildren(
+diff --git a/packages/codemode/src/codemode/scan.ts b/packages/codemode/src/codemode/scan.ts
+index 5eebc015f5..01aa4a14d6 100644
+--- a/packages/codemode/src/codemode/scan.ts
++++ b/packages/codemode/src/codemode/scan.ts
+@@ -377,21 +377,14 @@ function visitChildren(
    node: AnyNode,
    visit: (child: AnyNode | null | undefined) => Diagnostic | undefined,
  ): Diagnostic | undefined {
@@ -48,7 +40,7 @@ index d4fe5f7d20..905bc78ac6 100644
    return undefined
  }
 diff --git a/packages/codemode/test/scan.test.ts b/packages/codemode/test/scan.test.ts
-index 2742a5573a..7563c577db 100644
+index b9cb3435f4..25502670cb 100644
 --- a/packages/codemode/test/scan.test.ts
 +++ b/packages/codemode/test/scan.test.ts
 @@ -17,6 +17,12 @@ describe("CodeMode.scanTools", () => {

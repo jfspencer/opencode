@@ -1,20 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 02:50:11 -0700
+Date: Sun, 22 Nov 2026 14:56:46 -0700
 Subject: [PATCH] D114 webfetch: astral characters stay whole at the markdown
  byte budget
 
-Upstream: html-markdown.ts counts its 5 MiB budget with TextEncoder, and two paths hand it a surrogate pair as two
-lone halves, each counted as three bytes: htmlparser2 8.0.2 emits an astral named entity (stored as two UTF-16
-units) as two text events, and html-markdown.ts writes the page to the parser in 64 Ki-unit chunks that can end
-between the halves of a pair. At the budget the first half can fit and the second not:
-`<p>${"x".repeat(5177339)}&Afr;</p>` ends in a lone \ud835. Each split pair also overcounts by two bytes, so text at
-the budget is cut short.
-Fixed: htmlparser2 emits an astral entity as one code point (patches/htmlparser2@8.0.2.patch), and
-html-markdown.ts ends each chunk between characters.
-Found by the Rust opencode-html crate's differential harness.
-Scenarios: none (the budget is 5 MiB of output); the crate's harness and the upstream test pin it.
-Upstream tests: packages/core/test/tool-webfetch.test.ts adds a test
 
 diff --git a/packages/core/src/tool/html-markdown.ts b/packages/core/src/tool/html-markdown.ts
 index 23818cb697..b2c9357ef1 100644
@@ -37,10 +26,10 @@ index 23818cb697..b2c9357ef1 100644
  
    const normalized: string[] = []
 diff --git a/packages/core/test/tool-webfetch.test.ts b/packages/core/test/tool-webfetch.test.ts
-index 73558af9ae..b313b8b3b9 100644
+index 573a604a51..53abf27324 100644
 --- a/packages/core/test/tool-webfetch.test.ts
 +++ b/packages/core/test/tool-webfetch.test.ts
-@@ -211,6 +211,18 @@ describe("WebFetchTool helpers", () => {
+@@ -210,6 +210,18 @@ describe("WebFetchTool helpers", () => {
      expect(Buffer.byteLength(truncated)).toBe(Buffer.byteLength(fitting))
    })
  

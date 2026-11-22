@@ -1,17 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 14:09:01 -0700
+Date: Sun, 22 Nov 2026 15:01:20 -0700
 Subject: [PATCH] D211 core: compaction usage counts toward session statistics
 
-Upstream: GET /api/experimental/session/stats adds compaction usage from stored session.usage.recorded event
-payloads, but event persistence is opt-in (events.persist, off in every shipped host), so compaction usage never
-reaches the totals: they disagree with the sessions' own cost and tokens. The upstream tests only passed because
-they turn persistence on.
-Fixed: stats read compaction usage from the compaction messages, which always record the total of their model calls
-(cost and tokens), within the same time windows, project filter and fork rule as steps. Compactions are not steps.
-Scenarios: session-api-transfer.test.ts "statistics after compacting imported history"
-Upstream tests: packages/core/test/session-stats.test.ts updated (compaction usage now comes from compaction
-messages instead of persisted events)
 
 diff --git a/packages/core/src/session/stats.ts b/packages/core/src/session/stats.ts
 index e0d9eef84a..24a8e518e4 100644

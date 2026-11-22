@@ -1,16 +1,9 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:47:33 -0700
+Date: Sun, 22 Nov 2026 14:59:19 -0700
 Subject: [PATCH] D204 server: a shell command's missing working directory is a
  400
 
-Upstream: POST /api/shell with a cwd that does not exist (or is not a directory) answers 500 with an empty body:
-the spawn fails with AppProcessError, which the handler turns into a defect.
-Fixed: the handler checks the working directory first and answers 400 InvalidRequestError (kind invalid_cwd,
-field cwd, "cwd is not a directory: <cwd>"), the shape the persistent PTY create route uses for the same input.
-Other spawn failures still answer 500.
-Scenarios: shell-api.test.ts "shell routes for unknown commands"
-Upstream tests: packages/server/test/shell.test.ts (new)
 
 diff --git a/packages/protocol/src/groups/shell.ts b/packages/protocol/src/groups/shell.ts
 index f8948caae9..7ecd6aae18 100644

@@ -1,18 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Mon, 9 Nov 2026 00:23:00 -0700
+Date: Sun, 22 Nov 2026 15:04:38 -0700
 Subject: [PATCH] D219 server: a path through a file is not found
 
-Upstream: GET /api/fs/read/README.md/x, GET /api/fs/list?path=README.md/x and POST /api/experimental/fs/watch
-{"path":"README.md/x"} (a path that runs through a file) answer 500 with an empty body. The lookup fails with
-ENOTDIR, which the platform reports as BadResource, and FileSystem.read/list map only NotFound to their
-NotFoundError; every other reason dies.
-Fixed: a path through a file names nothing, like a missing path (upstream treats ENOENT and ENOTDIR alike
-elsewhere: flock, fs-util, environment/local): 404 FileNotFoundError, "File not found: README.md/x" for read
-and watch, "Directory not found: README.md/x" for list.
-Scenarios: project-fs.test.ts "read errors and confinement", "list directories", "watch and unwatch files"
-(new requests)
-Upstream tests: packages/core/test/location-filesystem.test.ts adds a test
 
 diff --git a/packages/core/src/filesystem.ts b/packages/core/src/filesystem.ts
 index 98aec9400f..9c6813d74b 100644

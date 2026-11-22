@@ -1,15 +1,8 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: opencode-port <port@localhost>
-Date: Sat, 7 Nov 2026 13:45:31 -0700
+Date: Sun, 22 Nov 2026 15:08:20 -0700
 Subject: [PATCH] D405 cli: --server connection failures print one line
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 
-Upstream: when `--server <url>` cannot be used (password missing or rejected, server unreachable, not a V2 server), every command without its own error handling (models, debug, api, reload, the TUI, …) prints the error and then the client's internal `[cause]` chain (`UnauthorizedError: Authentication required`; `ClientError: Transport: …` and its `TypeError`), repeating what the message already says.
-Fixed: the connection errors carry no `cause`, so the report is the message alone (`Error: Server at <url> requires a password; set OPENCODE_PASSWORD`, `… rejected the password`, `Error: Could not reach server at <url>: <reason>`), exit 1 as before.
-Scenarios: cli-service.test.ts "server flag addresses a running server"
-Upstream tests: none changed
 
 diff --git a/packages/cli/src/services/server-connection.ts b/packages/cli/src/services/server-connection.ts
 index 48af79aac5..45477af073 100644

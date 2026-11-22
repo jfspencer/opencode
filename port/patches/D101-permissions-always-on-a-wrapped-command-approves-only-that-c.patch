@@ -13,10 +13,10 @@ Scenarios: permissions.test.ts "always on a wrapped command approves only the wr
 Upstream tests: test/shell-parse.test.ts (wrapped cd prefixes updated, three new tests), test/shell-parse-compatibility.test.ts and test/shell-parse-syntax.test.ts (asserted the wrapper-only patterns)
 
 diff --git a/packages/core/src/shell/parse.ts b/packages/core/src/shell/parse.ts
-index f86e42e4a3..9381b9e9bc 100644
+index 0fd13fb583..8ac589a108 100644
 --- a/packages/core/src/shell/parse.ts
 +++ b/packages/core/src/shell/parse.ts
-@@ -158,6 +158,27 @@ const ARITY: Record<string, number> = {
+@@ -166,6 +166,27 @@ const ARITY: Record<string, number> = {
    "yarn run": 3,
  }
  const PREFIX_LENGTH = Math.max(...Object.values(ARITY))
@@ -42,9 +42,9 @@ index f86e42e4a3..9381b9e9bc 100644
 +  zsh: 0,
 +}
  
- export function scan(command: string, shell: string, cwd: string): Effect.Effect<Result, Error> {
-   return Effect.suspend(() => {
-@@ -222,9 +243,10 @@ export function scan(command: string, shell: string, cwd: string): Effect.Effect
+ export function scan(
+   command: string,
+@@ -236,9 +257,10 @@ export function scan(
          output.directories.push(...resolved.directories)
          if (directoryCommand === parts && resolved.complete) continue
        }
@@ -58,7 +58,7 @@ index f86e42e4a3..9381b9e9bc 100644
        // Keep existing grants stable unless normalized spacing loses the original source boundary.
        const save =
          !powershell || end === undefined || Wildcard.match(item.resource, conventional)
-@@ -600,10 +622,28 @@ function environment(key: string) {
+@@ -636,10 +658,28 @@ function environment(key: string) {
    return name ? process.env[name] : undefined
  }
  
