@@ -89,6 +89,7 @@ pub fn dialog_open() -> View {
     let dimensions = tui().dimensions;
     let theme = use_theme().surface(SurfaceName::Dialog);
     let shortcuts = use_shortcuts();
+    let tabs = crate::tabs::tabs();
     let (filter, set_filter) = create_signal(String::new());
     let (selection_moved, set_selection_moved) = create_signal(false);
     let closed = Rc::new(Cell::new(false));
@@ -403,20 +404,30 @@ pub fn dialog_open() -> View {
         let sessions = sessions.clone();
         let dimensions = dimensions;
         create_memo(move || {
-            let tabs: HashSet<String> = HashSet::new();
+            let open_tabs: HashSet<String> =
+                if tabs.enabled() { tabs.list().into_iter().map(|tab| tab.session_id).collect() } else { HashSet::new() };
             let current_id = match route.get() {
                 crate::ctx::Route::Session { session_id } => Some(data.store.session.root(&session_id)),
                 crate::ctx::Route::Home => None,
+            };
+            let attention_of = |id: &str| match tabs.status(id).attention {
+                crate::tabs::Attention::Permission => Some("permission"),
+                crate::tabs::Attention::Question => Some("question"),
+                crate::tabs::Attention::None => None,
             };
             let candidates: Vec<Json> = sessions
                 .get()
                 .into_iter()
                 .filter(|session| {
                     let Some(id) = get_str(session, "id") else { return false };
-                    !tabs.contains(id) || current_id.as_deref() != Some(id)
+                    !open_tabs.contains(id)
+                        || (attention_of(id).is_some() && current_id.as_deref() != Some(id))
                 })
                 .collect();
-            let attention_count = 0usize;
+            let attention_count = candidates
+                .iter()
+                .filter(|session| get_str(session, "id").is_some_and(|id| attention_of(id).is_some()))
+                .count();
             let filter_value = filter.get();
             let query = filter_value.trim();
             let recent = if query.is_empty() {
@@ -459,14 +470,23 @@ pub fn dialog_open() -> View {
                     option.search_text = Some(format!("{id} {directory}"));
                     option.category = Some("Sessions".into());
                     option.footer = Some(crate::ui::dialog_select::Footer::Text(footer));
+                    let marker = open_tabs.contains(&id).then(|| {
+                        let theme = theme;
+                        Rc::new(move |_| {
+                            let el = text();
+                            el.set_fg(Some(rgba(theme.get().hue.accent[200])));
+                            insert_node(el, text_node_from_string("▪"), None);
+                            View::Node(el)
+                        }) as Rc<dyn Fn(RGBA) -> View>
+                    });
                     option.gutter = session_status_gutter(
                         Rc::new({
                             let theme = theme;
                             move || theme.get()
                         }),
-                        None,
+                        attention_of(&id),
                         running,
-                        None,
+                        marker,
                     );
                     option
                 })
@@ -698,6 +718,14 @@ pub fn dialog_open() -> View {
         let projects_failed = projects_failed;
         let worktrees_loading = worktrees_loading;
         Some(Rc::new(move || {
+            // `<Show>` around the whole footer: hidden, it contributes no box (and so no footer gap).
+            let visible = move || {
+                if project_id().is_some() {
+                    return worktrees_loading.get();
+                }
+                recent_loading.get() || projects_loading.get() || recent_failed.get() || projects_failed.get()
+            };
+            show(visible, move || {
             let el = box_();
             let rows = box_();
             rows.set_flex_direction(FlexDirection::Column);
@@ -768,6 +796,7 @@ pub fn dialog_open() -> View {
                 At::End,
             );
             View::Node(el)
+            }, None)
         }) as Rc<dyn Fn() -> View>)
     };
     let bindings = {

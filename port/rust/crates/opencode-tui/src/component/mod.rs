@@ -11,3 +11,5 @@ pub mod dialog_status;
 pub mod dialog_theme_list;
 pub mod dialog_variant;
 pub mod model_options;
+pub mod session_frame;
+pub mod session_tabs;

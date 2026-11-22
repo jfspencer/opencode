@@ -1,7 +1,6 @@
 //! App's command registry (`app.tsx`: `appCommands` and the binding layers `App` creates).
 //!
-//! TODO(port-tui): commands whose behaviour another slice owns run a stand-in until it lands: the session slice
-//! (`session.new`, `session.clear`), the tabs slice (the tab and quick-switch commands), the tools slice
+//! TODO(port-tui): commands whose behaviour another slice owns run a stand-in until it lands: the tools slice
 //! (`diff.open`), and the dialogs not ported yet (each marked where it is).
 use std::rc::Rc;
 
@@ -192,9 +191,10 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         app("session.clear", "Clear session", "Session", {
             let dialog = dialog.clone();
             let local = local.clone();
+            let tabs = crate::tabs::tabs();
             let t = t.clone();
             move || {
-                // TODO(port-tui): the tabs slice closes the open tab here (`sessionTabs.close()`).
+                tabs.close(None);
                 new_session_home(&t, &local);
                 dialog.clear();
             }
@@ -226,6 +226,7 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
             .enabled_fn(move || !tabs_enabled),
         );
     }
+    let tabs = crate::tabs::tabs();
     for (id, title) in [
         ("session.tab.next", "Next tab"),
         ("session.tab.previous", "Previous tab"),
@@ -234,13 +235,29 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
         ("session.tab.next_unread", "Next unread tab"),
         ("session.tab.previous_unread", "Previous unread tab"),
     ] {
-        commands.push(app(id, title, "Session", stand_in).palette(false).enabled_fn(move || tabs_enabled));
+        let tabs = tabs.clone();
+        let run: Rc<dyn Fn()> = match id {
+            "session.tab.next" => Rc::new(move || tabs.cycle(1)),
+            "session.tab.previous" => Rc::new(move || tabs.cycle(-1)),
+            "session.tab.history.back" => Rc::new(move || tabs.history(-1)),
+            "session.tab.history.forward" => Rc::new(move || tabs.history(1)),
+            "session.tab.next_unread" => Rc::new(move || tabs.cycle_unread(1)),
+            _ => Rc::new(move || tabs.cycle_unread(-1)),
+        };
+        commands.push(app(id, title, "Session", move || run()).palette(false).enabled_fn(move || tabs_enabled));
     }
-    commands.push(app("session.tab.close", "Close tab", "Session", stand_in).enabled_fn(move || tabs_enabled));
-    commands.push(app("session.tab.reopen", "Reopen closed tab", "Session", stand_in).enabled_fn(move || tabs_enabled));
+    {
+        let tabs = tabs.clone();
+        commands.push(app("session.tab.close", "Close tab", "Session", move || tabs.close(None)).enabled_fn(move || tabs_enabled));
+    }
+    {
+        let tabs = tabs.clone();
+        commands.push(app("session.tab.reopen", "Reopen closed tab", "Session", move || tabs.reopen(None)).enabled_fn(move || tabs_enabled));
+    }
     for i in 1..=10 {
+        let tabs = tabs.clone();
         commands.push(
-            app(&format!("session.tab.select.{i}"), &format!("Switch to tab {i}"), "Session", stand_in)
+            app(&format!("session.tab.select.{i}"), &format!("Switch to tab {i}"), "Session", move || tabs.select_index(i - 1))
                 .palette(false)
                 .enabled_fn(move || tabs_enabled),
         );

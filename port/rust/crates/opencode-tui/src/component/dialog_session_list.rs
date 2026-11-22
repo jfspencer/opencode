@@ -2,9 +2,8 @@
 //! the server-backed search behind typing, the pinned group and quick-switch slots without tabs, the project in the
 //! title, the date groups, and the pin, delete (twice to confirm) and rename actions.
 //!
-//! `sessionTabs.enabled()` is read from the config: while tabs are enabled the pin action and the slot gutter are
-//! hidden, as in TS. TODO(port-tui): session tabs (another slice) can also supply per-tab attention; until then every
-//! session reports no attention.
+//! `sessionTabs.enabled()` hides the pin action and the slot gutter while tabs are enabled, and the tabs slice
+//! supplies each session's attention marker, as in TS.
 use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -110,8 +109,8 @@ pub fn dialog_session_list() -> View {
     let data = tui().data.clone();
     let toast = tui().toast.clone();
     let local = crate::local::local();
-    let config = tui().config_context.data();
-    let tabs_enabled = config.tabs.enabled;
+    let tabs = crate::tabs::tabs();
+    let tabs_enabled = tabs.enabled();
     let theme = use_theme().surface(SurfaceName::Dialog);
     let shortcuts = use_shortcuts();
     let (filter, set_filter) = create_signal(String::new());
@@ -379,13 +378,18 @@ pub fn dialog_session_list() -> View {
                 let slot = slots.get(&id).copied();
                 let running = data.store.session.status(&id) == SessionStatus::Running
                     || data.store.session.family(&id).iter().any(|member| data.store.session.status(member) == SessionStatus::Running);
+                let attention = match tabs.status(&id).attention {
+                    crate::tabs::Attention::Permission => Some("permission"),
+                    crate::tabs::Attention::Question => Some("question"),
+                    crate::tabs::Attention::None => None,
+                };
                 let slot_theme = theme.clone();
                 let gutter = session_status_gutter(
                     Rc::new({
                         let theme = theme.clone();
                         move || theme.get()
                     }),
-                    None,
+                    attention,
                     running,
                     slot.map(|slot| {
                         let theme = slot_theme.clone();
