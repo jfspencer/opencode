@@ -103,8 +103,12 @@ function lenient(value: unknown, key = ""): unknown {
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
+      // A project directory the longer macOS root truncates before `<project-name>`.
+      .replace(/[^\s"]*<root-name>\/project[^:\s"]*/g, "<project>")
+      // A longer sandbox root can truncate the project path before its `:branch` suffix.
+      .replace(/<project>:[^\s"]+/g, "<project>")
       // Padding after the project path varies with the sandbox's absolute length; the columns are layout.
-      .replace(/<project>[ \t]+/g, "<project> ")
+      .replace(/<project>([^ \t\n]*)[ \t]+/g, "<project>$1 ")
       .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
       .replaceAll(TMP_PARENT, "/tmp")
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
