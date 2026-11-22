@@ -545,6 +545,9 @@ async function cleanup(sandbox: string, children: Set<number>) {
 
 /** Processes whose environment points HOME, an XDG directory or TMPDIR into the sandbox. */
 function inSandbox(sandbox: string) {
+  // macOS has no /proc (and `ps` does not expose another process's environment), so the command-line pgrep in
+  // cleanup() is the only leftover check there.
+  if (!existsSync("/proc")) return []
   const markers = ["home", "config", "data", "state", "cache", "tmp"].map((dir) => `=${path.join(sandbox, dir)}\0`)
   const out: number[] = []
   for (const entry of readdirSync("/proc")) {

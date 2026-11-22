@@ -99,7 +99,7 @@ function lenient(value: unknown, key = ""): unknown {
       .replace(DATE, "<date>")
       // Goldens are recorded on Linux; these facts legitimately differ on macOS and are not behavior under test.
       .replace(/\bPlatform: (?:linux|macos|darwin|win32)\b/g, "Platform: <platform>")
-      .replace(/\bCommands run on (?:Linux|macOS|Windows) using bash\b/g, "Commands run on <platform> using bash")
+      .replace(/\bCommands run on (?:Linux|macOS|Windows) using (?:bash|zsh|sh|fish|pwsh|powershell)\b/g, "Commands run on <platform> using <shell>")
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")

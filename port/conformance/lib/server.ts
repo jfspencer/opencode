@@ -275,7 +275,10 @@ function descendants(pid: number) {
 export function daemons(pid: number) {
   return descendants(pid).filter((child) => {
     try {
-      return readFileSync(`/proc/${child}/cmdline`, "utf8").split("\0")[0] === process.env.OPENCODE_PTY_BIN
+      const command = existsSync("/proc")
+        ? readFileSync(`/proc/${child}/cmdline`, "utf8").split("\0")[0]
+        : execFileSync("ps", ["-p", String(child), "-o", "command="], { encoding: "utf8" }).trim().split(/\s+/)[0]
+      return command === process.env.OPENCODE_PTY_BIN
     } catch {
       return false
     }
