@@ -100,6 +100,11 @@ function lenient(value: unknown, key = ""): unknown {
       // Goldens are recorded on Linux; these facts legitimately differ on macOS and are not behavior under test.
       .replace(/\bPlatform: (?:linux|macos|darwin|win32)\b/g, "Platform: <platform>")
       .replace(/\bCommands run on (?:Linux|macOS|Windows) using (?:bash|zsh|sh|fish|pwsh|powershell)\b/g, "Commands run on <platform> using <shell>")
+      // The same system shell lives at /usr/bin on Linux and /bin on macOS.
+      .replace(/\/usr\/bin\/(sh|bash|zsh)\b/g, "/bin/$1")
+      .replace(/ripgrep-\d+\.\d+\.\d+-[a-z0-9_-]+\.tar\.gz/g, "ripgrep-<version>-<platform>.tar.gz")
+      // Built-in skill text reports the host OS; goldens recorded it on Linux.
+      .replace(/OS:\s*[^\n(]*\((?:linux|macos|darwin) (?:x64|arm64|aarch64)\)/g, "OS: <os> (<platform> <arch>)")
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
