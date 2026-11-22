@@ -10,7 +10,7 @@
 use std::rc::Rc;
 
 use opencode_protocol::Json;
-use opencode_tui_core::reactive::{KeyedSignals, Memo, Signal, create_memo_equals, create_signal_with};
+use opencode_tui_core::reactive::{KeyedSignals, Memo, Signal, create_memo, create_memo_equals, create_signal_with};
 use opencode_tui_sync::client::{Client, RequestOptions};
 use opencode_tui_sync::connection::ClientConnection;
 use opencode_tui_sync::context::client::{ClientContext, ClientInput};
@@ -55,12 +55,25 @@ pub struct AgentInfo {
     pub model: Option<(String, String, Option<String>)>,
 }
 
+/// `ModelCost`: one price tier, USD per million tokens.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct ModelCost {
+    pub input: f64,
+    pub output: f64,
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ModelInfo {
     pub id: String,
     pub provider_id: String,
     pub name: String,
     pub variants: Vec<String>,
+    pub status: String,
+    /// `capabilities.input` modalities.
+    pub input: Vec<String>,
+    /// `limit.context`.
+    pub context: f64,
+    pub cost: Vec<ModelCost>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -127,6 +140,8 @@ pub struct Data {
     pub agents: Memo<Option<Vec<AgentInfo>>>,
     pub models: Memo<Option<Vec<ModelInfo>>>,
     pub providers: Memo<Option<Vec<ProviderInfo>>>,
+    /// `useConnected()`: some integration has a connection.
+    pub connected: Memo<bool>,
     /// The configured model (`config.model`), as `(providerID, modelID, variant)`.
     pub configured_model: Memo<Option<(String, String, Option<String>)>>,
 }
@@ -172,6 +187,13 @@ fn agents_of(list: &Json) -> Vec<AgentInfo> {
         .collect()
 }
 
+fn number(value: Option<&Json>) -> Option<f64> {
+    match value {
+        Some(Json::Number(n)) => Some(*n),
+        _ => None,
+    }
+}
+
 fn models_of(list: &Json) -> Vec<ModelInfo> {
     array(list)
         .iter()
@@ -181,6 +203,23 @@ fn models_of(list: &Json) -> Vec<ModelInfo> {
             name: get_str(m, "name").unwrap_or_default().to_string(),
             variants: get(m, "variants")
                 .map(|v| array(v).iter().filter_map(|x| get_str(x, "id").map(str::to_string)).collect())
+                .unwrap_or_default(),
+            status: get_str(m, "status").unwrap_or("active").to_string(),
+            input: get(m, "capabilities")
+                .and_then(|c| get(c, "input"))
+                .map(|v| array(v).iter().filter_map(|x| match x { Json::String(s) => Some(s.clone()), _ => None }).collect())
+                .unwrap_or_default(),
+            context: get(m, "limit").and_then(|l| number(get(l, "context"))).unwrap_or(0.0),
+            cost: get(m, "cost")
+                .map(|v| {
+                    array(v)
+                        .iter()
+                        .map(|c| ModelCost {
+                            input: number(get(c, "input")).unwrap_or(0.0),
+                            output: number(get(c, "output")).unwrap_or(0.0),
+                        })
+                        .collect()
+                })
                 .unwrap_or_default(),
         })
         .collect()
@@ -256,6 +295,16 @@ impl Data {
                 None,
             )
         };
+        let connected = {
+            let resource = store.location.integration.clone();
+            create_memo(move || {
+                location_of(&directory).and_then(|l| resource.list(Some(&l))).is_some_and(|r| {
+                    array(&r)
+                        .iter()
+                        .any(|integration| get(integration, "connections").map(array).is_some_and(|c| !c.is_empty()))
+                })
+            })
+        };
         let _ = connection.start();
         Rc::new(Data {
             client,
@@ -268,6 +317,7 @@ impl Data {
             agents,
             models,
             providers,
+            connected,
             configured_model,
         })
     }
