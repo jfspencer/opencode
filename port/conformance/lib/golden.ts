@@ -121,6 +121,8 @@ function lenient(value: unknown, key = "", file = ""): unknown {
         .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
         // A project directory the longer macOS root truncates before `<project-name>`.
         .replace(/[^\s"]*<root-name>\/project[^:\s"]*/g, "<project>")
+        // The same, when truncateMiddle has already cut through the sandbox root.
+        .replace(/[^\s"]*…[^\s"]*\/<project-name>/g, "<project>")
         // A longer sandbox root can truncate the project path before its `:branch` suffix.
         .replace(/<project>:[^\s"]+/g, "<project>")
         // Padding after the project path varies with the sandbox's absolute length; the columns are layout.
