@@ -6,7 +6,11 @@
 //! FSEvents reports real paths (`/private/var/...` for `/var/...`): an event below the root's real path is sent below
 //! the root as the subscriber named it, so callers see the same paths as on Linux. Dropping a [`Stream`] stops it.
 
+use std::collections::HashSet;
 use std::ffi::{CStr, CString, c_char, c_void};
+use std::sync::mpsc::{self, RecvTimeoutError};
+use std::thread::JoinHandle;
+use std::time::Duration;
 
 use super::Sender;
 
@@ -76,7 +80,7 @@ struct Subscriber {
     /// The real path of the watched directory, as FSEvents reports it, and the path the subscriber named.
     real: String,
     named: String,
-    send: Sender,
+    send: mpsc::Sender<String>,
 }
 
 impl Subscriber {
@@ -121,6 +125,8 @@ pub struct Stream {
     stream: *mut c_void,
     queue: *mut c_void,
     subscriber: *mut Subscriber,
+    /// Coalesces the stream's events into one per path per quiet window (`coalesce`).
+    worker: Option<JoinHandle<()>>,
 }
 
 // SAFETY: the stream and queue are thread-safe CoreServices/libdispatch objects; the subscriber is only read by the
@@ -140,6 +146,40 @@ impl Drop for Stream {
             dispatch_release(self.queue);
             drop(Box::from_raw(self.subscriber));
         }
+        // The events it already queued are still delivered before the watch ends, as Parcel flushes a dropped
+        // subscription; the worker then sees its channel closed and exits.
+        if let Some(worker) = self.worker.take() {
+            let _ = worker.join();
+        }
+    }
+}
+
+/// How long a path must be quiet before its change is announced: FSEvents reports a write-and-rename as several
+/// events for the same file (and once per batch), while the TS server's `fs.watch` and Parcel subscriptions deliver
+/// one update per settled change. A first event is held until no further event for that batch arrives for this long.
+const COALESCE: Duration = Duration::from_millis(50);
+
+/// Forwards each path once per quiet window: events that arrive within [`COALESCE`] of each other are one change.
+fn coalesce(received: mpsc::Receiver<String>, send: Sender) {
+    loop {
+        let Ok(first) = received.recv() else { return };
+        let mut batch = vec![first.clone()];
+        let mut seen = HashSet::from([first]);
+        loop {
+            match received.recv_timeout(COALESCE) {
+                Ok(path) => {
+                    if seen.insert(path.clone()) {
+                        batch.push(path);
+                    }
+                }
+                Err(RecvTimeoutError::Timeout | RecvTimeoutError::Disconnected) => break,
+            }
+        }
+        for path in batch {
+            if send.send(path).is_err() {
+                return;
+            }
+        }
     }
 }
 
@@ -149,7 +189,13 @@ fn start(directory: &str, filter: Filter, send: &Sender) -> Option<Stream> {
     }
     let real = std::fs::canonicalize(directory).ok()?.to_string_lossy().into_owned();
     let path = CString::new(real.clone()).ok()?;
-    let subscriber = Box::into_raw(Box::new(Subscriber { filter, real, named: directory.to_owned(), send: send.clone() }));
+    let (events, received) = mpsc::channel();
+    let delivered = send.clone();
+    let worker = std::thread::Builder::new()
+        .name("opencode-watch".into())
+        .spawn(move || coalesce(received, delivered))
+        .ok()?;
+    let subscriber = Box::into_raw(Box::new(Subscriber { filter, real, named: directory.to_owned(), send: events }));
     let context = Context { version: 0, info: subscriber.cast(), retain: None, release: None, copy_description: None };
     // SAFETY: plain CoreFoundation and CoreServices calls with valid arguments; every object created here is released
     // here or by the returned stream's drop.
@@ -173,7 +219,7 @@ fn start(directory: &str, filter: Filter, send: &Sender) -> Option<Stream> {
             drop(Box::from_raw(subscriber));
             return None;
         }
-        Some(Stream { stream, queue, subscriber })
+        Some(Stream { stream, queue, subscriber, worker: Some(worker) })
     }
 }
 

@@ -38,8 +38,11 @@ scenario("revert state from before FileDiff was canonical", { processOnly: "a da
   try {
     await ctx.restart({ OPENCODE_DB: file })
     const ids = [] as string[]
-    for (const title of ["legacy files", "legacy diff", "reordered", "legacy files only"])
+    for (const title of ["legacy files", "legacy diff", "reordered", "legacy files only"]) {
       ids.push(await ctx.session({ title }))
+      // The listing orders by `time_updated` first; separate milliseconds keep its order the creation order.
+      await Bun.sleep(3)
+    }
     const db = new Database(file)
     db.exec("PRAGMA busy_timeout = 5000")
     const messageID = "msg_00000000000000conformanceR1"

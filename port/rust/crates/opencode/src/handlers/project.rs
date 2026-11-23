@@ -112,7 +112,14 @@ fn global_tmp() -> String {
 }
 
 fn hostname() -> Option<String> {
-    std::fs::read_to_string("/proc/sys/kernel/hostname").ok().map(|h| h.trim().to_owned()).filter(|h| !h.is_empty())
+    let mut buffer = [0u8; 256];
+    // SAFETY: gethostname writes at most `buffer.len()` bytes into the buffer.
+    if unsafe { libc::gethostname(buffer.as_mut_ptr().cast(), buffer.len()) } != 0 {
+        return None;
+    }
+    let end = buffer.iter().position(|&byte| byte == 0).unwrap_or(buffer.len());
+    let name = String::from_utf8_lossy(&buffer[..end]).trim().to_owned();
+    (!name.is_empty()).then_some(name)
 }
 
 fn server_info() -> Json {

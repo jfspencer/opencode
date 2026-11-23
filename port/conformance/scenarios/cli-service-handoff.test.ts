@@ -24,9 +24,10 @@ const READY = 'printf "ready\\n"; read a; printf "got %s\\n" "$a"; read b'
 type Registration = { readonly id?: string; readonly pid: number; readonly url: string; readonly password?: string }
 
 /**
- * The environment of the commands that start a service: its daemon's socket goes in the run's sandbox (lib/preload.ts),
- * not the user's /tmp/opencode-pty-<uid>; recorded as `<pty-sockets>`. The daemon itself is the one each
- * implementation ships (the reference's `@opencode/pty`, the Rust build's embedded copy), as for users.
+ * The environment of the commands that start a service: its daemon's socket directory comes from lib/preload.ts
+ * (in the sandbox, or a short path under /tmp on macOS), not the user's /tmp/opencode-pty-<uid>; recorded as
+ * `<pty-sockets>`. The daemon itself is the one each implementation ships (the reference's `@opencode/pty`, the
+ * Rust build's embedded copy), as for users.
  */
 function sockets(ctx: CliCtx) {
   const directory = process.env.OPENCODE_PTY_SOCKET_DIR!

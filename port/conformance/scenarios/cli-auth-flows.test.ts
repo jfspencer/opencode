@@ -175,7 +175,8 @@ cliScenario(
   "OAuth login in the browser",
   {
     env: noEnvKey,
-    bin: { "www-browser": browser, "xdg-open": browser },
+    // The TS reference's opener package runs `open` on macOS and `xdg-open` elsewhere; the Rust build matches.
+    bin: { "www-browser": browser, "xdg-open": browser, open: browser },
     responders: [poeToken(() => sandboxOf!.sandbox)],
   },
   async (ctx) => {

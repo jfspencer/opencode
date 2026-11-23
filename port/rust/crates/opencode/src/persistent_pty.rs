@@ -33,8 +33,6 @@ pub enum Error {
     NotFound(String),
     /// `PersistentPty.InvalidCwdError` (its message).
     InvalidCwd(String),
-    /// `PersistentPty.UnsupportedError` (the feature).
-    Unsupported(String),
 }
 
 impl From<DaemonError> for Error {
@@ -75,11 +73,13 @@ fn to_info(wire: &Json) -> Info {
         .and_then(json::array)
         .map(|items| items.iter().filter_map(json::as_str).map(str::to_owned).collect())
         .unwrap_or_default();
-    let title = json::get_str(wire, "title").unwrap_or_default().to_owned();
+    // The terminal-specific fields live in the process's `pty` object (protocol 9; older daemons flattened them).
+    let pty = json::get(wire, "pty").unwrap_or(&Json::Null);
+    let title = json::get_str(pty, "title").unwrap_or_default().to_owned();
     let cwd = json::get_str(wire, "cwd").unwrap_or_default().to_owned();
     let session_id = json::get_str(wire, "group_id").unwrap_or_default().to_owned();
-    let foreground_process = json::get(wire, "foreground_process").cloned().unwrap_or(Json::Null);
-    let (cols, rows) = (json::get_num(wire, "cols").unwrap_or(0.0), json::get_num(wire, "rows").unwrap_or(0.0));
+    let foreground_process = json::get(pty, "foreground_process").cloned().unwrap_or(Json::Null);
+    let (cols, rows) = (json::get_num(pty, "cols").unwrap_or(0.0), json::get_num(pty, "rows").unwrap_or(0.0));
     let mut o = Obj::new();
     o.str("id", &id).str("title", &title);
     o.str("command", command.first().map(String::as_str).unwrap_or(""));
@@ -95,7 +95,7 @@ fn to_info(wire: &Json) -> Info {
         o.set("exitCode", Json::Number(*code));
     }
     o.str("sessionID", &session_id);
-    o.set("userTitle", match json::get(wire, "user_title") {
+    o.set("userTitle", match json::get(pty, "user_title") {
         Some(Json::String(title)) => Json::String(title.clone()),
         _ => Json::Null,
     });
@@ -239,12 +239,12 @@ impl Service {
 
     pub async fn list(&'static self, session_id: Option<&str>) -> Result<Vec<Info>> {
         let mut request = Obj::new();
-        request.str("op", "list");
+        request.str("op", "list").str("mode", "pty");
         let Some(response) = self.daemon.request_if_running(request.done()).await? else { return Ok(vec![]) };
-        if daemon::kind_of(&response) != "terminals" {
+        if daemon::kind_of(&response) != "processes" {
             return Err(unexpected(&response));
         }
-        let terminals = json::get(&response, "terminals").and_then(json::array).unwrap_or(&[]);
+        let terminals = json::get(&response, "processes").and_then(json::array).unwrap_or(&[]);
         Ok(terminals.iter().map(to_info).filter(|t| session_id.is_none_or(|s| t.session_id == s)).collect())
     }
 
@@ -263,14 +263,14 @@ impl Service {
         }
         let program = input.command.unwrap_or_else(crate::shell::select::environment);
         let mut request = Obj::new();
-        request.str("op", "create").str("program", &program).set("args", input.args).str("cwd", &cwd);
+        request.str("op", "create_pty").str("program", &program).set("args", input.args).str("cwd", &cwd);
         request.str("title", &input.title).str("group_id", session_id).set("env", input.env);
         request.set("cols", Json::Number(input.cols.unwrap_or(80.0))).set("rows", Json::Number(input.rows.unwrap_or(24.0)));
         let response = self.daemon.request(request.done(), true).await?;
         if daemon::kind_of(&response) != "created" {
             return Err(unexpected(&response));
         }
-        let terminal = to_info(json::get(&response, "terminal").unwrap_or(&Json::Null));
+        let terminal = to_info(json::get(&response, "process").unwrap_or(&Json::Null));
         let mut data = Obj::new();
         data.str("sessionID", session_id).set("terminal", terminal.json.clone());
         self.emit("persistent-pty.added", data.done());
@@ -323,10 +323,6 @@ impl Service {
     /// `rename`: a user title (`None` clears it, so the program's shows).
     pub async fn rename(&'static self, id: &str, title: Option<&str>) -> Result<Info> {
         let terminal = self.get(id).await?;
-        // Daemons without the feature drop the connection on unknown requests.
-        if !self.daemon.supports("rename").await? {
-            return Err(Error::Unsupported("rename".into()));
-        }
         let mut request = Obj::new();
         request.str("op", "rename").set("id", from_id(id)).set("title", title.map(json::string).unwrap_or(Json::Null));
         let response = self.daemon.request(request.done(), false).await?;
@@ -352,7 +348,7 @@ impl Service {
         let mut cursor = Obj::new();
         cursor.set("x", number(&response, "cursor_x")).set("y", number(&response, "cursor_y"));
         let mut o = Obj::new();
-        o.set("info", to_info(json::get(&response, "terminal").unwrap_or(&Json::Null)).json);
+        o.set("info", to_info(json::get(&response, "process").unwrap_or(&Json::Null)).json);
         o.str("text", json::get_str(&response, "text").unwrap_or_default());
         o.str("checkpoint", &daemon::canonical_base64(json::get_str(&response, "checkpoint_base64").unwrap_or_default()));
         o.set("cursor", cursor.done());
@@ -379,7 +375,7 @@ impl Service {
         if daemon::kind_of(&response) != "rows" {
             return Err(unexpected(&response));
         }
-        let info = to_info(json::get(&response, "terminal").unwrap_or(&Json::Null));
+        let info = to_info(json::get(&response, "process").unwrap_or(&Json::Null));
         let text = json::get(&response, "lines")
             .and_then(json::array)
             .map(|lines| lines.iter().filter_map(json::as_str).collect::<Vec<_>>().join("\n"))
@@ -453,7 +449,7 @@ impl Service {
         request.str("attachment_id", attachment_id).str("role", role).set("takeover", Json::Bool(takeover));
         let subscription = self.daemon.subscribe(request.done()).await?;
         let attached = subscription.attached;
-        let info = to_info(json::get(&attached, "terminal").unwrap_or(&Json::Null));
+        let info = to_info(json::get(&attached, "process").unwrap_or(&Json::Null));
         let role = json::get_str(&attached, "role").unwrap_or("observer").to_owned();
         if role == "controller" {
             self.select(&info.session_id, id);

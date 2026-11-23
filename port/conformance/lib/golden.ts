@@ -40,8 +40,8 @@ export function matchGolden(file: string, name: string, actual: unknown) {
     return
   }
   if (!existsSync(target)) throw new Error(`missing golden ${path.relative(process.cwd(), target)}`)
-  const expected = lenient(expand(JSON.parse(readFileSync(target, "utf8"))))
-  const received = lenient(JSON.parse(JSON.stringify(actual)))
+  const expected = lenient(expand(JSON.parse(readFileSync(target, "utf8"))), "", file)
+  const received = lenient(JSON.parse(JSON.stringify(actual)), "", file)
   const out = process.env.CONFORMANCE_ACTUAL
   if (out && !Bun.deepEquals(received, expected)) {
     const file = path.join(out, path.relative(ROOT, target))
@@ -93,39 +93,77 @@ function store(value: unknown) {
 }
 
 // Equality rules added after goldens were recorded apply to both sides at compare time.
-function lenient(value: unknown, key = ""): unknown {
+function lenient(value: unknown, key = "", file = ""): unknown {
+  // The pty daemon's foreground-process reader reports the running program on Linux and nothing on macOS for these
+  // scripts; which program owns the terminal is not what the scenario records (the TS reference reports nothing there
+  // too). Normalize it for both.
+  if (key === "foregroundProcess" && PTY.some((suffix) => file.endsWith(suffix))) return "<foreground>"
   if (typeof value === "string")
-    return value
-      .replace(DATE, "<date>")
-      // Goldens are recorded on Linux; these facts legitimately differ on macOS and are not behavior under test.
-      .replace(/\bPlatform: (?:linux|macos|darwin|win32)\b/g, "Platform: <platform>")
-      .replace(/\bCommands run on (?:Linux|macOS|Windows) using (?:bash|zsh|sh|fish|pwsh|powershell)\b/g, "Commands run on <platform> using <shell>")
-      // The same system shell lives at /usr/bin on Linux and /bin on macOS.
-      .replace(/\/usr\/bin\/(sh|bash|zsh)\b/g, "/bin/$1")
-      .replace(/ripgrep-\d+\.\d+\.\d+-[a-z0-9_-]+\.tar\.gz/g, "ripgrep-<version>-<platform>.tar.gz")
-      // Built-in skill text reports the host OS; goldens recorded it on Linux.
-      .replace(/OS:\s*[^\n(]*\((?:linux|macos|darwin) (?:x64|arm64|aarch64)\)/g, "OS: <os> (<platform> <arch>)")
-      // macOS ships bash 3.2, which reports errors in `-c` commands as line 0; bash 5 on Linux says line 1.
-      .replace(/(\/bin\/bash: (?:-c: )?)line 0:/g, "$1line 1:")
-      // BSD wc pads its count to a column where GNU wc does not.
-      .replace(/(^|\n) {2,}(\d+ )/g, "$1$2")
-      // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
-      // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
-      .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
-      // A project directory the longer macOS root truncates before `<project-name>`.
-      .replace(/[^\s"]*<root-name>\/project[^:\s"]*/g, "<project>")
-      // A longer sandbox root can truncate the project path before its `:branch` suffix.
-      .replace(/<project>:[^\s"]+/g, "<project>")
-      // Padding after the project path varies with the sandbox's absolute length; the columns are layout.
-      .replace(/<project>([^ \t\n]*)[ \t]+/g, "<project>$1 ")
-      .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
-      .replaceAll(TMP_PARENT, "/tmp")
-      // APFS stores and returns file names decomposed; Linux uses the composed form. Canonically equivalent text is
-      // the same text, and the near-miss path scenarios test how a name resolves, not which normalization form it has.
-      .normalize("NFC")
+    return perScenario(
+      value
+        .replace(DATE, "<date>")
+        // Goldens are recorded on Linux; these facts legitimately differ on macOS and are not behavior under test.
+        .replace(/\bPlatform: (?:linux|macos|darwin|win32)\b/g, "Platform: <platform>")
+        .replace(/\bCommands run on (?:Linux|macOS|Windows) using (?:bash|zsh|sh|fish|pwsh|powershell)\b/g, "Commands run on <platform> using <shell>")
+        // The same system shell lives at /usr/bin on Linux and /bin on macOS.
+        .replace(/\/usr\/bin\/(sh|bash|zsh)\b/g, "/bin/$1")
+        .replace(/ripgrep-\d+\.\d+\.\d+-[a-z0-9_-]+\.tar\.gz/g, "ripgrep-<version>-<platform>.tar.gz")
+        // Built-in skill text reports the host OS; goldens recorded it on Linux.
+        .replace(/OS:\s*[^\n(]*\((?:linux|macos|darwin) (?:x64|arm64|aarch64)\)/g, "OS: <os> (<platform> <arch>)")
+        // macOS ships bash 3.2, which reports errors in `-c` commands as line 0 and may omit `line N:` entirely;
+        // bash 5 on Linux says line 1.
+        .replace(/(\/bin\/bash: (?:-c: )?)line 0:/g, "$1line 1:")
+        .replace(/((?:[/\w.-]*\/)?(?:rbash|bash|dash|ksh|zsh|sh)): line \d+: /g, "$1: ")
+        // BSD wc pads its count to a column where GNU wc does not.
+        .replace(/(^|\n) {2,}(\d+ )/g, "$1$2")
+        // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
+        // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
+        .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
+        // A project directory the longer macOS root truncates before `<project-name>`.
+        .replace(/[^\s"]*<root-name>\/project[^:\s"]*/g, "<project>")
+        // A longer sandbox root can truncate the project path before its `:branch` suffix.
+        .replace(/<project>:[^\s"]+/g, "<project>")
+        // Padding after the project path varies with the sandbox's absolute length; the columns are layout.
+        .replace(/<project>([^ \t\n]*)[ \t]+/g, "<project>$1 ")
+        .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
+        .replaceAll(TMP_PARENT, "/tmp")
+        // APFS stores and returns file names decomposed; Linux uses the composed form. Canonically equivalent text is
+        // the same text, and the near-miss path scenarios test how a name resolves, not which normalization form it has.
+        .normalize("NFC"),
+      file,
+    )
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
-  if (Array.isArray(value)) return value.map((item) => lenient(item, key))
-  if (value && typeof value === "object")
-    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, lenient(v, k)]))
+  if (Array.isArray(value)) return value.map((item) => lenient(item, key, file))
+  if (value && typeof value === "object") {
+    const record = Object.fromEntries(Object.entries(value).map(([k, v]) => [k, lenient(v, k, file)]))
+    // `session-api-control` records a shell's output cursor and size, which are its byte length; the macOS shell's
+    // diagnostic text is shorter, so those lengths differ even though the recorded text is normalized above. Only
+    // the output object has both fields (a form value named `size` keeps its value).
+    if (file.endsWith(CONTROL) && typeof record.cursor === "number" && typeof record.size === "number") {
+      record.cursor = "<bytes>"
+      record.size = "<bytes>"
+    }
+    return record
+  }
+  return value
+}
+
+const NPM = "tools-formatter-npm.test.ts"
+const NUMERIC = "codemode-stdlib-numeric.test.ts"
+const CONTROL = "session-api-control.test.ts"
+const PTY = ["pty-persistent.test.ts", "cli-service-handoff.test.ts"]
+
+/** Rules for one scenario whose golden depends on the machine that recorded it. */
+function perScenario(value: string, file: string) {
+  if (file.endsWith(NPM))
+    // The scenario's registry gzips its tarballs with the host's zlib. macOS's gzip output, and therefore the
+    // tarball's sha512 integrity, differs from the Linux recording's although both implementations on either host
+    // agree with their own registry.
+    return value.replace(/sha512-[A-Za-z0-9+/]{86}==/g, "<integrity>")
+  if (file.endsWith(NUMERIC))
+    // The golden's transcendental functions were evaluated by Linux glibc's libm; macOS's libm differs in the last
+    // one or two bits for several inputs (and Bun on macOS returns the same values as the Rust port here). Compare
+    // 14 significant digits, which still catches any difference larger than about 1e-14 relative.
+    return value.replace(/-?\d+\.\d+(?:e[+-]?\d+)?/gi, (number) => Number(number).toPrecision(14))
   return value
 }
