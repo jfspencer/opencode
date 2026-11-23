@@ -156,7 +156,7 @@ pub fn create_session_rows(
         let sid = session_id.clone();
         create_effect(on(
             move || (sid(), connection.status()),
-            move |(id, status), _| {
+            move |(id, status), previous| {
                 if *status != Status::Connected {
                     return;
                 }
@@ -166,7 +166,16 @@ pub fn create_session_rows(
                 tokio::task::spawn_local(async move {
                     let _ = pending.wait().await;
                 });
-                let sync = data.store.session.message.sync(&id);
+                // First opened with a transcript this client already holds: it was built from live events (a
+                // session created while this client watched, such as a subagent's child session), and re-reading
+                // it can replace a part that is still streaming with an older snapshot. Sessions first opened
+                // here (an import, `--continue`) have no transcript yet and load the server's. A reconnect
+                // re-reads whatever is held.
+                let sync = if previous.is_none() && !data.store.session.message.list(&id).is_empty() {
+                    opencode_tui_sync::runtime::Deferred::resolved(Ok(()))
+                } else {
+                    data.store.session.message.sync(&id)
+                };
                 let (data, session_id, rebuild, on_synced, before_publish) =
                     (data.clone(), session_id.clone(), rebuild.clone(), on_synced.clone(), before_publish.clone());
                 tokio::task::spawn_local(async move {
