@@ -73,8 +73,6 @@ const LATENCY: f64 = 0.001;
 
 /// What a stream sends, and how it maps the paths FSEvents reports.
 enum Filter {
-    /// One name in one directory.
-    File { directory: String, name: String },
     /// A tree minus what `ignore` rejects (relative paths).
     Tree { root: String, ignore: fn(&str) -> bool },
 }
@@ -90,12 +88,8 @@ struct Subscriber {
 impl Subscriber {
     /// The path this subscription is about, announced when FSEvents reports the root itself changed.
     fn announce_root(&self) {
-        let path = match &self.filter {
-            Filter::File { directory, name } if directory.ends_with('/') => format!("{directory}{name}"),
-            Filter::File { directory, name } => format!("{directory}/{name}"),
-            Filter::Tree { root, .. } => root.clone(),
-        };
-        let _ = self.send.send(path);
+        let Filter::Tree { root, .. } = &self.filter;
+        let _ = self.send.send(root.clone());
     }
 
     fn dispatch(&self, reported: &str) {
@@ -103,19 +97,10 @@ impl Subscriber {
             Some(rest) if rest.is_empty() || rest.starts_with('/') => format!("{}{rest}", self.named),
             _ => reported.to_owned(),
         };
-        match &self.filter {
-            Filter::File { directory, name } => {
-                let (parent, base) = path.rsplit_once('/').unwrap_or(("", path.as_str()));
-                if parent == directory && base == name {
-                    let _ = self.send.send(path);
-                }
-            }
-            Filter::Tree { root, ignore } => {
-                let relative = path.strip_prefix(root.as_str()).unwrap_or(&path).trim_start_matches('/');
-                if relative.is_empty() || !ignore(relative) {
-                    let _ = self.send.send(path);
-                }
-            }
+        let Filter::Tree { root, ignore } = &self.filter;
+        let relative = path.strip_prefix(root.as_str()).unwrap_or(&path).trim_start_matches('/');
+        if relative.is_empty() || !ignore(relative) {
+            let _ = self.send.send(path);
         }
     }
 }
@@ -242,11 +227,6 @@ fn start(directory: &str, filter: Filter, send: &Sender) -> Option<Stream> {
     }
 }
 
-/// A file watch: the file's directory, filtered by its name.
-pub fn file(directory: String, name: String, send: &Sender) -> Option<Stream> {
-    let watched = directory.clone();
-    start(&watched, Filter::File { directory, name }, send)
-}
 
 /// A tree watch.
 pub fn directory(root: String, ignore: fn(&str) -> bool, send: &Sender) -> Option<Stream> {

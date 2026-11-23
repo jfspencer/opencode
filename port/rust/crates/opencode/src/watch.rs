@@ -55,6 +55,13 @@ pub fn enabled() -> bool {
     !value.is_some_and(|v| v == "1" || v.eq_ignore_ascii_case("true"))
 }
 
+#[cfg(target_os = "macos")]
+fn file_stamp(path: &str) -> Option<(u64, u128)> {
+    let metadata = std::fs::metadata(path).ok()?;
+    let modified = metadata.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?.as_nanos();
+    Some((metadata.len(), modified))
+}
+
 #[cfg(target_os = "linux")]
 mod inotify {
     use std::collections::{HashMap, HashSet};
@@ -298,7 +305,27 @@ pub fn file(path: &str, send: &Sender) -> Option<Watch> {
     #[cfg(target_os = "linux")]
     return inotify::file(directory, name, send).map(|id| Watch(Stop::Subscription(id)));
     #[cfg(target_os = "macos")]
-    return fsevents::file(directory, name, send).map(|stream| Watch(Stop::Stream(stream)));
+    {
+        // FSEvents can miss a file created or changed right after its stream starts (config sources and a
+        // repository's HEAD are watched this way). A 100 ms stat poll has no attach window and stays cheap: a
+        // file watch is one path, not a tree.
+        let _ = (directory, name);
+        let mut last = file_stamp(&path);
+        let send = send.clone();
+        let path = path.clone();
+        return Some(Watch::task(tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+                let next = file_stamp(&path);
+                if next != last {
+                    last = next;
+                    if send.send(path.clone()).is_err() {
+                        break;
+                    }
+                }
+            }
+        })));
+    }
     #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         let _ = (directory, name, send);
