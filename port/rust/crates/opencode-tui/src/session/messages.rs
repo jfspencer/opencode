@@ -178,8 +178,9 @@ pub fn user_message(message: Message) -> View {
                         }
                         if untrack(|| delivery.get()).as_deref() == Some("steer") {
                             (ctx.open_pending_steer)(str_of(&untrack(|| message()), "id"));
+                            return;
                         }
-                        // TODO(port-tui): the dialogs slice: `<DialogMessage messageID sessionID>` otherwise.
+                        (ctx.open_message)(str_of(&untrack(|| message()), "id"));
                     })),
                 );
             }

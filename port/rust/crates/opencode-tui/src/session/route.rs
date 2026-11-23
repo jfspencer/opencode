@@ -1343,11 +1343,73 @@ pub fn session(props: SessionProps) -> View {
                         .collect::<Vec<_>>()
                 })
             };
+            let timeline = {
+                let (st, sid) = (st.clone(), sid.clone());
+                Command::new("session.timeline", move || {
+                    let st = st.clone();
+                    let sid = sid.clone();
+                    let dialog = st.dialog.clone();
+                    dialog.replace(
+                        move || {
+                            let st = st.clone();
+                            let sid = sid.clone();
+                            component(move || {
+                                let st = st.clone();
+                                crate::session::dialog_timeline::dialog_timeline(
+                                    sid.clone(),
+                                    Rc::new(move |message_id: String| st.jump_to_message(message_id)),
+                                )
+                            })
+                        },
+                        None,
+                        None,
+                        Some(crate::ui::dialog::DialogSize::Large),
+                    );
+                })
+                .title("Jump to message")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off)
+                .slash("timeline", &[])
+            };
+            let fork = {
+                let (st, sid) = (st.clone(), sid.clone());
+                Command::new("session.fork", move || {
+                    let st = st.clone();
+                    let sid = sid.clone();
+                    let dialog = st.dialog.clone();
+                    dialog.replace(
+                        move || {
+                            let st = st.clone();
+                            let sid = sid.clone();
+                            component(move || {
+                                let st = st.clone();
+                                crate::session::dialog_fork::dialog_fork(
+                                    sid.clone(),
+                                    None,
+                                    Some(Rc::new(move |message_id: Option<String>| {
+                                        if let Some(message_id) = message_id {
+                                            st.jump_to_message(message_id);
+                                        }
+                                    })),
+                                )
+                            })
+                        },
+                        None,
+                        None,
+                        Some(crate::ui::dialog::DialogSize::Large),
+                    );
+                })
+                .title("Fork session")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off)
+                .slash("fork", &[])
+            };
             vec![
                 rename,
-                // TODO(port-tui): the dialogs slice: DialogTimeline, DialogFork.
-                session_command("session.timeline", "Jump to message").slash("timeline", &[]),
-                session_command("session.fork", "Fork session").slash("fork", &[]),
+                timeline,
+                fork,
                 compact,
                 undo,
                 redo,
@@ -1648,6 +1710,22 @@ pub fn session(props: SessionProps) -> View {
             Rc::new(move |id: String| pending.open_steer(&dialog, id, render_filter))
         },
         pending_delivery: Rc::new(move |id: &str| pending_deliveries.with(|list| list.iter().find(|(i, _)| i == id).map(|(_, d)| d.clone()))),
+        open_message: {
+            let dialog = state.dialog.clone();
+            let session_id = state.session_id.clone();
+            Rc::new(move |message_id: String| {
+                let (dialog, session_id) = (dialog.clone(), session_id.clone());
+                dialog.replace(
+                    move || {
+                        let (session_id, message_id) = (session_id.clone(), message_id.clone());
+                        component(move || crate::session::dialog_message::dialog_message(session_id.clone(), message_id.clone()))
+                    },
+                    None,
+                    None,
+                    None,
+                );
+            })
+        },
     };
     let mut view = View::Empty;
     let props_for = props.clone();

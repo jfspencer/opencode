@@ -9,6 +9,22 @@ fn from(units: &[u16]) -> String {
     String::from_utf16_lossy(units)
 }
 
+/// `Locale.time(at)`: `toLocaleTimeString(undefined, { timeStyle: "short" })` in en-US ("3:05 PM").
+pub fn time(at: f64) -> String {
+    let Some(date) = crate::usage_limits::local_time(at) else { return "Invalid Date".into() };
+    let hour = match date.hours % 12 {
+        0 => 12,
+        h => h,
+    };
+    format!("{hour}:{:02} {}", date.minutes, if date.hours < 12 { "AM" } else { "PM" })
+}
+
+/// `Locale.datetime(at)`: the time, then `toLocaleDateString()` in en-US ("3:05 PM · 1/5/2026").
+pub fn datetime(at: f64) -> String {
+    let Some(date) = crate::usage_limits::local_time(at) else { return "Invalid Date".into() };
+    format!("{} · {}/{}/{}", time(at), date.month + 1, date.day, date.year)
+}
+
 /// `truncate(str, len)`.
 pub fn truncate(text: &str, len: usize) -> String {
     let u = units(text);
