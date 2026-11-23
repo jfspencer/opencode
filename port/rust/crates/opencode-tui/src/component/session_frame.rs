@@ -158,7 +158,9 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
                     prompt_muted: Rc::new(|| false),
                     sidebar_visible: Rc::new(move || sidebar_visible()),
                     on_toggle_sidebar: on_toggle,
-                    terminals: Rc::new(|| false),
+                    // TODO(port-tui): `useSessionTerminals().available()` (the pty binary's availability); the pane
+                    // is not ported, but the composer lists the tab, as the reference does when terminals exist.
+                    terminals: Rc::new(|| true),
                     visible_terminal_id: Rc::new(|| None),
                     on_terminal_picker: None,
                     width: Rc::new(move || session_width.get()),

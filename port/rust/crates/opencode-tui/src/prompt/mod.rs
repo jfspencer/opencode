@@ -15,6 +15,7 @@
 //! previews, cursor styles, and a live config (the paste summary toggle).
 pub mod attachment;
 pub mod autocomplete;
+pub mod btw;
 pub mod composer;
 pub mod draft_stash;
 pub mod footer;
