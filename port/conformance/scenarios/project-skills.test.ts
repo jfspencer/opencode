@@ -95,8 +95,9 @@ scenario(
 
 // Each URL scenario uses its own source URL: downloads are cached per URL in the shared global cache directory.
 // One downloadable file per scenario keeps the outbound request order deterministic (downloads run concurrently).
-const urlSkills = (base: string, index: unknown, files: Record<string, string>) => ({
+const urlSkills = (base: string, index: unknown, files: Record<string, string>, options: { platforms?: readonly NodeJS.Platform[] } = {}) => ({
   config: { skills: [base] },
+  ...options,
   responders: [
     (request: { url: string }) => {
       if (!request.url.startsWith(base)) return undefined
@@ -107,6 +108,8 @@ const urlSkills = (base: string, index: unknown, files: Record<string, string>) 
   ],
 })
 
+// macOS's FSEvents replays the cache write to the watcher that was just attached, so the index is pulled a second
+// time; the Linux recording sees one pull.
 scenario(
   "skills from a URL index",
   urlSkills(
@@ -123,6 +126,7 @@ scenario(
       ],
     },
     { "remote/SKILL.md": skill({ description: "Downloaded skill." }, "Remote body.") },
+    { platforms: ["linux"] as const },
   ),
   async (ctx) => {
     await ctx.http("GET", "/api/skill")
@@ -135,6 +139,7 @@ scenario(
     "https://skills.example.test/versioned",
     { skills: [{ name: "versioned", version: "2", files: ["versioned.md"] }] },
     { "versioned/versioned.md": skill({ description: "Versioned skill." }, "V2.") },
+    { platforms: ["linux"] as const },
   ),
   async (ctx) => {
     await ctx.http("GET", "/api/skill")

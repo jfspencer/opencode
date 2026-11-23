@@ -215,9 +215,12 @@ const text = (body: string, contentType = "text/markdown") => ({ raw: body, stat
 
 // Downloads within one index run concurrently, so each index here has at most one file to download, and the
 // indexes (which load one after another) keep the recorded request order deterministic.
+// macOS's FSEvents replays the cache writes to the watcher that was just attached, pulling the indexes again;
+// the Linux recording sees one pull.
 scenario(
   "skill from a remote index",
   {
+    platforms: ["linux"] as const,
     config: {
       skills: [
         "https://skills.example.com/catalog",

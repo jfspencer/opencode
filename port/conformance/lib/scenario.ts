@@ -77,6 +77,12 @@ export interface ScenarioOptions {
    */
   readonly processOnly?: string
   /**
+   * The platforms whose system behavior the golden records. The goldens are recorded on Linux; a scenario whose
+   * observable output is the host's own command, shell or filesystem behavior is skipped elsewhere instead of
+   * reporting that platform as a port failure.
+   */
+  readonly platforms?: readonly NodeJS.Platform[]
+  /**
    * Outbound requests the implementation sends concurrently, so that their arrival order is timing (an npm
    * install's prefetched packuments and its tarball downloads). Within each recorded group, the requests the
    * predicate matches keep the positions they arrived in but fill them in a fixed order (by their recorded form):
@@ -176,6 +182,7 @@ type Entry = { readonly kind: string } & Record<string, unknown>
 
 export function scenario(name: string, options: ScenarioOptions, body: (ctx: Ctx) => Promise<void>) {
   const file = callerFile()
+  if (options.platforms && !options.platforms.includes(process.platform)) return test.skip(name, () => {})
   if (options.inProcessOnly && implementation().kind === "process") return test.skip(name, () => {})
   if (options.processOnly && implementation().kind !== "process") return test.skip(name, () => {})
   test(name, () => run(file, name, options, body), options.timeout ?? 60_000)

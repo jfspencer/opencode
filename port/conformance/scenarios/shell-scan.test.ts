@@ -25,7 +25,7 @@ const files = {
 }
 
 /** Scan a family of commands under the given shell (default: bash, from $SHELL). */
-function family(name: string, commands: readonly string[], shell?: string) {
+function family(name: string, commands: readonly string[], shell?: string, platforms?: readonly NodeJS.Platform[]) {
   scenario(
     name,
     {
@@ -35,6 +35,7 @@ function family(name: string, commands: readonly string[], shell?: string) {
       // remove the shell tool from the model's tool list altogether.
       config: { agents, ...(shell ? { shell } : {}), permissions: [...only, rule("shell", "*", "ask")] },
       turns: [{ events: commands.map((command, index) => ({ tool: "shell", input: { command }, id: `call_${index}` })) }, say("Done.")],
+      ...(platforms ? { platforms } : {}),
     },
     async (ctx) => {
       const id = await ctx.session({ title: name, permissions: [rule("shell", "?*", "deny")] })
@@ -322,7 +323,13 @@ const bash = {
   ],
 } as const
 
-for (const [name, commands] of Object.entries(bash)) family(`bash: ${name}`, commands)
+// macOS's bash 3.2 lacks `[[ -v ]]` and `declare -n` and words some errors and `cd` corner cases differently from
+// the bash 5 that recorded the goldens; its /bin/sh is bash 3.2 too, not dash. The scanner behavior is the same, but
+// the commands these families actually run are host behavior, so their recordings are Linux's.
+const linuxOnly = new Set(["assignments and declarations", "compound commands", "directory changes", "scanner edge cases"])
+const linux: readonly NodeJS.Platform[] = ["linux"]
+for (const [name, commands] of Object.entries(bash))
+  family(`bash: ${name}`, commands, undefined, linuxOnly.has(name) ? linux : undefined)
 
 // With `sh` configured (Dash on Debian-based systems) the scanner reads commands the POSIX way, which also stays
 // sound for Bash and Zsh syntax it does not know.
@@ -358,7 +365,7 @@ const posix = [
   "echo $^~x",
 ]
 
-family("posix sh", posix, "sh")
+family("posix sh", posix, "sh", linux)
 
 // Zsh and PowerShell are not installed where the reference runs, but the scanner picks its dialect from the
 // configured shell's name. A stand-in executable named after each shell makes the configuration valid. It accepts

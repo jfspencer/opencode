@@ -38,9 +38,9 @@ async function drive(ctx: Ctx, id: string, text: string, decide: Decide = () => 
 }
 
 /** One scenario: the model runs the given shell calls one per step, then says it is done. */
-function shell(name: string, inputs: Record<string, unknown>[], options: { config?: Record<string, unknown>; files?: Record<string, string>; decide?: Decide } = {}) {
+function shell(name: string, inputs: Record<string, unknown>[], options: { config?: Record<string, unknown>; files?: Record<string, string>; decide?: Decide; platforms?: readonly NodeJS.Platform[] } = {}) {
   const turns: Turn[] = [...inputs.map((input) => call("shell", input)), say("Done.")]
-  scenario(name, { files: options.files ?? files, config: options.config ?? allowShell, turns }, async (ctx) => {
+  scenario(name, { files: options.files ?? files, config: options.config ?? allowShell, turns, ...(options.platforms ? { platforms: options.platforms } : {}) }, async (ctx) => {
     const id = await ctx.session({ title: name })
     await drive(ctx, id, name, options.decide)
   })
@@ -48,6 +48,7 @@ function shell(name: string, inputs: Record<string, unknown>[], options: { confi
 
 // Output combines stdout and stderr, two pipes read concurrently: a command that writes to both interleaves them
 // in whatever order they are read, so each command here writes to one.
+// BSD ls also words its missing-path error differently and exits 1, where GNU ls exits 2.
 shell("output, stderr and exit status", [
   { command: "cat src/a.txt src/b.txt" },
   { command: "echo err >&2; echo again >&2" },
@@ -57,7 +58,7 @@ shell("output, stderr and exit status", [
   { command: "ls does-not-exist" },
   { command: "printf 'no trailing newline'" },
   { command: "kill -TERM $$" },
-])
+], { platforms: ["linux"] as const })
 
 shell("the environment of shell commands", [
   { command: 'echo "$AGENT $OPENCODE $OPENCODE_TERMINAL $TERM"' },
