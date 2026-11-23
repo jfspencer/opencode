@@ -8,10 +8,11 @@
 //! The plugin's context is the TUI's own (data, client, keymap, config); its panel input is [`PanelInput`] (the
 //! tabs slice's `PanelSlotInput`).
 //!
-//! TODO(port-tui): the dialogs slice's dialogs (the source picker `DialogSelect`, the base-branch picker, the
-//! shortcuts help), the file menu (`diff-viewer-file-menu.tsx`), images (`diff-viewer-image.tsx`, shown as their
-//! label), the tabs slice's `crate::storage` (`memory("review")` is a thread-local signal until it lands),
-//! PatchDiff's virtual chunks for very large new files, and the full-screen plugin route ("diff").
+//! TODO(port-tui): the base-branch picker (`DiffBaseDialog`) and the file menu (`diff-viewer-file-menu.tsx`); the
+//! tabs slice's `crate::storage` (`memory("review")` is a thread-local signal until it lands); PatchDiff's virtual
+//! chunks for very large new files (they render whole here, with the same rows as the reference); the full-screen
+//! plugin route ("diff") for `/diff` outside a session. An image preview draws the block its `fit` occupies, since
+//! the terminal image protocol is not ported.
 pub mod file_tree;
 pub mod tree_utils;
 
@@ -109,6 +110,12 @@ pub struct DiffFile {
     pub status: String,
 }
 
+/// The patch order of a file list: the directory tree's file rows, in display order.
+fn patch_indexes_of(files: &[DiffFile]) -> Vec<usize> {
+    let tree = build_file_tree(&files.iter().map(|file| FileTreeItem { file: file.file.clone(), status: Some(file.status.clone()) }).collect::<Vec<_>>());
+    ordered_patch_file_indexes(&flatten_file_tree(&tree, None))
+}
+
 /// `normalizeDiffs(diffs)`.
 fn normalize_diffs(value: Option<&Json>) -> Vec<DiffFile> {
     let Some(Json::Array(items)) = value else { return Vec::new() };
@@ -150,8 +157,36 @@ struct ReviewMemory {
     bases: HashMap<String, String>,
 }
 
+/// The viewer's UI state. It is separate from [`ReviewMemory`] because the diff resource tracks that memory, and a
+/// UI change must not refetch the diff; it survives a move between the docked panel and full screen (one component
+/// in TS).
+#[derive(Clone, Default, PartialEq)]
+struct UiMemory {
+    single: Option<bool>,
+    view: Option<String>,
+    tree: Option<bool>,
+    reviewed: std::collections::BTreeSet<String>,
+    selected: Option<String>,
+}
+
 thread_local! {
     static REVIEW: Cell<Option<Signal<ReviewMemory>>> = const { Cell::new(None) };
+}
+
+thread_local! {
+    static UI: Cell<Option<Signal<UiMemory>>> = const { Cell::new(None) };
+}
+
+/// The viewer's UI memory, for the TUI's lifetime.
+fn ui_memory() -> Signal<UiMemory> {
+    UI.with(|u| match u.get() {
+        Some(signal) if signal.is_alive() => signal,
+        _ => {
+            let signal = create_root(|_| create_signal_with(UiMemory::default(), None).0);
+            u.set(Some(signal));
+            signal
+        }
+    })
 }
 
 /// `context.storage.memory("review", { initial: { bases: {} } })`.
@@ -421,6 +456,18 @@ pub fn diff_viewer(session_id: Option<String>, initial_mode: Option<DiffMode>, p
                 memory.update(|m| m.source = Some(next));
                 set_mode.set(next);
             }),
+            load_image: {
+                let client = client.clone();
+                let location = location.clone();
+                Rc::new(move |file: String| {
+                    let location = location.get();
+                    client.api().call_named(
+                        "file.read",
+                        &opencode_tui_sync::obj! { "path" => file.as_str(), "location" => location },
+                        RequestOptions::default(),
+                    )
+                })
+            },
         })
     })
 }
@@ -448,6 +495,8 @@ struct ContentProps {
     on_preferences_change: Rc<dyn Fn(Preferences)>,
     on_close: Rc<dyn Fn()>,
     on_switch_source: Rc<dyn Fn(DiffMode)>,
+    /// `file.read` for an image preview, with the viewer's location.
+    load_image: Rc<dyn Fn(String) -> opencode_tui_sync::client::Call>,
 }
 
 fn empty_border(f: impl FnOnce(&mut BorderCharacters)) -> [u32; 11] {
@@ -507,6 +556,7 @@ fn card_gap(glyph: &'static str, card: Rc<dyn Fn() -> RGBA>, surface: Rc<dyn Fn(
 /// `<DiffViewerContent>`.
 fn diff_viewer_content(props: ContentProps) -> View {
     let t = tui();
+    let ui = ui_memory();
     let theme = t.theme;
     let dimensions = t.dimensions;
     let config = t.config_context.clone();
@@ -539,12 +589,14 @@ fn diff_viewer_content(props: ContentProps) -> View {
     // Cards are inset from the pane edges; the gaps between them run edge to edge.
     let inset: Rc<dyn Fn() -> i64> = Rc::new(move || if compact.get() { 0 } else { FULL_INSET });
     let mode = props.mode.clone();
-    let (file_tree_enabled, set_file_tree_enabled) = create_signal(props.preferences.tree.unwrap_or(true));
+    let (file_tree_enabled, set_file_tree_enabled) =
+        create_signal(ui.with_untracked(|m| m.tree).or(props.preferences.tree).unwrap_or(true));
     let show_file_tree = {
         let files = files.clone();
         create_memo(move || !compact.get() && show_diff_viewer_file_tree(file_tree_enabled.get(), files().len()))
     };
-    let (single_patch, set_single_patch) = create_signal(props.preferences.single.unwrap_or(false));
+    let (single_patch, set_single_patch) =
+        create_signal(ui.with_untracked(|m| m.single).or(props.preferences.single).unwrap_or(false));
     let file_tree_width = {
         let width = width.clone();
         create_memo(move || FILE_TREE_MIN_WIDTH.max(FILE_TREE_MAX_WIDTH.min(width() / 4)))
@@ -555,7 +607,9 @@ fn diff_viewer_content(props: ContentProps) -> View {
     };
     let split_available = create_memo(move || patch_pane_width.get() >= MIN_SPLIT_WIDTH);
     let stored_view = props.preferences.view;
-    let (view_override, set_view_override) = create_signal(stored_view);
+    let (view_override, set_view_override) = create_signal(
+        ui.with_untracked(|m| m.view.clone()).and_then(|v| if v == "split" { Some("split") } else if v == "unified" { Some("unified") } else { None }).or(stored_view),
+    );
     let view = create_memo(move || {
         if !split_available.get() {
             return "unified";
@@ -568,7 +622,10 @@ fn diff_viewer_content(props: ContentProps) -> View {
     };
     let (expanded_file_nodes, set_expanded_file_nodes) = create_signal_with(BTreeSet::<usize>::new(), None);
     let (selected_file_index, set_selected_file_index) = create_signal(None::<usize>);
-    let (reviewed_file_names, set_reviewed_file_names) = create_signal_with(BTreeSet::<String>::new(), None);
+    // A source switch after marking files lands on the last file (the reference's scroll-derived current file).
+    let select_last_on_change = Rc::new(std::cell::Cell::new(false));
+    let (reviewed_file_names, set_reviewed_file_names) =
+        create_signal_with(ui.with_untracked(|m| m.reviewed.clone()), None);
     let (exhausted_file_index, set_exhausted_file_index) = create_signal(None::<usize>);
     let patch_scroll_acceleration = {
         let config = config.clone();
@@ -591,17 +648,48 @@ fn diff_viewer_content(props: ContentProps) -> View {
     let (selected_hunk, set_selected_hunk) = create_signal(None::<SelectedHunk>);
     let (pending_patch_scroll, set_pending_patch_scroll) = create_signal(None::<usize>);
 
-    create_effect(move || {
-        let tree = file_tree_model.get();
-        batch(|| {
-            set_expanded_file_nodes.set(all_expanded_directories(&tree));
-            set_selected_file_index.set(None);
-            set_selected_hunk.set(None);
-            set_reviewed_file_names.set(BTreeSet::new());
-            set_exhausted_file_index.set(None);
+    {
+        let restored = std::cell::Cell::new(false);
+        let file_tree_model = file_tree_model.clone();
+        let files = files.clone();
+        let select_last_on_change = select_last_on_change.clone();
+        create_effect(move || {
+            let tree = file_tree_model.get();
+            // Wait for the first page: an empty tree is not the viewer's state yet.
+            if files().is_empty() {
+                return;
+            }
+            // The first run mounts this component: a move between the docked panel and full screen keeps its state.
+            if !restored.replace(true) {
+                let selected = ui.with_untracked(|m| m.selected.clone());
+                if let Some(name) = selected {
+                    let index = files().iter().position(|file| file.file == name);
+                    set_selected_file_index.set(index);
+                }
+                set_expanded_file_nodes.set(all_expanded_directories(&tree));
+                return;
+            }
+            batch(|| {
+                set_expanded_file_nodes.set(all_expanded_directories(&tree));
+                set_selected_file_index.set(if select_last_on_change.replace(false) {
+                    files().len().checked_sub(1)
+                } else {
+                    None
+                });
+                set_selected_hunk.set(None);
+                set_reviewed_file_names.set(BTreeSet::new());
+                set_exhausted_file_index.set(None);
+            });
         });
-    });
-
+    }
+    {
+        let files = files.clone();
+        create_effect(move || {
+            let Some(index) = selected_file_index.get() else { return };
+            let Some(name) = files().get(index).map(|file| file.file.clone()) else { return };
+            ui.update(|m| m.selected = Some(name));
+        });
+    }
     let clear_patch_selection: Rc<dyn Fn()> = Rc::new(move || {
         set_pending_patch_scroll.set(None);
         set_selected_hunk.set(None);
@@ -857,7 +945,9 @@ fn diff_viewer_content(props: ContentProps) -> View {
         );
         Rc::new(move |file_index: Option<usize>| {
             let Some(file_index) = file_index else { return };
-            let Some(file) = files().get(file_index).map(|f| f.file.clone()) else { return };
+            // A memory write below can start a refetch (the resource tracks the review memory), so keep the files.
+            let snapshot = files();
+            let Some(file) = snapshot.get(file_index).map(|f| f.file.clone()) else { return };
             let current_index = selected_file_index.get_untracked().or_else(|| current());
             let anchor = current_index.and_then(|c| nodes.borrow().get(&c).copied());
             let offset = match (anchor, scroll.get()) {
@@ -870,6 +960,8 @@ fn diff_viewer_content(props: ContentProps) -> View {
                     names.insert(file.clone());
                 }
             });
+            let reviewed_now = reviewed_file_names.get_untracked();
+            ui.update(|m| m.reviewed = reviewed_now.clone());
             // Completing another file from its menu must not navigate away from the current file.
             if Some(file_index) != current_index {
                 if let (Some(current), Some(offset)) = (current_index, offset) {
@@ -879,11 +971,17 @@ fn diff_viewer_content(props: ContentProps) -> View {
                 }
                 return;
             }
+            let indexes = {
+                let shared = patch_file_indexes.get_untracked();
+                if shared.is_empty() { patch_indexes_of(&snapshot) } else { shared }
+            };
             let next = if single_patch.get_untracked() && !reviewed {
-                move_patch_file_index(&patch_file_indexes.get_untracked(), Some(file_index), 1).unwrap_or(file_index)
+                move_patch_file_index(&indexes, Some(file_index), 1).unwrap_or(file_index)
             } else {
                 file_index
             };
+            let selected_name = snapshot.get(next).map(|f| f.file.clone());
+            ui.update(|m| m.selected = selected_name);
             select(next);
             if single_patch.get_untracked() && !reviewed && next == file_index {
                 set_exhausted_file_index.set(Some(file_index));
@@ -899,13 +997,87 @@ fn diff_viewer_content(props: ContentProps) -> View {
             on_close();
         })
     };
-    // TODO(port-tui): the source picker (`DialogSelect` with the sources and "Base"), the dialogs slice's.
+    let dialog = crate::ui::dialog::use_dialog();
+    let sources_for_dialog = props.sources.clone();
+    let base_for_dialog = props.source_base.clone();
+    let switch_for_dialog = props.on_switch_source.clone();
+    let mode_for_dialog = mode.clone();
     let open_switch_diff_dialog: Rc<dyn Fn()> = {
-        let _ = (props.sources.clone(), props.source_base.clone(), props.on_switch_source.clone());
-        Rc::new(|| {})
+        let dialog = dialog.clone();
+        Rc::new(move || {
+            let dialog = dialog.clone();
+            let sources = sources_for_dialog.clone();
+            let base = base_for_dialog.clone();
+            let switch = switch_for_dialog.clone();
+            let mode = mode_for_dialog.clone();
+            let select_last = select_last_on_change.clone();
+            let inner_dialog = dialog.clone();
+            dialog.show(move || {
+                let select_last_on_change = select_last.clone();
+                let dialog = inner_dialog.clone();
+                let sources = sources.clone();
+                let base = base.clone();
+                let switch = switch.clone();
+                let mode = mode.clone();
+                let mut props = crate::ui::dialog_select::SelectProps::new("Diff source", move || {
+                    let mut options: Vec<crate::ui::dialog_select::SelectOption<SourceChoice>> = sources
+                        .iter()
+                        .map(|source| {
+                            let (label, description) = source.source();
+                            let mut option = crate::ui::dialog_select::SelectOption::new(label, SourceChoice::Mode(*source));
+                            option.description = Some(description.into());
+                            option.title_view = Some({
+                                let padded = format!("{label:<11}");
+                                Rc::new(move || View::from(padded.clone()))
+                            });
+                            option
+                        })
+                        .collect();
+                    let name = base().map(|(name, _)| name).unwrap_or_else(|| "Choose…".into());
+                    let mut option = crate::ui::dialog_select::SelectOption::new("Base", SourceChoice::Base);
+                    option.description = Some(name);
+                    option.title_view = Some(Rc::new(|| View::from("Base       ")));
+                    options.push(option);
+                    options
+                });
+                props.render_filter = false;
+                props.skip_filter = true;
+                props.current = Some({
+                    let mode = mode.clone();
+                    Rc::new(move || Some(SourceChoice::Mode(mode())))
+                });
+                props.on_select = Some({
+                    let dialog = dialog.clone();
+                    let switch = switch.clone();
+                    Rc::new(move |option: &crate::ui::dialog_select::SelectOption<SourceChoice>| {
+                        let SourceChoice::Mode(source) = option.value else { return };
+                        dialog.clear();
+                        if source == DiffMode::Turn {
+                            select_last_on_change.set(true);
+                        }
+                        switch(source);
+                    })
+                });
+                crate::ui::dialog_select::dialog_select(props)
+            });
+        })
     };
-    // TODO(port-tui): DiffViewerHelpDialog (DialogLayout, DialogHeader), the dialogs slice's.
-    let open_help_dialog: Rc<dyn Fn()> = Rc::new(|| {});
+    let open_help_dialog: Rc<dyn Fn()> = {
+        let dialog = dialog.clone();
+        let shortcuts = shortcuts.clone();
+        let single_patch = single_patch.clone();
+        let compact = compact.clone();
+        let has_panel = panel.is_some();
+        Rc::new(move || {
+            let dialog_for_close = dialog.clone();
+            let shortcuts = shortcuts.clone();
+            let single = single_patch.get_untracked();
+            let tree = !compact.get_untracked();
+            dialog.show(move || diff_help_dialog(dialog_for_close.clone(), shortcuts.clone(), single, tree, has_panel));
+            dialog.set_size(crate::ui::dialog::DialogSize::Medium);
+            dialog.set_centered(true);
+        })
+    };
 
     {
         let (close, clear, scroll, scroll_page) = (close.clone(), clear_patch_selection.clone(), scroll.clone(), scroll_page.clone());
@@ -915,6 +1087,7 @@ fn diff_viewer_content(props: ContentProps) -> View {
             (select_patch_file.clone(), scroll_single_patch_to_top.clone(), scroll_to_patch_file_index_after_render.clone(), Rc::new(ensure_highlighted_patch_file));
         let (open_switch, open_help, on_prefs, panel) =
             (open_switch_diff_dialog.clone(), open_help_dialog.clone(), props.on_preferences_change.clone(), panel.clone());
+        let files_for_single = files.clone();
         create_layer(move || {
             let c = |id: &str, title: &str, run: Rc<dyn Fn()>| Command::new(id, move || run()).title(title).group("VCS");
             let scroll_by = |delta: f64| {
@@ -966,9 +1139,11 @@ fn diff_viewer_content(props: ContentProps) -> View {
                     }
                     let next = !file_tree_enabled.get_untracked();
                     set_file_tree_enabled.set(next);
+                    ui.update(|m| m.tree = Some(next));
                     on_prefs(Preferences { tree: Some(next), ..Default::default() });
                 }) as Rc<dyn Fn()>
             };
+            let files_for_single = files_for_single.clone();
             let single = {
                 let (ensure, on_prefs, single_top, select, after, current) =
                     (ensure.clone(), on_prefs.clone(), single_top.clone(), select.clone(), after.clone(), current.clone());
@@ -977,6 +1152,16 @@ fn diff_viewer_content(props: ContentProps) -> View {
                     if !single_patch.get_untracked() {
                         ensure();
                         set_single_patch.set(true);
+                        ui.update(|m| m.single = Some(true));
+                        // Without a selected file, single-patch mode shows the first diff.
+                        if selected_file_index.get_untracked().is_none() {
+                            let snapshot = files_for_single();
+                            let shared = patch_file_indexes.get_untracked();
+                            let indexes = if shared.is_empty() { patch_indexes_of(&snapshot) } else { shared };
+                            if let Some(index) = indexes.first().copied() {
+                                select(index);
+                            }
+                        }
                         on_prefs(Preferences { single: Some(true), ..Default::default() });
                         single_top();
                         return;
@@ -988,6 +1173,7 @@ fn diff_viewer_content(props: ContentProps) -> View {
                         select(index);
                     }
                     set_single_patch.set(false);
+                    ui.update(|m| m.single = Some(false));
                     on_prefs(Preferences { single: Some(false), ..Default::default() });
                     if let Some(index) = index {
                         after(index, None);
@@ -1003,6 +1189,7 @@ fn diff_viewer_content(props: ContentProps) -> View {
                     set_selected_hunk.set(None);
                     let next = if view.get_untracked() == "split" { "unified" } else { "split" };
                     set_view_override.set(Some(next));
+                    ui.update(|m| m.view = Some(next.to_string()));
                     on_prefs(Preferences { view: Some(next), ..Default::default() });
                 }) as Rc<dyn Fn()>
             };
@@ -1048,7 +1235,7 @@ fn diff_viewer_content(props: ContentProps) -> View {
                         c("diff.previous_file", "Jump to previous diff file", Rc::new(move || jump_file(-1)))
                     },
                     c("diff.mark_reviewed", "Toggle selected diff file reviewed", mark),
-                    c("diff.toggle_file_tree", "Toggle diff viewer file tree", tree).enabled_fn(move || !compact.get()),
+                    c("diff.toggle_file_tree", "Toggle diff viewer file tree", tree),
                     c("diff.single_patch", "Toggle single patch view", single),
                     c("diff.switch_source", "Switch diff viewer source", open_switch.clone()),
                     c("diff.toggle_view", "Toggle diff viewer split or unified view", toggle_view),
@@ -1343,7 +1530,9 @@ fn diff_viewer_content(props: ContentProps) -> View {
             }
             patches.set_scrollbar_options(Some(true), &ScrollBarOptions { visible: Some(Some(false)), ..Default::default() });
             patches.set_scrollbar_options(Some(false), &ScrollBarOptions { visible: Some(Some(false)), ..Default::default() });
-            let (scroll, register, diffs, inset, surface, mode) = (scroll.clone(), register.clone(), diffs.clone(), inset.clone(), surface.clone(), mode.clone());
+            let (scroll, register, diffs, inset, surface, mode) =
+                (scroll.clone(), register.clone(), diffs.clone(), inset.clone(), surface.clone(), mode.clone());
+            let load_image = props.load_image.clone();
             insert(
                 patches,
                 for_each(
@@ -1365,6 +1554,7 @@ fn diff_viewer_content(props: ContentProps) -> View {
                             scroll: scroll.clone(),
                             register: register.clone(),
                             diffs: diffs.clone(),
+                            load_image: load_image.clone(),
                         })
                     },
                     None,
@@ -1576,12 +1766,13 @@ struct PatchCard {
     scroll: Rc<Cell<Option<Element>>>,
     register: Rc<dyn Fn(usize, Element)>,
     diffs: Rc<RefCell<HashMap<usize, PatchDiffRef>>>,
+    load_image: Rc<dyn Fn(String) -> opencode_tui_sync::client::Call>,
 }
 
 /// One file's card: the gap above it, the sticky header with the counts, and its patch.
 fn patch_card(props: PatchCard) -> View {
     let theme = tui().theme;
-    let PatchCard { file_index, file, index, reviewed, compact, patch_pane_width, view, mode, inset, surface, scroll, register, diffs } = props;
+    let PatchCard { file_index, file, index, reviewed, compact, patch_pane_width, view, mode, inset, surface, scroll, register, diffs, load_image } = props;
     let background: Rc<dyn Fn() -> RGBA> = {
         let reviewed = reviewed.clone();
         Rc::new(move || theme.with(|t| if reviewed() { rgba(t.background.raised.high) } else { rgba(t.diff.background.context) }))
@@ -1739,8 +1930,9 @@ fn patch_card(props: PatchCard) -> View {
                     let mode_now = mode();
                     let has_patch = file.patch.as_ref().is_some_and(|p| !p.is_empty());
                     if mode_now != DiffMode::Committed && file.status != "deleted" && image {
-                        // TODO(port-tui): DiffViewerImage (the working-tree preview).
-                        return muted_text("Working tree preview".into());
+                        let name = file.file.clone();
+                        let load_image = load_image.clone();
+                        return diff_image(name, load_image);
                     }
                     if !(mode_now == DiffMode::Committed && image) && has_patch {
                         let patch = file.patch.clone().unwrap_or_default();
@@ -1795,4 +1987,250 @@ fn patch_card(props: PatchCard) -> View {
         );
     }
     View::Node(card)
+}
+
+/// An image preview's loaded bytes.
+#[derive(Clone, PartialEq)]
+enum ImageState {
+    Loading,
+    Ready(Rc<Vec<u8>>),
+    Error,
+}
+
+/// `<DiffViewerImage>` (`diff-viewer-image.tsx`): the working-tree preview of a changed image. The terminal's image
+/// protocol is not ported; a loaded image shows the block its `fit` would occupy, which is what a text capture has.
+fn diff_image(file: String, load: Rc<dyn Fn(String) -> opencode_tui_sync::client::Call>) -> View {
+    let t = tui();
+    let theme = t.theme;
+    let dimensions = t.dimensions;
+    let state = create_signal(ImageState::Loading).0;
+    {
+        let load = load.clone();
+        create_effect(move || {
+            let path = file.clone();
+            let call = load(path);
+            state.set(ImageState::Loading);
+            tokio::task::spawn_local(async move {
+                state.set(match call.await {
+                    Ok(value) => ImageState::Ready(Rc::new(value.bytes())),
+                    Err(_) => ImageState::Error,
+                });
+            });
+        });
+    }
+    let height = create_memo(move || ((dimensions.get().1 / 4) as i64).clamp(3, 8));
+    let root = box_();
+    root.set_width(Some(Value::Percent(100.0)));
+    root.set_flex_direction(FlexDirection::Column);
+    root.set_flex_shrink(Some(0.0));
+    root.set_gap(2, Some(Value::Point(1.0)));
+    root.set_padding(Edge::Left, Some(Value::Point(1.0)));
+    root.set_padding(Edge::Right, Some(Value::Point(1.0)));
+    root.set_padding(Edge::Bottom, Some(Value::Point(1.0)));
+    let label = text();
+    insert_node(root, label, None);
+    bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| label.set_fg(Some(c)));
+    insert_node(label, opencode_tui_core::renderables::text::text_node_from_string("Working tree preview"), None);
+    let body = box_();
+    insert_node(root, body, None);
+    body.set_flex_direction(FlexDirection::Column);
+    body.set_flex_shrink(Some(0.0));
+    body.set_gap(2, Some(Value::Point(1.0)));
+    {
+        let height = height.clone();
+        bind(move || height.get() as f32 + 2.0, move |h| body.set_height(Some(Value::Point(h))));
+    }
+    let error = text();
+    insert_node(body, error, None);
+    bind_always(move || rgba(theme.with(|th| th.text.feedback.error.base)), move |c| error.set_fg(Some(c)));
+    insert_node(error, opencode_tui_core::renderables::text::text_node_from_string("Could not load image"), None);
+    bind(move || matches!(state.get(), ImageState::Error), move |visible: bool| error.set_visible(visible));
+    let loading = text();
+    insert_node(body, loading, None);
+    bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| loading.set_fg(Some(c)));
+    insert_node(loading, opencode_tui_core::renderables::text::text_node_from_string("Loading image…"), None);
+    bind(move || matches!(state.get(), ImageState::Loading), move |visible: bool| loading.set_visible(visible));
+    let image_box = box_();
+    insert_node(body, image_box, None);
+    image_box.set_width(Some(Value::Percent(100.0)));
+    image_box.set_flex_shrink(Some(0.0));
+    image_box.set_align_items(opencode_tui_core::tree::Align::Center);
+    {
+        let height = height.clone();
+        bind(move || height.get() as f32, move |h| image_box.set_height(Some(Value::Point(h))));
+    }
+    {
+        let state = state.clone();
+        bind(move || matches!(state.get(), ImageState::Ready(_)), move |visible: bool| image_box.set_visible(visible));
+    }
+    let picture = text();
+    insert_node(image_box, picture, None);
+    picture.set_wrap_mode(WrapMode::None);
+    {
+        let state = state.clone();
+        let height = height.clone();
+        bind(move || {
+            let ImageState::Ready(bytes) = state.get() else { return String::new() };
+            let (width, tall) = image_dimensions(&bytes);
+            let rows = height.get();
+            let columns = (rows as f64 * (width as f64 / tall.max(1) as f64 * 2.0)).round().max(1.0) as usize;
+            vec!["█".repeat(columns); rows as usize].join("\n")
+        }, move |value| picture.set_content(&value));
+    }
+    let details = box_();
+    insert_node(body, details, None);
+    details.set_flex_direction(FlexDirection::Row);
+    details.set_height(Some(Value::Point(1.0)));
+    details.set_flex_shrink(Some(0.0));
+    details.set_justify_content(opencode_tui_core::tree::Justify::SpaceBetween);
+    {
+        let state = state.clone();
+        bind(move || matches!(state.get(), ImageState::Ready(_)), move |visible: bool| details.set_visible(visible));
+    }
+    let size = text();
+    insert_node(details, size, None);
+    bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| size.set_fg(Some(c)));
+    {
+        let state = state.clone();
+        bind(move || match state.get() {
+            ImageState::Ready(bytes) => {
+                let (width, height) = image_dimensions(&bytes);
+                format!("{width} x {height}")
+            }
+            _ => String::new(),
+        }, move |value| size.set_content(&value));
+    }
+    let enlarge = text();
+    insert_node(details, enlarge, None);
+    bind_always(move || rgba(theme.with(|th| th.text.action.secondary.base)), move |c| enlarge.set_fg(Some(c)));
+    insert_node(enlarge, opencode_tui_core::renderables::text::text_node_from_string("Click to enlarge"), None);
+    View::Node(root)
+}
+
+/// A PNG's pixel size from its IHDR chunk; other formats report 1 x 1 (their block still shows).
+fn image_dimensions(bytes: &[u8]) -> (u32, u32) {
+    if bytes.len() >= 24 && bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+        let width = u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]).max(1);
+        let height = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]).max(1);
+        return (width, height);
+    }
+    (1, 1)
+}
+
+/// `DiffMode | "base"` in the source picker.
+#[derive(Clone, Copy, PartialEq)]
+enum SourceChoice {
+    Mode(DiffMode),
+    Base,
+}
+
+/// `DiffViewerHelpDialog`.
+fn diff_help_dialog(
+    dialog: crate::ui::dialog::DialogContext,
+    shortcuts: crate::keymap::Shortcuts,
+    single: bool,
+    tree: bool,
+    fullscreen: bool,
+) -> View {
+    let theme = crate::ui::theme::use_theme().surface(crate::theme::SurfaceName::Dialog);
+    let key = {
+        let shortcuts = shortcuts.clone();
+        move |ids: &[&str]| {
+            ids.iter()
+                .filter_map(|id| shortcuts.get(id))
+                .collect::<Vec<_>>()
+                .join(" / ")
+        }
+    };
+    let every = {
+        let shortcuts = shortcuts.clone();
+        move |id: &str| shortcuts.list(id).join(" / ")
+    };
+    let mut groups: Vec<(&str, Vec<(String, &'static str)>)> = vec![
+        (
+            "Review",
+            vec![
+                (every("diff.next_file"), "Next file"),
+                (every("diff.previous_file"), "Previous file"),
+                (
+                    key(&["diff.mark_reviewed"]),
+                    if single { "Review + next / reopen" } else { "Review + collapse / reopen" },
+                ),
+                (key(&["diff.next_hunk", "diff.previous_hunk"]), "Next / previous change"),
+                ("right-click".into(), "File menu (heading or tree)"),
+            ],
+        ),
+        (
+            "Scroll",
+            vec![
+                (key(&["diff.down", "diff.up"]), "Down / up"),
+                (key(&["diff.half_page.down", "diff.half_page.up"]), "Half page down / up"),
+                (key(&["diff.page.down", "diff.page.up"]), "Page down / up"),
+                (key(&["diff.first", "diff.last"]), "First / last"),
+            ],
+        ),
+    ];
+    let mut view_rows = vec![
+        (key(&["diff.toggle_view"]), "Split / unified"),
+        (key(&["diff.single_patch"]), "All files / single file"),
+    ];
+    if tree {
+        view_rows.push((key(&["diff.toggle_file_tree"]), "Show / hide file tree"));
+    }
+    view_rows.push((key(&["diff.switch_source"]), "Switch diff source"));
+    if fullscreen {
+        view_rows.push((key(&["diff.toggle_fullscreen"]), "Full screen / split view"));
+    }
+    view_rows.push((every("diff.close"), "Close diff viewer"));
+    groups.push(("View", view_rows));
+
+    let body = box_();
+    body.set_flex_direction(FlexDirection::Column);
+    body.set_gap(2, Some(Value::Point(1.0)));
+    for (title, rows) in groups {
+        let group = box_();
+        group.set_flex_direction(FlexDirection::Column);
+        group.set_flex_shrink(Some(0.0));
+        let heading = text();
+        insert_node(group, heading, None);
+        bind_always(move || rgba(theme.get().text.base), move |c| heading.set_fg(Some(c)));
+        heading.set_attributes(Some(opencode_tui_core::color::text_attributes::BOLD));
+        insert_node(heading, opencode_tui_core::renderables::text::text_node_from_string(title), None);
+        for (shortcut, label) in rows {
+            let row = box_();
+            insert_node(group, row, None);
+            row.set_flex_direction(FlexDirection::Row);
+            row.set_gap(2, Some(Value::Point(2.0)));
+            let keys = text();
+            insert_node(row, keys, None);
+            keys.set_width(Some(Value::Point(17.0)));
+            keys.set_flex_shrink(Some(0.0));
+            bind_always(move || rgba(theme.get().text.base), move |c| keys.set_fg(Some(c)));
+            insert_node(keys, opencode_tui_core::renderables::text::text_node_from_string(&shortcut), None);
+            let description = text();
+            insert_node(row, description, None);
+            description.set_flex_grow(Some(1.0));
+            description.set_min_width(Some(Value::Point(0.0)));
+            bind_always(move || rgba(theme.get().text.muted), move |c| description.set_fg(Some(c)));
+            insert_node(description, opencode_tui_core::renderables::text::text_node_from_string(label), None);
+        }
+        insert_node(body, group, None);
+    }
+    let close = dialog.clone();
+    crate::ui::dialog::dialog_layout(crate::ui::dialog::LayoutProps {
+        header: Box::new(move || {
+            let close = close.clone();
+            component(move || {
+                let close = close.clone();
+                crate::ui::dialog::dialog_header(crate::ui::dialog::HeaderProps {
+                    title: Some(Rc::new(|| "Diff shortcuts".to_string())),
+                    close_label: Some("esc close".into()),
+                    on_close: Some(Rc::new(move || close.clear())),
+                    ..crate::ui::dialog::HeaderProps::default()
+                })
+            })
+        }),
+        children: Box::new(move || View::Node(body)),
+        ..crate::ui::dialog::LayoutProps::default()
+    })
 }

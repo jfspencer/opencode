@@ -42,6 +42,13 @@ pub enum Route {
     Session { session_id: String },
 }
 
+/// `PanelTarget` (`context/panel.tsx`): the plugin panel docked beside the session.
+#[derive(Clone, Debug, PartialEq)]
+pub struct PanelTarget {
+    pub name: String,
+    pub session_id: String,
+}
+
 /// The paths the TUI reads (`TuiPathsProvider`).
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Paths {
@@ -74,6 +81,10 @@ pub struct Tui {
     pub open_sessions: Signal<Vec<Json>>,
     /// `useStorage().store("session-list").allProjects`.
     pub session_list_all_projects: Signal<bool>,
+    /// `usePanel().current`: the panel docked beside the session (`context/panel.tsx`).
+    pub panel: Signal<Option<PanelTarget>>,
+    /// `usePanel().requested`: docked, or full screen.
+    pub panel_fullscreen: Signal<bool>,
 }
 
 thread_local! {

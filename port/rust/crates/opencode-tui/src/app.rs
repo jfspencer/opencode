@@ -142,6 +142,8 @@ pub async fn run(input: TuiInput) -> i32 {
             open_sessions: create_signal(Vec::new()).0,
             // `initial: { allProjects: config.tabs?.scope !== "cwd" }`.
             session_list_all_projects: create_signal(all_projects_initial).0,
+            panel: create_signal(None).0,
+            panel_fullscreen: create_signal(false).0,
         };
         provide_context(context(), t.clone());
         let themes = crate::themes::install(registry, mode, t.config_context.clone(), t.theme, t.toast.clone());
@@ -160,7 +162,9 @@ pub async fn run(input: TuiInput) -> i32 {
         // DialogProvider: its layer after its children.
         let dialog = crate::ui::dialog::provide();
         let view = component(app_view);
-        insert(root, View::list([view, crate::ui::dialog::dialog_layer(dialog)]), At::Only);
+        // The full-screen panel is a sibling of App, below the dialog layer: dialogs stay on top of it.
+        let panel = component(fullscreen_panel);
+        insert(root, View::list([view, panel, crate::ui::dialog::dialog_layer(dialog)]), At::Only);
     });
     tokio::task::spawn_local(data_for_load.load_location_data());
     renderer::request_render();
@@ -195,6 +199,8 @@ fn app_view() -> View {
         on_cleanup(off);
     }
     crate::startup::install(&t);
+    // The built-in notifications plugin (`opencode.notifications`).
+    crate::notifications::install(&t);
     // App's session events: the open dialog keeps showing what it last loaded, and an open session deleted by
     // another client leaves the session route.
     {
@@ -397,4 +403,80 @@ fn app_view() -> View {
     insert(root, component(crate::reconnecting::reconnecting_overlay), At::End);
     insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
+}
+
+/// The full-screen `session.panel` slot: covers the session's tabs and frame, as full screen takes over the app.
+fn fullscreen_panel() -> View {
+    let t = crate::ctx::tui();
+    let vertical = {
+        let config = t.config_context.clone();
+        let tabs = crate::tabs::tabs();
+        let dimensions = t.dimensions;
+        move || config.data().tabs.layout == "vertical" && dimensions.get().0 >= 42 + 64 && !tabs.list().is_empty() && tabs.enabled()
+    };
+    let panel_target = {
+        let route = t.route;
+        let panel = t.panel;
+        let fullscreen = t.panel_fullscreen;
+        let dimensions = t.dimensions;
+        create_memo(move || {
+            let Route::Session { session_id } = route.get() else { return None };
+            let target = panel.get()?;
+            if target.session_id != session_id {
+                return None;
+            }
+            let available = (dimensions.get().0 as i64 - if vertical() { 42 } else { 0 }).max(0);
+            (fullscreen.get() || available < 64 + 44).then_some((target, available))
+        })
+    };
+    show_value(
+        move || panel_target.get(),
+        move |value| {
+            let Some((target, available)) = value.get() else { return View::Empty };
+            let t = crate::ctx::tui();
+            let overlay = opencode_tui_core::elements::box_();
+            overlay.set_position_type(true);
+            overlay.set_positions(
+                Some(Some(Value::Point(0.0))),
+                Some(Some(Value::Point(0.0))),
+                Some(Some(Value::Point(0.0))),
+                Some(Some(Value::Point(0.0))),
+            );
+            bind_always(move || rgba(t.theme.with(|th| th.background.base)), move |c| overlay.set_background_color(Some(c)));
+            let input = crate::diff_viewer::PanelInput {
+                name: target.name.clone(),
+                session_id: target.session_id.clone(),
+                width: Rc::new(move || available),
+                docked: Rc::new(|| false),
+                focused: Rc::new(|| true),
+                focus: Rc::new(|| {}),
+                close: {
+                    let t = t.clone();
+                    Rc::new(move || {
+                        t.panel.set(None);
+                        t.panel_fullscreen.set(false);
+                    })
+                },
+                toggle_fullscreen: {
+                    let t = t.clone();
+                    Rc::new(move || t.panel_fullscreen.set(!t.panel_fullscreen.get_untracked()))
+                },
+            };
+            let on_close = {
+                let t = t.clone();
+                Rc::new(move || {
+                    t.panel.set(None);
+                    t.panel_fullscreen.set(false);
+                })
+            };
+            let session_id = target.session_id.clone();
+            insert(
+                overlay,
+                component(move || crate::diff_viewer::diff_viewer(Some(session_id.clone()), None, Some(input.clone()), on_close.clone())),
+                At::Only,
+            );
+            View::Node(overlay)
+        },
+        None,
+    )
 }
