@@ -1137,8 +1137,6 @@ pub fn session(props: SessionProps) -> View {
                 }
             };
             let (n1, n2, n3, n4) = (st.clone(), st.clone(), st.clone(), st.clone());
-            let levels = [Verbosity::Low, Verbosity::Medium, Verbosity::High];
-            let next_level = levels[(levels.iter().position(|l| *l == verbosity.get()).unwrap_or(1) + 1) % 3];
             let session_command = |id: &str, title: &str| {
                 let dialog = st.dialog.clone();
                 Command::new(id, move || dialog.clear()).title(title).group("Session").palette(true).bind(Bind::Off)
@@ -1288,12 +1286,27 @@ pub fn session(props: SessionProps) -> View {
                     if group_exploration.get() { "Show tool calls individually".into() } else { "Group related tool calls".into() },
                     session_field("grouping", Json::String(if group_exploration.get() { "none".into() } else { "auto".into() })),
                 ),
-                toggle(
-                    "session.verbosity.cycle",
-                    format!("Verbosity: {}", crate::util::titlecase(verbosity.get().as_str())),
-                    session_field("verbosity", Json::String(next_level.as_str().into())),
-                )
-                .palette(true),
+                {
+                    let (config_state, toast, dialog) = (config_state.clone(), st.t.toast.clone(), st.dialog.clone());
+                    let verbosity = verbosity.clone();
+                    Command::new("session.verbosity.cycle", move || {
+                        let levels = [Verbosity::Low, Verbosity::Medium, Verbosity::High];
+                        let next = levels[(levels.iter().position(|l| *l == verbosity.get_untracked()).unwrap_or(1) + 1) % 3];
+                        let value = Json::String(next.as_str().into());
+                        if let Err(error) = config_state.update(move |draft| {
+                            let mut session = draft.get("session").cloned().filter(|s| matches!(s, Json::Object(_))).unwrap_or(Json::Object(Default::default()));
+                            opencode_tui_sync::json::JsonExt::set(&mut session, "verbosity", value.clone());
+                            opencode_tui_sync::json::JsonExt::set(draft, "session", session);
+                        }) {
+                            toast.error(error);
+                        }
+                        dialog.clear();
+                    })
+                    .title(format!("Verbosity: {}", crate::util::titlecase(verbosity.get().as_str())))
+                    .group("Session")
+                    .bind(Bind::Off)
+                    .palette(true)
+                },
                 Command::new("session.messages_last_user", messages_last_user).title("Jump to last user message").group("Session").bind(Bind::Off),
                 Command::new("session.message.next", move || n1.scroll_to_message(true, false)).title("Next message").group("Session").bind(Bind::Off),
                 Command::new("session.message.previous", move || n2.scroll_to_message(false, false)).title("Previous message").group("Session").bind(Bind::Off),

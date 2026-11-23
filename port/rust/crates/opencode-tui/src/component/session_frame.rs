@@ -1,9 +1,10 @@
 //! `component/session-frame.tsx` (`SessionFrame`) and `routes/session/sidebar.tsx` (`Sidebar`): the session pane
 //! with its right-hand sidebar, the narrow-terminal sidebar overlay, and the commands that toggle it.
 //!
-//! TODO(port-tui): the terminal pane, panels and the pane resize handle (`session-terminals`, `context/panel`,
-//! `ui/pane-resize*`); the sidebar's built-in slots (`sidebar.content`/`sidebar.footer`) carry the context usage and
-//! location footer here, without the plugin system.
+//! TODO(port-tui): the terminal pane, the pane resize handle (`session-terminals`, `ui/pane-resize*`), and the
+//! sidebar's limit and MCP slots; the built-in slots (`sidebar.content`/`sidebar.footer`) carry the context usage,
+//! todo list and location footer here, without the plugin system. Panels (`context/panel.tsx`) are the diff viewer's
+//! docked and full-screen hosts.
 use std::rc::Rc;
 
 use opencode_protocol::Json;
@@ -30,6 +31,7 @@ const SESSION_SIDEBAR_WIDTH: u32 = 42;
 enum RightPane {
     None,
     Sidebar,
+    Panel,
 }
 
 /// `<SessionFrame sessionID verticalTabsWidth>`.
@@ -41,6 +43,25 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
     let sidebar_open = create_signal(false).0;
     let session_width: Signal<Option<f32>> = create_signal(None::<f32>).0;
     let session_node = box_();
+    let panel_target = {
+        let session_id = session_id.clone();
+        create_memo(move || t.panel.get().filter(|panel| panel.name == "diff" && panel.session_id == session_id))
+    };
+    let available_width: Rc<dyn Fn() -> i64> = {
+        let vertical_tabs_width = vertical_tabs_width.clone();
+        Rc::new(move || (dimensions.get().0 as i64 - vertical_tabs_width() as i64).max(0))
+    };
+    // `PanelProvider.presentation`: the requested presentation, forced full screen when the terminal cannot split.
+    let panel_fullscreen: Rc<dyn Fn() -> bool> = {
+        let panel_target = panel_target.clone();
+        let available_width = available_width.clone();
+        Rc::new(move || panel_target.get().is_some() && (t.panel_fullscreen.get() || available_width() < 64 + 44))
+    };
+    let panel_width: Rc<dyn Fn() -> i64> = {
+        let panel_fullscreen = panel_fullscreen.clone();
+        let available_width = available_width.clone();
+        Rc::new(move || if panel_fullscreen() { available_width() } else { (available_width() / 2).max(1) })
+    };
 
     let wide: Rc<dyn Fn() -> bool> = {
         let vertical_tabs_width = vertical_tabs_width.clone();
@@ -63,7 +84,11 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
     };
     let right_pane = {
         let sidebar_visible = sidebar_visible.clone();
+        let panel_target = panel_target.clone();
         move || {
+            if panel_target.get().is_some() {
+                return RightPane::Panel;
+            }
             if sidebar_open.get() && sidebar_visible() {
                 return RightPane::Sidebar;
             }
@@ -225,6 +250,107 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         ),
         At::End,
     );
+    // The docked panel (`PanelHost` + the `session.panel` slot): the diff viewer beside the session.
+    insert(
+        outer,
+        show(
+            {
+                let panel_target = panel_target.clone();
+                let panel_fullscreen = panel_fullscreen.clone();
+                move || panel_target.get().is_some() && !panel_fullscreen()
+            },
+            {
+                let session_id = session_id.clone();
+                let panel_target = panel_target.clone();
+                let panel_width = panel_width.clone();
+                let panel_fullscreen = panel_fullscreen.clone();
+                let t = tui();
+                move || {
+                    let Some(target) = panel_target.get() else { return View::Empty };
+                    let pane = box_();
+                    pane.set_flex_shrink(Some(0.0));
+                    pane.set_min_width(Some(Value::Point(0.0)));
+                    pane.set_min_height(Some(Value::Point(0.0)));
+                    pane.set_height(Some(Value::Percent(100.0)));
+                    {
+                        let panel_width = panel_width.clone();
+                        bind(move || panel_width() as f32, move |width| pane.set_width(Some(Value::Point(width))));
+                    }
+                    let input = crate::diff_viewer::PanelInput {
+                        name: target.name.clone(),
+                        session_id: target.session_id.clone(),
+                        width: {
+                            let panel_width = panel_width.clone();
+                            Rc::new(move || panel_width())
+                        },
+                        docked: {
+                            let panel_fullscreen = panel_fullscreen.clone();
+                            Rc::new(move || !panel_fullscreen())
+                        },
+                        focused: Rc::new(|| true),
+                        focus: Rc::new(|| {}),
+                        close: {
+                            let t = t.clone();
+                            Rc::new(move || {
+                                t.panel.set(None);
+                                t.panel_fullscreen.set(false);
+                            })
+                        },
+                        toggle_fullscreen: {
+                            let t = t.clone();
+                            Rc::new(move || {
+                                t.panel_fullscreen.set(!t.panel_fullscreen.get_untracked());
+                            })
+                        },
+                    };
+                    let id = session_id.clone();
+                    let on_close: Rc<dyn Fn()> = {
+                        let t = t.clone();
+                        Rc::new(move || {
+                            t.panel.set(None);
+                            t.panel_fullscreen.set(false);
+                        })
+                    };
+                    insert(
+                        pane,
+                        component(move || crate::diff_viewer::diff_viewer(Some(id.clone()), None, Some(input.clone()), on_close.clone())),
+                        At::Only,
+                    );
+                    View::Node(pane)
+                }
+            },
+            None,
+        ),
+        At::End,
+    );
+    // The pane focus commands (`SessionFrame`): the diff viewer's footer shows the session pane's shortcut.
+    {
+        let prompt = t.prompt.clone();
+        let focus_prompt = Rc::new(move || {
+            if let Some(prompt) = prompt.borrow().clone() {
+                prompt.focus();
+            }
+        });
+        // The panel's input scope is not tracked here; its keys are global.
+        let focus_right = Rc::new(|| {});
+        create_layer(move || {
+            let focus_prompt = focus_prompt.clone();
+            let focus_right = focus_right.clone();
+            crate::keymap::Layer {
+                commands: vec![
+                    crate::keymap::Command::new("pane.focus.left", move || focus_prompt())
+                        .title("Focus session pane")
+                        .group("Session")
+                        .palette(true),
+                    crate::keymap::Command::new("pane.focus.right", move || focus_right())
+                        .title("Focus right pane")
+                        .group("Session")
+                        .palette(true),
+                ],
+                ..crate::keymap::Layer::default()
+            }
+        });
+    }
     View::Node(outer)
 }
 
@@ -288,6 +414,14 @@ fn sidebar(session_id: String) -> View {
             move || sidebar_context(session_id.clone())
         }),
         At::Only,
+    );
+    insert(
+        content,
+        component({
+            let session_id = session_id.clone();
+            move || sidebar_todo(session_id.clone())
+        }),
+        At::End,
     );
 
     // The footer: the location and branch.
@@ -478,4 +612,117 @@ fn grouped(value: i64) -> String {
         out.insert(0, '-');
     }
     out
+}
+
+/// `SidebarTodo` (`feature-plugins/sidebar/todo.tsx`): the session's latest todo list.
+fn sidebar_todo(session_id: String) -> View {
+    let t = tui();
+    let theme = t.theme;
+    let data = t.data.clone();
+    let list = {
+        let data = data.clone();
+        let session_id = session_id.clone();
+        create_memo_equals(
+            move || {
+                let messages = data.store.session.message.list(&session_id);
+                let boundary = data.store.session.get(&session_id).and_then(|s| match s.get("revert").and_then(|r| r.str("messageID")) {
+                    Some(boundary) => Some(boundary.to_string()),
+                    None => None,
+                });
+                crate::tools::todo::session_todos(&messages, boundary.as_deref())
+            },
+            None,
+        )
+    };
+    let (open, set_open) = create_signal(true);
+    let root = box_();
+    insert(
+        root,
+        show(
+            move || !list.get().is_empty(),
+            {
+                let list = list.clone();
+                move || {
+                    let el = box_();
+                    el.set_flex_direction(FlexDirection::Column);
+                    let heading = box_();
+                    insert_node(el, heading, None);
+                    heading.set_flex_direction(FlexDirection::Row);
+                    heading.set_gap(2, Some(Value::Point(1.0)));
+                    {
+                        let list = list.clone();
+                        let set_open = set_open.clone();
+                        let opened = open.clone();
+                        heading.set_on_mouse(
+                            Some(opencode_tui_core::tree::MouseEventType::Down),
+                            Some(Rc::new(move |_| {
+                                if list.get().len() <= 2 {
+                                    return;
+                                }
+                                set_open.set(!opened.get());
+                            })),
+                        );
+                    }
+                    let marker = text();
+                    insert_node(heading, marker, None);
+                    bind_always(move || rgba(theme.with(|th| th.text.base)), move |c| marker.set_fg(Some(c)));
+                    insert(
+                        marker,
+                        show(move || list.get().len() > 2, move || View::from(if open.get() { "▼" } else { "▶" }), None),
+                        At::Only,
+                    );
+                    let label = text();
+                    insert_node(heading, label, None);
+                    bind_always(move || rgba(theme.with(|th| th.text.base)), move |c| label.set_fg(Some(c)));
+                    label.set_attributes(Some(opencode_tui_core::color::text_attributes::BOLD));
+                    bind(
+                        {
+                            let list = list.clone();
+                            move || {
+                                if list.get().len() <= 2 || open.get() {
+                                    return "Todo".to_string();
+                                }
+                                let remaining = list.get().iter().filter(|todo| {
+                                    matches!(todo.status, crate::tools::todo::TodoStatus::Pending | crate::tools::todo::TodoStatus::InProgress)
+                                }).count();
+                                format!("Todo ({remaining} remaining)")
+                            }
+                        },
+                        move |value| label.set_content(&value),
+                    );
+                    insert(
+                        el,
+                        show(
+                            {
+                                let list = list.clone();
+                                move || list.get().len() <= 2 || open.get()
+                            },
+                            {
+                                let list = list.clone();
+                                let theme = theme.clone();
+                                move || {
+                                    let theme = theme.clone();
+                                    for_each(
+                                        move || list.get(),
+                                        |todo| todo.content.clone(),
+                                        move |todo, _| {
+                                            let theme = theme.clone();
+                                            crate::tools::todo::todo_item(theme, Rc::new(move || todo.get()))
+                                        },
+                                        None,
+                                    )
+                                }
+                            },
+                            None,
+                        ),
+                        At::End,
+                    );
+                    View::Node(el)
+                }
+            },
+            None,
+        ),
+        At::Only,
+    );
+    View::Node(root)
 }

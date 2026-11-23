@@ -148,6 +148,7 @@ pub mod keymap;
 pub mod selection;
 pub mod local;
 pub mod model_preference;
+pub mod notifications;
 pub mod permission;
 pub mod prompt;
 pub mod reconnecting;

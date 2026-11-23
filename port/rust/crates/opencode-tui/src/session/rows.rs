@@ -62,7 +62,7 @@ pub fn create_session_rows(
 ) -> Rows {
     let t = tui();
     let data = t.data.clone();
-    let config = t.config.clone();
+    let config = t.config_context.clone();
     let rows: Rows = create_signal_with(Vec::new(), None).0;
     let revert_boundary = {
         let (data, session_id) = (data.clone(), session_id.clone());
@@ -70,11 +70,11 @@ pub fn create_session_rows(
     };
     let turn_tokens = {
         let config = config.clone();
-        move || config.debug.as_ref().and_then(|d| d.turn_tokens.as_ref()).is_some_and(truthy)
+        move || config.data().debug.as_ref().and_then(|d| d.turn_tokens.as_ref()).is_some_and(truthy)
     };
     let verbosity = {
         let config = config.clone();
-        move || Verbosity::parse(config.session.verbosity.as_deref())
+        move || Verbosity::parse(config.data().session.verbosity.as_deref())
     };
 
     let pending_permissions = {
