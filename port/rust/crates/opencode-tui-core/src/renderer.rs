@@ -510,6 +510,11 @@ pub fn theme_mode() -> Option<ThemeMode> {
     with(|s| s.replies.theme_mode()).flatten()
 }
 
+/// The latest detected terminal palette of at least `size` entries, if any (`getCachedPaletteBySize`).
+pub fn terminal_palette(size: usize) -> Option<terminal::TerminalColors> {
+    with(|s| s.replies.cached_palette(size)).flatten()
+}
+
 /// `waitForThemeMode(timeoutMs)`.
 pub async fn wait_for_theme_mode(timeout_ms: u64) -> Option<ThemeMode> {
     if let Some(mode) = theme_mode() {

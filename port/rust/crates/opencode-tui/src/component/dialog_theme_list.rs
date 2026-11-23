@@ -3,18 +3,12 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use opencode_protocol::Json;
 use opencode_tui_core::reactive::on_cleanup;
 use opencode_tui_core::solid::View;
 
 use crate::themes::use_themes;
 use crate::ui::dialog::use_dialog;
 use crate::ui::dialog_select::{SelectOption, SelectProps, SelectRef, dialog_select};
-
-/// The theme names as values of the "Theme" setting.
-pub fn theme_names() -> Vec<Json> {
-    use_themes().map(|t| t.names()).unwrap_or_default().into_iter().map(Json::String).collect()
-}
 
 /// `<DialogThemeList onClose>`.
 pub fn dialog_theme_list(on_close: Option<Rc<dyn Fn()>>) -> View {

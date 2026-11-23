@@ -65,15 +65,42 @@ pub async fn run(input: TuiInput) -> i32 {
         eprintln!("{error}");
         return 1;
     }
-    let mode = match renderer::wait_for_theme_mode(1000).await {
-        Some(ThemeMode::Light) => Mode::Light,
-        _ => Mode::Dark,
+    let detected = match renderer::wait_for_theme_mode(1000).await {
+        Some(ThemeMode::Light) => Some(Mode::Light),
+        Some(ThemeMode::Dark) => Some(Mode::Dark),
+        None => None,
     };
     if renderer::is_destroyed() {
         return 0;
     }
     let mut registry = ThemeRegistry::new();
-    let name = resolved.theme.as_ref().and_then(|t| t.name.clone()).unwrap_or_else(|| "opencode".to_string());
+    // `createThemeSource(global.config).discover()`: custom themes from the global config directory and the
+    // project's `.opencode` directories. A failed discovery falls back to `opencode`, as the context's catch does.
+    let discovered = crate::theme::discovery::discover(&config_dir, std::path::Path::new(&cwd));
+    let discovered_ok = discovered.is_ok();
+    registry.set_custom_themes(discovered.unwrap_or_default());
+    // `system`: the theme generated from the terminal's palette, when the terminal reported one.
+    let palette = renderer::terminal_palette(16).map(|colors| crate::theme::system::TerminalColors {
+        palette: colors.palette,
+        default_foreground: colors.default_foreground,
+        default_background: colors.default_background,
+    });
+    let locked = resolved.theme.as_ref().and_then(|t| t.mode.as_deref()).and_then(Mode::parse);
+    let palette_mode = palette
+        .as_ref()
+        .filter(|colors| crate::theme::system::usable_palette(colors))
+        .and_then(|colors| crate::theme::system::terminal_mode(colors))
+        .and_then(Mode::parse);
+    let mode = locked.or(detected).or(palette_mode).unwrap_or(Mode::Dark);
+    if let Some(colors) = palette.as_ref().filter(|colors| crate::theme::system::usable_palette(colors)) {
+        if let Ok(theme) = crate::theme::system::generate_system(colors, mode.as_str()) {
+            registry.set_system_theme(Some(theme));
+        }
+    }
+    let name = match resolved.theme.as_ref().and_then(|t| t.name.clone()) {
+        Some(name) if discovered_ok => name,
+        _ => "opencode".to_string(),
+    };
     let new_designs = resolved.new_designs();
     let selected = match registry.select(&name, mode, new_designs) {
         Ok(selected) => selected,
@@ -117,7 +144,15 @@ pub async fn run(input: TuiInput) -> i32 {
             session_list_all_projects: create_signal(all_projects_initial).0,
         };
         provide_context(context(), t.clone());
-        crate::themes::install(registry, mode, t.config_context.clone(), t.theme);
+        let themes = crate::themes::install(registry, mode, t.config_context.clone(), t.theme, t.toast.clone());
+        // `renderer.on(CliRenderEvents.THEME_MODE, handleMode)`: an unlocked context follows the terminal.
+        {
+            let themes = themes.clone();
+            renderer::on_theme_mode(move |mode| themes.apply_mode(match mode {
+                ThemeMode::Light => Mode::Light,
+                ThemeMode::Dark => Mode::Dark,
+            }));
+        }
         crate::keymap::install(&t);
         // SessionTabsProvider: around App, as in app.tsx.
         let _tabs = crate::tabs::install();

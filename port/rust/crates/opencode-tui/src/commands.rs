@@ -114,12 +114,14 @@ fn new_session_home(t: &Tui, local: &crate::local::Local) {
     let default_location = t.data.store.location.default();
     let default = crate::data::get_str(&default_location, "directory").unwrap_or_default().to_string();
     let target = if t.config.session.new_location == "inherit" { current.unwrap_or(default) } else { default };
+    // The current session's agent and model are read before leaving it: after the route changes they would be the
+    // new session's own (previous) picks.
+    let agent = local.agent_current();
+    let model = local.model_current();
     t.route.set(Route::Home);
     if t.data.directory.get_untracked().as_deref() != Some(target.as_str()) {
         t.data.directory.set(Some(target));
     }
-    let agent = local.agent_current();
-    let model = local.model_current();
     opencode_tui_core::reactive::batch(|| {
         if let Some(agent) = agent {
             local.agent_set(&agent.id);

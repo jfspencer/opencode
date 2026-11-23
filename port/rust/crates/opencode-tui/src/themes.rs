@@ -2,8 +2,8 @@
 //! and its lock, `set(theme)` and `setMode(mode)` persisted to cli.json, with `tui().theme` following the
 //! selection (the `selected` memo).
 //!
-//! TODO(port-tui): of the theme context, custom theme discovery, the `system` theme's palette probing and the
-//! renderer's THEME_MODE events are not wired; the theme context belongs with the app shell.
+//! TODO(port-tui): the renderer's palette refresh for a `system` selection after startup, the storage cache of the
+//! last palette, and the SIGUSR2 refresh are not wired.
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -11,6 +11,7 @@ use opencode_tui_core::reactive::*;
 
 use crate::config_context::ConfigContext;
 use crate::theme::{Mode, ResolvedTheme, ThemeRegistry};
+use crate::toast::{ToastInput, Toasts, Variant};
 
 #[derive(Clone)]
 pub struct Themes {
@@ -34,7 +35,13 @@ pub fn use_themes() -> Option<Themes> {
 }
 
 /// The theme context's init: the store from the config, and `theme` following the selection.
-pub fn install(registry: ThemeRegistry, renderer_mode: Mode, config: ConfigContext, theme: Signal<ResolvedTheme>) -> Themes {
+pub fn install(
+    registry: ThemeRegistry,
+    renderer_mode: Mode,
+    config: ConfigContext,
+    theme: Signal<ResolvedTheme>,
+    toast: Toasts,
+) -> Themes {
     let data = config.data_untracked();
     let config_mode = data.theme.as_ref().and_then(|t| t.mode.clone());
     let lock = config_mode.as_deref().and_then(Mode::parse);
@@ -45,6 +52,7 @@ pub fn install(registry: ThemeRegistry, renderer_mode: Mode, config: ConfigConte
     let selected = {
         let registry = registry.clone();
         let config = config.clone();
+        let toast = toast.clone();
         create_memo_equals(
             move || {
                 let new_designs = config.data().new_designs();
@@ -53,8 +61,15 @@ pub fn install(registry: ThemeRegistry, renderer_mode: Mode, config: ConfigConte
                 let result = registry.borrow_mut().select(&name, requested, new_designs);
                 match result {
                     Ok(selected) => {
-                        if selected.name != name {
-                            active.set(selected.name.clone());
+                        // A configured name that is not available falls back to opencode for the tokens, but the
+                        // context keeps naming the request (`themes.selected`). A theme that exists and fails to
+                        // load is reported and replaced, so it is never saved.
+                        if let Some((failed, error)) = &selected.error {
+                            toast.show(
+                                ToastInput::new(Variant::Error, error.message.clone())
+                                    .title(format!("Failed to load theme: {failed}")),
+                            );
+                            active.set("opencode".into());
                         }
                         theme.set(selected.loaded.theme.clone());
                         (selected.name, selected.loaded.modes, selected.loaded.mode)
@@ -66,6 +81,30 @@ pub fn install(registry: ThemeRegistry, renderer_mode: Mode, config: ConfigConte
         )
     };
     let themes = Themes { registry, active, mode, lock, renderer_mode, selected, config };
+    // `createEffect` on the configured theme name: a change written to cli.json (the settings, another client)
+    // selects it.
+    {
+        let themes = themes.clone();
+        create_effect(move || {
+            let name = themes.config.data().theme.as_ref().and_then(|t| t.name.clone());
+            if let Some(name) = name {
+                themes.active.set(name);
+            }
+        });
+    }
+    // `createEffect` on the configured mode: dark/light pin, `system` unpins.
+    {
+        let themes = themes.clone();
+        create_effect(move || {
+            let mode = themes.config.data().theme.as_ref().and_then(|t| t.mode.clone());
+            match mode.as_deref() {
+                Some("dark") => themes.pin(Mode::Dark, false),
+                Some("light") => themes.pin(Mode::Light, false),
+                Some("system") if themes.locked() => themes.free(false),
+                _ => {}
+            }
+        });
+    }
     THEMES.with(|t| *t.borrow_mut() = Some(themes.clone()));
     themes
 }
@@ -76,9 +115,11 @@ fn compare(a: &str, b: &str) -> std::cmp::Ordering {
 }
 
 impl Themes {
-    /// `selected`: the active theme's name.
+    /// `selected`: the active theme's name (with the `opencode2` alias when the experiment is off).
     pub fn selected(&self) -> String {
-        self.active.get()
+        let name = self.active.get();
+        if name == "opencode2" && !self.has("opencode2") { return "opencode".to_string(); }
+        name
     }
 
     /// `Object.keys(themes.all())` sorted as the dialogs sort them.
@@ -135,11 +176,26 @@ impl Themes {
         self.pin(self.mode(), true);
     }
 
-    /// `unlock()`.
-    pub fn unlock(&self) {
+    /// `free(persist)`: unpin and follow the terminal again.
+    fn free(&self, persist: bool) {
         self.lock.set(None);
         self.mode.set(self.renderer_mode);
-        self.persist_mode("system");
+        if persist {
+            self.persist_mode("system");
+        }
+    }
+
+    /// `unlock()`.
+    pub fn unlock(&self) {
+        self.free(true);
+    }
+
+    /// `handleMode(mode)` of the renderer's THEME_MODE event: an unlocked context follows the terminal.
+    pub fn apply_mode(&self, mode: Mode) {
+        if self.lock.get_untracked().is_some() {
+            return;
+        }
+        self.mode.set(mode);
     }
 
     /// `setMode(mode, persist)`.

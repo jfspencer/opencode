@@ -576,7 +576,6 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let props = props.clone();
         let selection = selection.clone();
         let reset_selection = reset_selection.clone();
-        let scroll_to_selection = scroll_to_selection.clone();
         let scroll_after_layout = scroll_after_layout.clone();
         Rc::new(move |next: usize, center: bool, preserve: bool| {
             selected_index.set(next);
@@ -588,9 +587,8 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
             if let (Some(option), Some(on_move)) = (&option, &props.on_move) {
                 on_move(option);
             }
-            scroll_to_selection(center);
-            // Rows below the viewport may not have been laid out since the list last changed: scroll again once
-            // they are.
+            // Scroll once the frame's layout reflects the new selection (a list that just changed its rows is not
+            // laid out yet; scrolling at the stale layout would land the list elsewhere).
             if let Some(option) = option {
                 scroll_after_layout(center, option.value);
             }
@@ -608,8 +606,10 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let target = focus_target.clone();
         create_effect(on(
             move || {
-                let value = target().or_else(|| current());
-                let flat = if target().is_none() { None } else { Some(flat.get()) };
+                // The props are plain values in TS: their contents are not dependencies (only `props.focusTarget`
+                // itself, and `flat` when it is defined).
+                let value = untrack(|| target().or_else(|| current()));
+                let flat = if !target_defined { None } else { Some(flat.get()) };
                 (value, flat)
             },
             move |(value, _), _| {
@@ -617,7 +617,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                     return;
                 }
                 if target_defined
-                    && focus_target().is_some()
+                    && untrack(|| focus_target()).is_some()
                     && ((props.preserve_selection)() || filter.with_untracked(|f| !f.is_empty()))
                 {
                     return;
@@ -649,7 +649,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
                 if has_search {
                     return;
                 }
-                let anchor = focus_target().or_else(|| current());
+                let anchor = untrack(|| focus_target().or_else(|| current()));
                 if !(props.preserve_selection)() && (anchor.is_none() || !(props.focus_current)()) {
                     let count = flat.with_untracked(Vec::len);
                     if count == 0 {
@@ -722,7 +722,11 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let props = props.clone();
         create_effect(on(
             move || {
-                let anchor = if !(props.focus_current)() { None } else { focus_target().or_else(|| current()) };
+                let anchor = if !(props.focus_current)() {
+                    None
+                } else {
+                    untrack(|| focus_target().or_else(|| current()))
+                };
                 (flat.get(), filter.get(), anchor)
             },
             move |(options, query, anchor), previous: Option<&(Vec<SelectOption<T>>, String, Option<T>)>| {
@@ -768,7 +772,7 @@ pub fn dialog_select<T: Clone + PartialEq + 'static>(props: SelectProps<T>) -> V
         let current = current.clone();
         let props = props.clone();
         create_effect(on(
-            move || (filter.get(), focus_target().or_else(|| current())),
+            move || (filter.get(), untrack(|| focus_target().or_else(|| current()))),
             move |(query, anchor), _| {
                 if has_search {
                     return;

@@ -8,6 +8,7 @@ use opencode_tui_core::solid::*;
 
 use crate::ctx::tui;
 use crate::keymap::Command;
+use crate::themes::{Themes, use_themes};
 use crate::ui::dialog::{DialogContext, use_dialog, use_new_designs};
 use crate::ui::dialog_select::{Detail, Footer, FooterHint, SelectOption, SelectProps, dialog_select, dialog_select_choice};
 
@@ -406,28 +407,32 @@ fn js_string(value: &Json) -> String {
 }
 
 /// The value at a setting's path in the resolved config, else its default.
-fn value(setting: &Setting) -> Json {
-    let data = crate::config::resolve::to_json(&tui().config_context.data());
+fn value(config: &crate::config_context::ConfigContext, themes: Option<&Themes>, setting: &Setting) -> Json {
+    // The theme context resolves aliases and missing themes, so it names what is actually shown.
+    if setting_id(setting) == "theme.name" {
+        if let Some(selected) = themes.map(Themes::selected) {
+            return Json::String(selected);
+        }
+    }
+    let data = crate::config::resolve::to_json(&config.data());
     let mut current = Some(&data);
     for key in setting.path {
         current = current.and_then(|v| v.as_object()).and_then(|o| o.get(*key));
     }
-    if setting_id(setting) == "theme.name" {
-        // TODO(port-tui): `themes.selected` of the theme context.
-        return current.cloned().unwrap_or_else(|| Json::String(tui().config.theme.as_ref().and_then(|t| t.name.clone()).unwrap_or_else(|| "opencode".into())));
-    }
     current.cloned().filter(|v| !matches!(v, Json::Null)).unwrap_or(setting.default.json())
 }
 
-fn values(setting: &Setting) -> Vec<Json> {
+fn values(themes: Option<&Themes>, setting: &Setting) -> Vec<Json> {
     if setting_id(setting) == "theme.name" {
-        return crate::component::dialog_theme_list::theme_names();
+        if let Some(themes) = themes {
+            return themes.names().into_iter().map(Json::String).collect();
+        }
     }
     setting.values.iter().map(|v| v.json()).collect()
 }
 
-fn display(setting: &Setting) -> String {
-    let current = value(setting);
+fn display(config: &crate::config_context::ConfigContext, themes: Option<&Themes>, setting: &Setting) -> String {
+    let current = value(config, themes, setting);
     if let Some(format) = setting.format {
         return format(&current);
     }
@@ -442,6 +447,7 @@ fn display(setting: &Setting) -> String {
 pub fn dialog_config(current: Option<String>) -> View {
     let config = tui().config_context;
     let toast = tui().toast;
+    let themes = use_themes();
     let new_designs = use_new_designs();
     let dialog = use_dialog();
     let current = SETTINGS.iter().position(|s| Some(setting_id(s)) == current).unwrap_or(0);
@@ -449,6 +455,8 @@ pub fn dialog_config(current: Option<String>) -> View {
     let (saving, set_saving) = create_signal(false);
     let options = {
         let new_designs = new_designs.clone();
+        let config = config.clone();
+        let themes = themes.clone();
         create_memo(move || {
             SETTINGS
                 .iter()
@@ -457,7 +465,7 @@ pub fn dialog_config(current: Option<String>) -> View {
                     let mut option = SelectOption::new(setting.title, index);
                     option.category = Some(setting.category.to_string());
                     option.search_text = (!setting.keywords.is_empty()).then(|| setting.keywords.join(" "));
-                    let shown = display(setting);
+                    let shown = display(&config, themes.as_ref(), setting);
                     option.footer = Some(if new_designs() {
                         let open = setting.open.is_some();
                         Footer::View(Rc::new(move || {
@@ -479,8 +487,8 @@ pub fn dialog_config(current: Option<String>) -> View {
             return;
         }
         let setting = &SETTINGS[index.unwrap_or_else(|| selected.get_untracked())];
-        let current = value(setting);
-        let choices = values(setting);
+        let current = value(&config, themes.as_ref(), setting);
+        let choices = values(themes.as_ref(), setting);
         let next = if !choices.is_empty() {
             let at = choices.iter().position(|c| *c == current).map(|i| i as i64).unwrap_or(-1);
             let count = choices.len() as i64;
@@ -519,13 +527,13 @@ pub fn dialog_config(current: Option<String>) -> View {
     props.search_in_title = true;
     props.title_placeholder = Some(std::rc::Rc::new(|| "Search settings".to_string()));
     // Under new designs the opening setting is focused without the current-item marker; changing a value keeps the
-    // selection where it is.
-    let designs = new_designs.clone();
-    props.current = Some(Rc::new(move || (!designs()).then_some(current)));
-    let designs = new_designs.clone();
-    props.focus_target = Some(Rc::new(move || designs().then_some(current)));
-    let preserve = new_designs.clone();
-    props.preserve_selection = std::rc::Rc::new(move || preserve());
+    // selection where it is. The props are plain values evaluated when the dialog is created, as in TS.
+    if new_designs() {
+        props.focus_target = Some(Rc::new(move || Some(current)));
+    } else {
+        props.current = Some(Rc::new(move || Some(current)));
+    }
+    props.preserve_selection = std::rc::Rc::new(new_designs.clone());
     props.filter_threshold = Some(0.7);
     props.on_move = Some(Rc::new(move |option: &SelectOption<usize>| set_selected.set(option.value)));
     {
