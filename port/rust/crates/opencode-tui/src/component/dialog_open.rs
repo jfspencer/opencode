@@ -3,8 +3,7 @@
 //! footer, the exact-id lookup, and the failure states.
 //!
 //! TODO(port-tui): the location context (`useLocation`): selecting a project sets the home directory here instead
-//! of a separate location ref. Worktree creation (ctrl+n and its prompt) belongs to the worktree slice and is not
-//! implemented.
+//! of a separate location ref. Worktree creation uses the shared name prompt (`dialog-worktree-name`).
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
@@ -19,9 +18,12 @@ use opencode_tui_core::solid::*;
 use opencode_tui_core::tree::{Edge, FlexDirection};
 use opencode_tui_sync::data::SessionStatus;
 use opencode_tui_sync::event::Event;
+use opencode_tui_sync::client::RequestOptions;
 use opencode_tui_sync::json::JsonExt;
+use opencode_tui_sync::obj;
 
 use crate::component::dialog_session_list::{project_name, session_status_gutter, with_timestamped_fallback};
+use crate::component::dialog_worktree_name::show_worktree_name;
 use crate::ctx::tui;
 use crate::data::{array, get, get_str};
 use crate::keymap::{Command, use_shortcuts};
@@ -805,7 +807,12 @@ pub fn dialog_open() -> View {
         let restore = restore.clone();
         let back = back.clone();
         let snapshot = snapshot.clone();
+        let dialog = dialog.clone();
+        let data = data.clone();
+        let toast = toast.clone();
+        let project_id = project_id.clone();
         Rc::new(move || {
+            let (dialog, data, toast, project_id) = (dialog.clone(), data.clone(), toast.clone(), project_id.clone());
             if project_id().is_none() {
                 let select = select.clone();
                 let projects_selection = projects_selection.clone();
@@ -827,6 +834,34 @@ pub fn dialog_open() -> View {
                 .group("Dialog")];
             }
             let back = back.clone();
+            let create = {
+                let dialog = dialog.clone();
+                let data = data.clone();
+                let project_id = project_id.clone();
+                let toast = toast.clone();
+                move || {
+                    let (dialog, data, project_id, toast) = (dialog.clone(), data.clone(), project_id.clone(), toast.clone());
+                    let route = route;
+                    tokio::task::spawn_local(async move {
+                        let Some(id) = project_id() else { return };
+                        let Some(name) = show_worktree_name(&dialog).wait().await else { return };
+                        let input = obj! { "projectID" => id.as_str(), "name" => name.as_str() };
+                        match data.client.call_named("worktree.create", &input, RequestOptions::default()).await {
+                            Ok(response) => {
+                                let directory = response.json().str("directory").unwrap_or_default().to_string();
+                                dialog.clear();
+                                route.set(crate::ctx::Route::Home);
+                                data.directory.set(Some(directory.clone()));
+                                data.location.set(Some(obj! { "directory" => directory.as_str() }));
+                            }
+                            Err(error) => toast.show(crate::toast::ToastInput::new(
+                                crate::toast::Variant::Error,
+                                error.message(),
+                            ).title("Creating worktree failed")),
+                        }
+                    });
+                }
+            };
             vec![
                 Command::inline("left", move || {
                     back();
@@ -834,8 +869,12 @@ pub fn dialog_open() -> View {
                 })
                 .title("Return to projects")
                 .group("Dialog"),
-                // TODO(port-tui): worktree creation (the worktree slice).
-                Command::inline("ctrl+n", || true).title("New worktree").group("Dialog"),
+                Command::inline("ctrl+n", move || {
+                    create();
+                    true
+                })
+                .title("New worktree")
+                .group("Dialog"),
             ]
         }) as Rc<dyn Fn() -> Vec<Command>>
     };
@@ -907,8 +946,8 @@ pub fn dialog_open() -> View {
                 OpenTarget::Session { session_id } => route.set(crate::ctx::Route::Session { session_id: session_id.clone() }),
                 OpenTarget::Project { directory, .. } => {
                     route.set(crate::ctx::Route::Home);
-                    // TODO(port-tui): the location slice's `location.set`; the home route reads this directory.
                     data.directory.set(Some(directory.clone()));
+                    data.location.set(Some(obj! { "directory" => directory.as_str() }));
                 }
             }
         }

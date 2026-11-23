@@ -46,8 +46,39 @@ pub fn dialog_model(props: DialogModelProps) -> View {
             select_model(&local, &dialog, &provider_id, &model_id)
         })
     };
-    // TODO(port-tui): `dialog.replace(() => <DialogIntegration onConnected={...} />)`.
-    let connect: Rc<dyn Fn()> = Rc::new(|| {});
+    let connect: Rc<dyn Fn()> = {
+        let dialog = dialog.clone();
+        Rc::new(move || {
+            let replace_dialog = dialog.clone();
+            let dialog_for_replace = dialog.clone();
+            replace_dialog.replace(
+                move || {
+                    let dialog = dialog_for_replace.clone();
+                    component(move || {
+                        let dialog = dialog.clone();
+                        crate::component::dialog_integration::dialog_integration(Some(Rc::new(move |provider_id: Option<String>| {
+                            let provider_id = provider_id.clone();
+                            let dialog = dialog.clone();
+                            dialog.replace(
+                                move || {
+                                    let provider_id = provider_id.clone();
+                                    component(move || {
+                                        dialog_model(DialogModelProps { provider_id: provider_id.clone() })
+                                    })
+                                },
+                                None,
+                                None,
+                                None,
+                            );
+                        })))
+                    })
+                },
+                None,
+                None,
+                None,
+            );
+        })
+    };
     let condition = {
         let provider_id = provider_id.clone();
         move || new_designs() && !connected.get() && provider_id.is_none()

@@ -642,8 +642,17 @@ pub fn install() -> SessionTabs {
     // `useKeyboard(onFocus)` and the renderer's focus/blur events.
     {
         let focused = tabs.0.focused;
-        let off = crate::keymap::intercept_key(200, move |_| {
-            focused.set(Some(true));
+        let off = crate::keymap::intercept_key(200, move |event| {
+            // `useKeyboard` in the renderer sees the keys the focused renderable lets through: typing (a printable
+            // key without modifiers) focuses the terminal; shortcuts, escape and backspace do not.
+            let printable = (event.name().chars().count() == 1 || event.name() == "space")
+                && !event.ctrl()
+                && !event.meta()
+                && !event.super_key()
+                && !event.hyper();
+            if printable {
+                focused.set(Some(true));
+            }
             false
         });
         on_cleanup(off);

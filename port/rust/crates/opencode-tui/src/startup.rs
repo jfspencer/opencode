@@ -51,7 +51,7 @@ pub fn take_route_prompt(session_id: &str) -> Option<PromptInfo> {
 }
 
 /// `route.navigate({ type: "session", sessionID, prompt })`.
-fn navigate(t: &Tui, session_id: String, prompt: Option<PromptInfo>) {
+pub fn navigate_session(t: &Tui, session_id: String, prompt: Option<PromptInfo>) {
     ROUTE_PROMPT.with(|p| *p.borrow_mut() = prompt.map(|prompt| (session_id.clone(), prompt)));
     t.route.set(Route::Session { session_id });
 }
@@ -66,7 +66,7 @@ pub fn install(t: &Tui) {
         let args = args.clone();
         on_mount(move || {
             if let (Some(session), false) = (args.session_id.clone(), args.fork) {
-                navigate(&t, session, startup.clone());
+                navigate_session(&t, session, startup.clone());
             }
         });
     }
@@ -101,14 +101,14 @@ pub fn install(t: &Tui) {
                 return;
             };
             if !fork {
-                navigate(&t, session, startup);
+                navigate_session(&t, session, startup);
                 return;
             }
             let call = t.data.client.call_named("session.fork", &obj! { "sessionID" => session.as_str() }, RequestOptions::default());
             match call.await {
                 Ok(result) => {
                     let id = result.json().str("id").unwrap_or_default().to_string();
-                    navigate(&t, id, startup);
+                    navigate_session(&t, id, startup);
                 }
                 Err(error) => {
                     t.toast.error(error.message());
@@ -124,7 +124,7 @@ pub fn install(t: &Tui) {
             match call.await {
                 Ok(result) => {
                     let id = result.json().str("id").unwrap_or_default().to_string();
-                    navigate(&t, id, startup);
+                    navigate_session(&t, id, startup);
                 }
                 Err(error) => t.toast.error(error.message()),
             }

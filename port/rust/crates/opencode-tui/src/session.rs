@@ -13,12 +13,16 @@
 //! | [`mount_budget`], [`message_navigation`], [`history`] | `mount-budget.ts`, `message-navigation.ts`, `history.ts` |
 //! | [`render_context`] | `render-context.tsx` |
 //! | [`location_missing`] | `location-missing.tsx` |
+//! | [`dialog_timeline`], [`dialog_fork`], [`dialog_message`] | `dialog-timeline.tsx`, `dialog-fork.tsx`, `dialog-message.tsx` |
 //!
 //! TODO(port-tui): the prompt slice: creating the session (with `--session`'s new ID), selecting its model and
 //! agent, and sending the prompt from home.
 use crate::ctx::Tui;
 
 pub mod activity_summary;
+pub mod dialog_fork;
+pub mod dialog_message;
+pub mod dialog_timeline;
 pub mod anchors;
 pub mod extras;
 pub mod group_view;

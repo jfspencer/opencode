@@ -88,6 +88,8 @@ pub struct RenderCtx {
     pub pending_delivery: Rc<dyn Fn(&str) -> Option<String>>,
     /// Opens the pending-steer dialog of a user message (move to queue, delete).
     pub open_pending_steer: Rc<dyn Fn(String)>,
+    /// Opens the message actions of a message.
+    pub open_message: Rc<dyn Fn(String)>,
 }
 
 thread_local! {

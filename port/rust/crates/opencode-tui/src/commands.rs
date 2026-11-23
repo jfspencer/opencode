@@ -325,10 +325,42 @@ fn app_commands(t: &Tui, dialog: &DialogContext, local: &crate::local::Local) ->
             move || local.agent_move(-1)
         })
         .palette(false),
-        // TODO(port-tui): DialogIntegration.
-        app("provider.connect", "Connect an integration", "Integration", stand_in)
-            .suggested(!connected(t))
-            .slash("connect", &[]),
+        app("provider.connect", "Connect an integration", "Integration", {
+            let dialog = dialog.clone();
+            move || {
+                let on_connected_dialog = dialog.clone();
+                dialog.replace(
+                    move || {
+                        let model_dialog = on_connected_dialog.clone();
+                        component(move || {
+                            let model_dialog = model_dialog.clone();
+                            crate::component::dialog_integration::dialog_integration(Some(Rc::new(move |provider_id: Option<String>| {
+                                let provider_id = provider_id.clone();
+                                let dialog = model_dialog.clone();
+                                dialog.replace(
+                                    move || {
+                                        let provider_id = provider_id.clone();
+                                        component(move || {
+                                            crate::component::dialog_model::dialog_model(
+                                                crate::component::dialog_model::DialogModelProps { provider_id: provider_id.clone() },
+                                            )
+                                        })
+                                    },
+                                    None,
+                                    None,
+                                    None,
+                                );
+                            })))
+                        })
+                    },
+                    None,
+                    None,
+                    None,
+                );
+            }
+        })
+        .suggested(!connected(t))
+        .slash("connect", &[]),
     ]);
     // TODO(port-tui): `opencode.highlights` ("Show release highlights") while the build embeds release highlights
     // (`app.highlights`, stable release builds only); this build has none.

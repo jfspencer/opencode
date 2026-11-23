@@ -8,11 +8,11 @@
 //! [`stash`] and [`attachment`]), `prompt/*` ([`history`], [`stash`], [`frecency`], [`text`], [`attachment`]) and
 //! `feature-plugins/prompt/*` ([`footer`]: footer, goal, btw).
 //!
-//! TODO(port-tui): stand-ins until their owners land: the skill, stash, integration and workspace dialogs (not
-//! opened), the editor context (IDE selections),
-//! `openEditor`, the clipboard (`prompt.paste` without a bracketed paste), the worktree move (`usePromptMove`: no
-//! pending destination), usage limits, directory recents (`useStorage`), `tui.prompt.append` events, the terminal environment (`variables` of a local server), image
-//! previews, cursor styles, and a live config (the paste summary toggle).
+//! TODO(port-tui): stand-ins until their owners land: the editor context (IDE selections), `openEditor`, the
+//! clipboard (`prompt.paste` without a bracketed paste), usage limits, directory recents (`useStorage`),
+//! `tui.prompt.append` events, the terminal environment (`variables` of a local server), image previews, cursor
+//! styles, and a live config (the paste summary toggle). The skill, stash, integration and workspaces dialogs and
+//! the pending worktree destination are wired.
 pub mod attachment;
 pub mod autocomplete;
 pub mod composer;
@@ -42,7 +42,7 @@ use opencode_tui_core::input::PasteEvent;
 use opencode_tui_core::layout::Value;
 use opencode_tui_core::reactive::*;
 use opencode_tui_core::renderables::box_::{BorderProp, Side};
-use opencode_tui_core::renderables::text::WrapMode;
+use opencode_tui_core::renderables::text::{WrapMode, text_node_from_string};
 use opencode_tui_core::renderables::textarea::EditorTraits;
 use crate::prompt::input::{Textarea, strip_ansi_sequences};
 use opencode_tui_core::renderer;
@@ -55,13 +55,16 @@ use opencode_tui_sync::obj;
 use opencode_tui_sync::runtime::Deferred;
 use opencode_tui_text::{ExtmarkOptions, StyleSpec, SyntaxStyle, WidthMethod};
 
+use crate::component::dialog_skill::dialog_skill;
+use crate::component::dialog_stash::dialog_stash;
+use crate::component::dialog_workspaces::{DialogWorkspacesProps, WorkspaceSelection, dialog_workspaces};
 use crate::ctx::{Route, Tui, tui};
 use crate::data::{array, get_str};
 use crate::keymap::{self, Bind, Command, Enabled, Layer, create_layer};
 use crate::local::{Local, local};
 use crate::prompt::autocomplete::{AutocompleteProps, AutocompleteRef, Visible};
 use crate::prompt::history::{
-    History, Mode, PartRef, PastedText, PromptFile, PromptInfo, Range, agent_json, empty_prompt, file_json, skill_json,
+    History, Mode, PartRef, PastedText, PromptFile, PromptInfo, PromptSkill, Range, agent_json, empty_prompt, file_json, skill_json,
 };
 use crate::prompt::draft_stash::{DraftEntry, register_composer, save_draft, take_draft};
 use crate::prompt::stash::Stash;
@@ -209,6 +212,10 @@ struct State {
     stash: Stash,
     commands: Memo<keymap::Commands>,
     pending_directory: Signal<Option<String>>,
+    /// `move.pendingNew()`: a worktree the next session will start in.
+    move_new: Signal<Option<String>>,
+    /// `move.progress()`: what a pending worktree is doing.
+    move_progress: Signal<Option<String>>,
     cursor_version: Signal<u64>,
     placeholders: Placeholders,
 }
@@ -625,7 +632,14 @@ impl State {
 
     fn prompt_model_warning(&self) {
         self.toast.show(ToastInput::new(Variant::Warning, "Connect an integration to send prompts").duration(3000));
-        // TODO(port-tui): the dialogs slice: `dialog.replace(<DialogIntegration />)` when no integration is connected.
+        if !self.t.data.connected.get_untracked() {
+            self.dialog.replace(
+                || component(|| crate::component::dialog_integration::dialog_integration(None)),
+                None,
+                None,
+                None,
+            );
+        }
     }
 
     /// `restoreEntry()`: the snapshot back in the composer unless something new was typed.
@@ -720,7 +734,7 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
         return true;
     }
     let slash_head = parse_slash_head(&input_text, true);
-    let location = s.location();
+    let mut location = s.location();
     let is_command = slash_head.as_ref().is_some_and(|head| {
         s.t.data
             .store
@@ -763,7 +777,18 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
     let mut gate: Option<Deferred<Result<(), opencode_tui_sync::client::Error>>> = None;
     let mut created_id: Option<String> = None;
     if session_id.is_none() {
-        // TODO(port-tui): `move.getDirectory()` (a pending worktree destination).
+        match pending_worktree_directory(&s).await {
+            Ok(Some(directory)) => {
+                s.move_new.set(None);
+                location = obj! { "directory" => directory };
+            }
+            Ok(None) => {}
+            Err(error) => {
+                s.move_progress.set(None);
+                s.fail("Creating workspace failed", error, &entry);
+                return false;
+            }
+        }
         let new_id = take_new_session_id(&s.t);
         let model = obj! { "providerID" => provider_id.as_str(), "id" => model_id.as_str(), "variant" => variant.clone() };
         let created = store.session.create(CreateInput {
@@ -990,6 +1015,9 @@ async fn submit_inner(s: Rc<State>, delivery: Delivery) -> bool {
         });
     }
 
+    if s.move_progress.get_untracked().is_some() {
+        s.move_progress.set(None);
+    }
     // Optimistic admission put the message in the store, so the session view renders it on arrival.
     if s.session_id.is_none() {
         // Text typed while the session was being created lives in this (home) prompt, which unmounts on
@@ -1058,6 +1086,8 @@ pub fn prompt(props: PromptProps) -> View {
         stash,
         commands,
         pending_directory: create_signal(None).0,
+        move_new: create_signal(None).0,
+        move_progress: create_signal(None).0,
         cursor_version: create_signal(0u64).0,
         placeholders,
     });
@@ -1272,25 +1302,51 @@ pub fn prompt(props: PromptProps) -> View {
                 })
             };
             let noop = || Rc::new(|_: Option<String>| true) as Rc<dyn Fn(Option<String>) -> bool>;
+            let skills = {
+                let s = s.clone();
+                Rc::new(move |_: Option<String>| {
+                    let location = s.location();
+                    let state = s.clone();
+                    s.dialog.replace(
+                        move || {
+                            let state = state.clone();
+                            let location = location.clone();
+                            component(move || {
+                                let state = state.clone();
+                                dialog_skill(Some(location.clone()), Rc::new(move |id: String| insert_skill(&state, &id)))
+                            })
+                        },
+                        None,
+                        None,
+                        None,
+                    );
+                    true
+                }) as Rc<dyn Fn(Option<String>) -> bool>
+            };
+            let move_workspaces = {
+                let s = s.clone();
+                Rc::new(move |_: Option<String>| {
+                    open_workspaces(s.clone());
+                    true
+                }) as Rc<dyn Fn(Option<String>) -> bool>
+            };
             Layer {
                 mode: Some("global"),
                 enabled: Some(Enabled::Bool(!disabled())),
                 commands: vec![
-                    prompt_command("prompt.clear", "Clear prompt", "Prompt", clear),
-                    prompt_command("prompt.submit", "Submit prompt", "Prompt", submit_command),
+                    Command { palette: false, ..prompt_command("prompt.clear", "Clear prompt", "Prompt", clear) },
+                    Command { palette: false, ..prompt_command("prompt.submit", "Submit prompt", "Prompt", submit_command) },
                     prompt_command("prompt.queue", "Queue prompt", "Prompt", queue),
                     // TODO(port-tui): the editor context.
                     Command { enabled: Some(Enabled::Bool(false)), ..prompt_command("prompt.editor_context.clear", "Remove editor context", "Prompt", noop()) },
-                    prompt_command("prompt.paste", "Paste", "Prompt", paste),
+                    Command { palette: false, ..prompt_command("prompt.paste", "Paste", "Prompt", paste) },
                     Command { enabled: Some(Enabled::Bool(images_enabled)), ..prompt_command("prompt.images.view", "View image attachments", "Prompt", images_view) },
-                    Command { enabled: Some(Enabled::Bool(running)), ..prompt_command("session.interrupt", "Interrupt session", "Session", interrupt) },
-                    Command { enabled: Some(Enabled::Bool(running)), ..prompt_command("session.background", "Background blocking tools", "Session", background) },
+                    Command { enabled: Some(Enabled::Bool(running)), palette: false, ..prompt_command("session.interrupt", "Interrupt session", "Session", interrupt) },
+                    Command { enabled: Some(Enabled::Bool(running)), palette: false, ..prompt_command("session.background", "Background blocking tools", "Session", background) },
                     // TODO(port-tui): `openEditor` (the external editor).
                     prompt_command("prompt.editor", "Open editor", "Session", noop()).slash("editor", &[]),
-                    // TODO(port-tui): the dialogs slice: DialogSkill.
-                    prompt_command("prompt.skills", "Skills", "Prompt", noop()).slash("skills", &[]),
-                    // TODO(port-tui): the dialogs slice: DialogWorkspaces (`move.open()`).
-                    prompt_command("session.move", "Manage workspaces", "Session", noop()).description("Manage workspaces").slash("worktrees", &[]),
+                    prompt_command("prompt.skills", "Skills", "Prompt", skills).slash("skills", &[]),
+                    prompt_command("session.move", "Manage workspaces", "Session", move_workspaces).slash("worktrees", &[]),
                 ],
                 ..Layer::default()
             }
@@ -1445,8 +1501,35 @@ pub fn prompt(props: PromptProps) -> View {
                 commands: vec![
                     command("prompt.stash", "Stash prompt", has_text, stash_push),
                     command("prompt.stash.pop", "Stash pop", stashed, stash_pop),
-                    // TODO(port-tui): the dialogs slice: DialogStash.
-                    command("prompt.stash.list", "Stash list", stashed, Rc::new(|_| true)),
+                    command("prompt.stash.list", "Stash list", stashed, {
+                        let s = s.clone();
+                        Rc::new(move |_: Option<String>| {
+                            let state = s.clone();
+                            let stash = s.stash.clone();
+                            s.dialog.replace(
+                                move || {
+                                    let state = state.clone();
+                                    let stash = stash.clone();
+                                    component(move || {
+                                        let state = state.clone();
+                                        dialog_stash(
+                                            stash.clone(),
+                                            Rc::new(move |entry: crate::prompt::stash::StashEntry| {
+                                                state.ta.set_text(&entry.prompt.text);
+                                                state.prompt.set(entry.prompt.clone());
+                                                state.restore_extmarks_from_prompt(&entry.prompt);
+                                                state.ta.goto_buffer_end();
+                                            }),
+                                        )
+                                    })
+                                },
+                                None,
+                                None,
+                                None,
+                            );
+                            true
+                        }) as Rc<dyn Fn(Option<String>) -> bool>
+                    }),
                 ],
                 ..Layer::default()
             }
@@ -1922,7 +2005,9 @@ pub fn prompt(props: PromptProps) -> View {
         let s = s.clone();
         move || s.status() == "running"
     };
+    let location_view_s = s.clone();
     let location_view = move || {
+        let location_view_s = location_view_s.clone();
         show_value(
             move || location_display.get(),
             move |location| {
@@ -1938,7 +2023,10 @@ pub fn prompt(props: PromptProps) -> View {
                 el.set_flex_shrink(Some(1.0));
                 el.set_on_mouse(Some(MouseEventType::Over), Some(Rc::new(move |_| location_hovered.set(true))));
                 el.set_on_mouse(Some(MouseEventType::Out), Some(Rc::new(move |_| location_hovered.set(false))));
-                // TODO(port-tui): `useWorkingDirectoryActions` (a click opens the workspaces dialog).
+                {
+                    let s = location_view_s.clone();
+                    el.set_on_mouse(Some(MouseEventType::Up), Some(Rc::new(move |_| open_workspaces(s.clone()))));
+                }
                 insert(el, View::dynamic(move || View::from(location.get().unwrap_or_default())), At::Only);
                 View::Node(el)
             },
@@ -1949,9 +2037,62 @@ pub fn prompt(props: PromptProps) -> View {
         let s = s.clone();
         move || footer::running_status(s.interrupt, animations, agent_color)
     };
+    let pending_new_view = move || {
+            let el = box_();
+            el.set_padding(Edge::Left, Some(Value::Point(3.0)));
+            el.set_height(Some(Value::Point(1.0)));
+            el.set_min_height(Some(Value::Point(0.0)));
+            el.set_flex_shrink(Some(1.0));
+            let line = text();
+            let accent = theme
+                .with(|th| th.hue.get("accent").and_then(|scale| scale.step(500)).map(rgba))
+                .unwrap_or_else(|| rgba(theme.with(|th| th.text.base)));
+            line.set_fg(Some(accent));
+            line.set_wrap_mode(WrapMode::None);
+            line.set_truncate(true);
+            insert_node(line, text_node_from_string("(new worktree)"), None);
+            insert_node(el, line, None);
+            View::Node(el)
+    };
+    let progress_view = {
+        let s = s.clone();
+        move || {
+            let el = box_();
+            el.set_padding(Edge::Left, Some(Value::Point(3.0)));
+            el.set_height(Some(Value::Point(1.0)));
+            el.set_min_height(Some(Value::Point(0.0)));
+            el.set_flex_shrink(Some(1.0));
+            let line = text();
+            line.set_fg(Some(rgba(theme.with(|th| th.text.muted))));
+            line.set_wrap_mode(WrapMode::None);
+            line.set_truncate(true);
+            let progress = s.move_progress;
+            insert(
+                line,
+                View::dynamic(move || View::from(format!("{}…", progress.get().unwrap_or_default()))),
+                At::Only,
+            );
+            insert_node(el, line, None);
+            View::Node(el)
+        }
+    };
     insert(
         status,
-        switch(vec![when(running, running_view), when(|| true, location_view)], None),
+        switch(
+            vec![
+                when(running, running_view),
+                when({
+                    let s = s.clone();
+                    move || s.move_progress.get().is_some()
+                }, progress_view),
+                when({
+                    let s = s.clone();
+                    move || s.move_new.get().is_some()
+                }, pending_new_view),
+                when(|| true, location_view),
+            ],
+            None,
+        ),
         At::Only,
     );
     let footer_props = footer::FooterProps {
@@ -2073,6 +2214,167 @@ fn change_directory(s: Rc<State>, input: Option<String>) {
             });
         }
     }
+}
+
+/// `move.open()`: the workspaces dialog for the current project.
+fn open_workspaces(s: Rc<State>) {
+    let data = s.t.data.clone();
+    let toast = s.t.toast.clone();
+    let dialog = s.dialog.clone();
+    tokio::task::spawn_local(async move {
+        let session = s.session_id.as_deref().and_then(|id| data.store.session.get(id));
+        let session_location = session.as_ref().and_then(|value| value.get("location").cloned());
+        let location = session_location.clone().unwrap_or_else(|| s.location());
+        let current_directory = location.str("directory").unwrap_or_default().to_string();
+        let project_id = session
+            .as_ref()
+            .and_then(|value| value.str("projectID").map(str::to_string))
+            .or_else(|| {
+                data.store
+                    .location
+                    .info(Some(&location))
+                    .and_then(|info| info.get("project").and_then(|project| project.str("id").map(str::to_string)))
+            });
+        let Some(project_id) = project_id else {
+            toast.show(ToastInput::new(Variant::Error, "Unable to determine current project"));
+            return;
+        };
+        let current = s
+            .move_new
+            .get_untracked()
+            .map(|name| WorkspaceSelection::New { name })
+            .or_else(|| {
+                s.pending_directory.get_untracked().map(|directory| WorkspaceSelection::Directory { directory, subdirectory: false })
+            })
+            .or_else(|| {
+                Some(WorkspaceSelection::Directory {
+                    directory: current_directory.clone(),
+                    subdirectory: session
+                        .as_ref()
+                        .and_then(|value| value.get("subpath"))
+                        .and_then(|subpath| match subpath {
+                            Json::String(subpath) => Some(subpath.clone()),
+                            _ => None,
+                        })
+                        .is_some_and(|subpath| !matches!(subpath.as_str(), "" | "." | "/")),
+                })
+            });
+        let on_select = {
+            let s = s.clone();
+            Rc::new(move |selection: WorkspaceSelection| select_workspace(s.clone(), selection))
+        };
+        dialog.replace(
+            move || {
+                let (project_id, location, current, on_select) =
+                    (project_id.clone(), location.clone(), current.clone(), on_select.clone());
+                component(move || {
+                    dialog_workspaces(DialogWorkspacesProps {
+                        project_id: project_id.clone(),
+                        location: Some(location.clone()),
+                        current: current.clone(),
+                        on_select: Some(on_select.clone()),
+                        fixture: false,
+                    })
+                })
+            },
+            None,
+            None,
+            None,
+        );
+    });
+}
+
+/// `selectWorkspace(selection)`: a directory starts the next session there; at home a new worktree is only staged
+/// until the prompt is sent, while from a session it is created now.
+fn select_workspace(s: Rc<State>, selection: WorkspaceSelection) {
+    s.dialog.clear();
+    match selection {
+        WorkspaceSelection::New { name } => {
+            if s.session_id.is_none() {
+                s.move_new.set(Some(name));
+                return;
+            }
+            let toast = s.t.toast.clone();
+            tokio::task::spawn_local(async move {
+                match create_worktree(&s, &name).await {
+                    Ok(directory) => navigate_home(&s, directory),
+                    Err(error) => {
+                        s.move_progress.set(None);
+                        toast.show(ToastInput::new(Variant::Error, error).title("Creating workspace failed"));
+                    }
+                }
+            });
+        }
+        WorkspaceSelection::Directory { directory, .. } => navigate_home(&s, directory),
+    }
+}
+
+/// `route.navigate({ type: "home", location: { directory } })` with the location set.
+fn navigate_home(s: &Rc<State>, directory: String) {
+    s.t.data.location.set(Some(obj! { "directory" => directory.as_str() }));
+    s.t.data.directory.set(Some(directory));
+    s.t.route.set(Route::Home);
+}
+
+/// `create(name)` of `usePromptMove`.
+async fn create_worktree(s: &Rc<State>, name: &str) -> Result<String, String> {
+    s.move_progress.set(Some("Creating worktree".into()));
+    let data = s.t.data.clone();
+    let session = s.session_id.as_deref().and_then(|id| data.store.session.get(id));
+    let location = session.as_ref().and_then(|value| value.get("location").cloned()).unwrap_or_else(|| s.location());
+    let project_id = session
+        .as_ref()
+        .and_then(|value| value.str("projectID").map(str::to_string))
+        .or_else(|| {
+            data.store
+                .location
+                .info(Some(&location))
+                .and_then(|info| info.get("project").and_then(|project| project.str("id").map(str::to_string)))
+        })
+        .ok_or_else(|| "Unable to determine current project".to_string())?;
+    let input = obj! { "projectID" => project_id.as_str(), "name" => name };
+    let response = data
+        .client
+        .call_named("worktree.create", &input, RequestOptions::default())
+        .await
+        .map_err(|error| error.message())?;
+    let directory = response
+        .json()
+        .str("directory")
+        .map(str::to_string)
+        .filter(|directory| !directory.is_empty())
+        .ok_or_else(|| "No worktree directory returned".to_string())?;
+    let _ = data.store.location.sync_info(Some(&obj! { "directory" => directory.as_str() })).wait().await;
+    s.move_progress.set(Some("Creating session".into()));
+    Ok(directory)
+}
+
+/// `move.getDirectory()`: the pending worktree, created now.
+async fn pending_worktree_directory(s: &Rc<State>) -> Result<Option<String>, String> {
+    let Some(name) = s.move_new.get_untracked() else { return Ok(None) };
+    create_worktree(s, &name).await.map(Some)
+}
+
+/// The skill dialog's `onSelect(skill)`: insert `@id` as a skill part at the cursor.
+fn insert_skill(s: &State, id: &str) {
+    if s.prompt.with_untracked(|prompt| prompt.skills.as_ref().is_some_and(|skills| skills.iter().any(|skill| skill.id == id))) {
+        return;
+    }
+    let mention_text = format!("@{id}");
+    let start = s.ta.cursor_offset() as i64;
+    let end = start + s.measure(&mention_text);
+    s.ta.insert_text(&format!("{mention_text} "));
+    let mention = Range { start, end, text: mention_text };
+    let extmark = s.create_extmark(start, end, s.styles.skill);
+    s.prompt.update(|prompt| {
+        if prompt.skills.as_ref().is_some_and(|skills| skills.iter().any(|skill| skill.id == id)) {
+            return;
+        }
+        let skills = prompt.skills.get_or_insert_with(Vec::new);
+        let index = skills.len();
+        skills.push(PromptSkill { id: id.to_string(), mention: Some(mention) });
+        s.extmark_to_part.borrow_mut().insert(extmark, PartRef::Skill(index));
+    });
 }
 
 // -- what autocomplete needs of the prompt -----------------------------------------------------------------------

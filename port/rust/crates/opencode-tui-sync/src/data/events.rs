@@ -147,9 +147,9 @@ impl Data {
                 let api = self.session.clone();
                 let target = session.clone();
                 inner.refresh(move || Box::pin(api.sync(&target, false).wait()));
-                // A newly created session starts empty, so live events can be its source of truth.
-                inner.sync.complete(&format!("session.pending:{session}"));
-                inner.sync.complete(&format!("session.message:{session}"));
+                // A client-created session is already marked as having no transcript (`session.create`). Another
+                // client's new session may have messages (an import, for one) even when its `session.created`
+                // event arrives after this client connected, so the session view's own sync reads the transcript.
                 return;
             }
             "session.deleted" => {
