@@ -959,13 +959,21 @@ tui/nav-agent.test.ts › agents: reverse cycle with a configured key
 tui/nav-agent.test.ts › agents: shift+tab cycles build and plan
 tui/nav-agent.test.ts › agents: the prompt is sent with the selected agent
 tui/nav-args-prompt.test.ts › args: --prompt is submitted on start
+tui/nav-args.test.ts › args: --continue opens the latest session
 tui/nav-args.test.ts › args: --continue without any session
 tui/nav-args.test.ts › args: the first new session takes the given ID
+tui/nav-dialogs.test.ts › dialogs: connect an integration
 tui/nav-dialogs.test.ts › dialogs: dialogs adapt to small terminals
 tui/nav-dialogs.test.ts › dialogs: escape closes a dialog opened from another
+tui/nav-dialogs.test.ts › dialogs: new worktree for the next session
 tui/nav-dialogs.test.ts › dialogs: open menu project worktrees
 tui/nav-dialogs.test.ts › dialogs: reload configuration
+tui/nav-dialogs.test.ts › dialogs: session commands from the palette
+tui/nav-dialogs.test.ts › dialogs: skills
+tui/nav-dialogs.test.ts › dialogs: stash a prompt and bring it back
 tui/nav-dialogs.test.ts › dialogs: status
+tui/nav-dialogs.test.ts › dialogs: workspaces
+tui/nav-dialogs.test.ts › dialogs: workspaces outside git
 tui/nav-exit.test.ts › exit: /exit
 tui/nav-exit.test.ts › exit: /q alias
 tui/nav-exit.test.ts › exit: ctrl+c in a dialog closes the dialog
@@ -1017,7 +1025,10 @@ tui/nav-newdesigns.test.ts › new designs: home and palette
 tui/nav-newdesigns.test.ts › new designs: model picker and variants
 tui/nav-newdesigns.test.ts › new designs: settings
 tui/nav-palette.test.ts › command palette: ctrl+p again while open
+tui/nav-palette.test.ts › command palette: filter commands and settings
+tui/nav-palette.test.ts › command palette: in a session
 tui/nav-palette.test.ts › command palette: open a setting
+tui/nav-palette.test.ts › command palette: open, scroll and close
 tui/nav-palette.test.ts › command palette: run help
 tui/nav-palette.test.ts › command palette: run switch theme
 tui/nav-palette.test.ts › command palette: run the first match
@@ -1078,6 +1089,7 @@ tui/nav-slash.test.ts › slash: built-in commands run on enter
 tui/nav-slash.test.ts › slash: commands in a session
 tui/nav-slash.test.ts › slash: filtering
 tui/nav-slash.test.ts › slash: tab completes the selected command
+tui/nav-slash.test.ts › slash: the command list
 tui/nav-tabs.test.ts › tabs: a new session tab
 tui/nav-tabs.test.ts › tabs: close and reopen
 tui/nav-tabs.test.ts › tabs: global scope
@@ -1107,12 +1119,27 @@ tui/session-actions.test.ts › compaction that fails
 tui/session-actions.test.ts › prompts queued and steered while a step runs
 tui/session-actions.test.ts › shell mode runs a command in the session
 tui/session-actions.test.ts › switching agent shows in the transcript
+tui/session-actions.test.ts › undo the last message reverts its file changes, then redo
+tui/session-actions.test.ts › undo with the slash command, then a new prompt discards the reverted messages
+tui/session-dialogs.test.ts › fork from a prompt through its message actions
+tui/session-dialogs.test.ts › fork the whole session
+tui/session-dialogs.test.ts › the timeline filtered by search
+tui/session-dialogs.test.ts › the timeline jumps to a prompt
+tui/session-diff.test.ts › diff viewer layouts and sources
+tui/session-diff.test.ts › diff viewer on a narrow terminal
+tui/session-diff.test.ts › diff viewer opened beside the session
+tui/session-diff.test.ts › diff viewer with nothing changed
 tui/session-errors.test.ts › a single escape only arms the interrupt
 tui/session-errors.test.ts › interrupt a running step with escape twice
+tui/session-errors.test.ts › provider error after a tool step
+tui/session-errors.test.ts › provider error that is not retried
 tui/session-errors.test.ts › rate limited, retried, then answered
 tui/session-errors.test.ts › stream truncated after text, then continued
+tui/session-errors.test.ts › unauthorized provider error
 tui/session-extra.test.ts › a long form review scrolled with keys
+tui/session-extra.test.ts › a very large added file in the diff viewer
 tui/session-extra.test.ts › a very small terminal
+tui/session-extra.test.ts › an added image in the diff viewer
 tui/session-extra.test.ts › an edit permission on a wide terminal shows a split diff
 tui/session-extra.test.ts › an edit with several hunks
 tui/session-extra.test.ts › nested instructions at high verbosity
@@ -1130,6 +1157,13 @@ tui/session-forms.test.ts › single question answered by number key
 tui/session-forms.test.ts › single question answered with a custom answer
 tui/session-goal.test.ts › a goal met after one round
 tui/session-goal.test.ts › a goal paused when its reviewer gives no verdict
+tui/session-history.test.ts › a session whose directory is gone
+tui/session-history.test.ts › images in history
+tui/session-history.test.ts › in-flight tool states from history
+tui/session-history.test.ts › notices, shells, compactions and errors from history
+tui/session-history.test.ts › patches, todos and diagnostics from history
+tui/session-history.test.ts › tool states and legacy tool names from history
+tui/session-history.test.ts › turn token usage diagnostics
 tui/session-permission.test.ts › edit permission in fullscreen
 tui/session-permission.test.ts › edit permission shows the diff
 tui/session-permission.test.ts › glob, grep and webfetch permissions
@@ -1140,9 +1174,13 @@ tui/session-permission.test.ts › shell permission allowed once
 tui/session-permission.test.ts › shell permission rejected by selecting reject
 tui/session-permission.test.ts › shell permission rejected with escape
 tui/session-permission.test.ts › write permission for a new file
+tui/session-running.test.ts › a long shell command moved to the background, viewed and killed
+tui/session-running.test.ts › a running subagent seen from the picker and interrupted
+tui/session-running.test.ts › an aside question answered in a dialog
 tui/session-running.test.ts › tool calls shown while the step is still streaming
 tui/session-subagent.test.ts › background subagent reports back when it finishes
 tui/session-subagent.test.ts › foreground subagent in the parent transcript
+tui/session-subagent.test.ts › subagent picker and the child session view
 tui/session-subagent.test.ts › subagent with an explicit model and a continuation
 tui/session-subagent.test.ts › subagent with an unknown agent fails
 tui/session-tabs.test.ts › a background tab finishing shows as unread
@@ -1151,6 +1189,7 @@ tui/session-tabs.test.ts › sidebar on a wide terminal, hidden and shown again
 tui/session-tabs.test.ts › tabs turned off
 tui/session-tabs.test.ts › two sessions in tabs, switched, closed and reopened
 tui/session-tabs.test.ts › vertical tabs with numbers
+tui/session-terminal.test.ts › terminal pane: open, type, hide and show again
 tui/session-tools.test.ts › edit a file shows a split diff on a wide terminal
 tui/session-tools.test.ts › edit a file shows a unified diff
 tui/session-tools.test.ts › edit replacing every occurrence with unwrapped long lines
@@ -1171,6 +1210,7 @@ tui/session-tools.test.ts › tool errors
 tui/session-tools.test.ts › tools summarized at low verbosity
 tui/session-tools.test.ts › webfetch answered by a responder
 tui/session-tools.test.ts › write a new file
+tui/session-transcript.test.ts › display settings toggled with keys
 tui/session-transcript.test.ts › headings, lists, quotes, tables and code
 tui/session-transcript.test.ts › long lines wrap on a narrow terminal
 tui/session-transcript.test.ts › long transcript scrolled with page keys
