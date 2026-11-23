@@ -198,12 +198,12 @@ fn io_failure(error: &std::io::Error) -> Failure {
     Failure::new(kind, error.to_string())
 }
 
-struct Target {
+pub(crate) struct Target {
     secure: bool,
-    host: String,
+    pub(crate) host: String,
     port: u16,
     /// Path and query.
-    path: String,
+    pub(crate) path: String,
 }
 
 fn parse(url: &str) -> Option<Target> {
@@ -330,6 +330,51 @@ async fn tunnel(mut stream: TcpStream, host: &str, port: u16) -> Result<TcpStrea
         ));
     }
     Ok(stream)
+}
+
+/// A connection an upgraded protocol (a WebSocket) runs on after its handshake.
+pub(crate) trait Stream: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send {}
+impl<T: tokio::io::AsyncRead + tokio::io::AsyncWrite + Unpin + Send> Stream for T {}
+
+pub(crate) struct OpenStream {
+    pub(crate) stream: Box<dyn Stream>,
+    /// The `Host` header for the request.
+    pub(crate) host: String,
+    pub(crate) path: String,
+}
+
+/// Opens the TCP (or TLS) connection to an `http(s)://` URL, through the proxy like [`send`].
+pub(crate) async fn open_stream(url: &str) -> Result<OpenStream, Failure> {
+    let target = parse(url).ok_or_else(|| Failure::new(FailureKind::Other, format!("invalid URL {url}")))?;
+    let via = proxy(&target);
+    let host = if (target.secure && target.port == 443) || (!target.secure && target.port == 80) {
+        target.host.clone()
+    } else {
+        format!("{}:{}", target.host, target.port)
+    };
+    let (stream, path): (Box<dyn Stream>, String) = if target.secure {
+        let stream = match &via {
+            Some(proxy) => tunnel(connect(&proxy.host, proxy.port).await?, &target.host, target.port).await?,
+            None => connect(&target.host, target.port).await?,
+        };
+        let name = rustls::pki_types::ServerName::try_from(target.host.clone())
+            .map_err(|e| Failure::new(FailureKind::Tls, e.to_string()))?;
+        (
+            Box::new(
+                tokio_rustls::TlsConnector::from(tls().clone())
+                    .connect(name, stream)
+                    .await
+                    .map_err(|e| Failure::new(FailureKind::Tls, e.to_string()))?,
+            ),
+            target.path,
+        )
+    } else if let Some(proxy) = &via {
+        // A plain proxy takes the absolute URL in the request line.
+        (Box::new(connect(&proxy.host, proxy.port).await?), url.to_owned())
+    } else {
+        (Box::new(connect(&target.host, target.port).await?), target.path)
+    };
+    Ok(OpenStream { stream, host, path })
 }
 
 type Sender = hyper::client::conn::http1::SendRequest<Full<Bytes>>;

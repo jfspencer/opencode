@@ -19,6 +19,7 @@ rustls.workspace = true
 tokio-rustls.workspace = true
 rustls-native-certs.workspace = true
 base64.workspace = true
+sha1.workspace = true
 getrandom.workspace = true
 # WHATWG URL parsing and joining, as `new URL(path, baseUrl)` does (already a dependency of the opencode crate).
 url = "2.5"

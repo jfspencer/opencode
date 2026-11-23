@@ -766,6 +766,7 @@ dependencies = [
  "opencode-protocol",
  "rustls",
  "rustls-native-certs",
+ "sha1",
  "tokio",
  "tokio-rustls",
  "url",

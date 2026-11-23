@@ -19,3 +19,5 @@ pub mod dialog_worktree_name;
 pub mod model_options;
 pub mod session_frame;
 pub mod session_tabs;
+pub mod terminal_pane;
+pub mod terminal_screen;
