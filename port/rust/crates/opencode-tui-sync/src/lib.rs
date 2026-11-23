@@ -9,7 +9,7 @@
 //! | [`data`] | `solid/data.ts`: the normalized store, events reconciled into it, cached reads, optimistic writes |
 //! | [`retention`], [`usage`], [`pty`] | `solid/retention.ts`, `solid/usage.ts`, `solid/pty.ts` |
 //! | [`context`] | the TUI's data contexts: `client.tsx`, `data.tsx`, `event.ts`, `location.tsx`, `args.tsx` |
-//! | [`transport`] | Bun's `fetch` (and the seam the harness scripts) |
+//! | [`transport`], [`websocket`] | Bun's `fetch` (and the seam the harness scripts), and the WebSocket terminal panes open |
 //! | [`event`], [`bus`] | the event value; `createGlobalEmitter` (the client context's `on`/`listen`) |
 //! | [`reactive`] | change notification for the TUI's reactive layer: keys, `track`/`trigger`/`batch`/`untrack` |
 //! | [`abort`], [`runtime`], [`js`], [`json`] | `AbortController`, timers and `Date.now`, JS string semantics, JSON values |
@@ -67,3 +67,4 @@ pub mod runtime;
 pub mod shared_events;
 pub mod transport;
 pub mod usage;
+pub mod websocket;

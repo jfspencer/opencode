@@ -1,10 +1,12 @@
 //! `component/session-frame.tsx` (`SessionFrame`) and `routes/session/sidebar.tsx` (`Sidebar`): the session pane
-//! with its right-hand sidebar, the narrow-terminal sidebar overlay, and the commands that toggle it.
+//! with its right-hand pane (the terminal, the diff viewer, or the sidebar), the narrow-terminal sidebar overlay,
+//! the persistent terminals (`context/session-terminals.tsx`) and the commands that toggle it.
 //!
-//! TODO(port-tui): the terminal pane, the pane resize handle (`session-terminals`, `ui/pane-resize*`), and the
-//! sidebar's limit and MCP slots; the built-in slots (`sidebar.content`/`sidebar.footer`) carry the context usage,
-//! todo list and location footer here, without the plugin system. Panels (`context/panel.tsx`) are the diff viewer's
-//! docked and full-screen hosts.
+//! TODO(port-tui): the pane resize handle (`ui/pane-resize*`), the terminal picker's storage of the last selected
+//! terminal across launches, and the sidebar's limit and MCP slots; the built-in slots
+//! (`sidebar.content`/`sidebar.footer`) carry the context usage, todo list and location footer here, without the
+//! plugin system. Panels (`context/panel.tsx`) are the diff viewer's docked and full-screen hosts.
+use std::cell::RefCell;
 use std::rc::Rc;
 
 use opencode_protocol::Json;
@@ -16,22 +18,31 @@ use opencode_tui_core::renderables::scrollbox::ScrollBarOptions;
 use opencode_tui_core::renderables::text::WrapMode;
 use opencode_tui_core::solid::*;
 use opencode_tui_core::tree::{Align, Edge, FlexDirection};
+use opencode_tui_sync::client::{Client, Error, RequestOptions};
 use opencode_tui_sync::json::JsonExt;
+use opencode_tui_sync::obj;
 
+use crate::component::terminal_pane::{TerminalPaneProps, terminal_pane};
 use crate::ctx::tui;
-use crate::keymap::create_layer;
+use crate::keymap::{Bind, Command, create_layer};
 use crate::session::route::{SessionProps, session};
 use crate::util::{abbreviate_home, rgba, truncate_file_path};
 
 /// `SESSION_SIDEBAR_WIDTH` (`ui/layout.ts`).
 const SESSION_SIDEBAR_WIDTH: u32 = 42;
+/// `SESSION_CONTENT_MIN_WIDTH` (`ui/layout.ts`).
+const SESSION_CONTENT_MIN_WIDTH: i64 = 44;
 
-/// What the right pane shows. Terminals and panels are not ported.
+/// A callback another part of the frame holds (`onFocusRequest`, `onTerminalPicker`).
+type FocusCallback = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
+
+/// What the right pane shows.
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum RightPane {
     None,
     Sidebar,
     Panel,
+    Terminal,
 }
 
 /// `<SessionFrame sessionID verticalTabsWidth>`.
@@ -67,6 +78,112 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         let vertical_tabs_width = vertical_tabs_width.clone();
         Rc::new(move || dimensions.get().0 as i64 - vertical_tabs_width() as i64 > 120)
     };
+    let terminal_entries: Signal<Vec<Json>> = create_signal(Vec::new()).0;
+    let selected_terminal: Signal<Option<String>> = create_signal(None).0;
+    let terminal_focus: Signal<Option<String>> = create_signal(None).0;
+    // `clampSessionPaneWidth(defaultPaneWidth(), panels.width())`.
+    let terminal_width: Rc<dyn Fn() -> i64> = {
+        let available_width = available_width.clone();
+        Rc::new(move || {
+            let total = available_width();
+            let half = (total / 2).max(1);
+            (24.min(half)).max(half.min((total - SESSION_CONTENT_MIN_WIDTH).max(half)))
+        })
+    };
+    let selected_terminal_id: Rc<dyn Fn() -> Option<String>> = {
+        Rc::new(move || {
+            let selected = selected_terminal.get()?;
+            terminal_entries.with(|list| list.iter().any(|terminal| terminal.str("id") == Some(selected.as_str()))).then_some(selected)
+        })
+    };
+    let api = t.data.client_context.api();
+    let directory_of = {
+        let data = t.data.clone();
+        let session_id = session_id.clone();
+        Rc::new(move || {
+            data.store
+                .session
+                .get(&session_id)
+                .and_then(|session| session.get("location").and_then(|location| location.str("directory")).map(str::to_string))
+        })
+    };
+    let refresh_terminals: Rc<dyn Fn()> = {
+        let api = api.clone();
+        let session_id = session_id.clone();
+        Rc::new(move || {
+            let (api, session_id) = (api.clone(), session_id.clone());
+            tokio::task::spawn_local(async move {
+                if let Ok(list) = list_terminals(&api, &session_id).await {
+                    terminal_entries.set(list.clone());
+                    if let Some(selected) = selected_terminal.get_untracked()
+                        && !list.iter().any(|terminal| terminal.str("id") == Some(selected.as_str()))
+                    {
+                        selected_terminal.set(None);
+                    }
+                }
+            });
+        })
+    };
+    let select_terminal: Rc<dyn Fn(Option<String>, bool)> = {
+        Rc::new(move |id: Option<String>, focus: bool| {
+            terminal_focus.set(if focus { id.clone() } else { None });
+            selected_terminal.set(id);
+        })
+    };
+    let new_terminal: Rc<dyn Fn()> = {
+        let api = api.clone();
+        let session_id = session_id.clone();
+        let directory_of = directory_of.clone();
+        let select_terminal = select_terminal.clone();
+        Rc::new(move || {
+            let (api, session_id, directory_of) = (api.clone(), session_id.clone(), directory_of.clone());
+            let select_terminal = select_terminal.clone();
+            tokio::task::spawn_local(async move {
+                let mut input = obj! {
+                    "sessionID" => session_id.as_str(),
+                    "args" => Json::Array(vec![]),
+                    "title" => "Terminal",
+                    "env" => Json::Object(Default::default()),
+                };
+                if let (Json::Object(object), Some(directory)) = (&mut input, directory_of()) {
+                    object.insert("cwd".into(), Json::String(directory));
+                }
+                let Ok(value) = api.api().experimental().persistent_pty().create(&input, RequestOptions::default()).await else {
+                    return;
+                };
+                let id = value.json().str("id").map(str::to_string);
+                if let Ok(list) = list_terminals(&api, &session_id).await {
+                    terminal_entries.set(list);
+                }
+                if let Some(id) = id {
+                    select_terminal(Some(id), true);
+                }
+            });
+        })
+    };
+    {
+        // A terminal added or removed by any client keeps this session's list current.
+        let (refresh, session_id) = (refresh_terminals.clone(), session_id.clone());
+        let listener = t.data.store.listen(move |event| {
+            if !matches!(event.r#type(), "persistent-pty.added" | "persistent-pty.removed" | "persistent-pty.updated") {
+                return;
+            }
+            if event.data().str("sessionID") != Some(session_id.as_str()) {
+                return;
+            }
+            if terminal_entries.with(Vec::is_empty) {
+                return;
+            }
+            refresh();
+        });
+        on_cleanup(move || listener.call());
+    }
+    {
+        let refresh = refresh_terminals.clone();
+        on_mount(move || refresh());
+    }
+    let show_terminals: FocusCallback = Rc::new(RefCell::new(None));
+    let focus_terminal: FocusCallback = Rc::new(RefCell::new(None));
     let sidebar_visible: Rc<dyn Fn() -> bool> = {
         let data = t.data.clone();
         let session_id = session_id.clone();
@@ -85,12 +202,16 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
     let right_pane = {
         let sidebar_visible = sidebar_visible.clone();
         let panel_target = panel_target.clone();
+        let selected_terminal_id = selected_terminal_id.clone();
         move || {
             if panel_target.get().is_some() {
                 return RightPane::Panel;
             }
             if sidebar_open.get() && sidebar_visible() {
                 return RightPane::Sidebar;
+            }
+            if selected_terminal_id().is_some() {
+                return RightPane::Terminal;
             }
             if sidebar_visible() {
                 return RightPane::Sidebar;
@@ -127,19 +248,129 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         let toggle = toggle_sidebar.clone();
         let dialog = dialog.clone();
         let right_pane = right_pane.clone();
+        let focus_session = {
+            let prompt = t.prompt.clone();
+            Rc::new(move || {
+                if let Some(prompt) = prompt.borrow().clone() {
+                    prompt.focus();
+                }
+            })
+        };
+        let refresh = refresh_terminals.clone();
+        let new_terminal = new_terminal.clone();
+        let select_terminal = select_terminal.clone();
+        let show_terminals = show_terminals.clone();
+        let session_id_for_command = session_id.clone();
         create_layer(move || {
             let toggle = toggle.clone();
             let dialog = dialog.clone();
             let right_pane = right_pane.clone();
+            let focus_session = focus_session.clone();
+            let refresh = refresh.clone();
+            let new_terminal = new_terminal.clone();
+            let select_terminal = select_terminal.clone();
+            let show_terminals = show_terminals.clone();
             crate::keymap::Layer {
                 mode: Some("global"),
-                commands: vec![crate::keymap::Command::new("session.sidebar.toggle", move || {
-                    toggle();
-                    dialog.clear();
-                })
-                .title(if right_pane() == RightPane::Sidebar { "Hide sidebar" } else { "Show sidebar" })
-                .group("Session")
-                .palette(true)],
+                commands: vec![
+                    crate::keymap::Command::new("session.sidebar.toggle", {
+                        let toggle = toggle.clone();
+                        let dialog = dialog.clone();
+                        move || {
+                            toggle();
+                            dialog.clear();
+                        }
+                    })
+                    .title(if right_pane() == RightPane::Sidebar { "Hide sidebar" } else { "Show sidebar" })
+                    .group("Session")
+                    .palette(true),
+                    Command::new("terminal.toggle", {
+                        let dialog = dialog.clone();
+                        let right_pane = right_pane.clone();
+                        let focus_session = focus_session.clone();
+                        let select_terminal = select_terminal.clone();
+                        let api = api.clone();
+                        let session_id = session_id_for_command.clone();
+                        let directory_of = directory_of.clone();
+                        let entries = terminal_entries;
+                        let select = select_terminal.clone();
+                        move || {
+                            dialog.clear();
+                            if right_pane() == RightPane::Terminal {
+                                focus_session();
+                                select_terminal(None, false);
+                                return;
+                            }
+                            // The last terminal opens again; with none, the session gets one.
+                            let (api, session_id, directory_of) = (api.clone(), session_id.clone(), directory_of.clone());
+                            let select = select.clone();
+                            tokio::task::spawn_local(async move {
+                                let list = list_terminals(&api, &session_id).await.unwrap_or_default();
+                                entries.set(list.clone());
+                                if let Some(id) = list.last().and_then(|terminal| terminal.str("id")).map(str::to_string) {
+                                    select(Some(id), true);
+                                    return;
+                                }
+                                if let Ok(terminal) = create_terminal(&api, &session_id, directory_of()).await {
+                                    if let Ok(list) = list_terminals(&api, &session_id).await {
+                                        entries.set(list);
+                                    }
+                                    select(terminal.str("id").map(str::to_string), true);
+                                }
+                            });
+                        }
+                    })
+                    .title(if right_pane() == RightPane::Terminal { "Hide terminal pane" } else { "Show terminal pane" })
+                    .group("Session")
+                    .palette(true),
+                    Command::new("terminal.select", {
+                        let dialog = dialog.clone();
+                        let focus_session = focus_session.clone();
+                        let refresh = refresh.clone();
+                        let show_terminals = show_terminals.clone();
+                        move || {
+                            dialog.clear();
+                            focus_session();
+                            if let Some(show) = show_terminals.borrow().clone() {
+                                show();
+                            }
+                            refresh();
+                        }
+                    })
+                    .title("Select terminal")
+                    .group("Session")
+                    .palette(true),
+                    Command::new("terminal.close", {
+                        let dialog = dialog.clone();
+                        let focus_session = focus_session.clone();
+                        let select_terminal = select_terminal.clone();
+                        move || {
+                            dialog.clear();
+                            focus_session();
+                            select_terminal(None, false);
+                        }
+                    })
+                    .title("Close terminal pane")
+                    .group("Session")
+                    .palette(true)
+                    .enabled_fn({
+                        let right_pane = right_pane.clone();
+                        move || right_pane() == RightPane::Terminal
+                    }),
+                    Command::new("session.terminal", {
+                        let dialog = dialog.clone();
+                        let new_terminal = new_terminal.clone();
+                        move || {
+                            dialog.clear();
+                            new_terminal();
+                        }
+                    })
+                    .title("New terminal")
+                    .group("Session")
+                    .palette(true)
+                    .bind(Bind::Config)
+                    .slash("terminal", &[]),
+                ],
                 ..crate::keymap::Layer::default()
             }
         });
@@ -175,23 +406,38 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
             let toggle = toggle_sidebar.clone();
             Rc::new(move || toggle())
         };
+        let on_terminal_select = select_terminal.clone();
+        let visible = selected_terminal_id.clone();
+        let on_new = {
+            let new_terminal = new_terminal.clone();
+            Rc::new(move || new_terminal())
+        };
+        let show = show_terminals.clone();
+        let on_picker = Rc::new(move |value: Option<Rc<dyn Fn()>>| {
+            *show.borrow_mut() = value;
+        });
         insert(
             session_node,
             component(move || {
                 let sidebar_visible = sidebar_visible.clone();
                 let on_toggle = on_toggle.clone();
                 let vertical_tabs_width = vertical_tabs_width.clone();
+                let on_terminal_select = on_terminal_select.clone();
+                let visible = visible.clone();
+                let on_picker = on_picker.clone();
                 session(SessionProps {
                     scroll_ref: None,
                     vertical_tabs_width,
                     prompt_muted: Rc::new(|| false),
                     sidebar_visible: Rc::new(move || sidebar_visible()),
                     on_toggle_sidebar: on_toggle,
-                    // TODO(port-tui): `useSessionTerminals().available()` (the pty binary's availability); the pane
-                    // is not ported, but the composer lists the tab, as the reference does when terminals exist.
+                    // `useSessionTerminals().available()`: the server runs the terminals.
                     terminals: Rc::new(|| true),
-                    visible_terminal_id: Rc::new(|| None),
-                    on_terminal_picker: None,
+                    terminal_entries: Rc::new(move || terminal_entries.get()),
+                    on_terminal_select: Some(Rc::new(move |id: Option<String>| on_terminal_select(id, true))),
+                    on_terminal_new: Some(on_new),
+                    visible_terminal_id: Rc::new(move || visible()),
+                    on_terminal_picker: Some(on_picker),
                     width: Rc::new(move || session_width.get()),
                 })
             }),
@@ -256,6 +502,57 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         ),
         At::End,
     );
+    // The terminal pane: the session's persistent terminal beside the transcript.
+    {
+        let selected = selected_terminal_id.clone();
+        let terminal_width = terminal_width.clone();
+        let focus_terminal = focus_terminal.clone();
+        insert(
+            outer,
+            show_keyed(
+                move || selected(),
+                move |pty_id| {
+                    let focus_terminal = focus_terminal.clone();
+                    let pane = box_();
+                    pane.set_flex_shrink(Some(0.0));
+                    pane.set_height(Some(Value::Percent(100.0)));
+                    pane.set_min_width(Some(Value::Point(0.0)));
+                    pane.set_min_height(Some(Value::Point(0.0)));
+                    {
+                        let terminal_width = terminal_width.clone();
+                        bind(move || terminal_width() as f32, move |width| pane.set_width(Some(Value::Point(width))));
+                    }
+                    let id = pty_id.clone();
+                    insert(
+                        pane,
+                        component(move || {
+                            let id = id;
+                            let focus_id = id.clone();
+                            let focus_terminal = focus_terminal.clone();
+                            terminal_pane(TerminalPaneProps {
+                                pty_id: id.clone(),
+                                resizing: Rc::new(|| false),
+                                auto_focus: {
+                                    let id = focus_id;
+                                    Rc::new(move || terminal_focus.get().as_deref() == Some(id.as_str()))
+                                },
+                                on_auto_focus: Some(Rc::new(move || terminal_focus.set(None))),
+                                on_focus_request: Some(Rc::new(move |value| {
+                                    *focus_terminal.borrow_mut() = value;
+                                })),
+                                on_disconnect: None,
+                            })
+                        }),
+                        At::Only,
+                    );
+                    View::Node(pane)
+                },
+                None,
+            ),
+            At::End,
+        );
+    }
+
     // The docked panel (`PanelHost` + the `session.panel` slot): the diff viewer beside the session.
     insert(
         outer,
@@ -336,8 +633,12 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
                 prompt.focus();
             }
         });
-        // The panel's input scope is not tracked here; its keys are global.
-        let focus_right = Rc::new(|| {});
+        let focus_terminal = focus_terminal.clone();
+        let focus_right = Rc::new(move || {
+            if let Some(focus) = focus_terminal.borrow().clone() {
+                focus();
+            }
+        });
         create_layer(move || {
             let focus_prompt = focus_prompt.clone();
             let focus_right = focus_right.clone();
@@ -357,6 +658,34 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         });
     }
     View::Node(outer)
+}
+
+/// `persistentPty.list({ sessionID })`: the session's terminals.
+async fn list_terminals(api: &Client, session_id: &str) -> Result<Vec<Json>, Error> {
+    let value = api
+        .api()
+        .experimental()
+        .persistent_pty()
+        .list(&obj! { "sessionID" => session_id }, RequestOptions::default())
+        .await?;
+    Ok(match value.json() {
+        Json::Array(items) => items,
+        _ => Vec::new(),
+    })
+}
+
+/// `sessions.newTerminal`: the session's shell in the daemon, in the session's directory.
+async fn create_terminal(api: &Client, session_id: &str, directory: Option<String>) -> Result<Json, Error> {
+    let mut input = obj! {
+        "sessionID" => session_id,
+        "args" => Json::Array(vec![]),
+        "title" => "Terminal",
+        "env" => Json::Object(Default::default()),
+    };
+    if let (Json::Object(object), Some(directory)) = (&mut input, directory) {
+        object.insert("cwd".into(), Json::String(directory));
+    }
+    Ok(api.api().experimental().persistent_pty().create(&input, RequestOptions::default()).await?.json())
 }
 
 /// `<Sidebar sessionID>`.

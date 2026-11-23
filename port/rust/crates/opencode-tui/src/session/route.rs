@@ -53,6 +53,9 @@ pub struct SessionProps {
     pub sidebar_visible: Rc<dyn Fn() -> bool>,
     pub on_toggle_sidebar: Rc<dyn Fn()>,
     pub terminals: Rc<dyn Fn() -> bool>,
+    pub terminal_entries: Rc<dyn Fn() -> Vec<Json>>,
+    pub on_terminal_select: Option<Rc<dyn Fn(Option<String>)>>,
+    pub on_terminal_new: Option<Rc<dyn Fn()>>,
     pub visible_terminal_id: Rc<dyn Fn() -> Option<String>>,
     pub on_terminal_picker: Option<Rc<dyn Fn(Option<Rc<dyn Fn()>>)>>,
     pub width: Rc<dyn Fn() -> Option<f32>>,
@@ -67,6 +70,9 @@ impl Default for SessionProps {
             sidebar_visible: Rc::new(|| false),
             on_toggle_sidebar: Rc::new(|| {}),
             terminals: Rc::new(|| false),
+            terminal_entries: Rc::new(Vec::new),
+            on_terminal_select: None,
+            on_terminal_new: None,
             visible_terminal_id: Rc::new(|| None),
             on_terminal_picker: None,
             width: Rc::new(|| None),
@@ -738,6 +744,15 @@ pub fn session(props: SessionProps) -> View {
         prompted_permissions.with(Vec::is_empty)
             && (composer_open.get() || (session.get().is_some_and(|s| s.str("parentID").is_some()) && forms.with(Vec::is_empty)))
     });
+    // `onTerminalPicker`: the terminal pane's "Select terminal" opens the composer on its terminals tab.
+    if let Some(on_picker) = props.on_terminal_picker.clone() {
+        let show = Rc::new(move || {
+            composer_open.set(true);
+            composer_tab.set(Some("terminals".into()));
+        });
+        on_picker(Some(show));
+        on_cleanup(move || on_picker(None));
+    }
     {
         let prompt_muted = props.prompt_muted.clone();
         create_effect(move || {
@@ -1952,6 +1967,9 @@ pub fn session(props: SessionProps) -> View {
                     let sid = st_view.session_id.clone();
                     let route = tui().route;
                     let terminals = props_for.terminals.clone();
+                    let terminal_entries = props_for.terminal_entries.clone();
+                    let on_terminal_select = props_for.on_terminal_select.clone();
+                    let on_terminal_new = props_for.on_terminal_new.clone();
                     let visible_terminal_id = props_for.visible_terminal_id.clone();
                     let open = composer_visible;
                     insert(
@@ -1978,6 +1996,9 @@ pub fn session(props: SessionProps) -> View {
                                     composer_open.set(false);
                                 })),
                                 terminals,
+                                terminal_entries,
+                                on_terminal_select,
+                                on_terminal_new,
                                 visible_terminal_id,
                             })
                         }),

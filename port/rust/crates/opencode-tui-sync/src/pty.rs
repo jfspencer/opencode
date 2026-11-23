@@ -1,18 +1,20 @@
 //! Persistent terminals (packages/client/src/solid/pty.ts): the server's messages on a terminal socket, the input
 //! frames sent to it, and the socket's URL.
 //!
-//! `createPersistentPtyClient(api, { url }).connect(input)` asks for a connect ticket and opens a WebSocket; here
-//! [`PersistentPtyClient::connect_url`] does the first part and gives the `ws(s)://` URL to open.
-//! TODO(port): a WebSocket client for the terminal panes (the TS one is the runtime's `WebSocket`).
+//! `createPersistentPtyClient(api, { url }).connect(input)` asks for a connect ticket, opens the `ws(s)://` socket
+//! the server names and resolves with it; [`PersistentPtyClient::connect_socket`] does the same over
+//! [`crate::websocket`]. [`PersistentPtyClient::connect_url`] gives the URL the runtime's `WebSocket` would open.
 
 use opencode_protocol::Json;
 
+use crate::abort::Reason;
 use crate::client::{Client, Error, RequestOptions};
 use crate::data::Promise;
 use crate::js;
 use crate::json::JsonExt;
 use crate::obj;
 use crate::runtime::Deferred;
+use crate::websocket;
 
 /// `PersistentPtyMessage`: the fields clients read of each message.
 #[derive(Clone, Debug, PartialEq)]
@@ -186,24 +188,56 @@ impl PersistentPtyClient {
                     }));
                 }
             };
-            let ticket = token.get("ticket").map(js::string).unwrap_or_else(|| "undefined".into());
-            let mut url = url::Url::parse(&base).map_err(|e| Error::Other(crate::abort::Reason { name: "TypeError".into(), message: e.to_string() }))?;
-            if !url.path().ends_with('/') {
-                let path = format!("{}/", url.path());
-                url.set_path(&path);
-            }
-            let mut url = url
-                .join(&format!("api/experimental/persistent-pty/{}/connect", js::encode_uri_component(&input.pty_id)))
-                .map_err(|e| Error::Other(crate::abort::Reason { name: "TypeError".into(), message: e.to_string() }))?;
-            url.query_pairs_mut()
-                .append_pair("ticket", &ticket)
-                .append_pair("cursor", &js::number(input.cursor))
-                .append_pair("attachment_id", &input.attachment_id)
-                .append_pair("takeover", if input.takeover { "true" } else { "false" })
-                .append_pair("input_protocol", "1");
-            let scheme = if url.scheme() == "https" { "wss" } else { "ws" };
-            let _ = url.set_scheme(scheme);
-            Ok(url.to_string())
+            connect_url(&base, &input, &token)
         })
     }
+
+    /// `connect(input)`: the ticket, then the socket open (the runtime's `WebSocket`).
+    pub async fn connect_socket(&self, input: &PersistentPtyConnectInput) -> Result<websocket::Socket, Error> {
+        let token = match self
+            .api
+            .api()
+            .experimental()
+            .persistent_pty()
+            .connect_token(&obj! { "ptyID" => input.pty_id.as_str(), "x-opencode-ticket" => "1" }, RequestOptions::default())
+            .await?
+        {
+            crate::client::Value::Json(token) => token,
+            _ => {
+                return Err(Error::Other(Reason {
+                    name: "TypeError".into(),
+                    message: "undefined is not an object (evaluating 'token.ticket')".into(),
+                }));
+            }
+        };
+        let url = connect_url(&self.url, input, &token)?;
+        websocket::open(&url, self.api.headers()).await.map_err(Error::Other)
+    }
+}
+
+/// The socket URL `connect` opens: the base URL, the ticket and the connection's inputs in the query.
+fn connect_url(base: &str, input: &PersistentPtyConnectInput, token: &Json) -> Result<String, Error> {
+    let ticket = token.get("ticket").map(js::string).unwrap_or_else(|| "undefined".into());
+    let mut url = url::Url::parse(base)
+        .map_err(|e| Error::Other(crate::abort::Reason { name: "TypeError".into(), message: e.to_string() }))?;
+    if !url.path().ends_with('/') {
+        let path = format!("{}/", url.path());
+        url.set_path(&path);
+    }
+    let mut url = url
+        .join(&format!("api/experimental/persistent-pty/{}/connect", js::encode_uri_component(&input.pty_id)))
+        .map_err(|e| Error::Other(crate::abort::Reason { name: "TypeError".into(), message: e.to_string() }))?;
+    url.query_pairs_mut()
+        .append_pair("ticket", &ticket)
+        .append_pair("cursor", &js::number(input.cursor))
+        .append_pair("attachment_id", &input.attachment_id)
+        .append_pair("takeover", if input.takeover { "true" } else { "false" })
+        .append_pair("input_protocol", "1");
+    // `url.protocol = url.protocol === "https:" ? "wss:" : "ws:"`.
+    if url.scheme() == "https" {
+        let _ = url.set_scheme("wss");
+    } else if url.scheme() == "http" {
+        let _ = url.set_scheme("ws");
+    }
+    Ok(url.to_string())
 }

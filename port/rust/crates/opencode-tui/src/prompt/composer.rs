@@ -10,6 +10,7 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
+use opencode_protocol::Json;
 use opencode_tui_core::color::text_attributes;
 use opencode_tui_core::elements::{b, box_, scrollbox, span, text};
 use opencode_tui_core::layout::Value;
@@ -35,6 +36,9 @@ pub struct ComposerProps {
     pub default_tab: Rc<dyn Fn() -> Option<String>>,
     pub on_close: Option<Rc<dyn Fn()>>,
     pub terminals: Rc<dyn Fn() -> bool>,
+    pub terminal_entries: Rc<dyn Fn() -> Vec<Json>>,
+    pub on_terminal_select: Option<Rc<dyn Fn(Option<String>)>>,
+    pub on_terminal_new: Option<Rc<dyn Fn()>>,
     pub visible_terminal_id: Rc<dyn Fn() -> Option<String>>,
 }
 
@@ -268,36 +272,25 @@ pub fn composer(props: ComposerProps) -> View {
         let session_id = props.session_id.clone();
         insert(body, component(move || shell_tab(session_id.clone(), api.clone())), At::End);
     }
-    // TODO(port-tui): the tabs slice: the terminals tab's list and selection. The label is registered so the picker
-    // lists it, as `<TerminalsTab>` does while `props.terminals`.
+    // `<TerminalsTab sessionID visibleTerminalID>`: the session's terminals and "+ New terminal".
     {
         let api = api.clone();
         let terminals = props.terminals.clone();
+        let entries = props.terminal_entries.clone();
+        let on_select = props.on_terminal_select.clone();
+        let on_new = props.on_terminal_new.clone();
+        let visible = props.visible_terminal_id.clone();
         insert(
             body,
             show(
                 move || terminals(),
                 move || {
                     let api = api.clone();
-                    component(move || {
-                        let api = api.clone();
-                        let active = api.clone();
-                        on_mount(move || {
-                            let cleanup = (api.register)(ComposerTab { id: "terminals", label: "Terminals", hints: None });
-                            on_cleanup(cleanup);
-                        });
-                        show(
-                            move || (active.active)("terminals"),
-                            move || {
-                                let row = text();
-                                row.set_padding(Edge::Left, Some(Value::Point(1.0)));
-                                bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| row.set_fg(Some(c)));
-                                insert(row, View::from("+ New terminal"), At::Only);
-                                View::Node(row)
-                            },
-                            None,
-                        )
-                    })
+                    let entries = entries.clone();
+                    let on_select = on_select.clone();
+                    let on_new = on_new.clone();
+                    let visible = visible.clone();
+                    component(move || terminals_tab(entries.clone(), visible.clone(), on_select.clone(), on_new.clone(), api.clone()))
                 },
                 None,
             ),
@@ -562,3 +555,201 @@ fn shell_tab(session_id: String, composer: ComposerTabApi) -> View {
     )
 }
 
+/// `<TerminalsTab sessionID visibleTerminalID>`: the session's terminals, and "+ New terminal" to create one.
+fn terminals_tab(
+    entries: Rc<dyn Fn() -> Vec<Json>>,
+    visible: Rc<dyn Fn() -> Option<String>>,
+    on_select: Option<Rc<dyn Fn(Option<String>)>>,
+    on_new: Option<Rc<dyn Fn()>>,
+    composer: ComposerTabApi,
+) -> View {
+    let theme = tui().theme;
+    let selected: Signal<Option<usize>> = create_signal(None).0;
+    // The rows: each terminal, then the undefined entry ("+ New terminal").
+    let rows = create_memo(move || {
+        let mut rows: Vec<Option<Rc<Json>>> = entries().into_iter().map(Rc::new).map(Some).collect();
+        rows.push(None);
+        rows
+    });
+    {
+        let composer = composer.clone();
+        let visible = visible.clone();
+        create_effect(move || {
+            if !(composer.active)("terminals") {
+                return;
+            }
+            let current = visible();
+            let index = rows.with(|rows| {
+                rows.iter().position(|row| row.as_ref().and_then(|row| row.str("id")).map(str::to_string) == current)
+            });
+            selected.set(index);
+        });
+    }
+    let select = {
+        let composer = composer.clone();
+        let rows = rows.clone();
+        let on_select = on_select.clone();
+        let on_new = on_new.clone();
+        Rc::new(move || {
+            let Some(index) = selected.get_untracked() else { return };
+            let terminal = rows.with(|rows| rows.get(index).cloned()).flatten();
+            (composer.close)();
+            match terminal {
+                Some(terminal) => {
+                    if let Some(on_select) = &on_select {
+                        on_select(terminal.str("id").map(str::to_string));
+                    }
+                }
+                None => {
+                    if let Some(on_new) = &on_new {
+                        on_new();
+                    }
+                }
+            }
+        })
+    };
+    {
+        let composer = composer.clone();
+        on_mount(move || {
+            let cleanup = (composer.register)(ComposerTab { id: "terminals", label: "Terminals", hints: None });
+            on_cleanup(cleanup);
+        });
+    }
+    {
+        let composer = composer.clone();
+        let rows = rows.clone();
+        let select = select.clone();
+        create_layer(move || {
+            let active = composer.active.clone();
+            let close = composer.close.clone();
+            let rows = rows.clone();
+            let select = select.clone();
+            let close_up = close.clone();
+            let close_down = close.clone();
+            Layer {
+                mode: Some("composer"),
+                enabled: Some(Enabled::Fn(Rc::new(move || active("terminals")))),
+                priority: Some(1),
+                commands: vec![
+                    Command::new("composer.terminal.up", move || {
+                        let count = rows.with(|rows| rows.len().saturating_sub(1));
+                        if count == 0 {
+                            close_up();
+                            return;
+                        }
+                        selected.set(Some((selected.get_untracked().unwrap_or(0) + count) % (count + 1)));
+                    })
+                    .title("Previous terminal")
+                    .group("Composer"),
+                    Command::new("composer.terminal.down", move || {
+                        let count = rows.with(|rows| rows.len().saturating_sub(1));
+                        if count == 0 {
+                            close_down();
+                            return;
+                        }
+                        let index = selected.get_untracked().map(|index| index as i64).unwrap_or(-1);
+                        selected.set(Some(((index + 1) as usize) % (count + 1)));
+                    })
+                    .title("Next terminal")
+                    .group("Composer"),
+                    Command::new("composer.terminal.select", move || select()).title("Select terminal").group("Composer"),
+                ],
+                ..Layer::default()
+            }
+        });
+    }
+    let active = composer.active.clone();
+    show(
+        move || active("terminals"),
+        move || {
+            let el = scrollbox();
+            el.set_scrollbar_options(Some(true), &ScrollBarOptions { visible: Some(Some(false)), ..ScrollBarOptions::default() });
+            el.set_max_height(Some(Value::Point(5.0)));
+            let visible = visible.clone();
+            let select = select.clone();
+            insert(
+                el,
+                for_each(
+                    move || rows.get(),
+                    |row| row.as_ref().and_then(|row| row.str("id")).map(str::to_string).unwrap_or_else(|| "+ New terminal".into()),
+                    move |row, index| {
+                        let visible = visible.clone();
+                        let select = select.clone();
+                        let is_active = create_memo(move || selected.get() == Some(index.get()));
+                        let current = create_memo(move || {
+                            row.with(|row| {
+                                row.as_ref().and_then(|row| row.str("id")).map(str::to_string) == visible()
+                            })
+                        });
+                        let box_el = box_();
+                        box_el.set_flex_direction(FlexDirection::Row);
+                        box_el.set_padding(Edge::Left, Some(Value::Point(1.0)));
+                        box_el.set_padding(Edge::Right, Some(Value::Point(1.0)));
+                        bind_always(
+                            move || {
+                                if is_active.get() {
+                                    rgba(theme.with(|th| th.background.action.primary.focused))
+                                } else if current.get() {
+                                    rgba(theme.with(|th| th.background.action.primary.selected))
+                                } else {
+                                    rgba(theme.with(|th| th.background.action.primary.base))
+                                }
+                            },
+                            move |c| box_el.set_background_color(Some(c)),
+                        );
+                        {
+                            let index = index;
+                            box_el.set_on_mouse(Some(MouseEventType::Move), Some(Rc::new(move |_| selected.set(Some(index.get_untracked())))));
+                        }
+                        {
+                            let index = index;
+                            let select = select.clone();
+                            box_el.set_on_mouse(
+                                Some(MouseEventType::Up),
+                                Some(Rc::new(move |_| {
+                                    selected.set(Some(index.get_untracked()));
+                                    select();
+                                })),
+                            );
+                        }
+                        let label = text();
+                        insert_node(box_el, label, None);
+                        bind_always(
+                            move || {
+                                if is_active.get() {
+                                    rgba(theme.with(|th| th.text.action.primary.focused))
+                                } else if current.get() {
+                                    rgba(theme.with(|th| th.text.action.primary.selected))
+                                } else {
+                                    rgba(theme.with(|th| th.text.action.primary.base))
+                                }
+                            },
+                            move |c| label.set_fg(Some(c)),
+                        );
+                        bind(move || is_active.get().then_some(text_attributes::BOLD), move |a| label.set_attributes(a));
+                        label.set_wrap_mode(WrapMode::None);
+                        label.set_truncate(true);
+                        insert(
+                            label,
+                            View::dynamic(move || {
+                                View::from(row.with(|row| {
+                                    row.as_ref()
+                                        .and_then(|row| {
+                                            row.str("foregroundProcess").or_else(|| row.str("title")).map(str::to_string)
+                                        })
+                                        .unwrap_or_else(|| "+ New terminal".into())
+                                }))
+                            }),
+                            At::Only,
+                        );
+                        View::Node(box_el)
+                    },
+                    None,
+                ),
+                At::Only,
+            );
+            View::Node(el)
+        },
+        None,
+    )
+}
