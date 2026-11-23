@@ -16,7 +16,8 @@ const only = [...HIDDEN_TOOLS.map((action) => rule(action, "*", "deny")), rule("
 const agents = { build: { system: "Conformance agent." } }
 const allowShell = { agents, permissions: [...only, rule("shell", "*", "allow")] }
 
-scenario("shell routes for unknown commands", {}, async (ctx) => {
+// The 200 KiB command is rejected because Linux limits one argument to 128 KiB; macOS passes it to the shell.
+scenario("shell routes for unknown commands", { platforms: ["linux"] }, async (ctx) => {
   // Wait for the location's plugins, so the startup events are always complete.
   await ctx.http("GET", "/api/provider")
   await ctx.http("GET", "/api/shell")
@@ -41,7 +42,7 @@ scenario("shell routes for unknown commands", {}, async (ctx) => {
 })
 
 // The shells offered for terminals and agents come from /etc/shells, so this recording is specific to the host.
-scenario("list available shells", {}, async (ctx) => {
+scenario("list available shells", { platforms: ["linux"] }, async (ctx) => {
   await ctx.http("GET", "/api/provider")
   await ctx.http("GET", "/api/config/shell")
 })
@@ -78,9 +79,10 @@ scenario(
 )
 
 // Events carry the shell's process ID, so they are not recorded; the session's messages show the outcome.
+// The 200 KiB command is rejected because Linux limits one argument to 128 KiB; macOS passes it to the shell.
 scenario(
   "run commands in a session as the user",
-  { files: { "notes.txt": "first\nsecond\n" }, events: false },
+  { files: { "notes.txt": "first\nsecond\n" }, events: false, platforms: ["linux"] },
   async (ctx) => {
     const id = await ctx.session({ title: "user shell" })
     await ctx.http("POST", `/api/session/${id}/shell`, { command: "cat notes.txt" })
@@ -127,18 +129,19 @@ scenario(
 )
 
 // The configured shell decides how commands are scanned and run. Incompatible or missing shells fall back to the
-// default one.
-for (const [name, shell] of [
+// default one, which is bash on Linux and zsh on macOS (the golden records Linux's).
+for (const [name, shell, platforms] of [
   ["sh", "sh"],
   ["an absolute path", "/bin/sh"],
-  ["an incompatible shell", "fish"],
-  ["a missing shell", "/conformance/missing/zsh"],
+  ["an incompatible shell", "fish", ["linux"]],
+  ["a missing shell", "/conformance/missing/zsh", ["linux"]],
 ] as const)
   scenario(
     `configured shell: ${name}`,
     {
       config: { ...allowShell, shell },
       turns: [call("shell", { command: "echo $0; echo [[ -n x ]]" }), say("Done.")],
+      ...(platforms ? { platforms } : {}),
     },
     async (ctx) => {
       const id = await ctx.session({ title: name })

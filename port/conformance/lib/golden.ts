@@ -105,6 +105,10 @@ function lenient(value: unknown, key = ""): unknown {
       .replace(/ripgrep-\d+\.\d+\.\d+-[a-z0-9_-]+\.tar\.gz/g, "ripgrep-<version>-<platform>.tar.gz")
       // Built-in skill text reports the host OS; goldens recorded it on Linux.
       .replace(/OS:\s*[^\n(]*\((?:linux|macos|darwin) (?:x64|arm64|aarch64)\)/g, "OS: <os> (<platform> <arch>)")
+      // macOS ships bash 3.2, which reports errors in `-c` commands as line 0; bash 5 on Linux says line 1.
+      .replace(/(\/bin\/bash: (?:-c: )?)line 0:/g, "$1line 1:")
+      // BSD wc pads its count to a column where GNU wc does not.
+      .replace(/(^|\n) {2,}(\d+ )/g, "$1$2")
       // The sandbox root's absolute length differs by platform, so a path component the TUI ellipsizes on one
       // platform can be shown whole on another. Controlled-name scenarios cover truncation itself.
       .replace(/[^\s"]*<root-name>\/<project-name>/g, "<project>")
@@ -116,6 +120,9 @@ function lenient(value: unknown, key = ""): unknown {
       .replace(/<project>([^ \t\n]*)[ \t]+/g, "<project>$1 ")
       .replaceAll(TMP_PARENT_ENCODED, "%2Ftmp")
       .replaceAll(TMP_PARENT, "/tmp")
+      // APFS stores and returns file names decomposed; Linux uses the composed form. Canonically equivalent text is
+      // the same text, and the near-miss path scenarios test how a name resolves, not which normalization form it has.
+      .normalize("NFC")
   if (typeof value === "number" && PID_KEY.test(key)) return "<pid>"
   if (Array.isArray(value)) return value.map((item) => lenient(item, key))
   if (value && typeof value === "object")
