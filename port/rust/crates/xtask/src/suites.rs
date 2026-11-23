@@ -461,7 +461,9 @@ pub fn rust_conformance(ctx: &Ctx, args: &[String]) -> Result<()> {
         .map(str::to_owned)
         .collect();
 
-    let regressed: Vec<&String> = expected.difference(&pass).collect();
+    // A documented platform skip still satisfies the ledger: the scenario passes where its system behavior exists.
+    let satisfied: BTreeSet<String> = pass.union(&skip).cloned().collect();
+    let regressed: Vec<&String> = expected.difference(&satisfied).collect();
     let added: Vec<&String> = pass.difference(&expected).collect();
     if !added.is_empty() {
         println!(

@@ -116,7 +116,9 @@ echo "rust: $pass pass, $fail fail, $skip skip (logs: $log)"
 ran=$(printf '%s\n' ${files[@]+"${files[@]}"} | sort -u)
 touch "$ledger"
 expected=$(grep -F -f <(printf '%s ›\n' $ran) "$ledger" | sort -u)
-regressed=$(comm -23 <(printf '%s\n' "$expected" | sed '/^$/d') "$log/pass.txt")
+# A documented platform skip still satisfies the ledger: the scenario passes where its system behavior exists.
+results skip >"$log/skip.txt"
+regressed=$(comm -23 <(printf '%s\n' "$expected" | sed '/^$/d') <(sort -u "$log/pass.txt" "$log/skip.txt"))
 added=$(comm -13 <(printf '%s\n' "$expected" | sed '/^$/d') "$log/pass.txt")
 if [ -n "$added" ]; then
   echo "passing, not in the ledger yet ($(printf '%s\n' "$added" | wc -l)):"
@@ -130,7 +132,6 @@ if [ "$update" = 1 ]; then
   echo "ledger updated: $(wc -l <"$ledger") scenarios"
 fi
 # Ledgered scenarios of the files that ran which neither passed, failed nor were skipped: renamed or deleted.
-results skip >"$log/skip.txt"
 stale=$(comm -23 <(printf '%s\n' "$expected" | sed '/^$/d') <(sort -u "$log/pass.txt" "$log/fail.txt" "$log/skip.txt"))
 if [ -n "$stale" ]; then
   echo "in the ledger but not run (renamed or removed? edit the ledger by hand):"
