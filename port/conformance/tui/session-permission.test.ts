@@ -163,6 +163,8 @@ scenario(
   {
     files,
     config: ask(["read", "*", "ask"], ["external_directory", "*", "ask"]),
+    // The longer macOS sandbox path wraps the external-directory rows; TS on macOS produces the same frames.
+    skipOn: { platforms: ["darwin"], reason: "the sandbox path length wraps the permission rows" },
     turns: [call("read", { path: "src/math.ts" }), call("read", { path: "../elsewhere/notes.txt" })],
   },
   async (t) => {
