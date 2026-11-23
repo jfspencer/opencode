@@ -21,6 +21,9 @@ const post = async (ctx: Ctx, label: string, body: string | Uint8Array) => {
       ? { title: (parsed as { title?: unknown }).title ?? null }
       : parsed
   ctx.note(label, { status: response.status, body: summary })
+  // Sessions are listed newest first by `time_updated`; two created in the same millisecond are ordered by their
+  // (random-tail) IDs. A few milliseconds between them keeps the listing in creation order on fast machines.
+  await Bun.sleep(3)
 }
 
 const bytes = (...parts: Array<string | number[]>) =>

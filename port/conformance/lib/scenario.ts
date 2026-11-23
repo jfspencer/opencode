@@ -77,6 +77,12 @@ export interface ScenarioOptions {
    */
   readonly processOnly?: string
   /**
+   * Why the scenario cannot run on a host platform: its inputs depend on a system facility that platform lacks (a
+   * shell set, a filename the filesystem rejects, a socket address the kernel silently drops). Skipped there; every
+   * other platform runs it normally.
+   */
+  readonly skipOn?: { readonly platforms: readonly NodeJS.Platform[]; readonly reason: string }
+  /**
    * Outbound requests the implementation sends concurrently, so that their arrival order is timing (an npm
    * install's prefetched packuments and its tarball downloads). Within each recorded group, the requests the
    * predicate matches keep the positions they arrived in but fill them in a fixed order (by their recorded form):
@@ -178,6 +184,7 @@ export function scenario(name: string, options: ScenarioOptions, body: (ctx: Ctx
   const file = callerFile()
   if (options.inProcessOnly && implementation().kind === "process") return test.skip(name, () => {})
   if (options.processOnly && implementation().kind !== "process") return test.skip(name, () => {})
+  if (options.skipOn?.platforms.includes(process.platform)) return test.skip(name, () => {})
   test(name, () => run(file, name, options, body), options.timeout ?? 60_000)
 }
 

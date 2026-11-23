@@ -165,9 +165,15 @@ scenario(
   },
 )
 
-scenario("available shells", {}, async (ctx) => {
-  await ctx.http("GET", "/api/config/shell")
-})
+// The shells are the ones this machine has: Linux lists sh/bash/rbash/dash/screen/tmux, macOS sh/bash/zsh/csh/
+// dash/ksh/tcsh. The golden records the Linux set, and the TS reference returns the macOS set here too.
+scenario(
+  "available shells",
+  { skipOn: { platforms: ["darwin"], reason: "the available shells are the host's" } },
+  async (ctx) => {
+    await ctx.http("GET", "/api/config/shell")
+  },
+)
 
 // The file watcher is off: its reload of the late .opencode directory would race the reload the patch triggers.
 scenario("patch the global config shell", { server: { filewatcher: false } }, async (ctx) => {

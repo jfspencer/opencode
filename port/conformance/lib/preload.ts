@@ -58,10 +58,19 @@ process.env.GIT_AUTHOR_DATE = process.env.GIT_COMMITTER_DATE = "2026-01-01T00:00
 // Persistent terminals run in the `opencode-pty` daemon, which a server starts on first use and owns. Every
 // implementation runs the reference's own build of it (OPENCODE_PTY_BIN, which the reference reads first), with its
 // runtime directory in the sandbox state (XDG_STATE_HOME) and its socket in the sandbox, not the user's
-// /tmp/opencode-pty-<uid> where their real service's daemons listen.
+// /tmp/opencode-pty-<uid> where their real service's daemons listen. macOS's sandbox root is longer than a Unix
+// socket path allows (`sun_path` is 104 bytes), so there the daemon's control socket directory is a short one under
+// /tmp: the runtime directory (the records) stays in the sandbox.
 const pty = await import(Bun.resolveSync("@opencode/pty", path.join(import.meta.dir, "../ref/packages/core")))
+const ptySockets = process.platform === "darwin" ? mkdtempSync(path.join("/tmp", "opencode-pty-")) : dir("pty")
 process.env.OPENCODE_PTY_BIN = pty.binaryPath as string
-process.env.OPENCODE_PTY_SOCKET_DIR = dir("pty")
+process.env.OPENCODE_PTY_SOCKET_DIR = ptySockets
+if (!process.env.CONFORMANCE_KEEP_SANDBOX && ptySockets !== path.join(root, "pty"))
+  afterAll(() => {
+    try {
+      rmSync(ptySockets, { recursive: true, force: true })
+    } catch {}
+  })
 
 // The server also boots an instance at its own working directory. Keep it inside the sandbox: from the repo
 // it would load the repo's own .opencode config (whose references trigger git clones over the network).

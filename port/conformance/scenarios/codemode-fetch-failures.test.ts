@@ -79,7 +79,12 @@ scenario(
 
 scenario(
   "codemode fetch: a connection that is refused",
-  { processOnly: "the server reaches 127.0.0.2 directly (NO_PROXY), where nothing listens on port 9" },
+  {
+    processOnly: "the server reaches 127.0.0.2 directly (NO_PROXY), where nothing listens on port 9",
+    // macOS accepts the connection to the loopback alias and then never answers, so the fetch hangs instead of
+    // failing with ECONNREFUSED; the TS reference hangs the same way there.
+    skipOn: { platforms: ["darwin"], reason: "macOS times out instead of refusing a loopback connection" },
+  },
   async (ctx) => {
     await ctx.restart({ NO_PROXY: "127.0.0.2", no_proxy: "127.0.0.2" })
     const id = await ctx.session()

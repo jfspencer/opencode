@@ -213,14 +213,6 @@ fn terminal_error(error: persistent_pty::Error) -> Failure {
         persistent_pty::Error::NotFound(id) => not_found(&id),
         persistent_pty::Error::Unavailable(message) => unavailable(&message),
         persistent_pty::Error::InvalidCwd(message) => Failure::invalid(message, Some("cwd"), Some("invalid_cwd")),
-        persistent_pty::Error::Unsupported(feature) => {
-            let mut o = Obj::new();
-            o.str("_tag", "PtyFeatureUnsupportedError").str("feature", &feature).str(
-                "message",
-                "Terminal renaming will be available after OpenCode's terminal service restarts",
-            );
-            Failure::new(501, o.done())
-        }
     }
 }
 

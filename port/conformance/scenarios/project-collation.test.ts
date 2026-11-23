@@ -58,9 +58,18 @@ const names = [
   "กา.txt",
 ]
 
+/**
+ * The fixture includes `\u{fdd1}가.txt`, which APFS refuses to create (`open` fails with EILSEQ), so the scenario
+ * cannot run on macOS; the TS reference cannot start it there either. (Linux and Windows filesystems accept it.)
+ */
+const darwinFilename = {
+  platforms: ["darwin"] as const,
+  reason: "the filesystem rejects one of the fixture's filenames",
+}
+
 const files = Object.fromEntries([...names.map((name) => [`names/${name}`, `${name}\n`]), ["names/目录/x.txt", "x\n"]])
 
-scenario("directory listings in ICU root order", { files }, async (ctx) => {
+scenario("directory listings in ICU root order", { files, skipOn: darwinFilename }, async (ctx) => {
   await ctx.http("GET", "/api/fs/list?path=names")
 })
 
@@ -89,7 +98,7 @@ scenario(
 
 scenario(
   "the read tool lists a directory in ICU root order",
-  { files, turns: [call("read", { path: "names" }), say("Listed.")] },
+  { files, skipOn: darwinFilename, turns: [call("read", { path: "names" }), say("Listed.")] },
   async (ctx) => {
     const id = await ctx.session()
     await ctx.prompt(id, "List the names")

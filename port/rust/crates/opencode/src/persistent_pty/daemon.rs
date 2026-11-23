@@ -461,10 +461,6 @@ impl Transport {
         }
     }
 
-    pub async fn supports(&'static self, feature: &str) -> Result<bool, DaemonError> {
-        Ok(self.connect(false).await?.features.iter().any(|f| f == feature))
-    }
-
     /// `shutdown`: stops the daemon (when one runs) and waits until it is gone (5 s).
     pub async fn shutdown(&'static self) -> Result<Option<Json>, DaemonError> {
         let mut request = Obj::new();

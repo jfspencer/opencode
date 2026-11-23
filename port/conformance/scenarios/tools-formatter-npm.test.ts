@@ -202,6 +202,11 @@ scenario("optional dependencies for another platform are left out, peers are ins
       extra: { "dist-tags": { latest: "1.0.0" }, versions: { "1.0.0": {} } },
     }),
   ],
+}, async () => {
+  // Pin the platform npm installs for: the golden records Linux, and the fixtures' optional packages are Linux and
+  // macOS builds. The config overrides currentEnv the same way on every host, so the scenario tests the selector
+  // rather than the recording machine.
+  writeFileSync(path.join(process.env.HOME!, ".npmrc"), "os=linux\ncpu=x64\nlibc=glibc\n")
 })
 
 scenario("an install that fails leaves the file as written", {
