@@ -63,7 +63,11 @@ unsafe extern "C" {
 const UTF8: u32 = 0x0800_0100;
 const SINCE_NOW: u64 = u64::MAX;
 const NO_DEFER: u32 = 0x02;
+/// Announce a change to the watched root's own path (removal, rename, or an ancestor moving), not only its contents.
+const WATCH_ROOT: u32 = 0x04;
 const FILE_EVENTS: u32 = 0x10;
+/// `kFSEventStreamEventFlagRootChanged`: the root itself changed; `paths[index]` may not be below it.
+const ROOT_CHANGED: u32 = 0x20;
 /// Parcel's latency: events are delivered almost at once.
 const LATENCY: f64 = 0.001;
 
@@ -84,6 +88,16 @@ struct Subscriber {
 }
 
 impl Subscriber {
+    /// The path this subscription is about, announced when FSEvents reports the root itself changed.
+    fn announce_root(&self) {
+        let path = match &self.filter {
+            Filter::File { directory, name } if directory.ends_with('/') => format!("{directory}{name}"),
+            Filter::File { directory, name } => format!("{directory}/{name}"),
+            Filter::Tree { root, .. } => root.clone(),
+        };
+        let _ = self.send.send(path);
+    }
+
     fn dispatch(&self, reported: &str) {
         let path = match reported.strip_prefix(&self.real) {
             Some(rest) if rest.is_empty() || rest.starts_with('/') => format!("{}{rest}", self.named),
@@ -106,12 +120,17 @@ impl Subscriber {
     }
 }
 
-extern "C" fn callback(_: *const c_void, info: *mut c_void, count: usize, paths: *mut c_void, _: *const u32, _: *const u64) {
+extern "C" fn callback(_: *const c_void, info: *mut c_void, count: usize, paths: *mut c_void, flags: *const u32, _: *const u64) {
     // SAFETY: `info` is the subscriber the stream was created with, alive until the stream is invalidated and its
-    // queue drained; without `kFSEventStreamCreateFlagUseCFTypes`, `paths` is an array of `count` C strings.
+    // queue drained; without `kFSEventStreamCreateFlagUseCFTypes`, `paths` is an array of `count` C strings and
+    // `flags`, when present, an array of `count` flags.
     let subscriber = unsafe { &*(info as *const Subscriber) };
     let paths = paths as *const *const c_char;
     for index in 0..count {
+        if !flags.is_null() && unsafe { *flags.add(index) } & ROOT_CHANGED != 0 {
+            subscriber.announce_root();
+            continue;
+        }
         // SAFETY: see above.
         let path = unsafe { CStr::from_ptr(*paths.add(index)) }.to_string_lossy();
         subscriber.dispatch(path.trim_end_matches('/'));
@@ -204,7 +223,7 @@ fn start(directory: &str, filter: Filter, send: &Sender) -> Option<Stream> {
         let values = [string];
         let paths = CFArrayCreate(std::ptr::null(), values.as_ptr(), 1, &kCFTypeArrayCallBacks as *const c_void);
         CFRelease(string);
-        let stream = FSEventStreamCreate(std::ptr::null(), callback, &context, paths, SINCE_NOW, LATENCY, NO_DEFER | FILE_EVENTS);
+        let stream = FSEventStreamCreate(std::ptr::null(), callback, &context, paths, SINCE_NOW, LATENCY, NO_DEFER | FILE_EVENTS | WATCH_ROOT);
         CFRelease(paths);
         if stream.is_null() {
             drop(Box::from_raw(subscriber));
@@ -233,4 +252,40 @@ pub fn file(directory: String, name: String, send: &Sender) -> Option<Stream> {
 pub fn directory(root: String, ignore: fn(&str) -> bool, send: &Sender) -> Option<Stream> {
     let watched = root.clone();
     start(&watched, Filter::Tree { root, ignore }, send)
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn announces_when_the_watched_root_is_removed_or_renamed() {
+        let base = std::env::temp_dir().join(format!("oc-fse-root-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&base);
+        std::fs::create_dir_all(base.join("tree/sub")).unwrap();
+        let root = base.join("tree");
+        let (send, mut receive) = tokio::sync::mpsc::unbounded_channel();
+        let _watch = directory(root.to_string_lossy().into_owned(), |_| false, &send).unwrap();
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        std::fs::remove_dir_all(&root).unwrap();
+        assert!(eventually(&mut receive, &root).await, "removal of the watched root");
+        // The tree stream followed the old root; the root-changed notification must still name it.
+        std::fs::create_dir_all(root.join("sub")).unwrap();
+        tokio::time::sleep(Duration::from_millis(50)).await;
+        let moved = base.join("moved");
+        std::fs::rename(&root, &moved).unwrap();
+        assert!(eventually(&mut receive, &root).await, "rename of the watched root");
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    async fn eventually(receive: &mut tokio::sync::mpsc::UnboundedReceiver<String>, path: &std::path::Path) -> bool {
+        let expected = path.to_string_lossy().into_owned();
+        let deadline = tokio::time::Instant::now() + Duration::from_secs(2);
+        while let Ok(Some(event)) = tokio::time::timeout_at(deadline, receive.recv()).await {
+            if event == expected {
+                return true;
+            }
+        }
+        false
+    }
 }

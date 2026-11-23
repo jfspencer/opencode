@@ -248,6 +248,9 @@ cliScenario(
     const { agent, client, sessionId } = await open(ctx)
     await client.request("session/prompt", { sessionId, prompt: prompt("Hello") })
     const extra = await client.request("session/new", { cwd: ctx.project, mcpServers: [], additionalDirectories: [outside, ctx.project, outside] })
+    // `session/list` orders sessions by `updatedAt` and breaks a same-millisecond tie by ID tail; separate the two
+    // creations so the listing order is the creation order on fast machines.
+    await Bun.sleep(3)
     const unused = await client.request("session/new", { cwd: ctx.project, mcpServers: [] })
     await client.request("session/list", { cwd: ctx.project })
     await client.request("session/list", {})
