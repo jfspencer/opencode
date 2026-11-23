@@ -21,9 +21,9 @@ use opencode_tui_sync::client::RequestOptions;
 use opencode_tui_sync::json::JsonExt;
 use opencode_tui_sync::obj;
 
-use crate::ctx::{Route, tui};
+use crate::ctx::tui;
 use crate::data::array;
-use crate::keymap::{self, Command, Layer, Shortcuts, create_layer};
+use crate::keymap::{self, Shortcuts};
 use crate::toast::{ToastInput, Variant};
 use crate::util::{rgba, string_width};
 
@@ -613,31 +613,5 @@ pub fn running_status(interrupt: Signal<u32>, animations: bool, agent_color: Mem
 
 /// The `/btw` plugin's command (`session.aside`), registered from the `app` slot.
 pub fn install_btw() {
-    let t = tui();
-    let toast = t.toast.clone();
-    let route = t.route;
-    create_layer(move || {
-        let toast = toast.clone();
-        Layer {
-            mode: Some("global"),
-            commands: vec![
-                Command::with_input("session.aside", move |input| {
-                    if !route.with_untracked(|r| matches!(r, Route::Session { .. })) {
-                        toast.show(ToastInput::new(Variant::Warning, "Open a session first"));
-                        return true;
-                    }
-                    // TODO(port-tui): the dialogs slice: the question prompt and the answer dialog
-                    // (`session.generate`).
-                    let _ = input;
-                    true
-                })
-                .title("Ask a side question")
-                .description("One-shot answer from the session's context without adding to the conversation")
-                .group("Session")
-                .palette(true)
-                .slash_arguments("btw"),
-            ],
-            ..Layer::default()
-        }
-    });
+    crate::prompt::btw::install();
 }

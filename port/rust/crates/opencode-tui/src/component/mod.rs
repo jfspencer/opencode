@@ -7,6 +7,7 @@ pub mod dialog_model;
 pub mod dialog_open;
 pub mod dialog_session_list;
 pub mod dialog_session_rename;
+pub mod dialog_shell_output;
 pub mod dialog_status;
 pub mod dialog_theme_list;
 pub mod dialog_variant;

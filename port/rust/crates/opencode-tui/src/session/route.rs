@@ -731,7 +731,23 @@ pub fn session(props: SessionProps) -> View {
             .collect::<Vec<_>>()
     });
     let disabled = create_memo(move || !prompted_permissions.with(Vec::is_empty) || !forms.with(Vec::is_empty));
-
+    // `<Composer open defaultTab>`: the subagents, shells, scripts and terminals tabs over the prompt.
+    let composer_open = create_signal(false).0;
+    let composer_tab: Signal<Option<String>> = create_signal(None::<String>).0;
+    let composer_visible = create_memo(move || {
+        prompted_permissions.with(Vec::is_empty)
+            && (composer_open.get() || (session.get().is_some_and(|s| s.str("parentID").is_some()) && forms.with(Vec::is_empty)))
+    });
+    {
+        let prompt_muted = props.prompt_muted.clone();
+        create_effect(move || {
+            if prompt_muted() && composer_open.get() {
+                composer_open.set(false);
+            }
+        });
+    }
+    // `openingTab()`: the reference's `busyTab` picks the first tab with work (Shell when only shells run), but its
+    // recorded picker opens on Subagents and reaches the shell list with right.
     let local = crate::local::local();
     let config = move || config_state.data();
     let thinking_mode = {
@@ -1229,6 +1245,67 @@ pub fn session(props: SessionProps) -> View {
                     .enabled(session.get().and_then(|s| s.get("revert").and_then(|r| r.str("messageID")).map(|_| ())).is_some())
                     .slash("redo", &[])
             };
+            let undo = {
+                let (st, data, sid, pending) = (st.clone(), data.clone(), sid.clone(), pending.clone());
+                Command::new("session.undo", move || {
+                    // `messagesBeforeRevert()`: the transcript up to the staged revert boundary.
+                    let messages = untrack(|| data.store.session.message.list(&sid));
+                    let boundary = untrack(|| session.get())
+                        .and_then(|s| s.get("revert").and_then(|r| r.str("messageID")).map(str::to_string));
+                    let end = boundary
+                        .and_then(|id| messages.iter().position(|m| m.str("id") == Some(id.as_str())))
+                        .unwrap_or(messages.len());
+                    let message = messages[..end]
+                        .iter()
+                        .rev()
+                        .find(|m| m.str("type") == Some("user") && !m.str("text").unwrap_or_default().trim().is_empty())
+                        .cloned();
+                    let Some(message) = message else {
+                        st.t.toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, "Nothing to undo").duration(3000));
+                        st.dialog.clear();
+                        return;
+                    };
+                    let message_id = message.str("id").unwrap_or_default().to_string();
+                    let pending_delivery = pending_deliveries.with(|list| list.iter().any(|(id, _)| *id == message_id));
+                    let t = st.t.clone();
+                    let session_id = sid.clone();
+                    let pending = pending.clone();
+                    // Read the prompt back before changing anything: a failed read then changes nothing.
+                    let restored = crate::prompt::restore::restore_prompt(&t, &message, true);
+                    tokio::task::spawn_local(async move {
+                        let result = async {
+                            let prompt = restored.wait().await?;
+                            if pending_delivery {
+                                // Undo a prompt still in the inbox: releasing it puts it back in the composer.
+                                if !pending.mutate(PendingAction::Cancel, &message_id).wait().await {
+                                    return Ok(());
+                                }
+                            } else {
+                                let input = opencode_tui_sync::obj! { "sessionID" => session_id.as_str() };
+                                t.data.client.call_named("session.interrupt", &input, Default::default()).await?;
+                                t.data.client.call_named("experimental.session.wait", &input, Default::default()).await?;
+                                let input = opencode_tui_sync::obj! {
+                                    "sessionID" => session_id.as_str(),
+                                    "messageID" => message_id.as_str(),
+                                };
+                                t.data.client.call_named("session.revert.stage", &input, Default::default()).await?;
+                            }
+                            crate::prompt::draft_stash::append_to_session_prompt(&session_id, prompt);
+                            Ok::<(), opencode_tui_sync::client::Error>(())
+                        }
+                        .await;
+                        if let Err(error) = result {
+                            t.toast.show(crate::toast::ToastInput::new(crate::toast::Variant::Error, error.message()).duration(5000));
+                        }
+                    });
+                    st.dialog.clear();
+                })
+                .title("Undo previous message")
+                .group("Session")
+                .palette(true)
+                .bind(Bind::Off)
+                .slash("undo", &[])
+            };
             let background = {
                 let (call, dialog) = (call.clone(), st.dialog.clone());
                 let input = sid_json();
@@ -1272,8 +1349,7 @@ pub fn session(props: SessionProps) -> View {
                 session_command("session.timeline", "Jump to message").slash("timeline", &[]),
                 session_command("session.fork", "Fork session").slash("fork", &[]),
                 compact,
-                // TODO(port-tui): the prompt slice: usePromptRestore and appendToSessionPrompt for the undo.
-                session_command("session.undo", "Undo previous message").slash("undo", &[]),
+                undo,
                 redo,
                 toggle(
                     "session.toggle.thinking",
@@ -1421,8 +1497,32 @@ pub fn session(props: SessionProps) -> View {
                 // TODO(port-tui): DialogExportOptions and DialogExportResult (ui/dialog-export-*.tsx).
                 session_command("session.export", "Export session transcript").slash("export", &[]),
                 background,
-                // TODO(port-tui): the prompt slice's composer (subagent picker) and the queued prompts dialog.
-                session_command("session.child.first", "Toggle subagent picker"),
+                {
+                    let st = st.clone();
+                    let (composer_open, composer_tab) = (composer_open, composer_tab);
+                    Command::with_input("session.child.first", move |input| {
+                        match input.as_deref() {
+                            Some(tab @ ("shell" | "subagents" | "scripts")) => {
+                                composer_tab.set(Some(tab.to_string()));
+                                composer_open.set(true);
+                            }
+                            _ => {
+                                let parent = untrack(|| session.get()).is_some_and(|s| s.str("parentID").is_some());
+                                if composer_open.get_untracked() || parent {
+                                    composer_open.set(false);
+                                } else {
+                                    composer_tab.set(Some("subagents".to_string()));
+                                    composer_open.set(true);
+                                }
+                            }
+                        }
+                        st.dialog.clear();
+                        true
+                    })
+                    .title("Toggle subagent picker")
+                    .group("Session")
+                    .bind(Bind::Off)
+                },
                 Command::new("session.queued_prompts", {
                     let (pending, dialog) = (pending.clone(), st.dialog.clone());
                     move || pending.open_queued(&dialog, Rc::new(queued_list))
@@ -1756,7 +1856,7 @@ pub fn session(props: SessionProps) -> View {
                 insert(
                     composer,
                     show(
-                        move || !disabled.get() && !queued_prompts().is_empty(),
+                        move || !composer_open.get() && !disabled.get() && !queued_prompts().is_empty(),
                         move || {
                             // TODO(port-tui): the dialogs slice: the queued prompts DialogSelect (`openQueuedPrompts`).
                             let (pending, dialog) = (pending_for_dock.clone(), st_dock.dialog.clone());
@@ -1769,10 +1869,48 @@ pub fn session(props: SessionProps) -> View {
                     ),
                     At::End,
                 );
+                {
+                    // `<Composer sessionID open defaultTab onClose terminals visibleTerminalID>`.
+                    let sid = st_view.session_id.clone();
+                    let route = tui().route;
+                    let terminals = props_for.terminals.clone();
+                    let visible_terminal_id = props_for.visible_terminal_id.clone();
+                    let open = composer_visible;
+                    insert(
+                        composer,
+                        component(move || {
+                            crate::prompt::composer::composer(crate::prompt::composer::ComposerProps {
+                                session_id: sid.clone(),
+                                open: Rc::new(move || open.get()),
+                                default_tab: Rc::new(move || {
+                                    composer_tab.get().or_else(|| {
+                                        untrack(|| session.get())
+                                            .filter(|s| s.str("parentID").is_some())
+                                            .map(|_| "subagents".to_string())
+                                    })
+                                }),
+                                on_close: Some(Rc::new(move || {
+                                    let parent = untrack(|| session.get())
+                                        .and_then(|s| s.str("parentID").map(str::to_string))
+                                        .filter(|p| !p.is_empty());
+                                    if let Some(parent) = parent {
+                                        route.set(Route::Session { session_id: parent });
+                                        return;
+                                    }
+                                    composer_open.set(false);
+                                })),
+                                terminals,
+                                visible_terminal_id,
+                            })
+                        }),
+                        At::End,
+                    );
+                }
                 insert(
                     composer,
                     switch(
                         vec![
+                            when(move || composer_visible.get(), move || View::Empty),
                             when(move || !prompted_permissions.with(Vec::is_empty), move || {
                                 show_keyed(
                                     move || prompted_permissions.with(|p| p.first().and_then(|r| r.str("id").map(str::to_string))),

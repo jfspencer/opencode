@@ -268,8 +268,42 @@ pub fn composer(props: ComposerProps) -> View {
         let session_id = props.session_id.clone();
         insert(body, component(move || shell_tab(session_id.clone(), api.clone())), At::End);
     }
-    // TODO(port-tui): the tabs slice: `<TerminalsTab sessionID visibleTerminalID>` while `props.terminals`.
-    let _ = (props.terminals.clone(), props.visible_terminal_id.clone());
+    // TODO(port-tui): the tabs slice: the terminals tab's list and selection. The label is registered so the picker
+    // lists it, as `<TerminalsTab>` does while `props.terminals`.
+    {
+        let api = api.clone();
+        let terminals = props.terminals.clone();
+        insert(
+            body,
+            show(
+                move || terminals(),
+                move || {
+                    let api = api.clone();
+                    component(move || {
+                        let api = api.clone();
+                        let active = api.clone();
+                        on_mount(move || {
+                            let cleanup = (api.register)(ComposerTab { id: "terminals", label: "Terminals", hints: None });
+                            on_cleanup(cleanup);
+                        });
+                        show(
+                            move || (active.active)("terminals"),
+                            move || {
+                                let row = text();
+                                row.set_padding(Edge::Left, Some(Value::Point(1.0)));
+                                bind_always(move || rgba(theme.with(|th| th.text.muted)), move |c| row.set_fg(Some(c)));
+                                insert(row, View::from("+ New terminal"), At::Only);
+                                View::Node(row)
+                            },
+                            None,
+                        )
+                    })
+                },
+                None,
+            ),
+            At::End,
+        );
+    }
 
     // The footer: the active tab's hints, and the tab keys.
     let footer = box_();
@@ -337,10 +371,23 @@ fn shell_tab(session_id: String, composer: ComposerTabApi) -> View {
         let index = selected.get();
         entries.with(|e| e.get(index).cloned())
     });
-    // TODO(port-tui): the dialogs slice: `DialogShellOutput` for the selected entry.
-    let open = Rc::new(move || {
-        let _ = selected_entry.get_untracked();
-    });
+    // `DialogShellOutput` for the selected entry: its output, polled while the viewer is open.
+    let open = {
+        let dialog = crate::ui::dialog::use_dialog();
+        Rc::new(move || {
+            let Some(entry) = selected_entry.get_untracked() else { return };
+            let directory = entry.get("location").and_then(|l| l.str("directory")).map(str::to_string);
+            dialog.replace(
+                {
+                    let entry = entry.clone();
+                    move || crate::component::dialog_shell_output::dialog_shell_output(Rc::new(entry.clone()), directory.clone())
+                },
+                None,
+                None,
+                None,
+            );
+        })
+    };
     create_effect(move || {
         let count = entries.with(|e| e.len());
         if selected.get() >= count {
