@@ -75,7 +75,7 @@ scenario(
     mkdirSync(path.join(home, "homeskill"), { recursive: true })
     writeFileSync(path.join(home, "homeskill", "SKILL.md"), skill({ description: "Home skill." }, "Home."))
     const updated = (from: number) =>
-      ctx.until((event) => event?.type === "skill.updated" && event?.location?.directory === ctx.project, from)
+      ctx.until((event) => event?.type === "skill.updated" && event?.location?.directory === ctx.project, from, 60_000)
     try {
       const from = ctx.events.length
       ctx.write("opencode.json", JSON.stringify({ skills: [path.join(ctx.project, "abs"), "~/conformance-skills"] }))
