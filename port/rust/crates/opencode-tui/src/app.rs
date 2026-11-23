@@ -162,9 +162,7 @@ pub async fn run(input: TuiInput) -> i32 {
         // DialogProvider: its layer after its children.
         let dialog = crate::ui::dialog::provide();
         let view = component(app_view);
-        // The full-screen panel is a sibling of App, below the dialog layer: dialogs stay on top of it.
-        let panel = component(fullscreen_panel);
-        insert(root, View::list([view, panel, crate::ui::dialog::dialog_layer(dialog)]), At::Only);
+        insert(root, View::list([view, crate::ui::dialog::dialog_layer(dialog)]), At::Only);
     });
     tokio::task::spawn_local(data_for_load.load_location_data());
     renderer::request_render();
@@ -325,12 +323,30 @@ fn app_view() -> View {
         let tabs = tabs.clone();
         Rc::new(move || tabs.enabled() && !tabs.list().is_empty())
     };
+    // A full-screen panel takes over the app, including the session tabs.
+    let panel_fullscreen: Rc<dyn Fn() -> bool> = {
+        let route = t.route;
+        let panel = t.panel;
+        let requested = t.panel_fullscreen;
+        let dimensions = t.dimensions;
+        let vertical = vertical.clone();
+        Rc::new(move || {
+            let Route::Session { session_id } = route.get() else { return false };
+            let Some(target) = panel.get() else { return false };
+            if target.session_id != session_id {
+                return false;
+            }
+            let available = (dimensions.get().0 as i64 - if vertical() { 42 } else { 0 }).max(0);
+            requested.get() || available < 64 + 44
+        })
+    };
     insert(
         main,
         show(
             {
                 let vertical = vertical.clone();
-                move || vertical()
+                let panel_fullscreen = panel_fullscreen.clone();
+                move || vertical() && !panel_fullscreen()
             },
             move || component(|| crate::component::session_tabs::session_tabs(crate::component::session_tabs::SessionTabsProps {
                 orientation: Some("vertical".into()),
@@ -352,7 +368,8 @@ fn app_view() -> View {
             {
                 let vertical = vertical.clone();
                 let visible = visible.clone();
-                move || visible() && !vertical()
+                let panel_fullscreen = panel_fullscreen.clone();
+                move || visible() && !vertical() && !panel_fullscreen()
             },
             move || component(|| crate::component::session_tabs::session_tabs(crate::component::session_tabs::SessionTabsProps::default())),
             None,
@@ -371,9 +388,11 @@ fn app_view() -> View {
                 when(move || route.with(|r| *r == Route::Home), || component(crate::home::home)),
                 when(move || route.with(|r| matches!(r, Route::Session { .. })), {
                     let vertical = vertical.clone();
+                    let panel_for_width = panel_fullscreen.clone();
                     move || {
                         // --continue starts on a "dummy" placeholder until the latest session is known.
                         let vertical = vertical.clone();
+                        let panel_for_width = panel_for_width.clone();
                         show_keyed(
                             move || route.with(|r| match r {
                                 Route::Session { session_id } if session_id != "dummy" => Some(session_id.clone()),
@@ -381,11 +400,13 @@ fn app_view() -> View {
                             }),
                             move |session_id| {
                                 let vertical_for_width = vertical.clone();
+                                let panel_for_width = panel_for_width.clone();
                                 component(move || {
                                     let vertical = vertical_for_width.clone();
+                                    let panel_for_width = panel_for_width.clone();
                                     crate::component::session_frame::session_frame(
                                         session_id.clone(),
-                                        Rc::new(move || if vertical() { 42 } else { 0 }),
+                                        Rc::new(move || if vertical() && !panel_for_width() { 42 } else { 0 }),
                                     )
                                 })
                             },
@@ -403,80 +424,4 @@ fn app_view() -> View {
     insert(root, component(crate::reconnecting::reconnecting_overlay), At::End);
     insert(root, component(crate::toast::toast_view), At::End);
     View::Node(root)
-}
-
-/// The full-screen `session.panel` slot: covers the session's tabs and frame, as full screen takes over the app.
-fn fullscreen_panel() -> View {
-    let t = crate::ctx::tui();
-    let vertical = {
-        let config = t.config_context.clone();
-        let tabs = crate::tabs::tabs();
-        let dimensions = t.dimensions;
-        move || config.data().tabs.layout == "vertical" && dimensions.get().0 >= 42 + 64 && !tabs.list().is_empty() && tabs.enabled()
-    };
-    let panel_target = {
-        let route = t.route;
-        let panel = t.panel;
-        let fullscreen = t.panel_fullscreen;
-        let dimensions = t.dimensions;
-        create_memo(move || {
-            let Route::Session { session_id } = route.get() else { return None };
-            let target = panel.get()?;
-            if target.session_id != session_id {
-                return None;
-            }
-            let available = (dimensions.get().0 as i64 - if vertical() { 42 } else { 0 }).max(0);
-            (fullscreen.get() || available < 64 + 44).then_some((target, available))
-        })
-    };
-    show_value(
-        move || panel_target.get(),
-        move |value| {
-            let Some((target, available)) = value.get() else { return View::Empty };
-            let t = crate::ctx::tui();
-            let overlay = opencode_tui_core::elements::box_();
-            overlay.set_position_type(true);
-            overlay.set_positions(
-                Some(Some(Value::Point(0.0))),
-                Some(Some(Value::Point(0.0))),
-                Some(Some(Value::Point(0.0))),
-                Some(Some(Value::Point(0.0))),
-            );
-            bind_always(move || rgba(t.theme.with(|th| th.background.base)), move |c| overlay.set_background_color(Some(c)));
-            let input = crate::diff_viewer::PanelInput {
-                name: target.name.clone(),
-                session_id: target.session_id.clone(),
-                width: Rc::new(move || available),
-                docked: Rc::new(|| false),
-                focused: Rc::new(|| true),
-                focus: Rc::new(|| {}),
-                close: {
-                    let t = t.clone();
-                    Rc::new(move || {
-                        t.panel.set(None);
-                        t.panel_fullscreen.set(false);
-                    })
-                },
-                toggle_fullscreen: {
-                    let t = t.clone();
-                    Rc::new(move || t.panel_fullscreen.set(!t.panel_fullscreen.get_untracked()))
-                },
-            };
-            let on_close = {
-                let t = t.clone();
-                Rc::new(move || {
-                    t.panel.set(None);
-                    t.panel_fullscreen.set(false);
-                })
-            };
-            let session_id = target.session_id.clone();
-            insert(
-                overlay,
-                component(move || crate::diff_viewer::diff_viewer(Some(session_id.clone()), None, Some(input.clone()), on_close.clone())),
-                At::Only,
-            );
-            View::Node(overlay)
-        },
-        None,
-    )
 }

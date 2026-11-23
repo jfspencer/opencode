@@ -1955,7 +1955,10 @@ fn patch_card(props: PatchCard) -> View {
                                         diffs.borrow_mut().remove(&file_index);
                                     });
                                 })),
-                                gutter_padding: Some(if compact.get_untracked() { 1 } else { 0 }),
+                                gutter_padding: Some({
+                                    let compact = compact.clone();
+                                    Rc::new(move || if compact.get() { 1 } else { 0 })
+                                }),
                                 diff_props: DiffProps::themed(
                                     theme,
                                     Rc::new(move || if status == "modified" && view.get() == "split" { DiffView::Split } else { DiffView::Unified }),

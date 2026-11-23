@@ -90,8 +90,8 @@ pub struct PatchDiffProps {
     pub hunk_fg: Rc<dyn Fn() -> RGBA>,
     pub line_number_bg: Rc<dyn Fn() -> RGBA>,
     pub on_ref: Option<Rc<dyn Fn(PatchDiffRef)>>,
-    /// Extra gutter columns before the line numbers, painted in each row's color.
-    pub gutter_padding: Option<u32>,
+    /// Extra gutter columns before the line numbers, painted in each row's color (`compact` adds one).
+    pub gutter_padding: Option<Rc<dyn Fn() -> u32>>,
     pub diff_props: DiffProps,
 }
 
@@ -124,8 +124,8 @@ pub fn patch_diff(props: PatchDiffProps) -> View {
     let hunks = create_memo(move || Rc::new(split_patch_hunks(&diff_text())));
     let gutter = {
         let diff_text = props.diff.clone();
-        let padding = props.gutter_padding.unwrap_or(0);
-        create_memo(move || gutter_for(&diff_text(), padding))
+        let padding = props.gutter_padding.clone();
+        create_memo(move || gutter_for(&diff_text(), padding.as_ref().map(|padding| padding()).unwrap_or(0)))
     };
     let nodes: Rc<RefCell<BTreeMap<usize, Element>>> = Rc::default();
     if let Some(on_ref) = &props.on_ref {

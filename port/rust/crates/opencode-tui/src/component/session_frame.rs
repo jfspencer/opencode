@@ -153,6 +153,10 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
     outer.set_position_type(false);
 
     insert_node(outer, session_node, None);
+    {
+        let panel_fullscreen = panel_fullscreen.clone();
+        bind_always(move || !panel_fullscreen(), move |visible| session_node.set_visible(visible));
+    }
     session_node.set_flex_grow(Some(1.0));
     session_node.set_flex_basis(Value::Point(0.0));
     session_node.set_min_width(Some(Value::Point(0.0)));
@@ -258,8 +262,7 @@ pub fn session_frame(session_id: String, vertical_tabs_width: Rc<dyn Fn() -> u32
         show(
             {
                 let panel_target = panel_target.clone();
-                let panel_fullscreen = panel_fullscreen.clone();
-                move || panel_target.get().is_some() && !panel_fullscreen()
+                move || panel_target.get().is_some()
             },
             {
                 let session_id = session_id.clone();
