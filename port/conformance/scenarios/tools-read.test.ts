@@ -1,7 +1,7 @@
 // read tool edge cases: media attachments, binary and huge files, paging, long lines, external paths, protected
 // files, near-miss names, and AGENTS.md discovery next to read files.
 import { spawnSync } from "node:child_process"
-import { mkdirSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs"
+import { mkdirSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { HIDDEN_TOOLS } from "../lib/model"
 import { call, say } from "../lib/openrouter"
@@ -284,6 +284,8 @@ scenario(
   },
   async (ctx) => {
     ctx.provider.push(...reads({ path: path.join(ctx.project, "src/main.ts") }, { path: "~/notes/home.txt" }, { path: "~" }))
+    // Another scenario moves a session into ~/work; the home listing must not depend on file order within a shard.
+    rmSync(path.join(process.env.HOME!, "work"), { recursive: true, force: true })
     mkdirSync(path.join(process.env.HOME!, "notes"), { recursive: true })
     writeFileSync(path.join(process.env.HOME!, "notes/home.txt"), "home notes\n")
     await drive(ctx, "Read by absolute path", ["once", "once", "reject"])
