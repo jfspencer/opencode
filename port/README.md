@@ -245,16 +245,23 @@ directories). It is one process on a single-threaded tokio runtime: hyper for HT
 | `cli/acp.rs`, `cli/acp/` | `opencode acp`: the Agent Client Protocol over stdio against a private server, framed as the SDK's ndJsonStream frames it. Sessions (new, load with its history replayed, resume, fork, list, close, delete, additional directories); prompts (text, resources, links, images, slash commands, compaction); the turn's events folded into `session/update`s (tool calls, completed-edit diffs, retries, compactions, child sessions as `opencode/session/child_update` or projected, usage); permission requests (`session/request_permission`, with diff previews) and forms (`elicitation/create`) asked of the client and withdrawn on cancel; config options that follow the catalog and the server's selections. Not ported: MCP server registration (out of scope) and the SDK's schema validation of request parameters (`TODO(port)`) |
 | `location_activity.rs`, `location_watch.rs`, `watch.rs`, `watch/fsevents.rs`, `repository_cache.rs` | `location-activity.ts`, `filesystem/location-watcher*.ts`, `file-watch.ts`, `watcher.ts`, `repository-cache.ts` and reference.ts's refresh: idle locations unload at the minute sweep after `experimental.location_idle_timeout` (default an hour) unless a session executes there, background work runs or a terminal socket holds them; the repository's HEAD (git) or `branch` (hg) is watched unless `watcher.ignore` names it, its changes announce `filesystem.changed` and re-read the branch; watched files announce `change`/`unlink`; watches use inotify on Linux and FSEvents on macOS (`cargo xtask check-macos` checks both Apple targets, natively on macOS and with a stub C compiler from Linux; a real macOS build still needs the SDK); Git references are cloned into `<data>/opencode/repos` and fetched or reset at most daily. Also the project archive sweep, the git discovery cache, the legacy `auth.json` import at bootstrap, the downloaded ripgrep (15.1.0, pinned SHA-256), up to four schedules per tick, and each step waiting out an inventory reload in progress. Not ported yet: the config that well-known sources deliver (`TODO(port)` in `inventory/config.rs`) |
 
-Status (2026-11-09): every server scenario of the standard passes (953 run, 3 skipped by the standard), including the
-70 CLI scenarios: session CRUD, projects, locations, the file system, version control, worktrees, config, agents,
-providers and models, the execution loop, compaction, permissions, questions and forms, subagents and jobs, snapshots
-and reverts, schedules, session transfer, webfetch, skills and instructions, shell, the file tools and the patch tool,
-Code Mode, stored credentials, media blobs, restart recovery, the PTY APIs, and the CLI (`run`, `serve`, `service`,
-`session`, `api`, `auth`, `stats`, `acp` and the rest). The TUI is not ported. Release builds peak (VmHWM) at a median of 19.6 MiB per server process
-over 600 passing scenarios (p90 21.3 MiB); an idle server holds about 2 MiB of anonymous memory, the rest being clean
-pages of the 20 MB executable. The TS server peaks at a median of about 312 MiB, and at 377 to 728 MiB on the five
-scenarios where Rust peaks highest (62 to 141 MiB: large attachments, Code Mode limits, the webfetch budget). Unported behavior is marked `TODO(port)` in the source; an
-endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes check first).
+Status (2026-11-22, macOS arm64): the standard passes in full on macOS, the first non-Linux host. The server suite
+passes all 935 scenarios that run there with 21 documented platform skips (Linux-only shell, filesystem and network
+facts), including the 70 CLI scenarios: session CRUD, projects, locations, the file system, version control, worktrees,
+config, agents, providers and models, the execution loop, compaction, permissions, questions and forms, subagents and
+jobs, snapshots and reverts, schedules, session transfer, webfetch, skills and instructions, shell, the file tools and
+the patch tool, Code Mode, stored credentials, media blobs, restart recovery, the PTY APIs, and the CLI (`run`, `serve`,
+`service`, `session`, `api`, `auth`, `stats`, `acp` and the rest). The TUI passes its 271 scenarios with 13 documented
+skips (nine in-process-only scenarios plus four host-specific frames: the sandbox path's length and APFS's rejected
+filename on macOS). Goldens are recorded on Linux; `lib/golden.ts` carries the explicit equality rules for platform
+facts, and `platforms`/`skipOn` mark a scenario whose inputs are the host's own shell, filesystem or kernel behavior.
+
+On Linux, release builds peak (VmHWM) at a median of 19.6 MiB per server process over 600 passing scenarios (p90
+21.3 MiB); an idle server holds about 2 MiB of anonymous memory, the rest being clean pages of the 20 MB executable.
+The TS server peaks at a median of about 312 MiB, and at 377 to 728 MiB on the five scenarios where Rust peaks highest
+(62 to 141 MiB: large attachments, Code Mode limits, the webfetch budget). Unported behavior is marked `TODO(port)` in
+the source; an endpoint without a handler answers 501 (after the 404 of an unknown session, which most session routes
+check first).
 
 `scripts/rust-conformance.sh` builds the executable with the oracle's build identity and runs the standard against it
 (`CONFORMANCE_IMPL`, see `conformance/README.md`), sharded; the last run's reports are in `rust/target/conformance-logs`. Every scenario that passes is listed in the
