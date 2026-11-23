@@ -17,11 +17,10 @@ Cargo discovers aliases from the current directory upward, so from the repositor
 (`port/scripts/...`) or `(cd port/rust && cargo xtask ...)`; a repository-root `.cargo/config.toml` would be
 an upstream-owned file.
 
-The old `port/scripts/*.sh` paths remain as thin `exec` wrappers. They run `port/rust/target/debug/xtask`
-when it exists, otherwise they fall back to one `cargo run --quiet -p xtask -- <command>`. `link-deps.sh` is
-still the shell fallback while the reference is being repaired, and the `reference.sh` / `rust-conformance.sh`
-wrappers are not switched yet: both commands are complete in xtask, so each wrapper can become the same
-three-line `exec` wrapper used by the other scripts.
+Every top-level `port/scripts/*.sh` and `port/coverage/*.sh` path is a thin `exec` wrapper around
+`port/rust/target/debug/xtask` (building it once when absent). `reference.sh`, `link-deps.sh` and
+`rust-conformance.sh` are wrappers too; the shell logic lives only here in Rust. The crate differential
+harnesses under `port/rust/crates/*/harness` remain shell.
 
 ## Ported commands
 

@@ -57,13 +57,11 @@ worktree, `port-base`/`port-exported`, patch-order, `bun install` and link-deps 
 preflight, starts one JUnit reporter per shard, parses the reports, and prints the pass/fail/skip summary plus
 the added, stale and regressed ledger entries with `--update` support.
 
-The other `port/scripts/*.sh` and `port/coverage/*.sh` paths are thin wrappers: they exec
-`port/rust/target/debug/xtask` when it exists, and otherwise build once through
-`cargo run --quiet -p xtask -- <command>`. `port/scripts/reference.sh`, `rust-conformance.sh` and
-`link-deps.sh` still contain their shell implementations while the reference/TUI work is active; the first two
-are fully ported and only need to become the same wrapper. `link-deps.sh` remains the shell fallback and no
-longer uses `realpath --relative-to`. The crate's README lists every command and the harness scripts still to
-port.
+Every top-level `port/scripts/*.sh` and `port/coverage/*.sh` path is a thin wrapper: it execs
+`port/rust/target/debug/xtask`, building the crate once when the binary is absent. That includes
+`reference.sh`, `link-deps.sh` and `rust-conformance.sh`; their logic lives in the compiled crate, so macOS
+and Linux run the same code. The crate's README lists every command and the crate differential harness
+scripts that remain shell (they are self-contained checks, not part of the setup workflow).
 
 ### macOS
 
