@@ -1008,12 +1008,14 @@ tui/nav-model.test.ts › model picker: cycle recent models with f2
 tui/nav-model.test.ts › model picker: favorites
 tui/nav-model.test.ts › model picker: list, filter and pick a model without variants
 tui/nav-model.test.ts › model picker: no match and escape
+tui/nav-model.test.ts › model picker: the session keeps its own model
 tui/nav-model.test.ts › variants: /variants picks a variant
 tui/nav-model.test.ts › variants: a model without variants
 tui/nav-model.test.ts › variants: ctrl+t cycles through the variants
 tui/nav-newdesigns.test.ts › new designs: agents, sessions and help
 tui/nav-newdesigns.test.ts › new designs: home and palette
 tui/nav-newdesigns.test.ts › new designs: model picker and variants
+tui/nav-newdesigns.test.ts › new designs: settings
 tui/nav-palette.test.ts › command palette: ctrl+p again while open
 tui/nav-palette.test.ts › command palette: open a setting
 tui/nav-palette.test.ts › command palette: run help
@@ -1055,7 +1057,11 @@ tui/nav-sessions.test.ts › sessions: rename with an empty title is ignored, es
 tui/nav-sessions.test.ts › sessions: search that matches nothing
 tui/nav-sessions.test.ts › sessions: switch between sessions
 tui/nav-settings.test.ts › settings: browse every setting
+tui/nav-settings.test.ts › settings: changing tabs mode shows the tab strip in a session
+tui/nav-settings.test.ts › settings: cycle values with left, right and enter
+tui/nav-settings.test.ts › settings: numeric settings step and clamp
 tui/nav-settings.test.ts › settings: search by keyword
+tui/nav-settings.test.ts › settings: theme cycles through the theme list
 tui/nav-settings.test.ts › settings: toggle commands
 tui/nav-settings.test.ts › settings: values from the TUI config
 tui/nav-shell.test.ts › shell: ! enters shell mode, backspace leaves it
@@ -1083,8 +1089,11 @@ tui/nav-tabs.test.ts › tabs: opening sessions adds tabs
 tui/nav-tabs.test.ts › tabs: select by number
 tui/nav-tabs.test.ts › tabs: vertical layout
 tui/nav-theme.test.ts › themes: /themes slash command
+tui/nav-theme.test.ts › themes: an unknown configured theme falls back to opencode
 tui/nav-theme.test.ts › themes: browse, filter and pick a theme
 tui/nav-theme.test.ts › themes: configured theme and light mode
+tui/nav-theme.test.ts › themes: custom themes from the project
+tui/nav-theme.test.ts › themes: escape restores the previous theme
 tui/nav-theme.test.ts › themes: system theme
 tui/nav-theme.test.ts › themes: theme mode lock and dark/light switch commands
 tui/nav-toasts.test.ts › toasts: deleting a session that was deleted meanwhile
